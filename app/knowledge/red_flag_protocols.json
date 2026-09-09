@@ -1,0 +1,329 @@
+{
+  "_meta": {
+    "version": "2.3.0",
+    "effective_from": "2026-09-09",
+    "source_references": [
+      "Manchester Triage System (MTS)",
+      "Emergency Severity Index (ESI) Implementation Handbook v4",
+      "Hướng dẫn phân loại cấp cứu Bộ Y tế Việt Nam",
+      "NICE CG150 Headaches in over 12s, section 1.1 Assessment (updated 2025)",
+      "NHS Headaches: emergency and urgent advice",
+      "NIDDK Symptoms & Causes of Indigestion (reviewed March 2025)",
+      "NIDDK Diagnosis of Indigestion (reviewed March 2025)",
+      "NICE CG184 Gastro-oesophageal reflux disease and dyspepsia in adults"
+    ]
+  },
+  "red_flag_patterns": [
+    {
+      "id": "RF-ESI1-001",
+      "category": "cardiac_arrest_resuscitation",
+      "patterns_vi": [
+        "ngừng tuần hoàn", "ngừng tim", "thở ngáp cá", "hôn mê sâu", "hôn mê",
+        "sốc mất máu", "vết thương thấu ngực", "trạng thái động kinh"
+      ],
+      "patterns_en": ["cardiac arrest", "resuscitation", "deep coma"],
+      "esi_level": 1,
+      "urgency": "EMERGENCY",
+      "specialty": {"code": "EMERGENCY", "label": "Hồi sức cấp cứu"},
+      "advice": "Tình trạng tối cấp đe dọa tính mạng! Hồi sức khẩn cấp, gọi 115 ngay lập tức.",
+      "stop_downstream": true
+    },
+    {
+      "id": "RF-ESI1-002",
+      "category": "anaphylaxis_shock",
+      "patterns_vi": [
+        "sốc phản vệ", "phản vệ", "phù mặt sau tiêm", "sưng lưỡi", "thở rít thanh quản",
+        "mẩn đỏ toàn thân kèm khó thở", "tụt huyết áp sau ăn"
+      ],
+      "patterns_en": ["anaphylaxis", "anaphylactic shock"],
+      "esi_level": 1,
+      "urgency": "EMERGENCY",
+      "specialty": {"code": "ALLERGY_IMMUNOLOGY", "label": "Dị ứng - Miễn dịch lâm sàng"},
+      "advice": "Sốc phản vệ nguy kịch! Tiêm bắp Adrenaline khẩn cấp và gọi 115 ngay lập tức.",
+      "stop_downstream": true
+    },
+    {
+      "id": "RF-ESI2-001",
+      "category": "cardiovascular_acute",
+      "patterns_vi": [
+        "đau ngực", "tức ngực", "đau ngực lan tay", "đau ngực lan cánh tay", "đau thắt ngực",
+        "hội chứng vành cấp", "nhồi máu cơ tim", "nặng ngực", "lan lên cằm", "lan lên hàm",
+        "vã mồ hôi lạnh", "thượng vị vã mồ hôi"
+      ],
+      "patterns_en": ["chest pain", "acute coronary syndrome", "angina", "cold sweat", "jaw pain"],
+      "esi_level": 2,
+      "urgency": "EMERGENCY",
+      "specialty": {"code": "CARDIOLOGY", "label": "Tim mạch"},
+      "advice": "Nghi ngờ nhồi máu cơ tim/hội chứng vành cấp. Đến khoa cấp cứu tim mạch ngay lập tức. Không tự lái xe.",
+      "stop_downstream": true
+    },
+    {
+      "id": "RF-ESI2-002",
+      "category": "stroke_neurological",
+      "patterns_vi": [
+        "yếu liệt", "méo miệng", "nói ngọng đột ngột", "nói ngọng", "nói khó", "đột quỵ",
+        "tê liệt nửa người", "liệt nửa người", "cửa sổ vàng"
+      ],
+      "patterns_en": ["stroke", "hemiparesis", "facial droop"],
+      "esi_level": 2,
+      "urgency": "EMERGENCY",
+      "specialty": {"code": "NEUROLOGY", "label": "Thần kinh"},
+      "advice": "Nghi ngờ đột quỵ não cấp trong cửa sổ vàng. Gọi cấp cứu 115 hoặc đưa ngay đến trung tâm đột quỵ gần nhất.",
+      "stop_downstream": true
+    },
+    {
+      "id": "RF-ESI2-003",
+      "category": "severe_respiratory_distress",
+      "patterns_vi": [
+        "khó thở", "khó thở dữ dội", "cơn hen", "co kéo cơ hô hấp", "thở rít", "co kéo"
+      ],
+      "patterns_en": ["severe dyspnea", "asthma attack"],
+      "esi_level": 2,
+      "urgency": "EMERGENCY",
+      "specialty": {"code": "RESPIRATORY", "label": "Hô hấp"},
+      "advice": "Suy hô hấp cấp tính. Sử dụng thuốc giãn phế quản tác dụng nhanh nếu có và đến cơ sở cấp cứu ngay.",
+      "stop_downstream": true
+    },
+    {
+      "id": "RF-ESI2-004",
+      "category": "acute_abdomen_hemorrhage",
+      "patterns_vi": [
+        "nôn ra máu", "bụng co cứng", "đau bụng dữ dội", "viêm phúc mạc", "xuất huyết tiêu hóa",
+        "phân đen", "đi ngoài phân đen", "phân màu bã cà phê", "bã cà phê"
+      ],
+      "patterns_en": ["hematemesis", "acute abdomen", "peritonitis", "melena", "coffee ground stool"],
+      "esi_level": 2,
+      "urgency": "EMERGENCY",
+      "specialty": {"code": "GASTROENTEROLOGY", "label": "Tiêu hóa"},
+      "advice": "Nghi ngờ cấp cứu ngoại khoa bụng hoặc xuất huyết tiêu hóa đang chảy máu. Cần nhập viện cấp cứu ngay.",
+      "stop_downstream": true
+    },
+    {
+      "id": "RF-ESI2-005",
+      "category": "seizure_active",
+      "patterns_vi": ["co giật", "động kinh", "giật toàn thân"],
+      "patterns_en": ["seizure", "convulsion"],
+      "esi_level": 2,
+      "urgency": "EMERGENCY",
+      "specialty": {"code": "NEUROLOGY", "label": "Thần kinh"},
+      "advice": "Đặt bệnh nhân nằm nghiêng an toàn, tránh va đập đầu. Đến cấp cứu ngay.",
+      "stop_downstream": true
+    },
+    {
+      "id": "RF-ESI2-006",
+      "category": "sudden_severe_headache",
+      "patterns_vi": [
+        "đau đầu đột ngột dữ dội",
+        "cơn đau đầu dữ dội xuất hiện đột ngột",
+        "đau đầu dữ dội nhất từ trước đến nay",
+        "đau đầu sau chấn thương đầu"
+      ],
+      "patterns_en": ["sudden severe headache", "worst headache ever", "headache after head injury"],
+      "esi_level": 2,
+      "urgency": "EMERGENCY",
+      "specialty": {"code": "NEUROLOGY", "label": "Thần kinh - Cấp cứu"},
+      "advice": "Hãy gọi cấp cứu 115 hoặc đến khoa cấp cứu ngay. Không tự lái xe nếu đang choáng, yếu, lú lẫn hoặc thị lực thay đổi.",
+      "stop_downstream": true
+    }
+  ],
+  "urgent_patterns": [
+    {
+      "id": "URG-ESI3-001",
+      "category": "urgent_medical",
+      "patterns_vi": [
+        "đau âm ỉ", "thượng vị", "ợ chua", "sốt cao", "ho có đờm", "tiểu buốt", "tiểu rắt",
+        "nước tiểu đục", "gãy xương", "biến dạng", "đau chói", "đau quặn", "sưng nề biến dạng"
+      ],
+      "esi_level": 3,
+      "urgency": "URGENT"
+    }
+  ],
+  "routine_administrative_patterns": [
+    {
+      "id": "ROUT-ESI5-001",
+      "category": "administrative_review",
+      "patterns_vi": [
+        "xin đơn thuốc", "cắt chỉ", "khám sức khỏe định kỳ", "tái khám định kỳ", "theo yêu cầu cơ quan"
+      ],
+      "esi_level": 5,
+      "urgency": "ROUTINE"
+    }
+  ],
+  "vital_sign_thresholds": [
+    {
+      "metric": "spo2",
+      "critical_below": 92,
+      "warning_below": 94,
+      "critical_urgency": "EMERGENCY",
+      "warning_urgency": "URGENT",
+      "critical_esi": 1,
+      "warning_esi": 3,
+      "detail_critical": "SpO2 rất thấp, cần đánh giá cấp cứu ngay.",
+      "detail_warning": "SpO2 thấp, cần được nhân viên y tế đánh giá sớm."
+    },
+    {
+      "metric": "systolic",
+      "critical_above": 180,
+      "warning_above": 160,
+      "critical_urgency": "EMERGENCY",
+      "warning_urgency": "URGENT",
+      "critical_esi": 2,
+      "warning_esi": 3,
+      "detail_critical": "Huyết áp tâm thu rất cao, nguy cơ tổn thương cơ quan đích.",
+      "detail_warning": "Huyết áp tâm thu cao, nên được đánh giá sớm."
+    },
+    {
+      "metric": "temperature_c",
+      "critical_above": 40.0,
+      "warning_above": 38.5,
+      "critical_urgency": "EMERGENCY",
+      "warning_urgency": "URGENT",
+      "critical_esi": 2,
+      "warning_esi": 3,
+      "detail_critical": "Sốt cực cao, nguy cơ co giật do sốt hoặc nhiễm trùng nặng.",
+      "detail_warning": "Sốt cao cần theo dõi và đánh giá thêm."
+    },
+    {
+      "metric": "heart_rate",
+      "critical_above": 150,
+      "critical_below": 40,
+      "warning_above": 120,
+      "warning_below": 50,
+      "critical_urgency": "EMERGENCY",
+      "warning_urgency": "URGENT",
+      "critical_esi": 2,
+      "warning_esi": 3,
+      "detail_critical": "Nhịp tim bất thường nghiêm trọng, cần đánh giá cấp cứu.",
+      "detail_warning": "Nhịp tim bất thường, cần được đánh giá."
+    }
+  ],
+  "symptom_guidance": [
+    {
+      "topic": "headache",
+      "keywords": ["đau đầu", "nhức đầu"],
+      "clarifying_questions": [
+        "Đau ở vị trí nào, mức độ từ 0 đến 10 và bắt đầu từ lúc nào?",
+        "Cơn đau có xuất hiện đột ngột và đạt mức dữ dội nhất trong vài phút không?",
+        "Có yếu hoặc tê một bên, méo miệng, nói khó, lú lẫn, ngất hay co giật không?",
+        "Có thay đổi thị lực rõ rệt, sốt cao kèm cứng cổ, nôn liên tục hoặc chấn thương đầu gần đây không?"
+      ],
+      "self_care": [
+        "Nếu cơn đau mới xuất hiện, không dữ dội và không có dấu hiệu cảnh báo, hãy nghỉ ở nơi yên tĩnh, uống nước từ từ và hạn chế nhìn màn hình.",
+        "Tránh rượu bia và không tự dùng đồng thời nhiều thuốc giảm đau hoặc thuốc có cùng hoạt chất."
+      ],
+      "advice": "Tiếp tục theo dõi; nếu đau không cải thiện, tái diễn hoặc ảnh hưởng sinh hoạt, hãy đặt lịch khám để được đánh giá trực tiếp.",
+      "safety_net": [
+        "Đi cấp cứu ngay nếu đau đầu xuất hiện đột ngột và rất dữ dội; hoặc kèm yếu hoặc tê một bên, méo miệng, nói khó, lú lẫn, ngất hay co giật.",
+        "Cần được đánh giá y tế sớm nếu đau tăng dần, thị lực thay đổi rõ rệt, nôn liên tục, sốt cao kèm cứng cổ hoặc xuất hiện sau chấn thương đầu."
+      ]
+    },
+    {
+      "topic": "upper_abdominal_discomfort",
+      "keywords": ["bụng cồn cào", "cồn cào", "nóng rát bụng", "khó chịu ở bụng", "đầy bụng", "nhanh no"],
+      "summary": "Cụm từ “bụng cồn cào” mô tả một cảm giác khó chịu nhưng chưa đủ để xác định nguyên nhân. Trước mắt cần làm rõ vị trí, thời điểm liên quan bữa ăn, mức độ và các triệu chứng đi kèm; kết quả hiện tại chưa ghi nhận dấu hiệu cấp cứu từ thông tin bạn đã cung cấp.",
+      "clarifying_questions": [
+        "Cảm giác nằm ở vùng trên rốn, quanh rốn hay khắp bụng; đó là đói, nóng rát, đau, đầy tức hay co thắt?",
+        "Triệu chứng bắt đầu từ khi nào, xuất hiện liên tục hay từng cơn, và thay đổi thế nào trước hoặc sau khi ăn?",
+        "Khi nói “sốt ruột”, bạn muốn nói cảm giác bồn chồn hoặc lo lắng, hay cảm giác nóng rát và cồn cào trong bụng?",
+        "Bạn có buồn nôn, nôn, đầy hơi, ợ chua, tiêu chảy, táo bón hoặc sốt không?",
+        "Có đau dữ dội liên tục, khó thở, đau ngực, nôn ra máu, đi ngoài phân đen, khó nuốt, vàng da hoặc sụt cân không chủ ý không?"
+      ],
+      "self_care": [
+        "Nếu triệu chứng nhẹ và không có dấu hiệu cảnh báo, hãy ghi lại thời điểm xuất hiện, món ăn hoặc đồ uống liên quan và các thuốc đang dùng để trao đổi khi đi khám.",
+        "Ăn chậm, tránh tạm thời những món hoặc đồ uống mà bạn nhận thấy làm triệu chứng nặng hơn; không tự dùng kéo dài thuốc dạ dày khi chưa được dược sĩ hoặc bác sĩ kiểm tra."
+      ],
+      "advice": "Nếu cảm giác kéo dài, tái diễn, tăng dần hoặc ảnh hưởng ăn uống và sinh hoạt, hãy đặt lịch khám để được đánh giá trực tiếp.",
+      "safety_net": [
+        "Đi cấp cứu ngay nếu đau bụng dữ dội và liên tục, khó thở, đau ngực hoặc đau lan hàm, cổ hay tay, nôn ra máu hoặc đi ngoài phân đen.",
+        "Cần được khám sớm nếu nôn thường xuyên, khó hoặc đau khi nuốt, vàng da, chán ăn hoặc sụt cân không chủ ý."
+      ]
+    },
+    {
+      "topic": "abdominal_pain",
+      "keywords": ["đau bụng", "đau ở bụng", "đau vùng bụng"],
+      "summary": "Đau bụng có nhiều nguyên nhân và chưa thể xác định nguyên nhân chỉ từ mô tả hiện tại. Việc cần làm trước tiên là xác định vị trí, mức đau, thời điểm khởi phát, diễn tiến và các triệu chứng đi kèm để chọn mức độ chăm sóc phù hợp.",
+      "clarifying_questions": [
+        "Đau ở vùng trên hay dưới bụng, bên trái, bên phải hay quanh rốn; mức đau từ 0 đến 10 là bao nhiêu?",
+        "Đau bắt đầu từ khi nào, liên tục hay từng cơn, và đang giảm, giữ nguyên hay tăng nhanh?",
+        "Bạn có sốt, buồn nôn hoặc nôn, tiêu chảy, táo bón, tiểu buốt, chướng hoặc cứng bụng không?",
+        "Có ngất hoặc rất yếu, khó thở, nôn liên tục, nôn ra máu, đi ngoài ra máu hoặc phân đen không?"
+      ],
+      "self_care": [
+        "Nếu đau nhẹ, chưa tăng và không có dấu hiệu cảnh báo, hãy nghỉ ngơi, uống từng ngụm nước và theo dõi vị trí cùng mức đau.",
+        "Tạm tránh rượu bia và những thức ăn bạn nhận thấy làm triệu chứng nặng hơn; không tự dùng thuốc giảm đau hoặc thuốc tiêu hóa kéo dài khi chưa rõ nguyên nhân."
+      ],
+      "advice": "Nếu đau không giảm, tái diễn, tăng lên hoặc kèm sốt, nôn hay thay đổi đại tiện, hãy được cơ sở y tế đánh giá trực tiếp trong ngày.",
+      "safety_net": [
+        "Đi cấp cứu ngay nếu đau dữ dội hoặc tăng nhanh, bụng cứng hay chướng nhiều, ngất hoặc rất yếu, khó thở, nôn liên tục hoặc nôn ra máu, đi ngoài ra máu hay phân đen.",
+        "Cần được đánh giá khẩn nếu đau khu trú rõ, đặc biệt vùng bụng dưới bên phải, hoặc đau kèm sốt cao và diễn tiến xấu đi."
+      ]
+    }
+  ],
+  "specialty_routing": [
+    {
+      "specialty": {"code": "CARDIOLOGY", "label": "Tim mạch"},
+      "keywords": ["tim", "huyết áp", "đánh trống ngực", "hồi hộp", "mạch nhanh"],
+      "confidence": 0.95
+    },
+    {
+      "specialty": {"code": "RESPIRATORY", "label": "Hô hấp"},
+      "keywords": ["phổi", "ho", "đờm", "viêm phế quản", "hen", "suyễn"],
+      "confidence": 0.95
+    },
+    {
+      "specialty": {"code": "GASTROENTEROLOGY", "label": "Tiêu hóa"},
+      "keywords": ["dạ dày", "ruột", "tiêu chảy", "đau bụng", "cồn cào", "đầy bụng", "buồn nôn", "nôn", "ợ chua", "trĩ", "thượng vị"],
+      "confidence": 0.95
+    },
+    {
+      "specialty": {"code": "NEUROLOGY", "label": "Thần kinh"},
+      "keywords": ["đau đầu", "chóng mặt", "mất ngủ", "tê bì", "co giật", "động kinh"],
+      "confidence": 0.95
+    },
+    {
+      "specialty": {"code": "DERMATOLOGY", "label": "Da liễu"},
+      "keywords": ["ngứa", "phát ban", "mẩn đỏ", "mụn", "viêm da", "dị ứng da"],
+      "confidence": 0.95
+    },
+    {
+      "specialty": {"code": "ORTHOPEDICS", "label": "Cơ xương khớp"},
+      "keywords": ["đau khớp", "gãy xương", "bong gân", "đau lưng", "thoái hóa khớp", "trẹo cổ chân"],
+      "confidence": 0.95
+    },
+    {
+      "specialty": {"code": "ENDOCRINOLOGY", "label": "Nội tiết"},
+      "keywords": ["tiểu đường", "đái tháo đường", "tuyến giáp", "đường huyết", "bướu cổ"],
+      "confidence": 0.95
+    },
+    {
+      "specialty": {"code": "NEPHROLOGY", "label": "Thận - Tiết niệu"},
+      "keywords": ["thận", "tiểu buốt", "tiểu rắt", "tiểu ra máu", "sỏi thận"],
+      "confidence": 0.95
+    },
+    {
+      "specialty": {"code": "OTORHINOLARYNGOLOGY", "label": "Tai Mũi Họng"},
+      "keywords": ["đau họng", "viêm họng", "ngạt mũi", "chảy nước mũi", "đau tai", "ù tai"],
+      "confidence": 0.95
+    },
+    {
+      "specialty": {"code": "OPHTHALMOLOGY", "label": "Mắt"},
+      "keywords": ["đau mắt", "đỏ mắt", "mắt mờ", "cộm mắt", "chảy nước mắt"],
+      "confidence": 0.95
+    },
+    {
+      "specialty": {"code": "ALLERGY_IMMUNOLOGY", "label": "Dị ứng - Miễn dịch"},
+      "keywords": ["dị ứng", "phản vệ", "sốc phản vệ"],
+      "confidence": 0.95
+    },
+    {
+      "specialty": {"code": "SURGERY", "label": "Ngoại khoa"},
+      "keywords": ["vết mổ", "cắt chỉ", "khâu vết thương", "viêm ruột thừa", "áp xe"],
+      "confidence": 0.95
+    },
+    {
+      "specialty": {"code": "PSYCHIATRY", "label": "Sức khỏe tâm thần"},
+      "keywords": ["trầm cảm", "lo âu", "hoảng loạn", "stress"],
+      "confidence": 0.95
+    }
+  ]
+}

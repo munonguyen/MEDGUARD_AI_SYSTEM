@@ -1,0 +1,36 @@
+{
+  "_meta": {
+    "version": "2026.09-crawled-v1",
+    "description": "Cleaned, PII-scrubbed clinical guidelines from authoritative web sources",
+    "total_guidelines": 3
+  },
+  "guidelines": [
+    {
+      "guideline_id": "GL-nice_clinical_guidelines_guidancecg150-indication",
+      "topic": "Overview | Headaches in over 12s: diagnosis and management | Guidance | NICE",
+      "section": "indication",
+      "content": "-\n\n#\n\nClinical guideline\n\n-  Reference number:  CG150\n\n-\n\nPublished:&nbsp;\n\n19 September 2012\n\n-\n\nLast updated:&nbsp;\n\n03 June 2025\n\nDownload guidance (PDF)\n\nThis guideline covers the diagnosis and management of tension-type headache, migraine (including migraine with aura and menstrual-related migraine), cluster headache and medication overuse headache in young people (aged 12 years and older) and adults. It aims to improve the recognition and management of headaches, with more targeted treatment to improve the quality of life for people with headaches, and to reduce unnecessary investigations.\n\n&nbsp;  MHRA advice on topiramate:  Recommendations on topiramate have taken into account the  MHRA advice on the use of topiramate . Topiramate should not be used for migraine prophylaxis in pregnancy, or in women of childbearing potential unless the conditions of the Pregnancy Prevention Programme are fulfilled.\n\nLast reviewed:  1 December 2025\n\nWe reviewed this guideline and will update recommendations in the section on management. See the  surveillance decision  for further details. See the  guideline in development page  for progress on the update.\n\nNext review: &nbsp;This guideline will be reviewed if there is new evidence that is likely to change the recommendations.\n\nHow we prioritise updating our guidance\n\nDecisions about updating our guidance are made by NICE&rsquo;s prioritisation board. For more information on the principles and process, see&nbsp; NICE-wide topic prioritisation: the manual .\n\nFor information about individual topics, including any decisions affecting this guideline, see the&nbsp; summary table of prioritisation board decisions .\n\n-  assessment\n\n-  diagnosis\n\nSee the&nbsp; 1-page visual summary on prophylaxis of migraine with or without aura .\n\n### Who is it for?\n\n- Healthcare professionals who provide care for young people and adults with headaches\n\n- Young people (12 years and older) and adults with headaches, and their families and carers. Particular consideration is given to the needs of people of reproductive age&nbsp;\n\n### Guideline development process\n\nHow we develop NICE guidelines\n\nThis guideline was previously called headaches: diagnosis and management of headaches in young people and adults.\n\nYour responsibility\n\nThe recommendations in this guideline represent the view of NICE, arrived at after careful consideration of the evidence available. When exercising their judgement, professionals and practitioners are expected to take this guideline fully into account, alongside the individual needs, preferences and values of their patients or the people using their service. It is not mandatory to apply the recommendations, and the guideline does not override the responsibility to make decisions appropriate to the circumstances of the individual, in consultation with them and their families and carers or guardian.\n\nAll problems (adverse events) related to a medicine or medical device used for treatment or in a procedure should be reported to the Medicines and Healthcare products Regulatory Agency using the  Yellow Card Scheme .\n\nLocal commissioners and providers of healthcare have a responsibility to enable the guideline to be applied when individual professionals and people using services wish to use it. They should do so in the context of local and national priorities for funding and developing services, and in light of their duties to have due regard to the need to eliminate unlawful discrimination, to advance e",
+      "source_uri": "https://www.nice.org.uk/guidance/cg150",
+      "source_authority": "nice_clinical_guidelines",
+      "updated_at": "2026-09-09"
+    },
+    {
+      "guideline_id": "GL-who_model_formulary_publicationsiitem9789241547451-indication",
+      "topic": "Manual of diagnostic ultrasound /&#160; 2nd ed. Vol 1",
+      "section": "indication",
+      "content": "The World Health Organization (WHO) recognizes ultrasound as an important medical\n\ndiagnostic imaging technology. Manuals on ultrasound have been published by WHO\n\nsince 2001, with the purpose of guiding health professionals on the safe and effective\n\nuse of ultrasound. Among the diagnostic imaging technologies, ultrasound is the safer\n\nand least expensive, and technological advances are making it more user friendly and\n\nportable. Ultrasound has many uses, both diagnostic and therapeutic. For the purposes\n\nof this manual, only diagnostic ultrasound will be considered and further analysed.\n\nEditors\n\nHarald Lutz, Elisabetta Buscarini\n\nNumber of pages\n\n430\n\nReference numbers\n\nISBN:   9789241547451\n\nCopyright\n\nWorld Health Organization",
+      "source_uri": "https://www.who.int/publications/i/item/9789241547451",
+      "source_authority": "who_model_formulary",
+      "updated_at": "2026-09-09"
+    },
+    {
+      "guideline_id": "GL-moh_treatment_guidelines_huong_dan_dieu_tri-general",
+      "topic": "Page not found",
+      "section": "general",
+      "content": "Page not found\n\n# 404\n\n###    Page not found!\n\nXin lỗi! Liên kết không tồn tại hoặc nội dung không hợp lệ.\n\nQuay lại trang chủ",
+      "source_uri": "https://kcb.vn/huong-dan-dieu-tri",
+      "source_authority": "moh_treatment_guidelines",
+      "updated_at": "2026-09-09"
+    }
+  ]
+}

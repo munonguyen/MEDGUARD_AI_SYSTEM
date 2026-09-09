@@ -1,0 +1,87 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "effective_from": "2026-09-07",
+    "source_references": [
+      "Dược thư Quốc gia Việt Nam — chống chỉ định",
+      "WHO Model Formulary",
+      "BNF (British National Formulary) contraindication patterns"
+    ],
+    "disclaimer": "Development fixture. Must be validated by clinical pharmacist before production use.",
+    "approved_by": "[PENDING — requires clinical pharmacist review]"
+  },
+  "contraindications": [
+    {
+      "id": "CI-001",
+      "medication_group": "NSAID",
+      "medications": ["ibuprofen", "naproxen", "diclofenac", "piroxicam", "meloxicam", "ketorolac", "indomethacin"],
+      "conditions": ["loét dạ dày", "xuất huyết tiêu hóa", "suy thận nặng", "suy thận", "suy gan nặng"],
+      "severity": "HIGH",
+      "tier": "HARD_STOP",
+      "detail": "NSAID chống chỉ định ở bệnh nhân loét dạ dày hoạt động, suy thận nặng hoặc xuất huyết tiêu hóa. Nguy cơ xuất huyết, suy thận cấp.",
+      "recommendation": "Thay thế bằng paracetamol cho giảm đau. Nếu cần kháng viêm, cân nhắc corticoid ngắn ngày với bảo vệ dạ dày.",
+      "basis": "structured_table",
+      "confidence": 0.95
+    },
+    {
+      "id": "CI-002",
+      "medication_group": "ACE Inhibitor",
+      "medications": ["enalapril", "lisinopril", "captopril", "perindopril", "ramipril"],
+      "conditions": ["mang thai", "phù mạch", "hẹp động mạch thận hai bên"],
+      "severity": "HIGH",
+      "tier": "HARD_STOP",
+      "detail": "ACE inhibitor chống chỉ định tuyệt đối ở phụ nữ mang thai (gây quái thai) và phù mạch do ACE inhibitor.",
+      "recommendation": "Thai kỳ: thay bằng methyldopa hoặc nifedipine. Phù mạch: không dùng lại ACE/ARB.",
+      "basis": "structured_table",
+      "confidence": 0.97
+    },
+    {
+      "id": "CI-003",
+      "medication_group": "Metformin",
+      "medications": ["metformin", "glucophage"],
+      "conditions": ["suy thận nặng", "suy gan nặng", "nhiễm toan", "suy tim mất bù"],
+      "severity": "HIGH",
+      "tier": "HARD_STOP",
+      "detail": "Metformin chống chỉ định khi eGFR < 30 ml/phút hoặc tình trạng giảm tưới máu mô. Nguy cơ toan lactic.",
+      "recommendation": "Chuyển sang insulin hoặc thuốc tiểu đường không qua thận.",
+      "basis": "structured_table",
+      "confidence": 0.94
+    },
+    {
+      "id": "CI-004",
+      "medication_group": "Statin",
+      "medications": ["simvastatin", "atorvastatin", "rosuvastatin", "lovastatin", "pravastatin"],
+      "conditions": ["mang thai", "cho con bú", "bệnh gan hoạt động", "tăng men gan không rõ nguyên nhân"],
+      "severity": "HIGH",
+      "tier": "HARD_STOP",
+      "detail": "Statin chống chỉ định ở phụ nữ mang thai/cho con bú và bệnh gan hoạt động.",
+      "recommendation": "Ngưng statin trong thai kỳ. Bệnh gan: đánh giá lại sau khi men gan ổn định.",
+      "basis": "structured_table",
+      "confidence": 0.93
+    },
+    {
+      "id": "CI-005",
+      "medication_group": "Beta-blocker",
+      "medications": ["propranolol", "atenolol", "metoprolol", "bisoprolol", "carvedilol"],
+      "conditions": ["hen suyễn", "hen phế quản", "block nhĩ thất", "nhịp chậm nặng"],
+      "severity": "MODERATE",
+      "tier": "SOFT_STOP",
+      "detail": "Beta-blocker không chọn lọc chống chỉ định ở hen suyễn (gây co thắt phế quản). Chẹn beta chọn lọc (bisoprolol) thận trọng hơn.",
+      "recommendation": "Hen suyễn: tránh beta-blocker không chọn lọc; cân nhắc bisoprolol liều thấp nếu có chỉ định tim mạch mạnh.",
+      "basis": "structured_table",
+      "confidence": 0.90
+    },
+    {
+      "id": "CI-006",
+      "medication_group": "Isotretinoin",
+      "medications": ["isotretinoin", "accutane", "roaccutane"],
+      "conditions": ["mang thai", "đang cho con bú", "suy gan nặng", "tăng lipid máu nặng"],
+      "severity": "HIGH",
+      "tier": "HARD_STOP",
+      "detail": "Isotretinoin gây quái thai nghiêm trọng. Chống chỉ định tuyệt đối ở phụ nữ mang thai hoặc có khả năng mang thai không dùng biện pháp tránh thai hiệu quả.",
+      "recommendation": "Phải có xét nghiệm thai âm tính trước khi bắt đầu. Dùng 2 biện pháp tránh thai đồng thời.",
+      "basis": "structured_table",
+      "confidence": 0.98
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+-r requirements.txt
+
+# Resolve and lock these together on the target CUDA image before training.
+torch
+transformers
+datasets
+accelerate
+bitsandbytes
+peft
+trl

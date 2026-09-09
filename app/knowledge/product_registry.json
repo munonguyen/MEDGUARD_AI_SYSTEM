@@ -1,0 +1,40 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "effective_from": "2026-09-08",
+    "approved_by": "[PENDING - requires manufacturer and regulator integration]",
+    "purpose": "Development fixture for QR registry matching. A match does not prove physical authenticity."
+  },
+  "products": [
+    {
+      "product_code": "MG-AMOX-500",
+      "gtin": "08960001000017",
+      "name": "Amoxicillin 500mg",
+      "manufacturer": "MedGuard Demo Pharma",
+      "authorized_serials": ["VN24A001", "VN24A002"],
+      "lots": ["AMX2409"],
+      "expires_on": "2027-09-30",
+      "status": "active"
+    },
+    {
+      "product_code": "MG-ASP-81",
+      "gtin": "08960001000024",
+      "name": "Aspirin 81mg",
+      "manufacturer": "MedGuard Demo Pharma",
+      "authorized_serials": ["VN24B101"],
+      "lots": ["ASP2410"],
+      "expires_on": "2027-10-31",
+      "status": "active"
+    },
+    {
+      "product_code": "MG-RECALL-001",
+      "gtin": "08960001000031",
+      "name": "Demo recalled medicine",
+      "manufacturer": "MedGuard Demo Pharma",
+      "authorized_serials": ["VN23R001"],
+      "lots": ["RCL2301"],
+      "expires_on": "2026-12-31",
+      "status": "recalled"
+    }
+  ]
+}

@@ -1,0 +1,464 @@
+{
+  "_meta": {
+    "version": "2.0.0",
+    "effective_from": "2026-09-07",
+    "source_references": [
+      "Dược thư Quốc gia Việt Nam (VNDTF 2022)",
+      "WHO ATC Classification System & Drug Interaction Guidelines",
+      "Quyết định 5948/QĐ-BYT ban hành Danh mục tương tác thuốc chống chỉ định trong thực hành lâm sàng",
+      "British National Formulary (BNF 85) Appendix 1: Interactions"
+    ]
+  },
+  "interactions": [
+    {
+      "pair": ["sildenafil", "nitroglycerin"],
+      "severity": "HARD_STOP",
+      "mechanism": "Ức chế PDE-5 kết hợp với chất cho nitơ oxit làm tăng cGMP vượt ngưỡng, giãn mạch toàn thân đột ngột",
+      "clinical_consequence": "Hạ huyết áp tư thế nghiêm trọng, nguy cơ trụy mạch, nhồi máu cơ tim hoặc tử vong.",
+      "action": "Chống chỉ định tuyệt đối phối hợp. Không dùng Nitrate trong vòng tối thiểu 24 giờ sau Sildenafil.",
+      "evidence_level": "A",
+      "atc_classes": ["G04BE", "C01DA"]
+    },
+    {
+      "pair": ["tadalafil", "nitroglycerin"],
+      "severity": "HARD_STOP",
+      "mechanism": "Ức chế PDE-5 kéo dài kết hợp với nhóm Nitrate",
+      "clinical_consequence": "Hạ huyết áp kịch phát đe dọa tính mạng.",
+      "action": "Chống chỉ định tuyệt đối phối hợp. Không dùng Nitrate trong vòng 48 giờ sau Tadalafil.",
+      "evidence_level": "A",
+      "atc_classes": ["G04BE", "C01DA"]
+    },
+    {
+      "pair": ["simvastatin", "clarithromycin"],
+      "severity": "HARD_STOP",
+      "mechanism": "Clarithromycin là chất ức chế mạnh CYP3A4, làm tăng nồng độ Simvastatin tự do trong huyết tương từ 10-12 lần",
+      "clinical_consequence": "Tổn thương cơ vân nghiêm trọng, tiêu cơ vân cấp (rhabdomyolysis), suy thận cấp do myoglobin niệu.",
+      "action": "Chống chỉ định tuyệt đối. Tạm ngừng Simvastatin trong thời gian điều trị Clarithromycin hoặc chuyển kháng sinh khác.",
+      "evidence_level": "A",
+      "atc_classes": ["C10AA", "J01FA"]
+    },
+    {
+      "pair": ["simvastatin", "ketoconazole"],
+      "severity": "HARD_STOP",
+      "mechanism": "Ketoconazole ức chế cực mạnh CYP3A4 làm tăng nồng độ statin trong huyết tương",
+      "clinical_consequence": "Tiêu cơ vân cấp, suy thận cấp tử vong.",
+      "action": "Chống chỉ định phối hợp.",
+      "evidence_level": "A",
+      "atc_classes": ["C10AA", "J02AB"]
+    },
+    {
+      "pair": ["methotrexate", "aspirin"],
+      "severity": "HARD_STOP",
+      "mechanism": "Aspirin/Salicylate cạnh tranh đào thải Methotrexate tại ống thận và đẩy Methotrexate khỏi protein huyết tương",
+      "clinical_consequence": "Nhiễm độc Methotrexate nghiêm trọng: ức chế tủy xương, giảm bạch cầu/tiểu cầu nặng, loét tiêu hóa hoại tử.",
+      "action": "Chống chỉ định phối hợp với liều cao Methotrexate. Cực kỳ thận trọng và theo dõi nồng độ thuốc ở liều thấp.",
+      "evidence_level": "A",
+      "atc_classes": ["L01BA", "B01AC"]
+    },
+    {
+      "pair": ["methotrexate", "ibuprofen"],
+      "severity": "HARD_STOP",
+      "mechanism": "NSAID làm giảm độ thanh thải qua thận của Methotrexate do ức chế prostaglandin tại cầu thận",
+      "clinical_consequence": "Tăng độc tính Methotrexate, suy tủy xương cấp tính, suy thận cấp.",
+      "action": "Tránh dùng NSAIDs cùng ngày với Methotrexate.",
+      "evidence_level": "A",
+      "atc_classes": ["L01BA", "M01AE"]
+    },
+    {
+      "pair": ["linezolid", "fluoxetine"],
+      "severity": "HARD_STOP",
+      "mechanism": "Linezolid là chất ức chế MAO không chọn lọc kết hợp với SSRI làm tăng serotonin đột ngột ở synap thần kinh",
+      "clinical_consequence": "Hội chứng Serotonin (sốt cao, co cứng cơ, giật rung cơ, ảo giác, hôn mê, tử vong).",
+      "action": "Chống chỉ định phối hợp. Ngừng Fluoxetine tối thiểu 2 tuần trước khi dùng Linezolid.",
+      "evidence_level": "A",
+      "atc_classes": ["J01XX", "N06AB"]
+    },
+    {
+      "pair": ["linezolid", "sertraline"],
+      "severity": "HARD_STOP",
+      "mechanism": "Ức chế chuyển hóa Serotonin gây tích tụ quá mức tại thụ thể 5-HT",
+      "clinical_consequence": "Hội chứng Serotonin cấp tính đe dọa tính mạng.",
+      "action": "Chống chỉ định tuyệt đối.",
+      "evidence_level": "A",
+      "atc_classes": ["J01XX", "N06AB"]
+    },
+    {
+      "pair": ["allopurinol", "azathioprine"],
+      "severity": "HARD_STOP",
+      "mechanism": "Allopurinol ức chế xanthine oxidase - enzyme chịu trách nhiệm chuyển hóa bất hoạt 6-mercaptopurine (chất chuyển hóa của azathioprine)",
+      "clinical_consequence": "Suy tủy xương nặng, giảm toàn thể huyết cầu gây xuất huyết và nhiễm trùng cơ hội đe dọa tính mạng.",
+      "action": "Chống chỉ định hoặc phải giảm liều Azathioprine xuống còn 1/4 liều ban đầu và theo dõi công thức máu liên tục.",
+      "evidence_level": "A",
+      "atc_classes": ["M04AA", "L04AX"]
+    },
+    {
+      "pair": ["metformin", "iodinated_contrast"],
+      "severity": "HARD_STOP",
+      "mechanism": "Thuốc cản quang iod đường tiêm mạch có thể gây suy thận cấp, làm tích lũy Metformin",
+      "clinical_consequence": "Nhiễm toan acid lactic nghiêm trọng, tỷ lệ tử vong lên tới 50%.",
+      "action": "Ngừng Metformin tại thời điểm hoặc trước khi chụp cản quang, chỉ dùng lại sau 48h khi chức năng thận bình thường.",
+      "evidence_level": "A",
+      "atc_classes": ["A10BA", "V08AB"]
+    },
+    {
+      "pair": ["warfarin", "aspirin"],
+      "severity": "SOFT_STOP",
+      "mechanism": "Tác dụng hiệp đồng chống đông (kháng vitamin K + ức chế ngưng tập tiểu cầu) kèm tổn thương niêm mạc dạ dày do aspirin",
+      "clinical_consequence": "Tăng nguy cơ xuất huyết nặng, đặc biệt là xuất huyết tiêu hóa trên và xuất huyết nội sọ.",
+      "action": "Chỉ phối hợp khi có chỉ định tim mạch đặc biệt (van tim cơ học, sau đặt stent mạch vành). Theo dõi INR chặt chẽ.",
+      "evidence_level": "A",
+      "atc_classes": ["B01AA", "B01AC"]
+    },
+    {
+      "pair": ["warfarin", "ibuprofen"],
+      "severity": "HARD_STOP",
+      "mechanism": "Ibuprofen ức chế COX-1 bảo vệ niêm mạc dạ dày, kháng tiểu cầu có hồi phục, đẩy Warfarin khỏi albumin",
+      "clinical_consequence": "Xuất huyết tiêu hóa ồ ạt, tăng INR khó kiểm soát.",
+      "action": "Chống chỉ định tương đối; ưu tiên Paracetamol cho giảm đau hoặc dùng thuốc bảo vệ dạ dày PPI nếu bắt buộc.",
+      "evidence_level": "A",
+      "atc_classes": ["B01AA", "M01AE"]
+    },
+    {
+      "pair": ["warfarin", "ciprofloxacin"],
+      "severity": "SOFT_STOP",
+      "mechanism": "Ciprofloxacin ức chế enzyme CYP1A2 và CYP3A4 chịu trách nhiệm chuyển hóa R-warfarin, đồng thời diệt vi khuẩn ruột tổng hợp Vitamin K",
+      "clinical_consequence": "Kéo dài thời gian prothrombin, tăng INR đột ngột dẫn đến chảy máu tự phát.",
+      "action": "Theo dõi sát chỉ số INR khi bắt đầu và kết thúc kháng sinh. Giảm liều Warfarin dự phòng nếu cần.",
+      "evidence_level": "B",
+      "atc_classes": ["B01AA", "J01MA"]
+    },
+    {
+      "pair": ["warfarin", "metronidazole"],
+      "severity": "HARD_STOP",
+      "mechanism": "Metronidazole ức chế mạnh CYP2C9, làm giảm đào thải đồng phân có hoạt tính S-warfarin",
+      "clinical_consequence": "Tăng vọt INR, xuất huyết nội tạng nghiêm trọng.",
+      "action": "Giảm liều Warfarin từ 30-50% và kiểm tra INR sau 48 giờ dùng phối hợp.",
+      "evidence_level": "A",
+      "atc_classes": ["B01AA", "P01AB"]
+    },
+    {
+      "pair": ["clopidogrel", "omeprazole"],
+      "severity": "SOFT_STOP",
+      "mechanism": "Omeprazole ức chế cạnh tranh CYP2C19 - enzyme chuyển hóa Clopidogrel từ tiền dược thành dạng có hoạt tính",
+      "clinical_consequence": "Giảm tác dụng chống ngưng tập tiểu cầu của Clopidogrel, tăng nguy cơ tái huyết khối mạch vành.",
+      "action": "Khuyến cáo đổi sang Pantoprazole hoặc Rabeprazole ít ức chế CYP2C19 hơn.",
+      "evidence_level": "B",
+      "atc_classes": ["B01AC", "A02BC"]
+    },
+    {
+      "pair": ["rivaroxaban", "clarithromycin"],
+      "severity": "SOFT_STOP",
+      "mechanism": "Clarithromycin ức chế cả P-gp và CYP3A4, hai con đường đào thải Rivaroxaban",
+      "clinical_consequence": "Tăng nồng độ Rivaroxaban trong máu, tăng nguy cơ biến cố xuất huyết lớn.",
+      "action": "Tránh phối hợp; nếu cần kháng sinh macrolid chọn Azithromycin.",
+      "evidence_level": "A",
+      "atc_classes": ["B01AF", "J01FA"]
+    },
+    {
+      "pair": ["enalapril", "spironolactone"],
+      "severity": "SOFT_STOP",
+      "mechanism": "Cả hai đều giữ kali qua cơ chế ức chế hệ RAAS và đối kháng thụ thể Aldosterone",
+      "clinical_consequence": "Tăng kali huyết nghiêm trọng (>6.0 mmol/L), loạn nhịp tim thất, ngừng tim.",
+      "action": "Cần theo dõi điện giải đồ và Creatinine huyết thanh sau 1 tuần, 1 tháng và định kỳ.",
+      "evidence_level": "A",
+      "atc_classes": ["C09AA", "C03DA"]
+    },
+    {
+      "pair": ["losartan", "spironolactone"],
+      "severity": "SOFT_STOP",
+      "mechanism": "Hiệp đồng giữ kali do ức chế thụ thể AT1 và thụ thể Aldosterone",
+      "clinical_consequence": "Tăng kali huyết đe dọa tính mạng.",
+      "action": "Theo dõi sát nồng độ kali huyết và điện tâm đồ.",
+      "evidence_level": "A",
+      "atc_classes": ["C09CA", "C03DA"]
+    },
+    {
+      "pair": ["enalapril", "losartan"],
+      "severity": "HARD_STOP",
+      "mechanism": "Chẹn kép hệ Renin-Angiotensin-Aldosterone (ACEI + ARB)",
+      "clinical_consequence": "Không tăng hiệu quả bảo vệ tim mạch nhưng làm tăng vọt nguy cơ tụt huyết áp, suy thận cấp và tăng kali máu.",
+      "action": "Không phối hợp ACEI cùng ARB trong phác đồ điều trị tăng huyết áp thông thường.",
+      "evidence_level": "A",
+      "atc_classes": ["C09AA", "C09CA"]
+    },
+    {
+      "pair": ["enalapril", "ibuprofen"],
+      "severity": "SOFT_STOP",
+      "mechanism": "NSAID ức chế prostaglandin giãn mạch tại tiểu động mạch đến của thận; ACEI làm giãn tiểu động mạch đi",
+      "clinical_consequence": "Giảm áp lực lọc cầu thận đột ngột, suy thận cấp, đồng thời giảm tác dụng hạ huyết áp của Enalapril.",
+      "action": "Theo dõi chức năng thận và huyết áp; hạn chế dùng NSAID kéo dài ở bệnh nhân dùng ACEI.",
+      "evidence_level": "A",
+      "atc_classes": ["C09AA", "M01AE"]
+    },
+    {
+      "pair": ["amlodipine", "simvastatin"],
+      "severity": "SOFT_STOP",
+      "mechanism": "Amlodipine ức chế nhẹ CYP3A4, làm tăng nồng độ đỉnh và diện tích dưới đường cong của Simvastatin",
+      "clinical_consequence": "Tăng nguy cơ bệnh cơ vân và viêm gan do statin.",
+      "action": "Khuyến cáo giới hạn liều Simvastatin tối đa 20 mg/ngày khi phối hợp với Amlodipine.",
+      "evidence_level": "B",
+      "atc_classes": ["C08CA", "C10AA"]
+    },
+    {
+      "pair": ["atorvastatin", "clarithromycin"],
+      "severity": "SOFT_STOP",
+      "mechanism": "Clarithromycin ức chế CYP3A4 làm tăng nồng độ Atorvastatin tự do",
+      "clinical_consequence": "Đau cơ, tăng men cơ CPK, tiêu cơ vân.",
+      "action": "Giới hạn liều Atorvastatin tối đa 20 mg/ngày hoặc tạm ngừng trong đợt kháng sinh.",
+      "evidence_level": "A",
+      "atc_classes": ["C10AA", "J01FA"]
+    },
+    {
+      "pair": ["digoxin", "amiodarone"],
+      "severity": "SOFT_STOP",
+      "mechanism": "Amiodarone ức chế P-glycoprotein tại ống thận và đường tiêu hóa, làm giảm đào thải Digoxin",
+      "clinical_consequence": "Tăng nồng độ Digoxin gấp đôi, ngộ độc Digoxin (loạn nhịp thất, block nhĩ thất, nhìn vàng).",
+      "action": "Giảm 50% liều Digoxin khi khởi đầu Amiodarone và theo dõi nồng độ Digoxin máu.",
+      "evidence_level": "A",
+      "atc_classes": ["C01AA", "C01BD"]
+    },
+    {
+      "pair": ["digoxin", "clarithromycin"],
+      "severity": "SOFT_STOP",
+      "mechanism": "Clarithromycin ức chế P-gp tại thận và diệt Eubacterium lentum ở ruột làm giảm thoái giáng Digoxin",
+      "clinical_consequence": "Nhiễm độc Digoxin cấp tính nguy hiểm tính mạng.",
+      "action": "Theo dõi điện tâm đồ, giảm liều Digoxin và kiểm tra nồng độ thuốc trong huyết tương.",
+      "evidence_level": "A",
+      "atc_classes": ["C01AA", "J01FA"]
+    },
+    {
+      "pair": ["tramadol", "fluoxetine"],
+      "severity": "SOFT_STOP",
+      "mechanism": "Hiệp đồng tác dụng ức chế tái hấp thu serotonin và ức chế CYP2D6 chuyển hóa Tramadol",
+      "clinical_consequence": "Hội chứng Serotonin và tăng nguy cơ co giật động kinh.",
+      "action": "Thận trọng tối đa; hướng dẫn bệnh nhân nhận biết triệu chứng rung cơ, bồn chồn.",
+      "evidence_level": "B",
+      "atc_classes": ["N02AJ", "N06AB"]
+    },
+    {
+      "pair": ["diazepam", "tramadol"],
+      "severity": "SOFT_STOP",
+      "mechanism": "Hiệp đồng ức chế hệ thần kinh trung ương (GABAergic + Opioid)",
+      "clinical_consequence": "Suy hô hấp nặng, hôn mê sâu, an thần quá mức và tử vong.",
+      "action": "Hạn chế phối hợp. Sử dụng liều thấp nhất có hiệu quả và thời gian ngắn nhất.",
+      "evidence_level": "A",
+      "atc_classes": ["N05BA", "N02AJ"]
+    },
+    {
+      "pair": ["morphine", "lorazepam"],
+      "severity": "HARD_STOP",
+      "mechanism": "Tương tác ức chế thần kinh trung ương và ức chế trung tâm hô hấp tại hành não",
+      "clinical_consequence": "Ngừng thở, suy hô hấp cấp tính.",
+      "action": "Cảnh báo đen của FDA: chỉ dùng khi không có biện pháp thay thế; chuẩn bị sẵn Naloxone và Flumazenil.",
+      "evidence_level": "A",
+      "atc_classes": ["N02AA", "N05BA"]
+    },
+    {
+      "pair": ["ciprofloxacin", "calcium"],
+      "severity": "SOFT_STOP",
+      "mechanism": "Ion kim loại hóa trị II (Ca2+) tạo phức chelate không tan với phân tử fluoroquinolone trong lòng ruột",
+      "clinical_consequence": "Giảm hấp thu Ciprofloxacin từ 50-80%, dẫn đến thất bại điều trị nhiễm khuẩn.",
+      "action": "Uống Ciprofloxacin trước 2 giờ hoặc sau 4-6 giờ sau khi uống chế phẩm chứa Canxi/Antacid.",
+      "evidence_level": "A",
+      "atc_classes": ["J01MA", "A12AA"]
+    },
+    {
+      "pair": ["ciprofloxacin", "iron"],
+      "severity": "SOFT_STOP",
+      "mechanism": "Ion sắt Fe2+/Fe3+ tạo phức chelate không hấp thu với Ciprofloxacin",
+      "clinical_consequence": "Mất hoạt tính kháng sinh toàn thân.",
+      "action": "Uống cách xa nhau ít nhất 2 giờ.",
+      "evidence_level": "A",
+      "atc_classes": ["J01MA", "B03AA"]
+    },
+    {
+      "pair": ["metronidazole", "alcohol"],
+      "severity": "HARD_STOP",
+      "mechanism": "Metronidazole ức chế enzyme aldehyde dehydrogenase tương tự Disulfiram",
+      "clinical_consequence": "Tích tụ Acetaldehyde gây đỏ bừng mặt, nôn ói dữ dội, hạ huyết áp, đánh trống ngực.",
+      "action": "Kiêng rượu bia hoàn toàn trong khi dùng thuốc và tối thiểu 48 giờ sau khi hết thuốc.",
+      "evidence_level": "A",
+      "atc_classes": ["P01AB", "V03AB"]
+    },
+    {
+      "pair": ["lithium", "ibuprofen"],
+      "severity": "SOFT_STOP",
+      "mechanism": "NSAID ức chế tổng hợp prostaglandin tại thận, làm giảm độ lọc cầu thận và độ thanh thải của Lithium",
+      "clinical_consequence": "Tăng nồng độ Lithium huyết thanh gây ngộ độc: run tay, thất điều, lú lẫn, co giật.",
+      "action": "Theo dõi nồng độ Lithium huyết thanh; ưu tiên dùng Paracetamol.",
+      "evidence_level": "A",
+      "atc_classes": ["N05AN", "M01AE"]
+    },
+    {
+      "pair": ["lithium", "enalapril"],
+      "severity": "SOFT_STOP",
+      "mechanism": "ACEI làm tăng bài tiết natri tại thận, dẫn đến giữ lại bù trừ Lithium tại ống lượn gần",
+      "clinical_consequence": "Ngộ độc Lithium tiến triển.",
+      "action": "Theo dõi nồng độ Lithium máu hàng tuần trong tháng đầu điều trị phối hợp.",
+      "evidence_level": "A",
+      "atc_classes": ["N05AN", "C09AA"]
+    },
+    {
+      "pair": ["paracetamol", "alcohol"],
+      "severity": "SOFT_STOP",
+      "mechanism": "Rượu kích ứng enzyme CYP2E1 làm tăng tạo chất chuyển hóa độc NAPQI, đồng thời làm cạn kiệt glutathione gan",
+      "clinical_consequence": "Hoại tử tế bào gan cấp tính ngay cả ở liều Paracetamol thông thường.",
+      "action": "Tránh uống rượu khi đang dùng Paracetamol; không vượt quá 2-3g/ngày ở người nghiện rượu.",
+      "evidence_level": "A",
+      "atc_classes": ["N02BE", "V03AB"]
+    },
+    {
+      "pair": ["ibuprofen", "aspirin"],
+      "severity": "SOFT_STOP",
+      "mechanism": "Ibuprofen cạnh tranh vị trí gắn kết trên kênh enzyme COX-1 của tiểu cầu, ngăn cản acetyl hóa không hồi phục của Aspirin",
+      "clinical_consequence": "Làm mất tác dụng bảo vệ tim mạch chống huyết khối của Aspirin liều thấp.",
+      "action": "Uống Aspirin trước Ibuprofen ít nhất 30 phút, hoặc uống Ibuprofen sau Aspirin 8 giờ.",
+      "evidence_level": "B",
+      "atc_classes": ["M01AE", "B01AC"]
+    },
+    {
+      "pair": ["ibuprofen", "corticosteroid"],
+      "severity": "SOFT_STOP",
+      "mechanism": "Hiệp đồng loét dạ dày: Corticoid ức chế phospholipase A2 và làm chậm liền sẹo, NSAID ức chế COX-1 bảo vệ niêm mạc",
+      "clinical_consequence": "Tăng nguy cơ thủng hoặc loét dạ dày - tá tràng gấp 4-6 lần.",
+      "action": "Cần dùng kèm thuốc ức chế bơm proton (PPI) để bảo vệ dạ dày.",
+      "evidence_level": "A",
+      "atc_classes": ["M01AE", "H02AB"]
+    },
+    {
+      "pair": ["clarithromycin", "verapamil"],
+      "severity": "HARD_STOP",
+      "mechanism": "Clarithromycin ức chế CYP3A4 làm giảm giáng hóa Verapamil; cả hai đều ức chế dẫn truyền nhĩ thất",
+      "clinical_consequence": "Tụt huyết áp nặng, block tim độ 3, ngưng xoang nguy kịch.",
+      "action": "Tránh phối hợp; theo dõi điện tâm đồ liên tục.",
+      "evidence_level": "A",
+      "atc_classes": ["J01FA", "C08DA"]
+    },
+    {
+      "pair": ["clarithromycin", "quetiapine"],
+      "severity": "HARD_STOP",
+      "mechanism": "Clarithromycin ức chế chuyển hóa Quetiapine qua CYP3A4 làm tăng nồng độ Quetiapine gấp nhiều lần",
+      "clinical_consequence": "Kéo dài khoảng QT, loạn nhịp xoắn đỉnh, an thần sâu, hôn mê.",
+      "action": "Chống chỉ định phối hợp.",
+      "evidence_level": "A",
+      "atc_classes": ["J01FA", "N05AH"]
+    },
+    {
+      "pair": ["azithromycin", "amiodarone"],
+      "severity": "HARD_STOP",
+      "mechanism": "Cả hai hoạt chất đều gây kéo dài khoảng tái cực thất QT",
+      "clinical_consequence": "Nguy cơ cao gây loạn nhịp thất chết người (Torsades de pointes).",
+      "action": "Chống chỉ định phối hợp hoặc bắt buộc theo dõi monitor tim liên tục.",
+      "evidence_level": "A",
+      "atc_classes": ["J01FA", "C01BD"]
+    },
+    {
+      "pair": ["ciprofloxacin", "theophylline"],
+      "severity": "SOFT_STOP",
+      "mechanism": "Ciprofloxacin ức chế mạnh CYP1A2 - enzyme chủ yếu chuyển hóa Theophylline",
+      "clinical_consequence": "Tăng nồng độ Theophylline huyết tương, gây ngộ độc: nôn, co giật, loạn nhịp nhanh.",
+      "action": "Giảm liều Theophylline 30-50% và kiểm tra nồng độ thuốc trong máu.",
+      "evidence_level": "A",
+      "atc_classes": ["J01MA", "R03DA"]
+    },
+    {
+      "pair": ["metformin", "cimetidine"],
+      "severity": "SOFT_STOP",
+      "mechanism": "Cimetidine ức chế vận chuyển cation hữu cơ OCT2 ở ống thận làm giảm đào thải Metformin",
+      "clinical_consequence": "Tăng nồng độ Metformin trong huyết tương, tăng nguy cơ nhiễm toan acid lactic.",
+      "action": "Thay thế Cimetidine bằng PPI hoặc thuốc kháng H2 khác như Famotidine.",
+      "evidence_level": "B",
+      "atc_classes": ["A10BA", "A02BA"]
+    },
+    {
+      "pair": ["spironolactone", "potassium"],
+      "severity": "HARD_STOP",
+      "mechanism": "Bổ sung kali ở bệnh nhân đang dùng thuốc lợi tiểu giữ kali",
+      "clinical_consequence": "Tăng kali huyết cấp tính, ngừng tim đột ngột.",
+      "action": "Không bổ sung kali thường quy khi đang dùng Spironolactone trừ khi có bằng chứng hạ kali máu nặng.",
+      "evidence_level": "A",
+      "atc_classes": ["C03DA", "A12BA"]
+    },
+    {
+      "pair": ["atenolol", "verapamil"],
+      "severity": "HARD_STOP",
+      "mechanism": "Cùng tác dụng ức chế co bóp cơ tim và làm chậm dẫn truyền nút nhĩ thất (inotropic và chronotropic âm tính)",
+      "clinical_consequence": "Suy tim cấp, chậm nhịp tim nặng, trụy mạch.",
+      "action": "Chống chỉ định phối hợp chẹn beta cùng Verapamil hoặc Diltiazem đường tiêm.",
+      "evidence_level": "A",
+      "atc_classes": ["C07AB", "C08DA"]
+    },
+    {
+      "pair": ["levothyroxine", "calcium"],
+      "severity": "SOFT_STOP",
+      "mechanism": "Canxi cacbonat tạo phức hấp phụ với Levothyroxine trong môi trường acid dạ dày",
+      "clinical_consequence": "Giảm hấp thu hormon tuyến giáp, thất bại điều trị suy giáp.",
+      "action": "Uống cách xa nhau tối thiểu 4 giờ.",
+      "evidence_level": "B",
+      "atc_classes": ["H03AA", "A12AA"]
+    },
+    {
+      "pair": ["levothyroxine", "iron"],
+      "severity": "SOFT_STOP",
+      "mechanism": "Sắt tạo chelate không tan với Levothyroxine",
+      "clinical_consequence": "Giảm hiệu quả của hormon giáp, tăng chỉ số TSH.",
+      "action": "Uống cách xa nhau tối thiểu 4 giờ.",
+      "evidence_level": "B",
+      "atc_classes": ["H03AA", "B03AA"]
+    },
+    {
+      "pair": ["clopidogrel", "fluconazole"],
+      "severity": "SOFT_STOP",
+      "mechanism": "Fluconazole ức chế mạnh CYP2C19 ngăn hoạt hóa Clopidogrel",
+      "clinical_consequence": "Giảm hiệu quả chống đông, nguy cơ huyết khối tắc mạch.",
+      "action": "Cân nhắc thuốc kháng nấm thay thế.",
+      "evidence_level": "A",
+      "atc_classes": ["B01AC", "J02AC"]
+    },
+    {
+      "pair": ["gliclazide", "fluconazole"],
+      "severity": "SOFT_STOP",
+      "mechanism": "Fluconazole ức chế CYP2C9 làm kéo dài thời gian bán thải của Sulfonylurea",
+      "clinical_consequence": "Hạ đường huyết nghiêm trọng kéo dài, hôn mê hạ đường huyết.",
+      "action": "Theo dõi sát đường huyết mao mạch, giảm liều Gliclazide nếu cần.",
+      "evidence_level": "A",
+      "atc_classes": ["A10BB", "J02AC"]
+    },
+    {
+      "pair": ["methotrexate", "cotrimoxazole"],
+      "severity": "HARD_STOP",
+      "mechanism": "Cả hai đều kháng acid folic (ức chế enzyme dihydrofolate reductase) và Sulfamethoxazole đẩy Methotrexate khỏi protein",
+      "clinical_consequence": "Suy tủy xương cấp tính nghiêm trọng, hoại tử biểu bì nhiễm độc (TEN).",
+      "action": "Chống chỉ định phối hợp.",
+      "evidence_level": "A",
+      "atc_classes": ["L01BA", "J01EE"]
+    },
+    {
+      "pair": ["amiodarone", "simvastatin"],
+      "severity": "SOFT_STOP",
+      "mechanism": "Amiodarone ức chế CYP3A4 làm tăng nồng độ Simvastatin",
+      "clinical_consequence": "Tiêu cơ vân, tăng men gan.",
+      "action": "Giới hạn liều Simvastatin không quá 20mg/ngày khi dùng chung Amiodarone.",
+      "evidence_level": "A",
+      "atc_classes": ["C01BD", "C10AA"]
+    },
+    {
+      "pair": ["fluoxetine", "selegiline"],
+      "severity": "HARD_STOP",
+      "mechanism": "Phối hợp ức chế MAO và ức chế tái hấp thu Serotonin",
+      "clinical_consequence": "Hội chứng Serotonin ác tính, trụy mạch, co giật.",
+      "action": "Chống chỉ định tuyệt đối.",
+      "evidence_level": "A",
+      "atc_classes": ["N06AB", "N04BD"]
+    },
+    {
+      "pair": ["salbutamol", "propranolol"],
+      "severity": "HARD_STOP",
+      "mechanism": "Propranolol là chất chẹn beta không chọn lọc đối kháng cạnh tranh trực tiếp với tác dụng kích thích beta-2 của Salbutamol",
+      "clinical_consequence": "Co thắt phế quản cấp tính dữ dội, suy hô hấp nguy kịch ở bệnh nhân hen phế quản hoặc COPD.",
+      "action": "Chống chỉ định dùng chẹn beta không chọn lọc ở người có bệnh lý đường thở co thắt.",
+      "evidence_level": "A",
+      "atc_classes": ["R03AC", "C07AA"]
+    }
+  ]
+}

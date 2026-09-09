@@ -1,0 +1,78 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "effective_date": "2026-09-07",
+    "approved_by": "[PENDING]",
+    "purpose": "Development monitoring thresholds and metric-aware trend semantics. Clinical approval is required before production use."
+  },
+  "minimum_points_for_trend": 3,
+  "rules": [
+    {
+      "metric": "temperature_c",
+      "trend_policy": "higher_is_worse",
+      "trend_min_delta": 0.3,
+      "critical_above": 40.0,
+      "warning_above": 38.5,
+      "critical_escalation": "EMERGENCY",
+      "warning_escalation": "URGENT",
+      "detail_critical": "Sốt cực cao, cần đánh giá cấp cứu ngay.",
+      "detail_warning": "Sốt cao cần theo dõi và đánh giá thêm."
+    },
+    {
+      "metric": "spo2",
+      "trend_policy": "lower_is_worse",
+      "trend_min_delta": 1.0,
+      "critical_below": 92,
+      "warning_below": 94,
+      "critical_escalation": "EMERGENCY",
+      "warning_escalation": "URGENT",
+      "detail_critical": "SpO2 rất thấp, cần đánh giá cấp cứu ngay.",
+      "detail_warning": "SpO2 thấp, cần được nhân viên y tế đánh giá sớm."
+    },
+    {
+      "metric": "systolic",
+      "trend_policy": "higher_is_worse",
+      "trend_min_delta": 5.0,
+      "critical_above": 180,
+      "warning_above": 160,
+      "critical_escalation": "EMERGENCY",
+      "warning_escalation": "URGENT",
+      "detail_critical": "Huyết áp tâm thu rất cao, nguy cơ tổn thương cơ quan đích.",
+      "detail_warning": "Huyết áp tâm thu cao, nên được đánh giá sớm."
+    },
+    {
+      "metric": "diastolic",
+      "trend_policy": "higher_is_worse",
+      "trend_min_delta": 5.0,
+      "critical_above": 120,
+      "critical_escalation": "EMERGENCY",
+      "detail_critical": "Huyết áp tâm trương nằm trong vùng nguy cơ cao."
+    },
+    {
+      "metric": "heart_rate",
+      "trend_policy": "range_dependent",
+      "trend_min_delta": 5.0,
+      "critical_above": 150,
+      "critical_below": 40,
+      "warning_above": 120,
+      "warning_below": 50,
+      "critical_escalation": "EMERGENCY",
+      "warning_escalation": "URGENT",
+      "detail_critical": "Nhịp tim bất thường nghiêm trọng, cần đánh giá cấp cứu.",
+      "detail_warning": "Nhịp tim bất thường, cần được đánh giá."
+    },
+    {
+      "metric": "pain_score",
+      "trend_policy": "higher_is_worse",
+      "trend_min_delta": 1.0,
+      "warning_above": 7,
+      "warning_escalation": "CLINIC",
+      "detail_warning": "Mức đau còn cao, nên đánh giá lại sớm."
+    },
+    {
+      "metric": "glucose_mg_dl",
+      "trend_policy": "range_dependent",
+      "trend_min_delta": 10.0
+    }
+  ]
+}

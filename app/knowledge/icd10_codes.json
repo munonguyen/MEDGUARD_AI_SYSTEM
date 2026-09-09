@@ -1,0 +1,183 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "effective_from": "2026-09-07",
+    "source_references": [
+      "Bộ Y tế Việt Nam — Danh mục mã phân loại quốc tế về bệnh tật ICD-10",
+      "WHO International Classification of Diseases 10th Revision"
+    ]
+  },
+  "icd10_directory": {
+    "I10": {
+      "code": "I10",
+      "chapter": "IX",
+      "specialty": "CARDIOLOGY",
+      "name_vi": "Tăng huyết áp vô căn (nguyên phát)",
+      "name_en": "Essential (primary) hypertension",
+      "urgency_level": "ROUTINE",
+      "red_flag": false
+    },
+    "I20": {
+      "code": "I20",
+      "chapter": "IX",
+      "specialty": "CARDIOLOGY",
+      "name_vi": "Cơn đau thắt ngực",
+      "name_en": "Angina pectoris",
+      "urgency_level": "URGENT",
+      "red_flag": true
+    },
+    "I21": {
+      "code": "I21",
+      "chapter": "IX",
+      "specialty": "CARDIOLOGY",
+      "name_vi": "Nhồi máu cơ tim cấp",
+      "name_en": "Acute myocardial infarction",
+      "urgency_level": "EMERGENCY",
+      "red_flag": true
+    },
+    "I50": {
+      "code": "I50",
+      "chapter": "IX",
+      "specialty": "CARDIOLOGY",
+      "name_vi": "Suy tim",
+      "name_en": "Heart failure",
+      "urgency_level": "URGENT",
+      "red_flag": true
+    },
+    "J00": {
+      "code": "J00",
+      "chapter": "X",
+      "specialty": "RESPIRATORY",
+      "name_vi": "Viêm mũi họng cấp (cảm lạnh thông thường)",
+      "name_en": "Acute nasopharyngitis [common cold]",
+      "urgency_level": "ROUTINE",
+      "red_flag": false
+    },
+    "J06": {
+      "code": "J06",
+      "chapter": "X",
+      "specialty": "RESPIRATORY",
+      "name_vi": "Nhiễm trùng đường hô hấp trên cấp ở nhiều vị trí và không xác định",
+      "name_en": "Acute upper respiratory infections",
+      "urgency_level": "ROUTINE",
+      "red_flag": false
+    },
+    "J18": {
+      "code": "J18",
+      "chapter": "X",
+      "specialty": "RESPIRATORY",
+      "name_vi": "Viêm phổi, tác nhân không xác định",
+      "name_en": "Pneumonia, organism unspecified",
+      "urgency_level": "URGENT",
+      "red_flag": true
+    },
+    "J45": {
+      "code": "J45",
+      "chapter": "X",
+      "specialty": "RESPIRATORY",
+      "name_vi": "Hen phế quản (Suyễn)",
+      "name_en": "Asthma",
+      "urgency_level": "URGENT",
+      "red_flag": true
+    },
+    "J44": {
+      "code": "J44",
+      "chapter": "X",
+      "specialty": "RESPIRATORY",
+      "name_vi": "Bệnh phổi tắc nghẽn mạn tính (COPD)",
+      "name_en": "Chronic obstructive pulmonary disease",
+      "urgency_level": "URGENT",
+      "red_flag": true
+    },
+    "K21": {
+      "code": "K21",
+      "chapter": "XI",
+      "specialty": "GASTROENTEROLOGY",
+      "name_vi": "Bệnh trào ngược dạ dày - thực quản (GERD)",
+      "name_en": "Gastro-oesophageal reflux disease",
+      "urgency_level": "ROUTINE",
+      "red_flag": false
+    },
+    "K25": {
+      "code": "K25",
+      "chapter": "XI",
+      "specialty": "GASTROENTEROLOGY",
+      "name_vi": "Loét dạ dày",
+      "name_en": "Gastric ulcer",
+      "urgency_level": "ROUTINE",
+      "red_flag": false
+    },
+    "K35": {
+      "code": "K35",
+      "chapter": "XI",
+      "specialty": "GASTROENTEROLOGY",
+      "name_vi": "Viêm ruột thừa cấp",
+      "name_en": "Acute appendicitis",
+      "urgency_level": "EMERGENCY",
+      "red_flag": true
+    },
+    "E11": {
+      "code": "E11",
+      "chapter": "IV",
+      "specialty": "ENDOCRINOLOGY",
+      "name_vi": "Đái tháo đường không phụ thuộc insulin (Típ 2)",
+      "name_en": "Non-insulin-dependent diabetes mellitus",
+      "urgency_level": "ROUTINE",
+      "red_flag": false
+    },
+    "E10": {
+      "code": "E10",
+      "chapter": "IV",
+      "specialty": "ENDOCRINOLOGY",
+      "name_vi": "Đái tháo đường phụ thuộc insulin (Típ 1)",
+      "name_en": "Insulin-dependent diabetes mellitus",
+      "urgency_level": "ROUTINE",
+      "red_flag": false
+    },
+    "G40": {
+      "code": "G40",
+      "chapter": "VI",
+      "specialty": "NEUROLOGY",
+      "name_vi": "Động kinh",
+      "name_en": "Epilepsy",
+      "urgency_level": "URGENT",
+      "red_flag": true
+    },
+    "G45": {
+      "code": "G45",
+      "chapter": "VI",
+      "specialty": "NEUROLOGY",
+      "name_vi": "Cơn thiếu máu não thoáng qua và các hội chứng liên quan",
+      "name_en": "Transient cerebral ischaemic attacks and related syndromes",
+      "urgency_level": "EMERGENCY",
+      "red_flag": true
+    },
+    "N39.0": {
+      "code": "N39.0",
+      "chapter": "XIV",
+      "specialty": "NEPHROLOGY",
+      "name_vi": "Nhiễm trùng đường tiết niệu, vị trí không xác định",
+      "name_en": "Urinary tract infection, site not specified",
+      "urgency_level": "ROUTINE",
+      "red_flag": false
+    },
+    "M54.5": {
+      "code": "M54.5",
+      "chapter": "XIII",
+      "specialty": "MUSCULOSKELETAL",
+      "name_vi": "Đau thắt lưng",
+      "name_en": "Low back pain",
+      "urgency_level": "ROUTINE",
+      "red_flag": false
+    },
+    "A09": {
+      "code": "A09",
+      "chapter": "I",
+      "specialty": "GASTROENTEROLOGY",
+      "name_vi": "Tiêu chảy và viêm dạ dày ruột do nhiễm khuẩn",
+      "name_en": "Infectious gastroenteritis and colitis",
+      "urgency_level": "ROUTINE",
+      "red_flag": false
+    }
+  }
+}
