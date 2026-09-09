@@ -1,0 +1,19 @@
+{
+  "dataset_id": "mimic-iv-ed-demo-2.2",
+  "title": "MIMIC-IV-ED Demo 2.2",
+  "source_url": "https://physionet.org/content/mimic-iv-ed-demo/2.2/",
+  "download_base_url": "https://physionet.org/files/mimic-iv-ed-demo/2.2/",
+  "downloaded_at": "2026-09-08",
+  "license": "Open Data Commons Open Database License v1.0",
+  "classification": "external-real-world-deidentified-demo",
+  "expected_ed_stays": 222,
+  "expected_triage_rows": 222,
+  "production_evaluable": false,
+  "limitations": [
+    "Demo subset of 100 patients from one emergency department dataset.",
+    "Chief complaints are predominantly English while MedGuard rules target Vietnamese input.",
+    "Recorded acuity is not a complete clinical ground truth for MedGuard urgency decisions.",
+    "No local clinician adjudication or prospective validation has been performed."
+  ],
+  "integrity_file": "SHA256SUMS.txt"
+}

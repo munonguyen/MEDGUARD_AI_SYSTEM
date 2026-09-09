@@ -3,6 +3,9 @@ app/static/app.js linguist-generated=true
 app/static/style.css linguist-generated=true
 app/static/assets/** linguist-generated=true -diff
 
+# Preserve third-party license text verbatim without treating its spacing as source style.
+datasets/external/**/LICENSE.txt -text -whitespace
+
 # Keep repository text files normalized across development platforms.
 * text=auto
 *.sh text eol=lf

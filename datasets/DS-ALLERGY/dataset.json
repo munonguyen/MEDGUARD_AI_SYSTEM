@@ -1,0 +1,1608 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "total": 200
+  },
+  "cases": [
+    {
+      "case_id": "ALLERGY-POS-0001",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0002",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ampicillin",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0003",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "augmentin",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0004",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "cephalexin",
+      "has_allergy_conflict": true,
+      "severity": "MODERATE",
+      "relation_type": "CROSS_PARTIAL"
+    },
+    {
+      "case_id": "ALLERGY-POS-0005",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ceftriaxone",
+      "has_allergy_conflict": true,
+      "severity": "MODERATE",
+      "relation_type": "CROSS_PARTIAL"
+    },
+    {
+      "case_id": "ALLERGY-POS-0006",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "co-trimoxazole",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0007",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "bactrim",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0008",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "ibuprofen",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0009",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "meloxicam",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0010",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "diclofenac",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0011",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0012",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ampicillin",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0013",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "augmentin",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0014",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "cephalexin",
+      "has_allergy_conflict": true,
+      "severity": "MODERATE",
+      "relation_type": "CROSS_PARTIAL"
+    },
+    {
+      "case_id": "ALLERGY-POS-0015",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ceftriaxone",
+      "has_allergy_conflict": true,
+      "severity": "MODERATE",
+      "relation_type": "CROSS_PARTIAL"
+    },
+    {
+      "case_id": "ALLERGY-POS-0016",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "co-trimoxazole",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0017",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "bactrim",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0018",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "ibuprofen",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0019",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "meloxicam",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0020",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "diclofenac",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0021",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0022",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ampicillin",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0023",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "augmentin",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0024",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "cephalexin",
+      "has_allergy_conflict": true,
+      "severity": "MODERATE",
+      "relation_type": "CROSS_PARTIAL"
+    },
+    {
+      "case_id": "ALLERGY-POS-0025",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ceftriaxone",
+      "has_allergy_conflict": true,
+      "severity": "MODERATE",
+      "relation_type": "CROSS_PARTIAL"
+    },
+    {
+      "case_id": "ALLERGY-POS-0026",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "co-trimoxazole",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0027",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "bactrim",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0028",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "ibuprofen",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0029",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "meloxicam",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0030",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "diclofenac",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0031",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0032",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ampicillin",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0033",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "augmentin",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0034",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "cephalexin",
+      "has_allergy_conflict": true,
+      "severity": "MODERATE",
+      "relation_type": "CROSS_PARTIAL"
+    },
+    {
+      "case_id": "ALLERGY-POS-0035",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ceftriaxone",
+      "has_allergy_conflict": true,
+      "severity": "MODERATE",
+      "relation_type": "CROSS_PARTIAL"
+    },
+    {
+      "case_id": "ALLERGY-POS-0036",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "co-trimoxazole",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0037",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "bactrim",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0038",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "ibuprofen",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0039",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "meloxicam",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0040",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "diclofenac",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0041",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0042",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ampicillin",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0043",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "augmentin",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0044",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "cephalexin",
+      "has_allergy_conflict": true,
+      "severity": "MODERATE",
+      "relation_type": "CROSS_PARTIAL"
+    },
+    {
+      "case_id": "ALLERGY-POS-0045",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ceftriaxone",
+      "has_allergy_conflict": true,
+      "severity": "MODERATE",
+      "relation_type": "CROSS_PARTIAL"
+    },
+    {
+      "case_id": "ALLERGY-POS-0046",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "co-trimoxazole",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0047",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "bactrim",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0048",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "ibuprofen",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0049",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "meloxicam",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0050",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "diclofenac",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0051",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0052",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ampicillin",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0053",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "augmentin",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0054",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "cephalexin",
+      "has_allergy_conflict": true,
+      "severity": "MODERATE",
+      "relation_type": "CROSS_PARTIAL"
+    },
+    {
+      "case_id": "ALLERGY-POS-0055",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ceftriaxone",
+      "has_allergy_conflict": true,
+      "severity": "MODERATE",
+      "relation_type": "CROSS_PARTIAL"
+    },
+    {
+      "case_id": "ALLERGY-POS-0056",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "co-trimoxazole",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0057",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "bactrim",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0058",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "ibuprofen",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0059",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "meloxicam",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0060",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "diclofenac",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0061",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0062",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ampicillin",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0063",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "augmentin",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0064",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "cephalexin",
+      "has_allergy_conflict": true,
+      "severity": "MODERATE",
+      "relation_type": "CROSS_PARTIAL"
+    },
+    {
+      "case_id": "ALLERGY-POS-0065",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ceftriaxone",
+      "has_allergy_conflict": true,
+      "severity": "MODERATE",
+      "relation_type": "CROSS_PARTIAL"
+    },
+    {
+      "case_id": "ALLERGY-POS-0066",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "co-trimoxazole",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0067",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "bactrim",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0068",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "ibuprofen",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0069",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "meloxicam",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0070",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "diclofenac",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0071",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0072",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ampicillin",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0073",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "augmentin",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0074",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "cephalexin",
+      "has_allergy_conflict": true,
+      "severity": "MODERATE",
+      "relation_type": "CROSS_PARTIAL"
+    },
+    {
+      "case_id": "ALLERGY-POS-0075",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ceftriaxone",
+      "has_allergy_conflict": true,
+      "severity": "MODERATE",
+      "relation_type": "CROSS_PARTIAL"
+    },
+    {
+      "case_id": "ALLERGY-POS-0076",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "co-trimoxazole",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0077",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "bactrim",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0078",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "ibuprofen",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0079",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "meloxicam",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0080",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "diclofenac",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0081",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0082",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ampicillin",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0083",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "augmentin",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0084",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "cephalexin",
+      "has_allergy_conflict": true,
+      "severity": "MODERATE",
+      "relation_type": "CROSS_PARTIAL"
+    },
+    {
+      "case_id": "ALLERGY-POS-0085",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ceftriaxone",
+      "has_allergy_conflict": true,
+      "severity": "MODERATE",
+      "relation_type": "CROSS_PARTIAL"
+    },
+    {
+      "case_id": "ALLERGY-POS-0086",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "co-trimoxazole",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0087",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "bactrim",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0088",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "ibuprofen",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0089",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "meloxicam",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0090",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "diclofenac",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0091",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0092",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ampicillin",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0093",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "augmentin",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0094",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "cephalexin",
+      "has_allergy_conflict": true,
+      "severity": "MODERATE",
+      "relation_type": "CROSS_PARTIAL"
+    },
+    {
+      "case_id": "ALLERGY-POS-0095",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ceftriaxone",
+      "has_allergy_conflict": true,
+      "severity": "MODERATE",
+      "relation_type": "CROSS_PARTIAL"
+    },
+    {
+      "case_id": "ALLERGY-POS-0096",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "co-trimoxazole",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0097",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "bactrim",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0098",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "ibuprofen",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0099",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "meloxicam",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-POS-0100",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "diclofenac",
+      "has_allergy_conflict": true,
+      "severity": "HIGH",
+      "relation_type": "DIRECT_CLASS"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0001",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ciprofloxacin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0002",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0003",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "azithromycin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0004",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0005",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0006",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0007",
+      "patient_allergy": "ciprofloxacin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0008",
+      "patient_allergy": "ibuprofen",
+      "prescribed_drug": "omeprazole",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0009",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ciprofloxacin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0010",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0011",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "azithromycin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0012",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0013",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0014",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0015",
+      "patient_allergy": "ciprofloxacin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0016",
+      "patient_allergy": "ibuprofen",
+      "prescribed_drug": "omeprazole",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0017",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ciprofloxacin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0018",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0019",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "azithromycin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0020",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0021",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0022",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0023",
+      "patient_allergy": "ciprofloxacin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0024",
+      "patient_allergy": "ibuprofen",
+      "prescribed_drug": "omeprazole",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0025",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ciprofloxacin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0026",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0027",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "azithromycin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0028",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0029",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0030",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0031",
+      "patient_allergy": "ciprofloxacin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0032",
+      "patient_allergy": "ibuprofen",
+      "prescribed_drug": "omeprazole",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0033",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ciprofloxacin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0034",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0035",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "azithromycin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0036",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0037",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0038",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0039",
+      "patient_allergy": "ciprofloxacin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0040",
+      "patient_allergy": "ibuprofen",
+      "prescribed_drug": "omeprazole",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0041",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ciprofloxacin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0042",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0043",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "azithromycin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0044",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0045",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0046",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0047",
+      "patient_allergy": "ciprofloxacin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0048",
+      "patient_allergy": "ibuprofen",
+      "prescribed_drug": "omeprazole",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0049",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ciprofloxacin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0050",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0051",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "azithromycin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0052",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0053",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0054",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0055",
+      "patient_allergy": "ciprofloxacin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0056",
+      "patient_allergy": "ibuprofen",
+      "prescribed_drug": "omeprazole",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0057",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ciprofloxacin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0058",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0059",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "azithromycin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0060",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0061",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0062",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0063",
+      "patient_allergy": "ciprofloxacin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0064",
+      "patient_allergy": "ibuprofen",
+      "prescribed_drug": "omeprazole",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0065",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ciprofloxacin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0066",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0067",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "azithromycin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0068",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0069",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0070",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0071",
+      "patient_allergy": "ciprofloxacin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0072",
+      "patient_allergy": "ibuprofen",
+      "prescribed_drug": "omeprazole",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0073",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ciprofloxacin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0074",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0075",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "azithromycin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0076",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0077",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0078",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0079",
+      "patient_allergy": "ciprofloxacin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0080",
+      "patient_allergy": "ibuprofen",
+      "prescribed_drug": "omeprazole",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0081",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ciprofloxacin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0082",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0083",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "azithromycin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0084",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0085",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0086",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0087",
+      "patient_allergy": "ciprofloxacin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0088",
+      "patient_allergy": "ibuprofen",
+      "prescribed_drug": "omeprazole",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0089",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ciprofloxacin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0090",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0091",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "azithromycin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0092",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0093",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0094",
+      "patient_allergy": "aspirin",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0095",
+      "patient_allergy": "ciprofloxacin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0096",
+      "patient_allergy": "ibuprofen",
+      "prescribed_drug": "omeprazole",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0097",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "ciprofloxacin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0098",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "paracetamol",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0099",
+      "patient_allergy": "penicillin",
+      "prescribed_drug": "azithromycin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    },
+    {
+      "case_id": "ALLERGY-NEG-0100",
+      "patient_allergy": "sulfonamide",
+      "prescribed_drug": "amoxicillin",
+      "has_allergy_conflict": false,
+      "severity": "NONE",
+      "relation_type": "SAFE_ALTERNATIVE"
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "created_at": "2026-09-09",
+    "description": "Golden benchmark dataset for RAG Quality Gate evaluations (faithfulness, recall, precision, groundedness, hallucination detection)"
+  },
+  "benchmarks": [
+    {
+      "id": "BENCH-001",
+      "intent": "safety",
+      "question": "Tôi có thể uống sildenafil chung với nitroglycerin để điều trị đau thắt ngực được không?",
+      "expected_chunk_ids": ["INT-sildenafil-nitroglycerin"],
+      "key_claims": [
+        "Chống chỉ định tuyệt đối",
+        "Hạ huyết áp kịch phát",
+        "Nguy cơ tử vong hoặc nhồi máu cơ tim",
+        "Không dùng Nitrate trong vòng 24 giờ sau Sildenafil"
+      ],
+      "ground_truth": "Phối hợp sildenafil với nitroglycerin là chống chỉ định tuyệt đối. Sự kết hợp làm tăng cGMP vượt ngưỡng, giãn mạch toàn thân đột ngột dẫn đến hạ huyết áp tư thế nghiêm trọng, nguy cơ trụy mạch hoặc tử vong. Không dùng Nitrate trong vòng tối thiểu 24 giờ sau Sildenafil."
+    },
+    {
+      "id": "BENCH-002",
+      "intent": "safety",
+      "question": "Bác sĩ kê đơn clarithromycin khi tôi đang uống simvastatin 40mg hàng ngày có nguy hiểm gì không?",
+      "expected_chunk_ids": ["INT-simvastatin-clarithromycin"],
+      "key_claims": [
+        "Chống chỉ định tuyệt đối",
+        "Ức chế CYP3A4 tăng nồng độ simvastatin",
+        "Tiêu cơ vân cấp (rhabdomyolysis)",
+        "Suy thận cấp"
+      ],
+      "ground_truth": "Phối hợp simvastatin với clarithromycin là chống chỉ định tuyệt đối. Clarithromycin ức chế mạnh CYP3A4 làm tăng nồng độ simvastatin tự do từ 10-12 lần, dẫn đến tổn thương cơ vân nghiêm trọng, tiêu cơ vân cấp và suy thận cấp do myoglobin niệu."
+    },
+    {
+      "id": "BENCH-003",
+      "intent": "safety",
+      "question": "Bệnh nhân suy thận nặng eGFR dưới 30 có uống được thuốc tiểu đường metformin không?",
+      "expected_chunk_ids": ["CI-CI-003"],
+      "key_claims": [
+        "Chống chỉ định",
+        "Nguy cơ nhiễm toan lactic (lactic acidosis)"
+      ],
+      "ground_truth": "Metformin chống chỉ định ở bệnh nhân suy thận nặng do giảm đào thải gây tích lũy thuốc và nguy cơ biến chứng nhiễm toan lactic đe dọa tính mạng."
+    },
+    {
+      "id": "BENCH-004",
+      "intent": "safety",
+      "question": "Tôi có tiền sử dị ứng amoxicillin sưng phù mặt, giờ uống augmentin có được không?",
+      "expected_chunk_ids": ["ALG-AG-001"],
+      "key_claims": [
+        "Augmentin chứa amoxicillin",
+        "Dị ứng nhóm penicillin",
+        "Không được sử dụng"
+      ],
+      "ground_truth": "Bạn không được uống Augmentin vì Augmentin có thành phần chính là amoxicillin kết hợp acid clavulanic. Người có tiền sử dị ứng amoxicillin sẽ bị phản ứng dị ứng khi dùng Augmentin."
+    },
+    {
+      "id": "BENCH-005",
+      "intent": "triage",
+      "question": "Tôi bị đau tức ngực dữ dội lan ra cánh tay trái và hàm, khó thở vã mồ hôi hột.",
+      "expected_chunk_ids": ["RF-RF-ESI2-001"],
+      "key_claims": [
+        "Dấu hiệu cấp cứu khẩn cấp",
+        "Hội chứng vành cấp hoặc nhồi máu cơ tim",
+        "Gọi 115 ngay lập tức"
+      ],
+      "ground_truth": "Đây là triệu chứng báo động đỏ của hội chứng vành cấp hoặc nhồi máu cơ tim, cần được cấp cứu khẩn cấp. Hãy gọi 115 hoặc nhờ người đưa ngay đến cơ sở y tế gần nhất, tuyệt đối không tự lái xe."
+    },
+    {
+      "id": "BENCH-006",
+      "intent": "monitoring",
+      "question": "Chỉ số SpO2 đo tại nhà giảm xuống 88% kèm thở nhanh nông.",
+      "expected_chunk_ids": ["MON-spo2"],
+      "key_claims": [
+        "SpO2 dưới 90% là mức nguy hiểm",
+        "Cần cấp cứu hỗ trợ oxy y tế"
+      ],
+      "ground_truth": "Chỉ số SpO2 88% là tình trạng suy hô hấp giảm oxy máu nghiêm trọng thuộc ngưỡng cấp cứu. Cần liên hệ hỗ trợ y tế khẩn cấp 115 để được thở oxy và điều trị kịp thời."
+    }
+  ]
+}
