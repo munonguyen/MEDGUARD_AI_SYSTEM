@@ -1,0 +1,84 @@
+services:
+  vllm-answer:
+    image: ${VLLM_IMAGE:?set a tested immutable vLLM image in .env}
+    restart: unless-stopped
+    ipc: host
+    environment:
+      HF_TOKEN: ${HF_TOKEN:?set HF_TOKEN in .env}
+      VLLM_ALLOW_RUNTIME_LORA_UPDATING: "False"
+    command:
+      - --model
+      - ${ANSWER_BASE_MODEL:?set ANSWER_BASE_MODEL in .env}
+      - --revision
+      - ${ANSWER_BASE_REVISION:?set ANSWER_BASE_REVISION in .env}
+      - --enable-lora
+      - --lora-modules
+      - ${ANSWER_SERVED_MODEL:?set ANSWER_SERVED_MODEL in .env}=${ANSWER_ADAPTER_PATH:?set ANSWER_ADAPTER_PATH in .env}
+      - --api-key
+      - ${ANSWER_API_KEY:?set ANSWER_API_KEY in .env}
+      - --max-model-len
+      - "8192"
+    volumes:
+      - ../../.artifacts/models:/models:ro
+      - answer-hf-cache:/root/.cache/huggingface
+      - answer-vllm-cache:/root/.cache/vllm
+    ports:
+      - 127.0.0.1:8101:8000
+    healthcheck:
+      test: [CMD-SHELL, "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)\""]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 120s
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  vllm-verifier:
+    image: ${VLLM_IMAGE:?set a tested immutable vLLM image in .env}
+    restart: unless-stopped
+    ipc: host
+    environment:
+      HF_TOKEN: ${HF_TOKEN:?set HF_TOKEN in .env}
+      VLLM_ALLOW_RUNTIME_LORA_UPDATING: "False"
+    command:
+      - --model
+      - ${VERIFIER_BASE_MODEL:?set VERIFIER_BASE_MODEL in .env}
+      - --revision
+      - ${VERIFIER_BASE_REVISION:?set VERIFIER_BASE_REVISION in .env}
+      - --enable-lora
+      - --lora-modules
+      - ${VERIFIER_SERVED_MODEL:?set VERIFIER_SERVED_MODEL in .env}=${VERIFIER_ADAPTER_PATH:?set VERIFIER_ADAPTER_PATH in .env}
+      - --api-key
+      - ${VERIFIER_API_KEY:?set VERIFIER_API_KEY in .env}
+      - --max-model-len
+      - "8192"
+    volumes:
+      - ../../.artifacts/models:/models:ro
+      - verifier-hf-cache:/root/.cache/huggingface
+      - verifier-vllm-cache:/root/.cache/vllm
+    ports:
+      - 127.0.0.1:8102:8000
+    healthcheck:
+      test: [CMD-SHELL, "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)\""]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 120s
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+volumes:
+  answer-hf-cache:
+  answer-vllm-cache:
+  verifier-hf-cache:
+  verifier-vllm-cache:

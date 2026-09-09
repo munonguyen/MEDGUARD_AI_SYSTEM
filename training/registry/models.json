@@ -1,0 +1,8 @@
+{
+  "schema_version": "medguard.model-registry.v1",
+  "aliases": {
+    "answer": null,
+    "verifier": null
+  },
+  "models": []
+}

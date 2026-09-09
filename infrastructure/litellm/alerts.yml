@@ -1,0 +1,42 @@
+groups:
+  - name: rag_observability_alerts
+    rules:
+      - alert: RAGLowGroundedness
+        expr: medguard_rag_groundedness_score < 0.75
+        for: 5m
+        labels:
+          severity: critical
+          component: rag_eval
+        annotations:
+          summary: "RAG Groundedness score dropped below threshold (< 0.75)"
+          description: "Current groundedness score is {{ $value }}. Verifier reports potential hallucinations or unsubstantiated claims."
+
+      - alert: RAGHighHallucinationRate
+        expr: (rate(medguard_rag_hallucinations_detected_total[15m]) / (rate(medguard_llm_pipeline_total[15m]) + 0.001)) > 0.10
+        for: 5m
+        labels:
+          severity: critical
+          component: rag_eval
+        annotations:
+          summary: "RAG Hallucination rate exceeded 10% in 15 minutes"
+          description: "Hallucination detection rate is currently {{ $value | humanizePercentage }}. Immediate review required."
+
+      - alert: RAGHighFallbackRate
+        expr: (rate(medguard_rag_fallback_total[15m]) / (rate(medguard_llm_pipeline_total[15m]) + 0.001)) > 0.20
+        for: 5m
+        labels:
+          severity: warning
+          component: rag_eval
+        annotations:
+          summary: "RAG Fallback rate exceeded 20%"
+          description: "Over 20% of requests are falling back to deterministic safe answers. Check LLM gateway or retrieval staleness."
+
+      - alert: RAGHighRetrievalLatency
+        expr: medguard_rag_retrieval_latency_seconds_sum / (medguard_rag_retrieval_latency_seconds_count + 0.001) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          component: rag_retrieval
+        annotations:
+          summary: "Average RAG retrieval latency exceeded 500ms"
+          description: "Retrieval latency is {{ $value }}s. Check index size or memory pressure."
