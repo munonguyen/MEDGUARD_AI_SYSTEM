@@ -1,0 +1,124 @@
+# MedGuard Dual-Agent Configuration:
+# - Stage 1 (Answer / Writer): Google Gemini 2.5 Flash (Xử lý trả lời trước)
+# - Stage 2 (Verifier / Ban Giám Khảo): Local Ollama Qwen 2.5 (Chấm thi, thẩm định chéo độc lập)
+
+model_list:
+  # ==========================================================
+  # 1. Primary Chat & General Clinical Agents
+  # ==========================================================
+  - model_name: medguard-answer
+    litellm_params:
+      model: gemini/gemini-flash-latest
+      api_key: os.environ/GEMINI_API_KEY
+      timeout: 45
+    model_info:
+      mode: chat
+      supports_web_search: true
+      supported_environments: [development, staging, production]
+
+  - model_name: medguard-verifier
+    litellm_params:
+      model: ollama_chat/qwen2.5:3b
+      api_base: http://host.docker.internal:11434
+      timeout: 120
+      num_ctx: 8192
+    model_info:
+      mode: chat
+      role: verifier_judge
+      supports_web_search: false
+      supported_environments: [development, staging, production]
+
+  # ==========================================================
+  # 2. Specialized Clinical Domain Agents
+  # ==========================================================
+  - model_name: medguard-clinical-answer
+    litellm_params:
+      model: gemini/gemini-flash-latest
+      api_key: os.environ/GEMINI_API_KEY
+      timeout: 45
+    model_info:
+      mode: chat
+      supports_web_search: true
+      supported_environments: [development, staging, production]
+
+  - model_name: medguard-clinical-verifier
+    litellm_params:
+      model: ollama_chat/qwen2.5:3b
+      api_base: http://host.docker.internal:11434
+      timeout: 120
+      num_ctx: 8192
+    model_info:
+      mode: chat
+      role: verifier_judge
+      supports_web_search: false
+      supported_environments: [development, staging, production]
+
+  # ==========================================================
+  # 3. Pharmacy & Medication Safety Agents
+  # ==========================================================
+  - model_name: medguard-pharma-answer
+    litellm_params:
+      model: gemini/gemini-flash-latest
+      api_key: os.environ/GEMINI_API_KEY
+      timeout: 45
+    model_info:
+      mode: chat
+      supports_web_search: true
+      supported_environments: [development, staging, production]
+
+  - model_name: medguard-pharma-verifier
+    litellm_params:
+      model: ollama_chat/qwen2.5:3b
+      api_base: http://host.docker.internal:11434
+      timeout: 120
+      num_ctx: 8192
+    model_info:
+      mode: chat
+      role: verifier_judge
+      supports_web_search: false
+      supported_environments: [development, staging, production]
+
+litellm_settings:
+  drop_params: true
+  telemetry: false
+  request_timeout: 120
+  num_retries: 0
+  allowed_fails: 2
+  cooldown_time: 30
+  success_callback: [prometheus]
+  failure_callback: [prometheus]
+  cache: true
+  cache_params:
+    type: redis
+    host: os.environ/REDIS_HOST
+    port: os.environ/REDIS_PORT
+    password: os.environ/REDIS_PASSWORD
+    mode: default_off
+    ttl: 300
+  default_key_generate_params:
+    models:
+      - medguard-answer
+      - medguard-verifier
+      - medguard-clinical-answer
+      - medguard-clinical-verifier
+      - medguard-pharma-answer
+      - medguard-pharma-verifier
+    budget_duration: 30d
+    rpm_limit: 15
+    tpm_limit: 100000
+    max_parallel_requests: 1
+
+router_settings:
+  routing_strategy: simple-shuffle
+  enable_pre_call_checks: true
+  num_retries: 0
+  timeout: 120
+  redis_host: os.environ/REDIS_HOST
+  redis_port: os.environ/REDIS_PORT
+  redis_password: os.environ/REDIS_PASSWORD
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  database_url: os.environ/DATABASE_URL
+  store_model_in_db: false
+  background_health_checks: false

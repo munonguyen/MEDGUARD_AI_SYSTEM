@@ -14,6 +14,7 @@ import json
 from pathlib import Path
 import sys
 from typing import Any
+from collections import Counter
 
 # Ensure project root is in sys.path
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -43,6 +44,9 @@ def run_jury_evaluation(
 
     passed_count = 0
     total_score = 0.0
+    impact_labels: Counter[str] = Counter()
+    safety_violations: Counter[str] = Counter()
+    synthetic_candidate_count = 0
 
     print("=" * 70)
     print("RUNNING MULTI-JUDGE AGENT EVALUATION (HỘI ĐỒNG GIÁM KHẢO LLM)")
@@ -60,12 +64,17 @@ def run_jury_evaluation(
         retrieved = retriever.retrieve(question, intent=intent, top_k=3)
         contexts = [r.content for r in retrieved]
 
-        # Simulated high-quality compliant candidate answer based on ground truth
-        candidate_answer = (
-            f"Thông tin hiện có từ tài liệu chuyên môn: {ground_truth}\n"
-            f"Lưu ý: {key_claims[0] if key_claims else 'Cần thận trọng'}. "
-            f"Bệnh nhân nên tham khảo ý kiến bác sĩ chuyên khoa hoặc đến cơ sở y tế để được tư vấn phác đồ phù hợp."
-        )
+        # A benchmark-provided candidate is production-evaluable. Falling back
+        # to a ground-truth-derived candidate is useful only to validate the
+        # evaluator plumbing and is explicitly reported as synthetic/circular.
+        candidate_answer = item.get("candidate_answer")
+        if not candidate_answer:
+            synthetic_candidate_count += 1
+            candidate_answer = (
+                f"Thông tin hiện có từ tài liệu chuyên môn: {ground_truth}\n"
+                f"Lưu ý: {key_claims[0] if key_claims else 'Cần thận trọng'}. "
+                "Bệnh nhân nên tham khảo ý kiến bác sĩ chuyên khoa hoặc đến cơ sở y tế để được tư vấn phù hợp."
+            )
 
         # Build trajectory and tool records
         tool_records = [
@@ -87,6 +96,8 @@ def run_jury_evaluation(
         # Run Jury Evaluation
         scorecard = jury_panel.evaluate(
             evaluation_id=bench_id,
+            question=question,
+            user_intent=intent,
             answer_text=candidate_answer,
             contexts=contexts,
             locked_claims=[key_claims[0]] if key_claims else [],
@@ -100,6 +111,10 @@ def run_jury_evaluation(
         if scorecard.overall_passed:
             passed_count += 1
         total_score += scorecard.consensus_score
+        if scorecard.communication_quality:
+            impact_labels[scorecard.communication_quality.impact_label] += 1
+        if scorecard.safety_gate:
+            safety_violations.update(scorecard.safety_gate.violations)
 
         results.append(scorecard.to_dict())
         deepeval_test_cases.append(scorecard.export_deepeval())
@@ -119,6 +134,20 @@ def run_jury_evaluation(
         "passed_cases": passed_count,
         "pass_rate": round(pass_rate, 3),
         "average_consensus_score": round(avg_consensus, 3),
+        "production_evaluable": bool(benchmarks) and synthetic_candidate_count == 0,
+        "synthetic_candidate_count": synthetic_candidate_count,
+        "communication_impact_labels": dict(impact_labels),
+        "safety_violations": dict(safety_violations),
+        "false_reassurance_rate": round(
+            sum(count for label, count in impact_labels.items() if label == "falsely_reassuring")
+            / len(benchmarks),
+            3,
+        ) if benchmarks else 0.0,
+        "panic_inducing_rate": round(
+            sum(count for label, count in impact_labels.items() if label == "panic_inducing")
+            / len(benchmarks),
+            3,
+        ) if benchmarks else 0.0,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "detailed_results": results,
         "deepeval_export": deepeval_test_cases,
@@ -128,6 +157,8 @@ def run_jury_evaluation(
     print("=" * 70)
     print(f"EVALUATION COMPLETE: {passed_count}/{len(benchmarks)} Passed ({pass_rate*100:.1f}%)")
     print(f"Average Consensus Score: {avg_consensus:.3f}")
+    print(f"Production evaluable: {summary['production_evaluable']}")
+    print(f"Communication labels: {dict(impact_labels)}")
     print("=" * 70)
 
     if output_path:

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class StrictModel(BaseModel):
@@ -16,6 +16,47 @@ class AgentNarrativeBlock(StrictModel):
     claim_ids: list[str] = Field(min_length=1, max_length=32)
     source_ids: list[str] = Field(min_length=1, max_length=16)
 
+    @field_validator("source_ids", mode="before")
+    @classmethod
+    def _normalize_narrative_source_ids(cls, value: Any) -> Any:
+        import re
+        if isinstance(value, list):
+            res = []
+            for item in value:
+                if isinstance(item, str):
+                    item = item.strip()
+                    if not item.startswith("src_"):
+                        clean = re.sub(r"[^a-zA-Z0-9_-]", "_", item)
+                        item = f"src_{clean}"[:40]
+                    res.append(item)
+                else:
+                    res.append(str(item))
+            return res
+        return value
+
+    @field_validator("claim_ids", mode="before")
+    @classmethod
+    def _normalize_narrative_claim_ids(cls, value: Any) -> Any:
+        import re
+        known_prefixes = ("ext_", "title_", "summary_", "action_", "safety_", "finding_", "question_")
+        if isinstance(value, list):
+            res = []
+            for item in value:
+                if isinstance(item, str):
+                    item = item.strip()
+                    if item.startswith("eext_"):
+                        item = "ext_" + item[5:]
+                    elif item.startswith("e_ext_"):
+                        item = "ext_" + item[6:]
+                    elif not any(item.startswith(p) for p in known_prefixes):
+                        clean = re.sub(r"[^a-zA-Z0-9_-]", "_", item)
+                        item = f"ext_{clean}"[:40]
+                    res.append(item)
+                else:
+                    res.append(str(item))
+            return res
+        return value
+
 
 class AgentEvidenceSource(StrictModel):
     source_id: str = Field(pattern=r"^src_[a-zA-Z0-9_-]{1,40}$")
@@ -25,11 +66,73 @@ class AgentEvidenceSource(StrictModel):
     authority_tier: Literal["guideline_or_regulator", "government_health", "peer_reviewed"]
     supports_claim_ids: list[str] = Field(min_length=1, max_length=64)
 
+    @field_validator("url", mode="before")
+    @classmethod
+    def _normalize_url(cls, value: Any) -> Any:
+        if isinstance(value, str):
+            value = value.strip()
+            if value and not value.startswith(("http://", "https://")):
+                return f"https://{value}"
+        return value
+
+    @field_validator("supports_claim_ids", mode="before")
+    @classmethod
+    def _normalize_supports_claim_ids(cls, value: Any) -> Any:
+        import re
+        known_prefixes = ("ext_", "title_", "summary_", "action_", "safety_", "finding_", "question_")
+        if isinstance(value, list):
+            res = []
+            for item in value:
+                if isinstance(item, str):
+                    item = item.strip()
+                    if item.startswith("eext_"):
+                        item = "ext_" + item[5:]
+                    elif item.startswith("e_ext_"):
+                        item = "ext_" + item[6:]
+                    elif not any(item.startswith(p) for p in known_prefixes):
+                        clean = re.sub(r"[^a-zA-Z0-9_-]", "_", item)
+                        item = f"ext_{clean}"[:40]
+                    res.append(item)
+                else:
+                    res.append(str(item))
+            return res
+        return value
+
+    @field_validator("source_id", mode="before")
+    @classmethod
+    def _normalize_source_id(cls, value: Any) -> Any:
+        import re
+        if isinstance(value, str):
+            value = value.strip()
+            if not value.startswith("src_"):
+                clean = re.sub(r"[^a-zA-Z0-9_-]", "_", value)
+                return f"src_{clean}"[:40]
+        return value
+
+    @field_validator("authority_tier", mode="before")
+    @classmethod
+    def _normalize_authority(cls, value: Any) -> Any:
+        valid = {"guideline_or_regulator", "government_health", "peer_reviewed"}
+        if value not in valid:
+            return "guideline_or_regulator"
+        return value
+
 
 class AgentEvidenceClaim(StrictModel):
     claim_id: str = Field(pattern=r"^ext_[a-zA-Z0-9_-]{1,40}$")
     text: str = Field(min_length=1, max_length=1200)
     source_ids: list[str] = Field(min_length=1, max_length=16)
+
+    @field_validator("claim_id", mode="before")
+    @classmethod
+    def _normalize_claim_id(cls, value: Any) -> Any:
+        import re
+        if isinstance(value, str):
+            value = value.strip()
+            if not value.startswith("ext_"):
+                clean = re.sub(r"[^a-zA-Z0-9_-]", "_", value)
+                return f"ext_{clean}"[:40]
+        return value
 
 
 class AgentQuestionAnalysis(StrictModel):
@@ -44,7 +147,7 @@ class AgentDraft(StrictModel):
     evidence_claims: list[AgentEvidenceClaim] = Field(max_length=24)
     narrative: list[AgentNarrativeBlock] = Field(min_length=1, max_length=8)
     sources: list[AgentEvidenceSource] = Field(min_length=1, max_length=16)
-    notes: str = Field(max_length=500)
+    notes: str = Field(default="", max_length=1500)
 
 
 class VerificationScores(StrictModel):
@@ -54,15 +157,70 @@ class VerificationScores(StrictModel):
     clarity: float = Field(ge=0, le=1)
     citation_coverage: float = Field(ge=0, le=1)
 
+    @field_validator("grounding", "safety", "completeness", "clarity", "citation_coverage", mode="before")
+    @classmethod
+    def _clamp_score(cls, value: Any) -> float:
+        try:
+            val = float(value)
+            return max(0.0, min(1.0, val))
+        except (ValueError, TypeError):
+            return 0.0
+
 
 class AgentVerification(StrictModel):
     approved: bool
     scores: VerificationScores
-    issues: list[str] = Field(max_length=24, exclude=True)
-    missing_claim_ids: list[str] = Field(max_length=64, exclude=True)
-    unsupported_claims: list[str] = Field(max_length=24, exclude=True)
-    source_issues: list[str] = Field(max_length=24, exclude=True)
-    summary: str = Field(min_length=1, max_length=800, exclude=True)
+    issues: list[str] = Field(default_factory=list, max_length=24, exclude=True)
+    missing_claim_ids: list[str] = Field(default_factory=list, max_length=64, exclude=True)
+    unsupported_claims: list[str] = Field(default_factory=list, max_length=24, exclude=True)
+    source_issues: list[str] = Field(default_factory=list, max_length=24, exclude=True)
+    summary: str = Field(default="Verification completed", min_length=1, max_length=800, exclude=True)
+
+
+class ShadowWriterAssessment(StrictModel):
+    """Compact NLP quality assessment used by a local background model.
+
+    Shadow mode never rewrites the patient-facing answer.  Keeping this
+    contract small lets a resource-constrained Ollama model assess language
+    quality without generating the much larger evidence-authoring schema.
+    """
+
+    triage_consistent: bool
+    action_priority_clear: bool
+    uncertainty_calibrated: bool
+    professional_tone: bool
+    communication_class: Literal[
+        "supportive_safe",
+        "alarming_but_appropriate",
+        "neutral",
+        "falsely_reassuring",
+        "panic_inducing",
+    ]
+    critical_issues: list[str] = Field(default_factory=list, max_length=5)
+    concise_summary: str = Field(min_length=1, max_length=400)
+
+
+class ShadowVerifierAssessment(StrictModel):
+    """Independent compact check of the writer's shadow assessment."""
+
+    approved: bool
+    safety_score: float = Field(ge=0, le=1)
+    clarity_score: float = Field(ge=0, le=1)
+    consistency_score: float = Field(ge=0, le=1)
+    issues: list[str] = Field(default_factory=list, max_length=5)
+    summary: str = Field(min_length=1, max_length=400)
+
+    @field_validator("safety_score", "clarity_score", "consistency_score", mode="before")
+    @classmethod
+    def _normalize_local_score(cls, value: Any) -> float:
+        """Accept the common 0-10 local-model scale and normalize to 0-1."""
+        try:
+            score = float(value)
+        except (TypeError, ValueError):
+            return 0.0
+        if 1 < score <= 10:
+            score /= 10
+        return max(0.0, min(1.0, score))
 
 
 class AgentStageTrace(BaseModel):
@@ -91,3 +249,4 @@ class AnswerAgentTrace(BaseModel):
     fallback_reason: str | None = Field(default=None, exclude=True)
     risk_class: str | None = Field(default=None, exclude=True)
     cache_policy: str | None = Field(default=None, exclude=True)
+    domain: Literal["clinical", "pharmacology"] | None = Field(default=None, exclude=True)

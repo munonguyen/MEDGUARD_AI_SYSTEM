@@ -107,7 +107,7 @@ def estimate_tokens(*values: Any) -> int:
 
 
 def policy_for_intent(intent: ChatIntent) -> AgentRequestPolicy:
-    if intent in {"triage", "safety", "monitoring"}:
+    if intent in {"triage", "safety", "monitoring", "general"}:
         return AgentRequestPolicy(
             risk_class=RiskClass.CLINICAL_HIGH_RISK,
             cache_policy=CachePolicy.NO_STORE,
@@ -128,14 +128,6 @@ def policy_for_intent(intent: ChatIntent) -> AgentRequestPolicy:
             risk_class=RiskClass.SAFE_DYNAMIC,
             cache_policy=CachePolicy.EXACT,
             verifier_required=True,
-            single_flight=True,
-            cache_ttl_seconds=settings.safe_cache_ttl_seconds,
-        )
-    if intent == "general":
-        return AgentRequestPolicy(
-            risk_class=RiskClass.SAFE_STATIC,
-            cache_policy=CachePolicy.EXACT,
-            verifier_required=False,
             single_flight=True,
             cache_ttl_seconds=settings.safe_cache_ttl_seconds,
         )

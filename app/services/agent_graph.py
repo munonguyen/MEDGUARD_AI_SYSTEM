@@ -8,8 +8,11 @@ Preserves 100% LiteLLM Gateway integration while implementing:
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from typing import Any, Literal
+
+logger = logging.getLogger(__name__)
 
 from app.core.observability import metrics
 from app.knowledge.loader import knowledge
@@ -30,6 +33,11 @@ from app.services.knowledge_retriever import RetrievedChunk, knowledge_retriever
 from app.services.llm_control_plane import (
     AgentRequestPolicy,
     gateway_controls,
+)
+from app.services.trusted_evidence import (
+    RuntimeEvidence,
+    TRUSTED_MEDICAL_DOMAINS,
+    trusted_evidence_fetcher,
 )
 
 
@@ -59,11 +67,13 @@ class MedicalAgentState:
     verifier_trace: AgentStageTrace | None = None
     verification: AgentVerification | None = None
     verified_citations: tuple[str, ...] = ()
+    runtime_evidence: list[RuntimeEvidence] = field(default_factory=list)
     gate_reason: str | None = None
 
     iteration: int = 0
     max_iterations: int = 2
     feedback_history: list[str] = field(default_factory=list)
+    domain: Literal["clinical", "pharmacology"] = "clinical"
     status: Literal["researching", "writing", "reviewing", "verified", "fallback", "shadow"] = "researching"
 
 
@@ -77,6 +87,10 @@ class MedicalAgentGraph:
         verifier_provider: StructuredModelProvider,
         research_model: str,
         verifier_model: str,
+        clinical_research_model: str = "medguard-clinical-answer",
+        clinical_verifier_model: str = "medguard-clinical-verifier",
+        pharma_research_model: str = "medguard-pharma-answer",
+        pharma_verifier_model: str = "medguard-pharma-verifier",
         prompt_version: str,
         max_input_tokens: int,
         research_max_output_tokens: int,
@@ -87,11 +101,17 @@ class MedicalAgentGraph:
         min_citation_coverage: float = 0.90,
         mode: Literal["disabled", "shadow", "enforced"] = "enforced",
         max_iterations: int = 2,
+        web_search_required: bool = True,
+        verifier_search_required: bool = True,
     ) -> None:
         self.research_provider = research_provider
         self.verifier_provider = verifier_provider
         self.research_model = research_model
         self.verifier_model = verifier_model
+        self.clinical_research_model = clinical_research_model
+        self.clinical_verifier_model = clinical_verifier_model
+        self.pharma_research_model = pharma_research_model
+        self.pharma_verifier_model = pharma_verifier_model
         self.prompt_version = prompt_version
         self.max_input_tokens = max_input_tokens
         self.research_max_output_tokens = research_max_output_tokens
@@ -102,13 +122,16 @@ class MedicalAgentGraph:
         self.min_citation_coverage = min_citation_coverage
         self.mode = mode
         self.max_iterations = max_iterations
+        self.web_search_required = web_search_required
+        self.verifier_search_required = verifier_search_required
 
     def node_researcher(self, state: MedicalAgentState) -> None:
-        """Node 1: Parallel/Fan-out knowledge retrieval from curated clinical files."""
+        """Node 1: Parallel/Fan-out knowledge retrieval from curated clinical/pharma files."""
         retrieved = knowledge_retriever.retrieve(
             query=state.question,
             intent=state.intent,
-            top_k=5,
+            domain=state.domain,
+            top_k=2,
         )
         state.retrieved_chunks = retrieved
         state.status = "writing"
@@ -130,8 +153,7 @@ class MedicalAgentGraph:
             "domain_claims": state.claims,
             "retrieved_contexts": rag_contexts,
             "trusted_source_domains": [
-                "who.int", "nice.org.uk", "nhs.uk", "fda.gov",
-                "ema.europa.eu", "cdc.gov", "nih.gov", "ncbi.nlm.nih.gov",
+                *sorted(TRUSTED_MEDICAL_DOMAINS),
             ],
         }
 
@@ -162,9 +184,16 @@ class MedicalAgentGraph:
             state.status = "fallback"
             return False
 
+        model = (
+            (self.pharma_research_model or self.research_model)
+            if state.domain == "pharmacology"
+            else (self.clinical_research_model or self.research_model)
+        )
+        metrics.inc_counter("medguard_agent_branch_requests_total", labels={"domain": state.domain, "role": "answer"})
+
         generated = self.research_provider.complete(
             stage="research",
-            model=self.research_model,
+            model=model,
             instructions=instructions,
             payload=research_payload,
             response_model=AgentDraft,
@@ -173,10 +202,11 @@ class MedicalAgentGraph:
         )
 
         draft = AgentDraft.model_validate(generated.data)
+
         generator_trace = stage_trace_fn(
             "answer",
             self.research_provider,
-            self.research_model,
+            model,
             generated,
             research_controls.estimated_input_tokens,
         )
@@ -202,6 +232,14 @@ class MedicalAgentGraph:
             return
 
         rag_contexts = [c.to_dict() for c in state.retrieved_chunks]
+        # For a local verifier, independently fetch the exact source URLs
+        # authored by the grounded writer.  The judge receives page text, not
+        # merely a trusted-looking URL.  Failures remain fail-closed in the
+        # release gate.
+        if self.web_search_required and not self.verifier_search_required:
+            state.runtime_evidence = trusted_evidence_fetcher.fetch(
+                source.url for source in state.draft.sources
+            )
         verifier_payload = {
             "intent": state.intent,
             "domain_claims": state.claims,
@@ -209,9 +247,11 @@ class MedicalAgentGraph:
             "draft": state.draft.model_dump(mode="json"),
             "provider_citation_urls": list(state.generated_citations),
             "provider_search_queries": list(state.generated_search_queries),
+            "runtime_external_evidence": [
+                evidence.to_dict() for evidence in state.runtime_evidence
+            ],
             "trusted_source_domains": [
-                "who.int", "nice.org.uk", "nhs.uk", "fda.gov",
-                "ema.europa.eu", "cdc.gov", "nih.gov", "ncbi.nlm.nih.gov",
+                *sorted(TRUSTED_MEDICAL_DOMAINS),
             ],
         }
 
@@ -237,9 +277,16 @@ class MedicalAgentGraph:
             state.status = "fallback"
             return
 
+        model = (
+            (self.pharma_verifier_model or self.verifier_model)
+            if state.domain == "pharmacology"
+            else (self.clinical_verifier_model or self.verifier_model)
+        )
+        metrics.inc_counter("medguard_agent_branch_requests_total", labels={"domain": state.domain, "role": "verifier"})
+
         verified = self.verifier_provider.complete(
             stage="verifier",
-            model=self.verifier_model,
+            model=model,
             instructions=instructions,
             payload=verifier_payload,
             response_model=AgentVerification,
@@ -251,7 +298,7 @@ class MedicalAgentGraph:
         verifier_trace = stage_trace_fn(
             "verifier",
             self.verifier_provider,
-            self.verifier_model,
+            model,
             verified,
             verifier_controls.estimated_input_tokens,
         )
@@ -263,6 +310,14 @@ class MedicalAgentGraph:
             provider_citations=state.generated_citations,
             provider_queries=state.generated_search_queries,
             verifier_citations=verified.citations,
+            retrieved_source_urls=tuple(
+                chunk.source_url for chunk in state.retrieved_chunks if chunk.source_url
+            ),
+            runtime_evidence_urls=tuple(
+                url
+                for evidence in state.runtime_evidence
+                for url in (evidence.requested_url, evidence.url)
+            ),
             config=self,
         )
 
@@ -270,6 +325,13 @@ class MedicalAgentGraph:
         state.verifier_trace = verifier_trace
         state.verified_citations = tuple(verified.citations)
         state.gate_reason = reason
+        logger.info(
+            "node_reviewer result: approved=%s, reason=%s, scores=%s, issues=%s",
+            verification.approved,
+            reason,
+            verification.scores.model_dump(),
+            verification.issues,
+        )
 
         # Record Golden Signals
         metrics.set_gauge("medguard_rag_groundedness_score", float(verification.scores.grounding))

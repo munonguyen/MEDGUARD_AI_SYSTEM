@@ -39,7 +39,7 @@ Role-specific QLoRA adapters are trained only from train/validation splits. The 
 | `GET` | `/v1/health/readiness` | Sync | Evidence-based production dependency checks |
 | `GET` | `/v1/models` | Sync | Active model/rule registry descriptors |
 | `GET` | `/v1/health/circuit-status` | Sync | Model-provider circuit snapshot |
-| `POST` | `/v1/chat` | Sync | Deterministic domain dispatch plus optional two-agent researched-answer pipeline |
+| `POST` | `/v1/chat` | Sync | Deterministic low-latency domain dispatch and grounded presentation; no synchronous model wait |
 | `GET/DELETE` | `/v1/chat/conversations[/{id}]` | Sync | Tenant-scoped conversation history and deletion |
 | `POST` | `/v1/triage` | Sync | Knowledge-backed red flags, vitals, specialty routing, ESI, advice |
 | `POST` | `/v1/medication/safety-check` | Sync | Knowledge-backed allergy, interaction, contraindication and duplicate checks |
@@ -110,7 +110,7 @@ Chat history persists the complete grounded object separately from the raw domai
 
 ### Gateway-routed answer agents
 
-The optional answer pipeline executes only after a deterministic domain result exists:
+The patient-facing path first computes a deterministic grounded answer. With `MEDGUARD_AGENT_COVERAGE_SCOPE=all` and `MEDGUARD_AGENT_BACKGROUND_ENABLED=true`, an in-process lossless-admission queue offers every response type to the two-role gateway assessor without holding the HTTP response open. `MEDGUARD_AGENT_BACKGROUND_MAX_PENDING` is a legacy-named soft backlog warning threshold; it no longer drops a request merely because the local model is busy. Emergency and crisis actions remain deterministic and immediate; harmful or prompt-injection text is replaced with a guard verdict before review. Executor shutdown is exposed as `unavailable`, while accepted work is exposed as `shadow_pending` until completion or failure. Synchronous enhancement exists only as an explicit deployment opt-in and is disabled in the local Ollama profile. Production deployments that must survive application restarts require a durable external worker queue.
 
 ```text
 latest user question
@@ -118,8 +118,8 @@ latest user question
     -> immutable claims from the versioned domain result
     -> deterministic risk/cache policy and pre-call token guard
     -> HMAC-scoped identity, context, prompt, knowledge and tool-result versions
-    -> LiteLLM /v1/responses with a budgeted MedGuard virtual key
-    -> research alias routes to the question/evidence provider with web search
+    -> LiteLLM /v1/responses or /v1/chat/completions with a budgeted virtual key
+    -> research alias routes to the configured writer model
     -> accept only search queries and citation URLs from provider metadata
     -> reject sources outside the trusted authority-domain allowlist
     -> verifier alias routes independently with a fresh web search
@@ -127,7 +127,7 @@ latest user question
     -> verified narrative OR unchanged deterministic fallback
 ```
 
-`MEDGUARD_AGENT_MODE` supports `disabled`, `shadow` and `enforced`. Shadow mode records evaluation traces but never replaces the deterministic answer. Enforced mode releases model-written prose only when both provider calls succeed and every deterministic gate passes. A timeout, malformed structured output, missing search evidence, untrusted source, verifier rejection, threshold failure, changed safety instruction or open circuit returns the original deterministic narrative.
+`MEDGUARD_AGENT_MODE` supports `disabled`, `shadow` and `enforced`; `MEDGUARD_AGENT_COVERAGE_SCOPE` supports `clinical` and `all`; execution timing is controlled separately by `MEDGUARD_AGENT_SYNC_ENABLED` and `MEDGUARD_AGENT_BACKGROUND_ENABLED`, which cannot both be true. Shadow mode records evaluation traces but never replaces the deterministic answer. The development queue accepts work after the single Ollama worker becomes busy and reports backlog depth, but it is not a crash-durable delivery guarantee. A timeout, malformed structured output, missing required evidence, untrusted source, verifier rejection, threshold failure, changed safety instruction or open circuit leaves the original deterministic narrative unchanged.
 
 The research role does not receive the stored Profile or raw domain object. It receives the redacted latest question, intent, an allowlist and bounded claims. The verifier receives those claims, the candidate draft, and the actual research search metadata. It must conduct its own web search, and at least one source returned in its provider metadata must belong to the trusted authority list. Model-authored source names, URLs or scores alone never satisfy the gate.
 
@@ -139,9 +139,9 @@ LiteLLM uses bounded retry, cooldown and per-key concurrency for two fixed role 
 
 The displayed grounding, safety, completeness and citation scores are verifier assessments plus deterministic contract checks. They reduce unsupported output but do not prove clinical truth or replace clinical validation. Physical model identifiers are pinned and reviewed in the gateway deployment, outside the public API contract. Application readiness requires an enforced, reachable gateway when agents are mandatory, but it does not claim the mapped models are clinically validated.
 
-Provider identities, model identifiers, prompts, intermediate question analysis, search queries, verifier URLs, fallback reasons and orchestration state are confidential server-side data. They are excluded from `ChatResponse`, conversation history and the public OpenAPI schema. The client receives only `answer_assurance.status=verified`, bounded quality scores, the final answer and the final sources required for user inspection. Rejected, shadow and failed agent attempts are indistinguishable from the deterministic baseline in the user interface.
+Provider identities, model identifiers, prompts, intermediate question analysis, search queries, verifier URLs and detailed fallback reasons remain confidential server-side data. The public response exposes only provider-neutral fields: `answer_origin`, `verification_status` and `knowledge_approval`. This lets the interface distinguish deterministic, pending-shadow, gateway-verified and safe-fallback answers without leaking infrastructure details. A verified released answer may additionally carry `answer_assurance.status=verified` and bounded scores.
 
-The client exposes only one in-flight message, `MedGuard đang xử lý`, with a minimum visible duration of 1000 ms so fast deterministic responses do not flash. The completed response is buffered and inserted only after this state ends. The chat surface omits the internal evidence disclosure and raw business-result panels; supported researched claims may still carry compact inline source links. It does not disclose which provider is enabled, which model is active, how many stages have completed or whether the deterministic fallback was used.
+The client exposes only one in-flight message, `MedGuard đang xử lý`, with a minimum visible duration of 350 ms so fast responses remain perceptible without feeling delayed. A 9.5-second browser deadline converts a stalled request into an explicit retry message before the 10-second interaction SLO. Conversation-history refresh runs after the answer without blocking its display. The chat surface omits the internal evidence disclosure and raw business-result panels; supported researched claims may still carry compact inline source links. It does not disclose which provider is enabled, which model is active or any offline evaluation trace.
 
 Clinical routing evaluates the latest user request plus explicitly saved Profile data. Explicit tool selection wins first, followed by specific intent phrases; short generic symptom markers then fall back to triage, medication-use language falls back to safety, and only a genuinely ambiguous request asks for clarification. It does not concatenate stale symptoms from earlier turns into a fresh triage decision. Numeric vitals recognized in the latest triage message are passed into `TriageRequest`; missing fields remain missing. A low medication-risk result is worded as "no warning found within the checked scope", never as proof that a medicine or combination is safe. A QR registry match is explicitly not presented as proof of physical authenticity.
 

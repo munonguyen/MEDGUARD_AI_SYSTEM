@@ -49,6 +49,7 @@ class AnswerAssurance(BaseModel):
 class GroundedAnswer(BaseModel):
     title: str
     summary: str
+    clinical_hypotheses: list[str] = Field(default_factory=list)
     key_points: list[str] = Field(default_factory=list)
     next_steps: list[str] = Field(default_factory=list)
     safety_notes: list[str] = Field(default_factory=list)
@@ -135,6 +136,28 @@ class ChatResponse(DisclaimerMixin):
     result: dict[str, Any] | None = None
     answer: GroundedAnswer | None = None
     suggestions: list[ChatSuggestion] = Field(default_factory=list)
+    answer_origin: Literal[
+        "deterministic",
+        "gateway_verified",
+        "deterministic_fallback",
+    ] = "deterministic"
+    verification_status: Literal[
+        "not_requested",
+        "shadow_pending",
+        "shadow",
+        "verified",
+        "timed_out",
+        "rejected",
+        "unavailable",
+        "circuit_open",
+        "error",
+    ] = "not_requested"
+    knowledge_approval: Literal[
+        "approved",
+        "pending_review",
+        "not_recorded",
+        "mixed",
+    ] = "not_recorded"
     orchestrator: SkipJsonSchema[Literal[
         "deterministic",
         "agent_verified",
@@ -154,12 +177,23 @@ class ConversationSummary(BaseModel):
 
 class StoredChatMessage(BaseModel):
     message_id: str
+    request_id: str | None = None
     role: Literal["user", "assistant"]
     content: str
     intent: str | None = None
     status: str | None = None
     result: dict[str, Any] | None = None
     answer: GroundedAnswer | None = None
+    answer_origin: Literal[
+        "deterministic", "gateway_verified", "deterministic_fallback"
+    ] | None = None
+    verification_status: Literal[
+        "not_requested", "shadow_pending", "shadow", "verified", "timed_out",
+        "rejected", "unavailable", "circuit_open", "error",
+    ] | None = None
+    knowledge_approval: Literal[
+        "approved", "pending_review", "not_recorded", "mixed"
+    ] | None = None
     created_at: str
 
 

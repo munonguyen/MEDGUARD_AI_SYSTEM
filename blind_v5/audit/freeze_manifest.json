@@ -1,0 +1,17 @@
+{
+  "model_version": "medguard-candidate-v5-frozen",
+  "git_commit": "8455226695c5d2be046b84b7120dd4c357bc5ee8",
+  "file_hashes": {
+    "app/services/clinical_threat_graph.py": "84e93d3750c34b73a86ba97c9c2d5550d60c387a0b4118ccb7b8862d13599c5f",
+    "app/services/compositional_reasoner.py": "6b4c3cb45b47843e9e2fdc89b467eb07ce11dc85bc3b08829508f5f2d4bb0e77",
+    "app/services/dose_reasoning.py": "066ea1feb8f80280f94a1dfd526393681cc43f1919e240d0269cce5d4be427be",
+    "app/services/rules.py": "5959a5695bb61c31512e3a6d835d69ec1654755d5bb62115ca74d4a43b69434f",
+    "app/services/semantic_risk.py": "4d10c8aefcac78a1637d3558b10647c50164d57f5bbc4347408e1aa6a7a2572e",
+    "app/services/clinical_text.py": "e8e18ea29f889e5d088a40f1ec91d6120049bba941de50004bb9d47942e01471",
+    "app/services/risk_memory.py": "9b1e535497b443a40ba077773d1d7ee5e10b97bd1bad13b1819148518b027a50",
+    "app/services/triage_resolver.py": "b3d18776ba7a1c717144330bb9035f6a89d118520f696e51dbdd8ae063b94587",
+    "app/services/chat.py": "286d3090cdc1c300c6dd842ca9c313d644938ee9bad4a11c0a7eba779c86ae89",
+    "app/knowledge/medication_incident_protocols.json": "951aa39de7259e3890c359d60837534daa61e162d0d86f6014f9b8fa32a8d07a",
+    "app/knowledge/red_flag_protocols.json": "a4089da959635fd4447b74c5e0a3118b1eeba9b1f28f7aff51e936a577fd43f6"
+  }
+}

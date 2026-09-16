@@ -337,7 +337,13 @@ def process_crawled_dataset(
         if len(clean_markdown) < 50:
             continue
 
+        # Skip HTTP error pages / 404 not found
         title = doc.get("title") or doc.get("source_name") or file_path.stem
+        lower_content = clean_markdown.lower()
+        if "page not found" in lower_content or "404" in title or "liên kết không tồn tại" in lower_content:
+            logger.warning("Skipping error / 404 document: %s", file_path.name)
+            continue
+
         source_id = doc.get("source_id", "crawled/authoritative")
         source_uri = doc.get("source_uri") or doc.get("url") or f"https://authoritative.moh.gov.vn/doc/{file_path.stem}"
         license_id = doc.get("license_kind") or doc.get("license") or "vn-moh-open-access"

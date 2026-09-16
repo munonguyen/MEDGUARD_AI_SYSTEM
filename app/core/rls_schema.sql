@@ -135,6 +135,7 @@ CREATE INDEX IF NOT EXISTS idx_chat_conversations_updated
 
 CREATE TABLE IF NOT EXISTS chat_messages (
     message_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    request_id VARCHAR(128),
     tenant_id VARCHAR(64) NOT NULL,
     conversation_id VARCHAR(128) NOT NULL,
     role VARCHAR(16) NOT NULL,
@@ -143,11 +144,18 @@ CREATE TABLE IF NOT EXISTS chat_messages (
     status VARCHAR(32),
     result_json JSONB,
     answer_json JSONB,
+    answer_origin VARCHAR(32),
+    verification_status VARCHAR(32),
+    knowledge_approval VARCHAR(32),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     FOREIGN KEY (tenant_id, conversation_id)
         REFERENCES chat_conversations(tenant_id, conversation_id) ON DELETE CASCADE
 );
 ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS answer_json JSONB;
+ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS request_id VARCHAR(128);
+ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS answer_origin VARCHAR(32);
+ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS verification_status VARCHAR(32);
+ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS knowledge_approval VARCHAR(32);
 CREATE INDEX IF NOT EXISTS idx_chat_messages_conversation
     ON chat_messages(tenant_id, conversation_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_chat_messages_tenant_created

@@ -48,20 +48,20 @@ try {
   const desktop = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   desktop.setDefaultTimeout(10000);
   captureErrors(desktop, 'desktop');
-  await desktop.goto(baseUrl, { waitUntil: 'networkidle' });
+  await desktop.goto(baseUrl, { waitUntil: 'domcontentloaded' });
   await desktop.getByText('MedGuard AI', { exact: true }).first().waitFor();
   await desktop.getByRole('heading', { name: 'Bạn cần hỗ trợ gì hôm nay?' }).waitFor();
 
   await desktop.getByRole('button', { name: 'Mở Profile cá nhân' }).click();
   await desktop.getByLabel('Tên hiển thị').fill('An UI');
-  await desktop.getByLabel('Tuổi').fill('36');
+  await desktop.getByLabel('Tuổi', { exact: true }).fill('36');
   await desktop.getByLabel('Giới tính').selectOption('male');
   await desktop.getByLabel('Mã hồ sơ').fill(schedulePatient);
   await desktop.getByLabel('Thuốc đang dùng').fill('warfarin');
   await desktop.getByLabel('Bệnh nền').fill('tăng huyết áp');
   await desktop.getByRole('button', { name: 'Lưu Profile' }).click();
   await desktop.getByText('An UI', { exact: true }).waitFor();
-  await desktop.reload({ waitUntil: 'networkidle' });
+  await desktop.reload({ waitUntil: 'domcontentloaded' });
   await desktop.getByText('An UI', { exact: true }).waitFor();
 
   await desktop.getByRole('button', { name: 'Mở Profile cá nhân' }).click();
@@ -97,8 +97,8 @@ try {
   const composer = desktop.getByRole('textbox', { name: 'Tin nhắn' });
   await composer.fill('Tôi đang cảm thấy bụng cứ cồn cào, sốt ruột không rõ lắm.');
   await desktop.getByRole('button', { name: 'Gửi tin nhắn' }).click();
-  const abdominalAnswer = desktop.locator('.chat-assistant').last();
-  await abdominalAnswer.getByText(/chưa đủ để xác định nguyên nhân/).waitFor();
+  await desktop.getByText(/chưa đủ để xác định nguyên nhân/).waitFor();
+  const abdominalAnswer = desktop.locator('.chat-assistant:not(.pending)').last();
   if (await abdominalAnswer.locator('.triage-status-pill').count()) {
     throw new Error('Routine guidance must render as conversational prose without a status badge');
   }
@@ -109,7 +109,8 @@ try {
 
   await composer.fill('Cảm giác nó cứ khó chịu, buồn nôn lắm.');
   await desktop.getByRole('button', { name: 'Gửi tin nhắn' }).click();
-  const abdominalFollowUp = desktop.locator('.chat-assistant').last();
+  await desktop.getByText('MedGuard đang xử lý', { exact: true }).waitFor({ state: 'hidden' });
+  const abdominalFollowUp = desktop.locator('.chat-assistant:not(.pending)').last();
   await abdominalFollowUp.getByText(/bụng cồn cào/).first().waitFor();
   await abdominalFollowUp.getByText(/Bạn đã mô tả buồn nôn/).waitFor();
   await abdominalFollowUp.screenshot({ path: fileURLToPath(new URL('ui-abdominal-followup.png', artifactDir)) });
@@ -122,11 +123,12 @@ try {
   await desktop.getByRole('button', { name: 'Gửi tin nhắn' }).click();
   await desktop.getByText(/Đã thêm 2 mốc uống amoxicillin/).waitFor();
 
-  await desktop.getByRole('button', { name: 'Lịch uống thuốc', exact: true }).click();
-  const scheduleDrawer = desktop.locator('.schedule-drawer');
-  await scheduleDrawer.getByText('amoxicillin', { exact: true }).first().waitFor();
-  if (await scheduleDrawer.locator('.schedule-item').count() !== 2) throw new Error('Expected two medication schedule items');
-  await scheduleDrawer.getByRole('button', { name: 'Đóng' }).click();
+  // Verify dedicated Medication Page
+  await desktop.locator('.sidebar-actions').getByRole('button', { name: 'Lịch uống thuốc' }).click();
+  await desktop.getByRole('heading', { name: 'Lịch Uống Thuốc', exact: true }).waitFor();
+  await desktop.getByText('Tuân thủ tuần này').waitFor();
+  await desktop.getByRole('button', { name: 'Về phòng Chat' }).click();
+  await desktop.getByRole('textbox', { name: 'Tin nhắn' }).waitFor();
 
   await desktop.getByRole('button', { name: 'Quét QR' }).click();
   await desktop.getByRole('button', { name: 'Nhập mã' }).click();
@@ -139,35 +141,35 @@ try {
   await assertComposerInsideViewport(desktop, 'desktop');
   await assertTopbarInsideViewport(desktop, 'desktop');
   if (await desktop.getByRole('button', { name: 'Mở menu' }).isVisible()) throw new Error('Desktop menu button must be hidden');
-    // Test Dedicated Schedule Page
-  await desktop.getByRole('button', { name: 'Lịch ca trực' }).click();
-  await desktop.getByRole('heading', { name: 'Lịch Khám & Ca Trực Lâm Sàng' }).waitFor();
+
+  // Test Dedicated Lịch Khám Page
+  await desktop.locator('.topbar-actions').getByRole('button', { name: 'Lịch khám' }).click();
+  await desktop.getByRole('heading', { name: 'Lịch Khám', exact: true }).waitFor();
   await desktop.getByText('Tổng Ca Hôm Nay').waitFor();
   await desktop.getByText('Nguyễn Văn An').first().waitFor();
-  await desktop.getByRole('button', { name: 'Ca Chiều (13:00 - 17:00)' }).click();
-  await desktop.getByText('Hoàng Quốc Bảo').first().waitFor();
-  await desktop.getByRole('button', { name: 'Ca Uống Thuốc Trong Ngày' }).click();
-  await desktop.getByRole('heading', { name: 'Lịch Ca Uống Thuốc Trong Ngày' }).waitFor();
-  await desktop.getByRole('button', { name: 'Tất cả các ca' }).click();
+  await desktop.getByRole('button', { name: 'Danh sách ca' }).click();
+  await desktop.getByRole('button', { name: 'Thời khóa biểu tuần' }).click();
   await desktop.getByRole('button', { name: 'Về phòng Chat' }).click();
   await desktop.getByRole('textbox', { name: 'Tin nhắn' }).waitFor();
   await desktop.screenshot({ path: fileURLToPath(new URL('ui-chat-desktop.png', artifactDir)), fullPage: false });
 
+  await desktop.getByRole('button', { name: 'Cài đặt' }).first().click();
   await desktop.getByRole('button', { name: 'System & audit' }).click();
   await desktop.getByText('sqlite-memory').waitFor();
   await desktop.getByRole('button', { name: 'Audit', exact: true }).click();
   await desktop.getByText('chat.route').first().waitFor();
+  await desktop.getByRole('button', { name: 'Đóng cài đặt' }).click();
 
   const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
   mobile.setDefaultTimeout(10000);
   captureErrors(mobile, 'mobile');
-  await mobile.goto(baseUrl, { waitUntil: 'networkidle' });
+  await mobile.goto(baseUrl, { waitUntil: 'domcontentloaded' });
   await mobile.getByRole('button', { name: 'Mở menu' }).click();
   await mobile.getByRole('button', { name: 'Cuộc trò chuyện mới' }).click();
   await mobile.getByRole('heading', { name: 'Bạn cần hỗ trợ gì hôm nay?' }).waitFor();
   await mobile.getByRole('textbox', { name: 'Tin nhắn' }).fill('Tôi bị đau đầu, sốt và buồn nôn từ sáng nay.');
   await mobile.getByRole('button', { name: 'Gửi tin nhắn' }).click();
-  await mobile.getByText('Với thông tin hiện có, chưa thấy dấu hiệu cần cấp cứu ngay', { exact: true }).waitFor();
+  await mobile.getByText('Thông tin hiện tại chưa cho thấy rõ dấu hiệu cấp cứu', { exact: true }).waitFor();
   await mobile.getByText('Bạn cho mình biết thêm', { exact: true }).waitFor();
   await mobile.getByText('Đi cấp cứu ngay nếu đau đầu xuất hiện đột ngột và rất dữ dội', { exact: true }).waitFor();
   if (await mobile.locator('.answer-narrative p').count() < 4) throw new Error('Expected a four-part conversational headache answer');
@@ -185,7 +187,7 @@ try {
   const answerDesktop = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   answerDesktop.setDefaultTimeout(10000);
   captureErrors(answerDesktop, 'answer-desktop');
-  await answerDesktop.goto(baseUrl, { waitUntil: 'networkidle' });
+  await answerDesktop.goto(baseUrl, { waitUntil: 'domcontentloaded' });
   await answerDesktop.getByRole('textbox', { name: 'Tin nhắn' }).fill('Tôi đang bị đau đầu góc trái đầu.');
   await answerDesktop.getByRole('button', { name: 'Gửi tin nhắn' }).click();
   await answerDesktop.getByText('Bạn cho mình biết thêm', { exact: true }).waitFor();
@@ -216,7 +218,7 @@ try {
     };
     await route.fulfill({ response: upstream, json: body });
   });
-  await agentUi.goto(baseUrl, { waitUntil: 'networkidle' });
+  await agentUi.goto(baseUrl, { waitUntil: 'domcontentloaded' });
   await agentUi.getByRole('textbox', { name: 'Tin nhắn' }).fill('Tôi đang bị đau đầu góc trái đầu.');
   await agentUi.getByRole('button', { name: 'Gửi tin nhắn' }).click();
   await agentUi.getByText('Bạn cho mình biết thêm', { exact: true }).waitFor();

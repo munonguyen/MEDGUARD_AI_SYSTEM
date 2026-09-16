@@ -10,7 +10,7 @@ from uuid import uuid4
 from zoneinfo import ZoneInfo
 
 from app.core.database import DatabaseManager, db_manager
-from app.models.schedule import MedicationSchedule, MedicationScheduleCreate
+from app.models.schedule import MedicationSchedule, MedicationScheduleCreate, MedicationScheduleUpdate
 
 
 class MedicationScheduleStore:
@@ -53,6 +53,14 @@ class MedicationScheduleStore:
             )
         return schedule
 
+    def get(self, tenant_id: str, schedule_id: str) -> MedicationSchedule | None:
+        query = "SELECT * FROM medication_schedules WHERE tenant_id = ? AND schedule_id = ?"
+        with self._lock, self.database.tenant_context(tenant_id) as session:
+            rows = session.execute(query, (tenant_id, schedule_id))
+        if not rows:
+            return None
+        return MedicationSchedule.model_validate(rows[0])
+
     def list(self, tenant_id: str, patient_ref: str | None = None) -> list[MedicationSchedule]:
         query = "SELECT * FROM medication_schedules WHERE tenant_id = ?"
         params: tuple[str, ...] = (tenant_id,)
@@ -63,6 +71,43 @@ class MedicationScheduleStore:
         with self._lock, self.database.tenant_context(tenant_id) as session:
             rows = session.execute(query, params)
         return [MedicationSchedule.model_validate(row) for row in rows]
+
+    def update(self, tenant_id: str, schedule_id: str, payload: MedicationScheduleUpdate) -> MedicationSchedule | None:
+        existing = self.get(tenant_id, schedule_id)
+        if not existing:
+            return None
+        updates = []
+        params = []
+        if payload.medication_name is not None:
+            updates.append("medication_name = ?")
+            params.append(payload.medication_name)
+        if payload.dosage_text is not None:
+            updates.append("dosage_text = ?")
+            params.append(payload.dosage_text)
+        if payload.scheduled_at is not None:
+            updates.append("scheduled_at = ?")
+            params.append(payload.scheduled_at.isoformat())
+        if payload.recurrence is not None:
+            updates.append("recurrence = ?")
+            params.append(payload.recurrence)
+        if payload.status is not None:
+            updates.append("status = ?")
+            params.append(payload.status)
+        if not updates:
+            return existing
+        params.extend([tenant_id, schedule_id])
+        query = f"UPDATE medication_schedules SET {', '.join(updates)} WHERE tenant_id = ? AND schedule_id = ?"
+        with self._lock, self.database.tenant_context(tenant_id) as session:
+            session.execute(query, tuple(params))
+        return self.get(tenant_id, schedule_id)
+
+    def delete(self, tenant_id: str, schedule_id: str) -> bool:
+        with self._lock, self.database.tenant_context(tenant_id) as session:
+            session.execute(
+                "DELETE FROM medication_schedules WHERE tenant_id = ? AND schedule_id = ?",
+                (tenant_id, schedule_id),
+            )
+        return True
 
 
 medication_schedule_store = MedicationScheduleStore()

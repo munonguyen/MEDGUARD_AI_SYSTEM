@@ -36,5 +36,13 @@ class MedicationSchedule(BaseModel):
     created_at: datetime
 
 
+class MedicationScheduleUpdate(BaseModel):
+    medication_name: str | None = Field(default=None, max_length=255)
+    dosage_text: str | None = Field(default=None, max_length=255)
+    scheduled_at: datetime | None = None
+    recurrence: Literal["once", "daily"] | None = None
+    status: Literal["active", "cancelled"] | None = None
+
+
 class MedicationScheduleList(BaseModel):
     schedules: list[MedicationSchedule] = Field(default_factory=list)

@@ -30,7 +30,12 @@ from app.models.registry import ModelDescriptor, ModelsResponse
 from app.models.pharmacy import FulfillmentRequest, PharmacyFulfillmentResponse
 from app.models.product import ProductVerificationRequest, ProductVerificationResponse
 from app.models.safety import SafetyRequest, SafetyResponse
-from app.models.schedule import MedicationScheduleList
+from app.models.schedule import (
+    MedicationSchedule,
+    MedicationScheduleCreate,
+    MedicationScheduleList,
+    MedicationScheduleUpdate,
+)
 from app.models.triage import TriageRequest, TriageResponse
 from app.models.queue import QueuePrioritizeRequest, QueuePrioritizeResponse
 from app.models.fhir import FhirExportRequest
@@ -180,6 +185,37 @@ def medication_schedules(
     return MedicationScheduleList(
         schedules=medication_schedule_store.list(ctx.tenant_id, patient_ref=patient_ref)
     )
+
+
+@router.post("/medication-schedules", response_model=MedicationSchedule, status_code=status.HTTP_201_CREATED)
+def create_medication_schedule(
+    payload: MedicationScheduleCreate,
+    ctx: RequestContext = Depends(verify_tenant_credentials),
+) -> MedicationSchedule:
+    return medication_schedule_store.create(ctx.tenant_id, payload)
+
+
+@router.put("/medication-schedules/{schedule_id}", response_model=MedicationSchedule)
+def update_medication_schedule(
+    schedule_id: str,
+    payload: MedicationScheduleUpdate,
+    ctx: RequestContext = Depends(verify_tenant_credentials),
+) -> MedicationSchedule:
+    updated = medication_schedule_store.update(ctx.tenant_id, schedule_id, payload)
+    if not updated:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"error_code": "schedule_not_found", "message": "Medication schedule not found."},
+        )
+    return updated
+
+
+@router.delete("/medication-schedules/{schedule_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_medication_schedule(
+    schedule_id: str,
+    ctx: RequestContext = Depends(verify_tenant_credentials),
+) -> None:
+    medication_schedule_store.delete(ctx.tenant_id, schedule_id)
 
 
 @router.post("/product/verify", response_model=ProductVerificationResponse)

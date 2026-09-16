@@ -8,6 +8,7 @@ rule_files:
 scrape_configs:
   - job_name: litellm
     metrics_path: /metrics
+    bearer_token: replace-with-random-master-key
     static_configs:
       - targets: ["litellm:4000"]
 

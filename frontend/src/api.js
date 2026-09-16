@@ -16,11 +16,28 @@ export function createApiClient({ tenantId, apiKey, consentToken }) {
       headers['Content-Type'] = 'application/json';
     }
 
-    const response = await fetch(path, {
-      method,
-      headers,
-      body: options.formData || (options.body !== undefined ? JSON.stringify(options.body) : undefined),
-    });
+    const controller = options.timeoutMs ? new AbortController() : null;
+    const timeoutId = controller
+      ? window.setTimeout(() => controller.abort(), options.timeoutMs)
+      : null;
+    let response;
+    try {
+      response = await fetch(path, {
+        method,
+        headers,
+        body: options.formData || (options.body !== undefined ? JSON.stringify(options.body) : undefined),
+        signal: options.signal || controller?.signal,
+      });
+    } catch (error) {
+      if (error?.name === 'AbortError') {
+        const timeoutError = new Error('MedGuard chưa thể trả lời trong 10 giây. Vui lòng thử lại.');
+        timeoutError.code = 'response_timeout';
+        throw timeoutError;
+      }
+      throw error;
+    } finally {
+      if (timeoutId !== null) window.clearTimeout(timeoutId);
+    }
     const contentType = response.headers.get('content-type') || '';
     const data = contentType.includes('json') ? await response.json() : await response.text();
     if (!response.ok) {

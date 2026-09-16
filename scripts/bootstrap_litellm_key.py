@@ -13,6 +13,10 @@ import httpx
 DEFAULT_MODELS = (
     "medguard-answer",
     "medguard-verifier",
+    "medguard-clinical-answer",
+    "medguard-clinical-verifier",
+    "medguard-pharma-answer",
+    "medguard-pharma-verifier",
 )
 
 
@@ -73,7 +77,10 @@ def main() -> int:
         response.raise_for_status()
         body = response.json()
     except (httpx.HTTPError, ValueError) as exc:
-        print(f"Virtual key generation failed: {exc}", file=sys.stderr)
+        details = ""
+        if isinstance(exc, httpx.HTTPStatusError):
+            details = f": {exc.response.text}"
+        print(f"Virtual key generation failed: {exc}{details}", file=sys.stderr)
         return 1
 
     print(json.dumps(body, ensure_ascii=False, indent=2))

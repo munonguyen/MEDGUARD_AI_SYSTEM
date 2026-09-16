@@ -100,6 +100,7 @@ CREATE INDEX IF NOT EXISTS idx_chat_conversations_updated
 
 CREATE TABLE IF NOT EXISTS chat_messages (
     message_id TEXT PRIMARY KEY,
+    request_id TEXT,
     tenant_id TEXT NOT NULL,
     conversation_id TEXT NOT NULL,
     role TEXT NOT NULL,
@@ -108,6 +109,9 @@ CREATE TABLE IF NOT EXISTS chat_messages (
     status TEXT,
     result_json TEXT,
     answer_json TEXT,
+    answer_origin TEXT,
+    verification_status TEXT,
+    knowledge_approval TEXT,
     created_at TEXT NOT NULL,
     FOREIGN KEY (tenant_id, conversation_id)
         REFERENCES chat_conversations(tenant_id, conversation_id) ON DELETE CASCADE
@@ -189,6 +193,11 @@ class SqliteTenantEngine:
         }
         if "answer_json" not in chat_message_columns:
             self._connection.execute("ALTER TABLE chat_messages ADD COLUMN answer_json TEXT")
+        for column_name in ("request_id", "answer_origin", "verification_status", "knowledge_approval"):
+            if column_name not in chat_message_columns:
+                self._connection.execute(
+                    f"ALTER TABLE chat_messages ADD COLUMN {column_name} TEXT"
+                )
         table_sql_row = self._connection.execute(
             "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'idempotency_records'"
         ).fetchone()

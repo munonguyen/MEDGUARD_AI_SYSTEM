@@ -21,7 +21,7 @@ services:
     volumes:
       - litellm-redis:/data
     healthcheck:
-      test: [CMD-SHELL, "redis-cli -a '$${REDIS_PASSWORD}' ping | grep PONG"]
+      test: [CMD-SHELL, "redis-cli --no-auth-warning -a \"$${REDIS_PASSWORD}\" ping | grep PONG"]
       interval: 5s
       timeout: 5s
       retries: 12
@@ -34,7 +34,7 @@ services:
     command: [--config, /app/config.yaml, --host, 0.0.0.0, --port, "4000"]
     environment:
       DATABASE_URL: postgresql://litellm:${LITELLM_DB_PASSWORD}@postgres:5432/litellm
-      GEMINI_API_KEY: ${GEMINI_API_KEY:?set GEMINI_API_KEY in .env}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:?set LITELLM_MASTER_KEY in .env}
       REDIS_HOST: redis
@@ -42,7 +42,7 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       LITELLM_ENVIRONMENT: ${LITELLM_ENVIRONMENT:-development}
     volumes:
-      - ./config.yaml:/app/config.yaml:ro
+      - ${LITELLM_CONFIG_FILE:-./config.yaml}:/app/config.yaml:ro
     ports:
       - 127.0.0.1:4000:4000
     depends_on:

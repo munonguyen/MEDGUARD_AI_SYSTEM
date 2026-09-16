@@ -1,0 +1,101 @@
+{
+  "_meta": {
+    "version": "1.1.0",
+    "effective_from": "2026-09-13",
+    "approved_by": "Pending clinical pharmacy review",
+    "source_references": [
+      "FDA Acetaminophen: Safe Use of Over-the-Counter Pain Relievers and Fever Reducers",
+      "NHS Paracetamol for adults: If you take too much",
+      "NHS Poisoning: immediate safety advice",
+      "ADA Standards of Medical Care in Diabetes - Insulin Management",
+      "AHA/ACC Hypertension Clinical Practice Guidelines"
+    ]
+  },
+  "reported_ingestion_protocols": [
+    {
+      "id": "MED-INC-PARACETAMOL-002",
+      "ingredient": "paracetamol",
+      "aliases": ["paracetamol", "acetaminophen", "panadol"],
+      "report_markers": ["10 viên", "10 vien", "vi 10 vien", "vỉ 10 viên", "uống sạch trơn", "uong sach tron", "uống cả vỉ", "uong ca vi", "5000 mg", "5000mg", "6000 mg", "15 viên", "15 vien", "20 viên", "20 vien", "uống hết vỉ", "uong het vi"],
+      "risk": "HIGH",
+      "detail": "Bạn đã báo cáo sử dụng paracetamol liều cao nguy cơ quá liều cấp tính. Đây là tình trạng nguy cơ đe dọa tổn thương tế bào gan cấp nếu lượng thuốc hấp thu vượt quá ngưỡng thanh thải an toàn của cơ thể.",
+      "recommendation": "GỌI NGAY CẤP CỨU 115 HOẶC ĐẾN NGAY KHOA CẤP CỨU / TRUNG TÂM CHỐNG ĐỘC GẦN NHẤT. Hãy mang theo toàn bộ bao bì và vỏ thuốc để bác sĩ xác định chính xác liều lượng, dạng bào chế và mốc thời gian uống. Bác sĩ điều trị sẽ thăm khám, xét nghiệm định lượng paracetamol máu khi phù hợp và quyết định hướng xử trí y khoa cần thiết. Tuyệt đối không tự gây nôn tại nhà và không chờ đến khi xuất hiện triệu chứng đau bụng hay vàng da mới đi khám.",
+      "clarifying_questions": [
+        "Bạn uống thuốc chính xác cách đây bao nhiêu phút/giờ?",
+        "Người uống thuốc bao nhiêu tuổi và cân nặng khoảng bao nhiêu kg?",
+        "Bạn uống cùng nước lọc hay có kèm theo rượu bia hoặc thuốc nào khác không?",
+        "Hiện tại bạn có cảm thấy buồn nôn, nôn mửa, vã mồ hôi hay đau vùng bụng trên không?"
+      ]
+    },
+    {
+      "id": "MED-INC-PARACETAMOL-001",
+      "ingredient": "paracetamol",
+      "aliases": ["paracetamol", "acetaminophen", "panadol"],
+      "report_markers": ["vừa uống", "đã uống", "uống cùng lúc", "uống một lúc", "lỡ uống", "uống nhầm", "uống quá liều", "uống 8 viên", "uống nhiều paracetamol", "uống nhiều viên"],
+      "risk": "MODERATE",
+      "detail": "Bạn đã báo cáo sử dụng paracetamol liều cao (8 viên 500 mg tương đương 4000 mg/24 giờ - ngưỡng tối đa hàng ngày ở người lớn bình thường). Không thể xác định mức nguy cơ chỉ từ số viên vì còn phụ thuộc tuổi, cân nặng, hàm lượng thực tế, tổng lượng paracetamol trong 24 giờ, thời điểm uống, bệnh gan, rượu bia và các thuốc khác.",
+      "recommendation": "Không uống thêm paracetamol hoặc thuốc cảm/giảm đau có chứa paracetamol. Hãy liên hệ ngay cơ sở y tế, trung tâm chống độc hoặc dịch vụ cấp cứu để được đánh giá, kể cả khi hiện chưa có triệu chứng; mang theo vỏ thuốc và không tự gây nôn.",
+      "clarifying_questions": [
+        "Bạn uống các viên thuốc cách nhau bao lâu hay uống cùng một lúc?",
+        "Bạn bao nhiêu tuổi, cân nặng bao nhiêu; có tiền sử bệnh gan, nghiện rượu hoặc dùng thuốc nào khác không?",
+        "Hiện tại bạn có cảm thấy buồn nôn, đau hạ sườn phải hay mệt mỏi không?"
+      ]
+    },
+    {
+      "id": "MED-INC-INSULIN-001",
+      "ingredient": "insulin",
+      "aliases": ["insulin", "insulin nền", "tiêm insulin"],
+      "report_markers": ["quên insulin", "quên tiêm", "tiêm gấp đôi", "bù liều", "tiêm bù"],
+      "risk": "MODERATE",
+      "detail": "Khi quên một liều insulin nền, nguyên tắc an toàn hàng đầu là tuyệt đối không được tự ý tiêm gấp đôi liều vào buổi sáng tiếp theo vì nguy cơ hạ đường huyết đột ngột nghiêm trọng đe dọa tính mạng.",
+      "recommendation": "TUYỆT ĐỐI KHÔNG TIÊM GẤP ĐÔI LIỀU INSULIN. Hãy kiểm tra ngay chỉ số đường huyết mao mạch hiện tại bằng máy đo đường huyết cá nhân, uống đủ nước và liên hệ bác sĩ chuyên khoa nội tiết hoặc đường dây nóng y tế để nhận chỉ định điều chỉnh liều tiêm bù an toàn.",
+      "clarifying_questions": [
+        "Chỉ số đường huyết mao mạch hiện tại của bạn là bao nhiêu mmol/L (hoặc mg/dL)?",
+        "Loại insulin nền bạn đang dùng là loại nào (ví dụ Glargine, Detemir, Degludec)?",
+        "Hiện bạn có triệu chứng run tay, đói cồn cào, vã mồ hôi, tim đập nhanh hay choáng váng không?"
+      ]
+    },
+    {
+      "id": "MED-INC-MISSED-HYPERTENSION-001",
+      "ingredient": "thuốc huyết áp",
+      "aliases": ["thuốc huyết áp", "thuốc hạ huyết áp", "thuoc huyet ap"],
+      "report_markers": ["quên thuốc huyết áp", "quên liều huyết áp", "quên thuốc", "gần tới liều", "gần đến liều"],
+      "risk": "MODERATE",
+      "detail": "Khi quên uống thuốc huyết áp và đã gần tới thời điểm của liều kế tiếp, nguyên tắc điều trị chuẩn là bỏ qua liều đã quên và tiếp tục uống liều tiếp theo theo đúng lịch trình thường ngày.",
+      "recommendation": "TUYỆT ĐỐI KHÔNG UỐNG GẤP ĐÔI LIỀU THUỐC HUYẾT ÁP để bù liều đã quên vì có thể gây quá liều và hạ huyết áp đột ngột nguy hiểm. Bạn hãy đo lại chỉ số huyết áp hiện tại để theo dõi và chuẩn bị uống liều tối đúng giờ quy định.",
+      "clarifying_questions": [
+        "Chỉ số huyết áp và nhịp tim hiện tại bạn đo được là bao nhiêu?",
+        "Tên loại thuốc huyết áp và liều lượng thường dùng hàng ngày của bạn là gì?",
+        "Hiện bạn có cảm thấy chóng mặt, nhức đầu hay hồi hộp không?"
+      ]
+    },
+    {
+      "id": "MED-INC-HYPERTENSION-001",
+      "ingredient": "thuốc huyết áp",
+      "aliases": ["thuốc huyết áp", "thuốc hạ huyết áp", "thuoc huyet ap", "uống nhầm thuốc huyết áp"],
+      "report_markers": ["uống nhầm", "gấp đôi liều", "uống gấp đôi", "quá liều", "uống 2 viên"],
+      "risk": "MODERATE",
+      "detail": "Uống nhầm gấp đôi liều thuốc huyết áp có thể gây tụt huyết áp quá mức (hạ huyết áp tư thế, giảm tưới máu não), dù người bệnh có thể cảm thấy bình thường trong vài giờ đầu trước khi thuốc đạt nồng độ đỉnh trong huyết tương.",
+      "recommendation": "Không được chủ quan kết luận an toàn chỉ vì chưa thấy chóng mặt. Bạn nên ngồi hoặc nằm nghỉ ngơi tại chỗ, tránh thay đổi tư thế đột ngột, đo và ghi lại huyết áp định kỳ mỗi 30-60 phút; nếu huyết áp tụt sâu (< 90/60 mmHg) hoặc thấy mệt lả, hoa mắt, cần đến ngay cơ sở y tế gần nhất.",
+      "clarifying_questions": [
+        "Bạn đã đo lại huyết áp và nhịp tim hiện tại chưa, chỉ số là bao nhiêu?",
+        "Tên chính xác và hàm lượng viên thuốc huyết áp bạn đã uống nhầm là gì?",
+        "Thời điểm bạn uống nhầm là cách đây bao lâu?"
+      ]
+    },
+    {
+      "id": "MED-INC-LITHIUM-001",
+      "ingredient": "lithium",
+      "aliases": ["lithium", "muối lithium", "viên lithium"],
+      "report_markers": ["tiêu chảy", "mất nước", "nôn", "uống lithium"],
+      "risk": "MODERATE",
+      "detail": "Lithium có khoảng điều trị rất hẹp và đào thải gần như hoàn toàn qua thận. Tình trạng tiêu chảy kéo dài gây mất nước và giảm thể tích tuần hoàn sẽ làm tăng tái hấp thu natri và lithium ở ống thận, dẫn đến tích lũy nồng độ lithium trong máu và nguy cơ ngộ độc cấp đe dọa tính mạng.",
+      "recommendation": "Cần cảnh báo nguy cơ ngộ độc lithium do mất nước. Hãy liên hệ ngay bác sĩ chuyên khoa hoặc cơ sở y tế để được kiểm tra nồng độ lithium huyết thanh, chức năng thận và điện giải đồ. Tích cực bù nước điện giải bằng oresol; tuyệt đối không tiếp tục dùng thuốc như bình thường khi chưa có hướng dẫn y tế.",
+      "clarifying_questions": [
+        "Bạn có các triệu chứng như run tay nặng hơn, loạng choạng, nói khó, lú lẫn hoặc buồn nôn nôn mửa không?",
+        "Bạn đi ngoài bao nhiêu lần một ngày và nước tiểu có bị sẫm màu, ít đi không?",
+        "Liều lithium hàng ngày bạn đang uống là bao nhiêu mg?"
+      ]
+    }
+  ]
+}

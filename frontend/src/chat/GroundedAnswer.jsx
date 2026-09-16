@@ -25,7 +25,26 @@ function AnswerList({ title, icon: Icon, items, ordered = false }) {
   );
 }
 
-export function GroundedAnswer({ answer, result }) {
+const verificationLabels = {
+  verified: 'Đã kiểm chứng qua gateway',
+  shadow_pending: 'Đã tiếp nhận vào hàng đợi kiểm định gateway',
+  shadow: 'Gateway đã hoàn tất kiểm định nền; nội dung an toàn ban đầu được giữ nguyên',
+  timed_out: 'Gateway quá thời gian; dùng kết quả an toàn dự phòng',
+  rejected: 'Gateway không đạt kiểm định; dùng kết quả an toàn dự phòng',
+  unavailable: 'Gateway bận hoặc chưa sẵn sàng; dùng kết quả an toàn dự phòng',
+  circuit_open: 'Gateway tạm ngắt; dùng kết quả an toàn dự phòng',
+  error: 'Gateway gặp lỗi; dùng kết quả an toàn dự phòng',
+  not_requested: 'Gateway chưa được yêu cầu; kết quả từ quy tắc y khoa',
+};
+
+const knowledgeLabels = {
+  approved: 'Nguồn nội bộ đã duyệt',
+  pending_review: 'Nguồn đang chờ chuyên gia duyệt',
+  mixed: 'Một phần nguồn đang chờ duyệt',
+  not_recorded: 'Nguồn chưa ghi nhận phê duyệt',
+};
+
+export function GroundedAnswer({ answer, result, responseMeta = {} }) {
   if (!answer) return null;
   const hasNarrative = answer.narrative?.length > 0;
   const researchedSources = answer.researched_sources || [];
@@ -41,6 +60,19 @@ export function GroundedAnswer({ answer, result }) {
 
   return (
     <div className="grounded-answer modern-clinical-layout">
+      <div className="answer-assurance-row" aria-label="Trạng thái kiểm chứng câu trả lời">
+        <span className={`verification-pill ${responseMeta.verification_status || 'not_requested'}`}>
+          {responseMeta.verification_status === 'verified'
+            ? <CheckCircle2 size={13} />
+            : <CircleHelp size={13} />}
+          {verificationLabels[responseMeta.verification_status] || verificationLabels.not_requested}
+        </span>
+        {responseMeta.knowledge_approval && (
+          <span className={`knowledge-pill ${responseMeta.knowledge_approval}`}>
+            {knowledgeLabels[responseMeta.knowledge_approval]}
+          </span>
+        )}
+      </div>
       {/* Clinical Assessment Header Badge */}
       {(isEmergency || isCaution) && <div className="clinical-header-pill-row">
         {isEmergency ? (

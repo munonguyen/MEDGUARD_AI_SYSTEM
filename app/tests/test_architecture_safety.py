@@ -42,6 +42,7 @@ def test_readiness_reports_real_development_backends():
     assert checks["queue"]["detail"].startswith("active backend: memory;")
     assert "dead_letter=" in checks["queue"]["detail"]
     assert checks["ocr_engines"]["status"] == "fail"
+    assert "gateway_response_coverage" in checks
 
 
 def test_runtime_answer_agents_only_use_the_llm_gateway():
@@ -55,19 +56,62 @@ def test_runtime_answer_agents_only_use_the_llm_gateway():
     assert answer_agent_pipeline.verifier_provider.provider_name == "llm-gateway"
 
 
-def test_gateway_has_exactly_two_fixed_agent_role_bindings():
+def test_gateway_has_fixed_agent_role_bindings():
     config = (ROOT_DIR / "infrastructure/litellm/config.yaml").read_text(encoding="utf-8")
     production_env = (ROOT_DIR / ".env.production.example").read_text(encoding="utf-8")
 
-    assert config.count("model_name:") == 2
+    assert config.count("model_name:") == 6
     assert "model_name: medguard-answer" in config
-    assert "model: gemini/gemini-3.8-flash" in config
     assert "model_name: medguard-verifier" in config
-    assert "model: gemini/gemini-3.1-pro-preview" in config
+    assert "model_name: medguard-clinical-answer" in config
+    assert "model_name: medguard-clinical-verifier" in config
+    assert "model_name: medguard-pharma-answer" in config
+    assert "model_name: medguard-pharma-verifier" in config
     assert "cross-provider" not in config
     assert "\n  fallbacks:" not in config
-    assert DEFAULT_MODELS == ("medguard-answer", "medguard-verifier")
+    assert DEFAULT_MODELS == (
+        "medguard-answer",
+        "medguard-verifier",
+        "medguard-clinical-answer",
+        "medguard-clinical-verifier",
+        "medguard-pharma-answer",
+        "medguard-pharma-verifier",
+    )
     assert "MEDGUARD_AGENT_MODE=enforced" in production_env
+    assert "MEDGUARD_AGENT_COVERAGE_SCOPE=all" in production_env
+
+
+def test_cloud_gateway_uses_gemini_analysis_and_openai_judgment():
+    config = (ROOT_DIR / "infrastructure/litellm/config.yaml").read_text(encoding="utf-8")
+
+    assert config.count("model: gemini/gemini-3.8-flash") == 3
+    assert config.count("reasoning_effort: low") == 3
+    assert config.count("model: openai/gpt-5.6-sol") == 3
+    assert "gemini/gemini-3.1-pro-preview" not in config
+    assert "api_key: os.environ/GEMINI_API_KEY" in config
+    assert "api_key: os.environ/OPENAI_API_KEY" in config
+
+
+def test_free_mixed_gateway_never_claims_a_chatgpt_judge():
+    config = (ROOT_DIR / "infrastructure/litellm/config.gemini-free.yaml").read_text(
+        encoding="utf-8"
+    )
+
+    assert config.count("model_name:") == 6
+    assert config.count("model: gemini/gemini-2.5-flash") == 3
+    assert config.count("model: ollama_chat/medgemma1.5:4b") == 3
+    assert "openai/" not in config
+    assert "supported_environments: [development, staging]" in config
+
+
+def test_gateway_env_example_contains_no_provider_credentials():
+    env_example = (ROOT_DIR / "infrastructure/litellm/.env.example").read_text(
+        encoding="utf-8"
+    )
+
+    assert "GEMINI_API_KEY=\n" in env_example
+    assert "OPENAI_API_KEY=\n" in env_example
+    assert "AQ." not in env_example
 
 
 def test_single_critical_monitoring_point_is_never_suppressed():

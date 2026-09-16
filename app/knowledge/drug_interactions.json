@@ -101,6 +101,33 @@
       "atc_classes": ["A10BA", "V08AB"]
     },
     {
+      "pair": ["sertraline", "tramadol"],
+      "severity": "HARD_STOP",
+      "mechanism": "Tác dụng hiệp đồng tăng nồng độ Serotonin tại synap thần kinh trung ương",
+      "clinical_consequence": "Nguy cơ Hội chứng Serotonin cấp (kích động, run giật cơ, tăng thân nhiệt, co giật, đe dọa tính mạng).",
+      "action": "Tránh phối hợp. Cân nhắc thuốc giảm đau thay thế không có hoạt tính serotonergic (paracetamol, NSAID) nếu không có chống chỉ định.",
+      "evidence_level": "A",
+      "atc_classes": ["N06AB", "N02AX"]
+    },
+    {
+      "pair": ["warfarin", "trimethoprim_sulfamethoxazole"],
+      "severity": "HARD_STOP",
+      "mechanism": "TMP-SMX (Bactrim) ức chế mạnh enzym CYP2C9 chuyển hóa S-warfarin và tiêu diệt vi khuẩn tổng hợp vitamin K đường ruột",
+      "clinical_consequence": "Tăng vọt chỉ số INR và nguy cơ xuất huyết tiêu hóa, xuất huyết nội sọ nặng.",
+      "action": "Tránh phối hợp; nếu bắt buộc phải dùng, cần giảm liều Warfarin 30-50% và xét nghiệm INR chặt chẽ.",
+      "evidence_level": "A",
+      "atc_classes": ["B01AA", "J01EE"]
+    },
+    {
+      "pair": ["sildenafil", "nitroglycerin"],
+      "severity": "HARD_STOP",
+      "mechanism": "Hiệp đồng tác dụng giãn mạch qua hệ thống NO/cGMP",
+      "clinical_consequence": "Hạ huyết áp nghiêm trọng đe dọa tính mạng, trụy tuần hoàn, tử vong.",
+      "action": "Chống chỉ định tuyệt đối. Không dùng Nitroglycerin trong vòng 24 giờ sau khi dùng Sildenafil.",
+      "evidence_level": "A",
+      "atc_classes": ["G04BE", "C01DA"]
+    },
+    {
       "pair": ["warfarin", "aspirin"],
       "severity": "SOFT_STOP",
       "mechanism": "Tác dụng hiệp đồng chống đông (kháng vitamin K + ức chế ngưng tập tiểu cầu) kèm tổn thương niêm mạc dạ dày do aspirin",

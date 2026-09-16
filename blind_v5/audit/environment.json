@@ -1,0 +1,6 @@
+{
+  "os": "macOS-15.5-arm64-arm-64bit-Mach-O",
+  "python_version": "3.14.4 (v3.14.4:23116f998f6, Apr  7 2026, 09:45:22) [Clang 17.0.0 (clang-1700.6.4.2)]",
+  "git_commit": "8455226695c5d2be046b84b7120dd4c357bc5ee8",
+  "model_version": "medguard-candidate-v5-frozen"
+}

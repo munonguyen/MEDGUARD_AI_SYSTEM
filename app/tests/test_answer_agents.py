@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from copy import deepcopy
 import json
+from time import sleep
 
 from app.models.agents import AgentDraft, AgentVerification
 from app.models.chat import AnswerNarrativeBlock, GroundedAnswer
 from app.services.agent_provider import ProviderResult
-from app.services.answer_agents import AnswerAgentConfig, AnswerAgentPipeline
+from app.services.answer_agents import AnswerAgentConfig, AnswerAgentPipeline, _claims
 from app.services.circuit import CircuitBreaker
 
 
@@ -37,6 +38,12 @@ class FakeProvider:
         )
 
 
+class SlowProvider(FakeProvider):
+    def complete(self, **values):
+        sleep(0.05)
+        return super().complete(**values)
+
+
 def baseline_answer() -> GroundedAnswer:
     return GroundedAnswer(
         title="Đánh giá hiện tại",
@@ -48,6 +55,37 @@ def baseline_answer() -> GroundedAnswer:
         decision_basis="versioned_rules",
         evidence_state="direct_rule_match",
         narrative=[AnswerNarrativeBlock(text="Bản deterministic.")],
+    )
+
+
+def test_writer_contract_is_bounded_and_keeps_safety_critical_claims_locked():
+    answer = baseline_answer().model_copy(
+        update={
+            "next_steps": [f"Bước xử trí {index}." for index in range(1, 7)],
+            "safety_notes": [f"Cảnh báo an toàn {index}." for index in range(1, 5)],
+            "questions": [f"Câu hỏi {index}?" for index in range(1, 6)],
+        }
+    )
+
+    claims = _claims(answer, "triage")
+
+    assert [claim["text"] for claim in claims if claim["category"] == "action"] == [
+        "Bước xử trí 1.",
+        "Bước xử trí 2.",
+        "Bước xử trí 6.",
+    ]
+    assert [claim["text"] for claim in claims if claim["category"] == "safety"] == [
+        "Cảnh báo an toàn 1.",
+        "Cảnh báo an toàn 2.",
+    ]
+    assert [claim["text"] for claim in claims if claim["category"] == "question"] == [
+        "Câu hỏi 1?",
+        "Câu hỏi 2?",
+    ]
+    assert all(
+        claim["locked"]
+        for claim in claims
+        if claim["category"] in {"finding", "action", "safety"}
     )
 
 
@@ -295,3 +333,42 @@ def test_input_token_guard_fails_before_any_model_call():
     assert result.agent_trace.fallback_reason == "input_token_limit_exceeded"
     assert research.calls == []
     assert verifier.calls == []
+
+
+def test_total_pipeline_deadline_returns_the_deterministic_answer():
+    original = baseline_answer()
+    research = SlowProvider(
+        "slow-research",
+        approved_draft(),
+        citations=(TRUSTED_URL,),
+        queries=("NICE headache red flags",),
+    )
+    verifier = FakeProvider(
+        "verifier",
+        verification(),
+        citations=(TRUSTED_URL,),
+        queries=("verify headache guideline",),
+    )
+    instance = AnswerAgentPipeline(
+        config=AnswerAgentConfig(
+            mode="enforced",
+            research_model="research-test",
+            verifier_model="verifier-test",
+            total_timeout_seconds=0.01,
+        ),
+        research_provider=research,
+        verifier_provider=verifier,
+        circuit=CircuitBreaker(error_threshold=1, min_requests=10),
+    )
+
+    result = instance.enhance(
+        answer=original,
+        intent="triage",
+        question="đau đầu",
+        request_id="req-total-timeout",
+    )
+
+    assert result.agent_trace.status == "error"
+    assert result.agent_trace.fallback_reason == "agent_total_timeout"
+    assert result.narrative == original.narrative
+    assert result.researched_sources == []

@@ -13,6 +13,7 @@ from app.models.chat import (
     ChatResponse,
     ConversationHistoryResponse,
     ConversationSummary,
+    GroundedAnswer,
     StoredChatMessage,
 )
 
@@ -42,21 +43,23 @@ class ChatHistoryStore:
             session.execute(
                 """
                 INSERT INTO chat_messages (
-                    message_id, tenant_id, conversation_id, role, content,
+                    message_id, request_id, tenant_id, conversation_id, role, content,
                     intent, status, result_json, answer_json, created_at
-                ) VALUES (?, ?, ?, 'user', ?, NULL, NULL, NULL, NULL, ?)
+                ) VALUES (?, ?, ?, ?, 'user', ?, NULL, NULL, NULL, NULL, ?)
                 """,
-                (str(uuid4()), tenant_id, payload.conversation_id, latest, now),
+                (str(uuid4()), response.request_id, tenant_id, payload.conversation_id, latest, now),
             )
             session.execute(
                 """
                 INSERT INTO chat_messages (
-                    message_id, tenant_id, conversation_id, role, content,
-                    intent, status, result_json, answer_json, created_at
-                ) VALUES (?, ?, ?, 'assistant', ?, ?, ?, ?, ?, ?)
+                    message_id, request_id, tenant_id, conversation_id, role, content,
+                    intent, status, result_json, answer_json, answer_origin,
+                    verification_status, knowledge_approval, created_at
+                ) VALUES (?, ?, ?, ?, 'assistant', ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     str(uuid4()),
+                    response.request_id,
                     tenant_id,
                     payload.conversation_id,
                     response.reply,
@@ -64,6 +67,9 @@ class ChatHistoryStore:
                     response.status,
                     json.dumps(response.result, ensure_ascii=False) if response.result is not None else None,
                     json.dumps(response.answer.model_dump(mode="json"), ensure_ascii=False) if response.answer else None,
+                    response.answer_origin,
+                    response.verification_status,
+                    response.knowledge_approval,
                     datetime.now(timezone.utc).isoformat(),
                 ),
             )
@@ -106,7 +112,8 @@ class ChatHistoryStore:
                 return None
             rows = session.execute(
                 """
-                SELECT message_id, role, content, intent, status, result_json, answer_json, created_at
+                SELECT message_id, request_id, role, content, intent, status, result_json, answer_json,
+                       answer_origin, verification_status, knowledge_approval, created_at
                 FROM chat_messages
                 WHERE tenant_id = ? AND conversation_id = ?
                 ORDER BY created_at ASC
@@ -124,6 +131,61 @@ class ChatHistoryStore:
             conversation=ConversationSummary.model_validate(conversations[0]),
             messages=messages,
         )
+
+    def update_verification(
+        self,
+        tenant_id: str,
+        conversation_id: str,
+        request_id: str,
+        *,
+        verification_status: str,
+        answer_origin: str,
+    ) -> None:
+        with self._lock, self.database.tenant_context(tenant_id) as session:
+            session.execute(
+                """
+                UPDATE chat_messages
+                SET verification_status = ?, answer_origin = ?
+                WHERE tenant_id = ? AND conversation_id = ? AND request_id = ?
+                  AND role = 'assistant'
+                """,
+                (
+                    verification_status,
+                    answer_origin,
+                    tenant_id,
+                    conversation_id,
+                    request_id,
+                ),
+            )
+
+    def update_answer_and_verification(
+        self,
+        tenant_id: str,
+        conversation_id: str,
+        request_id: str,
+        *,
+        answer: GroundedAnswer,
+        verification_status: str,
+        answer_origin: str,
+    ) -> None:
+        """Atomically promote a verified background answer in chat history."""
+        with self._lock, self.database.tenant_context(tenant_id) as session:
+            session.execute(
+                """
+                UPDATE chat_messages
+                SET answer_json = ?, verification_status = ?, answer_origin = ?
+                WHERE tenant_id = ? AND conversation_id = ? AND request_id = ?
+                  AND role = 'assistant'
+                """,
+                (
+                    json.dumps(answer.model_dump(mode="json"), ensure_ascii=False),
+                    verification_status,
+                    answer_origin,
+                    tenant_id,
+                    conversation_id,
+                    request_id,
+                ),
+            )
 
     def delete(self, tenant_id: str, conversation_id: str) -> bool:
         with self._lock, self.database.tenant_context(tenant_id) as session:

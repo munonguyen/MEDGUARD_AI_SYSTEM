@@ -1,0 +1,15 @@
+{
+  "model_version": "medguard-candidate-vnext-frozen",
+  "git_commit": "8455226695c5d2be046b84b7120dd4c357bc5ee8",
+  "file_hashes": {
+    "app/services/rules.py": "5959a5695bb61c31512e3a6d835d69ec1654755d5bb62115ca74d4a43b69434f",
+    "app/services/semantic_risk.py": "dcd18fe701c3cbef6fa0ef422b95d1d89992fc6d1bd26a886ed858e0ce47a0f2",
+    "app/services/clinical_text.py": "e8e18ea29f889e5d088a40f1ec91d6120049bba941de50004bb9d47942e01471",
+    "app/services/risk_memory.py": "9b1e535497b443a40ba077773d1d7ee5e10b97bd1bad13b1819148518b027a50",
+    "app/services/dose_reasoning.py": "ea7a780da48cbed00166009241f5e970bbabaa453d30c15995e9d53a2654d06c",
+    "app/services/triage_resolver.py": "b3d18776ba7a1c717144330bb9035f6a89d118520f696e51dbdd8ae063b94587",
+    "app/services/chat.py": "6f2a33c6693066066fab7a9967a5ffb79ea454034e16215acd30e1553889f486",
+    "app/knowledge/medication_incident_protocols.json": "951aa39de7259e3890c359d60837534daa61e162d0d86f6014f9b8fa32a8d07a",
+    "app/knowledge/red_flag_protocols.json": "a4089da959635fd4447b74c5e0a3118b1eeba9b1f28f7aff51e936a577fd43f6"
+  }
+}

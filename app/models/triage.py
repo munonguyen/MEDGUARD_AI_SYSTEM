@@ -60,5 +60,6 @@ class TriageResponse(DisclaimerMixin):
     self_care: list[str] = Field(default_factory=list)
     safety_net: list[str] = Field(default_factory=list)
     guidance_summary: str | None = None
+    clinical_hypotheses: list[str] = Field(default_factory=list)
     advice: str
     trace: Trace

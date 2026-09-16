@@ -1,9 +1,29 @@
 {
   "_meta": {
-    "version": "1.0.0",
+    "version": "1.1.0",
     "effective_date": "2026-09-07",
     "approved_by": "[PENDING]",
-    "purpose": "Development monitoring thresholds and metric-aware trend semantics. Clinical approval is required before production use."
+    "purpose": "Development monitoring thresholds, metric-aware trend semantics, and bounded home-measurement guidance. Clinical approval is required before production use.",
+    "source_references": [
+      "American Heart Association — Home Blood Pressure Monitoring (accessed 2026-09-10)",
+      "CDC — Measuring Your Blood Pressure (updated 2026-05-12)"
+    ]
+  },
+  "measurement_guidance": {
+    "blood_pressure": {
+      "title": "Cách đo huyết áp tại nhà đúng hơn",
+      "summary": "Dùng máy đo tự động loại vòng bít ở cánh tay trên và vòng bít đúng cỡ. Đo trong tư thế nghỉ, cùng thời điểm mỗi ngày và lưu lại cả hai trị số tâm thu/tâm trương.",
+      "steps": [
+        "Trong 30 phút trước khi đo, tránh hút thuốc, đồ uống chứa caffeine, rượu và vận động; đi tiểu trước khi ngồi đo.",
+        "Ngồi yên ít nhất 5 phút, lưng được tựa, hai bàn chân đặt phẳng trên sàn, không bắt chéo chân và không nói chuyện.",
+        "Quấn vòng bít trên da trần ở cánh tay trên; đặt và đỡ cánh tay trên mặt phẳng sao cho vòng bít ngang mức tim.",
+        "Mỗi lần đo, lấy 2 kết quả cách nhau 1 phút và ghi lại thời gian cùng cả hai chỉ số; ưu tiên đo vào cùng thời điểm mỗi ngày theo kế hoạch của nhân viên y tế."
+      ],
+      "safety_notes": [
+        "Theo dõi tại nhà không thay thế các lần khám định kỳ và không tự ngừng hoặc đổi thuốc huyết áp chỉ dựa trên kết quả tự đo.",
+        "Nếu máy báo trị số rất cao hoặc rất thấp, hãy ngồi nghỉ và đo lại đúng kỹ thuật; nếu kèm đau ngực, khó thở, yếu liệt, lú lẫn hoặc ngất, cần gọi cấp cứu ngay."
+      ]
+    }
   },
   "minimum_points_for_trend": 3,
   "rules": [

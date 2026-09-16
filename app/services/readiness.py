@@ -11,6 +11,7 @@ from app.knowledge.loader import knowledge
 from app.models.health import ReadinessCheck, ReadinessResponse
 from app.services.ocr.detector import text_detector
 from app.services.ocr.recognizer import line_recognizer
+from app.services.circuit import CircuitState, model_circuit
 
 
 _DEVELOPMENT_SECRETS = {
@@ -65,26 +66,80 @@ def build_readiness() -> ReadinessResponse:
     gateway_healthy, gateway_detail = (
         _llm_gateway_healthcheck() if agents_active and agents_configured else (False, "gateway not probed")
     )
-    if (
-        agents_active
-        and agents_configured
-        and gateway_healthy
-        and (settings.agent_mode == "enforced" or not settings.agent_required_for_production)
-    ):
-        agent_status = "pass"
-        agent_detail = f"mode={settings.agent_mode}; gateway=healthy; both roles are configured"
-    elif agents_active and agents_configured and gateway_healthy and settings.agent_mode == "shadow":
-        agent_status = "fail" if settings.agent_required_for_production else "warn"
-        agent_detail = "gateway is healthy but shadow mode cannot satisfy the production release gate"
-    elif agents_active and agents_configured:
-        agent_status = "fail"
-        agent_detail = gateway_detail
-    elif settings.agent_required_for_production or agents_active:
-        agent_status = "fail"
-        agent_detail = f"mode={settings.agent_mode}; gateway virtual key or model aliases are incomplete"
+    if not agents_active or not agents_configured:
+        gateway_status = "fail" if settings.agent_required_for_production else "warn"
+        gateway_detail = "gateway not required by the active deterministic execution policy"
     else:
-        agent_status = "warn"
-        agent_detail = "answer research and independent verification are disabled; deterministic presenter remains active"
+        gateway_status = "pass" if gateway_healthy else "fail"
+
+    circuit = model_circuit.snapshot()
+    if circuit.total_requests == 0:
+        contract_status = "fail" if settings.agent_required_for_production else "warn"
+        contract_detail = "gateway transport may be live, but no writer+verifier contract has completed in this process"
+    elif circuit.state != CircuitState.CLOSED or circuit.failure_count:
+        contract_status = "fail"
+        contract_detail = (
+            f"writer+verifier contract is unhealthy: state={circuit.state}; "
+            f"failures={circuit.failure_count}/{circuit.total_requests}"
+        )
+    else:
+        contract_status = "pass"
+        contract_detail = f"writer+verifier contract completed successfully; runs={circuit.total_requests}"
+
+    execution_enabled = settings.agent_sync_enabled or settings.agent_background_enabled
+    if not agents_active or not execution_enabled:
+        agent_status = "fail" if settings.agent_required_for_production else "warn"
+        agent_detail = (
+            f"mode={settings.agent_mode}; synchronous and background model execution are disabled; "
+            "patient answers use the deterministic clinical path"
+        )
+    elif settings.agent_sync_enabled:
+        agent_status = "pass" if settings.agent_mode == "enforced" and contract_status == "pass" else "fail"
+        agent_detail = (
+            f"mode={settings.agent_mode}; execution=synchronous; release requires a proven writer+verifier contract"
+        )
+    else:
+        agent_status = "fail" if settings.agent_required_for_production else "pass"
+        agent_detail = (
+            f"mode={settings.agent_mode}; execution=queued-background; patient responses do not wait for Ollama; "
+            f"verified_promotion={str(settings.agent_background_promote_verified).lower()}"
+        )
+
+    coverage_configured = (
+        settings.agent_coverage_scope == "all"
+        and agents_active
+        and execution_enabled
+    )
+    synchronous_release = (
+        coverage_configured
+        and settings.agent_mode == "enforced"
+        and settings.agent_sync_enabled
+    )
+    background_admission = coverage_configured and settings.agent_background_enabled
+    if settings.agent_required_for_production:
+        coverage_status = "pass" if synchronous_release else "fail"
+    else:
+        coverage_status = "pass" if synchronous_release or background_admission else "warn"
+    if synchronous_release:
+        coverage_detail = (
+            "scope=all; enforced synchronous execution attempts the gateway before every public response; "
+            "per-response verification_status still reports timeout, rejection, or provider failure"
+        )
+    elif coverage_configured and settings.agent_background_enabled:
+        promotion_detail = (
+            "verified results may update durable history"
+            if settings.agent_background_promote_verified
+            else "results are observability-only"
+        )
+        coverage_detail = (
+            "scope=all; every admitted response is queued for background gateway review; "
+            f"{promotion_detail}; queued work is not durable across process restarts"
+        )
+    else:
+        coverage_detail = (
+            f"scope={settings.agent_coverage_scope}; mode={settings.agent_mode}; "
+            "not every public response is submitted to the gateway"
+        )
     checks = [
         ReadinessCheck(
             name="database",
@@ -167,9 +222,27 @@ def build_readiness() -> ReadinessResponse:
             ),
         ),
         ReadinessCheck(
+            name="llm_gateway_transport",
+            status=gateway_status,
+            detail=gateway_detail,
+            required_for_production=settings.agent_required_for_production,
+        ),
+        ReadinessCheck(
+            name="llm_model_contract",
+            status=contract_status,
+            detail=contract_detail,
+            required_for_production=settings.agent_required_for_production,
+        ),
+        ReadinessCheck(
             name="answer_agents",
             status=agent_status,
             detail=agent_detail,
+            required_for_production=settings.agent_required_for_production,
+        ),
+        ReadinessCheck(
+            name="gateway_response_coverage",
+            status=coverage_status,
+            detail=coverage_detail,
             required_for_production=settings.agent_required_for_production,
         ),
     ]

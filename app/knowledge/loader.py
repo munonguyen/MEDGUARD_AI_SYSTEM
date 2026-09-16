@@ -26,6 +26,7 @@ _FILE_NAMES = (
     "icd10_codes.json",
     "monitoring_rules.json",
     "product_registry.json",
+    "medication_incident_protocols.json",
 )
 
 
@@ -79,9 +80,34 @@ class KnowledgeStore:
     def symptom_guidance(self) -> list[dict[str, Any]]:
         return self.files.get("red_flag_protocols.json", KnowledgeFile("", "", "", {})).data.get("symptom_guidance", [])
 
+    @property
+    def reported_ingestion_protocols(self) -> list[dict[str, Any]]:
+        return self.files.get(
+            "medication_incident_protocols.json", KnowledgeFile("", "", "", {})
+        ).data.get("reported_ingestion_protocols", [])
+
     def find_symptom_guidance(self, symptoms_text: str) -> dict[str, Any] | None:
         normalized = symptoms_text.lower().strip()
         for guidance in self.symptom_guidance:
+            if guidance.get("topic") == "lower_limb_pain":
+                has_lower_limb_region = any(
+                    term in normalized
+                    for term in (
+                        "chân",
+                        "đùi",
+                        "bắp chân",
+                        "đầu gối",
+                        "cổ chân",
+                        "mắt cá",
+                        "bàn chân",
+                    )
+                )
+                has_relevant_problem = any(
+                    term in normalized
+                    for term in ("đau", "nhức", "sưng", "khó đi", "không đi", "chịu lực")
+                )
+                if has_lower_limb_region and has_relevant_problem:
+                    return guidance
             if any(str(keyword).lower() in normalized for keyword in guidance.get("keywords", [])):
                 return guidance
         return None

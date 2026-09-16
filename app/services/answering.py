@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any, Literal
 
 from app.knowledge.loader import knowledge
@@ -15,6 +16,7 @@ _KNOWLEDGE_BY_INTENT: dict[ChatIntent, tuple[str, ...]] = {
         "allergy_cross_matrix.json",
         "contraindications.json",
         "atc_codes.json",
+        "medication_incident_protocols.json",
     ),
     "monitoring": ("monitoring_rules.json",),
     "authenticity": ("product_registry.json",),
@@ -83,11 +85,28 @@ def _with_narrative(answer: GroundedAnswer, intent: ChatIntent) -> GroundedAnswe
             )
         )
 
-    if answer.safety_notes:
-        safety_text = _as_sentences(answer.safety_notes)
+    visible_hypotheses = [
+        value for value in answer.clinical_hypotheses if not value.lower().startswith("lưu ý:")
+    ][:2]
+    if visible_hypotheses and not is_emergency:
+        hypotheses_text = "Một số khả năng thường gặp để tham khảo (chưa đủ dữ kiện để khẳng định nguyên nhân): " + " | ".join(
+            f"{i+1}. {hypo}" for i, hypo in enumerate(visible_hypotheses)
+        )
+        lead_emphasis = visible_hypotheses[0].split(":")[0] if ":" in visible_hypotheses[0] else visible_hypotheses[0]
+        blocks.append(
+            _block(
+                hypotheses_text,
+                kind="paragraph",
+                emphasis=["Một số khả năng thường gặp", lead_emphasis],
+            )
+        )
+
+    visible_safety_notes = answer.safety_notes[:2]
+    if visible_safety_notes:
+        safety_text = _as_sentences(visible_safety_notes)
         emergency_phrase = next(
-            (value for value in answer.safety_notes if "cấp cứu ngay" in value.lower()),
-            answer.safety_notes[0],
+            (value for value in visible_safety_notes if "cấp cứu ngay" in value.lower()),
+            visible_safety_notes[0],
         )
         emergency_phrase = emergency_phrase.split(";")[0]
         blocks.append(
@@ -98,25 +117,94 @@ def _with_narrative(answer: GroundedAnswer, intent: ChatIntent) -> GroundedAnswe
             )
         )
 
-    if answer.next_steps:
-        action_text = _as_sentences(answer.next_steps)
+    visible_next_steps = answer.next_steps
+    if len(visible_next_steps) > 4:
+        visible_next_steps = [*visible_next_steps[:3], visible_next_steps[-1]]
+    if visible_next_steps:
+        action_text = _as_sentences(visible_next_steps)
         blocks.append(
             _block(
                 action_text,
                 kind="urgent" if is_emergency else "paragraph",
-                emphasis=[answer.next_steps[0] if is_emergency else ""],
+                emphasis=[visible_next_steps[0] if is_emergency else ""],
             )
         )
 
-    if answer.questions:
+    visible_questions = answer.questions[:3]
+    if visible_questions:
+        prompt_label = "Thông tin cần báo nhân viên y tế nếu có thể" if is_emergency else "Bạn cho mình biết thêm"
         blocks.append(
             _block(
-                f"Bạn cho mình biết thêm: {_as_sentences(answer.questions)}",
-                emphasis=["Bạn cho mình biết thêm"],
+                f"{prompt_label}: {_as_sentences(visible_questions)}",
+                emphasis=[prompt_label],
             )
         )
 
-    return answer.model_copy(update={"narrative": blocks})
+    res = answer.model_copy(update={"narrative": blocks})
+    return _sanitize_clinical_response(res)
+
+
+def _sanitize_clinical_response(answer: GroundedAnswer) -> GroundedAnswer:
+    is_emergency = answer.title.startswith("Bạn cần được đánh giá cấp cứu")
+    if not is_emergency:
+        return answer
+
+    forbidden_emergency_phrases = (
+        "chưa thấy dấu hiệu cấp cứu",
+        "chưa cho thấy rõ dấu hiệu cấp cứu",
+        "chưa thấy dấu hiệu nguy hiểm",
+        "chưa ghi nhận dấu hiệu nguy kịch",
+        "chưa thấy dấu hiệu nguy kịch",
+        "chưa cho thấy rõ dấu hiệu",
+        "theo dõi 1-2 ngày",
+        "theo dõi thêm 1-2 ngày",
+        "theo dõi 1–2 ngày",
+        "theo dõi thêm 1–2 ngày",
+        "nghỉ ngơi xem có đỡ",
+        "nghỉ ngơi xem có bớt",
+        "có thể chỉ là căng thẳng",
+        "có thể do căng thẳng",
+        "tự chăm sóc và theo dõi",
+        "tiếp tục theo dõi tại nhà",
+        "tự theo dõi tại nhà",
+        "chườm mát để giảm",
+        "chườm lạnh để giảm",
+        "cho mắt cùng não bộ nghỉ ngơi",
+        "rời khỏi màn hình",
+    )
+
+    cleaned_blocks = []
+    has_emergency_action = False
+    for block in answer.narrative:
+        text = block.text
+        for phrase in forbidden_emergency_phrases:
+            if phrase in text.lower():
+                sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", text) if s.strip()]
+                sentences = [s for s in sentences if phrase not in s.lower()]
+                text = " ".join(sentences).strip()
+        if text:
+            if "115" in text or "cấp cứu" in text.lower():
+                has_emergency_action = True
+            cleaned_blocks.append(
+                AnswerNarrativeBlock(
+                    kind=block.kind,
+                    text=text,
+                    emphasis=block.emphasis,
+                    source_ids=block.source_ids,
+                )
+            )
+
+    # Invariant: An emergency response MUST explicitly instruct immediate emergency action
+    if not has_emergency_action:
+        cleaned_blocks.append(
+            AnswerNarrativeBlock(
+                kind="urgent",
+                text="Hành động khẩn cấp: Hãy gọi ngay 115 hoặc nhờ người đưa đến khoa Cấp cứu bệnh viện gần nhất; tuyệt đối không tự lái xe hay trì hoãn tại nhà.",
+                emphasis=["Gọi ngay 115", "khoa Cấp cứu"],
+            )
+        )
+
+    return answer.model_copy(update={"narrative": cleaned_blocks})
 
 
 def _sources(intent: ChatIntent) -> list[ChatEvidenceSource]:
@@ -189,14 +277,16 @@ def _triage_answer(result: dict[str, Any], sources: list[ChatEvidenceSource]) ->
     titles = {
         "EMERGENCY": "Bạn cần được đánh giá cấp cứu ngay",
         "URGENT": "Bạn nên được nhân viên y tế đánh giá sớm",
-        "ROUTINE": "Với thông tin hiện có, chưa thấy dấu hiệu cần cấp cứu ngay",
+        "ROUTINE": "Thông tin hiện tại chưa cho thấy rõ dấu hiệu cấp cứu",
     }
     urgency_labels = {"EMERGENCY": "cấp cứu", "URGENT": "khẩn", "ROUTINE": "thường quy"}
-    key_points = [f"Mức phân luồng: {urgency_labels.get(urgency, urgency)}" + (f", ESI {esi}" if esi else "")]
+    key_points = [f"Mức phân luồng: {urgency_labels.get(urgency, urgency)}"]
+    if esi:
+        key_points.append(
+            f"Mã ưu tiên nội bộ: ESI {esi} (đây là mức ưu tiên tiếp nhận, không phải xác suất chẩn đoán)"
+        )
     if specialty_label:
-        confidence = specialty.get("confidence")
-        suffix = f" ({round(float(confidence) * 100)}% theo rule định tuyến)" if confidence is not None else ""
-        key_points.append(f"Hướng tiếp nhận: {specialty_label}{suffix}")
+        key_points.append(f"Hướng tiếp nhận do quy tắc lựa chọn: {specialty_label}")
     key_points.extend(f"Dấu hiệu được nhận diện: {flag}" for flag in result.get("red_flags", []))
     if emergency:
         summary = (
@@ -204,30 +294,45 @@ def _triage_answer(result: dict[str, Any], sources: list[ChatEvidenceSource]) ->
             "phân luồng. Bạn cần được nhân viên cấp cứu đánh giá ngay; hệ thống không "
             "xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này."
         )
+        # Emergency Override: strictly disable routine self-care and home monitoring advice
+        next_steps = [
+            "Dừng ngay mọi hoạt động đang làm hoặc gắng sức, ở nơi an toàn và nhờ người bên cạnh hỗ trợ trong khi liên hệ cấp cứu.",
+            str(result.get("advice") or "Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay lập tức; không tự lái xe."),
+            "Tuyệt đối không tự điều trị hoặc trì hoãn việc đánh giá y tế khẩn cấp.",
+        ]
+        safety_notes = [
+            "Không trì hoãn việc gọi 115 hoặc đến khoa Cấp cứu ngay lập tức; tuyệt đối không chần chừ tại nhà."
+        ]
+        questions = []
+        clinical_hypotheses = []
+    elif urgency == "URGENT":
+        summary = str(result.get("guidance_summary") or (
+            "Các triệu chứng bạn mô tả cần được nhân viên y tế đánh giá trực tiếp sớm. "
+            "Hệ thống không thể xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn; "
+            "hãy ưu tiên hướng xử trí bên dưới."
+        ))
+        next_steps = [str(value) for value in result.get("self_care", [])]
+        if result.get("advice"):
+            next_steps.append(str(result["advice"]))
+        questions = [str(value) for value in result.get("clarifying_questions", [])]
+        safety_notes = [str(value) for value in result.get("safety_net", [])]
+        clinical_hypotheses = [str(value) for value in result.get("clinical_hypotheses", [])]
     else:
         summary = str(result.get("guidance_summary") or (
             "Kết quả hiện tại chưa ghi nhận dấu hiệu nguy kịch ngay lúc này, tuy nhiên bạn cần "
             "theo dõi sát diễn biến và đi khám nếu triệu chứng kéo dài hoặc tăng nặng."
         ))
-    next_steps = [str(value) for value in result.get("self_care", [])]
-    if result.get("advice"):
-        next_steps.append(str(result["advice"]))
-    if emergency and not result.get("self_care"):
-        next_steps.insert(
-            0,
-            "Dừng hoạt động đang làm, ở nơi an toàn và nhờ người bên cạnh hỗ trợ trong khi liên hệ cấp cứu.",
-        )
-
-    questions = [str(value) for value in result.get("clarifying_questions", [])]
-    safety_notes = [str(value) for value in result.get("safety_net", [])]
-    if not safety_notes and emergency:
-        safety_notes = [
-            "Không trì hoãn việc gọi 115 hoặc đến khoa Cấp cứu để chờ thêm triệu chứng hay tiếp tục trao đổi trực tuyến."
-        ]
+        next_steps = [str(value) for value in result.get("self_care", [])]
+        if result.get("advice"):
+            next_steps.append(str(result["advice"]))
+        questions = [str(value) for value in result.get("clarifying_questions", [])]
+        safety_notes = [str(value) for value in result.get("safety_net", [])]
+        clinical_hypotheses = [str(value) for value in result.get("clinical_hypotheses", [])]
 
     return GroundedAnswer(
         title=titles.get(urgency, "Kết quả phân luồng"),
         summary=summary,
+        clinical_hypotheses=clinical_hypotheses,
         key_points=key_points,
         next_steps=next_steps,
         safety_notes=safety_notes,
@@ -246,7 +351,12 @@ def _triage_answer(result: dict[str, Any], sources: list[ChatEvidenceSource]) ->
 
 def _safety_answer(result: dict[str, Any], sources: list[ChatEvidenceSource]) -> GroundedAnswer:
     risk = str(result.get("overall_risk", "LOW"))
-    warnings = result.get("warnings", [])
+    warnings_raw = result.get("warnings", [])
+    warnings = [
+        w.model_dump() if hasattr(w, "model_dump")
+        else (dict(w) if isinstance(w, dict) else getattr(w, "__dict__", {}))
+        for w in warnings_raw
+    ]
     unknown = result.get("unknown_ingredients", [])
     source_for_warning = {
         "DRUG_DRUG_INTERACTION": "drug_interactions.json",
@@ -254,6 +364,7 @@ def _safety_answer(result: dict[str, Any], sources: list[ChatEvidenceSource]) ->
         "ALLERGY_PARTIAL_CROSS_REACTIVITY": "allergy_cross_matrix.json",
         "CONDITION_CONTRAINDICATION": "contraindications.json",
         "DUPLICATE_ACTIVE_INGREDIENT": "atc_codes.json",
+        "REPORTED_ACUTE_INGESTION": "medication_incident_protocols.json",
     }
     relevant_source_names = {source_for_warning.get(str(warning.get("type"))) for warning in warnings}
     relevant_source_names.discard(None)
@@ -263,8 +374,21 @@ def _safety_answer(result: dict[str, Any], sources: list[ChatEvidenceSource]) ->
         "MODERATE": "Có cảnh báo cần kiểm tra trước khi dùng",
         "LOW": "Chưa tìm thấy cảnh báo trong phạm vi đã kiểm tra",
     }
-    if warnings:
-        summary = f"Bộ quy tắc ghi nhận {len(warnings)} cảnh báo và xếp mức nguy cơ tổng thể là {risk}."
+    hard_stops = [warning for warning in warnings if warning.get("tier") == "HARD_STOP"]
+    if hard_stops:
+        medicines = [str(warning.get("medication")) for warning in hard_stops if warning.get("medication")]
+        medicine_text = ", ".join(dict.fromkeys(medicines))
+        summary = (
+            f"Bạn không nên tự dùng {medicine_text} trong tình huống đã mô tả; "
+            if medicine_text
+            else "Bạn không nên tự dùng hoặc phối hợp thuốc trong tình huống đã mô tả; "
+        ) + f"bộ quy tắc ghi nhận {len(hard_stops)} cảnh báo bắt buộc dừng và cần bác sĩ hoặc dược sĩ xác nhận."
+    elif warnings:
+        ingestion_warns = [w for w in warnings if w.get("type") == "REPORTED_ACUTE_INGESTION"]
+        if ingestion_warns:
+            summary = " ".join([str(w.get("detail", "")) + " " + str(w.get("recommendation", "")) for w in ingestion_warns]).strip()
+        else:
+            summary = f"Bộ quy tắc ghi nhận {len(warnings)} cảnh báo và xếp mức nguy cơ tổng thể là {risk}."
     else:
         summary = "Không tìm thấy cảnh báo trong dữ liệu đã nhập và bảng quy tắc hiện có. Kết quả này không chứng minh thuốc hoặc phối hợp thuốc là an toàn."
     key_points = []
@@ -275,17 +399,25 @@ def _safety_answer(result: dict[str, Any], sources: list[ChatEvidenceSource]) ->
         if warning.get("clinical_consequence"):
             point += f" Hệ quả được ghi nhận: {warning['clinical_consequence']}"
         key_points.append(point)
-        if warning.get("recommendation"):
+        # A HARD_STOP recommendation in the knowledge table may contain a
+        # possible replacement drug. Do not surface it as personalized advice
+        # from chat; the contraindication remains visible and a clinician or
+        # pharmacist must select any alternative after reviewing the patient.
+        if warning.get("recommendation") and warning.get("tier") != "HARD_STOP":
             next_steps.append(str(warning["recommendation"]))
     key_points.extend(f"Chưa xác định được hoạt chất: {value}" for value in unknown)
     requires_review = bool(result.get("requires_human_review"))
     if requires_review:
         next_steps.insert(0, "Không tự bắt đầu, ngừng hoặc phối hợp thuốc trước khi trao đổi với bác sĩ hoặc dược sĩ.")
+    if hard_stops:
+        next_steps.append("Hãy hỏi bác sĩ hoặc dược sĩ về lựa chọn thay thế phù hợp với bệnh nền và các thuốc bạn đang dùng.")
+    questions = [str(value) for value in result.get("clarifying_questions", [])]
     return GroundedAnswer(
         title=titles.get(risk, "Kết quả kiểm tra thuốc"),
         summary=summary,
         key_points=key_points,
         next_steps=list(dict.fromkeys(next_steps)),
+        questions=questions,
         decision_basis="versioned_rules",
         evidence_state="direct_rule_match" if warnings else "bounded_result",
         rule_version=_trace_rule_version(result),
@@ -299,6 +431,25 @@ def _safety_answer(result: dict[str, Any], sources: list[ChatEvidenceSource]) ->
 
 
 def _monitoring_answer(result: dict[str, Any], sources: list[ChatEvidenceSource]) -> GroundedAnswer:
+    if result.get("measurement_guidance"):
+        steps = [str(value) for value in result.get("steps", [])]
+        safety_notes = [str(value) for value in result.get("safety_notes", [])]
+        return GroundedAnswer(
+            title=str(result.get("title") or "Hướng dẫn đo chỉ số tại nhà"),
+            summary=str(result.get("summary") or "Thực hiện đúng tư thế và hướng dẫn của thiết bị."),
+            key_points=["Đo đúng kỹ thuật", "Ghi lại nhiều lần đo để theo dõi"],
+            next_steps=steps,
+            safety_notes=safety_notes,
+            decision_basis="versioned_rules",
+            evidence_state="bounded_result",
+            rule_version=_trace_rule_version(result),
+            sources=sources,
+            limitations=[
+                "Hướng dẫn này hỗ trợ kỹ thuật đo tại nhà, không thay thế chẩn đoán hoặc kế hoạch điều trị của nhân viên y tế.",
+                *_approval_limitations(sources),
+            ],
+            requires_human_review=False,
+        )
     escalation = str(result.get("escalation_level", "NONE"))
     alerts = result.get("alerts", [])
     titles = {

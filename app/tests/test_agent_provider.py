@@ -4,6 +4,7 @@ import json
 
 from pydantic import BaseModel
 
+from app.models.agents import ShadowVerifierAssessment
 from app.services.agent_provider import (
     GeminiGroundedProvider,
     LiteLLMResponsesProvider,
@@ -44,6 +45,22 @@ class FakeClient:
     def post(self, url: str, **values) -> FakeResponse:
         type(self).last_request = {"url": url, **values}
         return FakeResponse(type(self).response_body)
+
+
+def test_compact_shadow_scores_normalize_local_zero_to_ten_scale():
+    assessment = ShadowVerifierAssessment.model_validate(
+        {
+            "approved": True,
+            "safety_score": 9,
+            "clarity_score": 8,
+            "consistency_score": 0.95,
+            "summary": "Đạt hợp đồng kiểm định nền.",
+        }
+    )
+
+    assert assessment.safety_score == 0.9
+    assert assessment.clarity_score == 0.8
+    assert assessment.consistency_score == 0.95
 
 
 def test_openai_verifier_forces_independent_web_search_and_extracts_grounding(monkeypatch):
@@ -198,6 +215,114 @@ def test_litellm_gateway_requires_url_and_virtual_key():
         assert str(exc) == "llm gateway is not configured"
     else:
         raise AssertionError("an incomplete gateway configuration must fail closed")
+
+
+def test_litellm_ollama_uses_chat_completions_json_schema(monkeypatch):
+    FakeClient.response_body = {
+        "id": "chatcmpl_local",
+        "model": "ollama/qwen2.5:3b",
+        "choices": [
+            {"message": {"role": "assistant", "content": json.dumps({"approved": True})}}
+        ],
+        "usage": {"prompt_tokens": 21, "completion_tokens": 7},
+    }
+    monkeypatch.setattr("app.services.agent_provider.httpx.Client", FakeClient)
+    provider = LiteLLMResponsesProvider(
+        api_key="sk-virtual-medguard",
+        base_url="http://litellm:4000/v1",
+        timeout_seconds=45,
+        reasoning_effort="none",
+        web_search_enabled=False,
+        api_style="chat_completions",
+    )
+
+    result = provider.complete(
+        stage="research",
+        model="medguard-answer",
+        instructions="Return structured JSON.",
+        payload={"question": "dau chan"},
+        response_model=ResultSchema,
+        request_id="req-ollama",
+    )
+
+    request = FakeClient.last_request
+    assert request["url"] == "http://litellm:4000/v1/chat/completions"
+    assert request["json"]["temperature"] == 0
+    assert request["json"]["response_format"]["type"] == "json_schema"
+    assert request["json"]["response_format"]["json_schema"]["strict"] is True
+    assert request["json"]["messages"][0]["role"] == "system"
+    assert result.data.approved is True
+    assert result.input_tokens == 21
+    assert result.output_tokens == 7
+
+
+def test_litellm_gemini_chat_completions_enables_search_and_extracts_grounding(monkeypatch):
+    source_url = "https://www.nice.org.uk/guidance/cg150"
+    search_body = {
+        "id": "chatcmpl_gemini",
+        "model": "gemini-2.5-flash",
+        "choices": [
+            {
+                "message": {
+                    "role": "assistant",
+                    "content": "NICE describes assessment of headache warning signs.",
+                    "provider_specific_fields": {
+                        "groundingMetadata": {
+                            "webSearchQueries": ["NICE headache red flags"],
+                            "groundingChunks": [{"web": {"uri": source_url}}],
+                        }
+                    },
+                }
+            }
+        ],
+    }
+    structured_body = {
+        "id": "chatcmpl_structured",
+        "model": "gemini-2.5-flash",
+        "choices": [
+            {"message": {"role": "assistant", "content": json.dumps({"approved": True})}}
+        ],
+    }
+
+    class SequenceClient(FakeClient):
+        requests: list[dict] = []
+
+        def post(self, url: str, **values) -> FakeResponse:
+            type(self).requests.append({"url": url, **values})
+            response = search_body if len(type(self).requests) == 1 else structured_body
+            return FakeResponse(response)
+
+    SequenceClient.requests = []
+    monkeypatch.setattr("app.services.agent_provider.httpx.Client", SequenceClient)
+    provider = LiteLLMResponsesProvider(
+        api_key="sk-virtual-medguard",
+        base_url="http://litellm:4000/v1",
+        timeout_seconds=45,
+        reasoning_effort="none",
+        web_search_enabled=True,
+        api_style="chat_completions",
+    )
+
+    result = provider.complete(
+        stage="research",
+        model="medguard-answer",
+        instructions="Return grounded structured JSON.",
+        payload={"question": "đau đầu"},
+        response_model=ResultSchema,
+        request_id="req-gemini-search",
+    )
+
+    assert len(SequenceClient.requests) == 2
+    search_request, structured_request = SequenceClient.requests
+    assert search_request["json"]["web_search_options"] == {"search_context_size": "medium"}
+    assert "response_format" not in search_request["json"]
+    assert "web_search_options" not in structured_request["json"]
+    assert structured_request["json"]["response_format"]["type"] == "json_schema"
+    structured_user_payload = json.loads(structured_request["json"]["messages"][1]["content"])
+    assert structured_user_payload["provider_grounded_research"].startswith("NICE describes")
+    assert structured_user_payload["provider_grounded_citation_urls"] == [source_url]
+    assert result.citations == (source_url,)
+    assert result.search_queries == ("NICE headache red flags",)
 
 
 def test_litellm_exact_cache_controls_are_scoped_and_usage_is_observable(monkeypatch):

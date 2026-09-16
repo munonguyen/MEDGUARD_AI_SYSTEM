@@ -160,6 +160,12 @@ def test_chat_history_is_durable_and_tenant_scoped():
     assert history.json()["messages"][1]["intent"] == "triage"
     assert history.json()["messages"][1]["answer"]["decision_basis"] == "versioned_rules"
     assert history.json()["messages"][1]["answer"]["rule_version"] == "triage-rules@pha0"
+    assert history.json()["messages"][1]["request_id"] == response.json()["request_id"]
+    assert history.json()["messages"][1]["answer_origin"] == "deterministic"
+    assert history.json()["messages"][1]["verification_status"] == "not_requested"
+    assert history.json()["messages"][1]["knowledge_approval"] in {
+        "approved", "pending_review", "not_recorded", "mixed"
+    }
 
     isolated = client.get(
         f"/v1/chat/conversations/{conversation_id}",

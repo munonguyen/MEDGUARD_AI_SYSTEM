@@ -59,6 +59,22 @@
       ],
       "exclude_selectors": ["header", "footer", ".site-navigation", ".social-share"],
       "focus_sections": ["Dosage forms", "Contraindications", "Precautions", "Adverse effects", "Drug interactions"]
+    },
+    {
+      "source_id": "nhs_health_guidance",
+      "name": "NHS Health A-Z Conditions & Treatments",
+      "category": "clinical_guideline",
+      "authority": "National Health Service (NHS UK)",
+      "license_kind": "public_authoritative",
+      "usage_rights_confirmed": true,
+      "base_urls": [
+        "https://www.nhs.uk/conditions/neck-pain-and-stiff-neck/",
+        "https://www.nhs.uk/conditions/chest-pain/",
+        "https://www.nhs.uk/conditions/headaches/",
+        "https://www.nhs.uk/medicines/paracetamol-for-adults/"
+      ],
+      "exclude_selectors": ["header", "footer", "nav", ".nhsuk-header", ".nhsuk-footer", ".nhsuk-feedback-banner"],
+      "focus_sections": ["Overview", "How to manage pain", "When to get urgent medical advice", "Emergency signs", "Dosage and side effects"]
     }
   ]
 }

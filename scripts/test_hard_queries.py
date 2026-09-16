@@ -85,6 +85,8 @@ def run_tests():
         # Run through Jury Panel
         scorecard = jury_panel.evaluate(
             evaluation_id=qid,
+            question=prompt,
+            user_intent=data.get("intent", "triage"),
             answer_text=narrative_text,
             contexts=contexts,
             locked_claims=[],
@@ -108,6 +110,14 @@ def run_tests():
         print(f"HỘI ĐỒNG GIÁM KHẢO CHẤM ĐIỂM (Consensus Score: {scorecard.consensus_score:.2f} | Status: {'PASS' if scorecard.overall_passed else 'FAIL'}):")
         for k, v in scorecard.verdicts.items():
             print(f"  • {v.judge_name:25}: Score {v.score:.2f} | {'PASS' if v.passed else 'FAIL'} -> {v.rationale}")
+        if scorecard.safety_gate:
+            print(f"  • Safety gate: {'PASS' if scorecard.safety_gate.passed else 'FAIL'} | {scorecard.safety_gate.violations}")
+        if scorecard.communication_quality:
+            print(
+                "  • Communication: "
+                f"{scorecard.communication_quality.impact_label} "
+                f"({scorecard.communication_quality.score:.2f})"
+            )
 
 if __name__ == "__main__":
     run_tests()

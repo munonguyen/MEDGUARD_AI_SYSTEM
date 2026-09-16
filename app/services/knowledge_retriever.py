@@ -18,7 +18,7 @@ import re
 import unicodedata
 from dataclasses import asdict, dataclass
 from time import perf_counter
-from typing import Any
+from typing import Any, Literal
 
 from app.core.observability import metrics
 from app.knowledge.loader import knowledge
@@ -28,8 +28,40 @@ _STOPWORDS = {
     "bac", "si", "ke", "don", "cho", "la", "va", "o", "bi", "nay", "nao",
     "gi", "tu", "lai", "lam", "hay", "hoac", "de", "dieu", "tri", "nhung",
     "ma", "trong", "nguoi", "nha", "benh", "nhan", "tinh", "trang", "mot",
-    "cac", "nhung", "den", "tai", "ve", "ra", "vao", "theo", "sau", "truoc"
+    "cac", "nhung", "den", "tai", "ve", "ra", "vao", "theo", "sau", "truoc", "di"
 }
+
+_BODY_REGION_TERMS: dict[str, tuple[str, ...]] = {
+    "head": ("đầu", "sọ", "mặt", "head", "headache", "face"),
+    "neck": ("cổ", "gáy", "neck"),
+    "chest": ("ngực", "tim", "phổi", "chest", "heart", "lung"),
+    "abdomen": ("bụng", "dạ dày", "ruột", "phân", "abdomen", "stomach", "bowel"),
+    "upper_limb": ("cánh tay", "khuỷu tay", "cổ tay", "bàn tay", "ngón tay", "arm", "wrist", "hand"),
+    "lower_limb": (
+        "chân", "đùi", "đầu gối", "bắp chân", "cẳng chân", "cổ chân", "mắt cá chân", "bàn chân",
+        "leg", "lower limb", "thigh", "knee", "calf", "ankle", "foot",
+    ),
+}
+
+
+def _body_regions(text: str) -> set[str]:
+    """Return explicit body regions without confusing e.g. ``chân`` with ``chấn``."""
+    lowered = text.lower().replace("_", " ")
+    regions: set[str] = set()
+    for region, terms in _BODY_REGION_TERMS.items():
+        if any(re.search(rf"(?<!\w){re.escape(term)}(?!\w)", lowered) for term in terms):
+            regions.add(region)
+    return regions
+
+
+def _primary_body_regions(chunk: "RetrievedChunk") -> set[str]:
+    """Infer a chunk's main region without treating cross-system safety-net text as its topic."""
+    regions = _body_regions(chunk.title)
+    if regions:
+        return regions
+    if chunk.section == "triage_emergency":
+        return _body_regions(chunk.content.split("Khuyến cáo xử trí:", 1)[0])
+    return set()
 
 
 def _normalize(text: str) -> str:
@@ -55,6 +87,7 @@ class RetrievedChunk:
     section: str
     content: str
     source_reference: str
+    source_url: str | None = None
     score: float = 0.0
     severity: str | None = None
 
@@ -62,17 +95,50 @@ class RetrievedChunk:
         return asdict(self)
 
 
+_CLINICAL_DOCS = {"red_flag_protocols.json", "monitoring_rules.json", "crawled_clinical_guidelines.json"}
+_PHARMA_DOCS = {
+    "drug_interactions.json",
+    "contraindications.json",
+    "allergy_cross_matrix.json",
+    "atc_codes.json",
+    "product_registry.json",
+    "crawled_clinical_guidelines.json",
+}
+
+
+def resolve_domain(intent: str | None = None, query: str = "") -> Literal["clinical", "pharmacology"]:
+    """Resolve whether an episode or question pertains to clinical/triage or pharmacology."""
+    if intent in {"safety", "pharmacy", "authenticity"}:
+        return "pharmacology"
+    if intent in {"triage", "monitoring", "followup"}:
+        return "clinical"
+
+    # Analyze query keywords for pharmacology
+    query_lower = query.lower()
+    pharma_keywords = [
+        "thuốc", "uống", "liều", "dược", "tác dụng phụ", "tương tác",
+        "kháng sinh", "chống chỉ định", "paracetamol", "panadol", "aspirin",
+        "ibuprofen", "amoxicillin", "kháng viêm", "viên", "mg", "ml",
+        "uống cùng", "uống chung", "dị ứng thuốc"
+    ]
+    if any(k in query_lower for k in pharma_keywords):
+        return "pharmacology"
+
+    return "clinical"
+
+
 class KnowledgeRetriever:
     """In-memory high-precision retriever over versioned clinical knowledge files."""
 
     def __init__(self) -> None:
         self._chunks: list[RetrievedChunk] = []
+        self._chunk_regions: list[set[str]] = []
         self._token_index: dict[str, list[int]] = {}
         self._idf: dict[str, float] = {}
         self._intent_filters: dict[str, set[str]] = {
-            "safety": {"drug_interactions.json", "contraindications.json", "allergy_cross_matrix.json", "atc_codes.json"},
-            "triage": {"red_flag_protocols.json"},
-            "monitoring": {"monitoring_rules.json"},
+            "safety": {"drug_interactions.json", "contraindications.json", "allergy_cross_matrix.json", "atc_codes.json", "crawled_clinical_guidelines.json"},
+            "triage": {"red_flag_protocols.json", "crawled_clinical_guidelines.json"},
+            "monitoring": {"monitoring_rules.json", "crawled_clinical_guidelines.json"},
             "authenticity": {"product_registry.json"},
         }
         self._build_index()
@@ -180,14 +246,20 @@ class KnowledgeRetriever:
 
         # 5. Symptom guidance
         for symp in knowledge.symptom_guidance:
-            name = symp.get("symptom_vi", "")
-            cid = f"SYM-{symp.get('symptom_id', name)}"
-            red_flags = ", ".join(symp.get("red_flags_vi", []))
+            name = str(symp.get("symptom_vi") or symp.get("topic") or "general")
+            cid = f"SYM-{symp.get('symptom_id') or symp.get('topic') or name}"
+            keywords = ", ".join(str(value) for value in symp.get("keywords", []))
+            red_flags = " ".join(
+                str(value) for value in (symp.get("red_flags_vi") or symp.get("safety_net") or [])
+            )
+            self_care = " ".join(
+                str(value) for value in (symp.get("self_care") or [symp.get("home_care_vi", "")])
+            )
             content = (
-                f"Hướng dẫn triệu chứng {name}. "
-                f"Mô tả: {symp.get('description_vi', '')}. "
+                f"Hướng dẫn triệu chứng {name}. Từ khóa: {keywords}. "
+                f"Mô tả: {symp.get('description_vi') or symp.get('summary', '')}. "
                 f"Dấu hiệu nguy hiểm cần khám ngay: {red_flags}. "
-                f"Chăm sóc ban đầu: {symp.get('home_care_vi', '')}."
+                f"Chăm sóc ban đầu: {self_care}. Khuyến cáo: {symp.get('advice', '')}."
             )
             chunks.append(
                 RetrievedChunk(
@@ -231,20 +303,59 @@ class KnowledgeRetriever:
                     topic = gl.get("topic", "")
                     sec = gl.get("section", "")
                     content = gl.get("content", "")
+
+                    # Map authoritative international topics to Vietnamese clinical aliases
+                    vi_aliases = []
+                    lower_text = (topic + " " + content).lower()
+                    if "neck pain" in lower_text or "stiff neck" in lower_text:
+                        vi_aliases.append("đau cổ vai gáy cứng cổ mỏi cổ thoái hóa đốt sống cổ chèn ép rễ thần kinh")
+                    if "chest pain" in lower_text or "heart attack" in lower_text:
+                        vi_aliases.append("đau ngực tức ngực nhồi máu cơ tim hội chứng vành cấp khó thở cấp cứu tim mạch")
+                    if "headache" in lower_text or "migraine" in lower_text:
+                        vi_aliases.append("đau đầu nhức đầu đau nửa đầu đau đầu căng cơ xuất huyết dưới nhện")
+                    if "paracetamol" in lower_text:
+                        vi_aliases.append("thuốc hạ sốt giảm đau paracetamol acetaminophen liều dùng quá liều tổn thương gan")
+                    if "gord" in lower_text or "dyspepsia" in lower_text or "reflux" in lower_text:
+                        vi_aliases.append("trào ngược dạ dày thực quản đau dạ dày viêm loét dạ dày ợ chua ợ nóng khó tiêu")
+
+                    alias_str = " ".join(vi_aliases)
+                    full_content = f"Hướng dẫn điều trị chuyên sâu {topic}. Phần {sec}: {content} Từ khóa lâm sàng: {alias_str}"
                     chunks.append(
                         RetrievedChunk(
                             chunk_id=cid,
                             doc_name="crawled_clinical_guidelines.json",
                             title=f"Hướng dẫn lâm sàng: {topic} ({sec})",
                             section=sec,
-                            content=f"Hướng dẫn điều trị chuyên sâu {topic}. Phần {sec}: {content}",
+                            content=full_content,
                             source_reference=gl.get("source_authority", "Crawl4AI Web Guidelines"),
+                            source_url=gl.get("source_uri"),
                         )
                     )
             except Exception:
                 pass
 
+        # 8. Product registry items
+        for prod in knowledge.product_registry:
+            code = prod.get("product_code", "")
+            pname = prod.get("name", "")
+            cid = f"PROD-{code}"
+            content = (
+                f"Thuốc biệt dược / sản phẩm: {pname} (Mã SP: {code}, GTIN: {prod.get('gtin', '')}). "
+                f"Nhà sản xuất: {prod.get('manufacturer', '')}. Trạng thái lưu hành: {prod.get('status', 'active')}."
+            )
+            chunks.append(
+                RetrievedChunk(
+                    chunk_id=cid,
+                    doc_name="product_registry.json",
+                    title=f"Sản phẩm thuốc: {pname}",
+                    section="product_authenticity",
+                    content=content,
+                    source_reference="Cơ sở dữ liệu đăng ký lưu hành thuốc MedGuard / Bộ Y tế",
+                )
+            )
+
         self._chunks = chunks
+        self._chunk_regions = [_primary_body_regions(chunk) for chunk in chunks]
 
         # Build inverted index and compute IDF
         token_index: dict[str, list[int]] = {}
@@ -272,10 +383,12 @@ class KnowledgeRetriever:
         query: str,
         *,
         intent: str | None = None,
+        domain: Literal["clinical", "pharmacology"] | None = None,
         top_k: int = 5,
     ) -> list[RetrievedChunk]:
-        """Retrieve top-K most relevant chunks for query with optional intent filtering."""
+        """Retrieve top-K most relevant chunks for query with optional intent and domain filtering."""
         start = perf_counter()
+        effective_domain = domain or resolve_domain(intent, query)
         query_tokens = _tokenize(query, remove_stopwords=True)
         if not query_tokens:
             # Fallback to without removing stopwords if empty
@@ -284,9 +397,12 @@ class KnowledgeRetriever:
             return []
 
         allowed_docs = self._intent_filters.get(intent) if intent else None
+        domain_docs = _CLINICAL_DOCS if effective_domain == "clinical" else _PHARMA_DOCS
 
         scores: dict[int, float] = {}
         query_norm = _normalize(query)
+        query_regions = _body_regions(query) if effective_domain == "clinical" else set()
+        domain_boosted: set[int] = set()
 
         for token in query_tokens:
             matching_indices = self._token_index.get(token, [])
@@ -297,6 +413,10 @@ class KnowledgeRetriever:
                 if allowed_docs and chunk.doc_name not in allowed_docs:
                     continue
 
+                chunk_regions = self._chunk_regions[idx]
+                if query_regions and chunk_regions and query_regions.isdisjoint(chunk_regions):
+                    continue
+
                 chunk_title_norm = _normalize(chunk.title)
                 chunk_content_norm = _normalize(chunk.content)
 
@@ -304,6 +424,11 @@ class KnowledgeRetriever:
 
                 # Base match weighted by IDF
                 score += 2.0 * token_idf
+
+                # Domain specialization boost
+                if chunk.doc_name in domain_docs and idx not in domain_boosted:
+                    score += 5.0
+                    domain_boosted.add(idx)
 
                 # Title boost
                 if token in chunk_title_norm:
@@ -314,6 +439,13 @@ class KnowledgeRetriever:
                     score += 10.0
 
                 scores[idx] = score
+
+        if query_regions:
+            scores = {
+                idx: score
+                for idx, score in scores.items()
+                if self._chunk_regions[idx] & query_regions
+            }
 
         ranked_indices = sorted(scores.keys(), key=lambda i: scores[i], reverse=True)[:top_k]
 

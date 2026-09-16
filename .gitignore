@@ -35,3 +35,9 @@ training/raw/
 training/processed/
 training/compiled/
 training/runs/
+
+# Local databases and archives
+*.db
+*.zip
+scratch/
+

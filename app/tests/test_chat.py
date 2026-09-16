@@ -38,6 +38,9 @@ def test_chat_routes_emergency_triage_from_natural_language():
     assert body["result"]["urgency"] == "EMERGENCY"
     assert body["result"]["esi_level"] == 2
     assert "orchestrator" not in body
+    assert body["answer_origin"] == "deterministic"
+    assert body["verification_status"] == "not_requested"
+    assert body["knowledge_approval"] in {"approved", "pending_review", "mixed", "not_recorded"}
     assert body["answer"]["decision_basis"] == "versioned_rules"
     assert body["answer"]["evidence_state"] == "direct_rule_match"
     assert body["answer"]["requires_human_review"] is True
@@ -53,6 +56,19 @@ def test_chat_recognizes_plain_symptom_language_without_a_command():
     assert response.status_code == 200
     assert response.json()["intent"] == "triage"
     assert response.json()["status"] == "answered"
+
+
+def test_coordinated_negated_red_flags_do_not_trigger_emergency():
+    response = chat(
+        "Tôi bị căng nhẹ cơ bắp chân sau khi đi bộ, vẫn đi lại bình thường, không sưng đỏ hay khó thở.",
+        "chat-coordinated-negation",
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["intent"] == "triage"
+    assert body["result"]["urgency"] == "ROUTINE"
+    assert body["result"]["emergency_flag"] is False
 
 
 @pytest.mark.parametrize(
@@ -73,6 +89,65 @@ def test_chat_routes_open_ended_symptom_phrases_to_triage(message):
     assert body["intent"] == "triage"
     assert body["status"] == "answered"
     assert body["result"]["esi_level"] is not None
+
+
+def test_leg_pain_with_difficulty_walking_uses_fast_relevant_guidance(monkeypatch):
+    def unexpected_agent_call(**_values):
+        raise AssertionError("high-risk triage must not wait for the presentation agent")
+
+    monkeypatch.setattr("app.services.chat.answer_agent_pipeline.enhance", unexpected_agent_call)
+    response = chat(
+        "tôi đang tính đi xem worldcup mà đang đau chân khó đi được vậy tôi có nên đi không",
+        "chat-leg-pain-functional-impairment",
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["intent"] == "triage"
+    assert body["result"]["urgency"] == "URGENT"
+    assert body["result"]["recommended_specialty"]["code"] == "ORTHOPEDICS"
+    assert "không nên" in body["answer"]["summary"].lower()
+    assert any("chịu lực" in question for question in body["answer"]["questions"])
+    assert any("trong hôm nay" in step for step in body["answer"]["next_steps"])
+    rendered = " ".join(block["text"] for block in body["answer"]["narrative"]).lower()
+    assert "phân đen" not in rendered
+    assert "buồn nôn" not in rendered
+    assert "đau đầu" not in rendered
+    assert "covid" not in rendered
+
+
+def test_leg_pain_with_difficult_mobility_is_urgent():
+    response = chat(
+        "Hôm nay chân tôi vẫn đau và đi lại khó khăn, tôi nên làm gì?",
+        "chat-leg-pain-difficult-mobility",
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["intent"] == "triage"
+    assert body["result"]["urgency"] == "URGENT"
+    assert body["result"]["esi_level"] == 3
+    assert body["answer"]["summary"].startswith("Đau chân cần được đánh giá")
+    assert any("trong hôm nay" in step for step in body["answer"]["next_steps"])
+
+
+def test_chat_answers_how_to_measure_blood_pressure_without_demanding_a_reading():
+    response = chat(
+        "Tôi muốn theo dõi huyết áp tại nhà thì nên đo như thế nào?",
+        "chat-blood-pressure-measurement-guidance",
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["intent"] == "monitoring"
+    assert body["status"] == "answered"
+    assert body["required_fields"] == []
+    assert body["answer"]["title"] == "Cách đo huyết áp tại nhà đúng hơn"
+    steps = " ".join(body["answer"]["next_steps"])
+    assert "5 phút" in steps
+    assert "ngang mức tim" in steps
+    assert "cách nhau 1 phút" in steps
+    assert body["answer"]["sources"][0]["name"] == "monitoring_rules.json"
 
 
 def test_chat_answers_plain_symptoms_without_a_patient_profile():
@@ -146,6 +221,29 @@ def test_chat_routes_plain_abdominal_pain_to_specific_guidance():
     assert "nhiều nguyên nhân" in body["answer"]["summary"]
     assert any("mức đau từ 0 đến 10" in question for question in body["answer"]["questions"])
     assert any("bụng cứng" in note for note in body["answer"]["safety_notes"])
+
+
+def test_chat_prioritizes_medication_safety_over_symptom_words():
+    response = chat(
+        "Tôi bị loét dạ dày, có uống Ibuprofen để giảm đau được không?",
+        "chat-medication-safety-priority-1",
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["intent"] == "safety"
+    assert body["status"] == "answered"
+    assert body["result"]["overall_risk"] == "HIGH"
+    assert body["result"]["requires_human_review"] is True
+    assert any(
+        "loét dạ dày" in warning["detail"].lower()
+        or "xuất huyết" in warning["detail"].lower()
+        for warning in body["result"]["warnings"]
+    )
+    assert "không nên tự dùng ibuprofen" in body["answer"]["summary"].lower()
+    rendered_steps = " ".join(body["answer"]["next_steps"]).lower()
+    assert "corticoid" not in rendered_steps
+    assert "thay thế bằng paracetamol" not in rendered_steps
 
 
 def test_headache_answer_uses_grounded_conversational_narrative():
@@ -404,3 +502,92 @@ def test_chat_response_is_idempotent():
     assert first.status_code == 200
     assert second.status_code == 200
     assert second.json() == first.json()
+
+
+def test_neck_shoulder_multi_turn_provides_clinical_hypotheses_and_timely_remedies():
+    conv_id = "test-neck-multi-turn-hypotheses"
+    # Turn 1: Primary complaint
+    t1 = client.post(
+        "/v1/chat",
+        headers=headers("t1-req"),
+        json={
+            "conversation_id": conv_id,
+            "messages": [{"role": "user", "content": "tôi đang đau cổ vai gáy và cần có phương pháp khắc phục kịp thời"}],
+        },
+    )
+    assert t1.status_code == 200
+    t1_body = t1.json()
+    assert t1_body["intent"] == "triage"
+    assert len(t1_body["answer"]["clinical_hypotheses"]) > 0
+
+    # Turn 2: Follow-up on onset/timing
+    t2 = client.post(
+        "/v1/chat",
+        headers=headers("t2-req"),
+        json={
+            "conversation_id": conv_id,
+            "messages": [
+                {"role": "user", "content": "tôi đang đau cổ vai gáy và cần có phương pháp khắc phục kịp thời"},
+                {"role": "assistant", "content": t1_body["reply"]},
+                {"role": "user", "content": "đau âm ỉ cả ngày lúc mới ngủ dậy"},
+            ],
+        },
+    )
+    assert t2.status_code == 200
+    t2_body = t2.json()
+    assert t2_body["intent"] == "triage"
+    # Urgency must remain stable (ROUTINE) without red flags, avoiding erratic jumping to URGENT
+    assert t2_body["result"]["urgency"] == "ROUTINE"
+    assert len(t2_body["answer"]["clinical_hypotheses"]) > 0
+
+    # Turn 3: Follow-up on accompanying symptoms
+    t3 = client.post(
+        "/v1/chat",
+        headers=headers("t3-req"),
+        json={
+            "conversation_id": conv_id,
+            "messages": [
+                {"role": "user", "content": "tôi đang đau cổ vai gáy và cần có phương pháp khắc phục kịp thời"},
+                {"role": "assistant", "content": t1_body["reply"]},
+                {"role": "user", "content": "đau âm ỉ cả ngày lúc mới ngủ dậy"},
+                {"role": "assistant", "content": t2_body["reply"]},
+                {"role": "user", "content": "bắt đầu lúc mới ngủ dậy hôm nay chỉ thấy hơi nhức đầu và mệt thôi"},
+            ],
+        },
+    )
+    assert t3.status_code == 200
+    t3_body = t3.json()
+    assert t3_body["intent"] == "triage"
+    assert t3_body["result"]["urgency"] == "ROUTINE"
+    narrative_text = " ".join(b["text"] for b in t3_body["answer"]["narrative"])
+    assert "Một số khả năng thường gặp" in narrative_text
+    assert any(k in narrative_text.lower() for k in ["chườm ấm", "gối", "nghỉ ngơi", "căng cơ"])
+
+
+def test_chat_handles_skin_symptom_inquiry_without_patient_profile():
+    response = chat(
+        "tôi đã từng bị ngứa phần cổ tay rất nhiều đến nỗi rất ngứa và rát, xuất hiện vết như bỏng rát và bây giờ nó đã hết và thành sẹo như hình",
+        "chat-wrist-scar-no-profile",
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "answered"
+    assert body["intent"] == "triage"
+    assert body["extracted"]["patient_ref"] is None
+    assert body["result"]["urgency"] == "ROUTINE"
+    assert body["result"]["recommended_specialty"]["code"] == "DERMATOLOGY"
+    assert "Da liễu" in body["result"]["recommended_specialty"]["label"]
+
+
+def test_chat_ocr_intent_prompts_image_without_forcing_patient_ref():
+    response = chat(
+        "đọc đơn thuốc này giùm tôi",
+        "chat-ocr-hint-no-profile",
+        intent_hint="ocr",
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "needs_information"
+    assert body["intent"] == "ocr"
+    assert body["required_fields"] == ["prescription_image"]
+    assert "patient_ref" not in body["required_fields"]
