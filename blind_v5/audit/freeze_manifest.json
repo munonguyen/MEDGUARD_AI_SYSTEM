@@ -1,6 +1,6 @@
 {
   "model_version": "medguard-candidate-v5-frozen",
-  "git_commit": "8455226695c5d2be046b84b7120dd4c357bc5ee8",
+  "git_commit": "a78ed98391a9339ae61777a2c3d8afbfae79c5e7",
   "file_hashes": {
     "app/services/clinical_threat_graph.py": "84e93d3750c34b73a86ba97c9c2d5550d60c387a0b4118ccb7b8862d13599c5f",
     "app/services/compositional_reasoner.py": "6b4c3cb45b47843e9e2fdc89b467eb07ce11dc85bc3b08829508f5f2d4bb0e77",
