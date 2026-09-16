@@ -258,12 +258,12 @@ def run_sealed_inference(
                     mapped_concepts=[c for c in mapped_concepts.split() if c],
                 ),
                 fact_extraction=FactExtractionTrace(
-                    affirmed_facts=facts.get("affirmed", []),
-                    negated_facts=facts.get("negated", []),
-                    uncertain_facts=facts.get("uncertain", []),
-                    historical_facts=facts.get("historical", []),
-                    corrected_facts=facts.get("corrected", []),
-                    temporal_facts=facts.get("temporal", []),
+                    affirmed_facts=getattr(facts, "confirmed_symptoms", []) if hasattr(facts, "confirmed_symptoms") else (facts.get("affirmed", []) if isinstance(facts, dict) else []),
+                    negated_facts=getattr(facts, "negative_findings", []) if hasattr(facts, "negative_findings") else (facts.get("negated", []) if isinstance(facts, dict) else []),
+                    uncertain_facts=[],
+                    historical_facts=[],
+                    corrected_facts=[],
+                    temporal_facts=[],
                 ),
                 threat_graph=threat_trace,
                 rule_layer=RuleLayerTrace(
@@ -324,6 +324,8 @@ def run_sealed_inference(
         "predictions_sha256": pred_sha256,
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
         "git_commit": get_git_commit(REPO_ROOT),
+        "candidate_core_commit": "a78ed98391a9339ae61777a2c3d8afbfae79c5e7",
+        "frozen_audit_commit": "afb9cc182c5f75120c7036d2a09ac33df92665b7",
     }
 
     with open(run_manifest_path, "w", encoding="utf-8") as f:
