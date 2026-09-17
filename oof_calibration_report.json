@@ -1,0 +1,122 @@
+{
+  "n_cases": 1200,
+  "n_folds": 5,
+  "seed": 42,
+  "oof_ece": 0.0132,
+  "oof_brier_score": 0.051,
+  "gate_oof_ece": {
+    "target": "< 0.08",
+    "actual": 0.0132,
+    "passed": true
+  },
+  "gate_source_gaps": {
+    "target": "<= 5.0%",
+    "max_gap": 0.0284,
+    "passed": true
+  },
+  "source_gaps": {
+    "compositional": {
+      "count": 183,
+      "avg_confidence": 0.98,
+      "accuracy": 1.0,
+      "calibration_gap": 0.02,
+      "gap_percentage": 2.0,
+      "threshold_n": 30,
+      "status": "PASSED",
+      "passed": true
+    },
+    "rule": {
+      "count": 636,
+      "avg_confidence": 0.9576,
+      "accuracy": 0.9292,
+      "calibration_gap": 0.0284,
+      "gap_percentage": 2.84,
+      "threshold_n": 30,
+      "status": "PASSED",
+      "passed": true
+    },
+    "semantic": {
+      "count": 381,
+      "avg_confidence": 0.9461,
+      "accuracy": 0.9423,
+      "calibration_gap": 0.0038,
+      "gap_percentage": 0.38,
+      "threshold_n": 30,
+      "status": "PASSED",
+      "passed": true
+    }
+  },
+  "bins": [
+    {
+      "bin": "[0.0, 0.1]",
+      "count": 0,
+      "avg_confidence": 0.0,
+      "accuracy": 0.0,
+      "diff": 0.0
+    },
+    {
+      "bin": "[0.1, 0.2]",
+      "count": 0,
+      "avg_confidence": 0.0,
+      "accuracy": 0.0,
+      "diff": 0.0
+    },
+    {
+      "bin": "[0.2, 0.3]",
+      "count": 0,
+      "avg_confidence": 0.0,
+      "accuracy": 0.0,
+      "diff": 0.0
+    },
+    {
+      "bin": "[0.3, 0.4]",
+      "count": 0,
+      "avg_confidence": 0.0,
+      "accuracy": 0.0,
+      "diff": 0.0
+    },
+    {
+      "bin": "[0.4, 0.5]",
+      "count": 0,
+      "avg_confidence": 0.0,
+      "accuracy": 0.0,
+      "diff": 0.0
+    },
+    {
+      "bin": "[0.5, 0.6]",
+      "count": 2,
+      "avg_confidence": 0.55,
+      "accuracy": 0.0,
+      "diff": 0.55
+    },
+    {
+      "bin": "[0.6, 0.7]",
+      "count": 0,
+      "avg_confidence": 0.0,
+      "accuracy": 0.0,
+      "diff": 0.0
+    },
+    {
+      "bin": "[0.7, 0.8]",
+      "count": 0,
+      "avg_confidence": 0.0,
+      "accuracy": 0.0,
+      "diff": 0.0
+    },
+    {
+      "bin": "[0.8, 0.9]",
+      "count": 0,
+      "avg_confidence": 0.0,
+      "accuracy": 0.0,
+      "diff": 0.0
+    },
+    {
+      "bin": "[0.9, 1.0]",
+      "count": 1198,
+      "avg_confidence": 0.958,
+      "accuracy": 0.9457,
+      "diff": 0.0123
+    }
+  ],
+  "overall_passed": true
+}

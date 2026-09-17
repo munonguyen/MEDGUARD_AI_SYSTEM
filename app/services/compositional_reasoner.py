@@ -110,15 +110,27 @@ def _check_benign_pattern(norm: str) -> tuple[bool, str | None]:
 
 
 def evaluate_compositional_risk(
-    text: str,
+    fact_or_text: Any,
     vitals_dict: dict[str, Any] | None = None,
-    extracted_facts: dict[str, Any] | None = None,
+    extracted_facts: Any | None = None,
 ) -> RiskHypothesis:
     """Evaluate compositional risk, decoupling diagnosis confidence from risk confidence."""
-    norm = normalize_search_text(text)
+    from app.models.clinical_events import ClinicalFactSet
+    from app.services.clinical_fact_parser import parse_semantic_clinical_facts
+
+    if isinstance(fact_or_text, ClinicalFactSet):
+        fact_set = fact_or_text
+        norm = fact_set.normalized_text
+    elif isinstance(extracted_facts, ClinicalFactSet):
+        fact_set = extracted_facts
+        norm = fact_set.normalized_text
+    else:
+        raw_str = str(fact_or_text)
+        fact_set = parse_semantic_clinical_facts(raw_str)
+        norm = fact_set.normalized_text
 
     # 1. Run Clinical Threat Graph across 12 physiologic dimensions
-    threat_result = evaluate_threat_graph(text, vitals_dict)
+    threat_result = evaluate_threat_graph(fact_set, vitals_dict)
 
     # 2. Check for Benign Pattern Gate (High Specificity Preservation)
     if threat_result.max_threat_level == ThreatLevel.NONE:

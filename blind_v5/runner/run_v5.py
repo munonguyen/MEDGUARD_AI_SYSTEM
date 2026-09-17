@@ -53,6 +53,7 @@ from app.services.clinical_text import (
     normalize_clinical_concepts,
     normalize_search_text,
 )
+from app.services.clinical_fact_parser import parse_semantic_clinical_facts
 from app.services.clinical_threat_graph import evaluate_threat_graph
 from app.services.dose_reasoning import evaluate_dose_reasoning
 from app.services.rules import triage_rules
@@ -157,7 +158,8 @@ def run_sealed_inference(
             facts = extract_clinical_facts(latest_text)
 
             # Threat Graph Capture
-            threat_eval = evaluate_threat_graph(norm_text)
+            fact_set = parse_semantic_clinical_facts(norm_text)
+            threat_eval = evaluate_threat_graph(fact_set)
             threat_trace = ThreatGraphTrace(
                 active_dimensions=list(threat_eval.assessments.keys()),
                 critical_dimensions=threat_eval.critical_dimensions,

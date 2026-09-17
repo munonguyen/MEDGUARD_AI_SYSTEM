@@ -45,8 +45,8 @@ _RAW_TYPO_MAP: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"\b(?:kăng)\b", re.I), "căng"),
     (re.compile(r"\b(?:kổ)\b", re.I), "cổ"),
     (re.compile(r"\b(?:việk)\b", re.I), "việc"),
-    (re.compile(r"\b(?:nhìu)\b", re.I), "nhiều"),
-    (re.compile(r"\b(?:k|ko|khg|hem|hổng|hong)\b", re.I), "không"),
+    (re.compile(r"\b(?:k|ko|khg|hem|hổng)\b", re.I), "không"),
+    (re.compile(r"\b(?:hong)\s+(có|co|bị|bi|thấy|thay|phải|phai|hề|he|được|duoc|muốn|muon)\b", re.I), r"không \1"),
     (re.compile(r"\b(?:đc|dc)\b", re.I), "được"),
     (re.compile(r"\b(?:zút)\b", re.I), "rút"),
     (re.compile(r"\b(?:bụg)\b", re.I), "bụng"),
@@ -69,6 +69,7 @@ _POST_NORM_TYPO_MAP: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"\b(?:da\s+zay)\b", re.I), "da day"),
     (re.compile(r"\b(?:wa)\b", re.I), "qua"),
     (re.compile(r"\b(?:dg)\b", re.I), "dang"),
+    (re.compile(r"\b(?:duooc)\b", re.I), "duoc"),
 ]
 
 
@@ -78,6 +79,10 @@ def normalize_search_text(value: str) -> str:
     """Normalize text removing accents, standardizing common medical typos and teencode."""
     # Pass 0: Strip quotes and brackets
     text = re.sub(r'[“”"‘’\'`]', " ", value.strip())
+
+    # Pass 0.5: Deduplicate repeated characters from panic typing or ASR elongation
+    text = re.sub(r'([a-zA-Z])\1{2,}', r'\1', text)
+    text = re.sub(r'([b-df-hj-np-tv-z])\1+\b', r'\1', text)
 
     # Pass 1: Raw teencode correction
     for pattern, repl in _RAW_TYPO_MAP:
@@ -154,6 +159,7 @@ class ExtractedClinicalFacts:
     triggers: list[str] = field(default_factory=list)
     improved_after_onset: bool = False
     inferences: list[str] = field(default_factory=list)
+    fact_set: Any | None = None
 
 
 NON_EXCLUSION_RULES: dict[str, list[str]] = {
@@ -324,6 +330,12 @@ def extract_clinical_facts(raw_text: str) -> ExtractedClinicalFacts:
     gerd_flx = is_gerd_heartburn(raw_text)
     airway_relieved = is_reactive_airway_relieved(raw_text)
 
+    from app.services.clinical_fact_parser import parse_semantic_clinical_facts
+    fact_set = parse_semantic_clinical_facts(raw_text)
+    for e in fact_set.present_events:
+        if e.concept not in confirmed:
+            confirmed.append(e.concept)
+
     return ExtractedClinicalFacts(
         raw_text=raw_text,
         normalized_text=normalized,
@@ -342,6 +354,7 @@ def extract_clinical_facts(raw_text: str) -> ExtractedClinicalFacts:
         reactive_airway_relieved=airway_relieved,
         triggers=triggers,
         improved_after_onset=improved,
+        fact_set=fact_set,
     )
 
 

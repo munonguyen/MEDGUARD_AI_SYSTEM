@@ -3055,6 +3055,68 @@
       },
       "advice": "Dung dịch chống đông/nước làm mát xe hơi chứa Ethylene Glycol có độc tính cực kỳ cao, chuyển hóa thành acid oxalic gây toan chuyển hóa nặng và suy thận cấp không hồi phục. Ngay cả một ngụm nhỏ ở trẻ em cũng là cấp cứu tối khẩn. ĐƯA BỆNH NHI ĐẾN TRUNG TÂM CHỐNG ĐỘC / KHOA CẤP CỨU NGAY LẬP TỨC; mang theo chai dung dịch đã uống; TUYỆT ĐỐI KHÔNG GÂY NÔN.",
       "stop_downstream": true
+    },
+    {
+      "id": "RF-ESI1-TOXIC-RODENTICIDE-PESTICIDE",
+      "category": "toxic_ingestion",
+      "required_groups_vi": [
+        [
+          "thuốc chuột",
+          "thuoc chuot",
+          "thuốc diệt chuột",
+          "thuoc diet chuot",
+          "thuốc trừ sâu",
+          "thuoc tru sau",
+          "thuốc sâu",
+          "thuoc sau",
+          "thuốc diệt cỏ",
+          "thuoc diet co",
+          "paraquat"
+        ],
+        [
+          "uống",
+          "uống nhầm",
+          "uong",
+          "uong nham",
+          "nuốt",
+          "ngộ độc",
+          "ngo doc"
+        ]
+      ],
+      "label_vi": "ngộ độc cấp thuốc diệt chuột / thuốc trừ sâu (nguy cơ suy đa cơ quan, co giật, xuất huyết tối khẩn)",
+      "esi_level": 1,
+      "urgency": "EMERGENCY",
+      "specialty": {
+        "code": "EMERGENCY",
+        "label": "Hồi sức cấp cứu - Chống độc"
+      },
+      "advice": "Uống nhầm thuốc diệt chuột hoặc thuốc trừ sâu là tình trạng ngộ độc tối khẩn nguy hiểm đến tính mạng. GỌI 115 ĐƯA NGAY ĐẾN KHOA CẤP CỨU / TRUNG TÂM CHỐNG ĐỘC GẦN NHẤT; mang theo vỏ chai thuốc; TUYỆT ĐỐI KHÔNG TỰ Ý GÂY NÔN nếu bệnh nhân lơ mơ.",
+      "stop_downstream": true
+    },
+    {
+      "id": "RF-ESI1-TETANUS-OPISTHOTONOS",
+      "category": "neurologic_emergency",
+      "patterns_vi": [
+        "uốn ván",
+        "uon van",
+        "gió đòn gánh",
+        "gio don ganh",
+        "ưỡn cong người",
+        "uon cong nguoi",
+        "ưỡn cong ra sau",
+        "uon cong ra sau",
+        "cứng hàm co giật toàn thân",
+        "cung ham co giat toan than"
+      ],
+      "label_vi": "nghi ngờ uốn ván ác tính / co cứng ưỡn đòn gánh (tetanus / opisthotonos - nguy cơ co thắt thanh quản ngừng thở)",
+      "esi_level": 1,
+      "urgency": "EMERGENCY",
+      "specialty": {
+        "code": "EMERGENCY",
+        "label": "Hồi sức cấp cứu - Bệnh nhiệt đới"
+      },
+      "advice": "Triệu chứng co rút cơ, cứng hàm, người ưỡn cong (tư thế đòn gánh) là dấu hiệu điển hình của bệnh uốn ván nặng đe dọa tính mạng. GỌI CẤP CỨU 115 NGAY LẬP TỨC; đặt bệnh nhân nằm nghiêng nơi yên tĩnh thoáng khí; không kích thích ánh sáng mạnh.",
+      "stop_downstream": true
     }
   ],
   "urgent_patterns": [

@@ -1217,16 +1217,29 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
         "CHAT-" + sha256(f"{ctx.tenant_id}:{payload.conversation_id}".encode("utf-8")).hexdigest()[:16].upper()
     )
 
+    # V6 Architecture: Multi-Turn Clinical Event Ledger
+    from app.services.clinical_event_ledger import ClinicalEventLedger
+    from app.services.clinical_fact_parser import parse_semantic_clinical_facts
+
+    ledger = ClinicalEventLedger(episode_id=payload.conversation_id or "default")
+    for t_idx, msg in enumerate(payload.messages, 1):
+        if msg.role == "user" and msg.content.strip():
+            msg_facts = parse_semantic_clinical_facts(msg.content)
+            ledger.process_turn(t_idx, msg.content, msg_facts)
+
+    # Emergency Intent Lock: Active emergency findings CANNOT be diverted by avoidance or monitoring keywords
+    has_active_emergency = ledger.has_active_emergency()
+    if has_active_emergency and (len(payload.messages) > 1 or intent in ("monitoring", "general", "pharmacy")):
+        intent = "triage"
+
     if intent == "triage":
         episode_text, episode_context_used = _triage_episode_text(payload, latest_text)
         vital_signs = _extract_vital_signs(episode_text)
 
-        # Multi-turn risk escalation tracking
-        conversation_risk = None
-        if len(payload.messages) > 1 and not should_start_new_episode(latest_text):
+        # Multi-turn risk escalation tracking via Clinical Event Ledger
+        conversation_risk = "EMERGENCY" if has_active_emergency else None
+        if not conversation_risk and len(payload.messages) > 1 and not should_start_new_episode(latest_text):
             if is_explicit_correction(latest_text):
-                # User explicitly retracts or corrects prior erroneous premises
-                # Recompute risk from the corrected state; do NOT force old invalid emergency flags
                 conversation_risk = None
             else:
                 risk_state = None
@@ -1236,23 +1249,14 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
                 for prev_m in payload.messages[:-1]:
                     if prev_m.role == "user" and prev_m.content.strip():
                         prev_text = prev_m.content.strip()
-                        prev_rule = triage_rules(prev_text)
-                        prev_urg = prev_rule.urgency
-                        prev_flags = list(prev_rule.red_flags)
-
-                        prev_comp = evaluate_compositional_risk(prev_text)
-                        if prev_comp.disposition == "EMERGENCY":
-                            prev_urg = "EMERGENCY"
-                            prev_flags.extend(prev_comp.red_flags)
-
                         prev_dose = evaluate_dose_reasoning(prev_text)
                         if prev_dose and prev_dose.urgency == "EMERGENCY":
-                            prev_urg = "EMERGENCY"
-
-                        if prev_urg in ("EMERGENCY", "URGENT"):
-                            risk_state = merge_risk(risk_state, current_urgency=prev_urg, current_red_flags=prev_flags)
-                if risk_state:
-                    conversation_risk = risk_state.highest_urgency
+                            conversation_risk = "EMERGENCY"
+                            break
+                        prev_comp = evaluate_compositional_risk(prev_text)
+                        if prev_comp.disposition == "EMERGENCY":
+                            conversation_risk = "EMERGENCY"
+                            break
 
         result = evaluate_triage(
             TriageRequest(

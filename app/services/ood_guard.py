@@ -60,22 +60,24 @@ class OODResult:
 # Tier 1 — Crisis & Harm Detection (highest priority)
 # =====================================================================
 
+_RAW_CRISIS_PATTERN = re.compile(
+    r"\b(tự tử|tự sát|tự vẫn|tự hại|cắt mạch máu|treo cổ|nhảy lầu|nhảy cầu)\b",
+    re.IGNORECASE,
+)
+
 _CRISIS_SELF_HARM_PATTERNS: list[re.Pattern[str]] = [
     re.compile(p, re.IGNORECASE)
     for p in (
-        # Suicidal intent
-        r"(?:muon|khong muon|chan)\s*(?:chet|tu tu|tu van|song|song tiep|song nua)",
-        r"tu\s*(?:tu|van|hai|sat)",
+        # Suicidal intent (unaccented forms, disambiguated from tu van = tư vấn and tu tu = từ từ)
+        r"(?:muon|khong muon|chan)\s*(?:chet|tu\s*tu|song|song tiep|song nua)",
+        r"\b(tu\s*(?:sat|hai)|tu\s+gay\s+thuong|cat\s+mach\s+mau|treo\s+co|nhay\s+(?:lau|cau))\b",
+        r"(?:y\s*dinh|toan|dinh|nghi\s+den|tim\s+cach|cach|thuoc)\s+(?:de\s+)?tu\s*(?:tu|van)\b",
+        r"\btu\s*(?:tu|van)\s+(?:bang|chet|tai\s+nha|thanh\s+cong|nhu\s+the\s+nao|lam\s+sao)\b",
         r"khong\s+muon\s+song",
         r"chan\s+song",
-        r"uong\s+(?:bao\s+nhieu|nhieu)\s+(?:vien|thuoc).*(?:chet|tu tu|tu vong)",
+        r"uong\s+(?:bao\s+nhieu|nhieu|\d+)\s+(?:vien|thuoc).*(?:chet|tu\s*tu|tu\s*vong)",
         r"lieu\s+(?:gay\s+)?chet",
         r"lieu\s+(?:tu\s+)?vong",
-        r"cat\s+mach\s+mau",
-        r"tu\s+gay\s+thuong",
-        r"treo\s+co",
-        r"nhay\s+(?:lau|cau)",
-        # Lethal dose queries
         r"(?:bao\s+nhieu|lam\s+sao).*chet",
         r"(?:uong|dung).*(?:chet|tu\s+vong)\s*(?:nhanh|duoc)",
         r"qua\s+lieu.*(?:chet|tu\s+vong|nhanh)",
@@ -146,8 +148,14 @@ _EMERGENCY_OVERRIDE_KEYWORDS: tuple[str, ...] = (
 )
 
 
-def _check_crisis(normalized: str) -> OODResult | None:
+def _check_crisis(normalized: str, raw_text: str = "") -> OODResult | None:
     """Check for crisis/harm signals — highest priority."""
+    if raw_text and _RAW_CRISIS_PATTERN.search(raw_text):
+        return OODResult(
+            verdict="crisis_self_harm",
+            reply=_CRISIS_HOTLINE_RESPONSE,
+            hotline="096 306 1414 | 115 | 111",
+        )
     for pattern in _CRISIS_SELF_HARM_PATTERNS:
         if pattern.search(normalized):
             return OODResult(
@@ -350,6 +358,7 @@ _MEDICAL_OVERRIDE_LONG: tuple[str, ...] = (
     "cang co", "cang cung", "co bap", "co dui", "gian co", "chuot rut",
     "chan thuong", "so cuu", "phan mem", "bong gan", "trat khop",
     "gay xuong", "rach co", "rice", "cho can", "vat can", "meo cao", "rach nat", "vet can", "tiem phong dai",
+    "viem da day", "da day", "thuong vi", "men gan", "dinh ky", "xet nghiem", "an uong lanh manh",
 )
 
 # Short medical keywords that need regex word-boundary matching
@@ -367,7 +376,7 @@ _OOD_RESPONSE = (
     "Cảm ơn bạn đã nhắn tin! Tuy nhiên, câu hỏi này nằm **ngoài phạm vi "
     "chuyên môn y tế** của MedGuard AI.\n\n"
     "🏥 MedGuard AI có thể hỗ trợ bạn về:\n"
-    "• Phân luồng triệu chứng & cấp cứu\n"
+    "• Phân loại mức độ ưu tiên triệu chứng y tế\n"
     "• Kiểm tra tương tác thuốc & an toàn dược\n"
     "• Theo dõi chỉ số sinh tồn (huyết áp, SpO2, nhịp tim…)\n"
     "• Lập kế hoạch tái khám\n\n"
@@ -437,7 +446,7 @@ def evaluate(text: str) -> OODResult | None:
     normalized = normalize_search_text(text)
 
     # --- Tier 1: Crisis (highest priority) ---
-    crisis = _check_crisis(normalized)
+    crisis = _check_crisis(normalized, raw_text=text)
     if crisis is not None:
         return crisis
 

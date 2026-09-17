@@ -304,17 +304,33 @@ class SemanticRiskEvaluator:
 
             # Fact & attribute guard: Anticoagulant without trauma must NOT trigger hemorrhage
             if syn_id == "syn_trauma_anticoagulation":
-                if clinical_facts and (clinical_facts.trauma_state in ("negated", "none")):
+                if clinical_facts and (getattr(clinical_facts, "trauma_state", None) in ("negated", "none")):
                     continue
                 if any(t in norm for t in ("khong bi nga", "khong nga", "khong va quet", "khong va dap")):
+                    continue
+                if any(t in norm for t in ("khong dung thuoc chong dong", "khong uong thuoc chong dong", "khong dung chong dong", "khong uong chong dong", "khong co dung thuoc chong dong", "khong dung bat ky thuoc chong dong", "khong dung thuoc")):
                     continue
 
             # Fact & attribute guard: Subacute chest discomfort or negated dyspnea
             if syn_id == "syn_cardiovascular_acute":
-                if clinical_facts and (clinical_facts.onset_duration_hours and clinical_facts.onset_duration_hours >= 24 * 7):
+                onset_hrs = getattr(clinical_facts, "onset_duration_hours", None)
+                if onset_hrs and onset_hrs >= 24 * 7:
                     if not any(rf in norm for rf in ("va mo hoi", "toat mo hoi", "lan tay", "lan ham", "de ep", "bop nghet")):
                         continue
                 if "khong kho tho" in norm and not any(rf in norm for rf in ("va mo hoi", "toat mo hoi", "lan tay", "lan ham", "de ep", "bop nghet")):
+                    continue
+
+            # Fact & attribute guard: Obstetric emergency must NOT trigger on painless or non-bleeding transient symptoms
+            if syn_id == "syn_obstetric_severe":
+                if any(t in norm for t in ("khong chay mau", "khong ra mau", "khong ra huyet", "khong chay mau am dao")):
+                    if any(t in norm for t in ("thoang qua vai giay", "vai giay roi het", "hien khoe", "khong dau bung", "khong con dau")):
+                        continue
+
+            # Fact & attribute guard: Dialect stroke patterns must NOT trigger on reading about stroke or negated symptoms
+            if syn_id == "syn_dialect_severe":
+                if any(t in norm for t in ("doc ve dot quy", "doc tren mang", "doc bao", "nghe noi", "tra google", "nghi minh bi", "chac minh bi")):
+                    continue
+                if any(t in norm for t in ("khong co yeu", "khong he co", "khong he bi", "khong co trieu chung", "hoan toan binh thuong")):
                     continue
 
             for pat in syn["patterns"]:

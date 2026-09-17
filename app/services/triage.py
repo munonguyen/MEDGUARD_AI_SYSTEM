@@ -168,26 +168,43 @@ def evaluate_triage(
     facts = extract_clinical_facts(payload.symptoms_text)
 
     from app.services.dose_reasoning import evaluate_dose_reasoning
-    dose_assessment = evaluate_dose_reasoning(payload.symptoms_text)
+    from app.services.compositional_reasoner import evaluate_compositional_risk
+    from app.services.clinical_fact_parser import parse_semantic_clinical_facts
 
-    # Hybrid Conservative Resolution across Rule, Semantic Evaluator, Dose Reasoner, and Multi-turn Risk
-    # 1. Fast-path: Explicit Emergency from deterministic rule or dose toxicity
-    if rule.urgency == "EMERGENCY" or (dose_assessment and dose_assessment.urgency == "EMERGENCY"):
+    dose_assessment = evaluate_dose_reasoning(payload.symptoms_text)
+    fact_set = getattr(facts, "fact_set", None) or parse_semantic_clinical_facts(payload.symptoms_text)
+    vitals_dict = payload.vitals.model_dump(exclude_none=True) if payload.vitals else None
+    comp_hypothesis = evaluate_compositional_risk(fact_set, vitals_dict)
+
+    # Hybrid Conservative Resolution across Rule, Compositional Threat Reasoner, Semantic Evaluator, Dose, and Multi-turn
+    # 1. Fast-path: Explicit Emergency from deterministic rule, dose toxicity, or threat graph
+    if (
+        rule.urgency == "EMERGENCY"
+        or (dose_assessment and dose_assessment.urgency == "EMERGENCY")
+        or comp_hypothesis.disposition == "EMERGENCY"
+    ):
         semantic_result = None
+        source_label = "dose" if (dose_assessment and dose_assessment.urgency == "EMERGENCY") else ("rule" if rule.urgency == "EMERGENCY" else "compositional")
         resolved = resolve_triage(
-            rule_urgency="EMERGENCY",
-            semantic_urgency=None,
+            rule_urgency="EMERGENCY" if rule.urgency == "EMERGENCY" else None,
+            compositional_urgency="EMERGENCY" if comp_hypothesis.disposition == "EMERGENCY" else None,
+            semantic_urgency="EMERGENCY" if (dose_assessment and dose_assessment.urgency == "EMERGENCY") else None,
             historical_urgency=conversation_risk,
-            rule_confidence=0.99 if (dose_assessment and dose_assessment.urgency == "EMERGENCY") else rule.confidence,
+            rule_confidence=rule.confidence,
+            compositional_confidence=comp_hypothesis.risk_confidence,
+            fact_coverage=fact_set.semantic_coverage,
         )
-    # 2. Fast-path: High-Confidence Explicit Benign Pattern from deterministic rule
-    elif rule.urgency == "ROUTINE" and rule.matched and rule.confidence >= 0.98:
+    # 2. Fast-path: High-Confidence Explicit Benign Pattern from deterministic rule or benign gate
+    elif (rule.urgency == "ROUTINE" and rule.matched and rule.confidence >= 0.98) or (comp_hypothesis.disposition == "ROUTINE" and comp_hypothesis.risk_confidence >= 0.98 and not conversation_risk):
         semantic_result = None
         resolved = resolve_triage(
-            rule_urgency="ROUTINE",
+            rule_urgency="ROUTINE" if rule.matched else None,
+            compositional_urgency="ROUTINE" if comp_hypothesis.disposition == "ROUTINE" else None,
             semantic_urgency=None,
             historical_urgency=conversation_risk,
             rule_confidence=rule.confidence,
+            compositional_confidence=comp_hypothesis.risk_confidence,
+            fact_coverage=fact_set.semantic_coverage,
         )
     # 3. Otherwise: Invoke Semantic Clinical Risk Evaluator
     else:
@@ -196,12 +213,27 @@ def evaluate_triage(
             payload.symptoms_text,
             clinical_facts=facts,
         )
+        if semantic_result and not semantic_result.uncertain:
+            sem_status = "UNDERSTOOD"
+        elif fact_set.semantic_coverage >= 0.70:
+            sem_status = "UNDERSTOOD"
+        elif fact_set.semantic_coverage >= 0.30 or (semantic_result and semantic_result.confidence >= 0.70):
+            sem_status = "PARTIALLY_UNDERSTOOD"
+        else:
+            sem_status = "UNRESOLVED"
+        has_functional_loss = fact_set.has_functional_loss(["loss_of_sight", "loss_of_motor_power", "inability_to_speak_full_sentences", "inability_to_tolerate_palpation_movement", "loss_of_limb_perfusion"])
+
         resolved = resolve_triage(
             rule_urgency=rule.urgency if rule.urgency != "UNRESOLVED" else None,
+            compositional_urgency=comp_hypothesis.disposition if comp_hypothesis.disposition != "ROUTINE" else None,
             semantic_urgency=semantic_result.urgency if semantic_result else None,
             historical_urgency=conversation_risk,
             rule_confidence=rule.confidence if rule.matched else 0.50,
             semantic_confidence=semantic_result.confidence if semantic_result else 0.50,
+            compositional_confidence=comp_hypothesis.risk_confidence,
+            semantic_status=sem_status,
+            fact_coverage=fact_set.semantic_coverage,
+            has_acute_functional_loss=has_functional_loss,
         )
 
     final_urgency = resolved.urgency
@@ -287,6 +319,7 @@ def evaluate_triage(
                 "conversation_risk": conversation_risk,
                 "resolution_source": resolved.source,
                 "confidence": resolved.confidence,
+                "semantic_status": resolved.semantic_status.value if hasattr(resolved.semantic_status, "value") else str(resolved.semantic_status),
                 "symptom_guidance": guidance.get("topic") if use_guidance else None,
                 "knowledge_integrity": knowledge.integrity_report(),
             },

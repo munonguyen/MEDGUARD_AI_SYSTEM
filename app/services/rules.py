@@ -466,6 +466,20 @@ def triage_rules(symptoms_text: str, vitals: VitalSigns | None = None) -> Triage
             advice="Cơn đau buốt dữ dội một bên quanh hốc mắt xuất hiện lúc nửa đêm kèm chảy nước mắt và đỏ mắt là biểu hiện đặc trưng của đau đầu chuỗi (Cluster headache). Tình trạng này gây đau đớn rất nhiều và cần được bác sĩ chuyên khoa Thần kinh thăm khám để chỉ định điều trị cắt cơn chuyên biệt (như thở oxy liều cao hoặc nhóm triptan).",
         )
 
+    # 20. Dental infection / cheek swelling mistaken for stroke facial droop
+    if any(w in text for w in ("sau rang", "sung ma", "mung mu rang", "ap xe rang")) and any(w in text for w in ("tay chan hoat dong binh thuong", "tay chan binh thuong", "khoe manh", "khong liet")):
+        return TriageRuleResult(
+            urgency="ROUTINE",
+            emergency_flag=False,
+            red_flags=[],
+            esi_level=4,
+            recommended_specialty=("DENTISTRY", "Răng Hàm Mặt"),
+            clarifying_questions=[
+                "Má sưng bao nhiêu ngày rồi, bạn có bị sốt hoặc khó há miệng không?"
+            ],
+            advice="Tình trạng sưng má do sâu răng mưng mủ là vấn đề nha khoa thường gặp, không phải đột quỵ não vì tay chân bạn vẫn cử động bình thường. Bạn nên đi khám bác sĩ Răng Hàm Mặt để được xử trí răng sâu và dẫn lưu mủ kịp thời.",
+        )
+
     # Phase 1: Red-flag pattern matching from knowledge base
     matched_patterns = _check_red_flag_patterns(text)
     red_flags: list[str] = []

@@ -41,15 +41,31 @@ class UnifiedCase:
     critical_fail_conditions: list[str] = field(default_factory=list)
     messages_history: list[dict[str, str]] = field(default_factory=list)
     cohort: str = "general"
+    acceptable_triages: list[str] = field(default_factory=list)
 
 
 def _normalize_triage_label(label: str) -> str:
     norm_upper = str(label).strip().upper()
+    # Guard: reject labels that explicitly negate a T4 classification
+    # e.g. "Không đủ dữ liệu; hỏi red flags nhưng không tự động khẳng định T4"
+    _NEGATION_PHRASES = (
+        "KHÔNG TỰ ĐỘNG",
+        "KHÔNG ĐỦ DỮ LIỆU",
+        "KHÔNG KHẲNG ĐỊNH",
+        "CHƯA ĐỦ",
+        "INSUFFICIENT",
+        "NOT ENOUGH DATA",
+    )
+    has_negation = any(neg in norm_upper for neg in _NEGATION_PHRASES)
     if (
-        "T4" in norm_upper
-        or "EMERGENCY" in norm_upper
-        or "RESUSCITATION" in norm_upper
-    ) and not any(k in norm_upper for k in ("T1/T2", "T0/T1", "T0", "T1")):
+        not has_negation
+        and (
+            "T4" in norm_upper
+            or "EMERGENCY" in norm_upper
+            or "RESUSCITATION" in norm_upper
+        )
+        and not any(k in norm_upper for k in ("T1/T2", "T0/T1", "T0", "T1"))
+    ):
         return "EMERGENCY"
     elif "T3" in norm_upper or "URGENT" in norm_upper:
         return "URGENT"
@@ -62,16 +78,22 @@ def load_v1_cases() -> list[UnifiedCase]:
     from scripts.run_100_benchmark import CASES as V1_CASES
     cases = []
     for c in V1_CASES:
+        exp_raw = c.expected_triage
+        acceptable: list[str] = []
+        if "/" in str(exp_raw):
+            acceptable = [_normalize_triage_label(p) for p in str(exp_raw).split("/")]
+
         cases.append(UnifiedCase(
             source_suite="V1",
             case_id=f"V1-{c.id:03d}",
             input_text=c.input,
-            expected_triage=_normalize_triage_label(c.expected_triage),
+            expected_triage=_normalize_triage_label(exp_raw),
             must_detect=[c.must_detect] if c.must_detect else [],
             must_not_say=c.must_not_say or [],
             critical_fail_conditions=[c.critical_fail_condition] if c.critical_fail_condition else [],
             messages_history=c.messages_history or [],
             cohort=c.group,
+            acceptable_triages=acceptable,
         ))
     return cases
 
@@ -96,16 +118,22 @@ def load_json_suite(path: Path, suite_name: str) -> list[UnifiedCase]:
         if isinstance(crit, str):
             crit = [crit]
 
+        exp_raw = c.get("expected_triage", "ROUTINE")
+        acceptable: list[str] = []
+        if "/" in str(exp_raw):
+            acceptable = [_normalize_triage_label(p) for p in str(exp_raw).split("/")]
+
         cases.append(UnifiedCase(
             source_suite=suite_name,
             case_id=cid,
             input_text=txt,
-            expected_triage=_normalize_triage_label(c.get("expected_triage", "ROUTINE")),
+            expected_triage=_normalize_triage_label(exp_raw),
             must_detect=must_detect,
             must_not_say=must_not_say,
             critical_fail_conditions=crit,
             messages_history=history,
             cohort=c.get("cohort") or c.get("group") or "general",
+            acceptable_triages=acceptable,
         ))
     return cases
 
