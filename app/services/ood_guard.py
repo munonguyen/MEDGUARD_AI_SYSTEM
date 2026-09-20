@@ -359,6 +359,8 @@ _MEDICAL_OVERRIDE_LONG: tuple[str, ...] = (
     "chan thuong", "so cuu", "phan mem", "bong gan", "trat khop",
     "gay xuong", "rach co", "rice", "cho can", "vat can", "meo cao", "rach nat", "vet can", "tiem phong dai",
     "viem da day", "da day", "thuong vi", "men gan", "dinh ky", "xet nghiem", "an uong lanh manh",
+    "sui bot mep", "dong kinh", "mat tron nguoc", "tron nguoc", "giat dung dung",
+    "trung gio", "cao gio", "khong biet troi dat",
 )
 
 # Short medical keywords that need regex word-boundary matching
@@ -371,6 +373,16 @@ _MEDICAL_OVERRIDE_SHORT_PATTERNS: list[re.Pattern[str]] = [
         "uong",  # take (medicine)
     )
 ]
+
+# Pre-compiled word-boundary regex patterns for OOD topics to avoid substring false positives
+# (e.g. 'ung dung' matching inside 'giat dung dung')
+_OOD_TOPIC_PATTERNS: dict[str, list[re.Pattern[str]]] = {
+    topic: [
+        re.compile(rf"(?<![a-z0-9]){re.escape(kw.strip())}(?![a-z0-9])")
+        for kw in keywords
+    ]
+    for topic, keywords in _OOD_TOPIC_KEYWORDS.items()
+}
 
 _OOD_RESPONSE = (
     "Cảm ơn bạn đã nhắn tin! Tuy nhiên, câu hỏi này nằm **ngoài phạm vi "
@@ -416,8 +428,8 @@ def _check_ood_topic(normalized: str) -> OODResult | None:
     if _has_medical_context(normalized):
         return None
 
-    for _topic, keywords in _OOD_TOPIC_KEYWORDS.items():
-        if sum(1 for kw in keywords if kw in normalized) >= 1:
+    for _topic, patterns in _OOD_TOPIC_PATTERNS.items():
+        if any(p.search(normalized) for p in patterns):
             return OODResult(
                 verdict="ood_off_topic",
                 reply=_OOD_RESPONSE,

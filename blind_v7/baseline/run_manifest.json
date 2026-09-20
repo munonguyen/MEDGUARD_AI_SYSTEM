@@ -1,0 +1,24 @@
+{
+  "benchmark": "Blind Benchmark V7",
+  "benchmark_version": "7.0.0",
+  "candidate_designation": "V7 Experimental Candidate — safety-undertriage regression passed, but specificity/calibration gates remain unresolved. Authorized for Blind V7 research validation, not for production release validation.",
+  "known_pre_v7_limitations": {
+    "1500_regression_specificity": "88.62% [FAIL]",
+    "routine_benign_overtriage": "7.49% [FAIL]",
+    "max_source_calibration_gap": "12.00% [FAIL]",
+    "pure_t4_to_routine": 0,
+    "pure_t4_to_urgent": 0,
+    "strict_t4_sensitivity": "100.0%",
+    "critical_unsafe_advice": 0
+  },
+  "timestamp_utc": "2026-09-19T15:59:45.236922+00:00",
+  "git_commit": "20dc5b2c48d655b62a17aea07da09c9d3b6039e8",
+  "cases_file": "cases.json",
+  "total_cases": 300,
+  "cases_evaluated": 300,
+  "system_errors": 0,
+  "duration_seconds": 105.43,
+  "predictions_file": "predictions.jsonl",
+  "predictions_sha256": "b3ff60bd34a8a4a89c5312f4c5260ac93150cb6fca0ec552e8df0b271dcb61a1",
+  "status": "SEALED"
+}

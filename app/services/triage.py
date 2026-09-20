@@ -168,34 +168,43 @@ def evaluate_triage(
     facts = extract_clinical_facts(payload.symptoms_text)
 
     from app.services.dose_reasoning import evaluate_dose_reasoning
+    from app.services.toxicology_reasoner import evaluate_toxicology, ToxicologyUrgency
     from app.services.compositional_reasoner import evaluate_compositional_risk
     from app.services.clinical_fact_parser import parse_semantic_clinical_facts
+    from app.services.partial_evidence_safety import evaluate_partial_evidence_safety
 
     dose_assessment = evaluate_dose_reasoning(payload.symptoms_text)
+    tox_assessment = evaluate_toxicology(payload.symptoms_text)
+    is_emergency_tox = (tox_assessment.urgency == ToxicologyUrgency.EMERGENCY)
     fact_set = getattr(facts, "fact_set", None) or parse_semantic_clinical_facts(payload.symptoms_text)
     vitals_dict = payload.vitals.model_dump(exclude_none=True) if payload.vitals else None
     comp_hypothesis = evaluate_compositional_risk(fact_set, vitals_dict)
+    partial_safety = evaluate_partial_evidence_safety(payload.symptoms_text, vitals_dict, fact_set=fact_set)
 
-    # Hybrid Conservative Resolution across Rule, Compositional Threat Reasoner, Semantic Evaluator, Dose, and Multi-turn
-    # 1. Fast-path: Explicit Emergency from deterministic rule, dose toxicity, or threat graph
+    # Hybrid Conservative Resolution across Rule, Compositional Threat Reasoner, Semantic Evaluator, Partial Safety, Dose, and Multi-turn
+    # 1. Fast-path: Explicit Emergency from deterministic rule, dose toxicity, toxicology reasoner, threat graph, or partial safety
     if (
         rule.urgency == "EMERGENCY"
         or (dose_assessment and dose_assessment.urgency == "EMERGENCY")
+        or is_emergency_tox
         or comp_hypothesis.disposition == "EMERGENCY"
+        or partial_safety.has_partial_emergency_threat
     ):
         semantic_result = None
-        source_label = "dose" if (dose_assessment and dose_assessment.urgency == "EMERGENCY") else ("rule" if rule.urgency == "EMERGENCY" else "compositional")
+        source_label = "dose" if (dose_assessment and dose_assessment.urgency == "EMERGENCY") else ("toxicology" if is_emergency_tox else ("rule" if rule.urgency == "EMERGENCY" else ("compositional" if comp_hypothesis.disposition == "EMERGENCY" else "partial_safety")))
         resolved = resolve_triage(
             rule_urgency="EMERGENCY" if rule.urgency == "EMERGENCY" else None,
             compositional_urgency="EMERGENCY" if comp_hypothesis.disposition == "EMERGENCY" else None,
-            semantic_urgency="EMERGENCY" if (dose_assessment and dose_assessment.urgency == "EMERGENCY") else None,
+            partial_safety_urgency="EMERGENCY" if partial_safety.has_partial_emergency_threat else None,
+            semantic_urgency="EMERGENCY" if ((dose_assessment and dose_assessment.urgency == "EMERGENCY") or is_emergency_tox) else None,
             historical_urgency=conversation_risk,
             rule_confidence=rule.confidence,
             compositional_confidence=comp_hypothesis.risk_confidence,
+            partial_safety_confidence=partial_safety.confidence,
             fact_coverage=fact_set.semantic_coverage,
         )
     # 2. Fast-path: High-Confidence Explicit Benign Pattern from deterministic rule or benign gate
-    elif (rule.urgency == "ROUTINE" and rule.matched and rule.confidence >= 0.98) or (comp_hypothesis.disposition == "ROUTINE" and comp_hypothesis.risk_confidence >= 0.98 and not conversation_risk):
+    elif (rule.urgency == "ROUTINE" and rule.matched and rule.confidence >= 0.95 and not partial_safety.safety_floor) or (comp_hypothesis.disposition == "ROUTINE" and comp_hypothesis.risk_confidence >= 0.98 and not conversation_risk and not partial_safety.safety_floor):
         semantic_result = None
         resolved = resolve_triage(
             rule_urgency="ROUTINE" if rule.matched else None,
@@ -226,6 +235,8 @@ def evaluate_triage(
         resolved = resolve_triage(
             rule_urgency=rule.urgency if rule.urgency != "UNRESOLVED" else None,
             compositional_urgency=comp_hypothesis.disposition if comp_hypothesis.disposition != "ROUTINE" else None,
+            partial_safety_urgency=partial_safety.safety_floor,
+            partial_safety_confidence=partial_safety.confidence,
             semantic_urgency=semantic_result.urgency if semantic_result else None,
             historical_urgency=conversation_risk,
             rule_confidence=rule.confidence if rule.matched else 0.50,

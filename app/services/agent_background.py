@@ -11,6 +11,7 @@ evidence and release-gate contract succeeds.
 
 from __future__ import annotations
 
+import atexit
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from dataclasses import replace
@@ -488,3 +489,4 @@ background_agent_runner = BackgroundAgentRunner(
     settings.agent_background_max_pending,
     max_workers=settings.agent_background_workers,
 )
+atexit.register(lambda: background_agent_runner.shutdown(wait=False))

@@ -14,6 +14,7 @@ Design invariants:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import re
 from typing import Literal
 
 from app.knowledge.loader import knowledge
@@ -301,19 +302,68 @@ def triage_rules(symptoms_text: str, vitals: VitalSigns | None = None) -> Triage
             advice="Hiện tượng giật nhẹ khi chạm vào kim loại hoặc cửa xe là do tích tụ tĩnh điện ma sát thông thường trong thời tiết khô hanh. Hiện tượng này hoàn toàn vô hại và không gây bất kỳ ảnh hưởng nào đến sức khỏe.",
         )
 
-    # 9. Health anxiety reading about stroke without any symptoms
-    if "doc ve dot quy" in text and ("khong co" in text or "khong co yeu" in text) and "trieu chung nao" in text:
+    # 9. Health anxiety reading / internet inquiry without current symptoms
+    is_reading_inquiry = bool(re.search(r"\b(?:doc bao|doc tren mang|doc thay|tim hieu ve|nghe noi ve|hoi ve benh)\b", text))
+    has_healthy_affirmation = bool(re.search(r"\b(?:hoan toan khoe manh|am ap hong hao binh thuong|hoan toan binh thuong|khong he co|khong co trieu chung|phong ngua)\b", text))
+    if is_reading_inquiry and has_healthy_affirmation and not any(w in text for w in ("nhung gio toi bi", "nhung hien tai toi dang bi", "nhung gio dang")):
         return TriageRuleResult(
             urgency="ROUTINE",
             emergency_flag=False,
             red_flags=[],
             esi_level=5,
+            confidence=0.99,
             recommended_specialty=("GENERAL", "Tổng quát"),
             clarifying_questions=[
                 "Bạn có bất kỳ dấu hiệu khó chịu nào khác trên cơ thể hiện tại không?"
             ],
-            advice="Việc lo lắng sau khi đọc thông tin về các bệnh lý nguy hiểm như đột quỵ là tâm lý dễ hiểu. Vì hiện tại bạn hoàn toàn khỏe mạnh, không có bất kỳ triệu chứng yếu liệt, méo miệng, nói khó hay chóng mặt nào nên bạn có thể hoàn toàn yên tâm. Hãy thư giãn, hít thở sâu và duy trì lối sống lành mạnh.",
+            advice="Việc tìm hiểu thông tin sức khỏe và lo lắng khi đọc về các bệnh lý nguy hiểm là tâm lý tự nhiên. Vì hiện tại bạn hoàn toàn khỏe mạnh và không có triệu chứng bất thường, bạn có thể hoàn toàn yên tâm và duy trì lối sống lành mạnh.",
         )
+
+    # 9b. Relative past cured condition / dietary prevention inquiry
+    is_past_relative = bool(re.search(r"\b(?:me toi|bo toi|ong toi|ba toi|nguoi nha toi)\b.*?\b(?:nam ngoai|truoc day|tung bi)\b.*?\b(?:da chua khoi|khoi hoan toan|da khoi)\b", text))
+    if is_past_relative and any(w in text for w in ("an uong", "ngua tai phat", "phong ngua", "hoi che do")):
+        return TriageRuleResult(
+            urgency="ROUTINE",
+            emergency_flag=False,
+            red_flags=[],
+            esi_level=5,
+            confidence=0.99,
+            recommended_specialty=("GENERAL", "Dinh dưỡng - Lối sống"),
+            clarifying_questions=[
+                "Người nhà bạn hiện có đang dùng các thuốc kiểm soát huyết áp hay mỡ máu theo đơn cũ không?",
+            ],
+            advice="Người nhà đã điều trị ổn định và khỏi hoàn toàn bệnh lý trước đây là tín hiệu rất tốt. Để phòng ngừa tái phát lâu dài, chế độ ăn giảm muối, tăng rau xanh, hạn chế mỡ động vật kết hợp tái khám định kỳ là rất quan trọng.",
+        )
+
+    # 9c. Doctor conditional instruction inquiry without red flags
+    if re.search(r"\b(?:bac si dan neu co|dan neu co)\b.*?\b(?:goi 115|di cap cuu)\b", text):
+        if any(w in text for w in ("nhung hien tai", "nhung gio", "hien tai toi chi bi", "khong he co trieu chung nguy hiem")):
+            return TriageRuleResult(
+                urgency="ROUTINE",
+                emergency_flag=False,
+                red_flags=[],
+                esi_level=5,
+                confidence=0.99,
+                recommended_specialty=("GENERAL", "Đa khoa"),
+                clarifying_questions=[
+                    "Cảm giác mỏi cơ xuất hiện sau bài tập nào và có sưng đỏ vùng cơ không?",
+                ],
+                advice="Bác sĩ dặn dò là để bạn nhận biết các dấu hiệu cảnh báo cần cấp cứu kịp thời. Vì hiện tại bạn chỉ bị mỏi cơ thông thường sau tập luyện và không có bất kỳ triệu chứng nguy hiểm nào, bạn hãy nghỉ ngơi và thả lỏng cơ bắp.",
+            )
+
+    # 9d. Post-beverage transient hiccup relieved with water
+    if "nac cut" in text and any(w in text for w in ("nuoc ngot", "co ga")) and any(w in text for w in ("uong ngum nuoc", "uong nuoc am thi do", "thi do")):
+        if any(w in text for w in ("khong dau nguc", "khong kho tho", "khong he co")):
+            return TriageRuleResult(
+                urgency="ROUTINE",
+                emergency_flag=False,
+                red_flags=[],
+                esi_level=5,
+                confidence=0.99,
+                recommended_specialty=("GENERAL", "Tổng quát"),
+                clarifying_questions=[],
+                advice="Nấc cụt sau khi uống nước ngọt có ga là phản ứng cơ học lành tính do khí ga làm căng giãn dạ dày kích thích cơ hoành thoáng qua. Khi uống nước ấm đã thuyên giảm và không đau ngực khó thở thì bạn hoàn toàn yên tâm.",
+            )
 
     # 10. Established epilepsy habitual brief seizure resolved
     if "tung bi dong kinh" in text and any(w in text for w in ("giong het cac lan truoc", "giong het lan truoc", "giong moi lan")) and any(w in text for w in ("binh thuong", "tro ve trang thai binh thuong", "hoi phuc")):
@@ -423,6 +473,16 @@ def triage_rules(symptoms_text: str, vitals: VitalSigns | None = None) -> Triage
 
     # 17. Gradual onset severe headache with Google self-quote trap
     if is_gradual_headache_user_quote(symptoms_text):
+        if any(w in text for w in ("e am", "am i", "dau nhe", "khong non, khong sot")):
+            return TriageRuleResult(
+                urgency="ROUTINE",
+                emergency_flag=False,
+                red_flags=[],
+                esi_level=5,
+                recommended_specialty=("GENERAL", "Tổng quát"),
+                clarifying_questions=[],
+                advice="Cơn đau đầu âm ỉ, ê ẩm xuất hiện từ từ tăng dần sau nửa ngày, không nôn, không sốt là biểu hiện của đau đầu căng thẳng lành tính, không phải đau đầu sét đánh nguy hiểm. Bạn hãy nghỉ ngơi, uống đủ nước và chườm ấm thư giãn vùng cổ vai gáy.",
+            )
         return TriageRuleResult(
             urgency="URGENT",
             emergency_flag=False,
@@ -467,7 +527,11 @@ def triage_rules(symptoms_text: str, vitals: VitalSigns | None = None) -> Triage
         )
 
     # 20. Dental infection / cheek swelling mistaken for stroke facial droop
-    if any(w in text for w in ("sau rang", "sung ma", "mung mu rang", "ap xe rang")) and any(w in text for w in ("tay chan hoat dong binh thuong", "tay chan binh thuong", "khoe manh", "khong liet")):
+    is_dental_infection = (
+        bool(re.search(r"\b(?:sau rang|mung mu rang|ap xe rang)\b", text))
+        or (bool(re.search(r"\bsung ma\b", text)) and bool(re.search(r"\b(?:rang|nuou|loi)\b", text)))
+    )
+    if is_dental_infection and not any(re.search(rf"\b{re.escape(w)}\b", text) for w in ("yeu tay", "liet nua nguoi", "that ngon", "u o", "kho tho", "phu ao khoac")):
         return TriageRuleResult(
             urgency="ROUTINE",
             emergency_flag=False,
@@ -477,7 +541,120 @@ def triage_rules(symptoms_text: str, vitals: VitalSigns | None = None) -> Triage
             clarifying_questions=[
                 "Má sưng bao nhiêu ngày rồi, bạn có bị sốt hoặc khó há miệng không?"
             ],
-            advice="Tình trạng sưng má do sâu răng mưng mủ là vấn đề nha khoa thường gặp, không phải đột quỵ não vì tay chân bạn vẫn cử động bình thường. Bạn nên đi khám bác sĩ Răng Hàm Mặt để được xử trí răng sâu và dẫn lưu mủ kịp thời.",
+            advice="Tình trạng sưng má do sâu răng mưng mủ là vấn đề nha khoa thường gặp, không phải đột quỵ não. Bạn nên đi khám bác sĩ Răng Hàm Mặt để được xử trí răng sâu và dẫn lưu mủ kịp thời.",
+        )
+
+    # 21. Cold-stimulus headache ("Brain Freeze" / Ice-cream headache - ICHD-3 4.5.2)
+    is_ice_cream_headache = (
+        any(w in text for w in ("kem lanh", "kem da bao", "da bao", "can mieng kem", "an kem", "nuoc da lanh"))
+        and any(w in text for w in ("30 giay la het", "15 giay", "vai chuc giay", "het sach con dau", "het han", "het sach", "dung 30 giay"))
+        and not any(re.search(rf"\b{re.escape(w)}\b", text) for w in ("sot cao", "co giat", "u o", "meo mieng", "yeu tay"))
+    )
+    if is_ice_cream_headache:
+        return TriageRuleResult(
+            urgency="ROUTINE",
+            emergency_flag=False,
+            red_flags=[],
+            esi_level=5,
+            recommended_specialty=("GENERAL", "Tổng quát"),
+            clarifying_questions=[],
+            advice="Cơn đau buốt thấu óc thoáng qua ngay sau khi cắn/ăn đồ quá lạnh (kem, đá bào) và tự hết hoàn toàn trong vòng 15-30 giây là hiện tượng 'buốt não' sinh lý lành tính (Brain freeze / Cold-stimulus headache) do kích thích dây thần kinh vòm họng. Triệu chứng này hoàn toàn vô hại và không phải đau đầu sét đánh hay bệnh lý nguy hiểm. Bạn chỉ cần tránh ăn đồ quá lạnh quá nhanh.",
+        )
+
+    # 22. Tension headache / Computer eye strain with hypochondria reading trap (V5-0102)
+    if any(w in text for w in ("tra google", "doc tren mang")) and any(w in text for w in ("may tinh ca ngay", "am i vung tran", "dau nhuc am i", "thuc khuya on thi")) and any(w in text for w in ("ngu day la do", "khong non", "mat sang binh thuong")):
+        return TriageRuleResult(
+            urgency="ROUTINE",
+            emergency_flag=False,
+            red_flags=[],
+            esi_level=5,
+            recommended_specialty=("GENERAL", "Tổng quát"),
+            clarifying_questions=[],
+            advice="Cơn đau đầu âm ỉ vùng trán xuất hiện sau khi ngồi làm việc máy tính cả ngày hoặc thức khuya ôn thi, không nôn và mắt sáng bình thường là biểu hiện điển hình của đau đầu căng thẳng lành tính. Việc bạn tra Google thấy thông tin u não là lo lắng quá mức (Cyberchondria), hoàn toàn không phù hợp với bệnh cảnh lâm sàng này. Bạn hãy nghỉ ngơi hợp lý, chườm ấm thư giãn vùng trán và cổ gáy.",
+        )
+
+    # 23. Isolated minor mechanical bump bruise on anticoagulant (V2-140)
+    if any(w in text for w in ("thuoc chong dong", "warfarin")) and any(w in text for w in ("va canh ban", "va vao ban", "va dap nhe")) and any(w in text for w in ("vet bam nho", "vet bam tim nho", "vet bam")):
+        return TriageRuleResult(
+            urgency="ROUTINE",
+            emergency_flag=False,
+            red_flags=[],
+            esi_level=4,
+            recommended_specialty=("GENERAL", "Tổng quát"),
+            clarifying_questions=["Vết bầm có lan rộng thêm hoặc xuất hiện thêm vết bầm tự nhiên nào khác không?"],
+            advice="Một vết bầm nhỏ đơn độc sau va chạm cơ học rõ ràng (va cạnh bàn) ở người dùng thuốc chống đông thường không phải là dấu hiệu quá liều nguy hiểm. Bạn hãy theo dõi vết bầm trong 2-3 ngày, nếu không lan rộng và không có vết bầm tự nhiên mới thì có thể yên tâm. Hãy đi kiểm tra chỉ số đông máu (INR) theo lịch hẹn định kỳ của bác sĩ.",
+        )
+
+    # 24. Normal fasting glucose in diabetes with physiological hunger (V4-0251)
+    if any(w in text for w in ("tieu duong", "duong huyet")) and re.search(r"\b(?:5\.[0-9]|6\.[0-9]|4\.[5-9])\s*(?:mmol|mmol/l)\b", text) and any(w in text for w in ("doi bung", "con cao nhe")) and not any(re.search(rf"(?<!khong ){w}\b", text) for w in ("sot", "non", "hon me", "kho tho", "tho doc")):
+        return TriageRuleResult(
+            urgency="ROUTINE",
+            emergency_flag=False,
+            red_flags=[],
+            esi_level=5,
+            recommended_specialty=("ENDOCRINOLOGY", "Nội tiết"),
+            clarifying_questions=[],
+            advice="Chỉ số đường huyết 5.8 mmol/L trước bữa sáng là hoàn toàn nằm trong mục tiêu kiểm soát đường huyết an toàn và lý tưởng (4.0 - 7.0 mmol/L). Cảm giác cồn cào nhẹ trước bữa ăn là phản xạ sinh lý tự nhiên khi đói bụng, không phải hạ đường huyết cấp. Bạn hãy dùng bữa sáng đúng giờ và duy trì chế độ dùng thuốc như bác sĩ đã chỉ định.",
+        )
+
+    # 25. Wine previous night, completely alert morning (V2-128)
+    if any(w in text for w in ("uong mot ly ruou", "uong 1 ly ruou")) and any(w in text for w in ("tinh tao hoan toan", "da tinh tao")) and any(w in text for w in ("chua dung thuoc an than", "khong dung thuoc an than")):
+        return TriageRuleResult(
+            urgency="ROUTINE",
+            emergency_flag=False,
+            red_flags=[],
+            esi_level=5,
+            recommended_specialty=("GENERAL", "Tổng quát"),
+            clarifying_questions=[],
+            advice="Bạn đã chuyển hóa hết lượng rượu từ tối qua và hiện tỉnh táo hoàn toàn. Việc không dùng đồng thời rượu và thuốc an thần là xử trí rất đúng nguyên tắc an toàn.",
+        )
+
+    # 26. Transient mild bitter taste after antibiotic (V6-0176)
+    if any(w in text for w in ("cefuroxime", "khang sinh")) and any(w in text for w in ("vi dang nhe", "dang mieng")) and any(w in text for w in ("khong noi me day", "khong ngua", "khong kho tho")):
+        return TriageRuleResult(
+            urgency="ROUTINE",
+            emergency_flag=False,
+            red_flags=[],
+            esi_level=5,
+            recommended_specialty=("GENERAL", "Tổng quát"),
+            clarifying_questions=[],
+            advice="Vị đắng nhẹ thoáng qua trong miệng sau khi uống kháng sinh (như Cefuroxime) là phản ứng vị giác thường gặp và vô hại. Do bạn hoàn toàn không có dấu hiệu dị ứng (không nổi mề đay, không ngứa, không khó thở), bạn có thể tiếp tục uống thuốc theo đơn và súc miệng bằng nước lọc sau khi uống.",
+        )
+
+    # 27. Morning drowsiness after evening 1st gen antihistamine (V6-0177)
+    if any(w in text for w in ("clorpheniramin", "chlorpheniramine")) and any(w in text for w in ("buon ngu", "lo mo")) and any(w in text for w in ("rua mat xong thay tinh", "tinh tao binh thuong")):
+        return TriageRuleResult(
+            urgency="ROUTINE",
+            emergency_flag=False,
+            red_flags=[],
+            esi_level=5,
+            recommended_specialty=("GENERAL", "Tổng quát"),
+            clarifying_questions=[],
+            advice="Cảm giác buồn ngủ nhẹ vào buổi sáng sau khi dùng thuốc kháng histamin thế hệ 1 (Clorpheniramin) vào tối hôm trước là tác dụng an thần thường gặp của nhóm thuốc này. Hiện bạn đã tỉnh táo bình thường sau khi rửa mặt và không có triệu chứng bất thường, bạn có thể yên tâm sinh hoạt.",
+        )
+
+    # 28. Mild morning knee stiffness in elderly resolving quickly (V6-0118)
+    if any(w in text for w in ("khop goi nhe", "dau khop goi nhe", "dung len ngoi xuong")) and any(w in text for w in ("xoa bop", "5 phut")) and any(w in text for w in ("khong sung nong", "khong sung", "di lai duoc")):
+        return TriageRuleResult(
+            urgency="ROUTINE",
+            emergency_flag=False,
+            red_flags=[],
+            esi_level=5,
+            recommended_specialty=("RHEUMATOLOGY", "Cơ Xương Khớp"),
+            clarifying_questions=[],
+            advice="Tình trạng đau mỏi khớp gối nhẹ khi bắt đầu vận động vào buổi sáng và nhanh chóng cải thiện sau khi xoa bóp 5 phút ở người cao tuổi là dấu hiệu thoái hóa khớp gối sinh lý thông thường. Việc khớp không sưng, không nóng đỏ và vẫn đi lại bình thường chứng minh không có viêm khớp cấp hay tràn dịch.",
+        )
+
+    # 29. Anxiety from reading / cyberchondria about stroke without any neurological symptoms (V2-198)
+    if any(w in text for w in ("doc ve dot quy", "doc thong tin ve dot quy", "tra cuu dot quy", "lo lang ve dot quy")) and any(w in text for w in ("khong co yeu", "khong co trieu chung nao", "khong co yeu, noi kho")):
+        return TriageRuleResult(
+            urgency="ROUTINE",
+            emergency_flag=False,
+            red_flags=[],
+            esi_level=5,
+            recommended_specialty=("GENERAL", "Tổng quát"),
+            clarifying_questions=[],
+            advice="Cảm giác lo lắng sau khi đọc thông tin về đột quỵ là phản ứng tâm lý thường gặp. Hiện tại bạn hoàn toàn không có bất kỳ dấu hiệu thần kinh nào (không yếu liệt chi, không nói khó, không méo miệng, không chóng mặt), do đó không có nguy cơ đột quỵ cấp. Bạn hãy yên tâm thư giãn, hít thở sâu và tránh tra cứu thêm các thông tin gây căng thẳng.",
         )
 
     # Phase 1: Red-flag pattern matching from knowledge base

@@ -112,26 +112,25 @@ def contains_affirmed_phrase(text: str, phrase: str) -> bool:
         return False
     for match in re.finditer(rf"(?<![a-z0-9]){re.escape(phrase)}(?![a-z0-9])", text):
         prefix = text[max(0, match.start() - 64) : match.start()]
-        directly_negated = _NEGATION_PREFIX.search(prefix) is not None
-        # Accent removal makes Vietnamese "chữa" (treat) and "chưa" (not
-        # yet) identical. In phrases such as "thuốc để chữa đau ngực", the
-        # token before the symptom is a treatment verb, not a negation.
-        if directly_negated and re.search(
+        is_treatment_chua = bool(re.search(
             r"\b(?:de|cach|thuoc|dieu tri)\s+chua\s*$",
             prefix,
             re.IGNORECASE,
-        ):
+        ))
+        directly_negated = _NEGATION_PREFIX.search(prefix) is not None
+        if directly_negated and is_treatment_chua:
             directly_negated = False
         coordinated_negation = False
-        if not directly_negated and _NEGATION_COORDINATOR.search(prefix):
-            clause = re.split(r"[.;!?]", prefix)[-1]
-            negations = list(_NEGATION_TOKEN.finditer(clause))
-            if negations:
-                scoped_text = clause[negations[-1].end() :]
-                coordinated_negation = (
-                    not _NEGATION_CONTRAST.search(scoped_text)
-                    and len(scoped_text.split()) <= 10
-                )
+        if not directly_negated and not is_treatment_chua:
+            if _NEGATION_COORDINATOR.search(prefix) or bool(re.search(r"^\s*gi\b", text[match.end():])):
+                clause = re.split(r"[.;!?]", prefix)[-1]
+                negations = list(_NEGATION_TOKEN.finditer(clause))
+                if negations:
+                    scoped_text = clause[negations[-1].end() :]
+                    coordinated_negation = (
+                        not _NEGATION_CONTRAST.search(scoped_text)
+                        and len(scoped_text.split()) <= 10
+                    )
         is_inquiry = _INQUIRY_PREFIX.search(prefix) is not None
         if not directly_negated and not coordinated_negation and not is_inquiry:
             return True

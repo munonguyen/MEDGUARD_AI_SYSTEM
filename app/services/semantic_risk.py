@@ -235,7 +235,8 @@ _CONCERNING_PATTERNS: list[dict[str, Any]] = [
         "label": "tổn thương chức năng cần đánh giá chuyên khoa trong ngày",
         "patterns": [
             r"\b(dien giat|set danh)\b",
-            r"\b(cho.*can|vat.*can|cho la can|can rach|rach nat.*chay mau)\b",
+            r"\b(?:cho|meo|chuot|dong vat|vat nuoi)\b.*?\bcan\b",
+            r"\b(?:cho la can|can rach|rach nat.*chay mau)\b",
             r"\b(bi tieu|cau bang quang|tuc buot)\b",
             r"\b(dau quon tung con|hong lung|nuoc tieu do|than)\b",
             r"\b(yeu 2 chan|tien trien|gang vo|guillain)\b",

@@ -28,26 +28,30 @@ _NEGATION_PREFIXES = (
 _NEGATION_TRAILING = (
     r"(?:(?:nhung|ma|song|chu)\s+)?(?:toi|minh|em|chau)\s+(?:khong|chua|ko|k|hong|chang|khong he)\s+(?:bi|co|bi nhu vay|nhu the|bi vay)\b|"
     r"\b(?:nhung|ma|song|chu)\s+(?:khong|chua|ko|k|hong|chang)\s+(?:bi|bi nhu vay|nhu the|bi vay)\b|"
-    r"\b(?:khong phai toi bi|khong phai bi|chua tung bi|khong co trieu chung nay|khong he co|khong he bi|hoan toan binh thuong)\b"
+    r"\b(?:nhung|ma|song|chu)\s+(?:thuc te|that ra|thuc ra|hoa ra)?\s*(?:chi|chi la)\s*(?:bi|do)\b|"
+    r"\b(?:khong phai toi bi|khong phai bi|chua tung bi|khong co trieu chung nay|khong he co|khong he bi|hoan toan binh thuong|"
+    r"am ap hong hao binh thuong|hoan toan khoe manh|khong he co trieu chung|khong co trieu chung nguy hiem nao|thay am ap|thay binh thuong)\b"
 )
 
 # Temporality markers
 _HISTORICAL_PATTERNS = (
     r"\b(nam ngoai|hoi nho|hoi xua|hoi tre|nam truoc|thang truoc|tuan truoc|cach day \d+|"
-    r"tung bi|da tung bi|tung co|da tung co|truoc day|truoc kia)\b"
+    r"tung bi|da tung bi|tung co|da tung co|truoc day|truoc kia|da chua khoi|khoi hoan toan|da khoi)\b"
 )
 
 _HYPOTHETICAL_PATTERNS = (
-    r"\b(toi doc bao|doc tren mang|doc thay|nghe noi|nghe bao|neu bi|gia su|gia dinh|"
-    r"cho toi hoi ve|la benh gi|co nguy hiem khong|toi doc rang|tim hieu ve|"
-    r"tra google|tim tren google|google bao|google noi|doc ve|nghi minh bi|chac minh bi|"
-    r"so bi|nghi la bi|tuong bi|thay bao la|hoi xem co phai|so minh bi)\b"
+    r"\b((?:toi\s+)?doc\s+(?:bao|tren\s+bao|tren\s+mang|thay|duoc)|doc\s+bao|doc\s+tren\s+mang|"
+    r"nghe\s+noi|nghe\s+bao|neu\s+bi|neu\s+co|gia\s+su|gia\s+dinh|"
+    r"cho\s+toi\s+hoi\s+ve|la\s+benh\s+gi|co\s+nguy\s+hiem\s+khong|tim\s+hieu\s+ve|"
+    r"tra\s+google|tim\s+tren\s+google|google\s+bao|google\s+noi|doc\s+ve|nghi\s+minh\s+bi|"
+    r"so\s+bi|nghi\s+la\s+bi|tuong\s+bi|thay\s+bao\s+la|hoi\s+xem\s+co\s+phai|so\s+minh\s+bi|"
+    r"bac\s+si\s+dan\s+neu\s+co)\b"
 )
 
 # Third-person experiencer patterns
 _THIRD_PERSON_SUBJECTS = (
     r"\b(bo toi|ba toi|me toi|chong toi|vo toi|ong toi|ba ngoai|ong ngoai|ba noi|ong noi|"
-    r"con toi|chau toi|ong cu|ba cu|nguoi nha toi|ban toi|hang xom)\b"
+    r"con toi|chau toi|ong cu|ba cu|nguoi nha toi|ban toi|hang xom|nguoi ta|nguoi khac|ai do|thay nguoi ta)\b"
 )
 
 # Onset / sudden progression indicators
@@ -683,6 +687,22 @@ def parse_semantic_clinical_facts(raw_text: str) -> ClinicalFactSet:
                 )
                 events.append(event)
                 matched_spans.append((span_start, span_end))
+
+    # 5. Synthesize clinical events from Semantic Abstraction Layer (V8 Architecture)
+    try:
+        from app.services.semantic_abstraction_layer import (
+            extract_semantic_abstractions,
+            synthesize_clinical_events_from_abstractions,
+        )
+        abstractions = extract_semantic_abstractions(raw_text)
+        abs_events = synthesize_clinical_events_from_abstractions(abstractions, raw_text)
+        for a_ev in abs_events:
+            # Avoid duplicate concepts
+            if not any(e.concept == a_ev.concept for e in events):
+                events.append(a_ev)
+                matched_spans.append((0, len(normalized)))
+    except Exception:
+        pass
 
     # Calculate semantic coverage
     total_len = len(normalized.strip())
