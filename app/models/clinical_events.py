@@ -52,7 +52,11 @@ class ClinicalEvent(BaseModel):
 
     @property
     def is_present(self) -> bool:
-        return self.assertion == ClinicalAssertion.PRESENT
+        return (
+            self.assertion == ClinicalAssertion.PRESENT
+            and self.temporality in ("current", "acute", "recent")
+            and self.experiencer in ("patient", "patient_consultation")
+        )
 
     @property
     def is_negated(self) -> bool:

@@ -361,6 +361,37 @@ def evaluate_threat_graph(
         if score > max_level.severity_score:
             max_level = assess.level
 
+    # Integrate Physiologic Consequence Layer (V7 Architecture)
+    from app.services.physiologic_consequence_engine import deduce_physiologic_consequences
+    from app.models.physiologic_consequences import PhysiologicConsequenceType
+
+    physio_assessment = deduce_physiologic_consequences(fact_set)
+    if physio_assessment.has_emergency_consequence:
+        for c in physio_assessment.emergency_consequences:
+            dim_key = "sepsis_infection"
+            if c.consequence_type in (PhysiologicConsequenceType.CIRCULATORY_COMPROMISE, PhysiologicConsequenceType.INTERNAL_HEMORRHAGE):
+                dim_key = "circulation"
+            elif c.consequence_type == PhysiologicConsequenceType.RESPIRATORY_FAILURE:
+                dim_key = "breathing"
+            elif c.consequence_type == PhysiologicConsequenceType.PERFORATION_RISK:
+                dim_key = "surgical_abdomen"
+            elif c.consequence_type in (PhysiologicConsequenceType.MAJOR_BARRIER_FAILURE, PhysiologicConsequenceType.TIME_CRITICAL_ORGAN_LOSS):
+                dim_key = "limb_threat"
+            elif c.consequence_type == PhysiologicConsequenceType.SYSTEMIC_TOXIC_STATE:
+                dim_key = "toxic_exposure"
+
+            assessments[dim_key] = DimensionAssessment(
+                dimension=dim_key,
+                level=ThreatLevel.CRITICAL,
+                confidence=c.confidence,
+                findings=list(c.supporting_findings),
+                rationale=c.pathophysiologic_rationale,
+            )
+            if dim_key not in critical_dims:
+                critical_dims.append(dim_key)
+            all_findings.extend(c.supporting_findings)
+            max_level = ThreatLevel.CRITICAL
+
     summary = (
         "; ".join(all_findings[:3])
         if all_findings

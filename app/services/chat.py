@@ -74,7 +74,12 @@ _INTENT_KEYWORDS: dict[ChatIntent, tuple[str, ...]] = {
         "danh trong nguc",
         "hoi hop",
         "meo mieng",
+        "lech mieng",
+        "u o",
+        "khong noi duoc",
+        "yeu tay",
         "yeu liet",
+        "roi coc",
         "te bi",
         "te nua nguoi",
         "kho noi",
@@ -458,8 +463,18 @@ def _detect_intent(payload: ChatRequest, normalized_text: str) -> ChatIntent:
         for intent, keywords in _INTENT_KEYWORDS.items()
     }
     concept_normalized = normalize_clinical_concepts(normalized_text)
-    if _check_red_flag_patterns(concept_normalized):
+    rf_matches = _check_red_flag_patterns(concept_normalized)
+    has_non_vital_red_flags = any(
+        "spo2" not in r.get("id", "").lower()
+        and "vitals" not in r.get("category", "").lower()
+        and "blood_pressure" not in r.get("category", "").lower()
+        for r in rf_matches
+    )
+    if has_non_vital_red_flags:
+        scores["triage"] += 60
+    elif rf_matches:
         scores["triage"] += 15
+
     sem_intent = safe_semantic_evaluate(semantic_risk_evaluator, concept_normalized)
     if sem_intent.urgency == "EMERGENCY":
         scores["triage"] += 25
@@ -474,20 +489,33 @@ def _detect_intent(payload: ChatRequest, normalized_text: str) -> ChatIntent:
                 for t in prev_user_texts
             )
             if prev_has_triage:
-                scores["triage"] += 15
+                scores["triage"] += 30
 
             if not is_explicit_correction(normalized_text):
                 comb_ep = "\n".join(prev_user_texts[-3:] + [normalized_text])
                 comb_concept = normalize_clinical_concepts(normalize_search_text(comb_ep))
                 comb_sem = safe_semantic_evaluate(semantic_risk_evaluator, comb_concept)
                 if comb_sem.urgency == "EMERGENCY":
-                    scores["triage"] += 25
+                    scores["triage"] += 60
                 elif comb_sem.urgency == "URGENT":
-                    scores["triage"] += 10
+                    scores["triage"] += 25
 
-    if re.search(r"\b(theo doi\s+bn-|theo doi\s+benh nhan|theo doi\s+chi so)\b", normalized_text) or normalized_text.startswith("theo doi"):
+    has_acute_symptoms = bool(
+        has_non_vital_red_flags
+        or any(w in normalized_text for w in (
+            "nga quy", "me sang", "hon me", "non lien tuc", "tai nan", "met la", "tim tai",
+            "co giat", "uong thuoc", "qua lieu", "ngo doc", "vet thuong", "chay mau", "moi tim",
+            "do 41 do", "tut huyet ap", "nghet tho", "bot mau hong", "kho tho du doi", "khong the nam thang"
+        ))
+    )
+    if has_acute_symptoms:
+        scores["triage"] += 35
+
+    if re.search(r"\b(theo doi\s+bn-|theo doi\s+benh nhan)\b", normalized_text):
+        scores["monitoring"] += 70
+    elif re.search(r"\b(theo doi\s+chi so)\b", normalized_text) or normalized_text.startswith("theo doi"):
         scores["monitoring"] += 30
-    elif re.search(r"\b(spo2|huyet ap|nhip tim|nhiet do)\s*[:=]?\s*\d", normalized_text):
+    elif not has_acute_symptoms and re.search(r"\b(spo2|huyet ap|nhip tim|nhiet do)\s*[:=]?\s*\d", normalized_text):
         scores["monitoring"] += 26
     if _requests_personalized_dose(normalized_text):
         scores["safety"] += 6
@@ -540,9 +568,9 @@ def _detect_intent(payload: ChatRequest, normalized_text: str) -> ChatIntent:
     if any(contains_affirmed_phrase(normalized_text, term) for term in (
         "dau nguc", "tuc nguc", "nang nguc", "dau that nguc", "kho tho", "meo mieng",
         "ngat", "dot quy", "nhoi mau", "tim dap nhanh", "danh trong nguc", "yeu liet",
-        "hon me", "co giat"
-    )):
-        scores["triage"] += 10
+        "hon me", "co giat", "u o", "khong noi duoc"
+    )) or bool(re.search(r"\b(?:meo\b.{0,30}\bmieng|u o\b|khong noi duoc|liet|yeu tay|roi coc)\b", normalized_text)):
+        scores["triage"] += 20
 
     from app.services.rules import _matches_clinical_pattern
     for rf in knowledge.red_flag_patterns + knowledge.urgent_patterns:
@@ -779,15 +807,24 @@ def _extract_monitoring(text: str) -> list[MonitoringPoint]:
     for metric, pattern, unit in patterns:
         match = re.search(pattern, normalized)
         if match:
-            points.append(MonitoringPoint(metric=metric, value=float(match.group(1)), unit=unit, recorded_at=recorded_at))
+            try:
+                val = float(match.group(1))
+                if metric == "temperature_c" and not (25.0 <= val <= 45.0):
+                    continue
+                points.append(MonitoringPoint(metric=metric, value=val, unit=unit, recorded_at=recorded_at))
+            except Exception:
+                pass
     pressure = re.search(r"(?:huyet ap|ha)\s*[:=]?\s*(\d{2,3})\s*/\s*(\d{2,3})", normalized)
     if pressure:
-        points.extend(
-            [
-                MonitoringPoint(metric="systolic", value=float(pressure.group(1)), unit="mmHg", recorded_at=recorded_at),
-                MonitoringPoint(metric="diastolic", value=float(pressure.group(2)), unit="mmHg", recorded_at=recorded_at),
-            ]
-        )
+        try:
+            points.extend(
+                [
+                    MonitoringPoint(metric="systolic", value=float(pressure.group(1)), unit="mmHg", recorded_at=recorded_at),
+                    MonitoringPoint(metric="diastolic", value=float(pressure.group(2)), unit="mmHg", recorded_at=recorded_at),
+                ]
+            )
+        except Exception:
+            pass
     return points
 
 
@@ -1227,9 +1264,12 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
             msg_facts = parse_semantic_clinical_facts(msg.content)
             ledger.process_turn(t_idx, msg.content, msg_facts)
 
-    # Emergency Intent Lock: Active emergency findings CANNOT be diverted by avoidance or monitoring keywords
-    has_active_emergency = ledger.has_active_emergency()
-    if has_active_emergency and (len(payload.messages) > 1 or intent in ("monitoring", "general", "pharmacy")):
+    # Emergency Intent Lock: Active emergency findings CANNOT be diverted by avoidance keywords
+    # but requests with extracted vital monitoring metrics proceed to monitoring engine for metric escalation
+    has_monitoring_metrics = bool(_extract_monitoring(latest_text))
+    latest_concept_norm = normalize_clinical_concepts(normalize_search_text(latest_text))
+    has_active_emergency = ledger.has_active_emergency() or bool(_check_red_flag_patterns(latest_concept_norm))
+    if has_active_emergency and not has_monitoring_metrics and (len(payload.messages) > 1 or intent in ("monitoring", "general", "pharmacy")):
         intent = "triage"
 
     if intent == "triage":
@@ -1324,7 +1364,13 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
         if reported_ingestion is not None:
             first_warn = reported_ingestion["warnings"][0] if reported_ingestion.get("warnings") else {}
             reply_text = f"{first_warn.get('detail', '')} {first_warn.get('recommendation', '')}".strip() or "Đã nhận diện một tình huống thuốc đã được uống và cần đánh giá trực tiếp."
-            ingestion_urgency = "EMERGENCY" if reported_ingestion.get("overall_risk") == "HIGH" else "URGENT"
+            overall_r = reported_ingestion.get("overall_risk")
+            if overall_r == "HIGH":
+                ingestion_urgency = "EMERGENCY"
+            elif overall_r == "MODERATE":
+                ingestion_urgency = "URGENT"
+            else:
+                ingestion_urgency = "ROUTINE"
             reported_ingestion["urgency"] = ingestion_urgency
             return _response(
                 payload,

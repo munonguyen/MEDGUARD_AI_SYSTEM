@@ -58,6 +58,8 @@ def resolve_triage(
     rule_confidence: float = 1.0,
     semantic_confidence: float = 1.0,
     compositional_confidence: float = 0.98,
+    partial_safety_urgency: str | None = None,
+    partial_safety_confidence: float = 0.98,
     semantic_status: SemanticStatus | str = SemanticStatus.UNDERSTOOD,
     fact_coverage: float = 1.0,
     has_acute_functional_loss: bool = False,
@@ -67,12 +69,14 @@ def resolve_triage(
     Invariants:
       1. If any signal indicates EMERGENCY, the resolved urgency is EMERGENCY.
       2. If no valid signal is provided, fails closed to URGENT (never ROUTINE).
-      3. Epistemic Guard: UNRESOLVED complaint with acute functional cues escalates to URGENT.
-      4. Calibration: Confidence is scaled by semantic coverage and epistemic certainty.
+      3. Partial Evidence Safety Floor: Enforces safety floor on partial high-risk cues.
+      4. Epistemic Guard: UNRESOLVED complaint with acute functional cues escalates to URGENT/EMERGENCY.
+      5. Calibration: Confidence is scaled by semantic coverage and epistemic certainty.
     """
     candidates: dict[str, str | None] = {
         "rule": rule_urgency if rule_urgency != "UNRESOLVED" else None,
         "compositional": compositional_urgency,
+        "partial_safety": partial_safety_urgency,
         "semantic": semantic_urgency,
         "history": historical_urgency,
     }
@@ -106,6 +110,8 @@ def resolve_triage(
     # Determine base confidence by source
     if source == "compositional":
         confidence = min(max(compositional_confidence + 0.04, 0.70), 0.98)
+    elif source == "partial_safety":
+        confidence = partial_safety_confidence
     elif source == "rule":
         confidence = min(max(rule_confidence, 0.50), 0.96)
     elif source == "semantic":

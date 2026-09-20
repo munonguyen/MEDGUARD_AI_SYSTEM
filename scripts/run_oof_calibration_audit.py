@@ -33,8 +33,8 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from scripts.run_1200_regression import (
-    load_all_1200_cases,
+from scripts.run_1500_regression import (
+    load_all_1500_cases,
     evaluate_single_case,
     compute_calibration_metrics,
     UnifiedCase,
@@ -69,6 +69,7 @@ def run_oof_calibration_audit(
     n_folds: int = 5,
     seed: int = 42,
     existing_results: list[dict[str, Any]] | None = None,
+    workers: int = 1,
 ) -> dict[str, Any]:
     print("=" * 80)
     print(f"MEDGUARD AI — {n_folds}-FOLD OUT-OF-FOLD (OOF) CALIBRATION AUDIT")
@@ -90,6 +91,19 @@ def run_oof_calibration_audit(
             r = dict(res)
             r["fold"] = fold_assignments[idx]
             results.append(r)
+    elif workers > 1:
+        from concurrent.futures import ThreadPoolExecutor
+        print(f"[*] Evaluating cases with {workers} parallel worker threads...")
+        start_time = time.time()
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            futures = [executor.submit(evaluate_single_case, c, run_salt) for c in cases]
+            for idx, f in enumerate(futures, 1):
+                res = f.result()
+                res["fold"] = fold_assignments[idx - 1]
+                results.append(res)
+                if idx % 150 == 0 or idx == len(cases):
+                    elapsed = time.time() - start_time
+                    print(f"  [{idx}/{len(cases)}] Processed in {elapsed:.1f}s...")
     else:
         print("[*] Evaluating cases sequentially through full clinical pipeline...")
         start_time = time.time()
@@ -199,10 +213,11 @@ def main() -> int:
     parser.add_argument("--seed", type=int, default=42, help="Random seed for stratification (default: 42)")
     parser.add_argument("--save", type=str, default="oof_calibration_report.json", help="Path to save output report JSON")
     parser.add_argument("--dump-predictions", type=str, default="oof_predictions.json", help="Path to save OOF prediction details")
+    parser.add_argument("--workers", type=int, default=8, help="Number of parallel worker threads (default: 8)")
     args = parser.parse_args()
 
-    cases = load_all_1200_cases()
-    report, results = run_oof_calibration_audit(cases, n_folds=args.folds, seed=args.seed)
+    cases = load_all_1500_cases()
+    report, results = run_oof_calibration_audit(cases, n_folds=args.folds, seed=args.seed, workers=args.workers)
 
     save_path = Path(args.save)
     save_path.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
