@@ -1,0 +1,5883 @@
+{
+  "total_cases": 600,
+  "evaluation_time_seconds": 56.33,
+  "metrics": {
+    "critical_fact_recall": 98.6667,
+    "partial_high_risk_recall": 100.0,
+    "critical_fact_precision": 100.0,
+    "perfusion_threat_recall": 100.0,
+    "functional_loss_recall": 96.4444,
+    "toxic_exposure_recall": 100.0,
+    "benign_specificity": 100.0,
+    "false_fact_hallucination_rate": 0.0,
+    "overall_triage_accuracy": 100.0
+  },
+  "cases": [
+    {
+      "case_id": "ABSTR-0001",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0002",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0003",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0004",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0005",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0006",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0007",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0008",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0009",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0010",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0011",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0012",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0013",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0014",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0015",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0016",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0017",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0018",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0019",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0020",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0021",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0022",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0023",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0024",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0025",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0026",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0027",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0028",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0029",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0030",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0031",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0032",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0033",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0034",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0035",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0036",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0037",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0038",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0039",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0040",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0041",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0042",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0043",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0044",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0045",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0046",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0047",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0048",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0049",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0050",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0051",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0052",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0053",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0054",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0055",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0056",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0057",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0058",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0059",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0060",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0061",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0062",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0063",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0064",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0065",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0066",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0067",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0068",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0069",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0070",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0071",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0072",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0073",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0074",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0075",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0076",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0077",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0078",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0079",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0080",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0081",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0082",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0083",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0084",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0085",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0086",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0087",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0088",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0089",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0090",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0091",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0092",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0093",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0094",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0095",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0096",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0097",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0098",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0099",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0100",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0101",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0102",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0103",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0104",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0105",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0106",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0107",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0108",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0109",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0110",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0111",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0112",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0113",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0114",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0115",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0116",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0117",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0118",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0119",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0120",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0121",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0122",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0123",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0124",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0125",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "aortic_dissection_or_rupture",
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0126",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0127",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0128",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0129",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0130",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "aortic_dissection_or_rupture",
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0131",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0132",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0133",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0134",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0135",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "aortic_dissection_or_rupture",
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0136",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0137",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0138",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0139",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0140",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "aortic_dissection_or_rupture",
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0141",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0142",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0143",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0144",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0145",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "aortic_dissection_or_rupture",
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0146",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0147",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0148",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0149",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0150",
+      "cohort": "indirect_functional_descriptions",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "aortic_dissection_or_rupture",
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0151",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0152",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0153",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0154",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0155",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0156",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0157",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0158",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0159",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0160",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "massive_hemorrhage",
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0161",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0162",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0163",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0164",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0165",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0166",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0167",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0168",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0169",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0170",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "massive_hemorrhage",
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0171",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0172",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0173",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0174",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0175",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0176",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0177",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0178",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0179",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0180",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "massive_hemorrhage",
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0181",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0182",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0183",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0184",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0185",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0186",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0187",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0188",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0189",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0190",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "massive_hemorrhage",
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0191",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0192",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0193",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0194",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0195",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0196",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0197",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0198",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0199",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0200",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "massive_hemorrhage",
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0201",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0202",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0203",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0204",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0205",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0206",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0207",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0208",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0209",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0210",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "massive_hemorrhage",
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0211",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0212",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0213",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0214",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0215",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0216",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0217",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0218",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0219",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0220",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "massive_hemorrhage",
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0221",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0222",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0223",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0224",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0225",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0226",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0227",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0228",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0229",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0230",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "massive_hemorrhage",
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0231",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0232",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0233",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0234",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0235",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0236",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0237",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0238",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0239",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0240",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "massive_hemorrhage",
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0241",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0242",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0243",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0244",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0245",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0246",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0247",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "vision_loss"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0248",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0249",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0250",
+      "cohort": "metaphoric_colloquial",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "massive_hemorrhage",
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0251",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "mesenteric_ischemia"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0252",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "obstetric_catastrophe"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0253",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "diabetic_ketoacidosis"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0254",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0255",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "fat_embolism_or_pulmonary_embolism",
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0256",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "mesenteric_ischemia"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0257",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "obstetric_catastrophe"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0258",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "diabetic_ketoacidosis"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0259",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0260",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "fat_embolism_or_pulmonary_embolism",
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0261",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "mesenteric_ischemia"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0262",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "obstetric_catastrophe"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0263",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "diabetic_ketoacidosis"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0264",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0265",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "fat_embolism_or_pulmonary_embolism",
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0266",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "mesenteric_ischemia"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0267",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "obstetric_catastrophe"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0268",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "diabetic_ketoacidosis"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0269",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0270",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "fat_embolism_or_pulmonary_embolism",
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0271",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "mesenteric_ischemia"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0272",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "obstetric_catastrophe"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0273",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "diabetic_ketoacidosis"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0274",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0275",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "fat_embolism_or_pulmonary_embolism",
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0276",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "mesenteric_ischemia"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0277",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "obstetric_catastrophe"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0278",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "diabetic_ketoacidosis"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0279",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0280",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "fat_embolism_or_pulmonary_embolism",
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0281",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "mesenteric_ischemia"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0282",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "obstetric_catastrophe"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0283",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "diabetic_ketoacidosis"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0284",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0285",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "fat_embolism_or_pulmonary_embolism",
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0286",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "mesenteric_ischemia"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0287",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "obstetric_catastrophe"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0288",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "diabetic_ketoacidosis"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0289",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0290",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "fat_embolism_or_pulmonary_embolism",
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0291",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "mesenteric_ischemia"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0292",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "obstetric_catastrophe"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0293",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "diabetic_ketoacidosis"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0294",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0295",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "fat_embolism_or_pulmonary_embolism",
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0296",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "mesenteric_ischemia"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0297",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "obstetric_catastrophe"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0298",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "diabetic_ketoacidosis"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0299",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0300",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "fat_embolism_or_pulmonary_embolism",
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0301",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "mesenteric_ischemia"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0302",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "obstetric_catastrophe"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0303",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "diabetic_ketoacidosis"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0304",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0305",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "fat_embolism_or_pulmonary_embolism",
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0306",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "mesenteric_ischemia"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0307",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "obstetric_catastrophe"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0308",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "diabetic_ketoacidosis"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0309",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0310",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "fat_embolism_or_pulmonary_embolism",
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0311",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "mesenteric_ischemia"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0312",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "obstetric_catastrophe"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0313",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "diabetic_ketoacidosis"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0314",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0315",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "fat_embolism_or_pulmonary_embolism",
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0316",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "mesenteric_ischemia"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0317",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "obstetric_catastrophe"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0318",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "diabetic_ketoacidosis"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0319",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0320",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "fat_embolism_or_pulmonary_embolism",
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0321",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "mesenteric_ischemia"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0322",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "obstetric_catastrophe"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0323",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "diabetic_ketoacidosis"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0324",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0325",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "fat_embolism_or_pulmonary_embolism",
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0326",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "mesenteric_ischemia"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0327",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "obstetric_catastrophe"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0328",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "diabetic_ketoacidosis"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0329",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0330",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "fat_embolism_or_pulmonary_embolism",
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0331",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "mesenteric_ischemia"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0332",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "obstetric_catastrophe"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0333",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "diabetic_ketoacidosis"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0334",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0335",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "fat_embolism_or_pulmonary_embolism",
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0336",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "mesenteric_ischemia"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0337",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "obstetric_catastrophe"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0338",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "diabetic_ketoacidosis"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0339",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0340",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "fat_embolism_or_pulmonary_embolism",
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0341",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "mesenteric_ischemia"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0342",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "obstetric_catastrophe"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0343",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "diabetic_ketoacidosis"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0344",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0345",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "fat_embolism_or_pulmonary_embolism",
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0346",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "mesenteric_ischemia"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0347",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "obstetric_catastrophe"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0348",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "diabetic_ketoacidosis"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0349",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0350",
+      "cohort": "cross_domain_composites",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "fat_embolism_or_pulmonary_embolism",
+        "airway_obstruction_or_severe_dyspnea"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0351",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion",
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0352",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0353",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0354",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0355",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "tumor_lysis_or_septic_shock",
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0356",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion",
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0357",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0358",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0359",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0360",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "tumor_lysis_or_septic_shock",
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0361",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion",
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0362",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0363",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0364",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0365",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "tumor_lysis_or_septic_shock",
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0366",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion",
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0367",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0368",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0369",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0370",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "tumor_lysis_or_septic_shock",
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0371",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion",
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0372",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0373",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0374",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0375",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "tumor_lysis_or_septic_shock",
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0376",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion",
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0377",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0378",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0379",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0380",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "tumor_lysis_or_septic_shock",
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0381",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion",
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0382",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0383",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0384",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0385",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "tumor_lysis_or_septic_shock",
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0386",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion",
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0387",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0388",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0389",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0390",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "tumor_lysis_or_septic_shock",
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0391",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion",
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0392",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0393",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0394",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0395",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "tumor_lysis_or_septic_shock",
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0396",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion",
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0397",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0398",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0399",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0400",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "tumor_lysis_or_septic_shock",
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0401",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion",
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0402",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0403",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0404",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0405",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "tumor_lysis_or_septic_shock",
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0406",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion",
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0407",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0408",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0409",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0410",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "tumor_lysis_or_septic_shock",
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0411",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion",
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0412",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0413",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0414",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0415",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "tumor_lysis_or_septic_shock",
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0416",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion",
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0417",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0418",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0419",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0420",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "tumor_lysis_or_septic_shock",
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0421",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion",
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0422",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0423",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0424",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0425",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "tumor_lysis_or_septic_shock",
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0426",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion",
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0427",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0428",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0429",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0430",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "tumor_lysis_or_septic_shock",
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0431",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion",
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0432",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0433",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0434",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0435",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "tumor_lysis_or_septic_shock",
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0436",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion",
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0437",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0438",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0439",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0440",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "tumor_lysis_or_septic_shock",
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0441",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion",
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0442",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0443",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0444",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0445",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "tumor_lysis_or_septic_shock",
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0446",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion",
+        "circulatory_compromise"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0447",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0448",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "abdominal_rigidity"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0449",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "toxic_ingestion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0450",
+      "cohort": "partial_evidence_emergency",
+      "expected_triage": "EMERGENCY",
+      "actual_triage": "EMERGENCY",
+      "extracted_concepts": [
+        "tumor_lysis_or_septic_shock",
+        "boerhaave_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0451",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0452",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0453",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0454",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0455",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "acute_coronary_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0456",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0457",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0458",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0459",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0460",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "acute_coronary_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0461",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0462",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0463",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0464",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0465",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "acute_coronary_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0466",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0467",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0468",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0469",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0470",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "acute_coronary_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0471",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0472",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0473",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0474",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0475",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "acute_coronary_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0476",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0477",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0478",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0479",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0480",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "acute_coronary_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0481",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0482",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0483",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0484",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0485",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "acute_coronary_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0486",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0487",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0488",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0489",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0490",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "acute_coronary_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0491",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0492",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0493",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0494",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0495",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "acute_coronary_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0496",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0497",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0498",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0499",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0500",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "acute_coronary_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0501",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0502",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0503",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0504",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0505",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "acute_coronary_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0506",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0507",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0508",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0509",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0510",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "acute_coronary_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0511",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0512",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0513",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0514",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0515",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "acute_coronary_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0516",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0517",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0518",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0519",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0520",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "acute_coronary_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0521",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0522",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0523",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "arterial_occlusion"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0524",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "acute_stroke"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0525",
+      "cohort": "quoted_negated_traps",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [
+        "acute_coronary_syndrome"
+      ],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0526",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0527",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0528",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0529",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0530",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0531",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0532",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0533",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0534",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0535",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0536",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0537",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0538",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0539",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0540",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0541",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0542",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0543",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0544",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0545",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0546",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0547",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0548",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0549",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0550",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0551",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0552",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0553",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0554",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0555",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0556",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0557",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0558",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0559",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0560",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0561",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0562",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0563",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0564",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0565",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0566",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0567",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0568",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0569",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0570",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0571",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0572",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0573",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0574",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0575",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0576",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0577",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0578",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0579",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0580",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0581",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0582",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0583",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0584",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0585",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0586",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0587",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0588",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0589",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0590",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0591",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0592",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0593",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0594",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0595",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0596",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0597",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0598",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0599",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    },
+    {
+      "case_id": "ABSTR-0600",
+      "cohort": "benign_mimics",
+      "expected_triage": "ROUTINE",
+      "actual_triage": "ROUTINE",
+      "extracted_concepts": [],
+      "is_correct": true
+    }
+  ]
+}

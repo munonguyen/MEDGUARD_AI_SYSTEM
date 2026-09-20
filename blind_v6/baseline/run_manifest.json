@@ -1,0 +1,14 @@
+{
+  "status": "SEALED",
+  "benchmark_suite": "Blind Benchmark V6",
+  "cases_file": "cases.json",
+  "total_cases": 300,
+  "cases_evaluated": 300,
+  "system_errors": 0,
+  "duration_seconds": 43.7,
+  "avg_latency_ms": 145.7,
+  "predictions_sha256": "031feee52c0133145c1ffa7b6b73847896a8a24eb73a67e93292ff3aaf91065f",
+  "timestamp_utc": "2026-09-17T12:18:25.772709+00:00",
+  "git_commit": "20dc5b2c48d655b62a17aea07da09c9d3b6039e8",
+  "model_version": "medguard-candidate-v6-frozen"
+}
