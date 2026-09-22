@@ -1,0 +1,33 @@
+{
+  "total_cases": 120,
+  "emergency_cases": 60,
+  "benign_cases": 60,
+  "tier_a": {
+    "recall_pct": 100.0,
+    "precision_pct": 100.0,
+    "tp": 60,
+    "fn": 0,
+    "tn": 60,
+    "fp": 0,
+    "passed": true
+  },
+  "tier_b": {
+    "recall_pct": 100.0,
+    "precision_pct": 100.0,
+    "tp": 60,
+    "fn": 0,
+    "tn": 60,
+    "fp": 0,
+    "passed": true
+  },
+  "tier_c": {
+    "sensitivity_pct": 100.0,
+    "specificity_pct": 100.0,
+    "tp": 60,
+    "fn": 0,
+    "tn": 60,
+    "fp": 0,
+    "passed": true
+  },
+  "overall_passed": true
+}

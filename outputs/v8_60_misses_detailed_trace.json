@@ -1,0 +1,1178 @@
+[
+  {
+    "case_id": "V8-PE-0007",
+    "cohort": "partial_evidence_emergencies",
+    "raw_input": "Phụ nữ trễ kinh 2 tuần, đột ngột đau quặn một bên bụng dưới dữ dội kèm choáng váng. (Mã ca: V8-PE-0007, ghi nhận lúc 16:00)",
+    "actual_triage": "URGENT",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_abdominal_pain_severe",
+      "c_acute_onset"
+    ],
+    "semantic_relations": [
+      "abdominal_pain_severe->acute_onset"
+    ],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-PE-0017",
+    "cohort": "partial_evidence_emergencies",
+    "raw_input": "Phụ nữ trễ kinh 2 tuần, đột ngột đau quặn một bên bụng dưới dữ dội kèm choáng váng. (Mã ca: V8-PE-0017, ghi nhận lúc 14:00)",
+    "actual_triage": "URGENT",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_abdominal_pain_severe",
+      "c_acute_onset"
+    ],
+    "semantic_relations": [
+      "abdominal_pain_severe->acute_onset"
+    ],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-PE-0027",
+    "cohort": "partial_evidence_emergencies",
+    "raw_input": "Phụ nữ trễ kinh 2 tuần, đột ngột đau quặn một bên bụng dưới dữ dội kèm choáng váng. (Mã ca: V8-PE-0027, ghi nhận lúc 12:00)",
+    "actual_triage": "URGENT",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_abdominal_pain_severe",
+      "c_acute_onset"
+    ],
+    "semantic_relations": [
+      "abdominal_pain_severe->acute_onset"
+    ],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-PE-0037",
+    "cohort": "partial_evidence_emergencies",
+    "raw_input": "Phụ nữ trễ kinh 2 tuần, đột ngột đau quặn một bên bụng dưới dữ dội kèm choáng váng. (Mã ca: V8-PE-0037, ghi nhận lúc 10:00)",
+    "actual_triage": "URGENT",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_abdominal_pain_severe",
+      "c_acute_onset"
+    ],
+    "semantic_relations": [
+      "abdominal_pain_severe->acute_onset"
+    ],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-PE-0047",
+    "cohort": "partial_evidence_emergencies",
+    "raw_input": "Phụ nữ trễ kinh 2 tuần, đột ngột đau quặn một bên bụng dưới dữ dội kèm choáng váng. (Mã ca: V8-PE-0047, ghi nhận lúc 20:00)",
+    "actual_triage": "URGENT",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_abdominal_pain_severe",
+      "c_acute_onset"
+    ],
+    "semantic_relations": [
+      "abdominal_pain_severe->acute_onset"
+    ],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-PE-0057",
+    "cohort": "partial_evidence_emergencies",
+    "raw_input": "Phụ nữ trễ kinh 2 tuần, đột ngột đau quặn một bên bụng dưới dữ dội kèm choáng váng. (Mã ca: V8-PE-0057, ghi nhận lúc 18:00)",
+    "actual_triage": "URGENT",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_abdominal_pain_severe",
+      "c_acute_onset"
+    ],
+    "semantic_relations": [
+      "abdominal_pain_severe->acute_onset"
+    ],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-PE-0067",
+    "cohort": "partial_evidence_emergencies",
+    "raw_input": "Phụ nữ trễ kinh 2 tuần, đột ngột đau quặn một bên bụng dưới dữ dội kèm choáng váng. (Mã ca: V8-PE-0067, ghi nhận lúc 16:00)",
+    "actual_triage": "URGENT",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_abdominal_pain_severe",
+      "c_acute_onset"
+    ],
+    "semantic_relations": [
+      "abdominal_pain_severe->acute_onset"
+    ],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-CD-0003",
+    "cohort": "cross_domain_compositions",
+    "raw_input": "Hồ sơ đa bệnh lý: Đang điều trị rung nhĩ bằng Warfarin, sáng nay đánh răng thấy máu chảy không cầm được, trên đùi xuất hiện nhiều mảng bầm tím to. (Mã ca V8-CD-0003)",
+    "actual_triage": "URGENT",
+    "assigned_root_cause": "R1_fact_miss",
+    "fact_extraction": [],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [
+      "xuất huyết dưới da tự nhiên ở bệnh nhân dùng thuốc chống đông (nguy cơ quá liều chống đông / INR cao)"
+    ],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-CD-0009",
+    "cohort": "cross_domain_compositions",
+    "raw_input": "Hồ sơ đa bệnh lý: Đang điều trị rung nhĩ bằng Warfarin, sáng nay đánh răng thấy máu chảy không cầm được, trên đùi xuất hiện nhiều mảng bầm tím to. (Mã ca V8-CD-0009)",
+    "actual_triage": "URGENT",
+    "assigned_root_cause": "R1_fact_miss",
+    "fact_extraction": [],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [
+      "xuất huyết dưới da tự nhiên ở bệnh nhân dùng thuốc chống đông (nguy cơ quá liều chống đông / INR cao)"
+    ],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-CD-0015",
+    "cohort": "cross_domain_compositions",
+    "raw_input": "Hồ sơ đa bệnh lý: Đang điều trị rung nhĩ bằng Warfarin, sáng nay đánh răng thấy máu chảy không cầm được, trên đùi xuất hiện nhiều mảng bầm tím to. (Mã ca V8-CD-0015)",
+    "actual_triage": "URGENT",
+    "assigned_root_cause": "R1_fact_miss",
+    "fact_extraction": [],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [
+      "xuất huyết dưới da tự nhiên ở bệnh nhân dùng thuốc chống đông (nguy cơ quá liều chống đông / INR cao)"
+    ],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-CD-0021",
+    "cohort": "cross_domain_compositions",
+    "raw_input": "Hồ sơ đa bệnh lý: Đang điều trị rung nhĩ bằng Warfarin, sáng nay đánh răng thấy máu chảy không cầm được, trên đùi xuất hiện nhiều mảng bầm tím to. (Mã ca V8-CD-0021)",
+    "actual_triage": "URGENT",
+    "assigned_root_cause": "R1_fact_miss",
+    "fact_extraction": [],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [
+      "xuất huyết dưới da tự nhiên ở bệnh nhân dùng thuốc chống đông (nguy cơ quá liều chống đông / INR cao)"
+    ],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-CD-0027",
+    "cohort": "cross_domain_compositions",
+    "raw_input": "Hồ sơ đa bệnh lý: Đang điều trị rung nhĩ bằng Warfarin, sáng nay đánh răng thấy máu chảy không cầm được, trên đùi xuất hiện nhiều mảng bầm tím to. (Mã ca V8-CD-0027)",
+    "actual_triage": "URGENT",
+    "assigned_root_cause": "R1_fact_miss",
+    "fact_extraction": [],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [
+      "xuất huyết dưới da tự nhiên ở bệnh nhân dùng thuốc chống đông (nguy cơ quá liều chống đông / INR cao)"
+    ],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-CD-0033",
+    "cohort": "cross_domain_compositions",
+    "raw_input": "Hồ sơ đa bệnh lý: Đang điều trị rung nhĩ bằng Warfarin, sáng nay đánh răng thấy máu chảy không cầm được, trên đùi xuất hiện nhiều mảng bầm tím to. (Mã ca V8-CD-0033)",
+    "actual_triage": "URGENT",
+    "assigned_root_cause": "R1_fact_miss",
+    "fact_extraction": [],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [
+      "xuất huyết dưới da tự nhiên ở bệnh nhân dùng thuốc chống đông (nguy cơ quá liều chống đông / INR cao)"
+    ],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-CD-0039",
+    "cohort": "cross_domain_compositions",
+    "raw_input": "Hồ sơ đa bệnh lý: Đang điều trị rung nhĩ bằng Warfarin, sáng nay đánh răng thấy máu chảy không cầm được, trên đùi xuất hiện nhiều mảng bầm tím to. (Mã ca V8-CD-0039)",
+    "actual_triage": "URGENT",
+    "assigned_root_cause": "R1_fact_miss",
+    "fact_extraction": [],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [
+      "xuất huyết dưới da tự nhiên ở bệnh nhân dùng thuốc chống đông (nguy cơ quá liều chống đông / INR cao)"
+    ],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-CD-0045",
+    "cohort": "cross_domain_compositions",
+    "raw_input": "Hồ sơ đa bệnh lý: Đang điều trị rung nhĩ bằng Warfarin, sáng nay đánh răng thấy máu chảy không cầm được, trên đùi xuất hiện nhiều mảng bầm tím to. (Mã ca V8-CD-0045)",
+    "actual_triage": "URGENT",
+    "assigned_root_cause": "R1_fact_miss",
+    "fact_extraction": [],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [
+      "xuất huyết dưới da tự nhiên ở bệnh nhân dùng thuốc chống đông (nguy cơ quá liều chống đông / INR cao)"
+    ],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-CD-0051",
+    "cohort": "cross_domain_compositions",
+    "raw_input": "Hồ sơ đa bệnh lý: Đang điều trị rung nhĩ bằng Warfarin, sáng nay đánh răng thấy máu chảy không cầm được, trên đùi xuất hiện nhiều mảng bầm tím to. (Mã ca V8-CD-0051)",
+    "actual_triage": "URGENT",
+    "assigned_root_cause": "R1_fact_miss",
+    "fact_extraction": [],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [
+      "xuất huyết dưới da tự nhiên ở bệnh nhân dùng thuốc chống đông (nguy cơ quá liều chống đông / INR cao)"
+    ],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-CD-0057",
+    "cohort": "cross_domain_compositions",
+    "raw_input": "Hồ sơ đa bệnh lý: Đang điều trị rung nhĩ bằng Warfarin, sáng nay đánh răng thấy máu chảy không cầm được, trên đùi xuất hiện nhiều mảng bầm tím to. (Mã ca V8-CD-0057)",
+    "actual_triage": "URGENT",
+    "assigned_root_cause": "R1_fact_miss",
+    "fact_extraction": [],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [
+      "xuất huyết dưới da tự nhiên ở bệnh nhân dùng thuốc chống đông (nguy cơ quá liều chống đông / INR cao)"
+    ],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-PE-0004",
+    "cohort": "partial_evidence_emergencies",
+    "raw_input": "Đang đi tiểu thì ngất xỉu gục xuống sàn nhà, tỉnh dậy thấy toát mồ hôi hột và hoa mắt. (Mã ca: V8-PE-0004, ghi nhận lúc 13:00)",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_diaphoresis",
+      "c_syncope",
+      "c_micturition_syncope"
+    ],
+    "semantic_relations": [
+      "diaphoresis->syncope",
+      "diaphoresis->micturition_syncope",
+      "syncope->micturition_syncope"
+    ],
+    "abstraction_lattice": [
+      "benign_vasovagal_syncope"
+    ],
+    "has_lattice_emergency": false,
+    "singleton_tier": "AMBIGUOUS_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-PE-0005",
+    "cohort": "partial_evidence_emergencies",
+    "raw_input": "Đau thắt lưng dữ dội lan xuống hai chân kèm cảm giác tê vùng quanh hậu môn. (Mã ca: V8-PE-0005, ghi nhận lúc 14:00)",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R1_fact_miss",
+    "fact_extraction": [],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-PE-0014",
+    "cohort": "partial_evidence_emergencies",
+    "raw_input": "Đang đi tiểu thì ngất xỉu gục xuống sàn nhà, tỉnh dậy thấy toát mồ hôi hột và hoa mắt. (Mã ca: V8-PE-0014, ghi nhận lúc 11:00)",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_diaphoresis",
+      "c_syncope",
+      "c_micturition_syncope"
+    ],
+    "semantic_relations": [
+      "diaphoresis->syncope",
+      "diaphoresis->micturition_syncope",
+      "syncope->micturition_syncope"
+    ],
+    "abstraction_lattice": [
+      "benign_vasovagal_syncope"
+    ],
+    "has_lattice_emergency": false,
+    "singleton_tier": "AMBIGUOUS_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-PE-0015",
+    "cohort": "partial_evidence_emergencies",
+    "raw_input": "Đau thắt lưng dữ dội lan xuống hai chân kèm cảm giác tê vùng quanh hậu môn. (Mã ca: V8-PE-0015, ghi nhận lúc 12:00)",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R1_fact_miss",
+    "fact_extraction": [],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-PE-0024",
+    "cohort": "partial_evidence_emergencies",
+    "raw_input": "Đang đi tiểu thì ngất xỉu gục xuống sàn nhà, tỉnh dậy thấy toát mồ hôi hột và hoa mắt. (Mã ca: V8-PE-0024, ghi nhận lúc 21:00)",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_diaphoresis",
+      "c_syncope",
+      "c_micturition_syncope"
+    ],
+    "semantic_relations": [
+      "diaphoresis->syncope",
+      "diaphoresis->micturition_syncope",
+      "syncope->micturition_syncope"
+    ],
+    "abstraction_lattice": [
+      "benign_vasovagal_syncope"
+    ],
+    "has_lattice_emergency": false,
+    "singleton_tier": "AMBIGUOUS_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-PE-0025",
+    "cohort": "partial_evidence_emergencies",
+    "raw_input": "Đau thắt lưng dữ dội lan xuống hai chân kèm cảm giác tê vùng quanh hậu môn. (Mã ca: V8-PE-0025, ghi nhận lúc 10:00)",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R1_fact_miss",
+    "fact_extraction": [],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-PE-0034",
+    "cohort": "partial_evidence_emergencies",
+    "raw_input": "Đang đi tiểu thì ngất xỉu gục xuống sàn nhà, tỉnh dậy thấy toát mồ hôi hột và hoa mắt. (Mã ca: V8-PE-0034, ghi nhận lúc 19:00)",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_diaphoresis",
+      "c_syncope",
+      "c_micturition_syncope"
+    ],
+    "semantic_relations": [
+      "diaphoresis->syncope",
+      "diaphoresis->micturition_syncope",
+      "syncope->micturition_syncope"
+    ],
+    "abstraction_lattice": [
+      "benign_vasovagal_syncope"
+    ],
+    "has_lattice_emergency": false,
+    "singleton_tier": "AMBIGUOUS_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-PE-0035",
+    "cohort": "partial_evidence_emergencies",
+    "raw_input": "Đau thắt lưng dữ dội lan xuống hai chân kèm cảm giác tê vùng quanh hậu môn. (Mã ca: V8-PE-0035, ghi nhận lúc 20:00)",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R1_fact_miss",
+    "fact_extraction": [],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-PE-0044",
+    "cohort": "partial_evidence_emergencies",
+    "raw_input": "Đang đi tiểu thì ngất xỉu gục xuống sàn nhà, tỉnh dậy thấy toát mồ hôi hột và hoa mắt. (Mã ca: V8-PE-0044, ghi nhận lúc 17:00)",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_diaphoresis",
+      "c_syncope",
+      "c_micturition_syncope"
+    ],
+    "semantic_relations": [
+      "diaphoresis->syncope",
+      "diaphoresis->micturition_syncope",
+      "syncope->micturition_syncope"
+    ],
+    "abstraction_lattice": [
+      "benign_vasovagal_syncope"
+    ],
+    "has_lattice_emergency": false,
+    "singleton_tier": "AMBIGUOUS_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-PE-0045",
+    "cohort": "partial_evidence_emergencies",
+    "raw_input": "Đau thắt lưng dữ dội lan xuống hai chân kèm cảm giác tê vùng quanh hậu môn. (Mã ca: V8-PE-0045, ghi nhận lúc 18:00)",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R1_fact_miss",
+    "fact_extraction": [],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-PE-0054",
+    "cohort": "partial_evidence_emergencies",
+    "raw_input": "Đang đi tiểu thì ngất xỉu gục xuống sàn nhà, tỉnh dậy thấy toát mồ hôi hột và hoa mắt. (Mã ca: V8-PE-0054, ghi nhận lúc 15:00)",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_diaphoresis",
+      "c_syncope",
+      "c_micturition_syncope"
+    ],
+    "semantic_relations": [
+      "diaphoresis->syncope",
+      "diaphoresis->micturition_syncope",
+      "syncope->micturition_syncope"
+    ],
+    "abstraction_lattice": [
+      "benign_vasovagal_syncope"
+    ],
+    "has_lattice_emergency": false,
+    "singleton_tier": "AMBIGUOUS_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-PE-0055",
+    "cohort": "partial_evidence_emergencies",
+    "raw_input": "Đau thắt lưng dữ dội lan xuống hai chân kèm cảm giác tê vùng quanh hậu môn. (Mã ca: V8-PE-0055, ghi nhận lúc 16:00)",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R1_fact_miss",
+    "fact_extraction": [],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-PE-0064",
+    "cohort": "partial_evidence_emergencies",
+    "raw_input": "Đang đi tiểu thì ngất xỉu gục xuống sàn nhà, tỉnh dậy thấy toát mồ hôi hột và hoa mắt. (Mã ca: V8-PE-0064, ghi nhận lúc 13:00)",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_diaphoresis",
+      "c_syncope",
+      "c_micturition_syncope"
+    ],
+    "semantic_relations": [
+      "diaphoresis->syncope",
+      "diaphoresis->micturition_syncope",
+      "syncope->micturition_syncope"
+    ],
+    "abstraction_lattice": [
+      "benign_vasovagal_syncope"
+    ],
+    "has_lattice_emergency": false,
+    "singleton_tier": "AMBIGUOUS_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-PE-0065",
+    "cohort": "partial_evidence_emergencies",
+    "raw_input": "Đau thắt lưng dữ dội lan xuống hai chân kèm cảm giác tê vùng quanh hậu môn. (Mã ca: V8-PE-0065, ghi nhận lúc 14:00)",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R1_fact_miss",
+    "fact_extraction": [],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-TX-0003",
+    "cohort": "toxicology_routing_cases",
+    "raw_input": "Cảnh báo ngộ độc: Nhóm bạn ăn lẩu nấm hái trên rừng về, sau 4 tiếng cả 4 người đều đau bụng quặn thắt, nôn mửa liên tục và tiêu chảy xối xả. (Mã tiếp nhận: V8-TX-0003)",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_abdominal_pain_severe"
+    ],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-TX-0008",
+    "cohort": "toxicology_routing_cases",
+    "raw_input": "Cảnh báo ngộ độc: Nhóm bạn ăn lẩu nấm hái trên rừng về, sau 4 tiếng cả 4 người đều đau bụng quặn thắt, nôn mửa liên tục và tiêu chảy xối xả. (Mã tiếp nhận: V8-TX-0008)",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_abdominal_pain_severe"
+    ],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-TX-0013",
+    "cohort": "toxicology_routing_cases",
+    "raw_input": "Cảnh báo ngộ độc: Nhóm bạn ăn lẩu nấm hái trên rừng về, sau 4 tiếng cả 4 người đều đau bụng quặn thắt, nôn mửa liên tục và tiêu chảy xối xả. (Mã tiếp nhận: V8-TX-0013)",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_abdominal_pain_severe"
+    ],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-TX-0018",
+    "cohort": "toxicology_routing_cases",
+    "raw_input": "Cảnh báo ngộ độc: Nhóm bạn ăn lẩu nấm hái trên rừng về, sau 4 tiếng cả 4 người đều đau bụng quặn thắt, nôn mửa liên tục và tiêu chảy xối xả. (Mã tiếp nhận: V8-TX-0018)",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_abdominal_pain_severe"
+    ],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-TX-0023",
+    "cohort": "toxicology_routing_cases",
+    "raw_input": "Cảnh báo ngộ độc: Nhóm bạn ăn lẩu nấm hái trên rừng về, sau 4 tiếng cả 4 người đều đau bụng quặn thắt, nôn mửa liên tục và tiêu chảy xối xả. (Mã tiếp nhận: V8-TX-0023)",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_abdominal_pain_severe"
+    ],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-TX-0028",
+    "cohort": "toxicology_routing_cases",
+    "raw_input": "Cảnh báo ngộ độc: Nhóm bạn ăn lẩu nấm hái trên rừng về, sau 4 tiếng cả 4 người đều đau bụng quặn thắt, nôn mửa liên tục và tiêu chảy xối xả. (Mã tiếp nhận: V8-TX-0028)",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_abdominal_pain_severe"
+    ],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-TX-0033",
+    "cohort": "toxicology_routing_cases",
+    "raw_input": "Cảnh báo ngộ độc: Nhóm bạn ăn lẩu nấm hái trên rừng về, sau 4 tiếng cả 4 người đều đau bụng quặn thắt, nôn mửa liên tục và tiêu chảy xối xả. (Mã tiếp nhận: V8-TX-0033)",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_abdominal_pain_severe"
+    ],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-TX-0038",
+    "cohort": "toxicology_routing_cases",
+    "raw_input": "Cảnh báo ngộ độc: Nhóm bạn ăn lẩu nấm hái trên rừng về, sau 4 tiếng cả 4 người đều đau bụng quặn thắt, nôn mửa liên tục và tiêu chảy xối xả. (Mã tiếp nhận: V8-TX-0038)",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_abdominal_pain_severe"
+    ],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-TX-0043",
+    "cohort": "toxicology_routing_cases",
+    "raw_input": "Cảnh báo ngộ độc: Nhóm bạn ăn lẩu nấm hái trên rừng về, sau 4 tiếng cả 4 người đều đau bụng quặn thắt, nôn mửa liên tục và tiêu chảy xối xả. (Mã tiếp nhận: V8-TX-0043)",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_abdominal_pain_severe"
+    ],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-TX-0048",
+    "cohort": "toxicology_routing_cases",
+    "raw_input": "Cảnh báo ngộ độc: Nhóm bạn ăn lẩu nấm hái trên rừng về, sau 4 tiếng cả 4 người đều đau bụng quặn thắt, nôn mửa liên tục và tiêu chảy xối xả. (Mã tiếp nhận: V8-TX-0048)",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_abdominal_pain_severe"
+    ],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-IL-0001",
+    "cohort": "indirect_linguistic_descriptions",
+    "raw_input": "Tự nhiên thấy ngực tức nghẹn như có tảng đá lớn đè nặng lên ngực, không tài nào hít sâu được. Tình trạng này mới bị lúc nãy (Ca V8-IL-0001).",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_chest_pressure"
+    ],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-IL-0003",
+    "cohort": "indirect_linguistic_descriptions",
+    "raw_input": "Cảm giác ruột gan bị ai bóp nghẹt xoắn lại từng cơn, đau thắt đến mức phải gập người ôm bụng lăn lộn. Tình trạng này mới bị lúc nãy (Ca V8-IL-0003).",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_abdominal_pain_severe"
+    ],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-IL-0006",
+    "cohort": "indirect_linguistic_descriptions",
+    "raw_input": "Tự nhiên thấy ngực tức nghẹn như có tảng đá lớn đè nặng lên ngực, không tài nào hít sâu được. Tình trạng này mới bị lúc nãy (Ca V8-IL-0006).",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_chest_pressure"
+    ],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-IL-0008",
+    "cohort": "indirect_linguistic_descriptions",
+    "raw_input": "Cảm giác ruột gan bị ai bóp nghẹt xoắn lại từng cơn, đau thắt đến mức phải gập người ôm bụng lăn lộn. Tình trạng này mới bị lúc nãy (Ca V8-IL-0008).",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_abdominal_pain_severe"
+    ],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-IL-0011",
+    "cohort": "indirect_linguistic_descriptions",
+    "raw_input": "Tự nhiên thấy ngực tức nghẹn như có tảng đá lớn đè nặng lên ngực, không tài nào hít sâu được. Tình trạng này mới bị lúc nãy (Ca V8-IL-0011).",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_chest_pressure"
+    ],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-IL-0013",
+    "cohort": "indirect_linguistic_descriptions",
+    "raw_input": "Cảm giác ruột gan bị ai bóp nghẹt xoắn lại từng cơn, đau thắt đến mức phải gập người ôm bụng lăn lộn. Tình trạng này mới bị lúc nãy (Ca V8-IL-0013).",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_abdominal_pain_severe"
+    ],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-IL-0016",
+    "cohort": "indirect_linguistic_descriptions",
+    "raw_input": "Tự nhiên thấy ngực tức nghẹn như có tảng đá lớn đè nặng lên ngực, không tài nào hít sâu được. Tình trạng này mới bị lúc nãy (Ca V8-IL-0016).",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_chest_pressure"
+    ],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-IL-0018",
+    "cohort": "indirect_linguistic_descriptions",
+    "raw_input": "Cảm giác ruột gan bị ai bóp nghẹt xoắn lại từng cơn, đau thắt đến mức phải gập người ôm bụng lăn lộn. Tình trạng này mới bị lúc nãy (Ca V8-IL-0018).",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_abdominal_pain_severe"
+    ],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-IL-0021",
+    "cohort": "indirect_linguistic_descriptions",
+    "raw_input": "Tự nhiên thấy ngực tức nghẹn như có tảng đá lớn đè nặng lên ngực, không tài nào hít sâu được. Tình trạng này mới bị lúc nãy (Ca V8-IL-0021).",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_chest_pressure"
+    ],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-IL-0023",
+    "cohort": "indirect_linguistic_descriptions",
+    "raw_input": "Cảm giác ruột gan bị ai bóp nghẹt xoắn lại từng cơn, đau thắt đến mức phải gập người ôm bụng lăn lộn. Tình trạng này mới bị lúc nãy (Ca V8-IL-0023).",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_abdominal_pain_severe"
+    ],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-IL-0026",
+    "cohort": "indirect_linguistic_descriptions",
+    "raw_input": "Tự nhiên thấy ngực tức nghẹn như có tảng đá lớn đè nặng lên ngực, không tài nào hít sâu được. Tình trạng này mới bị lúc nãy (Ca V8-IL-0026).",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_chest_pressure"
+    ],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  },
+  {
+    "case_id": "V8-IL-0028",
+    "cohort": "indirect_linguistic_descriptions",
+    "raw_input": "Cảm giác ruột gan bị ai bóp nghẹt xoắn lại từng cơn, đau thắt đến mức phải gập người ôm bụng lăn lộn. Tình trạng này mới bị lúc nãy (Ca V8-IL-0028).",
+    "actual_triage": "ROUTINE",
+    "assigned_root_cause": "R3_abstraction_lattice_gap",
+    "fact_extraction": [
+      "c_abdominal_pain_severe"
+    ],
+    "semantic_relations": [],
+    "abstraction_lattice": [],
+    "has_lattice_emergency": false,
+    "singleton_tier": "WEAK_SINGLETON",
+    "singleton_floor": "ROUTINE",
+    "tox_eligible": false,
+    "tox_emergency": false,
+    "tox_syndrome": "unknown_toxic_exposure",
+    "threat_active": [],
+    "rule_flags": [],
+    "rule_ids": []
+  }
+]

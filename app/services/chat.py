@@ -1277,7 +1277,7 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
         vital_signs = _extract_vital_signs(episode_text)
 
         # Multi-turn risk escalation tracking via Clinical Event Ledger
-        conversation_risk = "EMERGENCY" if has_active_emergency else None
+        conversation_risk = "EMERGENCY" if (len(payload.messages) > 1 and ledger.has_active_emergency()) else None
         if not conversation_risk and len(payload.messages) > 1 and not should_start_new_episode(latest_text):
             if is_explicit_correction(latest_text):
                 conversation_risk = None

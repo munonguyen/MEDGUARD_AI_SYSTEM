@@ -1,0 +1,17 @@
+{
+  "total_cases": 88,
+  "positive_cases": 44,
+  "negative_cases": 44,
+  "true_positives": 44,
+  "false_negatives": 0,
+  "true_negatives": 44,
+  "false_positives": 0,
+  "recall_pct": 100.0,
+  "precision_pct": 100.0,
+  "benign_fp_rate_pct": 0.0,
+  "recall_passed": true,
+  "precision_passed": true,
+  "benign_fp_passed": true,
+  "overall_passed": true,
+  "failures": []
+}

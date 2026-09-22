@@ -392,6 +392,57 @@ def evaluate_threat_graph(
             all_findings.extend(c.supporting_findings)
             max_level = ThreatLevel.CRITICAL
 
+    # Integrate Semantic Abstraction Lattice (V9 Candidate Architecture)
+    from app.services.semantic_relation_extractor import extract_semantic_relations
+    from app.services.semantic_abstraction_lattice import (
+        evaluate_abstraction_lattice,
+        AbstractThreatArchetype,
+    )
+
+    text_to_lattice = fact_set.raw_text or fact_set.normalized_text
+    has_active_facts = not fact_set.events or bool(fact_set.active_patient_events)
+    if text_to_lattice and has_active_facts:
+        lattice_graph = extract_semantic_relations(text_to_lattice)
+        lattice_res = evaluate_abstraction_lattice(lattice_graph)
+        if lattice_res.has_emergency_threat:
+            for arch in lattice_res.active_archetypes:
+                if arch.is_emergency:
+                    dim_key = "circulation"
+                    if arch.archetype == AbstractThreatArchetype.LOSS_OF_PERFUSION:
+                        dim_key = "limb_threat"
+                    elif arch.archetype == AbstractThreatArchetype.CEREBROVASCULAR_CATASTROPHE:
+                        dim_key = "neurology"
+                    elif arch.archetype == AbstractThreatArchetype.CARDIOPULMONARY_THREAT:
+                        dim_key = "circulation"
+                    elif arch.archetype == AbstractThreatArchetype.ACUTE_SURGICAL_ABDOMEN:
+                        dim_key = "surgical_abdomen"
+                    elif arch.archetype == AbstractThreatArchetype.ACUTE_AIRWAY_ANAPHYLAXIS:
+                        dim_key = "airway"
+                    elif arch.archetype == AbstractThreatArchetype.INTRACRANIAL_HEMORRHAGE_THREAT:
+                        dim_key = "neurology"
+                    elif arch.archetype == AbstractThreatArchetype.HIGH_RISK_SYNCOPE:
+                        dim_key = "circulation"
+                    elif arch.archetype == AbstractThreatArchetype.PREGNANCY_EMERGENCY:
+                        dim_key = "obstetrics"
+                    elif arch.archetype == AbstractThreatArchetype.MAJOR_BLEEDING:
+                        dim_key = "circulation"
+                    elif arch.archetype in (AbstractThreatArchetype.OCCULT_ABDOMINAL_ISCHEMIA, AbstractThreatArchetype.PERFORATION_PATTERN):
+                        dim_key = "surgical_abdomen"
+                    elif arch.archetype == AbstractThreatArchetype.SHOCK:
+                        dim_key = "circulation"
+
+                    assessments[dim_key] = DimensionAssessment(
+                        dimension=dim_key,
+                        level=ThreatLevel.CRITICAL,
+                        confidence=arch.confidence,
+                        findings=[arch.clinical_rationale],
+                        rationale=arch.clinical_rationale,
+                    )
+                    if dim_key not in critical_dims:
+                        critical_dims.append(dim_key)
+                    all_findings.append(arch.clinical_rationale)
+                    max_level = ThreatLevel.CRITICAL
+
     summary = (
         "; ".join(all_findings[:3])
         if all_findings

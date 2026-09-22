@@ -292,6 +292,34 @@ def evaluate_toxicology(
         )
 
     # -------------------------------------------------------------------------
+    # 12. Toxicity Signature Routing (Candidate V9 Workstream C)
+    # -------------------------------------------------------------------------
+    from app.services.toxicology_signature_router import route_by_toxicity_signature
+    sig_eval = route_by_toxicity_signature(text)
+    if sig_eval.is_emergency_toxidrome:
+        return ToxicologyAssessment(
+            urgency=ToxicologyUrgency.EMERGENCY,
+            confidence=sig_eval.confidence,
+            toxidrome=ToxidromeType.UNKNOWN_TOXIC,
+            detected_substances=[sig_eval.suspected_syndrome],
+            estimated_dose_mg=None,
+            is_life_threatening=True,
+            reasons=[sig_eval.rationale],
+            immediate_interventions=sig_eval.immediate_interventions,
+        )
+    elif sig_eval.is_toxicology_eligible:
+        return ToxicologyAssessment(
+            urgency=ToxicologyUrgency.URGENT,
+            confidence=sig_eval.confidence,
+            toxidrome=ToxidromeType.UNKNOWN_TOXIC,
+            detected_substances=[sig_eval.suspected_syndrome],
+            estimated_dose_mg=None,
+            is_life_threatening=False,
+            reasons=[sig_eval.rationale],
+            immediate_interventions=sig_eval.immediate_interventions,
+        )
+
+    # -------------------------------------------------------------------------
     # Default Non-Toxic / Therapeutic Use (ROUTINE)
     # -------------------------------------------------------------------------
     return ToxicologyAssessment(

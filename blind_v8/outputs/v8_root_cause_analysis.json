@@ -1,0 +1,200 @@
+{
+  "benchmark": "Blind V8 Diagnostic Decomposition",
+  "counterfactual_jev": {
+    "t4_sensitivity_without_jev_pct": 62.04,
+    "t4_sensitivity_with_jev_pct": 62.04,
+    "wrong_to_correct": 0,
+    "correct_to_wrong": 0,
+    "prevented_under_triage": 0,
+    "induced_under_triage": 0
+  },
+  "cohort_breakdown": {
+    "partial_evidence_emergencies": {
+      "total": 70,
+      "t4_total": 70,
+      "t4_caught": 35,
+      "t4_missed": 35,
+      "routine_total": 0,
+      "routine_caught": 0
+    },
+    "cross_domain_compositions": {
+      "total": 60,
+      "t4_total": 50,
+      "t4_caught": 30,
+      "t4_missed": 20,
+      "routine_total": 0,
+      "routine_caught": 0
+    },
+    "toxicology_routing_cases": {
+      "total": 50,
+      "t4_total": 50,
+      "t4_caught": 30,
+      "t4_missed": 20,
+      "routine_total": 0,
+      "routine_caught": 0
+    },
+    "evolving_multi_turn": {
+      "total": 40,
+      "t4_total": 20,
+      "t4_caught": 20,
+      "t4_missed": 0,
+      "routine_total": 0,
+      "routine_caught": 0
+    },
+    "indirect_linguistic_descriptions": {
+      "total": 30,
+      "t4_total": 30,
+      "t4_caught": 12,
+      "t4_missed": 18,
+      "routine_total": 0,
+      "routine_caught": 0
+    },
+    "uncertainty_conflicting_evidence": {
+      "total": 25,
+      "t4_total": 25,
+      "t4_caught": 25,
+      "t4_missed": 0,
+      "routine_total": 0,
+      "routine_caught": 0
+    },
+    "benign_adversarial_controls": {
+      "total": 25,
+      "t4_total": 0,
+      "t4_caught": 0,
+      "t4_missed": 0,
+      "routine_total": 25,
+      "routine_caught": 25
+    }
+  },
+  "failure_point_matrix": {
+    "critical_fact_not_extracted": 0,
+    "fact_extracted_but_abstraction_missing": 0,
+    "partial_evidence_guard_not_triggered": 35,
+    "physiologic_consequence_missing": 0,
+    "threat_graph_silent": 38,
+    "toxicology_silent": 20,
+    "gate1_under_triage": 0,
+    "gate2_did_not_rescue": 93,
+    "jev_did_not_rescue": 93,
+    "resolver_failed": 0,
+    "oracle_ambiguity": 0
+  },
+  "latency_dissection_ms": {
+    "parser_latency_ms": 0.843,
+    "reasoning_latency_ms": 87.01,
+    "jev_pipeline_latency_ms": 0.051,
+    "resolver_latency_ms": 0.004,
+    "total_in_process_ms": 87.908
+  },
+  "total_misses": 93,
+  "sample_miss_details": [
+    {
+      "case_id": "V8-PE-0003",
+      "cohort": "partial_evidence_emergencies",
+      "primary_failure": "partial_evidence_guard_not_triggered",
+      "sample_snippet": "Một bên khóe miệng thấy tê rần và nước bọt hơi chảy, tay cầm cốc nước thấy yếu đ...",
+      "extracted_facts": [],
+      "detected_symptoms": [],
+      "threat_crit": [],
+      "rule_urgency": "UNRESOLVED"
+    },
+    {
+      "case_id": "V8-PE-0004",
+      "cohort": "partial_evidence_emergencies",
+      "primary_failure": "partial_evidence_guard_not_triggered",
+      "sample_snippet": "Đang đi tiểu thì ngất xỉu gục xuống sàn nhà, tỉnh dậy thấy toát mồ hôi hột và ho...",
+      "extracted_facts": [],
+      "detected_symptoms": [],
+      "threat_crit": [],
+      "rule_urgency": "URGENT"
+    },
+    {
+      "case_id": "V8-PE-0005",
+      "cohort": "partial_evidence_emergencies",
+      "primary_failure": "partial_evidence_guard_not_triggered",
+      "sample_snippet": "Đau thắt lưng dữ dội lan xuống hai chân kèm cảm giác tê vùng quanh hậu môn. (Mã ...",
+      "extracted_facts": [],
+      "detected_symptoms": [],
+      "threat_crit": [],
+      "rule_urgency": "UNRESOLVED"
+    },
+    {
+      "case_id": "V8-PE-0006",
+      "cohort": "partial_evidence_emergencies",
+      "primary_failure": "partial_evidence_guard_not_triggered",
+      "sample_snippet": "Bé 3 tháng tuổi sốt 38.5 độ, thóp đỉnh đầu thấy phồng căng và sờ vào thấy cứng. ...",
+      "extracted_facts": [
+        "sốt"
+      ],
+      "detected_symptoms": [
+        "sốt"
+      ],
+      "threat_crit": [],
+      "rule_urgency": "URGENT"
+    },
+    {
+      "case_id": "V8-PE-0007",
+      "cohort": "partial_evidence_emergencies",
+      "primary_failure": "partial_evidence_guard_not_triggered",
+      "sample_snippet": "Phụ nữ trễ kinh 2 tuần, đột ngột đau quặn một bên bụng dưới dữ dội kèm choáng vá...",
+      "extracted_facts": [],
+      "detected_symptoms": [],
+      "threat_crit": [],
+      "rule_urgency": "URGENT"
+    },
+    {
+      "case_id": "V8-PE-0013",
+      "cohort": "partial_evidence_emergencies",
+      "primary_failure": "partial_evidence_guard_not_triggered",
+      "sample_snippet": "Một bên khóe miệng thấy tê rần và nước bọt hơi chảy, tay cầm cốc nước thấy yếu đ...",
+      "extracted_facts": [],
+      "detected_symptoms": [],
+      "threat_crit": [],
+      "rule_urgency": "UNRESOLVED"
+    },
+    {
+      "case_id": "V8-PE-0014",
+      "cohort": "partial_evidence_emergencies",
+      "primary_failure": "partial_evidence_guard_not_triggered",
+      "sample_snippet": "Đang đi tiểu thì ngất xỉu gục xuống sàn nhà, tỉnh dậy thấy toát mồ hôi hột và ho...",
+      "extracted_facts": [],
+      "detected_symptoms": [],
+      "threat_crit": [],
+      "rule_urgency": "URGENT"
+    },
+    {
+      "case_id": "V8-PE-0015",
+      "cohort": "partial_evidence_emergencies",
+      "primary_failure": "partial_evidence_guard_not_triggered",
+      "sample_snippet": "Đau thắt lưng dữ dội lan xuống hai chân kèm cảm giác tê vùng quanh hậu môn. (Mã ...",
+      "extracted_facts": [],
+      "detected_symptoms": [],
+      "threat_crit": [],
+      "rule_urgency": "UNRESOLVED"
+    },
+    {
+      "case_id": "V8-PE-0016",
+      "cohort": "partial_evidence_emergencies",
+      "primary_failure": "partial_evidence_guard_not_triggered",
+      "sample_snippet": "Bé 3 tháng tuổi sốt 38.5 độ, thóp đỉnh đầu thấy phồng căng và sờ vào thấy cứng. ...",
+      "extracted_facts": [
+        "sốt"
+      ],
+      "detected_symptoms": [
+        "sốt"
+      ],
+      "threat_crit": [],
+      "rule_urgency": "URGENT"
+    },
+    {
+      "case_id": "V8-PE-0017",
+      "cohort": "partial_evidence_emergencies",
+      "primary_failure": "partial_evidence_guard_not_triggered",
+      "sample_snippet": "Phụ nữ trễ kinh 2 tuần, đột ngột đau quặn một bên bụng dưới dữ dội kèm choáng vá...",
+      "extracted_facts": [],
+      "detected_symptoms": [],
+      "threat_crit": [],
+      "rule_urgency": "URGENT"
+    }
+  ]
+}

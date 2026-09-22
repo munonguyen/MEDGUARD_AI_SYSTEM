@@ -1,0 +1,410 @@
+[
+  {
+    "case_id": "V1-006",
+    "suite": "V1",
+    "expected_triage": "URGENT",
+    "input_text": "Tôi sốt 38,5°C, đau đầu, cổ hơi cứng nhưng vẫn cúi được.",
+    "escalation_mechanism": "Other (đau đầu kèm sốt và dấu hiệu cứ)",
+    "clinical_reasoning": "đau đầu kèm sốt và dấu hiệu cứng cổ/gáy (nghi ngờ hội chứng màng não / nhiễm trùng thần kinh trung ương) [đau đầu, sốt, cổ hơi cứng] |  | Tổ hợp đau đầu kèm sốt và cứng cổ/gáy là dấu hiệu báo động đỏ nghi ngờ nhiễm trùng thần kinh trung ư"
+  },
+  {
+    "case_id": "V1-023",
+    "suite": "V1",
+    "expected_triage": "URGENT",
+    "input_text": "Tôi đau ngực khi đi bộ, nghỉ vài phút thì hết.",
+    "escalation_mechanism": "Other (đau ngực |  | Các triệu chứng )",
+    "clinical_reasoning": "đau ngực |  | Các triệu chứng này có thể liên quan đến tình trạng nghiêm trọng ở tim hoặc phổi và cần được đánh gi"
+  },
+  {
+    "case_id": "V1-024",
+    "suite": "V1",
+    "expected_triage": "URGENT",
+    "input_text": "Tôi 70 tuổi, khó thở khi nằm, chân phù hai bên.",
+    "escalation_mechanism": "Other (khó thở |  | Suy hô hấp cấp tí)",
+    "clinical_reasoning": "khó thở |  | Suy hô hấp cấp tính. Sử dụng thuốc giãn phế quản tác dụng nhanh nếu có và đến cơ sở cấp cứu ngay."
+  },
+  {
+    "case_id": "V1-035",
+    "suite": "V1",
+    "expected_triage": "URGENT",
+    "input_text": "Tôi khó thở nhưng nghĩ là hoảng loạn, có cần kiểm tra không?",
+    "escalation_mechanism": "Other (khó thở |  | Suy hô hấp cấp tí)",
+    "clinical_reasoning": "khó thở |  | Suy hô hấp cấp tính. Sử dụng thuốc giãn phế quản tác dụng nhanh nếu có và đến cơ sở cấp cứu ngay."
+  },
+  {
+    "case_id": "V1-042",
+    "suite": "V1",
+    "expected_triage": "URGENT",
+    "input_text": "Tôi đau bụng dữ dội lan ra lưng, uống rượu nhiều tối qua.",
+    "escalation_mechanism": "Other (đau bụng dữ dội |  | Nghi ngờ )",
+    "clinical_reasoning": "đau bụng dữ dội |  | Nghi ngờ cấp cứu ngoại khoa bụng hoặc xuất huyết tiêu hóa đang chảy máu. Cần nhập viện cấp cứu ngay."
+  },
+  {
+    "case_id": "V1-046",
+    "suite": "V1",
+    "expected_triage": "URGENT",
+    "input_text": "Tôi mang thai 7 tuần, đau bụng dưới phải, không chảy máu.",
+    "escalation_mechanism": "Other (đau bụng một bên ở giai đoạn đ)",
+    "clinical_reasoning": "đau bụng một bên ở giai đoạn đầu thai kỳ (cần loại trừ thai ngoài tử cung) |  | Đau bụng khu trú một bên ở giai đoạn đầu thai kỳ bắt buộc phải được bác sĩ Sản khoa siêu âm để xác đ"
+  },
+  {
+    "case_id": "V2-019",
+    "suite": "V2",
+    "expected_triage": "URGENT",
+    "input_text": "Tôi đã từng bị động kinh, vừa có cơn giống hệt các lần trước, kéo dài ngắn và giờ đã trở về trạng thái bình thường.",
+    "escalation_mechanism": "Other (tiền sử động kinh có cơn quen )",
+    "clinical_reasoning": "tiền sử động kinh có cơn quen thuộc đã hồi phục |  | Cơn co giật ngắn theo tính chất quen thuộc ở người đã có tiền sử động kinh và đã hồi phục hoàn toàn "
+  },
+  {
+    "case_id": "V2-037",
+    "suite": "V2",
+    "expected_triage": "ROUTINE",
+    "input_text": "Tôi thấy đau ngực 2 giây rồi hết, xảy ra vài lần khi căng thẳng, chạy bộ bình thường không đau.",
+    "escalation_mechanism": "Other ( |  | Cơn đau nhói ngực chỉ ké)",
+    "clinical_reasoning": " |  | Cơn đau nhói ngực chỉ kéo dài vài giây khi căng thẳng và hoàn toàn bình thường khi chạy bộ/gắng sức "
+  },
+  {
+    "case_id": "V2-053",
+    "suite": "V2",
+    "expected_triage": "URGENT",
+    "input_text": "Tôi thức giấc ban đêm vì khó thở, phải ngồi dậy mới dễ chịu.",
+    "escalation_mechanism": "Other (khó thở |  | Suy hô hấp cấp tí)",
+    "clinical_reasoning": "khó thở |  | Suy hô hấp cấp tính. Sử dụng thuốc giãn phế quản tác dụng nhanh nếu có và đến cơ sở cấp cứu ngay."
+  },
+  {
+    "case_id": "V2-058",
+    "suite": "V2",
+    "expected_triage": "ROUTINE",
+    "input_text": "Tôi 25 tuổi, khi ho cảm lạnh thấy hơi đau ngực nhưng SpO2 99%, thở bình thường.",
+    "escalation_mechanism": "Other ( |  | Cảm giác tức rát nhẹ ở n)",
+    "clinical_reasoning": " |  | Cảm giác tức rát nhẹ ở ngực khi ho trong đợt cảm lạnh với SpO2 99% và thở bình thường thường do rát "
+  },
+  {
+    "case_id": "V2-065",
+    "suite": "V2",
+    "expected_triage": "ROUTINE",
+    "input_text": "Tôi uống viên sắt nên phân đen nhưng cảm thấy khỏe, không choáng, không đau bụng.",
+    "escalation_mechanism": "Phase 0c/1 (Abstraction Lattice)",
+    "clinical_reasoning": " |  | Phân màu đen hoặc sẫm màu khi uống viên sắt là hiện tượng biến màu sinh lý hoàn toàn lành tính do sắ"
+  },
+  {
+    "case_id": "V2-068",
+    "suite": "V2",
+    "expected_triage": "URGENT",
+    "input_text": "Tôi uống rượu tối qua, hôm nay bụng trên đau xuyên ra lưng và nôn nhiều.",
+    "escalation_mechanism": "Other (bụng trên đau xuyên ra lưng và)",
+    "clinical_reasoning": "bụng trên đau xuyên ra lưng và nôn nhiều |  | Cơn đau bụng vùng thượng vị lan xuyên thấu ra sau lưng kèm nôn mửa dữ dội sau khi uống rượu là triệu"
+  },
+  {
+    "case_id": "V2-089",
+    "suite": "V2",
+    "expected_triage": "URGENT",
+    "input_text": "Tôi 38 tuần và hôm nay bé gần như không đạp như mọi ngày.",
+    "escalation_mechanism": "Other (38 tuần và hôm nay bé gần như )",
+    "clinical_reasoning": "38 tuần và hôm nay bé gần như không đạp như mọi ngày, hôm nay bé gần như không đạp như mọi ngày |  | Chảy máu âm đạo nhiều, đau đầu chớp sáng mắt trong thai kỳ/hậu sản, thai giảm cử động rõ hoặc băng h"
+  },
+  {
+    "case_id": "V2-091",
+    "suite": "V2",
+    "expected_triage": "URGENT",
+    "input_text": "Tôi 30 tuần, bụng cứ siết đều khoảng 10 phút một lần và có nước rỉ ra.",
+    "escalation_mechanism": "Other (bụng cứ siết đều khoảng 10 phú)",
+    "clinical_reasoning": "bụng cứ siết đều khoảng 10 phút một lần và có nước rỉ ra |  | Chảy máu âm đạo nhiều, đau đầu chớp sáng mắt trong thai kỳ/hậu sản, thai giảm cử động rõ hoặc băng h"
+  },
+  {
+    "case_id": "V2-093",
+    "suite": "V2",
+    "expected_triage": "URGENT",
+    "input_text": "Tôi mang thai và vừa ngất, dù giờ đã tỉnh hẳn.",
+    "escalation_mechanism": "Other (mang thai và vừa ngất |  | Chả)",
+    "clinical_reasoning": "mang thai và vừa ngất |  | Chảy máu âm đạo nhiều, đau đầu chớp sáng mắt trong thai kỳ/hậu sản, thai giảm cử động rõ hoặc băng h"
+  },
+  {
+    "case_id": "V2-094",
+    "suite": "V2",
+    "expected_triage": "ROUTINE",
+    "input_text": "Tôi đang mang thai, khó thở nhẹ khi leo cầu thang nhưng hết nhanh khi nghỉ và không đau ngực.",
+    "escalation_mechanism": "Other ( |  | Khó thở nhẹ khi leo cầu )",
+    "clinical_reasoning": " |  | Khó thở nhẹ khi leo cầu thang hoặc vận động gắng sức và hết nhanh khi nghỉ ngơi, không đau ngực là h"
+  },
+  {
+    "case_id": "V2-108",
+    "suite": "V2",
+    "expected_triage": "ROUTINE",
+    "input_text": "Bé chỉ thở nhanh sau khi khóc, vài phút sau trở lại bình thường.",
+    "escalation_mechanism": "Other (Khủng hoảng chuyển hóa cấp tín)",
+    "clinical_reasoning": "Khủng hoảng chuyển hóa cấp tính (nghi nhiễm toan ceton đái tháo đường DKA hoặc hôn mê hạ đường huyết). |  | Khủng hoảng chuyển hóa cấp tính (nghi nhiễm toan ceton đái tháo đường DKA hoặc hôn mê hạ đường huyết"
+  },
+  {
+    "case_id": "V2-114",
+    "suite": "V2",
+    "expected_triage": "URGENT",
+    "input_text": "Bé có tiền sử co giật do sốt, hôm nay cơn giống hệt kế hoạch bác sĩ đã dặn và sau cơn hồi phục hoàn toàn.",
+    "escalation_mechanism": "Other (tiền sử co giật do sốt đã hồi )",
+    "clinical_reasoning": "tiền sử co giật do sốt đã hồi phục theo kế hoạch |  | Bé có tiền sử co giật do sốt đơn thuần và cơn diễn ra đúng như hướng dẫn của bác sĩ, hiện đã hồi phụ"
+  },
+  {
+    "case_id": "V2-118",
+    "suite": "V2",
+    "expected_triage": "ROUTINE",
+    "input_text": "Bé ho kiểu ông ổng nhưng chỉ có tiếng rít lúc khóc, lúc nghỉ thở yên.",
+    "escalation_mechanism": "Other ( |  | Cần thêm đánh giá lâm sà)",
+    "clinical_reasoning": " |  | Cần thêm đánh giá lâm sàng toàn diện."
+  },
+  {
+    "case_id": "V2-146",
+    "suite": "V2",
+    "expected_triage": "ROUTINE",
+    "input_text": "Tôi hoàn tất hóa trị từ nhiều năm trước, hôm nay sốt nhẹ 37,8°C và cảm lạnh.",
+    "escalation_mechanism": "Other ( |  | Sốt nhẹ 37.8°C kèm cảm l)",
+    "clinical_reasoning": " |  | Sốt nhẹ 37.8°C kèm cảm lạnh ở người đã hoàn tất hóa trị từ nhiều năm trước thường chỉ là nhiễm siêu "
+  },
+  {
+    "case_id": "V2-184",
+    "suite": "V2",
+    "expected_triage": "ROUTINE",
+    "input_text": "Lượt trước bạn bảo tôi đi cấp cứu vì đau ngực. Giờ tôi nói thêm rằng đau chỉ xuất hiện khi ấn vào cơ ngực sau tập và không hề khó thở.",
+    "escalation_mechanism": "Other ( |  | Triệu chứng đau tăng khi)",
+    "clinical_reasoning": " |  | Triệu chứng đau tăng khi ấn tại chỗ hoặc vận động sau mang vác/tập luyện và không kèm khó thở rất ph"
+  },
+  {
+    "case_id": "V2-188",
+    "suite": "V2",
+    "expected_triage": "ROUTINE",
+    "input_text": "Tôi bảo mình “khó thở” nhưng ý là chỉ thở nhanh vài phút sau chạy nước rút và giờ hoàn toàn bình thường.",
+    "escalation_mechanism": "Other ( |  | Thở nhanh thoáng qua nga)",
+    "clinical_reasoning": " |  | Thở nhanh thoáng qua ngay sau khi gắng sức/chạy nước rút và đã trở về bình thường sau vài phút nghỉ "
+  },
+  {
+    "case_id": "V2-198",
+    "suite": "V2",
+    "expected_triage": "ROUTINE",
+    "input_text": "Tôi hơi căng thẳng vì đọc về đột quỵ nhưng không có yếu, nói khó, méo miệng, chóng mặt hay triệu chứng nào.",
+    "escalation_mechanism": "Other ( |  | Cảm giác lo lắng sau khi)",
+    "clinical_reasoning": " |  | Cảm giác lo lắng sau khi đọc thông tin về đột quỵ là phản ứng tâm lý thường gặp. Hiện tại bạn hoàn t"
+  },
+  {
+    "case_id": "V2-199",
+    "suite": "V2",
+    "expected_triage": "ROUTINE",
+    "input_text": "Tôi có một triệu chứng mới: đau ngực. Không có thêm thông tin nào khác.",
+    "escalation_mechanism": "Other ( |  | Đau ngực là triệu chứng )",
+    "clinical_reasoning": " |  | Đau ngực là triệu chứng cần được làm rõ đặc điểm và mức độ để loại trừ nguy cơ tim mạch. Nếu cơn đau"
+  },
+  {
+    "case_id": "V3-023",
+    "suite": "V3",
+    "expected_triage": "ROUTINE",
+    "input_text": "Tôi bị giật nhẹ mi mắt phải cách quãng 3 ngày nay khi thức khuya làm việc, không méo miệng, không sụp mí.",
+    "escalation_mechanism": "Other (Méo miệng, chảy nước dãi một b)",
+    "clinical_reasoning": "Méo miệng, chảy nước dãi một bên hoặc thất ngôn đột ngột là dấu hiệu đột quỵ cấp tối khẩn. |  | Méo miệng, chảy nước dãi một bên hoặc thất ngôn đột ngột là dấu hiệu đột quỵ cấp tối khẩn. Cần liên "
+  },
+  {
+    "case_id": "V3-099",
+    "suite": "V3",
+    "expected_triage": "URGENT",
+    "input_text": "Bé 18 tháng tuổi sốt co giật đơn thuần dưới 2 phút trong cơn sốt 39.5 độ, nay đã tỉnh táo chơi ngoan bú tốt.",
+    "escalation_mechanism": "Other (co giật, cơn co giật do sốt lầ)",
+    "clinical_reasoning": "co giật, cơn co giật do sốt lần đầu ở trẻ em [bé, sốt, co giật] |  | Đặt bệnh nhân nằm nghiêng an toàn, tránh va đập đầu. Đến cấp cứu ngay."
+  },
+  {
+    "case_id": "V4-0101",
+    "suite": "V4",
+    "expected_triage": "ROUTINE",
+    "input_text": "Tôi đọc trên mạng thấy từ 'đau đầu sét đánh' nên nghĩ mình bị sét đánh, nhưng thực ra tôi chỉ đau ê ẩm từ từ tăng dần từ sáng đến giờ đã 8 tiếng, không nôn, huyết áp bình thường.",
+    "escalation_mechanism": "Other ( |  | Cơn đau đầu âm ỉ, ê ẩm x)",
+    "clinical_reasoning": " |  | Cơn đau đầu âm ỉ, ê ẩm xuất hiện từ từ tăng dần sau nửa ngày, không nôn, không sốt là biểu hiện của "
+  },
+  {
+    "case_id": "V4-0107",
+    "suite": "V4",
+    "expected_triage": "ROUTINE",
+    "input_text": "Bệnh nhân nói chắc mình bị đột quỵ vì méo miệng, nhưng thực tế chỉ bị sưng má bên phải do sâu răng hàm dưới đang mưng mủ, tay chân hoạt động bình thường khỏe mạnh.",
+    "escalation_mechanism": "Other ( |  | Tình trạng sưng má do sâ)",
+    "clinical_reasoning": " |  | Tình trạng sưng má do sâu răng mưng mủ là vấn đề nha khoa thường gặp, không phải đột quỵ não. Bạn nê"
+  },
+  {
+    "case_id": "V5-0255",
+    "suite": "V5",
+    "expected_triage": "ROUTINE",
+    "input_text": "Ca đối chứng an toàn 255: Tôi bị đau đầu buốt nhức dữ dội như búa bổ sau khi cắn miếng kem lạnh buốt, nhưng chỉ đúng 30 giây sau là đầu hết đau hoàn toàn khỏe mạnh.",
+    "escalation_mechanism": "Other ( |  | Cơn đau buốt thấu óc tho)",
+    "clinical_reasoning": " |  | Cơn đau buốt thấu óc thoáng qua ngay sau khi cắn/ăn đồ quá lạnh (kem, đá bào) và tự hết hoàn toàn tr"
+  },
+  {
+    "case_id": "V5-0260",
+    "suite": "V5",
+    "expected_triage": "ROUTINE",
+    "input_text": "Ca đối chứng an toàn 260: Tôi bị đau đầu buốt nhức dữ dội như búa bổ sau khi cắn miếng kem lạnh buốt, nhưng chỉ đúng 30 giây sau là đầu hết đau hoàn toàn khỏe mạnh.",
+    "escalation_mechanism": "Other ( |  | Cơn đau buốt thấu óc tho)",
+    "clinical_reasoning": " |  | Cơn đau buốt thấu óc thoáng qua ngay sau khi cắn/ăn đồ quá lạnh (kem, đá bào) và tự hết hoàn toàn tr"
+  },
+  {
+    "case_id": "V5-0265",
+    "suite": "V5",
+    "expected_triage": "ROUTINE",
+    "input_text": "Ca đối chứng an toàn 265: Tôi bị đau đầu buốt nhức dữ dội như búa bổ sau khi cắn miếng kem lạnh buốt, nhưng chỉ đúng 30 giây sau là đầu hết đau hoàn toàn khỏe mạnh.",
+    "escalation_mechanism": "Other ( |  | Cơn đau buốt thấu óc tho)",
+    "clinical_reasoning": " |  | Cơn đau buốt thấu óc thoáng qua ngay sau khi cắn/ăn đồ quá lạnh (kem, đá bào) và tự hết hoàn toàn tr"
+  },
+  {
+    "case_id": "V5-0270",
+    "suite": "V5",
+    "expected_triage": "ROUTINE",
+    "input_text": "Ca đối chứng an toàn 270: Tôi bị đau đầu buốt nhức dữ dội như búa bổ sau khi cắn miếng kem lạnh buốt, nhưng chỉ đúng 30 giây sau là đầu hết đau hoàn toàn khỏe mạnh.",
+    "escalation_mechanism": "Other ( |  | Cơn đau buốt thấu óc tho)",
+    "clinical_reasoning": " |  | Cơn đau buốt thấu óc thoáng qua ngay sau khi cắn/ăn đồ quá lạnh (kem, đá bào) và tự hết hoàn toàn tr"
+  },
+  {
+    "case_id": "V5-0275",
+    "suite": "V5",
+    "expected_triage": "ROUTINE",
+    "input_text": "Ca đối chứng an toàn 275: Tôi bị đau đầu buốt nhức dữ dội như búa bổ sau khi cắn miếng kem lạnh buốt, nhưng chỉ đúng 30 giây sau là đầu hết đau hoàn toàn khỏe mạnh.",
+    "escalation_mechanism": "Other ( |  | Cơn đau buốt thấu óc tho)",
+    "clinical_reasoning": " |  | Cơn đau buốt thấu óc thoáng qua ngay sau khi cắn/ăn đồ quá lạnh (kem, đá bào) và tự hết hoàn toàn tr"
+  },
+  {
+    "case_id": "V5-0280",
+    "suite": "V5",
+    "expected_triage": "ROUTINE",
+    "input_text": "Ca đối chứng an toàn 280: Tôi bị đau đầu buốt nhức dữ dội như búa bổ sau khi cắn miếng kem lạnh buốt, nhưng chỉ đúng 30 giây sau là đầu hết đau hoàn toàn khỏe mạnh.",
+    "escalation_mechanism": "Other ( |  | Cơn đau buốt thấu óc tho)",
+    "clinical_reasoning": " |  | Cơn đau buốt thấu óc thoáng qua ngay sau khi cắn/ăn đồ quá lạnh (kem, đá bào) và tự hết hoàn toàn tr"
+  },
+  {
+    "case_id": "V5-0285",
+    "suite": "V5",
+    "expected_triage": "ROUTINE",
+    "input_text": "Ca đối chứng an toàn 285: Tôi bị đau đầu buốt nhức dữ dội như búa bổ sau khi cắn miếng kem lạnh buốt, nhưng chỉ đúng 30 giây sau là đầu hết đau hoàn toàn khỏe mạnh.",
+    "escalation_mechanism": "Other ( |  | Cơn đau buốt thấu óc tho)",
+    "clinical_reasoning": " |  | Cơn đau buốt thấu óc thoáng qua ngay sau khi cắn/ăn đồ quá lạnh (kem, đá bào) và tự hết hoàn toàn tr"
+  },
+  {
+    "case_id": "V5-0290",
+    "suite": "V5",
+    "expected_triage": "ROUTINE",
+    "input_text": "Ca đối chứng an toàn 290: Tôi bị đau đầu buốt nhức dữ dội như búa bổ sau khi cắn miếng kem lạnh buốt, nhưng chỉ đúng 30 giây sau là đầu hết đau hoàn toàn khỏe mạnh.",
+    "escalation_mechanism": "Other ( |  | Cơn đau buốt thấu óc tho)",
+    "clinical_reasoning": " |  | Cơn đau buốt thấu óc thoáng qua ngay sau khi cắn/ăn đồ quá lạnh (kem, đá bào) và tự hết hoàn toàn tr"
+  },
+  {
+    "case_id": "V5-0295",
+    "suite": "V5",
+    "expected_triage": "ROUTINE",
+    "input_text": "Ca đối chứng an toàn 295: Tôi bị đau đầu buốt nhức dữ dội như búa bổ sau khi cắn miếng kem lạnh buốt, nhưng chỉ đúng 30 giây sau là đầu hết đau hoàn toàn khỏe mạnh.",
+    "escalation_mechanism": "Other ( |  | Cơn đau buốt thấu óc tho)",
+    "clinical_reasoning": " |  | Cơn đau buốt thấu óc thoáng qua ngay sau khi cắn/ăn đồ quá lạnh (kem, đá bào) và tự hết hoàn toàn tr"
+  },
+  {
+    "case_id": "V5-0300",
+    "suite": "V5",
+    "expected_triage": "ROUTINE",
+    "input_text": "Ca đối chứng an toàn 300: Tôi bị đau đầu buốt nhức dữ dội như búa bổ sau khi cắn miếng kem lạnh buốt, nhưng chỉ đúng 30 giây sau là đầu hết đau hoàn toàn khỏe mạnh.",
+    "escalation_mechanism": "Other ( |  | Cơn đau buốt thấu óc tho)",
+    "clinical_reasoning": " |  | Cơn đau buốt thấu óc thoáng qua ngay sau khi cắn/ăn đồ quá lạnh (kem, đá bào) và tự hết hoàn toàn tr"
+  },
+  {
+    "case_id": "V6-0116",
+    "suite": "V6",
+    "expected_triage": "ROUTINE",
+    "input_text": "Thai 7 tuần nghén buổi sáng buồn nôn khan sau khi đánh răng, ăn được cháo nhẹ, không nôn ra máu, không đau bụng, không ra máu âm đạo.",
+    "escalation_mechanism": "Other (Xuất huyết tiêu hóa cấp tính m)",
+    "clinical_reasoning": "Xuất huyết tiêu hóa cấp tính mức độ nặng đe dọa sốc mất máu. |  | Xuất huyết tiêu hóa cấp tính mức độ nặng đe dọa sốc mất máu. Cần liên hệ cấp cứu 115 hoặc đến bệnh v"
+  },
+  {
+    "case_id": "V7-0061",
+    "suite": "V7",
+    "expected_triage": "URGENT",
+    "input_text": "Sốt 38.8 độ kèm đau tức hạ sườn phải âm ỉ cả ngày, vàng mắt nhẹ, tiểu sẫm màu nhưng huyết áp và tri giác vẫn tỉnh táo.",
+    "escalation_mechanism": "Other (tam chứng Charcot nghi ngờ viê)",
+    "clinical_reasoning": "tam chứng Charcot nghi ngờ viêm đường mật cấp (đau hạ sườn phải, sốt, vàng da) [hạ sườn phải, sốt, vàng mắt] |  | Tam chứng đau bụng trên phải, sốt và vàng mắt là dấu hiệu kinh điển của viêm đường mật cấp do sỏi ho"
+  },
+  {
+    "case_id": "V7-0063",
+    "suite": "V7",
+    "expected_triage": "URGENT",
+    "input_text": "Đau bụng hố chậu phải âm ỉ tăng dần từ sáng, ấn đau chói kèm sốt nhẹ 38 độ, chưa nôn, đi lại thấy nhói.",
+    "escalation_mechanism": "Other ( |  | Nên được thăm khám lâm s)",
+    "clinical_reasoning": " |  | Nên được thăm khám lâm sàng sớm trong ngày để được chẩn đoán và điều trị kịp thời."
+  },
+  {
+    "case_id": "V7-0064",
+    "suite": "V7",
+    "expected_triage": "URGENT",
+    "input_text": "Khó thở khi gắng sức nhẹ 2 ngày nay ở người lớn tuổi, hai mắt cá chân phù lõm nhẹ, huyết áp 140/90, SpO2 94%.",
+    "escalation_mechanism": "Other (khó thở |  | Suy hô hấp cấp tí)",
+    "clinical_reasoning": "khó thở |  | Suy hô hấp cấp tính. Sử dụng thuốc giãn phế quản tác dụng nhanh nếu có và đến cơ sở cấp cứu ngay."
+  },
+  {
+    "case_id": "V7-0067",
+    "suite": "V7",
+    "expected_triage": "URGENT",
+    "input_text": "Đau đầu nhiều kèm buồn nôn sau khi mất ngủ liên tục, huyết áp đo được 160/95 mmHg, không yếu liệt tay chân.",
+    "escalation_mechanism": "Other ( |  | Cần thêm đánh giá lâm sà)",
+    "clinical_reasoning": " |  | Cần thêm đánh giá lâm sàng toàn diện."
+  },
+  {
+    "case_id": "V7-0186",
+    "suite": "V7",
+    "expected_triage": "URGENT",
+    "input_text": "Đau nhức khớp ngón chân cái sưng đỏ bóng dữ dội sau bữa tiệc thịt bò, đi lại tập tễnh, không sốt toàn thân.",
+    "escalation_mechanism": "Other ( |  | Cần thêm đánh giá lâm sà)",
+    "clinical_reasoning": " |  | Cần thêm đánh giá lâm sàng toàn diện."
+  },
+  {
+    "case_id": "V7-0187",
+    "suite": "V7",
+    "expected_triage": "URGENT",
+    "input_text": "Cảm giác đau thắt ngực thoáng qua 2 phút khi leo cầu thang, ngồi nghỉ thì tự hết hoàn toàn, hiện không còn đau ngực.",
+    "escalation_mechanism": "Other (đau ngực, đau thắt ngực |  | C)",
+    "clinical_reasoning": "đau ngực, đau thắt ngực |  | Các triệu chứng này có thể liên quan đến tình trạng nghiêm trọng ở tim hoặc phổi và cần được đánh gi"
+  },
+  {
+    "case_id": "V7-0222",
+    "suite": "V7",
+    "expected_triage": "URGENT",
+    "input_text": "Đường huyết đo tại nhà lên 280 mg/dL, cảm giác khô miệng khát nước nhiều nhưng ăn uống được, không nôn, thở êm 18 lần/phút.",
+    "escalation_mechanism": "Other ( |  | Cần thêm đánh giá lâm sà)",
+    "clinical_reasoning": " |  | Cần thêm đánh giá lâm sàng toàn diện."
+  },
+  {
+    "case_id": "V7-0227",
+    "suite": "V7",
+    "expected_triage": "URGENT",
+    "input_text": "Viêm họng đỏ rực nuốt đau dữ dội, sốt 38.6 độ, amidan có giả mạc trắng lấm tấm nhưng thở bình thường không nghẹt thở.",
+    "escalation_mechanism": "Other ( |  | Cần thêm đánh giá lâm sà)",
+    "clinical_reasoning": " |  | Cần thêm đánh giá lâm sàng toàn diện."
+  },
+  {
+    "case_id": "V7-0251",
+    "suite": "V7",
+    "expected_triage": "URGENT",
+    "input_text": "Hiện tại sốt 38.3 độ, đau nhói hơn khi bước đi nhưng chưa nôn, bụng không cứng đơ.",
+    "escalation_mechanism": "Other (Hội chứng bụng ngoại khoa cấp )",
+    "clinical_reasoning": "Hội chứng bụng ngoại khoa cấp (Đau dữ dội kèm co cứng thành bụng hoặc phản ứng sốc). |  | Hội chứng bụng ngoại khoa cấp (Đau dữ dội kèm co cứng thành bụng hoặc phản ứng sốc). Cần liên hệ cấp"
+  },
+  {
+    "case_id": "V7-0255",
+    "suite": "V7",
+    "expected_triage": "URGENT",
+    "input_text": "Hiện tại sốt 38.3 độ, đau nhói hơn khi bước đi nhưng chưa nôn, bụng không cứng đơ.",
+    "escalation_mechanism": "Other (Hội chứng bụng ngoại khoa cấp )",
+    "clinical_reasoning": "Hội chứng bụng ngoại khoa cấp (Đau dữ dội kèm co cứng thành bụng hoặc phản ứng sốc). |  | Hội chứng bụng ngoại khoa cấp (Đau dữ dội kèm co cứng thành bụng hoặc phản ứng sốc). Cần liên hệ cấp"
+  },
+  {
+    "case_id": "V7-0271",
+    "suite": "V7",
+    "expected_triage": "URGENT",
+    "input_text": "Lúc nãy thấy đau quặn hông lưng muốn chết đi sống lại, giờ có vẻ bớt quặn hơn tí nhưng vẫn buốt nhói lan xuống bẹn kèm buồn nôn.",
+    "escalation_mechanism": "Other ( |  | Nên được thăm khám lâm s)",
+    "clinical_reasoning": " |  | Nên được thăm khám lâm sàng sớm trong ngày để được chẩn đoán và điều trị kịp thời."
+  },
+  {
+    "case_id": "V7-0273",
+    "suite": "V7",
+    "expected_triage": "URGENT",
+    "input_text": "Uống nhầm viên thuốc của vợ, hình như là thuốc dị ứng hay thuốc ngủ gì đấy, thấy người hơi lâng lâng buồn ngủ nhưng tim đập đều.",
+    "escalation_mechanism": "Other ( |  | Cần thêm đánh giá lâm sà)",
+    "clinical_reasoning": " |  | Cần thêm đánh giá lâm sàng toàn diện."
+  }
+]

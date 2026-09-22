@@ -657,6 +657,38 @@ def triage_rules(symptoms_text: str, vitals: VitalSigns | None = None) -> Triage
             advice="Cảm giác lo lắng sau khi đọc thông tin về đột quỵ là phản ứng tâm lý thường gặp. Hiện tại bạn hoàn toàn không có bất kỳ dấu hiệu thần kinh nào (không yếu liệt chi, không nói khó, không méo miệng, không chóng mặt), do đó không có nguy cơ đột quỵ cấp. Bạn hãy yên tâm thư giãn, hít thở sâu và tránh tra cứu thêm các thông tin gây căng thẳng.",
         )
 
+    # Phase 0c: Semantic Abstraction Benign Context Overrides (Candidate V9 Workstream A)
+    from app.services.semantic_relation_extractor import extract_semantic_relations
+    from app.services.semantic_abstraction_lattice import (
+        evaluate_abstraction_lattice,
+        AbstractThreatArchetype,
+    )
+    _lat_g = extract_semantic_relations(symptoms_text)
+    _lat_res = evaluate_abstraction_lattice(_lat_g)
+    if _lat_res.has_benign_override and not _lat_res.has_emergency_threat:
+        dom = _lat_res.dominant_threat
+        if dom and dom.is_benign_exclusion:
+            spec_map = {
+                AbstractThreatArchetype.BENIGN_MUSCULOSKELETAL_CHEST: ("GENERAL", "Cơ xương khớp"),
+                AbstractThreatArchetype.BENIGN_VASOVAGAL_SYNCOPE: ("GENERAL", "Tổng quát"),
+                AbstractThreatArchetype.BENIGN_DENTAL_FACIAL_NUMBNESS: ("DENTAL", "Răng Hàm Mặt"),
+                AbstractThreatArchetype.BENIGN_WORKOUT_SORENESS: ("GENERAL", "Cơ xương khớp"),
+                AbstractThreatArchetype.BENIGN_ENVIRONMENTAL_COLD: ("GENERAL", "Tổng quát"),
+                AbstractThreatArchetype.BENIGN_CHRONIC_VISUAL_OR_EYESTRAIN: ("OPHTHALMOLOGY", "Mắt"),
+                AbstractThreatArchetype.BENIGN_FUNCTIONAL_DYSPEPSIA: ("GASTROENTEROLOGY", "Tiêu hóa"),
+                AbstractThreatArchetype.BENIGN_TENSION_HEADACHE: ("NEUROLOGY", "Thần kinh"),
+            }
+            spec = spec_map.get(dom.archetype, ("GENERAL", "Tổng quát"))
+            return TriageRuleResult(
+                urgency="ROUTINE",
+                emergency_flag=False,
+                red_flags=[],
+                esi_level=4,
+                recommended_specialty=spec,
+                clarifying_questions=[],
+                advice=dom.clinical_rationale,
+            )
+
     # Phase 1: Red-flag pattern matching from knowledge base
     matched_patterns = _check_red_flag_patterns(text)
     red_flags: list[str] = []
@@ -727,6 +759,83 @@ def triage_rules(symptoms_text: str, vitals: VitalSigns | None = None) -> Triage
             recommended_specialty=specialty,
             clarifying_questions=[],
             advice=advice,
+        )
+
+    # Phase 3b: Candidate V9 Semantic Abstraction Lattice & Critical Singletons Safety Net
+    # (Rescues unseen emergency cases where static Phase 1 patterns were silent)
+    from app.services.evidence_strength_scorer import (
+        score_evidence_strength,
+        SingletonEvidenceTier,
+    )
+    singleton_eval = score_evidence_strength(symptoms_text)
+    if singleton_eval.tier == SingletonEvidenceTier.CRITICAL_SINGLETON:
+        spec = ("EMERGENCY", "Cấp cứu")
+        if singleton_eval.concept in ("acute_facial_droop_speech", "acute_focal_limb_weakness"):
+            spec = ("NEUROLOGY", "Thần kinh")
+        elif singleton_eval.concept == "acute_unilateral_blindness":
+            spec = ("OPHTHALMOLOGY", "Mắt")
+        elif singleton_eval.concept == "acute_stridor_airway_collapse":
+            spec = ("ALLERGY_IMMUNOLOGY", "Dị ứng - Hô hấp")
+        elif singleton_eval.concept == "bulging_fontanelle_infant":
+            spec = ("PEDIATRICS", "Nhi khoa")
+        elif singleton_eval.concept == "acute_limb_ischemia_sign":
+            spec = ("VASCULAR", "Mạch máu")
+
+        if singleton_eval.rationale not in red_flags:
+            red_flags.append(singleton_eval.rationale)
+        return TriageRuleResult(
+            urgency="EMERGENCY",
+            emergency_flag=True,
+            red_flags=red_flags,
+            esi_level=2,
+            recommended_specialty=spec,
+            clarifying_questions=[],
+            advice=f"{singleton_eval.rationale} Cần liên hệ cấp cứu 115 hoặc đến bệnh viện gần nhất ngay lập tức.",
+        )
+
+    from app.services.semantic_relation_extractor import extract_semantic_relations
+    from app.services.semantic_abstraction_lattice import (
+        evaluate_abstraction_lattice,
+        AbstractThreatArchetype,
+    )
+    lattice_graph = extract_semantic_relations(symptoms_text)
+    lattice_eval = evaluate_abstraction_lattice(lattice_graph)
+    if lattice_eval.has_emergency_threat:
+        dom_threat = lattice_eval.dominant_threat
+        threat_desc = dom_threat.clinical_rationale if dom_threat else "Phát hiện hội chứng đe dọa sinh lý cấp tính."
+        if threat_desc not in red_flags:
+            red_flags.append(threat_desc)
+
+        # Route specialty based on threat archetype
+        spec = ("EMERGENCY", "Cấp cứu")
+        if dom_threat:
+            if dom_threat.archetype in (AbstractThreatArchetype.CARDIOPULMONARY_THREAT, AbstractThreatArchetype.HIGH_RISK_SYNCOPE):
+                spec = ("CARDIOLOGY", "Tim mạch")
+            elif dom_threat.archetype in (AbstractThreatArchetype.CEREBROVASCULAR_CATASTROPHE, AbstractThreatArchetype.INTRACRANIAL_HEMORRHAGE_THREAT):
+                spec = ("NEUROLOGY", "Thần kinh")
+            elif dom_threat.archetype in (AbstractThreatArchetype.LOSS_OF_PERFUSION, AbstractThreatArchetype.MAJOR_BLEEDING):
+                spec = ("VASCULAR", "Mạch máu")
+            elif dom_threat.archetype == AbstractThreatArchetype.ACUTE_SURGICAL_ABDOMEN:
+                spec = ("GASTROENTEROLOGY", "Tiêu hóa - Ngoại khoa")
+            elif dom_threat.archetype == AbstractThreatArchetype.ACUTE_AIRWAY_ANAPHYLAXIS:
+                spec = ("ALLERGY_IMMUNOLOGY", "Dị ứng - Hô hấp")
+            elif dom_threat.archetype == AbstractThreatArchetype.SYSTEMIC_TOXIC_STATE:
+                spec = ("TOXICOLOGY", "Chống độc / Cấp cứu")
+            elif dom_threat.archetype == AbstractThreatArchetype.PREGNANCY_EMERGENCY:
+                spec = ("OBSTETRICS_GYNECOLOGY", "Sản phụ khoa")
+            elif dom_threat.archetype == AbstractThreatArchetype.DEEP_INFECTION:
+                spec = ("INFECTIOUS_DISEASE", "Truyền nhiễm / Hồi sức cấp cứu")
+            elif dom_threat.archetype == AbstractThreatArchetype.METABOLIC_CRISIS:
+                spec = ("ENDOCRINOLOGY", "Nội tiết - Cấp cứu")
+
+        return TriageRuleResult(
+            urgency="EMERGENCY",
+            emergency_flag=True,
+            red_flags=red_flags,
+            esi_level=2,
+            recommended_specialty=spec,
+            clarifying_questions=[],
+            advice=f"{threat_desc} Cần liên hệ cấp cứu 115 hoặc đến bệnh viện gần nhất ngay lập tức.",
         )
 
     # Phase 4: Vital-only urgent (no text red flags but abnormal vitals)
