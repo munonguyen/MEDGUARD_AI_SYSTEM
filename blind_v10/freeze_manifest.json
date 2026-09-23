@@ -4,11 +4,11 @@
   "clinical_generalization_confirmed": false,
   "blind_v10_executed": false,
   "candidate_core_commit": "8b3dd0b85a5639b1478c1f9e717fdead84fba5e1",
-  "blind_frozen_commit": "dd35f353f3666aa577954745ac055712f46ff826",
+  "blind_frozen_commit": "a26f06c5b4f3b9cc064ee7aa8ae1f497f1b89acc",
   "attestation_model": "tagged_provenance_child_of_blind_frozen_commit",
-  "generated_from_head": "dd35f353f3666aa577954745ac055712f46ff826",
-  "frozen_at": "2026-09-23T04:15:50.907834+00:00",
-  "core_manifest_sha256": "7e7a19caaad07a4eb4141502aa483dda0001596c662d4a4e51d945dbdf536695",
+  "generated_from_head": "a26f06c5b4f3b9cc064ee7aa8ae1f497f1b89acc",
+  "frozen_at": "2026-09-23T04:23:12.978950+00:00",
+  "core_manifest_sha256": "68996d9d9abf1afc40c34a736a9a1f1a2b2770ed7c376f62826c47725c494503",
   "mechanism_benchmark_sha256": "a88595c27541d5db4300f9bab893d547a0db7b454bf9f7ee46a22334dafcd391",
   "regression_report_sha256": "2428e4adb637acb6080d3d94d0f6cff5dd9875b28c66446c13754deb303bf5b0",
   "pre_blind_gates": {
@@ -66,9 +66,9 @@
     "app/tests/test_v10_freeze_guard.py": "164be5d871757203e35ca67410b8f32f8ebd7b5cccd51a9548a44e3f12b23190",
     "blind_v10/README.md": "dd1293c4f2b3e389ae77cc7e4acd8cf2b65e44b49d52bf00771bc4ad44bc09f9",
     "blind_v10/check_go_nogo.py": "926e0d7ae0d7e9551b3df0ea1f1c3eaf781a668d54b6167822a4342abb6e2678",
-    "blind_v10/evaluator/evaluate_v10.py": "954f0c3819ce721730d3493a7b4ad6b4b834a7eadd4bce4f09c1e3d078601d4a",
+    "blind_v10/evaluator/evaluate_v10.py": "41dda53f81923928eae5be1ff17e28b092f07943885021e928e0aed3ec9ce5e1",
     "blind_v10/freeze_guard.py": "8407f3e0d07654adb4b307c777e31ae06d8813e33c65a2466442c16616a85ac0",
-    "blind_v10/runner/run_v10.py": "875155dd1da8642046b658c12a5346c5e91843983310a91e323de928a1f53c0b",
+    "blind_v10/runner/run_v10.py": "41aa736029c73d1552fb745d6583e3afd3e35ac44cf6fccd1632304d101ef83d",
     "blind_v10/run_one_shot.sh": "a68770ae2e948a476088578dbc7df61155753e8c1db8d1911680643118305f35",
     "blind_v10/seal.py": "afbabe2cce9ed59ddf933006d7f16c7d2b29cd15790fdf2b7caa163d76f2f906",
     "docs/CANDIDATE_V10_IMPLEMENTATION.md": "6f35e04e3241daf1fc969559220fde57201702011e28953bbe9fe3c8b0894d90",
@@ -76,5 +76,5 @@
     "scripts/run_v10_regression_2400.py": "372948896366b7bb29c1ab23fa2a0978522acae0be658662018b53c9dcb00ae7",
     "tests/benchmarks/benchmark_candidate_v10.py": "0c264754dec4f2429446242ba36c3d3ce2da359ff234f885a7b21f00fcd5f82b"
   },
-  "freeze_manifest_sha256": "301aa965ae8a5dd2c79294d92b3c2148aa22df8e70f18dee66e4e09cc3605206"
+  "freeze_manifest_sha256": "b9d8cebc1bea96b72bdec6211f60370c73cf3fc626629e3f42c2d193909ebff8"
 }
