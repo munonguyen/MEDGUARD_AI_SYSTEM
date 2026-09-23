@@ -814,7 +814,9 @@ def _extract_monitoring(text: str) -> list[MonitoringPoint]:
                 points.append(MonitoringPoint(metric=metric, value=val, unit=unit, recorded_at=recorded_at))
             except Exception:
                 pass
-    pressure = re.search(r"(?:huyet ap|ha)\s*[:=]?\s*(\d{2,3})\s*/\s*(\d{2,3})", normalized)
+    pressure = re.search(r"(?:huyet ap|ha)\b[^\d\n]{0,25}?(\d{2,3})\s*/\s*(\d{2,3})", normalized)
+    if not pressure:
+        pressure = re.search(r"\b(\d{2,3})\s*/\s*(\d{2,3})\s*mmhg\b", normalized)
     if pressure:
         try:
             points.extend(
@@ -1075,27 +1077,68 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
     latest_text = payload.messages[-1].content
     normalized = _normalize(latest_text)
 
+    # Candidate V10 invariant: clinical danger is assessed before OOD.  The
+    # OOD layer may decline unrelated content, but it has no downgrade authority
+    # once an independent clinical module establishes an emergency floor.
+    from app.services.clinical_safety_floor import evaluate_clinical_safety_floor
+    from app.services.dual_crisis_policy import (
+        compose_dual_crisis_response,
+        evaluate_dual_crisis,
+    )
+
+    pre_ood_safety_floor = evaluate_clinical_safety_floor(latest_text)
+    dual_crisis = evaluate_dual_crisis(
+        latest_text,
+        clinical_emergency=pre_ood_safety_floor.is_emergency,
+    )
+
     # ── OOD & Crisis Guard (Tier 0 — runs before any clinical logic) ──
     ood_result: OODResult | None = ood_evaluate(latest_text)
     if ood_result is not None:
-        ood_status = "unsupported"
-        if ood_result.verdict.startswith("crisis"):
-            ood_status = "answered"  # Crisis responses are complete answers
-        return _response(
-            payload,
-            ctx,
-            status=ood_status,
-            intent="general",
-            reply=ood_result.reply,
-            extracted={
-                "ood_verdict": ood_result.verdict,
-                "ood_hotline": ood_result.hotline,
-            },
-            # The deterministic guard owns the patient-facing action. The
-            # gateway reviews that action without receiving the original
-            # harmful or prompt-injection text.
-            agent_question=f"Deterministic guardrail verdict: {ood_result.verdict}",
-        )
+        if ood_result.verdict == "crisis_self_harm":
+            if not dual_crisis.is_dual_crisis:
+                return _response(
+                    payload,
+                    ctx,
+                    status="answered",
+                    intent="general",
+                    reply=ood_result.reply,
+                    extracted={
+                        "ood_verdict": ood_result.verdict,
+                        "ood_hotline": ood_result.hotline,
+                    },
+                    agent_question=f"Deterministic guardrail verdict: {ood_result.verdict}",
+                )
+            # Dual crisis: keep both flags active and continue through medical
+            # triage.  Crisis support is composed back into the final response.
+        elif ood_result.verdict.startswith("crisis") and not pre_ood_safety_floor.is_emergency:
+            return _response(
+                payload,
+                ctx,
+                status="answered",
+                intent="general",
+                reply=ood_result.reply,
+                extracted={
+                    "ood_verdict": ood_result.verdict,
+                    "ood_hotline": ood_result.hotline,
+                },
+                agent_question=f"Deterministic guardrail verdict: {ood_result.verdict}",
+            )
+        elif not pre_ood_safety_floor.is_emergency:
+            return _response(
+                payload,
+                ctx,
+                status="unsupported",
+                intent="general",
+                reply=ood_result.reply,
+                extracted={
+                    "ood_verdict": ood_result.verdict,
+                    "ood_hotline": ood_result.hotline,
+                    "clinical_safety_floor": pre_ood_safety_floor.disposition,
+                },
+                agent_question=f"Deterministic guardrail verdict: {ood_result.verdict}",
+            )
+        # Emergency signal present: OOD downgrade/refusal authority is revoked.
 
     # ── Clinical Conversation Guardrails (Conflict Detection & No Unsupported Diagnosis) ──
     # Case 186: Age conflict detection
@@ -1148,6 +1191,14 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
         )
 
     intent = _detect_intent(payload, normalized)
+    # Monitoring owns messages that contain extractable vital measurements; it
+    # applies its own emergency escalation while preserving the monitoring API
+    # contract.  All other emergency-floor messages are forced into triage.
+    if (
+        (pre_ood_safety_floor.is_emergency and not _extract_monitoring(latest_text))
+        or dual_crisis.emergency_triage_required
+    ):
+        intent = "triage"
     patient_ref = _patient_ref(payload, latest_text)
 
     if intent == "authenticity":
@@ -1315,16 +1366,29 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
             conversation_risk=conversation_risk,
         )
         specialty = result.recommended_specialty.label if result.recommended_specialty else "chuyên khoa phù hợp"
+        reply_msg = f"Đã phân luồng ở mức {result.urgency}, ESI {result.esi_level or 'chưa xác định'}. Hướng xử lý: {specialty}."
+        if dual_crisis.is_dual_crisis and ood_result:
+            reply_msg = compose_dual_crisis_response(ood_result.reply)
+
         resp = _response(
             payload,
             ctx,
             status="answered",
             intent=intent,
-            reply=f"Đã phân luồng ở mức {result.urgency}, ESI {result.esi_level or 'chưa xác định'}. Hướng xử lý: {specialty}.",
+            reply=reply_msg,
             extracted={
                 "patient_ref": patient_ref,
                 "vital_signs": vital_signs.model_dump(mode="json") if vital_signs else None,
                 "episode_context_used": episode_context_used,
+                "ood_verdict": ood_result.verdict if ood_result else None,
+                "ood_hotline": ood_result.hotline if ood_result else None,
+                "clinical_safety_floor": pre_ood_safety_floor.disposition,
+                "clinical_safety_sources": list(pre_ood_safety_floor.sources),
+                "ood_safety_bypass": bool(
+                    ood_result and pre_ood_safety_floor.ood_downgrade_revoked
+                ),
+                "medical_emergency_flag": result.urgency == "EMERGENCY",
+                "crisis_support_flag": dual_crisis.crisis_support_required,
             },
             result=result,
             agent_question=episode_text,

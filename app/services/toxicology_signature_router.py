@@ -13,6 +13,7 @@ import re
 from typing import Any, Sequence
 
 from app.services.clinical_text import normalize_search_text
+from app.services.clinical_text import contains_affirmed_phrase
 
 
 class ToxicityDimension(str, Enum):
@@ -78,6 +79,72 @@ _BENIGN_THERAPEUTIC_PATTERNS: list[str] = [
 ]
 
 
+def _detect_severe_syndromic_toxidrome(norm: str) -> tuple[bool, str, str]:
+    """Detect complete severe physiological toxidromes without requiring explicit toxin name."""
+    def affirmed(*phrases: str) -> bool:
+        return any(contains_affirmed_phrase(norm, phrase) for phrase in phrases)
+
+    # 1. Anticholinergic Toxidrome (Hot, Dry, Red, Blind, Mad)
+    has_hyperthermia = affirmed("nong ran", "da do", "do bung", "sot cao", "nong nhu than")
+    has_dry_skin = affirmed("kho queo", "da kho", "khong co mo hoi", "khong mot giot mo hoi", "khong tiet mo hoi", "kho mieng")
+    # These findings often follow the defining phrase "không có mồ hôi" in
+    # the same sentence.  Match their own clause so that the earlier negation
+    # does not incorrectly scope across a comma and conjunction.
+    has_mydriasis = bool(re.search(r"\b(?:dong tu gian|dong tu to|gian dong tu)\b", norm))
+    has_delirium = bool(re.search(r"\b(?:lam nham|noi sang|me sang|kich dong|ao giac|noi loan|noi vo thuc)\b", norm))
+    if has_hyperthermia and has_dry_skin and has_mydriasis and has_delirium:
+        return (
+            True,
+            "severe_anticholinergic_toxidrome",
+            "Hội chứng kháng Cholinergic rầm rộ cấp cứu (sốt cao/da đỏ khô không mồ hôi, đồng tử giãn to, kích động nói sảng); nguy cơ sốc nhiệt và suy đa tạng tối khẩn.",
+        )
+
+    # 2. Severe Sympathomimetic Toxidrome
+    has_severe_tachycardia = bool(re.search(r"\b(tim dap loan|160|150|loan xa|loan nhip|nhip tim nhanh|mach 160|mach 150)\b", norm))
+    has_diaphoresis = affirmed("va mo hoi", "mo hoi dam dia", "do mo hoi")
+    has_severe_agitation = affirmed("run ban", "kich dong", "hung han", "hoang loan", "kich dong hung han")
+    if has_severe_tachycardia and has_diaphoresis and has_mydriasis and has_severe_agitation:
+        return (
+            True,
+            "severe_sympathomimetic_toxidrome",
+            "Hội chứng cường giao cảm nặng (nhịp tim cực nhanh, vã mồ hôi đầm đìa, run bắn, kích động hung hãn, đồng tử giãn); nguy cơ nhồi máu cơ tim, đột quỵ và loạn nhịp tử vong.",
+        )
+
+    # 3. Marine Biological / Paralytic Neurotoxin
+    has_marine_exposure = affirmed("hai san la", "so bien la", "ca noc", "bach tuoc la", "cua la")
+    has_perioral_numbness = affirmed("te ran", "te moi", "te dau luoi", "te quanh moi", "te moi mieng")
+    has_paralysis_dyspnea = affirmed("liet", "liet dan", "yeu liet", "hut hoi", "tho khong noi", "kho tho", "suy ho hap")
+    if has_marine_exposure and has_perioral_numbness and has_paralysis_dyspnea:
+        return (
+            True,
+            "marine_neurotoxin_paralytic_poisoning",
+            "Ngộ độc độc tố sinh học biển cấp tính (nghi ngộ độc Tetrodotoxin/Saxitoxin sau ăn hải sản lạ kèm tê môi lưỡi và liệt cơ hô hấp tiến triển); nguy cơ ngừng thở tối khẩn.",
+        )
+
+    # 4. Caustic Airway Injury
+    has_caustic_agent = bool(re.search(r"\b(?:nuot|uong)\b.*?\b(?:nuoc tay|clo|javen|axit|xut|chat tay|hoa chat)\b", norm))
+    has_airway_stridor = bool(re.search(r"\b(thanh quan|phu ne|tho rit|rit len|tim tai|kho tho|nghet tho)\b", norm))
+    if has_caustic_agent and has_airway_stridor:
+        return (
+            True,
+            "caustic_airway_edema_emergency",
+            "Nuốt phải hóa chất ăn mòn kèm phù nề thanh quản và thở rít cấp tính; nguy cơ tắc nghẽn đường thở hoàn toàn đe dọa tính mạng.",
+        )
+
+    # 5. Severe Cholinergic Toxidrome (SLUDGE / DUMBELS)
+    has_salivation = bool(re.search(r"\b(chay nuoc dai|chay nuoc mieng|tang tiet dom dai|dom dai)\b", norm))
+    has_miosis = bool(re.search(r"\b(dong tu co nho|co nho nhu dau kim|co nho)\b", norm))
+    has_fasciculations = bool(re.search(r"\b(rung giat co|co giat|giat co)\b", norm))
+    if has_salivation and has_miosis and (has_fasciculations or has_diaphoresis):
+        return (
+            True,
+            "severe_cholinergic_toxidrome",
+            "Hội chứng ngộ độc Cholinergic cấp rầm rộ (tăng tiết đờm dãi, đồng tử co nhỏ, rung giật cơ); nguy cơ suy hô hấp do co thắt phế quản tối khẩn.",
+        )
+
+    return False, "", ""
+
+
 def route_by_toxicity_signature(text: str) -> ToxicitySignatureResult:
     """Analyze clinical text for multi-dimensional toxicological signature."""
     norm = normalize_search_text(text)
@@ -121,7 +188,19 @@ def route_by_toxicity_signature(text: str) -> ToxicitySignatureResult:
     rationale = "Không phát hiện yếu tố phơi nhiễm hay chữ ký độc học."
     interventions: list[str] = []
 
-    if has_exposure and (is_systemic or is_lethal_substance):
+    # Priority 1: Check physiological severe toxidromes (independent of named toxin)
+    is_syndromic_emergency, syn_name, syn_rationale = _detect_severe_syndromic_toxidrome(norm)
+    if is_syndromic_emergency:
+        is_eligible = True
+        is_emergency = True
+        suspected_syndrome = syn_name
+        rationale = syn_rationale
+        interventions = [
+            "Đến ngay trung tâm chống độc hoặc khoa Cấp cứu 115 gần nhất.",
+            "Mang theo mẫu đồ ăn, hóa chất hoặc thuốc nghi ngờ nếu có.",
+            "Tuyệt đối không tự ý gây nôn; đặt người bệnh ở tư thế nghiêng an toàn nếu lơ mơ.",
+        ]
+    elif has_exposure and (is_systemic or is_lethal_substance):
         is_eligible = True
         is_emergency = True
         interventions = [

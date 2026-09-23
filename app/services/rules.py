@@ -822,7 +822,7 @@ def triage_rules(symptoms_text: str, vitals: VitalSigns | None = None) -> Triage
             elif dom_threat.archetype == AbstractThreatArchetype.SYSTEMIC_TOXIC_STATE:
                 spec = ("TOXICOLOGY", "Chống độc / Cấp cứu")
             elif dom_threat.archetype == AbstractThreatArchetype.PREGNANCY_EMERGENCY:
-                spec = ("OBSTETRICS_GYNECOLOGY", "Sản phụ khoa")
+                spec = ("OBSTETRICS_GYNECOLOGY", "Sản khoa - Phụ khoa")
             elif dom_threat.archetype == AbstractThreatArchetype.DEEP_INFECTION:
                 spec = ("INFECTIOUS_DISEASE", "Truyền nhiễm / Hồi sức cấp cứu")
             elif dom_threat.archetype == AbstractThreatArchetype.METABOLIC_CRISIS:

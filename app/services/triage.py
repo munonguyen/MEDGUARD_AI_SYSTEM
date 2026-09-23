@@ -170,6 +170,7 @@ def evaluate_triage(
     from app.services.dose_reasoning import evaluate_dose_reasoning
     from app.services.toxicology_reasoner import evaluate_toxicology, ToxicologyUrgency
     from app.services.compositional_reasoner import evaluate_compositional_risk
+    from app.services.clinical_safety_floor import evaluate_clinical_safety_floor
     from app.services.clinical_fact_parser import parse_semantic_clinical_facts
     from app.services.partial_evidence_safety import evaluate_partial_evidence_safety
 
@@ -178,6 +179,7 @@ def evaluate_triage(
     is_emergency_tox = (tox_assessment.urgency == ToxicologyUrgency.EMERGENCY)
     fact_set = getattr(facts, "fact_set", None) or parse_semantic_clinical_facts(payload.symptoms_text)
     vitals_dict = payload.vitals.model_dump(exclude_none=True) if payload.vitals else None
+    clinical_safety_floor = evaluate_clinical_safety_floor(payload.symptoms_text, vitals_dict)
     comp_hypothesis = evaluate_compositional_risk(fact_set, vitals_dict)
     partial_safety = evaluate_partial_evidence_safety(payload.symptoms_text, vitals_dict, fact_set=fact_set)
 
@@ -187,16 +189,20 @@ def evaluate_triage(
         rule.urgency == "EMERGENCY"
         or (dose_assessment and dose_assessment.urgency == "EMERGENCY")
         or is_emergency_tox
+        or clinical_safety_floor.is_emergency
         or comp_hypothesis.disposition == "EMERGENCY"
         or partial_safety.has_partial_emergency_threat
     ):
         semantic_result = None
-        source_label = "dose" if (dose_assessment and dose_assessment.urgency == "EMERGENCY") else ("toxicology" if is_emergency_tox else ("rule" if rule.urgency == "EMERGENCY" else ("compositional" if comp_hypothesis.disposition == "EMERGENCY" else "partial_safety")))
         resolved = resolve_triage(
             rule_urgency="EMERGENCY" if rule.urgency == "EMERGENCY" else None,
             compositional_urgency="EMERGENCY" if comp_hypothesis.disposition == "EMERGENCY" else None,
             partial_safety_urgency="EMERGENCY" if partial_safety.has_partial_emergency_threat else None,
-            semantic_urgency="EMERGENCY" if ((dose_assessment and dose_assessment.urgency == "EMERGENCY") or is_emergency_tox) else None,
+            semantic_urgency="EMERGENCY" if (
+                (dose_assessment and dose_assessment.urgency == "EMERGENCY")
+                or is_emergency_tox
+                or clinical_safety_floor.is_emergency
+            ) else None,
             historical_urgency=conversation_risk,
             rule_confidence=rule.confidence,
             compositional_confidence=comp_hypothesis.risk_confidence,
@@ -204,7 +210,10 @@ def evaluate_triage(
             fact_coverage=fact_set.semantic_coverage,
         )
     # 2. Fast-path: High-Confidence Explicit Benign Pattern from deterministic rule or benign gate
-    elif (rule.urgency == "ROUTINE" and rule.matched and rule.confidence >= 0.95 and not partial_safety.safety_floor) or (comp_hypothesis.disposition == "ROUTINE" and comp_hypothesis.risk_confidence >= 0.98 and not conversation_risk and not partial_safety.safety_floor):
+    elif clinical_safety_floor.disposition == "ROUTINE" and (
+        (rule.urgency == "ROUTINE" and rule.matched and rule.confidence >= 0.95 and not partial_safety.safety_floor)
+        or (comp_hypothesis.disposition == "ROUTINE" and comp_hypothesis.risk_confidence >= 0.98 and not conversation_risk and not partial_safety.safety_floor)
+    ):
         semantic_result = None
         resolved = resolve_triage(
             rule_urgency="ROUTINE" if rule.matched else None,
@@ -231,13 +240,18 @@ def evaluate_triage(
         else:
             sem_status = "UNRESOLVED"
         has_functional_loss = fact_set.has_functional_loss(["loss_of_sight", "loss_of_motor_power", "inability_to_speak_full_sentences", "inability_to_tolerate_palpation_movement", "loss_of_limb_perfusion"])
+        semantic_candidate = semantic_result.urgency if semantic_result else None
+        if clinical_safety_floor.disposition != "ROUTINE":
+            urgency_rank = {"ROUTINE": 1, "URGENT": 2, "EMERGENCY": 3}
+            if semantic_candidate is None or urgency_rank[clinical_safety_floor.disposition] > urgency_rank.get(semantic_candidate, 1):
+                semantic_candidate = clinical_safety_floor.disposition
 
         resolved = resolve_triage(
             rule_urgency=rule.urgency if rule.urgency != "UNRESOLVED" else None,
             compositional_urgency=comp_hypothesis.disposition if comp_hypothesis.disposition != "ROUTINE" else None,
             partial_safety_urgency=partial_safety.safety_floor,
             partial_safety_confidence=partial_safety.confidence,
-            semantic_urgency=semantic_result.urgency if semantic_result else None,
+            semantic_urgency=semantic_candidate,
             historical_urgency=conversation_risk,
             rule_confidence=rule.confidence if rule.matched else 0.50,
             semantic_confidence=semantic_result.confidence if semantic_result else 0.50,
@@ -256,6 +270,10 @@ def evaluate_triage(
         for rf in semantic_result.red_flags:
             if rf not in merged_red_flags:
                 merged_red_flags.append(rf)
+    if clinical_safety_floor.is_emergency:
+        for reason in clinical_safety_floor.reasons:
+            if reason not in merged_red_flags:
+                merged_red_flags.append(reason)
 
     # Determine aligned ESI level
     esi_level = rule.esi_level
@@ -327,6 +345,13 @@ def evaluate_triage(
                 "rule_urgency": rule.urgency,
                 "rule_matched": rule.matched,
                 "semantic_urgency": semantic_result.urgency if semantic_result else None,
+                "clinical_safety_floor": clinical_safety_floor.disposition,
+                "clinical_safety_sources": list(clinical_safety_floor.sources),
+                "clinical_safety_reasons": list(clinical_safety_floor.reasons),
+                "ood_downgrade_revoked": clinical_safety_floor.ood_downgrade_revoked,
+                "end_organ_couplings": list(
+                    clinical_safety_floor.end_organ_coupling.coupling_ids
+                ),
                 "conversation_risk": conversation_risk,
                 "resolution_source": resolved.source,
                 "confidence": resolved.confidence,

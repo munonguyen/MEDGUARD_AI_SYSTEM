@@ -361,6 +361,12 @@ _MEDICAL_OVERRIDE_LONG: tuple[str, ...] = (
     "viem da day", "da day", "thuong vi", "men gan", "dinh ky", "xet nghiem", "an uong lanh manh",
     "sui bot mep", "dong kinh", "mat tron nguoc", "tron nguoc", "giat dung dung",
     "trung gio", "cao gio", "khong biet troi dat",
+    "guc nga", "ngat xiu", "ngat", "choang vang", "xay xam", "muon xiu", "sap ngat",
+    "mach bat nhanh", "mach nhanh", "mach nho", "kho bat", "mat mach", "mach dap",
+    "tim dap", "loan nhip", "thinh thich", "hoi hop", "tuc nghen",
+    "roi dua", "roi coc", "ngap ngung", "ngat quang",
+    "tho rit", "hut hoi", "nghet tho", "phu ne thanh quan",
+    "uong voc", "uong thuoc", "ngo doc", "nhiem doc", "hoa chat", "chat tay",
 )
 
 # Short medical keywords that need regex word-boundary matching
