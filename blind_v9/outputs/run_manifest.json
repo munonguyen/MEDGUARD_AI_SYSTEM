@@ -1,0 +1,7 @@
+{
+  "format": "medguard-predictions-seal-v1",
+  "predictions_file": "predictions.jsonl",
+  "entry_count": 300,
+  "sha256": "4dbdb7f12dddb6800710a531856132b1fc0a1b06fc77ceff85749ab72be83056",
+  "signature": "ddcefc483e1ad41ad884fa32493dd9f87f22a42122a0ad07a5e4ddcfb2c6eb32"
+}

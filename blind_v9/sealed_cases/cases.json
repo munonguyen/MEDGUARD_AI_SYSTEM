@@ -1,0 +1,2862 @@
+[
+  {
+    "case_id": "V9-SCC-0001",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 1A - Ngữ cảnh lâm sàng cấp tính]: Ngực nặng như bị đè khi leo cầu thang, vã mồ hôi và hụt hơi không thở nổi."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0002",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 1B - Ngữ cảnh sinh lý lành tính]: Ngực nhức sau tập chống đẩy và hít đất chiều qua, ấn vào đúng cơ thành ngực thì đau nhói."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0003",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 3A - Ngữ cảnh lâm sàng cấp tính]: Cảm giác tim đập thình thịch loạn nhịp, ngực tức nghẹn và hoa mắt choáng váng muốn xỉu."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0004",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 3B - Ngữ cảnh sinh lý lành tính]: Tim đập nhanh một lúc sau khi uống cốc cà phê sữa đá đậm đặc, hiện đã êm dịu trở lại."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0005",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 5A - Ngữ cảnh lâm sàng cấp tính]: Bụng đau cứng ngắc như khúc gỗ, sờ vào là đau thấu trời, người toát mồ hôi lạnh."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0006",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 5B - Ngữ cảnh sinh lý lành tính]: Bụng căng tức đầy hơi ấm ách sau khi đi ăn tiệc buffet tối qua, không nôn không sốt."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0007",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 7A - Ngữ cảnh lâm sàng cấp tính]: Hai chân lạnh buốt ngắt, da tái nhợt và sờ không thấy mạch mu chân đập từ sáng nay."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0008",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 7B - Ngữ cảnh sinh lý lành tính]: Hai bàn chân bị lạnh buốt do ngồi phòng máy lạnh nhiệt độ thấp 18 độ, xoa ấm lại hồng hào."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0009",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 9A - Ngữ cảnh lâm sàng cấp tính]: Một bên khóe miệng bị tê sụp xuống, nói ngọng líu lưỡi và nước bọt chảy tự nhiên."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0010",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 9B - Ngữ cảnh sinh lý lành tính]: Khóe miệng và môi còn cảm giác tê bì sau khi tiêm thuốc tê nhổ răng số 8 cách đây 2 tiếng."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0011",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 11A - Ngữ cảnh lâm sàng cấp tính]: Hai cánh tay bủn rủn yếu liệt không nhấc nổi bát cơm lên miệng, người mệt rũ."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0012",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 11B - Ngữ cảnh sinh lý lành tính]: Hai bắp tay nhức mỏi cơ sau buổi đầu tập gym nâng tạ, cử động cầm nắm vẫn bình thường."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0013",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 13A - Ngữ cảnh lâm sàng cấp tính]: Cơn đau thắt ngực lan ra sau lưng giữa hai xương bả vai như bị dao xé toạc ngực."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0014",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 13B - Ngữ cảnh sinh lý lành tính]: Đau mỏi cơ vùng lưng trên giữa hai bả vai do ngồi khom lưng làm việc máy tính suốt cả ngày."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0015",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 15A - Ngữ cảnh lâm sàng cấp tính]: Đi tiểu xong đột ngột ngất xỉu ngã đập đầu, kèm toát mồ hôi hột nhớt nháp khắp người."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0016",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 15B - Ngữ cảnh sinh lý lành tính]: Đang buồn ngủ đi vệ sinh đêm đứng dậy hơi nhanh thấy chuếnh choáng 3 giây rồi hết hẳn."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0017",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 17A - Ngữ cảnh lâm sàng cấp tính]: Chân phải sưng phù to căng bóng, bắp chân nóng đỏ và đau dữ dội khi gập cổ chân."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0018",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 17B - Ngữ cảnh sinh lý lành tính]: Hai mu bàn chân hơi sưng nhẹ về chiều sau khi đứng bán hàng liên tục 8 tiếng, gác chân lên là xẹp."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0019",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 19A - Ngữ cảnh lâm sàng cấp tính]: Khó thở dữ dội, tím tái đầu ngón tay và không thể nói nổi nguyên một câu trọn vẹn."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0020",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 19B - Ngữ cảnh sinh lý lành tính]: Thấy hơi hụt hơi một chút khi đeo khẩu trang dày leo bộ lên tầng 4, nghỉ 2 phút thì bình thường."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0021",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 21A - Ngữ cảnh lâm sàng cấp tính]: Tự nhiên mắt trái không nhìn thấy gì, tối đen hoàn toàn xuất hiện đột ngột từ 10 phút trước."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0022",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 21B - Ngữ cảnh sinh lý lành tính]: Mắt trái bị nhìn mờ từ vài năm nay do đục thủy tinh thể, độ mờ không thay đổi."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0023",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 23A - Ngữ cảnh lâm sàng cấp tính]: Cơn đau đầu buốt nhói dữ dội bùng phát đạt đỉnh cực đại chỉ sau vài giây như sét đánh ngang tai."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0024",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 23B - Ngữ cảnh sinh lý lành tính]: Đau đầu âm ỉ hai bên thái dương kéo dài nhiều tuần nay mỗi khi căng thẳng công việc."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0025",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 25A - Ngữ cảnh lâm sàng cấp tính]: Đột ngột ho ra máu tươi đỏ au từng ngụm lớn ướt khăn tay từ nửa tiếng nay."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0026",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 25B - Ngữ cảnh sinh lý lành tính]: Thỉnh thoảng khạc đờm buổi sáng thấy có vệt máu li ti bằng sợi chỉ, họng khô rát."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0027",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 27A - Ngữ cảnh lâm sàng cấp tính]: Đột ngột nói ngọng líu ríu không thành tiếng, câu chữ lộn xộn xuất hiện cách đây 15 phút."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0028",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 27B - Ngữ cảnh sinh lý lành tính]: Giọng nói hơi khàn nhẹ từ 3 ngày nay do tuần trước đi hát karaoke và hò hét nhiều."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0029",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 29A - Ngữ cảnh lâm sàng cấp tính]: Bụng dưới đau quặn dữ dội đột ngột kèm trễ kinh 2 tuần và vã mồ hôi choáng váng."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0030",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 29B - Ngữ cảnh sinh lý lành tính]: Đau râm ran nhẹ vùng bụng dưới trước kỳ kinh nguyệt 2 ngày, cảm giác giống mọi tháng."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0031",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 31A - Ngữ cảnh lâm sàng cấp tính]: Đau thắt lưng dữ dội đột ngột lan xuống hai chân kèm bí tiểu và tê vùng yên ngựa từ 1 tiếng trước."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0032",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 31B - Ngữ cảnh sinh lý lành tính]: Đau mỏi thắt lưng kinh niên khi cúi nhiều, không tê chân và đại tiểu tiện tự chủ tốt."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0033",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 33A - Ngữ cảnh lâm sàng cấp tính]: Đang đi bộ tự nhiên ngã quỵ xuống đất, hoàn toàn mất ý thức trong 1 phút không rõ lý do."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0034",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 33B - Ngữ cảnh sinh lý lành tính]: Hơi hoa mắt thoáng qua 2 giây khi bật dậy quá nhanh từ tư thế nằm, không ngất xỉu."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0035",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 35A - Ngữ cảnh lâm sàng cấp tính]: Đột nhiên một bên tai điếc đặc hoàn toàn kèm tiếng ve kêu ù chói tai từ sáng nay."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0036",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 35B - Ngữ cảnh sinh lý lành tính]: Hai tai hơi ù nhẹ khi đi máy bay hạ cánh hoặc đi thang máy tốc độ cao, nuốt nước bọt thì hết."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0037",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 37A - Ngữ cảnh lâm sàng cấp tính]: Sốt cao 40 độ kèm xuất hiện những nốt tím thẫm rải rác dưới da ấn không mờ."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0038",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 37B - Ngữ cảnh sinh lý lành tính]: Vết bầm tím nhỏ ở mu bàn tay do hôm qua va quẹt nhẹ vào tay nắm cửa, không sốt."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0039",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 39A - Ngữ cảnh lâm sàng cấp tính]: Khó thở cấp tính, thở rít thành tiếng từng cơn và cổ họng nghẹn đặc sau khi bị ong đốt 10 phút."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0040",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 39B - Ngữ cảnh sinh lý lành tính]: Ngứa đỏ nhẹ tại chỗ quanh vết muỗi đốt ở bắp chân, không sốt, không khó thở."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0041",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 41A - Ngữ cảnh lâm sàng cấp tính]: Uống rượu ngâm củ rễ cây không rõ nguồn gốc mua ở chợ, sau 2 giờ nôn thốc tháo, tim đập loạn xạ và mắt mờ."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0042",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 41B - Ngữ cảnh sinh lý lành tính]: Uống một chén rượu ngâm ba kích ăn cơm tối qua, sáng nay tỉnh táo hoàn toàn khỏe mạnh."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0043",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 43A - Ngữ cảnh lâm sàng cấp tính]: Ăn lẩu nấm hái tự nhiên trên núi, sau 3 giờ cả gia đình nôn mửa dữ dội, tiêu chảy xối xả và lả người."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0044",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 43B - Ngữ cảnh sinh lý lành tính]: Ăn canh nấm rơm mua ở siêu thị, bữa ăn ngon miệng và không có biểu hiện gì bất thường."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0045",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 45A - Ngữ cảnh lâm sàng cấp tính]: Uống nhầm ngụm hóa chất tẩy bồn cầu cực mạnh, họng bỏng rát dữ dội, nôn ra máu và không nuốt nổi nước bọt."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0046",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 45B - Ngữ cảnh sinh lý lành tính]: Lỡ nuốt phải một chút bọt kem đánh răng khi đánh răng buổi sáng, miệng bình thường không đau rát."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0047",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 47A - Ngữ cảnh lâm sàng cấp tính]: Uống vốc 20 viên thuốc hạ huyết áp Amlodipine để tự tử, hiện người lạnh ngắt, buồn ngủ li bì và huyết áp tụt sâu."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0048",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 47B - Ngữ cảnh sinh lý lành tính]: Sáng nay uống 1 viên Amlodipine 5mg hạ huyết áp theo đơn bác sĩ như thường lệ, người khỏe."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0049",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 49A - Ngữ cảnh lâm sàng cấp tính]: Uống nhầm thuốc diệt cỏ paraquat màu xanh, miệng loét đỏ rát bỏng, ho sặc sụa và khó thở."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0050",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 49B - Ngữ cảnh sinh lý lành tính]: Nhổ cỏ ngoài vườn hoa bị gai xước một vết nhỏ ở đầu ngón tay, đã rửa xà phòng sạch."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0051",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 51A - Ngữ cảnh lâm sàng cấp tính]: Làm việc trong hầm lò thông khí kém bị ngạt khí, đau đầu dữ dội, buồn nôn, thở dốc và choáng ngất."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0052",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 51B - Ngữ cảnh sinh lý lành tính]: Ngồi trong phòng kín hơi ngột ngạt một lúc, mở cửa sổ hít thở không khí thoáng mát là tỉnh táo lại."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0053",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 53A - Ngữ cảnh lâm sàng cấp tính]: Trẻ 2 tuổi nuốt phải viên pin cúc áo đồ chơi vào họng, ho sặc sụa, chảy dãi nhiều và không nuốt được."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0054",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 53B - Ngữ cảnh sinh lý lành tính]: Trẻ 2 tuổi lỡ nuốt phải một mẩu bánh quy nhỏ, ho nhẹ 1 tiếng rồi cười chơi đùa bình thường."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0055",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 55A - Ngữ cảnh lâm sàng cấp tính]: Uống thuốc nam dạng bột tễ gia truyền chữa xương khớp, sau 1 tuần người phù to tròn như mặt trăng, nôn ra máu đen."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0056",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 55B - Ngữ cảnh sinh lý lành tính]: Uống một cốc trà atiso thảo mộc thanh nhiệt giải độc, cơ thể sảng khoái dễ chịu."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0057",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 57A - Ngữ cảnh lâm sàng cấp tính]: Bệnh nhân dùng Warfarin quá liều, chảy máu chân răng ồ ạt, nôn ra máu và xuất hiện mảng bầm tím lan khắp bụng."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0058",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 57B - Ngữ cảnh sinh lý lành tính]: Dùng thuốc chống đông định kỳ theo đơn, lỡ va nhẹ cạnh bàn vào cẳng chân có vết bầm 1cm không lan."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0059",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 59A - Ngữ cảnh lâm sàng cấp tính]: Nuốt phải thìa nước tẩy rửa Clo đặc công nghiệp, thanh quản phù nề co thắt, khàn giọng và tím tái."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-SCC-0060",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Đánh giá tương phản 59B - Ngữ cảnh sinh lý lành tính]: Uống nước lọc đun sôi để nguội cảm giác hơi có mùi clo nhẹ của nước máy thành phố, không khó chịu."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0001",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bàn chân trái đột ngột lạnh ngắt như đá, màu da trắng bệch và sờ không thấy động mạch mu chân đập. (Mã ca: V9-PE-0001, giám sát tầng đe dọa sinh lý #1)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0002",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Nghe tiếng thở rít khò khè thì hít vào, hõm ức co kéo sâu rõ rệt từ 20 phút nay. (Mã ca: V9-PE-0002, giám sát tầng đe dọa sinh lý #2)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0003",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Khắp hai cẳng chân xuất hiện nhiều nốt chấm tím đỏ dày đặc, lấy đáy cốc ấn vào không biến mất. (Mã ca: V9-PE-0003, giám sát tầng đe dọa sinh lý #3)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0004",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân xơ gan hai bàn tay run giật vỗ cánh (asterixis) liên tục và trả lời lơ mơ lẫn lộn. (Mã ca: V9-PE-0004, giám sát tầng đe dọa sinh lý #4)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0005",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bé sơ sinh 2 tháng tuổi sốt 39 độ, thóp trước phồng căng cứng và quấy khóc thét từng cơn. (Mã ca: V9-PE-0005, giám sát tầng đe dọa sinh lý #5)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0006",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bìu bên phải đột ngột đau buốt dữ dội, sưng to và co rút lên cao trong vòng nửa tiếng nay. (Mã ca: V9-PE-0006, giám sát tầng đe dọa sinh lý #6)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0007",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tự nhiên mắt phải nhìn thấy mảng tối đen như bức rèm sụp xuống che mất nửa trường nhìn. (Mã ca: V9-PE-0007, giám sát tầng đe dọa sinh lý #7)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0008",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Nói chuyện ngập ngừng ngắt quãng, tay phải cầm đũa ăn cơm tự nhiên rơi xuống bàn không kiểm soát được. (Mã ca: V9-PE-0008, giám sát tầng đe dọa sinh lý #8)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0009",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Sau khi uống viên Aspirin giảm đau thì bụng trên đau chói dữ dội, thành bụng gồng cứng như khúc gỗ. (Mã ca: V9-PE-0009, giám sát tầng đe dọa sinh lý #9)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0010",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đang chạy bộ gắng sức thì đột ngột gục ngã ngất xỉu, mạch bắt nhanh nhỏ khó bắt. (Mã ca: V9-PE-0010, giám sát tầng đe dọa sinh lý #10)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0011",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bàn chân trái đột ngột lạnh ngắt như đá, màu da trắng bệch và sờ không thấy động mạch mu chân đập. (Mã ca: V9-PE-0011, giám sát tầng đe dọa sinh lý #11)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0012",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Nghe tiếng thở rít khò khè thì hít vào, hõm ức co kéo sâu rõ rệt từ 20 phút nay. (Mã ca: V9-PE-0012, giám sát tầng đe dọa sinh lý #12)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0013",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Khắp hai cẳng chân xuất hiện nhiều nốt chấm tím đỏ dày đặc, lấy đáy cốc ấn vào không biến mất. (Mã ca: V9-PE-0013, giám sát tầng đe dọa sinh lý #13)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0014",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân xơ gan hai bàn tay run giật vỗ cánh (asterixis) liên tục và trả lời lơ mơ lẫn lộn. (Mã ca: V9-PE-0014, giám sát tầng đe dọa sinh lý #14)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0015",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bé sơ sinh 2 tháng tuổi sốt 39 độ, thóp trước phồng căng cứng và quấy khóc thét từng cơn. (Mã ca: V9-PE-0015, giám sát tầng đe dọa sinh lý #15)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0016",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bìu bên phải đột ngột đau buốt dữ dội, sưng to và co rút lên cao trong vòng nửa tiếng nay. (Mã ca: V9-PE-0016, giám sát tầng đe dọa sinh lý #16)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0017",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tự nhiên mắt phải nhìn thấy mảng tối đen như bức rèm sụp xuống che mất nửa trường nhìn. (Mã ca: V9-PE-0017, giám sát tầng đe dọa sinh lý #17)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0018",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Nói chuyện ngập ngừng ngắt quãng, tay phải cầm đũa ăn cơm tự nhiên rơi xuống bàn không kiểm soát được. (Mã ca: V9-PE-0018, giám sát tầng đe dọa sinh lý #18)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0019",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Sau khi uống viên Aspirin giảm đau thì bụng trên đau chói dữ dội, thành bụng gồng cứng như khúc gỗ. (Mã ca: V9-PE-0019, giám sát tầng đe dọa sinh lý #19)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0020",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đang chạy bộ gắng sức thì đột ngột gục ngã ngất xỉu, mạch bắt nhanh nhỏ khó bắt. (Mã ca: V9-PE-0020, giám sát tầng đe dọa sinh lý #20)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0021",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bàn chân trái đột ngột lạnh ngắt như đá, màu da trắng bệch và sờ không thấy động mạch mu chân đập. (Mã ca: V9-PE-0021, giám sát tầng đe dọa sinh lý #21)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0022",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Nghe tiếng thở rít khò khè thì hít vào, hõm ức co kéo sâu rõ rệt từ 20 phút nay. (Mã ca: V9-PE-0022, giám sát tầng đe dọa sinh lý #22)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0023",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Khắp hai cẳng chân xuất hiện nhiều nốt chấm tím đỏ dày đặc, lấy đáy cốc ấn vào không biến mất. (Mã ca: V9-PE-0023, giám sát tầng đe dọa sinh lý #23)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0024",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân xơ gan hai bàn tay run giật vỗ cánh (asterixis) liên tục và trả lời lơ mơ lẫn lộn. (Mã ca: V9-PE-0024, giám sát tầng đe dọa sinh lý #24)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0025",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bé sơ sinh 2 tháng tuổi sốt 39 độ, thóp trước phồng căng cứng và quấy khóc thét từng cơn. (Mã ca: V9-PE-0025, giám sát tầng đe dọa sinh lý #25)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0026",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bìu bên phải đột ngột đau buốt dữ dội, sưng to và co rút lên cao trong vòng nửa tiếng nay. (Mã ca: V9-PE-0026, giám sát tầng đe dọa sinh lý #26)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0027",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tự nhiên mắt phải nhìn thấy mảng tối đen như bức rèm sụp xuống che mất nửa trường nhìn. (Mã ca: V9-PE-0027, giám sát tầng đe dọa sinh lý #27)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0028",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Nói chuyện ngập ngừng ngắt quãng, tay phải cầm đũa ăn cơm tự nhiên rơi xuống bàn không kiểm soát được. (Mã ca: V9-PE-0028, giám sát tầng đe dọa sinh lý #28)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0029",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Sau khi uống viên Aspirin giảm đau thì bụng trên đau chói dữ dội, thành bụng gồng cứng như khúc gỗ. (Mã ca: V9-PE-0029, giám sát tầng đe dọa sinh lý #29)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0030",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đang chạy bộ gắng sức thì đột ngột gục ngã ngất xỉu, mạch bắt nhanh nhỏ khó bắt. (Mã ca: V9-PE-0030, giám sát tầng đe dọa sinh lý #30)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0031",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bàn chân trái đột ngột lạnh ngắt như đá, màu da trắng bệch và sờ không thấy động mạch mu chân đập. (Mã ca: V9-PE-0031, giám sát tầng đe dọa sinh lý #31)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0032",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Nghe tiếng thở rít khò khè thì hít vào, hõm ức co kéo sâu rõ rệt từ 20 phút nay. (Mã ca: V9-PE-0032, giám sát tầng đe dọa sinh lý #32)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0033",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Khắp hai cẳng chân xuất hiện nhiều nốt chấm tím đỏ dày đặc, lấy đáy cốc ấn vào không biến mất. (Mã ca: V9-PE-0033, giám sát tầng đe dọa sinh lý #33)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0034",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân xơ gan hai bàn tay run giật vỗ cánh (asterixis) liên tục và trả lời lơ mơ lẫn lộn. (Mã ca: V9-PE-0034, giám sát tầng đe dọa sinh lý #34)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0035",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bé sơ sinh 2 tháng tuổi sốt 39 độ, thóp trước phồng căng cứng và quấy khóc thét từng cơn. (Mã ca: V9-PE-0035, giám sát tầng đe dọa sinh lý #35)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0036",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bìu bên phải đột ngột đau buốt dữ dội, sưng to và co rút lên cao trong vòng nửa tiếng nay. (Mã ca: V9-PE-0036, giám sát tầng đe dọa sinh lý #36)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0037",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tự nhiên mắt phải nhìn thấy mảng tối đen như bức rèm sụp xuống che mất nửa trường nhìn. (Mã ca: V9-PE-0037, giám sát tầng đe dọa sinh lý #37)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0038",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Nói chuyện ngập ngừng ngắt quãng, tay phải cầm đũa ăn cơm tự nhiên rơi xuống bàn không kiểm soát được. (Mã ca: V9-PE-0038, giám sát tầng đe dọa sinh lý #38)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0039",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Sau khi uống viên Aspirin giảm đau thì bụng trên đau chói dữ dội, thành bụng gồng cứng như khúc gỗ. (Mã ca: V9-PE-0039, giám sát tầng đe dọa sinh lý #39)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0040",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đang chạy bộ gắng sức thì đột ngột gục ngã ngất xỉu, mạch bắt nhanh nhỏ khó bắt. (Mã ca: V9-PE-0040, giám sát tầng đe dọa sinh lý #40)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0041",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bàn chân trái đột ngột lạnh ngắt như đá, màu da trắng bệch và sờ không thấy động mạch mu chân đập. (Mã ca: V9-PE-0041, giám sát tầng đe dọa sinh lý #41)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0042",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Nghe tiếng thở rít khò khè thì hít vào, hõm ức co kéo sâu rõ rệt từ 20 phút nay. (Mã ca: V9-PE-0042, giám sát tầng đe dọa sinh lý #42)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0043",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Khắp hai cẳng chân xuất hiện nhiều nốt chấm tím đỏ dày đặc, lấy đáy cốc ấn vào không biến mất. (Mã ca: V9-PE-0043, giám sát tầng đe dọa sinh lý #43)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0044",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân xơ gan hai bàn tay run giật vỗ cánh (asterixis) liên tục và trả lời lơ mơ lẫn lộn. (Mã ca: V9-PE-0044, giám sát tầng đe dọa sinh lý #44)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0045",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bé sơ sinh 2 tháng tuổi sốt 39 độ, thóp trước phồng căng cứng và quấy khóc thét từng cơn. (Mã ca: V9-PE-0045, giám sát tầng đe dọa sinh lý #45)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0046",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bìu bên phải đột ngột đau buốt dữ dội, sưng to và co rút lên cao trong vòng nửa tiếng nay. (Mã ca: V9-PE-0046, giám sát tầng đe dọa sinh lý #46)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0047",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tự nhiên mắt phải nhìn thấy mảng tối đen như bức rèm sụp xuống che mất nửa trường nhìn. (Mã ca: V9-PE-0047, giám sát tầng đe dọa sinh lý #47)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0048",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Nói chuyện ngập ngừng ngắt quãng, tay phải cầm đũa ăn cơm tự nhiên rơi xuống bàn không kiểm soát được. (Mã ca: V9-PE-0048, giám sát tầng đe dọa sinh lý #48)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0049",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Sau khi uống viên Aspirin giảm đau thì bụng trên đau chói dữ dội, thành bụng gồng cứng như khúc gỗ. (Mã ca: V9-PE-0049, giám sát tầng đe dọa sinh lý #49)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-PE-0050",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đang chạy bộ gắng sức thì đột ngột gục ngã ngất xỉu, mạch bắt nhanh nhỏ khó bắt. (Mã ca: V9-PE-0050, giám sát tầng đe dọa sinh lý #50)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0001",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Người nóng ran như than, da đỏ bừng khô queo không một giọt mồ hôi, đồng tử giãn to và nói lảm nhảm kích động. (Mã ca nhiễm độc: V9-TX-0001)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0002",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Miệng sùi bọt mép và chảy dãi liên tục, đồng tử co nhỏ như đầu đinh ghim, thở khò khè đầy đờm và đi ngoài tiêu chảy tháo phân. (Mã ca nhiễm độc: V9-TX-0002)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0003",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Tim đập loạn xạ 160 lần/phút, người vã mồ hôi đầm đìa, hai tay run bắn, đồng tử giãn to và cực kỳ hung hãn kích động. (Mã ca nhiễm độc: V9-TX-0003)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0004",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Bệnh nhân nằm bất động hôn mê sâu gọi hỏi không biết, nhịp thở chậm ngắt quãng 6 lần/phút, đồng tử co nhỏ tí xíu. (Mã ca nhiễm độc: V9-TX-0004)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0005",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Các cơ chân tay giật rung liên tục (clonus), sốt cao 39.5 độ, vã mồ hôi nhiều và huyết áp tăng vọt thất thường. (Mã ca nhiễm độc: V9-TX-0005)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0006",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Miệng và thực quản đau rát bỏng nghẹt thở, nôn ra chất dịch nhầy lẫn vệt máu sẫm sau khi uống nhầm chai dung dịch tẩy rửa không nhãn mác. (Mã ca nhiễm độc: V9-TX-0006)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0007",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Sau khi ăn món hải sản lạ ở biển về thấy tê rần quanh môi lưỡi, liệt dần các chi và hụt hơi không thở nổi. (Mã ca nhiễm độc: V9-TX-0007)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0008",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Mặt tím tái xám xịt như màu chì (cyanosis) dù đang thở oxy, đo SpO2 tụt sâu 75% sau khi uống thuốc trừ sâu lạ. (Mã ca nhiễm độc: V9-TX-0008)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0009",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Đau bụng quặn thắt dữ dội, nôn mửa liên tục và tiêu chảy mất nước lả người sau khi ăn nấm mọc hoang sau vườn. (Mã ca nhiễm độc: V9-TX-0009)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0010",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Thở nhanh sâu dồn dập (Kussmaul), hơi thở có mùi cồn ngọt lạ lùng, lơ mơ mê man sau khi uống rượu trắng nấu thủ công không rõ nguồn gốc. (Mã ca nhiễm độc: V9-TX-0010)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0011",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Người nóng ran như than, da đỏ bừng khô queo không một giọt mồ hôi, đồng tử giãn to và nói lảm nhảm kích động. (Mã ca nhiễm độc: V9-TX-0011)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0012",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Miệng sùi bọt mép và chảy dãi liên tục, đồng tử co nhỏ như đầu đinh ghim, thở khò khè đầy đờm và đi ngoài tiêu chảy tháo phân. (Mã ca nhiễm độc: V9-TX-0012)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0013",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Tim đập loạn xạ 160 lần/phút, người vã mồ hôi đầm đìa, hai tay run bắn, đồng tử giãn to và cực kỳ hung hãn kích động. (Mã ca nhiễm độc: V9-TX-0013)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0014",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Bệnh nhân nằm bất động hôn mê sâu gọi hỏi không biết, nhịp thở chậm ngắt quãng 6 lần/phút, đồng tử co nhỏ tí xíu. (Mã ca nhiễm độc: V9-TX-0014)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0015",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Các cơ chân tay giật rung liên tục (clonus), sốt cao 39.5 độ, vã mồ hôi nhiều và huyết áp tăng vọt thất thường. (Mã ca nhiễm độc: V9-TX-0015)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0016",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Miệng và thực quản đau rát bỏng nghẹt thở, nôn ra chất dịch nhầy lẫn vệt máu sẫm sau khi uống nhầm chai dung dịch tẩy rửa không nhãn mác. (Mã ca nhiễm độc: V9-TX-0016)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0017",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Sau khi ăn món hải sản lạ ở biển về thấy tê rần quanh môi lưỡi, liệt dần các chi và hụt hơi không thở nổi. (Mã ca nhiễm độc: V9-TX-0017)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0018",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Mặt tím tái xám xịt như màu chì (cyanosis) dù đang thở oxy, đo SpO2 tụt sâu 75% sau khi uống thuốc trừ sâu lạ. (Mã ca nhiễm độc: V9-TX-0018)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0019",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Đau bụng quặn thắt dữ dội, nôn mửa liên tục và tiêu chảy mất nước lả người sau khi ăn nấm mọc hoang sau vườn. (Mã ca nhiễm độc: V9-TX-0019)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0020",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Thở nhanh sâu dồn dập (Kussmaul), hơi thở có mùi cồn ngọt lạ lùng, lơ mơ mê man sau khi uống rượu trắng nấu thủ công không rõ nguồn gốc. (Mã ca nhiễm độc: V9-TX-0020)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0021",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Người nóng ran như than, da đỏ bừng khô queo không một giọt mồ hôi, đồng tử giãn to và nói lảm nhảm kích động. (Mã ca nhiễm độc: V9-TX-0021)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0022",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Miệng sùi bọt mép và chảy dãi liên tục, đồng tử co nhỏ như đầu đinh ghim, thở khò khè đầy đờm và đi ngoài tiêu chảy tháo phân. (Mã ca nhiễm độc: V9-TX-0022)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0023",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Tim đập loạn xạ 160 lần/phút, người vã mồ hôi đầm đìa, hai tay run bắn, đồng tử giãn to và cực kỳ hung hãn kích động. (Mã ca nhiễm độc: V9-TX-0023)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0024",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Bệnh nhân nằm bất động hôn mê sâu gọi hỏi không biết, nhịp thở chậm ngắt quãng 6 lần/phút, đồng tử co nhỏ tí xíu. (Mã ca nhiễm độc: V9-TX-0024)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0025",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Các cơ chân tay giật rung liên tục (clonus), sốt cao 39.5 độ, vã mồ hôi nhiều và huyết áp tăng vọt thất thường. (Mã ca nhiễm độc: V9-TX-0025)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0026",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Miệng và thực quản đau rát bỏng nghẹt thở, nôn ra chất dịch nhầy lẫn vệt máu sẫm sau khi uống nhầm chai dung dịch tẩy rửa không nhãn mác. (Mã ca nhiễm độc: V9-TX-0026)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0027",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Sau khi ăn món hải sản lạ ở biển về thấy tê rần quanh môi lưỡi, liệt dần các chi và hụt hơi không thở nổi. (Mã ca nhiễm độc: V9-TX-0027)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0028",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Mặt tím tái xám xịt như màu chì (cyanosis) dù đang thở oxy, đo SpO2 tụt sâu 75% sau khi uống thuốc trừ sâu lạ. (Mã ca nhiễm độc: V9-TX-0028)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0029",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Đau bụng quặn thắt dữ dội, nôn mửa liên tục và tiêu chảy mất nước lả người sau khi ăn nấm mọc hoang sau vườn. (Mã ca nhiễm độc: V9-TX-0029)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0030",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Thở nhanh sâu dồn dập (Kussmaul), hơi thở có mùi cồn ngọt lạ lùng, lơ mơ mê man sau khi uống rượu trắng nấu thủ công không rõ nguồn gốc. (Mã ca nhiễm độc: V9-TX-0030)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0031",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Người nóng ran như than, da đỏ bừng khô queo không một giọt mồ hôi, đồng tử giãn to và nói lảm nhảm kích động. (Mã ca nhiễm độc: V9-TX-0031)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0032",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Miệng sùi bọt mép và chảy dãi liên tục, đồng tử co nhỏ như đầu đinh ghim, thở khò khè đầy đờm và đi ngoài tiêu chảy tháo phân. (Mã ca nhiễm độc: V9-TX-0032)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0033",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Tim đập loạn xạ 160 lần/phút, người vã mồ hôi đầm đìa, hai tay run bắn, đồng tử giãn to và cực kỳ hung hãn kích động. (Mã ca nhiễm độc: V9-TX-0033)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0034",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Bệnh nhân nằm bất động hôn mê sâu gọi hỏi không biết, nhịp thở chậm ngắt quãng 6 lần/phút, đồng tử co nhỏ tí xíu. (Mã ca nhiễm độc: V9-TX-0034)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0035",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Các cơ chân tay giật rung liên tục (clonus), sốt cao 39.5 độ, vã mồ hôi nhiều và huyết áp tăng vọt thất thường. (Mã ca nhiễm độc: V9-TX-0035)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0036",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Miệng và thực quản đau rát bỏng nghẹt thở, nôn ra chất dịch nhầy lẫn vệt máu sẫm sau khi uống nhầm chai dung dịch tẩy rửa không nhãn mác. (Mã ca nhiễm độc: V9-TX-0036)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0037",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Sau khi ăn món hải sản lạ ở biển về thấy tê rần quanh môi lưỡi, liệt dần các chi và hụt hơi không thở nổi. (Mã ca nhiễm độc: V9-TX-0037)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0038",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Mặt tím tái xám xịt như màu chì (cyanosis) dù đang thở oxy, đo SpO2 tụt sâu 75% sau khi uống thuốc trừ sâu lạ. (Mã ca nhiễm độc: V9-TX-0038)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0039",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Đau bụng quặn thắt dữ dội, nôn mửa liên tục và tiêu chảy mất nước lả người sau khi ăn nấm mọc hoang sau vườn. (Mã ca nhiễm độc: V9-TX-0039)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0040",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Thở nhanh sâu dồn dập (Kussmaul), hơi thở có mùi cồn ngọt lạ lùng, lơ mơ mê man sau khi uống rượu trắng nấu thủ công không rõ nguồn gốc. (Mã ca nhiễm độc: V9-TX-0040)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0041",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Người nóng ran như than, da đỏ bừng khô queo không một giọt mồ hôi, đồng tử giãn to và nói lảm nhảm kích động. (Mã ca nhiễm độc: V9-TX-0041)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0042",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Miệng sùi bọt mép và chảy dãi liên tục, đồng tử co nhỏ như đầu đinh ghim, thở khò khè đầy đờm và đi ngoài tiêu chảy tháo phân. (Mã ca nhiễm độc: V9-TX-0042)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0043",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Tim đập loạn xạ 160 lần/phút, người vã mồ hôi đầm đìa, hai tay run bắn, đồng tử giãn to và cực kỳ hung hãn kích động. (Mã ca nhiễm độc: V9-TX-0043)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0044",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Bệnh nhân nằm bất động hôn mê sâu gọi hỏi không biết, nhịp thở chậm ngắt quãng 6 lần/phút, đồng tử co nhỏ tí xíu. (Mã ca nhiễm độc: V9-TX-0044)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0045",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Các cơ chân tay giật rung liên tục (clonus), sốt cao 39.5 độ, vã mồ hôi nhiều và huyết áp tăng vọt thất thường. (Mã ca nhiễm độc: V9-TX-0045)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0046",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Miệng và thực quản đau rát bỏng nghẹt thở, nôn ra chất dịch nhầy lẫn vệt máu sẫm sau khi uống nhầm chai dung dịch tẩy rửa không nhãn mác. (Mã ca nhiễm độc: V9-TX-0046)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0047",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Sau khi ăn món hải sản lạ ở biển về thấy tê rần quanh môi lưỡi, liệt dần các chi và hụt hơi không thở nổi. (Mã ca nhiễm độc: V9-TX-0047)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0048",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Mặt tím tái xám xịt như màu chì (cyanosis) dù đang thở oxy, đo SpO2 tụt sâu 75% sau khi uống thuốc trừ sâu lạ. (Mã ca nhiễm độc: V9-TX-0048)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0049",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Đau bụng quặn thắt dữ dội, nôn mửa liên tục và tiêu chảy mất nước lả người sau khi ăn nấm mọc hoang sau vườn. (Mã ca nhiễm độc: V9-TX-0049)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-TX-0050",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Hội chứng nhiễm độc lâm sàng]: Thở nhanh sâu dồn dập (Kussmaul), hơi thở có mùi cồn ngọt lạ lùng, lơ mơ mê man sau khi uống rượu trắng nấu thủ công không rõ nguồn gốc. (Mã ca nhiễm độc: V9-TX-0050)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0001",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân suy thận mạn giai đoạn cuối bỏ chạy thận 3 ngày nay, hiện cảm thấy tức ngực, tim đập chậm rì 40 nhịp/phút và yếu rũ hai chân. (Mã ca V9-CD-0001)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0002",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân tiểu đường type 1 sốt cao 39 độ, nôn ói liên tục, thở nhanh sâu có mùi táo thối và đường huyết đo tại nhà vượt ngưỡng High. (Mã ca V9-CD-0002)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0003",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Đang điều trị ung thư hóa trị đợt 3, sốt 39.2 độ rét run dữ dội, người mệt lả không nhấc nổi đầu. (Mã ca V9-CD-0003)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0004",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân sau phẫu thuật thay khớp háng 5 ngày, đột ngột đau nhói ngực khi hít thở, ho ra ít máu và khó thở dồn dập. (Mã ca V9-CD-0004)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0005",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Thai phụ 34 tuần huyết áp 170/110 mmHg, đau đầu buốt vùng chẩm kèm mắt nhìn mờ nhòe và buồn nôn. (Mã ca V9-CD-0005)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0006",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân suy tim EF 25%, tăng 4kg trong tuần, khó thở kịch phát về đêm phải ngồi thở bên cửa sổ, hai phổi nhiều ran. (Mã ca V9-CD-0006)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0007",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân xơ gan cổ trướng, nôn ra 500ml máu đỏ tươi lẫn cục máu đông, người toát mồ hôi mạch nhanh nhỏ. (Mã ca V9-CD-0007)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0008",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân tai biến cũ đang nằm một chỗ, sốt cao 39.5 độ, ho sặc sụa, thở dốc 32 lần/phút và môi tím tái SpO2 84%. (Mã ca V9-CD-0008)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0009",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân đái tháo đường type 2 tái khám định kỳ, đường huyết đói 5.8 mmol/L, không sốt, không triệu chứng bất thường. (Mã ca V9-CD-0009)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0010",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân tăng huyết áp vô căn đang dùng Losartan 50mg, huyết áp đo tại phòng khám 125/80 mmHg, đến xin cấp phát thuốc định kỳ. (Mã ca V9-CD-0010)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0011",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân suy thận mạn giai đoạn cuối bỏ chạy thận 3 ngày nay, hiện cảm thấy tức ngực, tim đập chậm rì 40 nhịp/phút và yếu rũ hai chân. (Mã ca V9-CD-0011)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0012",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân tiểu đường type 1 sốt cao 39 độ, nôn ói liên tục, thở nhanh sâu có mùi táo thối và đường huyết đo tại nhà vượt ngưỡng High. (Mã ca V9-CD-0012)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0013",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Đang điều trị ung thư hóa trị đợt 3, sốt 39.2 độ rét run dữ dội, người mệt lả không nhấc nổi đầu. (Mã ca V9-CD-0013)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0014",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân sau phẫu thuật thay khớp háng 5 ngày, đột ngột đau nhói ngực khi hít thở, ho ra ít máu và khó thở dồn dập. (Mã ca V9-CD-0014)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0015",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Thai phụ 34 tuần huyết áp 170/110 mmHg, đau đầu buốt vùng chẩm kèm mắt nhìn mờ nhòe và buồn nôn. (Mã ca V9-CD-0015)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0016",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân suy tim EF 25%, tăng 4kg trong tuần, khó thở kịch phát về đêm phải ngồi thở bên cửa sổ, hai phổi nhiều ran. (Mã ca V9-CD-0016)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0017",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân xơ gan cổ trướng, nôn ra 500ml máu đỏ tươi lẫn cục máu đông, người toát mồ hôi mạch nhanh nhỏ. (Mã ca V9-CD-0017)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0018",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân tai biến cũ đang nằm một chỗ, sốt cao 39.5 độ, ho sặc sụa, thở dốc 32 lần/phút và môi tím tái SpO2 84%. (Mã ca V9-CD-0018)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0019",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân đái tháo đường type 2 tái khám định kỳ, đường huyết đói 5.8 mmol/L, không sốt, không triệu chứng bất thường. (Mã ca V9-CD-0019)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0020",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân tăng huyết áp vô căn đang dùng Losartan 50mg, huyết áp đo tại phòng khám 125/80 mmHg, đến xin cấp phát thuốc định kỳ. (Mã ca V9-CD-0020)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0021",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân suy thận mạn giai đoạn cuối bỏ chạy thận 3 ngày nay, hiện cảm thấy tức ngực, tim đập chậm rì 40 nhịp/phút và yếu rũ hai chân. (Mã ca V9-CD-0021)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0022",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân tiểu đường type 1 sốt cao 39 độ, nôn ói liên tục, thở nhanh sâu có mùi táo thối và đường huyết đo tại nhà vượt ngưỡng High. (Mã ca V9-CD-0022)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0023",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Đang điều trị ung thư hóa trị đợt 3, sốt 39.2 độ rét run dữ dội, người mệt lả không nhấc nổi đầu. (Mã ca V9-CD-0023)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0024",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân sau phẫu thuật thay khớp háng 5 ngày, đột ngột đau nhói ngực khi hít thở, ho ra ít máu và khó thở dồn dập. (Mã ca V9-CD-0024)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0025",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Thai phụ 34 tuần huyết áp 170/110 mmHg, đau đầu buốt vùng chẩm kèm mắt nhìn mờ nhòe và buồn nôn. (Mã ca V9-CD-0025)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0026",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân suy tim EF 25%, tăng 4kg trong tuần, khó thở kịch phát về đêm phải ngồi thở bên cửa sổ, hai phổi nhiều ran. (Mã ca V9-CD-0026)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0027",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân xơ gan cổ trướng, nôn ra 500ml máu đỏ tươi lẫn cục máu đông, người toát mồ hôi mạch nhanh nhỏ. (Mã ca V9-CD-0027)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0028",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân tai biến cũ đang nằm một chỗ, sốt cao 39.5 độ, ho sặc sụa, thở dốc 32 lần/phút và môi tím tái SpO2 84%. (Mã ca V9-CD-0028)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0029",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân đái tháo đường type 2 tái khám định kỳ, đường huyết đói 5.8 mmol/L, không sốt, không triệu chứng bất thường. (Mã ca V9-CD-0029)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0030",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân tăng huyết áp vô căn đang dùng Losartan 50mg, huyết áp đo tại phòng khám 125/80 mmHg, đến xin cấp phát thuốc định kỳ. (Mã ca V9-CD-0030)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0031",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân suy thận mạn giai đoạn cuối bỏ chạy thận 3 ngày nay, hiện cảm thấy tức ngực, tim đập chậm rì 40 nhịp/phút và yếu rũ hai chân. (Mã ca V9-CD-0031)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0032",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân tiểu đường type 1 sốt cao 39 độ, nôn ói liên tục, thở nhanh sâu có mùi táo thối và đường huyết đo tại nhà vượt ngưỡng High. (Mã ca V9-CD-0032)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0033",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Đang điều trị ung thư hóa trị đợt 3, sốt 39.2 độ rét run dữ dội, người mệt lả không nhấc nổi đầu. (Mã ca V9-CD-0033)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0034",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân sau phẫu thuật thay khớp háng 5 ngày, đột ngột đau nhói ngực khi hít thở, ho ra ít máu và khó thở dồn dập. (Mã ca V9-CD-0034)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0035",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Thai phụ 34 tuần huyết áp 170/110 mmHg, đau đầu buốt vùng chẩm kèm mắt nhìn mờ nhòe và buồn nôn. (Mã ca V9-CD-0035)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0036",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân suy tim EF 25%, tăng 4kg trong tuần, khó thở kịch phát về đêm phải ngồi thở bên cửa sổ, hai phổi nhiều ran. (Mã ca V9-CD-0036)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0037",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân xơ gan cổ trướng, nôn ra 500ml máu đỏ tươi lẫn cục máu đông, người toát mồ hôi mạch nhanh nhỏ. (Mã ca V9-CD-0037)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0038",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân tai biến cũ đang nằm một chỗ, sốt cao 39.5 độ, ho sặc sụa, thở dốc 32 lần/phút và môi tím tái SpO2 84%. (Mã ca V9-CD-0038)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0039",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân đái tháo đường type 2 tái khám định kỳ, đường huyết đói 5.8 mmol/L, không sốt, không triệu chứng bất thường. (Mã ca V9-CD-0039)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-CD-0040",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Bệnh cảnh phối hợp đa chuyên khoa]: Bệnh nhân tăng huyết áp vô căn đang dùng Losartan 50mg, huyết áp đo tại phòng khám 125/80 mmHg, đến xin cấp phát thuốc định kỳ. (Mã ca V9-CD-0040)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0001",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Người tôi tự nhiên thở dốc như cá mắc cạn, lồng ngực như bị tảng đá tạ đè nghẹt thở không ra hơi.\" (Mã ca V9-IL-0001)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0002",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Người tôi lạnh ngắt như đồng từ đầu đến chân, mồ hôi hột toát ra ướt sũng cả áo mặc dù trời đang nóng.\" (Mã ca V9-IL-0002)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0003",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Đầu tôi đau buốt nhức nhối như bị búa tạ giáng thẳng vào đỉnh đầu sau khi ngã va đập gáy.\" (Mã ca V9-IL-0003)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0004",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Bụng tôi cứng đơ như khúc gỗ lim, sờ nhẹ vào là đau quặn thắt ruột gan lộn nhào.\" (Mã ca V9-IL-0004)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0005",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Một bên mặt tự nhiên méo xệch như bị trúng gió độc, miệng ú ớ nước dãi chảy ròng ròng.\" (Mã ca V9-IL-0005)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0006",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Toàn thân nổi mẩn ngứa râm ran như đàn kiến cắn sau khi ăn nhộng tằm, cổ họng nghẹn đặc nuốt không trôi.\" (Mã ca V9-IL-0006)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0007",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Ngủ dậy thấy cổ bị vẹo sang một bên do nằm gối đầu hơi cao, xoay cổ thấy hơi gượng cứng nhẹ không sốt.\" (Mã ca V9-IL-0007)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0008",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Người tôi tự nhiên thở dốc như cá mắc cạn, lồng ngực như bị tảng đá tạ đè nghẹt thở không ra hơi.\" (Mã ca V9-IL-0008)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0009",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Người tôi lạnh ngắt như đồng từ đầu đến chân, mồ hôi hột toát ra ướt sũng cả áo mặc dù trời đang nóng.\" (Mã ca V9-IL-0009)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0010",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Đầu tôi đau buốt nhức nhối như bị búa tạ giáng thẳng vào đỉnh đầu sau khi ngã va đập gáy.\" (Mã ca V9-IL-0010)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0011",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Bụng tôi cứng đơ như khúc gỗ lim, sờ nhẹ vào là đau quặn thắt ruột gan lộn nhào.\" (Mã ca V9-IL-0011)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0012",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Một bên mặt tự nhiên méo xệch như bị trúng gió độc, miệng ú ớ nước dãi chảy ròng ròng.\" (Mã ca V9-IL-0012)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0013",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Toàn thân nổi mẩn ngứa râm ran như đàn kiến cắn sau khi ăn nhộng tằm, cổ họng nghẹn đặc nuốt không trôi.\" (Mã ca V9-IL-0013)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0014",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Ngủ dậy thấy cổ bị vẹo sang một bên do nằm gối đầu hơi cao, xoay cổ thấy hơi gượng cứng nhẹ không sốt.\" (Mã ca V9-IL-0014)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0015",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Người tôi tự nhiên thở dốc như cá mắc cạn, lồng ngực như bị tảng đá tạ đè nghẹt thở không ra hơi.\" (Mã ca V9-IL-0015)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0016",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Người tôi lạnh ngắt như đồng từ đầu đến chân, mồ hôi hột toát ra ướt sũng cả áo mặc dù trời đang nóng.\" (Mã ca V9-IL-0016)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0017",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Đầu tôi đau buốt nhức nhối như bị búa tạ giáng thẳng vào đỉnh đầu sau khi ngã va đập gáy.\" (Mã ca V9-IL-0017)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0018",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Bụng tôi cứng đơ như khúc gỗ lim, sờ nhẹ vào là đau quặn thắt ruột gan lộn nhào.\" (Mã ca V9-IL-0018)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0019",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Một bên mặt tự nhiên méo xệch như bị trúng gió độc, miệng ú ớ nước dãi chảy ròng ròng.\" (Mã ca V9-IL-0019)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0020",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Toàn thân nổi mẩn ngứa râm ran như đàn kiến cắn sau khi ăn nhộng tằm, cổ họng nghẹn đặc nuốt không trôi.\" (Mã ca V9-IL-0020)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0021",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Ngủ dậy thấy cổ bị vẹo sang một bên do nằm gối đầu hơi cao, xoay cổ thấy hơi gượng cứng nhẹ không sốt.\" (Mã ca V9-IL-0021)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0022",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Người tôi tự nhiên thở dốc như cá mắc cạn, lồng ngực như bị tảng đá tạ đè nghẹt thở không ra hơi.\" (Mã ca V9-IL-0022)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0023",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Người tôi lạnh ngắt như đồng từ đầu đến chân, mồ hôi hột toát ra ướt sũng cả áo mặc dù trời đang nóng.\" (Mã ca V9-IL-0023)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0024",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Đầu tôi đau buốt nhức nhối như bị búa tạ giáng thẳng vào đỉnh đầu sau khi ngã va đập gáy.\" (Mã ca V9-IL-0024)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0025",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Bụng tôi cứng đơ như khúc gỗ lim, sờ nhẹ vào là đau quặn thắt ruột gan lộn nhào.\" (Mã ca V9-IL-0025)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0026",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Một bên mặt tự nhiên méo xệch như bị trúng gió độc, miệng ú ớ nước dãi chảy ròng ròng.\" (Mã ca V9-IL-0026)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0027",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Toàn thân nổi mẩn ngứa râm ran như đàn kiến cắn sau khi ăn nhộng tằm, cổ họng nghẹn đặc nuốt không trôi.\" (Mã ca V9-IL-0027)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0028",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Ngủ dậy thấy cổ bị vẹo sang một bên do nằm gối đầu hơi cao, xoay cổ thấy hơi gượng cứng nhẹ không sốt.\" (Mã ca V9-IL-0028)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0029",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Người tôi tự nhiên thở dốc như cá mắc cạn, lồng ngực như bị tảng đá tạ đè nghẹt thở không ra hơi.\" (Mã ca V9-IL-0029)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0030",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Người tôi lạnh ngắt như đồng từ đầu đến chân, mồ hôi hột toát ra ướt sũng cả áo mặc dù trời đang nóng.\" (Mã ca V9-IL-0030)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0031",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Đầu tôi đau buốt nhức nhối như bị búa tạ giáng thẳng vào đỉnh đầu sau khi ngã va đập gáy.\" (Mã ca V9-IL-0031)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0032",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Bụng tôi cứng đơ như khúc gỗ lim, sờ nhẹ vào là đau quặn thắt ruột gan lộn nhào.\" (Mã ca V9-IL-0032)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0033",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Một bên mặt tự nhiên méo xệch như bị trúng gió độc, miệng ú ớ nước dãi chảy ròng ròng.\" (Mã ca V9-IL-0033)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0034",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Toàn thân nổi mẩn ngứa râm ran như đàn kiến cắn sau khi ăn nhộng tằm, cổ họng nghẹn đặc nuốt không trôi.\" (Mã ca V9-IL-0034)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-IL-0035",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân mô tả: \"Ngủ dậy thấy cổ bị vẹo sang một bên do nằm gối đầu hơi cao, xoay cổ thấy hơi gượng cứng nhẹ không sốt.\" (Mã ca V9-IL-0035)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-UNC-0001",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca bất định lâm sàng #1]: Tôi nghĩ mình chỉ bị trúng gió mệt mỏi thông thường thôi, nhưng người nhà đo huyết áp thấy 210/120 mmHg và tôi đang nhức đầu dữ dội nôn ói."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-UNC-0002",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca bất định lâm sàng #2]: Tôi không có tiền sử bệnh tim gì cả chắc không sao, nhưng từ chiều đến giờ cứ gắng sức là ngực thắt nghẹn lại và khó thở vã mồ hôi."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-UNC-0003",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca bất định lâm sàng #3]: Đo SpO2 ngón tay thấy nhảy lung tung lúc 82% lúc 88%, môi thấy nhợt nhạt và thở co kéo lồng ngực nhiều."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-UNC-0004",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca bất định lâm sàng #4]: Tôi bị sốt nhẹ 37.8 độ nhưng người nhà thấy tôi nói năng lảm nhảm vô thức và cổ gượng cứng nhắc."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-UNC-0005",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca bất định lâm sàng #5]: Bụng tôi lúc đau lúc không nhưng vừa đi cầu ra một bãi phân toàn máu đen tanh nồng và đứng lên thấy hoa mắt tối sầm."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-UNC-0006",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca bất định lâm sàng #6]: Tôi nghĩ mình chỉ bị trúng gió mệt mỏi thông thường thôi, nhưng người nhà đo huyết áp thấy 210/120 mmHg và tôi đang nhức đầu dữ dội nôn ói."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-UNC-0007",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca bất định lâm sàng #7]: Tôi không có tiền sử bệnh tim gì cả chắc không sao, nhưng từ chiều đến giờ cứ gắng sức là ngực thắt nghẹn lại và khó thở vã mồ hôi."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-UNC-0008",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca bất định lâm sàng #8]: Đo SpO2 ngón tay thấy nhảy lung tung lúc 82% lúc 88%, môi thấy nhợt nhạt và thở co kéo lồng ngực nhiều."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-UNC-0009",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca bất định lâm sàng #9]: Tôi bị sốt nhẹ 37.8 độ nhưng người nhà thấy tôi nói năng lảm nhảm vô thức và cổ gượng cứng nhắc."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-UNC-0010",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca bất định lâm sàng #10]: Bụng tôi lúc đau lúc không nhưng vừa đi cầu ra một bãi phân toàn máu đen tanh nồng và đứng lên thấy hoa mắt tối sầm."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-UNC-0011",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca bất định lâm sàng #11]: Tôi nghĩ mình chỉ bị trúng gió mệt mỏi thông thường thôi, nhưng người nhà đo huyết áp thấy 210/120 mmHg và tôi đang nhức đầu dữ dội nôn ói."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-UNC-0012",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca bất định lâm sàng #12]: Tôi không có tiền sử bệnh tim gì cả chắc không sao, nhưng từ chiều đến giờ cứ gắng sức là ngực thắt nghẹn lại và khó thở vã mồ hôi."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-UNC-0013",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca bất định lâm sàng #13]: Đo SpO2 ngón tay thấy nhảy lung tung lúc 82% lúc 88%, môi thấy nhợt nhạt và thở co kéo lồng ngực nhiều."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-UNC-0014",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca bất định lâm sàng #14]: Tôi bị sốt nhẹ 37.8 độ nhưng người nhà thấy tôi nói năng lảm nhảm vô thức và cổ gượng cứng nhắc."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-UNC-0015",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca bất định lâm sàng #15]: Bụng tôi lúc đau lúc không nhưng vừa đi cầu ra một bãi phân toàn máu đen tanh nồng và đứng lên thấy hoa mắt tối sầm."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-UNC-0016",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca bất định lâm sàng #16]: Tôi nghĩ mình chỉ bị trúng gió mệt mỏi thông thường thôi, nhưng người nhà đo huyết áp thấy 210/120 mmHg và tôi đang nhức đầu dữ dội nôn ói."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-UNC-0017",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca bất định lâm sàng #17]: Tôi không có tiền sử bệnh tim gì cả chắc không sao, nhưng từ chiều đến giờ cứ gắng sức là ngực thắt nghẹn lại và khó thở vã mồ hôi."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-UNC-0018",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca bất định lâm sàng #18]: Đo SpO2 ngón tay thấy nhảy lung tung lúc 82% lúc 88%, môi thấy nhợt nhạt và thở co kéo lồng ngực nhiều."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-UNC-0019",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca bất định lâm sàng #19]: Tôi bị sốt nhẹ 37.8 độ nhưng người nhà thấy tôi nói năng lảm nhảm vô thức và cổ gượng cứng nhắc."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-UNC-0020",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca bất định lâm sàng #20]: Bụng tôi lúc đau lúc không nhưng vừa đi cầu ra một bãi phân toàn máu đen tanh nồng và đứng lên thấy hoa mắt tối sầm."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-UNC-0021",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca bất định lâm sàng #21]: Tôi nghĩ mình chỉ bị trúng gió mệt mỏi thông thường thôi, nhưng người nhà đo huyết áp thấy 210/120 mmHg và tôi đang nhức đầu dữ dội nôn ói."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-UNC-0022",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca bất định lâm sàng #22]: Tôi không có tiền sử bệnh tim gì cả chắc không sao, nhưng từ chiều đến giờ cứ gắng sức là ngực thắt nghẹn lại và khó thở vã mồ hôi."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-UNC-0023",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca bất định lâm sàng #23]: Đo SpO2 ngón tay thấy nhảy lung tung lúc 82% lúc 88%, môi thấy nhợt nhạt và thở co kéo lồng ngực nhiều."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-UNC-0024",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca bất định lâm sàng #24]: Tôi bị sốt nhẹ 37.8 độ nhưng người nhà thấy tôi nói năng lảm nhảm vô thức và cổ gượng cứng nhắc."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-UNC-0025",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca bất định lâm sàng #25]: Bụng tôi lúc đau lúc không nhưng vừa đi cầu ra một bãi phân toàn máu đen tanh nồng và đứng lên thấy hoa mắt tối sầm."
+      }
+    ]
+  },
+  {
+    "case_id": "V9-MT-0001",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi thấy người hơi mệt mệt từ sáng nay, hơi tức tức ngực nhẹ khi làm việc nhà."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn hãy ngồi nghỉ ngơi và theo dõi xem cơn tức ngực có lan đi đâu không nhé."
+      },
+      {
+        "role": "user",
+        "content": "Bây giờ cơn đau ngực bỗng nhiên tăng mạnh dữ dội như đá đè, lan lên cằm và tôi vã mồ hôi lạnh buốt cả lưng rồi!"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-MT-0002",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bé nhà tôi 4 tuổi bị sốt 38.2 độ từ trưa, hơi ho nhẹ."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn hãy cho bé uống nhiều nước và theo dõi sát nhiệt độ của bé."
+      },
+      {
+        "role": "user",
+        "content": "Đột nhiên bé bị co giật toàn thân trợn tròn mắt sùi bọt mép, gọi không biết gì nữa bác sĩ ơi!"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-MT-0003",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi vừa uống thuốc kháng sinh Amoxicillin cách đây 15 phút, thấy ngứa nhẹ ở cổ."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn hãy chú ý xem có nổi mẩn hay khó thở không."
+      },
+      {
+        "role": "user",
+        "content": "Môi và mí mắt tôi sưng vù to tướng, cổ họng nghẹn thở rít lên không hít vào được!"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-MT-0004",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị đau đầu âm ỉ từ chiều sau khi ngồi làm việc."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn hãy thư giãn thả lỏng vùng cổ gáy."
+      },
+      {
+        "role": "user",
+        "content": "Đột nhiên đau đầu tăng vọt dữ dội kinh hoàng như nổ tung não, tôi nôn vọt ra sàn nhà và mắt mờ tịt!"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-MT-0005",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi thấy người hơi mệt mệt từ sáng nay, hơi tức tức ngực nhẹ khi làm việc nhà."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn hãy ngồi nghỉ ngơi và theo dõi xem cơn tức ngực có lan đi đâu không nhé."
+      },
+      {
+        "role": "user",
+        "content": "Bây giờ cơn đau ngực bỗng nhiên tăng mạnh dữ dội như đá đè, lan lên cằm và tôi vã mồ hôi lạnh buốt cả lưng rồi!"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-MT-0006",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bé nhà tôi 4 tuổi bị sốt 38.2 độ từ trưa, hơi ho nhẹ."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn hãy cho bé uống nhiều nước và theo dõi sát nhiệt độ của bé."
+      },
+      {
+        "role": "user",
+        "content": "Đột nhiên bé bị co giật toàn thân trợn tròn mắt sùi bọt mép, gọi không biết gì nữa bác sĩ ơi!"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-MT-0007",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi vừa uống thuốc kháng sinh Amoxicillin cách đây 15 phút, thấy ngứa nhẹ ở cổ."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn hãy chú ý xem có nổi mẩn hay khó thở không."
+      },
+      {
+        "role": "user",
+        "content": "Môi và mí mắt tôi sưng vù to tướng, cổ họng nghẹn thở rít lên không hít vào được!"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-MT-0008",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị đau đầu âm ỉ từ chiều sau khi ngồi làm việc."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn hãy thư giãn thả lỏng vùng cổ gáy."
+      },
+      {
+        "role": "user",
+        "content": "Đột nhiên đau đầu tăng vọt dữ dội kinh hoàng như nổ tung não, tôi nôn vọt ra sàn nhà và mắt mờ tịt!"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-MT-0009",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi thấy người hơi mệt mệt từ sáng nay, hơi tức tức ngực nhẹ khi làm việc nhà."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn hãy ngồi nghỉ ngơi và theo dõi xem cơn tức ngực có lan đi đâu không nhé."
+      },
+      {
+        "role": "user",
+        "content": "Bây giờ cơn đau ngực bỗng nhiên tăng mạnh dữ dội như đá đè, lan lên cằm và tôi vã mồ hôi lạnh buốt cả lưng rồi!"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-MT-0010",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bé nhà tôi 4 tuổi bị sốt 38.2 độ từ trưa, hơi ho nhẹ."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn hãy cho bé uống nhiều nước và theo dõi sát nhiệt độ của bé."
+      },
+      {
+        "role": "user",
+        "content": "Đột nhiên bé bị co giật toàn thân trợn tròn mắt sùi bọt mép, gọi không biết gì nữa bác sĩ ơi!"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-MT-0011",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi vừa uống thuốc kháng sinh Amoxicillin cách đây 15 phút, thấy ngứa nhẹ ở cổ."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn hãy chú ý xem có nổi mẩn hay khó thở không."
+      },
+      {
+        "role": "user",
+        "content": "Môi và mí mắt tôi sưng vù to tướng, cổ họng nghẹn thở rít lên không hít vào được!"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-MT-0012",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị đau đầu âm ỉ từ chiều sau khi ngồi làm việc."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn hãy thư giãn thả lỏng vùng cổ gáy."
+      },
+      {
+        "role": "user",
+        "content": "Đột nhiên đau đầu tăng vọt dữ dội kinh hoàng như nổ tung não, tôi nôn vọt ra sàn nhà và mắt mờ tịt!"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-MT-0013",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi thấy người hơi mệt mệt từ sáng nay, hơi tức tức ngực nhẹ khi làm việc nhà."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn hãy ngồi nghỉ ngơi và theo dõi xem cơn tức ngực có lan đi đâu không nhé."
+      },
+      {
+        "role": "user",
+        "content": "Bây giờ cơn đau ngực bỗng nhiên tăng mạnh dữ dội như đá đè, lan lên cằm và tôi vã mồ hôi lạnh buốt cả lưng rồi!"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-MT-0014",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bé nhà tôi 4 tuổi bị sốt 38.2 độ từ trưa, hơi ho nhẹ."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn hãy cho bé uống nhiều nước và theo dõi sát nhiệt độ của bé."
+      },
+      {
+        "role": "user",
+        "content": "Đột nhiên bé bị co giật toàn thân trợn tròn mắt sùi bọt mép, gọi không biết gì nữa bác sĩ ơi!"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-MT-0015",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi vừa uống thuốc kháng sinh Amoxicillin cách đây 15 phút, thấy ngứa nhẹ ở cổ."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn hãy chú ý xem có nổi mẩn hay khó thở không."
+      },
+      {
+        "role": "user",
+        "content": "Môi và mí mắt tôi sưng vù to tướng, cổ họng nghẹn thở rít lên không hít vào được!"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-MT-0016",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị đau đầu âm ỉ từ chiều sau khi ngồi làm việc."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn hãy thư giãn thả lỏng vùng cổ gáy."
+      },
+      {
+        "role": "user",
+        "content": "Đột nhiên đau đầu tăng vọt dữ dội kinh hoàng như nổ tung não, tôi nôn vọt ra sàn nhà và mắt mờ tịt!"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-MT-0017",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi thấy người hơi mệt mệt từ sáng nay, hơi tức tức ngực nhẹ khi làm việc nhà."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn hãy ngồi nghỉ ngơi và theo dõi xem cơn tức ngực có lan đi đâu không nhé."
+      },
+      {
+        "role": "user",
+        "content": "Bây giờ cơn đau ngực bỗng nhiên tăng mạnh dữ dội như đá đè, lan lên cằm và tôi vã mồ hôi lạnh buốt cả lưng rồi!"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-MT-0018",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bé nhà tôi 4 tuổi bị sốt 38.2 độ từ trưa, hơi ho nhẹ."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn hãy cho bé uống nhiều nước và theo dõi sát nhiệt độ của bé."
+      },
+      {
+        "role": "user",
+        "content": "Đột nhiên bé bị co giật toàn thân trợn tròn mắt sùi bọt mép, gọi không biết gì nữa bác sĩ ơi!"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-MT-0019",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi vừa uống thuốc kháng sinh Amoxicillin cách đây 15 phút, thấy ngứa nhẹ ở cổ."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn hãy chú ý xem có nổi mẩn hay khó thở không."
+      },
+      {
+        "role": "user",
+        "content": "Môi và mí mắt tôi sưng vù to tướng, cổ họng nghẹn thở rít lên không hít vào được!"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-MT-0020",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị đau đầu âm ỉ từ chiều sau khi ngồi làm việc."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn hãy thư giãn thả lỏng vùng cổ gáy."
+      },
+      {
+        "role": "user",
+        "content": "Đột nhiên đau đầu tăng vọt dữ dội kinh hoàng như nổ tung não, tôi nôn vọt ra sàn nhà và mắt mờ tịt!"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-BAC-0001",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca đối chứng loại trừ lành tính]: Tối qua tôi xem phim kinh dị nửa đêm bị dọa sợ thót tim đứng tim, lúc đó tim đập thình thịch, giờ sáng dậy bình thường. (Mã ca V9-BAC-0001)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-BAC-0002",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca đối chứng loại trừ lành tính]: Tôi vừa đọc bài báo về triệu chứng u não trên mạng xong thấy lo lắng bất an, thỉnh thoảng thấy nhức nhức đầu nhẹ khi suy nghĩ. (Mã ca V9-BAC-0002)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-BAC-0003",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca đối chứng loại trừ lành tính]: Tôi vừa cắn miếng kem que lạnh quá bị buốt thấu óc tầm 10 giây xong tự hết hoàn toàn không còn đau nữa. (Mã ca V9-BAC-0003)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-BAC-0004",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca đối chứng loại trừ lành tính]: Chiều qua tôi tập chống đẩy 50 cái ở phòng gym, sáng nay ngủ dậy thấy đau tức hai bên cơ ngực, ấn vào thấy ê ẩm cơ. (Mã ca V9-BAC-0004)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-BAC-0005",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca đối chứng loại trừ lành tính]: Tôi ngồi trong phòng điều hòa công ty lạnh 19 độ thấy hai bàn tay buốt lạnh ngắt, đi ra ngoài sân nắng 2 phút là tay ấm hồng lại. (Mã ca V9-BAC-0005)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-BAC-0006",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca đối chứng loại trừ lành tính]: Tôi vừa đi khám nha khoa nhổ răng hàm dưới về được 2 tiếng, khóe môi dưới còn hơi tê tê thuốc tê chưa tan hết hoàn toàn. (Mã ca V9-BAC-0006)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-BAC-0007",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca đối chứng loại trừ lành tính]: Hôm qua tôi chạy bộ 3km thể dục bình thường, hôm nay hai bắp chân thấy mỏi cơ sinh lý khi đi lại. (Mã ca V9-BAC-0007)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-BAC-0008",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca đối chứng loại trừ lành tính]: Tối qua đi ăn tiệc cưới ăn nhiều món lạ no căng bụng, sáng nay thấy bụng ấm ách đầy hơi khó tiêu nhẹ. (Mã ca V9-BAC-0008)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-BAC-0009",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca đối chứng loại trừ lành tính]: Thức khuya làm đồ án tốt nghiệp cả đêm đến 4 giờ sáng, sáng nay mắt thấy hơi mỏi điều tiết nhìn màn hình hơi nhòe nhẹ. (Mã ca V9-BAC-0009)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-BAC-0010",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca đối chứng loại trừ lành tính]: Bị cảm cúm thông thường 2 ngày nay, thỉnh thoảng hắt hơi sổ mũi nước trong, nhiệt độ 36.8 độ hoàn toàn không sốt. (Mã ca V9-BAC-0010)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-BAC-0011",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca đối chứng loại trừ lành tính]: Tối qua tôi xem phim kinh dị nửa đêm bị dọa sợ thót tim đứng tim, lúc đó tim đập thình thịch, giờ sáng dậy bình thường. (Mã ca V9-BAC-0011)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-BAC-0012",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca đối chứng loại trừ lành tính]: Tôi vừa đọc bài báo về triệu chứng u não trên mạng xong thấy lo lắng bất an, thỉnh thoảng thấy nhức nhức đầu nhẹ khi suy nghĩ. (Mã ca V9-BAC-0012)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-BAC-0013",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca đối chứng loại trừ lành tính]: Tôi vừa cắn miếng kem que lạnh quá bị buốt thấu óc tầm 10 giây xong tự hết hoàn toàn không còn đau nữa. (Mã ca V9-BAC-0013)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-BAC-0014",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca đối chứng loại trừ lành tính]: Chiều qua tôi tập chống đẩy 50 cái ở phòng gym, sáng nay ngủ dậy thấy đau tức hai bên cơ ngực, ấn vào thấy ê ẩm cơ. (Mã ca V9-BAC-0014)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-BAC-0015",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca đối chứng loại trừ lành tính]: Tôi ngồi trong phòng điều hòa công ty lạnh 19 độ thấy hai bàn tay buốt lạnh ngắt, đi ra ngoài sân nắng 2 phút là tay ấm hồng lại. (Mã ca V9-BAC-0015)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-BAC-0016",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca đối chứng loại trừ lành tính]: Tôi vừa đi khám nha khoa nhổ răng hàm dưới về được 2 tiếng, khóe môi dưới còn hơi tê tê thuốc tê chưa tan hết hoàn toàn. (Mã ca V9-BAC-0016)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-BAC-0017",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca đối chứng loại trừ lành tính]: Hôm qua tôi chạy bộ 3km thể dục bình thường, hôm nay hai bắp chân thấy mỏi cơ sinh lý khi đi lại. (Mã ca V9-BAC-0017)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-BAC-0018",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca đối chứng loại trừ lành tính]: Tối qua đi ăn tiệc cưới ăn nhiều món lạ no căng bụng, sáng nay thấy bụng ấm ách đầy hơi khó tiêu nhẹ. (Mã ca V9-BAC-0018)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-BAC-0019",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca đối chứng loại trừ lành tính]: Thức khuya làm đồ án tốt nghiệp cả đêm đến 4 giờ sáng, sáng nay mắt thấy hơi mỏi điều tiết nhìn màn hình hơi nhòe nhẹ. (Mã ca V9-BAC-0019)"
+      }
+    ]
+  },
+  {
+    "case_id": "V9-BAC-0020",
+    "messages": [
+      {
+        "role": "user",
+        "content": "[Ca đối chứng loại trừ lành tính]: Bị cảm cúm thông thường 2 ngày nay, thỉnh thoảng hắt hơi sổ mũi nước trong, nhiệt độ 36.8 độ hoàn toàn không sốt. (Mã ca V9-BAC-0020)"
+      }
+    ]
+  }
+]

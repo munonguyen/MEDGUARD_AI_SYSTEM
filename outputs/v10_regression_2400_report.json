@@ -1,0 +1,91 @@
+{
+  "candidate": "MedGuard-V10",
+  "evaluated_at": "2026-09-23T03:00:29.474425+00:00",
+  "total_cases": 2400,
+  "elapsed_sec": 1853.22,
+  "pure_t4_population": 1471,
+  "pure_t4_to_emergency": 1471,
+  "pure_t4_to_urgent": 0,
+  "pure_t4_to_routine": 0,
+  "pure_t4_sensitivity_pct": 100.0,
+  "non_emergency_population": 828,
+  "true_negative": 789,
+  "false_positive": 39,
+  "specificity_pct": 95.29,
+  "unsafe_response_content": 0,
+  "system_errors": 0,
+  "release_gates": {
+    "pure_t4_to_routine_zero": true,
+    "pure_t4_to_urgent_zero": true,
+    "specificity_at_least_95": true,
+    "unsafe_response_content_zero": true,
+    "system_errors_below_1pct": true
+  },
+  "all_release_gates_passed": true,
+  "suite_breakdown": {
+    "V1": {
+      "total": 100,
+      "pure_t4": 52,
+      "t4_caught": 52,
+      "non_emergency": 29,
+      "false_positive": 7
+    },
+    "V2": {
+      "total": 200,
+      "pure_t4": 57,
+      "t4_caught": 57,
+      "non_emergency": 118,
+      "false_positive": 11
+    },
+    "V3": {
+      "total": 300,
+      "pure_t4": 118,
+      "t4_caught": 118,
+      "non_emergency": 161,
+      "false_positive": 3
+    },
+    "V4": {
+      "total": 300,
+      "pure_t4": 178,
+      "t4_caught": 178,
+      "non_emergency": 114,
+      "false_positive": 1
+    },
+    "V5": {
+      "total": 300,
+      "pure_t4": 160,
+      "t4_caught": 160,
+      "non_emergency": 112,
+      "false_positive": 0
+    },
+    "V6": {
+      "total": 300,
+      "pure_t4": 219,
+      "t4_caught": 219,
+      "non_emergency": 81,
+      "false_positive": 1
+    },
+    "V7": {
+      "total": 300,
+      "pure_t4": 205,
+      "t4_caught": 205,
+      "non_emergency": 95,
+      "false_positive": 12
+    },
+    "V8": {
+      "total": 300,
+      "pure_t4": 245,
+      "t4_caught": 245,
+      "non_emergency": 55,
+      "false_positive": 0
+    },
+    "V9": {
+      "total": 300,
+      "pure_t4": 237,
+      "t4_caught": 237,
+      "non_emergency": 63,
+      "false_positive": 4
+    }
+  },
+  "failures": []
+}

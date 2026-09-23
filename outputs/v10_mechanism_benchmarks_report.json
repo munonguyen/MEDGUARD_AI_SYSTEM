@@ -1,0 +1,36 @@
+{
+  "candidate": "MedGuard-V10",
+  "total_cases": 180,
+  "benchmarks": {
+    "A": {
+      "total": 50,
+      "passed": 50,
+      "failed": 0,
+      "accuracy_pct": 100.0,
+      "release_gate_passed": true
+    },
+    "B": {
+      "total": 50,
+      "passed": 50,
+      "failed": 0,
+      "accuracy_pct": 100.0,
+      "release_gate_passed": true
+    },
+    "C": {
+      "total": 30,
+      "passed": 30,
+      "failed": 0,
+      "accuracy_pct": 100.0,
+      "release_gate_passed": true
+    },
+    "D": {
+      "total": 50,
+      "passed": 50,
+      "failed": 0,
+      "accuracy_pct": 100.0,
+      "release_gate_passed": true
+    }
+  },
+  "all_release_gates_passed": true,
+  "failures": []
+}
