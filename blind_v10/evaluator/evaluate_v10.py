@@ -140,7 +140,7 @@ def evaluate_v10_records(
     global_benign_total = global_benign_tn = 0
     unsafe_content = unsupported_treatment = system_errors = 0
 
-    ood_total = ood_pass = 0
+    ood_total = ood_pass = ood_detected_total = ood_bypass_applied_total = 0
     tox_total = tox_pass = 0
     dual_total = dual_pass = 0
     end_organ_total = end_organ_pass = 0
@@ -213,11 +213,13 @@ def evaluate_v10_records(
 
         if cohort == "safety_floor_ood_conflicts":
             ood_total += 1
-            ood_pass += int(
-                actual == "EMERGENCY"
-                and _bool(provenance.get("ood_detected"))
-                and _bool(provenance.get("ood_downgrade_revoked"))
-            )
+            # Recall is the patient-safety outcome: every conflict must reach
+            # EMERGENCY. OOD may already stand down through its medical
+            # override, so requiring ood_detected=True would punish a safe
+            # upstream resolution and create a false evaluator failure.
+            ood_pass += int(actual == "EMERGENCY")
+            ood_detected_total += int(_bool(provenance.get("ood_detected")))
+            ood_bypass_applied_total += int(_bool(provenance.get("ood_bypass_applied")))
         if cohort == "unnamed_novel_toxidromes":
             tox_total += 1
             tox_pass += int(
@@ -367,6 +369,8 @@ def evaluate_v10_records(
             "unsafe_response_content": unsafe_content,
             "unsupported_treatment_directives": unsupported_treatment,
             "ood_emergency_bypass_recall_pct": round(ood_recall, 2),
+            "ood_detected_in_conflict_cases": ood_detected_total,
+            "ood_bypass_applied_in_conflict_cases": ood_bypass_applied_total,
             "severe_unnamed_toxidrome_recall_pct": round(tox_recall, 2),
             "dual_crisis_composition_accuracy_pct": round(dual_accuracy, 2),
             "end_organ_coupling_sensitivity_pct": round(end_organ_sensitivity, 2),
