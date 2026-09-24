@@ -1,0 +1,9 @@
+{
+  "format": "medguard-blind-v10-predictions-seal-v1",
+  "candidate_commit": "fd37d71c6b309bdeccfb8dada9a3d8e39f5fe9ac",
+  "cases_sha256": "94f793a509c503b3654bb45c15c24e6b269d7f8e6e1ceda17240a6ef9192ecab",
+  "predictions_sha256": "dc84b80aa1857bdb082952f7f6bed30884dba73afe46536ea6acabfffae9a1b9",
+  "entry_count": 300,
+  "sealed_at": "2026-09-24T03:20:35.927085+00:00",
+  "hmac_sha256": "c309c9477561ea2e25d1bd3d0cdef82d42340b6c485f749b72099dc0882911b6"
+}
