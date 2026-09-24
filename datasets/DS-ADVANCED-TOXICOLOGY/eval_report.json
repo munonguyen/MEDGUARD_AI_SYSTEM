@@ -1,0 +1,11 @@
+{
+  "total_cases": 160,
+  "accuracy": 100.0,
+  "critical_under_triage": 0,
+  "over_triage": 0,
+  "gate1_passed": true,
+  "gate2_passed": true,
+  "all_passed": true,
+  "failures_count": 0,
+  "failures": []
+}

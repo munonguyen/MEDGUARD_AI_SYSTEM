@@ -1,0 +1,56 @@
+__pycache__/
+.pytest_cache/
+.venv/
+*.pyc
+.coverage
+coverage.xml
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.env
+.env.production
+!.env.example
+!.env.production.example
+!**/.env.example
+*.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
+.artifacts/
+*.log
+.DS_Store
+
+# React / Vite / browser test output
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/
+frontend/playwright-report/
+frontend/test-results/
+
+# Editors
+.idea/
+.vscode/
+
+# Local training artifacts. Curated manifests and gates remain versioned.
+training/raw/
+training/processed/
+training/compiled/
+training/runs/
+
+# Local databases and archives
+*.db
+*.zip
+scratch/
+
+# Benchmark intermediate dumps and prediction logs
+*.jsonl
+*_failures.json
+all_*_failures.json
+calibration_1200.json
+post_1500_*.json
+post_step1_*.json
+post_step2_*.json
+post_step3_failures.json
+post_step3_uncertainty_stress_baseline.json
+replay_*_report.json
+oof_predictions.json
+

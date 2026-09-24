@@ -1,0 +1,1822 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "total": 200
+  },
+  "cases": [
+    {
+      "case_id": "TRIAGE-0001",
+      "symptoms_text": "Bệnh nhân 40 tuổi. Bệnh nhân hôn mê sâu, thở ngáp cá, ngừng tuần hoàn, không bắt được mạch cảnh (Ghi nhận ca #1)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "CARDIOLOGY",
+      "expected_red_flags": [
+        "Ngừng tuần hoàn",
+        "Hôn mê"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0002",
+      "symptoms_text": "Bệnh nhân 41 tuổi. Khó thở dữ dội, tím tái toàn thân, SpO2 72%, thở rít thanh quản sau khi ăn tôm, huyết áp tụt 60/40 (Ghi nhận ca #2)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "ALLERGY_IMMUNOLOGY",
+      "expected_red_flags": [
+        "Phản vệ độ 4",
+        "Tụt huyết áp",
+        "Suy hô hấp cấp"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0003",
+      "symptoms_text": "Bệnh nhân 42 tuổi. Vết thương thấu ngực phì phò khí và máu, mạch nhanh nhỏ 140 l/p, huyết áp 70/50, lơ mơ (Ghi nhận ca #3)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "SURGERY",
+      "expected_red_flags": [
+        "Sốc mất máu",
+        "Vết thương thấu ngực"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0004",
+      "symptoms_text": "Bệnh nhân 43 tuổi. Co giật toàn thể liên tục trên 20 phút không tỉnh, tím tái, sùi bọt mép (Ghi nhận ca #4)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "NEUROLOGY",
+      "expected_red_flags": [
+        "Trạng thái động kinh"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0005",
+      "symptoms_text": "Bệnh nhân 44 tuổi. Đau thắt ngực dữ dội kiểu đè nén sau xương ức lan lên cằm và tay trái từ 1 giờ, vã mồ hôi lạnh, buồn nôn (Ghi nhận ca #5)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "CARDIOLOGY",
+      "expected_red_flags": [
+        "Hội chứng vành cấp",
+        "Đau ngực điển hình"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0006",
+      "symptoms_text": "Bệnh nhân 45 tuổi. Đột ngột yếu liệt nửa người bên phải, méo miệng, nói ngọng xuất hiện cách đây 45 phút (Ghi nhận ca #6)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "NEUROLOGY",
+      "expected_red_flags": [
+        "Đột quỵ não cấp trong cửa sổ vàng"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0007",
+      "symptoms_text": "Bệnh nhân 46 tuổi. Khó thở nhiều, phải ngồi để thở, co kéo cơ hô hấp phụ, tiền sử hen phế quản, SpO2 88% (Ghi nhận ca #7)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "RESPIRATORY",
+      "expected_red_flags": [
+        "Cơn hen phế quản nặng"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0008",
+      "symptoms_text": "Bệnh nhân 47 tuổi. Đau bụng dữ dội hố chậu phải kèm sốt 39 độ, bụng co cứng như gỗ (Ghi nhận ca #8)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "GASTROENTEROLOGY",
+      "expected_red_flags": [
+        "Viêm phúc mạc ruột thừa"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0009",
+      "symptoms_text": "Bệnh nhân 48 tuổi. Nôn ra máu tươi lượng nhiều khoảng 300ml, hoa mắt chóng mặt, vã mồ hôi, mạch 115 (Ghi nhận ca #9)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "GASTROENTEROLOGY",
+      "expected_red_flags": [
+        "Xuất huyết tiêu hóa cao tiến triển"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0010",
+      "symptoms_text": "Bệnh nhân 49 tuổi. Đau âm ỉ vùng thượng vị kèm ợ chua 3 ngày nay, không nôn ra máu, bụng mềm, đại tiện bình thường (Ghi nhận ca #10)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "GASTROENTEROLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0011",
+      "symptoms_text": "Bệnh nhân 50 tuổi. Sốt cao 38.8 độ C từ 2 ngày, ho có đờm vàng đục, mệt mỏi, SpO2 96%, huyết áp 120/75 (Ghi nhận ca #11)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "RESPIRATORY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0012",
+      "symptoms_text": "Bệnh nhân 51 tuổi. Đau buốt khi đi tiểu, tiểu rắt nhiều lần, nước tiểu đục có mùi hôi, không sốt (Ghi nhận ca #12)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "NEPHROLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0013",
+      "symptoms_text": "Bệnh nhân 52 tuổi. Ngã xe máy sưng nề biến dạng cẳng tay phải, đau chói khi vận động, mạch quay bắt rõ (Ghi nhận ca #13)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "ORTHOPEDICS",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0014",
+      "symptoms_text": "Bệnh nhân 53 tuổi. Đau quặn từng cơn vùng mạn sườn phải lan xuống bẹn, tiểu buốt nhẹ, không sốt (Ghi nhận ca #14)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "NEPHROLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0015",
+      "symptoms_text": "Bệnh nhân 54 tuổi. Trẹo cổ chân khi chơi thể thao, sưng nhẹ mắt cá ngoài, vẫn đi lại nhẹ nhàng được (Ghi nhận ca #15)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "ORTHOPEDICS",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0016",
+      "symptoms_text": "Bệnh nhân 55 tuổi. Đau họng nhẹ, chảy nước mũi trong, ho khan húng hắng, nhiệt độ 37.2 độ C (Ghi nhận ca #16)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "OTORHINOLARYNGOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0017",
+      "symptoms_text": "Bệnh nhân 56 tuổi. Xuất hiện ban đỏ ngứa rải rác vùng lưng và tay sau khi tiếp xúc phấn hoa, không khó thở (Ghi nhận ca #17)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "DERMATOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0018",
+      "symptoms_text": "Bệnh nhân 57 tuổi. Vết trầy xước nông ở cẳng chân do va quẹt, chảy máu ít đã tự cầm, cần rửa và băng bó (Ghi nhận ca #18)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "GENERAL",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0019",
+      "symptoms_text": "Bệnh nhân 58 tuổi. Đến xin đơn thuốc duy trì hàng tháng cho bệnh tăng huyết áp, hiện tại không có triệu chứng gì bất thường (Ghi nhận ca #19)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "CARDIOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0020",
+      "symptoms_text": "Bệnh nhân 59 tuổi. Đến hẹn cắt chỉ vết thương sau phẫu thuật ngày thứ 7, vết mổ khô sạch, không sưng đỏ (Ghi nhận ca #20)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "SURGERY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0021",
+      "symptoms_text": "Bệnh nhân 60 tuổi. Khám sức khỏe định kỳ theo yêu cầu cơ quan, hiện cảm thấy khỏe mạnh bình thường (Ghi nhận ca #21)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "GENERAL",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0022",
+      "symptoms_text": "Bệnh nhân 61 tuổi. Tái khám định kỳ đái tháo đường típ 2, đường huyết đo tại nhà ổn định 6.2 mmol/L (Ghi nhận ca #22)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "ENDOCRINOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0023",
+      "symptoms_text": "Bệnh nhân 62 tuổi. Bệnh nhân hôn mê sâu, thở ngáp cá, ngừng tuần hoàn, không bắt được mạch cảnh (Ghi nhận ca #23)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "CARDIOLOGY",
+      "expected_red_flags": [
+        "Ngừng tuần hoàn",
+        "Hôn mê"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0024",
+      "symptoms_text": "Bệnh nhân 63 tuổi. Khó thở dữ dội, tím tái toàn thân, SpO2 72%, thở rít thanh quản sau khi ăn tôm, huyết áp tụt 60/40 (Ghi nhận ca #24)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "ALLERGY_IMMUNOLOGY",
+      "expected_red_flags": [
+        "Phản vệ độ 4",
+        "Tụt huyết áp",
+        "Suy hô hấp cấp"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0025",
+      "symptoms_text": "Bệnh nhân 64 tuổi. Vết thương thấu ngực phì phò khí và máu, mạch nhanh nhỏ 140 l/p, huyết áp 70/50, lơ mơ (Ghi nhận ca #25)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "SURGERY",
+      "expected_red_flags": [
+        "Sốc mất máu",
+        "Vết thương thấu ngực"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0026",
+      "symptoms_text": "Bệnh nhân 65 tuổi. Co giật toàn thể liên tục trên 20 phút không tỉnh, tím tái, sùi bọt mép (Ghi nhận ca #26)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "NEUROLOGY",
+      "expected_red_flags": [
+        "Trạng thái động kinh"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0027",
+      "symptoms_text": "Bệnh nhân 66 tuổi. Đau thắt ngực dữ dội kiểu đè nén sau xương ức lan lên cằm và tay trái từ 1 giờ, vã mồ hôi lạnh, buồn nôn (Ghi nhận ca #27)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "CARDIOLOGY",
+      "expected_red_flags": [
+        "Hội chứng vành cấp",
+        "Đau ngực điển hình"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0028",
+      "symptoms_text": "Bệnh nhân 67 tuổi. Đột ngột yếu liệt nửa người bên phải, méo miệng, nói ngọng xuất hiện cách đây 45 phút (Ghi nhận ca #28)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "NEUROLOGY",
+      "expected_red_flags": [
+        "Đột quỵ não cấp trong cửa sổ vàng"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0029",
+      "symptoms_text": "Bệnh nhân 68 tuổi. Khó thở nhiều, phải ngồi để thở, co kéo cơ hô hấp phụ, tiền sử hen phế quản, SpO2 88% (Ghi nhận ca #29)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "RESPIRATORY",
+      "expected_red_flags": [
+        "Cơn hen phế quản nặng"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0030",
+      "symptoms_text": "Bệnh nhân 69 tuổi. Đau bụng dữ dội hố chậu phải kèm sốt 39 độ, bụng co cứng như gỗ (Ghi nhận ca #30)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "GASTROENTEROLOGY",
+      "expected_red_flags": [
+        "Viêm phúc mạc ruột thừa"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0031",
+      "symptoms_text": "Bệnh nhân 70 tuổi. Nôn ra máu tươi lượng nhiều khoảng 300ml, hoa mắt chóng mặt, vã mồ hôi, mạch 115 (Ghi nhận ca #31)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "GASTROENTEROLOGY",
+      "expected_red_flags": [
+        "Xuất huyết tiêu hóa cao tiến triển"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0032",
+      "symptoms_text": "Bệnh nhân 71 tuổi. Đau âm ỉ vùng thượng vị kèm ợ chua 3 ngày nay, không nôn ra máu, bụng mềm, đại tiện bình thường (Ghi nhận ca #32)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "GASTROENTEROLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0033",
+      "symptoms_text": "Bệnh nhân 72 tuổi. Sốt cao 38.8 độ C từ 2 ngày, ho có đờm vàng đục, mệt mỏi, SpO2 96%, huyết áp 120/75 (Ghi nhận ca #33)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "RESPIRATORY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0034",
+      "symptoms_text": "Bệnh nhân 73 tuổi. Đau buốt khi đi tiểu, tiểu rắt nhiều lần, nước tiểu đục có mùi hôi, không sốt (Ghi nhận ca #34)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "NEPHROLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0035",
+      "symptoms_text": "Bệnh nhân 74 tuổi. Ngã xe máy sưng nề biến dạng cẳng tay phải, đau chói khi vận động, mạch quay bắt rõ (Ghi nhận ca #35)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "ORTHOPEDICS",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0036",
+      "symptoms_text": "Bệnh nhân 40 tuổi. Đau quặn từng cơn vùng mạn sườn phải lan xuống bẹn, tiểu buốt nhẹ, không sốt (Ghi nhận ca #36)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "NEPHROLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0037",
+      "symptoms_text": "Bệnh nhân 41 tuổi. Trẹo cổ chân khi chơi thể thao, sưng nhẹ mắt cá ngoài, vẫn đi lại nhẹ nhàng được (Ghi nhận ca #37)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "ORTHOPEDICS",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0038",
+      "symptoms_text": "Bệnh nhân 42 tuổi. Đau họng nhẹ, chảy nước mũi trong, ho khan húng hắng, nhiệt độ 37.2 độ C (Ghi nhận ca #38)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "OTORHINOLARYNGOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0039",
+      "symptoms_text": "Bệnh nhân 43 tuổi. Xuất hiện ban đỏ ngứa rải rác vùng lưng và tay sau khi tiếp xúc phấn hoa, không khó thở (Ghi nhận ca #39)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "DERMATOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0040",
+      "symptoms_text": "Bệnh nhân 44 tuổi. Vết trầy xước nông ở cẳng chân do va quẹt, chảy máu ít đã tự cầm, cần rửa và băng bó (Ghi nhận ca #40)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "GENERAL",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0041",
+      "symptoms_text": "Bệnh nhân 45 tuổi. Đến xin đơn thuốc duy trì hàng tháng cho bệnh tăng huyết áp, hiện tại không có triệu chứng gì bất thường (Ghi nhận ca #41)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "CARDIOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0042",
+      "symptoms_text": "Bệnh nhân 46 tuổi. Đến hẹn cắt chỉ vết thương sau phẫu thuật ngày thứ 7, vết mổ khô sạch, không sưng đỏ (Ghi nhận ca #42)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "SURGERY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0043",
+      "symptoms_text": "Bệnh nhân 47 tuổi. Khám sức khỏe định kỳ theo yêu cầu cơ quan, hiện cảm thấy khỏe mạnh bình thường (Ghi nhận ca #43)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "GENERAL",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0044",
+      "symptoms_text": "Bệnh nhân 48 tuổi. Tái khám định kỳ đái tháo đường típ 2, đường huyết đo tại nhà ổn định 6.2 mmol/L (Ghi nhận ca #44)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "ENDOCRINOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0045",
+      "symptoms_text": "Bệnh nhân 49 tuổi. Bệnh nhân hôn mê sâu, thở ngáp cá, ngừng tuần hoàn, không bắt được mạch cảnh (Ghi nhận ca #45)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "CARDIOLOGY",
+      "expected_red_flags": [
+        "Ngừng tuần hoàn",
+        "Hôn mê"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0046",
+      "symptoms_text": "Bệnh nhân 50 tuổi. Khó thở dữ dội, tím tái toàn thân, SpO2 72%, thở rít thanh quản sau khi ăn tôm, huyết áp tụt 60/40 (Ghi nhận ca #46)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "ALLERGY_IMMUNOLOGY",
+      "expected_red_flags": [
+        "Phản vệ độ 4",
+        "Tụt huyết áp",
+        "Suy hô hấp cấp"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0047",
+      "symptoms_text": "Bệnh nhân 51 tuổi. Vết thương thấu ngực phì phò khí và máu, mạch nhanh nhỏ 140 l/p, huyết áp 70/50, lơ mơ (Ghi nhận ca #47)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "SURGERY",
+      "expected_red_flags": [
+        "Sốc mất máu",
+        "Vết thương thấu ngực"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0048",
+      "symptoms_text": "Bệnh nhân 52 tuổi. Co giật toàn thể liên tục trên 20 phút không tỉnh, tím tái, sùi bọt mép (Ghi nhận ca #48)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "NEUROLOGY",
+      "expected_red_flags": [
+        "Trạng thái động kinh"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0049",
+      "symptoms_text": "Bệnh nhân 53 tuổi. Đau thắt ngực dữ dội kiểu đè nén sau xương ức lan lên cằm và tay trái từ 1 giờ, vã mồ hôi lạnh, buồn nôn (Ghi nhận ca #49)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "CARDIOLOGY",
+      "expected_red_flags": [
+        "Hội chứng vành cấp",
+        "Đau ngực điển hình"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0050",
+      "symptoms_text": "Bệnh nhân 54 tuổi. Đột ngột yếu liệt nửa người bên phải, méo miệng, nói ngọng xuất hiện cách đây 45 phút (Ghi nhận ca #50)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "NEUROLOGY",
+      "expected_red_flags": [
+        "Đột quỵ não cấp trong cửa sổ vàng"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0051",
+      "symptoms_text": "Bệnh nhân 55 tuổi. Khó thở nhiều, phải ngồi để thở, co kéo cơ hô hấp phụ, tiền sử hen phế quản, SpO2 88% (Ghi nhận ca #51)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "RESPIRATORY",
+      "expected_red_flags": [
+        "Cơn hen phế quản nặng"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0052",
+      "symptoms_text": "Bệnh nhân 56 tuổi. Đau bụng dữ dội hố chậu phải kèm sốt 39 độ, bụng co cứng như gỗ (Ghi nhận ca #52)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "GASTROENTEROLOGY",
+      "expected_red_flags": [
+        "Viêm phúc mạc ruột thừa"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0053",
+      "symptoms_text": "Bệnh nhân 57 tuổi. Nôn ra máu tươi lượng nhiều khoảng 300ml, hoa mắt chóng mặt, vã mồ hôi, mạch 115 (Ghi nhận ca #53)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "GASTROENTEROLOGY",
+      "expected_red_flags": [
+        "Xuất huyết tiêu hóa cao tiến triển"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0054",
+      "symptoms_text": "Bệnh nhân 58 tuổi. Đau âm ỉ vùng thượng vị kèm ợ chua 3 ngày nay, không nôn ra máu, bụng mềm, đại tiện bình thường (Ghi nhận ca #54)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "GASTROENTEROLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0055",
+      "symptoms_text": "Bệnh nhân 59 tuổi. Sốt cao 38.8 độ C từ 2 ngày, ho có đờm vàng đục, mệt mỏi, SpO2 96%, huyết áp 120/75 (Ghi nhận ca #55)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "RESPIRATORY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0056",
+      "symptoms_text": "Bệnh nhân 60 tuổi. Đau buốt khi đi tiểu, tiểu rắt nhiều lần, nước tiểu đục có mùi hôi, không sốt (Ghi nhận ca #56)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "NEPHROLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0057",
+      "symptoms_text": "Bệnh nhân 61 tuổi. Ngã xe máy sưng nề biến dạng cẳng tay phải, đau chói khi vận động, mạch quay bắt rõ (Ghi nhận ca #57)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "ORTHOPEDICS",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0058",
+      "symptoms_text": "Bệnh nhân 62 tuổi. Đau quặn từng cơn vùng mạn sườn phải lan xuống bẹn, tiểu buốt nhẹ, không sốt (Ghi nhận ca #58)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "NEPHROLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0059",
+      "symptoms_text": "Bệnh nhân 63 tuổi. Trẹo cổ chân khi chơi thể thao, sưng nhẹ mắt cá ngoài, vẫn đi lại nhẹ nhàng được (Ghi nhận ca #59)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "ORTHOPEDICS",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0060",
+      "symptoms_text": "Bệnh nhân 64 tuổi. Đau họng nhẹ, chảy nước mũi trong, ho khan húng hắng, nhiệt độ 37.2 độ C (Ghi nhận ca #60)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "OTORHINOLARYNGOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0061",
+      "symptoms_text": "Bệnh nhân 65 tuổi. Xuất hiện ban đỏ ngứa rải rác vùng lưng và tay sau khi tiếp xúc phấn hoa, không khó thở (Ghi nhận ca #61)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "DERMATOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0062",
+      "symptoms_text": "Bệnh nhân 66 tuổi. Vết trầy xước nông ở cẳng chân do va quẹt, chảy máu ít đã tự cầm, cần rửa và băng bó (Ghi nhận ca #62)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "GENERAL",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0063",
+      "symptoms_text": "Bệnh nhân 67 tuổi. Đến xin đơn thuốc duy trì hàng tháng cho bệnh tăng huyết áp, hiện tại không có triệu chứng gì bất thường (Ghi nhận ca #63)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "CARDIOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0064",
+      "symptoms_text": "Bệnh nhân 68 tuổi. Đến hẹn cắt chỉ vết thương sau phẫu thuật ngày thứ 7, vết mổ khô sạch, không sưng đỏ (Ghi nhận ca #64)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "SURGERY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0065",
+      "symptoms_text": "Bệnh nhân 69 tuổi. Khám sức khỏe định kỳ theo yêu cầu cơ quan, hiện cảm thấy khỏe mạnh bình thường (Ghi nhận ca #65)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "GENERAL",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0066",
+      "symptoms_text": "Bệnh nhân 70 tuổi. Tái khám định kỳ đái tháo đường típ 2, đường huyết đo tại nhà ổn định 6.2 mmol/L (Ghi nhận ca #66)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "ENDOCRINOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0067",
+      "symptoms_text": "Bệnh nhân 71 tuổi. Bệnh nhân hôn mê sâu, thở ngáp cá, ngừng tuần hoàn, không bắt được mạch cảnh (Ghi nhận ca #67)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "CARDIOLOGY",
+      "expected_red_flags": [
+        "Ngừng tuần hoàn",
+        "Hôn mê"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0068",
+      "symptoms_text": "Bệnh nhân 72 tuổi. Khó thở dữ dội, tím tái toàn thân, SpO2 72%, thở rít thanh quản sau khi ăn tôm, huyết áp tụt 60/40 (Ghi nhận ca #68)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "ALLERGY_IMMUNOLOGY",
+      "expected_red_flags": [
+        "Phản vệ độ 4",
+        "Tụt huyết áp",
+        "Suy hô hấp cấp"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0069",
+      "symptoms_text": "Bệnh nhân 73 tuổi. Vết thương thấu ngực phì phò khí và máu, mạch nhanh nhỏ 140 l/p, huyết áp 70/50, lơ mơ (Ghi nhận ca #69)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "SURGERY",
+      "expected_red_flags": [
+        "Sốc mất máu",
+        "Vết thương thấu ngực"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0070",
+      "symptoms_text": "Bệnh nhân 74 tuổi. Co giật toàn thể liên tục trên 20 phút không tỉnh, tím tái, sùi bọt mép (Ghi nhận ca #70)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "NEUROLOGY",
+      "expected_red_flags": [
+        "Trạng thái động kinh"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0071",
+      "symptoms_text": "Bệnh nhân 40 tuổi. Đau thắt ngực dữ dội kiểu đè nén sau xương ức lan lên cằm và tay trái từ 1 giờ, vã mồ hôi lạnh, buồn nôn (Ghi nhận ca #71)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "CARDIOLOGY",
+      "expected_red_flags": [
+        "Hội chứng vành cấp",
+        "Đau ngực điển hình"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0072",
+      "symptoms_text": "Bệnh nhân 41 tuổi. Đột ngột yếu liệt nửa người bên phải, méo miệng, nói ngọng xuất hiện cách đây 45 phút (Ghi nhận ca #72)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "NEUROLOGY",
+      "expected_red_flags": [
+        "Đột quỵ não cấp trong cửa sổ vàng"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0073",
+      "symptoms_text": "Bệnh nhân 42 tuổi. Khó thở nhiều, phải ngồi để thở, co kéo cơ hô hấp phụ, tiền sử hen phế quản, SpO2 88% (Ghi nhận ca #73)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "RESPIRATORY",
+      "expected_red_flags": [
+        "Cơn hen phế quản nặng"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0074",
+      "symptoms_text": "Bệnh nhân 43 tuổi. Đau bụng dữ dội hố chậu phải kèm sốt 39 độ, bụng co cứng như gỗ (Ghi nhận ca #74)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "GASTROENTEROLOGY",
+      "expected_red_flags": [
+        "Viêm phúc mạc ruột thừa"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0075",
+      "symptoms_text": "Bệnh nhân 44 tuổi. Nôn ra máu tươi lượng nhiều khoảng 300ml, hoa mắt chóng mặt, vã mồ hôi, mạch 115 (Ghi nhận ca #75)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "GASTROENTEROLOGY",
+      "expected_red_flags": [
+        "Xuất huyết tiêu hóa cao tiến triển"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0076",
+      "symptoms_text": "Bệnh nhân 45 tuổi. Đau âm ỉ vùng thượng vị kèm ợ chua 3 ngày nay, không nôn ra máu, bụng mềm, đại tiện bình thường (Ghi nhận ca #76)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "GASTROENTEROLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0077",
+      "symptoms_text": "Bệnh nhân 46 tuổi. Sốt cao 38.8 độ C từ 2 ngày, ho có đờm vàng đục, mệt mỏi, SpO2 96%, huyết áp 120/75 (Ghi nhận ca #77)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "RESPIRATORY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0078",
+      "symptoms_text": "Bệnh nhân 47 tuổi. Đau buốt khi đi tiểu, tiểu rắt nhiều lần, nước tiểu đục có mùi hôi, không sốt (Ghi nhận ca #78)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "NEPHROLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0079",
+      "symptoms_text": "Bệnh nhân 48 tuổi. Ngã xe máy sưng nề biến dạng cẳng tay phải, đau chói khi vận động, mạch quay bắt rõ (Ghi nhận ca #79)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "ORTHOPEDICS",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0080",
+      "symptoms_text": "Bệnh nhân 49 tuổi. Đau quặn từng cơn vùng mạn sườn phải lan xuống bẹn, tiểu buốt nhẹ, không sốt (Ghi nhận ca #80)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "NEPHROLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0081",
+      "symptoms_text": "Bệnh nhân 50 tuổi. Trẹo cổ chân khi chơi thể thao, sưng nhẹ mắt cá ngoài, vẫn đi lại nhẹ nhàng được (Ghi nhận ca #81)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "ORTHOPEDICS",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0082",
+      "symptoms_text": "Bệnh nhân 51 tuổi. Đau họng nhẹ, chảy nước mũi trong, ho khan húng hắng, nhiệt độ 37.2 độ C (Ghi nhận ca #82)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "OTORHINOLARYNGOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0083",
+      "symptoms_text": "Bệnh nhân 52 tuổi. Xuất hiện ban đỏ ngứa rải rác vùng lưng và tay sau khi tiếp xúc phấn hoa, không khó thở (Ghi nhận ca #83)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "DERMATOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0084",
+      "symptoms_text": "Bệnh nhân 53 tuổi. Vết trầy xước nông ở cẳng chân do va quẹt, chảy máu ít đã tự cầm, cần rửa và băng bó (Ghi nhận ca #84)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "GENERAL",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0085",
+      "symptoms_text": "Bệnh nhân 54 tuổi. Đến xin đơn thuốc duy trì hàng tháng cho bệnh tăng huyết áp, hiện tại không có triệu chứng gì bất thường (Ghi nhận ca #85)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "CARDIOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0086",
+      "symptoms_text": "Bệnh nhân 55 tuổi. Đến hẹn cắt chỉ vết thương sau phẫu thuật ngày thứ 7, vết mổ khô sạch, không sưng đỏ (Ghi nhận ca #86)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "SURGERY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0087",
+      "symptoms_text": "Bệnh nhân 56 tuổi. Khám sức khỏe định kỳ theo yêu cầu cơ quan, hiện cảm thấy khỏe mạnh bình thường (Ghi nhận ca #87)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "GENERAL",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0088",
+      "symptoms_text": "Bệnh nhân 57 tuổi. Tái khám định kỳ đái tháo đường típ 2, đường huyết đo tại nhà ổn định 6.2 mmol/L (Ghi nhận ca #88)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "ENDOCRINOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0089",
+      "symptoms_text": "Bệnh nhân 58 tuổi. Bệnh nhân hôn mê sâu, thở ngáp cá, ngừng tuần hoàn, không bắt được mạch cảnh (Ghi nhận ca #89)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "CARDIOLOGY",
+      "expected_red_flags": [
+        "Ngừng tuần hoàn",
+        "Hôn mê"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0090",
+      "symptoms_text": "Bệnh nhân 59 tuổi. Khó thở dữ dội, tím tái toàn thân, SpO2 72%, thở rít thanh quản sau khi ăn tôm, huyết áp tụt 60/40 (Ghi nhận ca #90)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "ALLERGY_IMMUNOLOGY",
+      "expected_red_flags": [
+        "Phản vệ độ 4",
+        "Tụt huyết áp",
+        "Suy hô hấp cấp"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0091",
+      "symptoms_text": "Bệnh nhân 60 tuổi. Vết thương thấu ngực phì phò khí và máu, mạch nhanh nhỏ 140 l/p, huyết áp 70/50, lơ mơ (Ghi nhận ca #91)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "SURGERY",
+      "expected_red_flags": [
+        "Sốc mất máu",
+        "Vết thương thấu ngực"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0092",
+      "symptoms_text": "Bệnh nhân 61 tuổi. Co giật toàn thể liên tục trên 20 phút không tỉnh, tím tái, sùi bọt mép (Ghi nhận ca #92)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "NEUROLOGY",
+      "expected_red_flags": [
+        "Trạng thái động kinh"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0093",
+      "symptoms_text": "Bệnh nhân 62 tuổi. Đau thắt ngực dữ dội kiểu đè nén sau xương ức lan lên cằm và tay trái từ 1 giờ, vã mồ hôi lạnh, buồn nôn (Ghi nhận ca #93)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "CARDIOLOGY",
+      "expected_red_flags": [
+        "Hội chứng vành cấp",
+        "Đau ngực điển hình"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0094",
+      "symptoms_text": "Bệnh nhân 63 tuổi. Đột ngột yếu liệt nửa người bên phải, méo miệng, nói ngọng xuất hiện cách đây 45 phút (Ghi nhận ca #94)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "NEUROLOGY",
+      "expected_red_flags": [
+        "Đột quỵ não cấp trong cửa sổ vàng"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0095",
+      "symptoms_text": "Bệnh nhân 64 tuổi. Khó thở nhiều, phải ngồi để thở, co kéo cơ hô hấp phụ, tiền sử hen phế quản, SpO2 88% (Ghi nhận ca #95)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "RESPIRATORY",
+      "expected_red_flags": [
+        "Cơn hen phế quản nặng"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0096",
+      "symptoms_text": "Bệnh nhân 65 tuổi. Đau bụng dữ dội hố chậu phải kèm sốt 39 độ, bụng co cứng như gỗ (Ghi nhận ca #96)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "GASTROENTEROLOGY",
+      "expected_red_flags": [
+        "Viêm phúc mạc ruột thừa"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0097",
+      "symptoms_text": "Bệnh nhân 66 tuổi. Nôn ra máu tươi lượng nhiều khoảng 300ml, hoa mắt chóng mặt, vã mồ hôi, mạch 115 (Ghi nhận ca #97)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "GASTROENTEROLOGY",
+      "expected_red_flags": [
+        "Xuất huyết tiêu hóa cao tiến triển"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0098",
+      "symptoms_text": "Bệnh nhân 67 tuổi. Đau âm ỉ vùng thượng vị kèm ợ chua 3 ngày nay, không nôn ra máu, bụng mềm, đại tiện bình thường (Ghi nhận ca #98)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "GASTROENTEROLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0099",
+      "symptoms_text": "Bệnh nhân 68 tuổi. Sốt cao 38.8 độ C từ 2 ngày, ho có đờm vàng đục, mệt mỏi, SpO2 96%, huyết áp 120/75 (Ghi nhận ca #99)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "RESPIRATORY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0100",
+      "symptoms_text": "Bệnh nhân 69 tuổi. Đau buốt khi đi tiểu, tiểu rắt nhiều lần, nước tiểu đục có mùi hôi, không sốt (Ghi nhận ca #100)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "NEPHROLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0101",
+      "symptoms_text": "Bệnh nhân 70 tuổi. Ngã xe máy sưng nề biến dạng cẳng tay phải, đau chói khi vận động, mạch quay bắt rõ (Ghi nhận ca #101)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "ORTHOPEDICS",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0102",
+      "symptoms_text": "Bệnh nhân 71 tuổi. Đau quặn từng cơn vùng mạn sườn phải lan xuống bẹn, tiểu buốt nhẹ, không sốt (Ghi nhận ca #102)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "NEPHROLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0103",
+      "symptoms_text": "Bệnh nhân 72 tuổi. Trẹo cổ chân khi chơi thể thao, sưng nhẹ mắt cá ngoài, vẫn đi lại nhẹ nhàng được (Ghi nhận ca #103)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "ORTHOPEDICS",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0104",
+      "symptoms_text": "Bệnh nhân 73 tuổi. Đau họng nhẹ, chảy nước mũi trong, ho khan húng hắng, nhiệt độ 37.2 độ C (Ghi nhận ca #104)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "OTORHINOLARYNGOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0105",
+      "symptoms_text": "Bệnh nhân 74 tuổi. Xuất hiện ban đỏ ngứa rải rác vùng lưng và tay sau khi tiếp xúc phấn hoa, không khó thở (Ghi nhận ca #105)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "DERMATOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0106",
+      "symptoms_text": "Bệnh nhân 40 tuổi. Vết trầy xước nông ở cẳng chân do va quẹt, chảy máu ít đã tự cầm, cần rửa và băng bó (Ghi nhận ca #106)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "GENERAL",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0107",
+      "symptoms_text": "Bệnh nhân 41 tuổi. Đến xin đơn thuốc duy trì hàng tháng cho bệnh tăng huyết áp, hiện tại không có triệu chứng gì bất thường (Ghi nhận ca #107)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "CARDIOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0108",
+      "symptoms_text": "Bệnh nhân 42 tuổi. Đến hẹn cắt chỉ vết thương sau phẫu thuật ngày thứ 7, vết mổ khô sạch, không sưng đỏ (Ghi nhận ca #108)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "SURGERY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0109",
+      "symptoms_text": "Bệnh nhân 43 tuổi. Khám sức khỏe định kỳ theo yêu cầu cơ quan, hiện cảm thấy khỏe mạnh bình thường (Ghi nhận ca #109)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "GENERAL",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0110",
+      "symptoms_text": "Bệnh nhân 44 tuổi. Tái khám định kỳ đái tháo đường típ 2, đường huyết đo tại nhà ổn định 6.2 mmol/L (Ghi nhận ca #110)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "ENDOCRINOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0111",
+      "symptoms_text": "Bệnh nhân 45 tuổi. Bệnh nhân hôn mê sâu, thở ngáp cá, ngừng tuần hoàn, không bắt được mạch cảnh (Ghi nhận ca #111)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "CARDIOLOGY",
+      "expected_red_flags": [
+        "Ngừng tuần hoàn",
+        "Hôn mê"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0112",
+      "symptoms_text": "Bệnh nhân 46 tuổi. Khó thở dữ dội, tím tái toàn thân, SpO2 72%, thở rít thanh quản sau khi ăn tôm, huyết áp tụt 60/40 (Ghi nhận ca #112)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "ALLERGY_IMMUNOLOGY",
+      "expected_red_flags": [
+        "Phản vệ độ 4",
+        "Tụt huyết áp",
+        "Suy hô hấp cấp"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0113",
+      "symptoms_text": "Bệnh nhân 47 tuổi. Vết thương thấu ngực phì phò khí và máu, mạch nhanh nhỏ 140 l/p, huyết áp 70/50, lơ mơ (Ghi nhận ca #113)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "SURGERY",
+      "expected_red_flags": [
+        "Sốc mất máu",
+        "Vết thương thấu ngực"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0114",
+      "symptoms_text": "Bệnh nhân 48 tuổi. Co giật toàn thể liên tục trên 20 phút không tỉnh, tím tái, sùi bọt mép (Ghi nhận ca #114)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "NEUROLOGY",
+      "expected_red_flags": [
+        "Trạng thái động kinh"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0115",
+      "symptoms_text": "Bệnh nhân 49 tuổi. Đau thắt ngực dữ dội kiểu đè nén sau xương ức lan lên cằm và tay trái từ 1 giờ, vã mồ hôi lạnh, buồn nôn (Ghi nhận ca #115)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "CARDIOLOGY",
+      "expected_red_flags": [
+        "Hội chứng vành cấp",
+        "Đau ngực điển hình"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0116",
+      "symptoms_text": "Bệnh nhân 50 tuổi. Đột ngột yếu liệt nửa người bên phải, méo miệng, nói ngọng xuất hiện cách đây 45 phút (Ghi nhận ca #116)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "NEUROLOGY",
+      "expected_red_flags": [
+        "Đột quỵ não cấp trong cửa sổ vàng"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0117",
+      "symptoms_text": "Bệnh nhân 51 tuổi. Khó thở nhiều, phải ngồi để thở, co kéo cơ hô hấp phụ, tiền sử hen phế quản, SpO2 88% (Ghi nhận ca #117)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "RESPIRATORY",
+      "expected_red_flags": [
+        "Cơn hen phế quản nặng"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0118",
+      "symptoms_text": "Bệnh nhân 52 tuổi. Đau bụng dữ dội hố chậu phải kèm sốt 39 độ, bụng co cứng như gỗ (Ghi nhận ca #118)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "GASTROENTEROLOGY",
+      "expected_red_flags": [
+        "Viêm phúc mạc ruột thừa"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0119",
+      "symptoms_text": "Bệnh nhân 53 tuổi. Nôn ra máu tươi lượng nhiều khoảng 300ml, hoa mắt chóng mặt, vã mồ hôi, mạch 115 (Ghi nhận ca #119)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "GASTROENTEROLOGY",
+      "expected_red_flags": [
+        "Xuất huyết tiêu hóa cao tiến triển"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0120",
+      "symptoms_text": "Bệnh nhân 54 tuổi. Đau âm ỉ vùng thượng vị kèm ợ chua 3 ngày nay, không nôn ra máu, bụng mềm, đại tiện bình thường (Ghi nhận ca #120)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "GASTROENTEROLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0121",
+      "symptoms_text": "Bệnh nhân 55 tuổi. Sốt cao 38.8 độ C từ 2 ngày, ho có đờm vàng đục, mệt mỏi, SpO2 96%, huyết áp 120/75 (Ghi nhận ca #121)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "RESPIRATORY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0122",
+      "symptoms_text": "Bệnh nhân 56 tuổi. Đau buốt khi đi tiểu, tiểu rắt nhiều lần, nước tiểu đục có mùi hôi, không sốt (Ghi nhận ca #122)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "NEPHROLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0123",
+      "symptoms_text": "Bệnh nhân 57 tuổi. Ngã xe máy sưng nề biến dạng cẳng tay phải, đau chói khi vận động, mạch quay bắt rõ (Ghi nhận ca #123)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "ORTHOPEDICS",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0124",
+      "symptoms_text": "Bệnh nhân 58 tuổi. Đau quặn từng cơn vùng mạn sườn phải lan xuống bẹn, tiểu buốt nhẹ, không sốt (Ghi nhận ca #124)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "NEPHROLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0125",
+      "symptoms_text": "Bệnh nhân 59 tuổi. Trẹo cổ chân khi chơi thể thao, sưng nhẹ mắt cá ngoài, vẫn đi lại nhẹ nhàng được (Ghi nhận ca #125)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "ORTHOPEDICS",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0126",
+      "symptoms_text": "Bệnh nhân 60 tuổi. Đau họng nhẹ, chảy nước mũi trong, ho khan húng hắng, nhiệt độ 37.2 độ C (Ghi nhận ca #126)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "OTORHINOLARYNGOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0127",
+      "symptoms_text": "Bệnh nhân 61 tuổi. Xuất hiện ban đỏ ngứa rải rác vùng lưng và tay sau khi tiếp xúc phấn hoa, không khó thở (Ghi nhận ca #127)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "DERMATOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0128",
+      "symptoms_text": "Bệnh nhân 62 tuổi. Vết trầy xước nông ở cẳng chân do va quẹt, chảy máu ít đã tự cầm, cần rửa và băng bó (Ghi nhận ca #128)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "GENERAL",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0129",
+      "symptoms_text": "Bệnh nhân 63 tuổi. Đến xin đơn thuốc duy trì hàng tháng cho bệnh tăng huyết áp, hiện tại không có triệu chứng gì bất thường (Ghi nhận ca #129)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "CARDIOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0130",
+      "symptoms_text": "Bệnh nhân 64 tuổi. Đến hẹn cắt chỉ vết thương sau phẫu thuật ngày thứ 7, vết mổ khô sạch, không sưng đỏ (Ghi nhận ca #130)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "SURGERY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0131",
+      "symptoms_text": "Bệnh nhân 65 tuổi. Khám sức khỏe định kỳ theo yêu cầu cơ quan, hiện cảm thấy khỏe mạnh bình thường (Ghi nhận ca #131)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "GENERAL",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0132",
+      "symptoms_text": "Bệnh nhân 66 tuổi. Tái khám định kỳ đái tháo đường típ 2, đường huyết đo tại nhà ổn định 6.2 mmol/L (Ghi nhận ca #132)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "ENDOCRINOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0133",
+      "symptoms_text": "Bệnh nhân 67 tuổi. Bệnh nhân hôn mê sâu, thở ngáp cá, ngừng tuần hoàn, không bắt được mạch cảnh (Ghi nhận ca #133)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "CARDIOLOGY",
+      "expected_red_flags": [
+        "Ngừng tuần hoàn",
+        "Hôn mê"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0134",
+      "symptoms_text": "Bệnh nhân 68 tuổi. Khó thở dữ dội, tím tái toàn thân, SpO2 72%, thở rít thanh quản sau khi ăn tôm, huyết áp tụt 60/40 (Ghi nhận ca #134)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "ALLERGY_IMMUNOLOGY",
+      "expected_red_flags": [
+        "Phản vệ độ 4",
+        "Tụt huyết áp",
+        "Suy hô hấp cấp"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0135",
+      "symptoms_text": "Bệnh nhân 69 tuổi. Vết thương thấu ngực phì phò khí và máu, mạch nhanh nhỏ 140 l/p, huyết áp 70/50, lơ mơ (Ghi nhận ca #135)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "SURGERY",
+      "expected_red_flags": [
+        "Sốc mất máu",
+        "Vết thương thấu ngực"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0136",
+      "symptoms_text": "Bệnh nhân 70 tuổi. Co giật toàn thể liên tục trên 20 phút không tỉnh, tím tái, sùi bọt mép (Ghi nhận ca #136)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "NEUROLOGY",
+      "expected_red_flags": [
+        "Trạng thái động kinh"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0137",
+      "symptoms_text": "Bệnh nhân 71 tuổi. Đau thắt ngực dữ dội kiểu đè nén sau xương ức lan lên cằm và tay trái từ 1 giờ, vã mồ hôi lạnh, buồn nôn (Ghi nhận ca #137)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "CARDIOLOGY",
+      "expected_red_flags": [
+        "Hội chứng vành cấp",
+        "Đau ngực điển hình"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0138",
+      "symptoms_text": "Bệnh nhân 72 tuổi. Đột ngột yếu liệt nửa người bên phải, méo miệng, nói ngọng xuất hiện cách đây 45 phút (Ghi nhận ca #138)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "NEUROLOGY",
+      "expected_red_flags": [
+        "Đột quỵ não cấp trong cửa sổ vàng"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0139",
+      "symptoms_text": "Bệnh nhân 73 tuổi. Khó thở nhiều, phải ngồi để thở, co kéo cơ hô hấp phụ, tiền sử hen phế quản, SpO2 88% (Ghi nhận ca #139)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "RESPIRATORY",
+      "expected_red_flags": [
+        "Cơn hen phế quản nặng"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0140",
+      "symptoms_text": "Bệnh nhân 74 tuổi. Đau bụng dữ dội hố chậu phải kèm sốt 39 độ, bụng co cứng như gỗ (Ghi nhận ca #140)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "GASTROENTEROLOGY",
+      "expected_red_flags": [
+        "Viêm phúc mạc ruột thừa"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0141",
+      "symptoms_text": "Bệnh nhân 40 tuổi. Nôn ra máu tươi lượng nhiều khoảng 300ml, hoa mắt chóng mặt, vã mồ hôi, mạch 115 (Ghi nhận ca #141)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "GASTROENTEROLOGY",
+      "expected_red_flags": [
+        "Xuất huyết tiêu hóa cao tiến triển"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0142",
+      "symptoms_text": "Bệnh nhân 41 tuổi. Đau âm ỉ vùng thượng vị kèm ợ chua 3 ngày nay, không nôn ra máu, bụng mềm, đại tiện bình thường (Ghi nhận ca #142)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "GASTROENTEROLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0143",
+      "symptoms_text": "Bệnh nhân 42 tuổi. Sốt cao 38.8 độ C từ 2 ngày, ho có đờm vàng đục, mệt mỏi, SpO2 96%, huyết áp 120/75 (Ghi nhận ca #143)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "RESPIRATORY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0144",
+      "symptoms_text": "Bệnh nhân 43 tuổi. Đau buốt khi đi tiểu, tiểu rắt nhiều lần, nước tiểu đục có mùi hôi, không sốt (Ghi nhận ca #144)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "NEPHROLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0145",
+      "symptoms_text": "Bệnh nhân 44 tuổi. Ngã xe máy sưng nề biến dạng cẳng tay phải, đau chói khi vận động, mạch quay bắt rõ (Ghi nhận ca #145)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "ORTHOPEDICS",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0146",
+      "symptoms_text": "Bệnh nhân 45 tuổi. Đau quặn từng cơn vùng mạn sườn phải lan xuống bẹn, tiểu buốt nhẹ, không sốt (Ghi nhận ca #146)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "NEPHROLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0147",
+      "symptoms_text": "Bệnh nhân 46 tuổi. Trẹo cổ chân khi chơi thể thao, sưng nhẹ mắt cá ngoài, vẫn đi lại nhẹ nhàng được (Ghi nhận ca #147)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "ORTHOPEDICS",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0148",
+      "symptoms_text": "Bệnh nhân 47 tuổi. Đau họng nhẹ, chảy nước mũi trong, ho khan húng hắng, nhiệt độ 37.2 độ C (Ghi nhận ca #148)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "OTORHINOLARYNGOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0149",
+      "symptoms_text": "Bệnh nhân 48 tuổi. Xuất hiện ban đỏ ngứa rải rác vùng lưng và tay sau khi tiếp xúc phấn hoa, không khó thở (Ghi nhận ca #149)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "DERMATOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0150",
+      "symptoms_text": "Bệnh nhân 49 tuổi. Vết trầy xước nông ở cẳng chân do va quẹt, chảy máu ít đã tự cầm, cần rửa và băng bó (Ghi nhận ca #150)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "GENERAL",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0151",
+      "symptoms_text": "Bệnh nhân 50 tuổi. Đến xin đơn thuốc duy trì hàng tháng cho bệnh tăng huyết áp, hiện tại không có triệu chứng gì bất thường (Ghi nhận ca #151)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "CARDIOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0152",
+      "symptoms_text": "Bệnh nhân 51 tuổi. Đến hẹn cắt chỉ vết thương sau phẫu thuật ngày thứ 7, vết mổ khô sạch, không sưng đỏ (Ghi nhận ca #152)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "SURGERY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0153",
+      "symptoms_text": "Bệnh nhân 52 tuổi. Khám sức khỏe định kỳ theo yêu cầu cơ quan, hiện cảm thấy khỏe mạnh bình thường (Ghi nhận ca #153)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "GENERAL",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0154",
+      "symptoms_text": "Bệnh nhân 53 tuổi. Tái khám định kỳ đái tháo đường típ 2, đường huyết đo tại nhà ổn định 6.2 mmol/L (Ghi nhận ca #154)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "ENDOCRINOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0155",
+      "symptoms_text": "Bệnh nhân 54 tuổi. Bệnh nhân hôn mê sâu, thở ngáp cá, ngừng tuần hoàn, không bắt được mạch cảnh (Ghi nhận ca #155)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "CARDIOLOGY",
+      "expected_red_flags": [
+        "Ngừng tuần hoàn",
+        "Hôn mê"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0156",
+      "symptoms_text": "Bệnh nhân 55 tuổi. Khó thở dữ dội, tím tái toàn thân, SpO2 72%, thở rít thanh quản sau khi ăn tôm, huyết áp tụt 60/40 (Ghi nhận ca #156)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "ALLERGY_IMMUNOLOGY",
+      "expected_red_flags": [
+        "Phản vệ độ 4",
+        "Tụt huyết áp",
+        "Suy hô hấp cấp"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0157",
+      "symptoms_text": "Bệnh nhân 56 tuổi. Vết thương thấu ngực phì phò khí và máu, mạch nhanh nhỏ 140 l/p, huyết áp 70/50, lơ mơ (Ghi nhận ca #157)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "SURGERY",
+      "expected_red_flags": [
+        "Sốc mất máu",
+        "Vết thương thấu ngực"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0158",
+      "symptoms_text": "Bệnh nhân 57 tuổi. Co giật toàn thể liên tục trên 20 phút không tỉnh, tím tái, sùi bọt mép (Ghi nhận ca #158)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "NEUROLOGY",
+      "expected_red_flags": [
+        "Trạng thái động kinh"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0159",
+      "symptoms_text": "Bệnh nhân 58 tuổi. Đau thắt ngực dữ dội kiểu đè nén sau xương ức lan lên cằm và tay trái từ 1 giờ, vã mồ hôi lạnh, buồn nôn (Ghi nhận ca #159)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "CARDIOLOGY",
+      "expected_red_flags": [
+        "Hội chứng vành cấp",
+        "Đau ngực điển hình"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0160",
+      "symptoms_text": "Bệnh nhân 59 tuổi. Đột ngột yếu liệt nửa người bên phải, méo miệng, nói ngọng xuất hiện cách đây 45 phút (Ghi nhận ca #160)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "NEUROLOGY",
+      "expected_red_flags": [
+        "Đột quỵ não cấp trong cửa sổ vàng"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0161",
+      "symptoms_text": "Bệnh nhân 60 tuổi. Khó thở nhiều, phải ngồi để thở, co kéo cơ hô hấp phụ, tiền sử hen phế quản, SpO2 88% (Ghi nhận ca #161)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "RESPIRATORY",
+      "expected_red_flags": [
+        "Cơn hen phế quản nặng"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0162",
+      "symptoms_text": "Bệnh nhân 61 tuổi. Đau bụng dữ dội hố chậu phải kèm sốt 39 độ, bụng co cứng như gỗ (Ghi nhận ca #162)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "GASTROENTEROLOGY",
+      "expected_red_flags": [
+        "Viêm phúc mạc ruột thừa"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0163",
+      "symptoms_text": "Bệnh nhân 62 tuổi. Nôn ra máu tươi lượng nhiều khoảng 300ml, hoa mắt chóng mặt, vã mồ hôi, mạch 115 (Ghi nhận ca #163)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "GASTROENTEROLOGY",
+      "expected_red_flags": [
+        "Xuất huyết tiêu hóa cao tiến triển"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0164",
+      "symptoms_text": "Bệnh nhân 63 tuổi. Đau âm ỉ vùng thượng vị kèm ợ chua 3 ngày nay, không nôn ra máu, bụng mềm, đại tiện bình thường (Ghi nhận ca #164)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "GASTROENTEROLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0165",
+      "symptoms_text": "Bệnh nhân 64 tuổi. Sốt cao 38.8 độ C từ 2 ngày, ho có đờm vàng đục, mệt mỏi, SpO2 96%, huyết áp 120/75 (Ghi nhận ca #165)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "RESPIRATORY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0166",
+      "symptoms_text": "Bệnh nhân 65 tuổi. Đau buốt khi đi tiểu, tiểu rắt nhiều lần, nước tiểu đục có mùi hôi, không sốt (Ghi nhận ca #166)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "NEPHROLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0167",
+      "symptoms_text": "Bệnh nhân 66 tuổi. Ngã xe máy sưng nề biến dạng cẳng tay phải, đau chói khi vận động, mạch quay bắt rõ (Ghi nhận ca #167)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "ORTHOPEDICS",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0168",
+      "symptoms_text": "Bệnh nhân 67 tuổi. Đau quặn từng cơn vùng mạn sườn phải lan xuống bẹn, tiểu buốt nhẹ, không sốt (Ghi nhận ca #168)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "NEPHROLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0169",
+      "symptoms_text": "Bệnh nhân 68 tuổi. Trẹo cổ chân khi chơi thể thao, sưng nhẹ mắt cá ngoài, vẫn đi lại nhẹ nhàng được (Ghi nhận ca #169)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "ORTHOPEDICS",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0170",
+      "symptoms_text": "Bệnh nhân 69 tuổi. Đau họng nhẹ, chảy nước mũi trong, ho khan húng hắng, nhiệt độ 37.2 độ C (Ghi nhận ca #170)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "OTORHINOLARYNGOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0171",
+      "symptoms_text": "Bệnh nhân 70 tuổi. Xuất hiện ban đỏ ngứa rải rác vùng lưng và tay sau khi tiếp xúc phấn hoa, không khó thở (Ghi nhận ca #171)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "DERMATOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0172",
+      "symptoms_text": "Bệnh nhân 71 tuổi. Vết trầy xước nông ở cẳng chân do va quẹt, chảy máu ít đã tự cầm, cần rửa và băng bó (Ghi nhận ca #172)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "GENERAL",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0173",
+      "symptoms_text": "Bệnh nhân 72 tuổi. Đến xin đơn thuốc duy trì hàng tháng cho bệnh tăng huyết áp, hiện tại không có triệu chứng gì bất thường (Ghi nhận ca #173)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "CARDIOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0174",
+      "symptoms_text": "Bệnh nhân 73 tuổi. Đến hẹn cắt chỉ vết thương sau phẫu thuật ngày thứ 7, vết mổ khô sạch, không sưng đỏ (Ghi nhận ca #174)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "SURGERY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0175",
+      "symptoms_text": "Bệnh nhân 74 tuổi. Khám sức khỏe định kỳ theo yêu cầu cơ quan, hiện cảm thấy khỏe mạnh bình thường (Ghi nhận ca #175)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "GENERAL",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0176",
+      "symptoms_text": "Bệnh nhân 40 tuổi. Tái khám định kỳ đái tháo đường típ 2, đường huyết đo tại nhà ổn định 6.2 mmol/L (Ghi nhận ca #176)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "ENDOCRINOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0177",
+      "symptoms_text": "Bệnh nhân 41 tuổi. Bệnh nhân hôn mê sâu, thở ngáp cá, ngừng tuần hoàn, không bắt được mạch cảnh (Ghi nhận ca #177)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "CARDIOLOGY",
+      "expected_red_flags": [
+        "Ngừng tuần hoàn",
+        "Hôn mê"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0178",
+      "symptoms_text": "Bệnh nhân 42 tuổi. Khó thở dữ dội, tím tái toàn thân, SpO2 72%, thở rít thanh quản sau khi ăn tôm, huyết áp tụt 60/40 (Ghi nhận ca #178)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "ALLERGY_IMMUNOLOGY",
+      "expected_red_flags": [
+        "Phản vệ độ 4",
+        "Tụt huyết áp",
+        "Suy hô hấp cấp"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0179",
+      "symptoms_text": "Bệnh nhân 43 tuổi. Vết thương thấu ngực phì phò khí và máu, mạch nhanh nhỏ 140 l/p, huyết áp 70/50, lơ mơ (Ghi nhận ca #179)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "SURGERY",
+      "expected_red_flags": [
+        "Sốc mất máu",
+        "Vết thương thấu ngực"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0180",
+      "symptoms_text": "Bệnh nhân 44 tuổi. Co giật toàn thể liên tục trên 20 phút không tỉnh, tím tái, sùi bọt mép (Ghi nhận ca #180)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "NEUROLOGY",
+      "expected_red_flags": [
+        "Trạng thái động kinh"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0181",
+      "symptoms_text": "Bệnh nhân 45 tuổi. Đau thắt ngực dữ dội kiểu đè nén sau xương ức lan lên cằm và tay trái từ 1 giờ, vã mồ hôi lạnh, buồn nôn (Ghi nhận ca #181)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "CARDIOLOGY",
+      "expected_red_flags": [
+        "Hội chứng vành cấp",
+        "Đau ngực điển hình"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0182",
+      "symptoms_text": "Bệnh nhân 46 tuổi. Đột ngột yếu liệt nửa người bên phải, méo miệng, nói ngọng xuất hiện cách đây 45 phút (Ghi nhận ca #182)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "NEUROLOGY",
+      "expected_red_flags": [
+        "Đột quỵ não cấp trong cửa sổ vàng"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0183",
+      "symptoms_text": "Bệnh nhân 47 tuổi. Khó thở nhiều, phải ngồi để thở, co kéo cơ hô hấp phụ, tiền sử hen phế quản, SpO2 88% (Ghi nhận ca #183)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "RESPIRATORY",
+      "expected_red_flags": [
+        "Cơn hen phế quản nặng"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0184",
+      "symptoms_text": "Bệnh nhân 48 tuổi. Đau bụng dữ dội hố chậu phải kèm sốt 39 độ, bụng co cứng như gỗ (Ghi nhận ca #184)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "GASTROENTEROLOGY",
+      "expected_red_flags": [
+        "Viêm phúc mạc ruột thừa"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0185",
+      "symptoms_text": "Bệnh nhân 49 tuổi. Nôn ra máu tươi lượng nhiều khoảng 300ml, hoa mắt chóng mặt, vã mồ hôi, mạch 115 (Ghi nhận ca #185)",
+      "ground_truth_esi": 2,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "GASTROENTEROLOGY",
+      "expected_red_flags": [
+        "Xuất huyết tiêu hóa cao tiến triển"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0186",
+      "symptoms_text": "Bệnh nhân 50 tuổi. Đau âm ỉ vùng thượng vị kèm ợ chua 3 ngày nay, không nôn ra máu, bụng mềm, đại tiện bình thường (Ghi nhận ca #186)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "GASTROENTEROLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0187",
+      "symptoms_text": "Bệnh nhân 51 tuổi. Sốt cao 38.8 độ C từ 2 ngày, ho có đờm vàng đục, mệt mỏi, SpO2 96%, huyết áp 120/75 (Ghi nhận ca #187)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "RESPIRATORY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0188",
+      "symptoms_text": "Bệnh nhân 52 tuổi. Đau buốt khi đi tiểu, tiểu rắt nhiều lần, nước tiểu đục có mùi hôi, không sốt (Ghi nhận ca #188)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "NEPHROLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0189",
+      "symptoms_text": "Bệnh nhân 53 tuổi. Ngã xe máy sưng nề biến dạng cẳng tay phải, đau chói khi vận động, mạch quay bắt rõ (Ghi nhận ca #189)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "ORTHOPEDICS",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0190",
+      "symptoms_text": "Bệnh nhân 54 tuổi. Đau quặn từng cơn vùng mạn sườn phải lan xuống bẹn, tiểu buốt nhẹ, không sốt (Ghi nhận ca #190)",
+      "ground_truth_esi": 3,
+      "ground_truth_urgency": "URGENT",
+      "ground_truth_specialty": "NEPHROLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0191",
+      "symptoms_text": "Bệnh nhân 55 tuổi. Trẹo cổ chân khi chơi thể thao, sưng nhẹ mắt cá ngoài, vẫn đi lại nhẹ nhàng được (Ghi nhận ca #191)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "ORTHOPEDICS",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0192",
+      "symptoms_text": "Bệnh nhân 56 tuổi. Đau họng nhẹ, chảy nước mũi trong, ho khan húng hắng, nhiệt độ 37.2 độ C (Ghi nhận ca #192)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "OTORHINOLARYNGOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0193",
+      "symptoms_text": "Bệnh nhân 57 tuổi. Xuất hiện ban đỏ ngứa rải rác vùng lưng và tay sau khi tiếp xúc phấn hoa, không khó thở (Ghi nhận ca #193)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "DERMATOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0194",
+      "symptoms_text": "Bệnh nhân 58 tuổi. Vết trầy xước nông ở cẳng chân do va quẹt, chảy máu ít đã tự cầm, cần rửa và băng bó (Ghi nhận ca #194)",
+      "ground_truth_esi": 4,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "GENERAL",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0195",
+      "symptoms_text": "Bệnh nhân 59 tuổi. Đến xin đơn thuốc duy trì hàng tháng cho bệnh tăng huyết áp, hiện tại không có triệu chứng gì bất thường (Ghi nhận ca #195)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "CARDIOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0196",
+      "symptoms_text": "Bệnh nhân 60 tuổi. Đến hẹn cắt chỉ vết thương sau phẫu thuật ngày thứ 7, vết mổ khô sạch, không sưng đỏ (Ghi nhận ca #196)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "SURGERY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0197",
+      "symptoms_text": "Bệnh nhân 61 tuổi. Khám sức khỏe định kỳ theo yêu cầu cơ quan, hiện cảm thấy khỏe mạnh bình thường (Ghi nhận ca #197)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "GENERAL",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0198",
+      "symptoms_text": "Bệnh nhân 62 tuổi. Tái khám định kỳ đái tháo đường típ 2, đường huyết đo tại nhà ổn định 6.2 mmol/L (Ghi nhận ca #198)",
+      "ground_truth_esi": 5,
+      "ground_truth_urgency": "ROUTINE",
+      "ground_truth_specialty": "ENDOCRINOLOGY",
+      "expected_red_flags": []
+    },
+    {
+      "case_id": "TRIAGE-0199",
+      "symptoms_text": "Bệnh nhân 63 tuổi. Bệnh nhân hôn mê sâu, thở ngáp cá, ngừng tuần hoàn, không bắt được mạch cảnh (Ghi nhận ca #199)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "CARDIOLOGY",
+      "expected_red_flags": [
+        "Ngừng tuần hoàn",
+        "Hôn mê"
+      ]
+    },
+    {
+      "case_id": "TRIAGE-0200",
+      "symptoms_text": "Bệnh nhân 64 tuổi. Khó thở dữ dội, tím tái toàn thân, SpO2 72%, thở rít thanh quản sau khi ăn tôm, huyết áp tụt 60/40 (Ghi nhận ca #200)",
+      "ground_truth_esi": 1,
+      "ground_truth_urgency": "EMERGENCY",
+      "ground_truth_specialty": "ALLERGY_IMMUNOLOGY",
+      "expected_red_flags": [
+        "Phản vệ độ 4",
+        "Tụt huyết áp",
+        "Suy hô hấp cấp"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "updated_at": "2026-09-09",
+    "description": "Authoritative clinical source targets and extraction parameters for Crawl4AI pipeline"
+  },
+  "sources": [
+    {
+      "source_id": "vndtf_national_formulary",
+      "name": "Dược thư Quốc gia Việt Nam",
+      "category": "drug_safety",
+      "authority": "Bộ Y tế Việt Nam / Cục Quản lý Dược",
+      "license_kind": "public_authoritative",
+      "usage_rights_confirmed": true,
+      "base_urls": [
+        "https://dav.gov.vn/duoc-thu-quoc-gia-viet-nam.html",
+        "https://kcb.vn/van-ban/duoc-thu-quoc-gia"
+      ],
+      "exclude_selectors": ["header", "footer", "nav", ".sidebar", ".comment", ".advertisement", ".hotline-bar"],
+      "focus_sections": ["Chỉ định", "Chống chỉ định", "Tương tác thuốc", "Tác dụng không mong muốn", "Liều lượng và cách dùng"]
+    },
+    {
+      "source_id": "moh_treatment_guidelines",
+      "name": "Phác đồ điều trị & Hướng dẫn chẩn đoán BYT",
+      "category": "clinical_guideline",
+      "authority": "Cục Quản lý Khám chữa bệnh - Bộ Y tế",
+      "license_kind": "public_authoritative",
+      "usage_rights_confirmed": true,
+      "base_urls": [
+        "https://kcb.vn/huong-dan-dieu-tri",
+        "https://moh.gov.vn/phac-do-dieu-tri"
+      ],
+      "exclude_selectors": ["header", "footer", "nav", ".banner", ".share-buttons"],
+      "focus_sections": ["Định nghĩa", "Chẩn đoán xác định", "Dấu hiệu cấp cứu", "Nguyên tắc điều trị", "Theo dõi và phòng bệnh"]
+    },
+    {
+      "source_id": "nice_clinical_guidelines",
+      "name": "NICE Clinical Guidelines (UK)",
+      "category": "triage_and_care",
+      "authority": "National Institute for Health and Care Excellence",
+      "license_kind": "public_authoritative",
+      "usage_rights_confirmed": true,
+      "base_urls": [
+        "https://www.nice.org.uk/guidance/cg150",
+        "https://www.nice.org.uk/guidance/cg184"
+      ],
+      "exclude_selectors": ["header", "footer", ".cookie-banner", ".site-header"],
+      "focus_sections": ["Recommendations", "Red flag indicators", "Emergency referral criteria"]
+    },
+    {
+      "source_id": "who_model_formulary",
+      "name": "WHO Model Formulary & Drug Safety",
+      "category": "drug_safety",
+      "authority": "World Health Organization",
+      "license_kind": "public_authoritative",
+      "usage_rights_confirmed": true,
+      "base_urls": [
+        "https://www.who.int/publications/i/item/9789241547451"
+      ],
+      "exclude_selectors": ["header", "footer", ".site-navigation", ".social-share"],
+      "focus_sections": ["Dosage forms", "Contraindications", "Precautions", "Adverse effects", "Drug interactions"]
+    },
+    {
+      "source_id": "nhs_health_guidance",
+      "name": "NHS Health A-Z Conditions & Treatments",
+      "category": "clinical_guideline",
+      "authority": "National Health Service (NHS UK)",
+      "license_kind": "public_authoritative",
+      "usage_rights_confirmed": true,
+      "base_urls": [
+        "https://www.nhs.uk/conditions/neck-pain-and-stiff-neck/",
+        "https://www.nhs.uk/conditions/chest-pain/",
+        "https://www.nhs.uk/conditions/headaches/",
+        "https://www.nhs.uk/medicines/paracetamol-for-adults/"
+      ],
+      "exclude_selectors": ["header", "footer", "nav", ".nhsuk-header", ".nhsuk-footer", ".nhsuk-feedback-banner"],
+      "focus_sections": ["Overview", "How to manage pain", "When to get urgent medical advice", "Emergency signs", "Dosage and side effects"]
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "candidate": "MedGuard-V10",
+  "status": "FROZEN_FOR_INDEPENDENT_BLIND_V10_ONE_SHOT_VALIDATION",
+  "clinical_generalization_confirmed": false,
+  "blind_v10_executed": false,
+  "candidate_core_commit": "8b3dd0b85a5639b1478c1f9e717fdead84fba5e1",
+  "blind_frozen_commit": "a26f06c5b4f3b9cc064ee7aa8ae1f497f1b89acc",
+  "attestation_model": "tagged_provenance_child_of_blind_frozen_commit",
+  "generated_from_head": "a26f06c5b4f3b9cc064ee7aa8ae1f497f1b89acc",
+  "frozen_at": "2026-09-23T04:23:12.978950+00:00",
+  "core_manifest_sha256": "68996d9d9abf1afc40c34a736a9a1f1a2b2770ed7c376f62826c47725c494503",
+  "mechanism_benchmark_sha256": "a88595c27541d5db4300f9bab893d547a0db7b454bf9f7ee46a22334dafcd391",
+  "regression_report_sha256": "2428e4adb637acb6080d3d94d0f6cff5dd9875b28c66446c13754deb303bf5b0",
+  "pre_blind_gates": {
+    "mechanism_cases": 180,
+    "mechanism_all_passed": true,
+    "regression_cases": 2400,
+    "pure_t4_sensitivity_pct": 100.0,
+    "pure_t4_to_urgent": 0,
+    "pure_t4_to_routine": 0,
+    "specificity_pct": 95.29,
+    "unsafe_response_content": 0,
+    "system_errors": 0
+  },
+  "clinical_core_matches_candidate_tag": {
+    "app/services/chat.py": true,
+    "app/services/clinical_safety_floor.py": true,
+    "app/services/dual_crisis_policy.py": true,
+    "app/services/end_organ_coupling.py": true,
+    "app/services/ood_guard.py": true,
+    "app/services/response_safety.py": true,
+    "app/services/rules.py": true,
+    "app/services/toxicology_signature_router.py": true,
+    "app/services/triage.py": true
+  },
+  "jev_gate3_preserved_from_v9": {
+    "app/services/jev_engine.py": true,
+    "app/services/jev_governance.py": true
+  },
+  "excluded_pre_existing_artifacts": [
+    {
+      "path": "datasets/active_learning/captured_cases.json",
+      "reason": "pre-existing mutable telemetry; excluded from candidate and freeze scope"
+    }
+  ],
+  "file_hashes": {
+    "app/services/chat.py": "2d33a27538b4bb21795e2bd88211c513c6c21863eb1f5de0033eed5e0ee231f3",
+    "app/services/clinical_safety_floor.py": "88a2a7e8568487be663607ed1eb5af5b8f6c658dfbb001d9e533c4fa13a2195e",
+    "app/services/dual_crisis_policy.py": "ded1321072cd3a9649f68aacc949cfc1862c9f3b78c4222acfcfb555b3c650f8",
+    "app/services/end_organ_coupling.py": "9bb306e79fa228917d6f5951f1858e7526dddc734d71ee98ea3818a115ef92f9",
+    "app/services/ood_guard.py": "87dc1afa8fc41bd3cbe73bd7c868eda2eaa35cc7dc0b3425ed4f077fcdfb7a2e",
+    "app/services/response_safety.py": "5dbabd8bfe82aacb56e310e85902f2c14ef0019f4bb04c8cc6aeb9d3cadb0887",
+    "app/services/rules.py": "568ce4a80d3434aac1487d43c4d7440ce39957946201196cfdf32c67acc85ebc",
+    "app/services/toxicology_signature_router.py": "cc4785961f2cb4114fce180d0569679a26728462a3922b67c9de7f80f08ca4fb",
+    "app/services/triage.py": "b042db8b367c520d2e9f7925e37941f3492cc314e2e79310971ffa91043bc23b",
+    "app/services/evidence_strength_scorer.py": "ead6814d446c7ce0653d6d9d71e20a514f7057d7fe23e15a32b8b46180221f07",
+    "app/services/clinical_fact_parser.py": "19bafc062ad16d527d9715cfacc2296216b060ac8330fe10c9ab8986ab40b8b0",
+    "app/services/clinical_threat_graph.py": "5ad0a3b973596c56f2f4ee1d32bd3256f2566f714fa4ca91cd04b1b51a76b06c",
+    "app/services/physiologic_consequence_engine.py": "c63db65684088fcba0eb5b40bddcd9c085eb2466ab6e0bf55c33284732702f72",
+    "app/services/triage_resolver.py": "8e61b7163556d678fb8072cecdb2069f91d7d47304cfa6225ea0e47209c9250c",
+    "app/services/jev_engine.py": "c5d3f4b2c5deda71aaae791c01820526b241d002ab6e494439e0cd06d5094a4e",
+    "app/services/jev_governance.py": "8a3aa8b36cf79198511c3e5899429c30b98583805017bf86b4afbb56beb3898a",
+    "app/services/tri_gate_orchestrator.py": "ec04ac44ad5943094a1a525775582873ce42b0ab4eea36c95639c8e709de9a5a",
+    "app/services/tri_gate_resolver.py": "bf7fe9f07912d8bfbce066c24e884096602639f262d6b7173979b3bb60f45e25",
+    "app/tests/test_candidate_v10_architecture.py": "8bc79c34fa5a3ee13e76d105e91714a43b582744caf618e0e9d145f1e58f9def",
+    "app/tests/test_v10_freeze_guard.py": "164be5d871757203e35ca67410b8f32f8ebd7b5cccd51a9548a44e3f12b23190",
+    "blind_v10/README.md": "dd1293c4f2b3e389ae77cc7e4acd8cf2b65e44b49d52bf00771bc4ad44bc09f9",
+    "blind_v10/check_go_nogo.py": "926e0d7ae0d7e9551b3df0ea1f1c3eaf781a668d54b6167822a4342abb6e2678",
+    "blind_v10/evaluator/evaluate_v10.py": "41dda53f81923928eae5be1ff17e28b092f07943885021e928e0aed3ec9ce5e1",
+    "blind_v10/freeze_guard.py": "8407f3e0d07654adb4b307c777e31ae06d8813e33c65a2466442c16616a85ac0",
+    "blind_v10/runner/run_v10.py": "41aa736029c73d1552fb745d6583e3afd3e35ac44cf6fccd1632304d101ef83d",
+    "blind_v10/run_one_shot.sh": "a68770ae2e948a476088578dbc7df61155753e8c1db8d1911680643118305f35",
+    "blind_v10/seal.py": "afbabe2cce9ed59ddf933006d7f16c7d2b29cd15790fdf2b7caa163d76f2f906",
+    "docs/CANDIDATE_V10_IMPLEMENTATION.md": "6f35e04e3241daf1fc969559220fde57201702011e28953bbe9fe3c8b0894d90",
+    "scripts/run_1800_regression.py": "fe87820ed5a40886662bd952458676f7a8efac0cae1212a1414a65bbc2ff88e8",
+    "scripts/run_v10_regression_2400.py": "372948896366b7bb29c1ab23fa2a0978522acae0be658662018b53c9dcb00ae7",
+    "tests/benchmarks/benchmark_candidate_v10.py": "0c264754dec4f2429446242ba36c3d3ce2da359ff234f885a7b21f00fcd5f82b"
+  },
+  "freeze_manifest_sha256": "b9d8cebc1bea96b72bdec6211f60370c73cf3fc626629e3f42c2d193909ebff8"
+}

@@ -1,0 +1,5279 @@
+[
+  {
+    "case_id": "V7-0001",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi đo huyết áp thấy tụt xuống còn 75/45 mmHg, tim đập nhanh 135 lần/phút, người vã mồ hôi lạnh ngắt, đứng lên là ngất xỉu."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "circulatory_compromise",
+      "organ_hypoperfusion"
+    ]
+  },
+  {
+    "case_id": "V7-0002",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình trạng bắt đầu từ sáng nay: Tôi đo huyết áp thấy tụt xuống còn 75/45 mmHg, tim đập nhanh 135 lần/phút, người vã mồ hôi lạnh ngắt, đứng lên là ngất xỉu. Gia đình rất hoang mang."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "circulatory_compromise",
+      "organ_hypoperfusion"
+    ]
+  },
+  {
+    "case_id": "V7-0003",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân nằm một chỗ li bì: Tôi đo huyết áp thấy tụt xuống còn 75/45 mmHg, tim đập nhanh 135 lần/phút, người vã mồ hôi lạnh ngắt, đứng lên là ngất xỉu. Hiện tại không tiếp xúc được bình thường."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "circulatory_compromise",
+      "organ_hypoperfusion"
+    ]
+  },
+  {
+    "case_id": "V7-0004",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đột ngột diễn tiến nghiêm trọng: Tôi đo huyết áp thấy tụt xuống còn 75/45 mmHg, tim đập nhanh 135 lần/phút, người vã mồ hôi lạnh ngắt, đứng lên là ngất xỉu."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "circulatory_compromise",
+      "organ_hypoperfusion"
+    ]
+  },
+  {
+    "case_id": "V7-0005",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi đo huyết áp thấy tụt xuống còn 75/45 mmHg, tim đập nhanh 135 lần/phút, người vã mồ hôi lạnh ngắt, đứng lên là ngất xỉu. Người nhà đang định cho uống nước đường nhưng thấy nuốt khó."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "circulatory_compromise",
+      "organ_hypoperfusion"
+    ]
+  },
+  {
+    "case_id": "V7-0006",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Huyết áp đo tại nhà chỉ còn 80/50, đầu ngón tay ngón chân tím tái và lạnh buốt, ấn vào da hơn 4 giây mới hồng lại."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "circulatory_compromise"
+    ]
+  },
+  {
+    "case_id": "V7-0007",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình trạng bắt đầu từ sáng nay: Huyết áp đo tại nhà chỉ còn 80/50, đầu ngón tay ngón chân tím tái và lạnh buốt, ấn vào da hơn 4 giây mới hồng lại. Gia đình rất hoang mang."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "circulatory_compromise"
+    ]
+  },
+  {
+    "case_id": "V7-0008",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân nằm một chỗ li bì: Huyết áp đo tại nhà chỉ còn 80/50, đầu ngón tay ngón chân tím tái và lạnh buốt, ấn vào da hơn 4 giây mới hồng lại. Hiện tại không tiếp xúc được bình thường."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "circulatory_compromise"
+    ]
+  },
+  {
+    "case_id": "V7-0009",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đột ngột diễn tiến nghiêm trọng: Huyết áp đo tại nhà chỉ còn 80/50, đầu ngón tay ngón chân tím tái và lạnh buốt, ấn vào da hơn 4 giây mới hồng lại."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "circulatory_compromise"
+    ]
+  },
+  {
+    "case_id": "V7-0010",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Huyết áp đo tại nhà chỉ còn 80/50, đầu ngón tay ngón chân tím tái và lạnh buốt, ấn vào da hơn 4 giây mới hồng lại. Người nhà đang định cho uống nước đường nhưng thấy nuốt khó."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "circulatory_compromise"
+    ]
+  },
+  {
+    "case_id": "V7-0011",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Người bệnh thở hổn hển 34 nhịp một phút, cánh mũi phập phồng, co kéo hõm ức dữ dội, SpO2 tụt còn 82%."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "respiratory_failure"
+    ]
+  },
+  {
+    "case_id": "V7-0012",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình trạng bắt đầu từ sáng nay: Người bệnh thở hổn hển 34 nhịp một phút, cánh mũi phập phồng, co kéo hõm ức dữ dội, SpO2 tụt còn 82%. Gia đình rất hoang mang."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "respiratory_failure"
+    ]
+  },
+  {
+    "case_id": "V7-0013",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân nằm một chỗ li bì: Người bệnh thở hổn hển 34 nhịp một phút, cánh mũi phập phồng, co kéo hõm ức dữ dội, SpO2 tụt còn 82%. Hiện tại không tiếp xúc được bình thường."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "respiratory_failure"
+    ]
+  },
+  {
+    "case_id": "V7-0014",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đột ngột diễn tiến nghiêm trọng: Người bệnh thở hổn hển 34 nhịp một phút, cánh mũi phập phồng, co kéo hõm ức dữ dội, SpO2 tụt còn 82%."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "respiratory_failure"
+    ]
+  },
+  {
+    "case_id": "V7-0015",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Người bệnh thở hổn hển 34 nhịp một phút, cánh mũi phập phồng, co kéo hõm ức dữ dội, SpO2 tụt còn 82%. Người nhà đang định cho uống nước đường nhưng thấy nuốt khó."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "respiratory_failure"
+    ]
+  },
+  {
+    "case_id": "V7-0016",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân thở rít thanh quản nghe rõ từ xa, đờm dãi chảy ra mép không nuốt được, cảm giác nghẹt cứng cổ họng."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "airway_obstruction"
+    ]
+  },
+  {
+    "case_id": "V7-0017",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình trạng bắt đầu từ sáng nay: Bệnh nhân thở rít thanh quản nghe rõ từ xa, đờm dãi chảy ra mép không nuốt được, cảm giác nghẹt cứng cổ họng. Gia đình rất hoang mang."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "airway_obstruction"
+    ]
+  },
+  {
+    "case_id": "V7-0018",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân nằm một chỗ li bì: Bệnh nhân thở rít thanh quản nghe rõ từ xa, đờm dãi chảy ra mép không nuốt được, cảm giác nghẹt cứng cổ họng. Hiện tại không tiếp xúc được bình thường."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "airway_obstruction"
+    ]
+  },
+  {
+    "case_id": "V7-0019",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đột ngột diễn tiến nghiêm trọng: Bệnh nhân thở rít thanh quản nghe rõ từ xa, đờm dãi chảy ra mép không nuốt được, cảm giác nghẹt cứng cổ họng."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "airway_obstruction"
+    ]
+  },
+  {
+    "case_id": "V7-0020",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân thở rít thanh quản nghe rõ từ xa, đờm dãi chảy ra mép không nuốt được, cảm giác nghẹt cứng cổ họng. Người nhà đang định cho uống nước đường nhưng thấy nuốt khó."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "airway_obstruction"
+    ]
+  },
+  {
+    "case_id": "V7-0021",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảm giác đè nặng bóp nghẹt giữa ngực lan lên quai hàm và cánh tay trái, vã mồ hôi hột ướt áo, khó thở không nằm được."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_tissue_ischemia"
+    ]
+  },
+  {
+    "case_id": "V7-0022",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình trạng bắt đầu từ sáng nay: Cảm giác đè nặng bóp nghẹt giữa ngực lan lên quai hàm và cánh tay trái, vã mồ hôi hột ướt áo, khó thở không nằm được. Gia đình rất hoang mang."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_tissue_ischemia"
+    ]
+  },
+  {
+    "case_id": "V7-0023",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân nằm một chỗ li bì: Cảm giác đè nặng bóp nghẹt giữa ngực lan lên quai hàm và cánh tay trái, vã mồ hôi hột ướt áo, khó thở không nằm được. Hiện tại không tiếp xúc được bình thường."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_tissue_ischemia"
+    ]
+  },
+  {
+    "case_id": "V7-0024",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đột ngột diễn tiến nghiêm trọng: Cảm giác đè nặng bóp nghẹt giữa ngực lan lên quai hàm và cánh tay trái, vã mồ hôi hột ướt áo, khó thở không nằm được."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_tissue_ischemia"
+    ]
+  },
+  {
+    "case_id": "V7-0025",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảm giác đè nặng bóp nghẹt giữa ngực lan lên quai hàm và cánh tay trái, vã mồ hôi hột ướt áo, khó thở không nằm được. Người nhà đang định cho uống nước đường nhưng thấy nuốt khó."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_tissue_ischemia"
+    ]
+  },
+  {
+    "case_id": "V7-0026",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đau bụng dữ dội như dao đâm lan ra sau lưng, sờ thấy một khối đập rộn rã theo nhịp tim ở vùng bụng trên rốn."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "internal_hemorrhage"
+    ]
+  },
+  {
+    "case_id": "V7-0027",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình trạng bắt đầu từ sáng nay: Đau bụng dữ dội như dao đâm lan ra sau lưng, sờ thấy một khối đập rộn rã theo nhịp tim ở vùng bụng trên rốn. Gia đình rất hoang mang."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "internal_hemorrhage"
+    ]
+  },
+  {
+    "case_id": "V7-0028",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân nằm một chỗ li bì: Đau bụng dữ dội như dao đâm lan ra sau lưng, sờ thấy một khối đập rộn rã theo nhịp tim ở vùng bụng trên rốn. Hiện tại không tiếp xúc được bình thường."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "internal_hemorrhage"
+    ]
+  },
+  {
+    "case_id": "V7-0029",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đột ngột diễn tiến nghiêm trọng: Đau bụng dữ dội như dao đâm lan ra sau lưng, sờ thấy một khối đập rộn rã theo nhịp tim ở vùng bụng trên rốn."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "internal_hemorrhage"
+    ]
+  },
+  {
+    "case_id": "V7-0030",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đau bụng dữ dội như dao đâm lan ra sau lưng, sờ thấy một khối đập rộn rã theo nhịp tim ở vùng bụng trên rốn. Người nhà đang định cho uống nước đường nhưng thấy nuốt khó."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "internal_hemorrhage"
+    ]
+  },
+  {
+    "case_id": "V7-0031",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Nôn vọt ra hơn nửa bát máu tươi lẫn cục máu đông sẫm màu, sau đó đi cầu phân đen nhão tanh nồng và ngất lịm."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "internal_hemorrhage",
+      "circulatory_compromise"
+    ]
+  },
+  {
+    "case_id": "V7-0032",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình trạng bắt đầu từ sáng nay: Nôn vọt ra hơn nửa bát máu tươi lẫn cục máu đông sẫm màu, sau đó đi cầu phân đen nhão tanh nồng và ngất lịm. Gia đình rất hoang mang."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "internal_hemorrhage",
+      "circulatory_compromise"
+    ]
+  },
+  {
+    "case_id": "V7-0033",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân nằm một chỗ li bì: Nôn vọt ra hơn nửa bát máu tươi lẫn cục máu đông sẫm màu, sau đó đi cầu phân đen nhão tanh nồng và ngất lịm. Hiện tại không tiếp xúc được bình thường."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "internal_hemorrhage",
+      "circulatory_compromise"
+    ]
+  },
+  {
+    "case_id": "V7-0034",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đột ngột diễn tiến nghiêm trọng: Nôn vọt ra hơn nửa bát máu tươi lẫn cục máu đông sẫm màu, sau đó đi cầu phân đen nhão tanh nồng và ngất lịm."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "internal_hemorrhage",
+      "circulatory_compromise"
+    ]
+  },
+  {
+    "case_id": "V7-0035",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Nôn vọt ra hơn nửa bát máu tươi lẫn cục máu đông sẫm màu, sau đó đi cầu phân đen nhão tanh nồng và ngất lịm. Người nhà đang định cho uống nước đường nhưng thấy nuốt khó."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "internal_hemorrhage",
+      "circulatory_compromise"
+    ]
+  },
+  {
+    "case_id": "V7-0036",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Người bệnh đột ngột liệt hoàn toàn nửa người bên phải, méo lệch miệng sang một bên, ú ớ không nói được từ nào."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_neurologic_functional_loss"
+    ]
+  },
+  {
+    "case_id": "V7-0037",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình trạng bắt đầu từ sáng nay: Người bệnh đột ngột liệt hoàn toàn nửa người bên phải, méo lệch miệng sang một bên, ú ớ không nói được từ nào. Gia đình rất hoang mang."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_neurologic_functional_loss"
+    ]
+  },
+  {
+    "case_id": "V7-0038",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân nằm một chỗ li bì: Người bệnh đột ngột liệt hoàn toàn nửa người bên phải, méo lệch miệng sang một bên, ú ớ không nói được từ nào. Hiện tại không tiếp xúc được bình thường."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_neurologic_functional_loss"
+    ]
+  },
+  {
+    "case_id": "V7-0039",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đột ngột diễn tiến nghiêm trọng: Người bệnh đột ngột liệt hoàn toàn nửa người bên phải, méo lệch miệng sang một bên, ú ớ không nói được từ nào."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_neurologic_functional_loss"
+    ]
+  },
+  {
+    "case_id": "V7-0040",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Người bệnh đột ngột liệt hoàn toàn nửa người bên phải, méo lệch miệng sang một bên, ú ớ không nói được từ nào. Người nhà đang định cho uống nước đường nhưng thấy nuốt khó."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_neurologic_functional_loss"
+    ]
+  },
+  {
+    "case_id": "V7-0041",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đột ngột mất toàn bộ cảm giác vùng yên ngựa quanh hậu môn, không tự tiểu tiện được dù bàng quang căng tức dữ dội, hai chân yếu liệt."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_neurologic_functional_loss"
+    ]
+  },
+  {
+    "case_id": "V7-0042",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình trạng bắt đầu từ sáng nay: Đột ngột mất toàn bộ cảm giác vùng yên ngựa quanh hậu môn, không tự tiểu tiện được dù bàng quang căng tức dữ dội, hai chân yếu liệt. Gia đình rất hoang mang."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_neurologic_functional_loss"
+    ]
+  },
+  {
+    "case_id": "V7-0043",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân nằm một chỗ li bì: Đột ngột mất toàn bộ cảm giác vùng yên ngựa quanh hậu môn, không tự tiểu tiện được dù bàng quang căng tức dữ dội, hai chân yếu liệt. Hiện tại không tiếp xúc được bình thường."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_neurologic_functional_loss"
+    ]
+  },
+  {
+    "case_id": "V7-0044",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đột ngột diễn tiến nghiêm trọng: Đột ngột mất toàn bộ cảm giác vùng yên ngựa quanh hậu môn, không tự tiểu tiện được dù bàng quang căng tức dữ dội, hai chân yếu liệt."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_neurologic_functional_loss"
+    ]
+  },
+  {
+    "case_id": "V7-0045",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đột ngột mất toàn bộ cảm giác vùng yên ngựa quanh hậu môn, không tự tiểu tiện được dù bàng quang căng tức dữ dội, hai chân yếu liệt. Người nhà đang định cho uống nước đường nhưng thấy nuốt khó."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_neurologic_functional_loss"
+    ]
+  },
+  {
+    "case_id": "V7-0046",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Mắt phải đột ngột mất thị lực hoàn toàn tối sầm trong vài giây, đồng tử giãn to, giác mạc mờ đục như sương mù và đau nhức dữ dội."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "time_critical_organ_loss"
+    ]
+  },
+  {
+    "case_id": "V7-0047",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình trạng bắt đầu từ sáng nay: Mắt phải đột ngột mất thị lực hoàn toàn tối sầm trong vài giây, đồng tử giãn to, giác mạc mờ đục như sương mù và đau nhức dữ dội. Gia đình rất hoang mang."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "time_critical_organ_loss"
+    ]
+  },
+  {
+    "case_id": "V7-0048",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân nằm một chỗ li bì: Mắt phải đột ngột mất thị lực hoàn toàn tối sầm trong vài giây, đồng tử giãn to, giác mạc mờ đục như sương mù và đau nhức dữ dội. Hiện tại không tiếp xúc được bình thường."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "time_critical_organ_loss"
+    ]
+  },
+  {
+    "case_id": "V7-0049",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đột ngột diễn tiến nghiêm trọng: Mắt phải đột ngột mất thị lực hoàn toàn tối sầm trong vài giây, đồng tử giãn to, giác mạc mờ đục như sương mù và đau nhức dữ dội."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "time_critical_organ_loss"
+    ]
+  },
+  {
+    "case_id": "V7-0050",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Mắt phải đột ngột mất thị lực hoàn toàn tối sầm trong vài giây, đồng tử giãn to, giác mạc mờ đục như sương mù và đau nhức dữ dội. Người nhà đang định cho uống nước đường nhưng thấy nuốt khó."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "time_critical_organ_loss"
+    ]
+  },
+  {
+    "case_id": "V7-0051",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Vết mổ cũ ở thành bụng đột ngột bục toác sau cơn ho mạnh, thấy quai ruột đỏ hẫng trào ra ngoài băng gạc."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "major_barrier_failure"
+    ]
+  },
+  {
+    "case_id": "V7-0052",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình trạng bắt đầu từ sáng nay: Vết mổ cũ ở thành bụng đột ngột bục toác sau cơn ho mạnh, thấy quai ruột đỏ hẫng trào ra ngoài băng gạc. Gia đình rất hoang mang."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "major_barrier_failure"
+    ]
+  },
+  {
+    "case_id": "V7-0053",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân nằm một chỗ li bì: Vết mổ cũ ở thành bụng đột ngột bục toác sau cơn ho mạnh, thấy quai ruột đỏ hẫng trào ra ngoài băng gạc. Hiện tại không tiếp xúc được bình thường."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "major_barrier_failure"
+    ]
+  },
+  {
+    "case_id": "V7-0054",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đột ngột diễn tiến nghiêm trọng: Vết mổ cũ ở thành bụng đột ngột bục toác sau cơn ho mạnh, thấy quai ruột đỏ hẫng trào ra ngoài băng gạc."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "major_barrier_failure"
+    ]
+  },
+  {
+    "case_id": "V7-0055",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Vết mổ cũ ở thành bụng đột ngột bục toác sau cơn ho mạnh, thấy quai ruột đỏ hẫng trào ra ngoài băng gạc. Người nhà đang định cho uống nước đường nhưng thấy nuốt khó."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "major_barrier_failure"
+    ]
+  },
+  {
+    "case_id": "V7-0056",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Vùng da cẳng chân đỏ ửng lan nhanh từng giờ, xuất hiện các bọng nước màu tím đen, sờ vào thấy lục cục lạo xạo dưới da và chảy dịch đục."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "major_barrier_failure",
+      "perforation_risk"
+    ]
+  },
+  {
+    "case_id": "V7-0057",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình trạng bắt đầu từ sáng nay: Vùng da cẳng chân đỏ ửng lan nhanh từng giờ, xuất hiện các bọng nước màu tím đen, sờ vào thấy lục cục lạo xạo dưới da và chảy dịch đục. Gia đình rất hoang mang."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "major_barrier_failure",
+      "perforation_risk"
+    ]
+  },
+  {
+    "case_id": "V7-0058",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân nằm một chỗ li bì: Vùng da cẳng chân đỏ ửng lan nhanh từng giờ, xuất hiện các bọng nước màu tím đen, sờ vào thấy lục cục lạo xạo dưới da và chảy dịch đục. Hiện tại không tiếp xúc được bình thường."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "major_barrier_failure",
+      "perforation_risk"
+    ]
+  },
+  {
+    "case_id": "V7-0059",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đột ngột diễn tiến nghiêm trọng: Vùng da cẳng chân đỏ ửng lan nhanh từng giờ, xuất hiện các bọng nước màu tím đen, sờ vào thấy lục cục lạo xạo dưới da và chảy dịch đục."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "major_barrier_failure",
+      "perforation_risk"
+    ]
+  },
+  {
+    "case_id": "V7-0060",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Vùng da cẳng chân đỏ ửng lan nhanh từng giờ, xuất hiện các bọng nước màu tím đen, sờ vào thấy lục cục lạo xạo dưới da và chảy dịch đục. Người nhà đang định cho uống nước đường nhưng thấy nuốt khó."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "major_barrier_failure",
+      "perforation_risk"
+    ]
+  },
+  {
+    "case_id": "V7-0061",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Sốt 38.8 độ kèm đau tức hạ sườn phải âm ỉ cả ngày, vàng mắt nhẹ, tiểu sẫm màu nhưng huyết áp và tri giác vẫn tỉnh táo."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0062",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đau quặn thận hông lưng từng cơn dữ dội lan xuống bẹn, nôn buồn nôn nhiều lần nhưng không sốt, huyết áp 130/85."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0063",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đau bụng hố chậu phải âm ỉ tăng dần từ sáng, ấn đau chói kèm sốt nhẹ 38 độ, chưa nôn, đi lại thấy nhói."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0064",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Khó thở khi gắng sức nhẹ 2 ngày nay ở người lớn tuổi, hai mắt cá chân phù lõm nhẹ, huyết áp 140/90, SpO2 94%."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0065",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Vết thương hở ở cẳng tay chảy máu rỉ rả sau va chạm, đã băng ép nhưng máu vẫn thấm đẫm gạc, cử động ngón tay bình thường."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0066",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Sốt cao 39 độ 2 ngày nay kèm ho nhiều đờm đặc màu vàng rỉ sắt, đau nhói ngực khi hít sâu, thở 22 lần/phút."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0067",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đau đầu nhiều kèm buồn nôn sau khi mất ngủ liên tục, huyết áp đo được 160/95 mmHg, không yếu liệt tay chân."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0068",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Nôn mửa và tiêu chảy 5 lần từ chiều sau ăn hải sản, mệt lả nhưng uống được oresol, huyết áp 105/70."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0069",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đau khớp gối sưng nóng đỏ hạn chế vận động sau ngã nhẹ, sốt nhẹ 37.8 độ, toàn trạng tạm ổn."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0070",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Chóng mặt quay cuồng dữ dội khi thay đổi tư thế đầu kèm nôn ói, cử động mắt rung giật nhẹ, không tê liệt."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0071",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Mắt trái bị cộm rát chảy nước mắt dữ dội sau khi bị bụi vôi bắn vào, đã rửa nước nhưng nhìn mờ nhẹ."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0072",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bỏng nước sôi vùng cẳng tay diện tích khoảng 5% cơ thể, phồng rộp da đỏ đau rát nhiều nhưng vết thương sạch."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0073",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bí tiểu 8 tiếng sau khi uống thuốc cảm, cảm giác tức nặng bàng quang dưới rốn, chưa có biểu hiện suy sụp toàn thân."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0074",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đau tức vùng thượng vị cồn cào từng cơn sau ăn đồ cay, ợ chua nhiều, không sốt không nôn máu, bụng mềm."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0075",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Chảy máu cam một bên mũi liên tục 20 phút dù đã bóp cánh mũi, nuốt thấy vị tanh, huyết áp 135/85."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0076",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hắt hơi sổ mũi nước trong 2 ngày nay, không sốt, không đau họng, ăn uống và sinh hoạt hoàn toàn bình thường."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0077",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hơi ngứa da nổi vài nốt mẩn đỏ sau khi mặc áo len mới giặt, không khó thở, không phù môi mắt."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0078",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đầy hơi chướng bụng nhẹ sau bữa tiệc sinh nhật nhiều dầu mỡ, không đau bụng dữ dội, đại tiện bình thường."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0079",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đau mỏi cơ nhẹ ở bắp chân sau buổi chạy bộ hôm qua, không sưng đỏ bầm tím, đi lại được."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0080",
+    "cohort": "cross_domain_physiologic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảm giác khô họng nhẹ vào buổi sáng khi ngủ phòng máy lạnh, uống nước ấm thì dịu bớt, không sốt."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0081",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Người bệnh đang dùng thuốc an thần thì đột ngột sốt cao 40.5 độ C, toàn thân cứng đờ như ống chì, vã mồ hôi đầm đìa, lú lẫn không nhận biết người thân."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0082",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cấp báo: Người bệnh đang dùng thuốc an thần thì đột ngột sốt cao 40.5 độ C, toàn thân cứng đờ như ống chì, vã mồ hôi đầm đìa, lú lẫn không nhận biết người thân."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0083",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình huống khẩn cấp: Người bệnh đang dùng thuốc an thần thì đột ngột sốt cao 40.5 độ C, toàn thân cứng đờ như ống chì, vã mồ hôi đầm đìa, lú lẫn không nhận biết người thân. Đang chờ người đưa đi."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0084",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Sau khi tăng liều thuốc hướng thần 2 ngày nay, bệnh nhân cứng đơ các khớp hàm và tay chân, thân nhiệt 40 độ, huyết áp dao động dữ dội 180/100 xuống 90/60."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0085",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cấp báo: Sau khi tăng liều thuốc hướng thần 2 ngày nay, bệnh nhân cứng đơ các khớp hàm và tay chân, thân nhiệt 40 độ, huyết áp dao động dữ dội 180/100 xuống 90/60."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0086",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình huống khẩn cấp: Sau khi tăng liều thuốc hướng thần 2 ngày nay, bệnh nhân cứng đơ các khớp hàm và tay chân, thân nhiệt 40 độ, huyết áp dao động dữ dội 180/100 xuống 90/60. Đang chờ người đưa đi."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0087",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân tự ý uống phối hợp hai loại thuốc chống trầm cảm, hiện xuất hiện giật giật bàn chân không tự chủ, tăng phản xạ gân xương dữ dội, sốt 39 độ và kích động."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0088",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cấp báo: Bệnh nhân tự ý uống phối hợp hai loại thuốc chống trầm cảm, hiện xuất hiện giật giật bàn chân không tự chủ, tăng phản xạ gân xương dữ dội, sốt 39 độ và kích động."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0089",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình huống khẩn cấp: Bệnh nhân tự ý uống phối hợp hai loại thuốc chống trầm cảm, hiện xuất hiện giật giật bàn chân không tự chủ, tăng phản xạ gân xương dữ dội, sốt 39 độ và kích động. Đang chờ người đưa đi."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0090",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Sau khi uống thuốc giảm đau tramadol chung với thuốc trị trầm cảm, người bệnh run rẩy, đồng tử giãn to, giật cơ liên tục, da đỏ rực vã mồ hôi."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0091",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cấp báo: Sau khi uống thuốc giảm đau tramadol chung với thuốc trị trầm cảm, người bệnh run rẩy, đồng tử giãn to, giật cơ liên tục, da đỏ rực vã mồ hôi."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0092",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình huống khẩn cấp: Sau khi uống thuốc giảm đau tramadol chung với thuốc trị trầm cảm, người bệnh run rẩy, đồng tử giãn to, giật cơ liên tục, da đỏ rực vã mồ hôi. Đang chờ người đưa đi."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0093",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân uống liên tục 15 viên giảm đau hạ sốt 500mg rải rác từ tối qua đến sáng nay do đau nhức, tổng cộng hơn 18 viên, giờ buồn nôn và đau tức hạ sườn phải."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0094",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cấp báo: Bệnh nhân uống liên tục 15 viên giảm đau hạ sốt 500mg rải rác từ tối qua đến sáng nay do đau nhức, tổng cộng hơn 18 viên, giờ buồn nôn và đau tức hạ sườn phải."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0095",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình huống khẩn cấp: Bệnh nhân uống liên tục 15 viên giảm đau hạ sốt 500mg rải rác từ tối qua đến sáng nay do đau nhức, tổng cộng hơn 18 viên, giờ buồn nôn và đau tức hạ sườn phải. Đang chờ người đưa đi."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0096",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Vừa uống một lúc 20 viên thuốc hạ sốt paracetamol cách đây 2 tiếng vì bế tắc cuộc sống, hiện bắt đầu nôn nao mệt mỏi."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0097",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cấp báo: Vừa uống một lúc 20 viên thuốc hạ sốt paracetamol cách đây 2 tiếng vì bế tắc cuộc sống, hiện bắt đầu nôn nao mệt mỏi."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0098",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình huống khẩn cấp: Vừa uống một lúc 20 viên thuốc hạ sốt paracetamol cách đây 2 tiếng vì bế tắc cuộc sống, hiện bắt đầu nôn nao mệt mỏi. Đang chờ người đưa đi."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0099",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân uống 3 gói hạ sốt trẻ em cộng thêm 6 viên giảm đau người lớn trong vòng 12 tiếng, kèm tiền sử men gan cao."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0100",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cấp báo: Bệnh nhân uống 3 gói hạ sốt trẻ em cộng thêm 6 viên giảm đau người lớn trong vòng 12 tiếng, kèm tiền sử men gan cao."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0101",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình huống khẩn cấp: Bệnh nhân uống 3 gói hạ sốt trẻ em cộng thêm 6 viên giảm đau người lớn trong vòng 12 tiếng, kèm tiền sử men gan cao. Đang chờ người đưa đi."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0102",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Người bệnh uống nhầm 10 viên thuốc hạ huyết áp tim mạch của người nhà, hiện mạch đập cực chậm chỉ 36 lần/phút, huyết áp đo 70/40 mmHg, lơ mơ."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "circulatory_compromise",
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0103",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cấp báo: Người bệnh uống nhầm 10 viên thuốc hạ huyết áp tim mạch của người nhà, hiện mạch đập cực chậm chỉ 36 lần/phút, huyết áp đo 70/40 mmHg, lơ mơ."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "circulatory_compromise",
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0104",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình huống khẩn cấp: Người bệnh uống nhầm 10 viên thuốc hạ huyết áp tim mạch của người nhà, hiện mạch đập cực chậm chỉ 36 lần/phút, huyết áp đo 70/40 mmHg, lơ mơ. Đang chờ người đưa đi."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "circulatory_compromise",
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0105",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Uống quá liều thuốc chẹn kênh canxi điều trị huyết áp, hiện tụt huyết áp nặng 65/40, đường huyết hạ, tay chân lạnh ngắt không bắt được mạch."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "circulatory_compromise"
+    ]
+  },
+  {
+    "case_id": "V7-0106",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cấp báo: Uống quá liều thuốc chẹn kênh canxi điều trị huyết áp, hiện tụt huyết áp nặng 65/40, đường huyết hạ, tay chân lạnh ngắt không bắt được mạch."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "circulatory_compromise"
+    ]
+  },
+  {
+    "case_id": "V7-0107",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình huống khẩn cấp: Uống quá liều thuốc chẹn kênh canxi điều trị huyết áp, hiện tụt huyết áp nặng 65/40, đường huyết hạ, tay chân lạnh ngắt không bắt được mạch. Đang chờ người đưa đi."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "circulatory_compromise"
+    ]
+  },
+  {
+    "case_id": "V7-0108",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Người bệnh uống hơn 25 viên thuốc ngủ, hiện thở rất chậm chỉ 6 nhịp một phút, cấu véo không đáp ứng, đồng tử co nhỏ như đầu đinh ghim."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "respiratory_failure",
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0109",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cấp báo: Người bệnh uống hơn 25 viên thuốc ngủ, hiện thở rất chậm chỉ 6 nhịp một phút, cấu véo không đáp ứng, đồng tử co nhỏ như đầu đinh ghim."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "respiratory_failure",
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0110",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình huống khẩn cấp: Người bệnh uống hơn 25 viên thuốc ngủ, hiện thở rất chậm chỉ 6 nhịp một phút, cấu véo không đáp ứng, đồng tử co nhỏ như đầu đinh ghim. Đang chờ người đưa đi."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "respiratory_failure",
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0111",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Sau khi dùng thuốc giảm đau gây nghiện liều cao, bệnh nhân ngáy to bất thường rồi tím tái môi, gọi không tỉnh, nhịp thở ngắt quãng."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "airway_obstruction",
+      "respiratory_failure"
+    ]
+  },
+  {
+    "case_id": "V7-0112",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cấp báo: Sau khi dùng thuốc giảm đau gây nghiện liều cao, bệnh nhân ngáy to bất thường rồi tím tái môi, gọi không tỉnh, nhịp thở ngắt quãng."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "airway_obstruction",
+      "respiratory_failure"
+    ]
+  },
+  {
+    "case_id": "V7-0113",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình huống khẩn cấp: Sau khi dùng thuốc giảm đau gây nghiện liều cao, bệnh nhân ngáy to bất thường rồi tím tái môi, gọi không tỉnh, nhịp thở ngắt quãng. Đang chờ người đưa đi."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "airway_obstruction",
+      "respiratory_failure"
+    ]
+  },
+  {
+    "case_id": "V7-0114",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân uống cả lọ aspirin khoảng 30 viên, hiện ù tai dữ dội, thở rất nhanh và sâu 35 lần/phút, kích thích vật vã lẫn lộn."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "metabolic_instability",
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0115",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cấp báo: Bệnh nhân uống cả lọ aspirin khoảng 30 viên, hiện ù tai dữ dội, thở rất nhanh và sâu 35 lần/phút, kích thích vật vã lẫn lộn."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "metabolic_instability",
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0116",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình huống khẩn cấp: Bệnh nhân uống cả lọ aspirin khoảng 30 viên, hiện ù tai dữ dội, thở rất nhanh và sâu 35 lần/phút, kích thích vật vã lẫn lộn. Đang chờ người đưa đi."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "metabolic_instability",
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0117",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân điều trị rối loạn khí sắc vô tình uống gấp 5 lần liều quy định, hiện run giật tay chân dữ dội, loạng choạng ngã, nôn mửa liên tục và mê sảng."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0118",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cấp báo: Bệnh nhân điều trị rối loạn khí sắc vô tình uống gấp 5 lần liều quy định, hiện run giật tay chân dữ dội, loạng choạng ngã, nôn mửa liên tục và mê sảng."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0119",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình huống khẩn cấp: Bệnh nhân điều trị rối loạn khí sắc vô tình uống gấp 5 lần liều quy định, hiện run giật tay chân dữ dội, loạng choạng ngã, nôn mửa liên tục và mê sảng. Đang chờ người đưa đi."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0120",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân bị hóa chất trừ sâu bắn vào người khi làm vườn, hiện đồng tử co nhỏ, sùi bọt mép, khó thở rale ẩm đầy hai phổi, vã mồ hôi tiểu tiện không tự chủ."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "airway_obstruction",
+      "respiratory_failure"
+    ]
+  },
+  {
+    "case_id": "V7-0121",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cấp báo: Bệnh nhân bị hóa chất trừ sâu bắn vào người khi làm vườn, hiện đồng tử co nhỏ, sùi bọt mép, khó thở rale ẩm đầy hai phổi, vã mồ hôi tiểu tiện không tự chủ."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "airway_obstruction",
+      "respiratory_failure"
+    ]
+  },
+  {
+    "case_id": "V7-0122",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình huống khẩn cấp: Bệnh nhân bị hóa chất trừ sâu bắn vào người khi làm vườn, hiện đồng tử co nhỏ, sùi bọt mép, khó thở rale ẩm đầy hai phổi, vã mồ hôi tiểu tiện không tự chủ. Đang chờ người đưa đi."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "airway_obstruction",
+      "respiratory_failure"
+    ]
+  },
+  {
+    "case_id": "V7-0123",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bé 2 tuổi uống nhầm nửa lọ thuốc sắt của mẹ, nôn ra dịch màu nâu đen lẫn máu, li bì và mạch nhanh nhỏ khó bắt."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "internal_hemorrhage",
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0124",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cấp báo: Bé 2 tuổi uống nhầm nửa lọ thuốc sắt của mẹ, nôn ra dịch màu nâu đen lẫn máu, li bì và mạch nhanh nhỏ khó bắt."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "internal_hemorrhage",
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0125",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình huống khẩn cấp: Bé 2 tuổi uống nhầm nửa lọ thuốc sắt của mẹ, nôn ra dịch màu nâu đen lẫn máu, li bì và mạch nhanh nhỏ khó bắt. Đang chờ người đưa đi."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "internal_hemorrhage",
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0126",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Vô tình uống 2 viên thuốc hạ áp thay vì 1 viên sáng nay, hiện huyết áp hơi thấp 100/60, hơi chóng mặt khi đứng dậy nhưng tỉnh táo."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0127",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Uống 3 viên paracetamol 500mg trong vòng 6 tiếng vì đau răng dữ dội, tổng liều 1500mg, chưa thấy biểu hiện khó chịu gì."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0128",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Uống nhầm liều kháng sinh gấp đôi một lần duy nhất, hiện hơi nôn nao khó chịu ở dạ dày nhưng không nổi ban hay khó thở."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0129",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Dùng thuốc nhỏ mũi quá nhiều lần trong ngày dẫn đến tim đập hơi nhanh 95 lần/phút, cảm giác bồn chồn lo lắng nhẹ."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0130",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bé 4 tuổi cắn vỡ 1 viên kẹo vitamin C liều cao, hiện hơi đỏ ửng mặt và cồn cào bụng, hoạt động vui chơi bình thường."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0131",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Uống 1 viên thuốc an thần nhẹ thảo dược quá hạn 1 tháng, cảm giác hơi đắng miệng và mệt nhẹ, tri giác hoàn toàn tỉnh táo."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0132",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Uống nhầm thuốc bôi ngoài da vào miệng nhưng đã nhổ ra ngay và súc miệng nhiều lần bằng nước sạch, miệng hơi tê nhẹ."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0133",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Người lớn tuổi lỡ uống hai loại thuốc giảm đau thông thường cùng lúc, tổng lượng paracetamol khoảng 1000mg, chưa thấy đau bụng."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0134",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bị dính một chút thuốc xịt muỗi vào cẳng tay, đã rửa xà phòng ngay, da hơi đỏ ngứa nhẹ tại chỗ tiếp xúc."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0135",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Vô tình uống nước trong cốc có lẫn chút cồn y tế 70 độ pha loãng, cảm giác nóng rát nhẹ cổ họng, không khó thở."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0136",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Uống 1 viên paracetamol 500mg cách đây 6 tiếng trị nhức đầu, hiện đã hết đau đầu hoàn toàn, hỏi có cần uống thêm không."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0137",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Uống 1 viên vitamin tổng hợp sau bữa ăn sáng theo hướng dẫn sử dụng trên bao bì, không có triệu chứng gì bất thường."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0138",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Dùng siro ho thảo dược đúng liều lượng chỉ định 10ml, cảm giác dịu cổ họng, sinh hoạt bình thường."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0139",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bôi kem chống ngứa ngoài da một lớp mỏng theo đơn bác sĩ, vết muỗi cắn đã bớt sưng, hỏi ngày bôi mấy lần."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0140",
+    "cohort": "advanced_toxicology",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Uống men vi sinh tiêu hóa dạng gói sau bữa ăn, bụng êm, không đau quặn hay tiêu chảy gì."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0141",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Người bệnh có tiền sử loạn nhịp tim đột ngột đau bụng dữ dội quằn quại quanh rốn, mức độ đau vượt quá mức tưởng tượng dù sờ bụng lúc đầu còn mềm, sau đó đi tiêu ra phân nhầy lẫn máu."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_tissue_ischemia",
+      "internal_hemorrhage"
+    ]
+  },
+  {
+    "case_id": "V7-0142",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh cảnh diễn tiến cấp bách: Người bệnh có tiền sử loạn nhịp tim đột ngột đau bụng dữ dội quằn quại quanh rốn, mức độ đau vượt quá mức tưởng tượng dù sờ bụng lúc đầu còn mềm, sau đó đi tiêu ra phân nhầy lẫn máu."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_tissue_ischemia",
+      "internal_hemorrhage"
+    ]
+  },
+  {
+    "case_id": "V7-0143",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Người bệnh có tiền sử loạn nhịp tim đột ngột đau bụng dữ dội quằn quại quanh rốn, mức độ đau vượt quá mức tưởng tượng dù sờ bụng lúc đầu còn mềm, sau đó đi tiêu ra phân nhầy lẫn máu. Cần hỗ trợ khẩn cấp."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_tissue_ischemia",
+      "internal_hemorrhage"
+    ]
+  },
+  {
+    "case_id": "V7-0144",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Người nhà phản ánh: Người bệnh có tiền sử loạn nhịp tim đột ngột đau bụng dữ dội quằn quại quanh rốn, mức độ đau vượt quá mức tưởng tượng dù sờ bụng lúc đầu còn mềm, sau đó đi tiêu ra phân nhầy lẫn máu."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_tissue_ischemia",
+      "internal_hemorrhage"
+    ]
+  },
+  {
+    "case_id": "V7-0145",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Người bệnh có tiền sử loạn nhịp tim đột ngột đau bụng dữ dội quằn quại quanh rốn, mức độ đau vượt quá mức tưởng tượng dù sờ bụng lúc đầu còn mềm, sau đó đi tiêu ra phân nhầy lẫn máu. Hiện không thể di chuyển bình thường."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_tissue_ischemia",
+      "internal_hemorrhage"
+    ]
+  },
+  {
+    "case_id": "V7-0146",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cơn đau bụng kinh hoàng xuất hiện đột ngột ở người già có bệnh lý tim mạch, đau lăn lộn không tư thế nào giảm đau, toát mồ hôi đầm đìa và huyết áp bắt đầu tụt."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_tissue_ischemia",
+      "circulatory_compromise"
+    ]
+  },
+  {
+    "case_id": "V7-0147",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh cảnh diễn tiến cấp bách: Cơn đau bụng kinh hoàng xuất hiện đột ngột ở người già có bệnh lý tim mạch, đau lăn lộn không tư thế nào giảm đau, toát mồ hôi đầm đìa và huyết áp bắt đầu tụt."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_tissue_ischemia",
+      "circulatory_compromise"
+    ]
+  },
+  {
+    "case_id": "V7-0148",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cơn đau bụng kinh hoàng xuất hiện đột ngột ở người già có bệnh lý tim mạch, đau lăn lộn không tư thế nào giảm đau, toát mồ hôi đầm đìa và huyết áp bắt đầu tụt. Cần hỗ trợ khẩn cấp."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_tissue_ischemia",
+      "circulatory_compromise"
+    ]
+  },
+  {
+    "case_id": "V7-0149",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Người nhà phản ánh: Cơn đau bụng kinh hoàng xuất hiện đột ngột ở người già có bệnh lý tim mạch, đau lăn lộn không tư thế nào giảm đau, toát mồ hôi đầm đìa và huyết áp bắt đầu tụt."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_tissue_ischemia",
+      "circulatory_compromise"
+    ]
+  },
+  {
+    "case_id": "V7-0150",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cơn đau bụng kinh hoàng xuất hiện đột ngột ở người già có bệnh lý tim mạch, đau lăn lộn không tư thế nào giảm đau, toát mồ hôi đầm đìa và huyết áp bắt đầu tụt. Hiện không thể di chuyển bình thường."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_tissue_ischemia",
+      "circulatory_compromise"
+    ]
+  },
+  {
+    "case_id": "V7-0151",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Sau một cơn nôn ói dữ dội sau chầu nhậu, bệnh nhân đột ngột đau chói ngực dữ dội xuyên ra sau lưng, thở dốc, sờ dưới da vùng cổ và hõm ức thấy lạo xạo bóng khí lép bép."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "perforation_risk",
+      "airway_obstruction"
+    ]
+  },
+  {
+    "case_id": "V7-0152",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh cảnh diễn tiến cấp bách: Sau một cơn nôn ói dữ dội sau chầu nhậu, bệnh nhân đột ngột đau chói ngực dữ dội xuyên ra sau lưng, thở dốc, sờ dưới da vùng cổ và hõm ức thấy lạo xạo bóng khí lép bép."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "perforation_risk",
+      "airway_obstruction"
+    ]
+  },
+  {
+    "case_id": "V7-0153",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Sau một cơn nôn ói dữ dội sau chầu nhậu, bệnh nhân đột ngột đau chói ngực dữ dội xuyên ra sau lưng, thở dốc, sờ dưới da vùng cổ và hõm ức thấy lạo xạo bóng khí lép bép. Cần hỗ trợ khẩn cấp."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "perforation_risk",
+      "airway_obstruction"
+    ]
+  },
+  {
+    "case_id": "V7-0154",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Người nhà phản ánh: Sau một cơn nôn ói dữ dội sau chầu nhậu, bệnh nhân đột ngột đau chói ngực dữ dội xuyên ra sau lưng, thở dốc, sờ dưới da vùng cổ và hõm ức thấy lạo xạo bóng khí lép bép."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "perforation_risk",
+      "airway_obstruction"
+    ]
+  },
+  {
+    "case_id": "V7-0155",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Sau một cơn nôn ói dữ dội sau chầu nhậu, bệnh nhân đột ngột đau chói ngực dữ dội xuyên ra sau lưng, thở dốc, sờ dưới da vùng cổ và hõm ức thấy lạo xạo bóng khí lép bép. Hiện không thể di chuyển bình thường."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "perforation_risk",
+      "airway_obstruction"
+    ]
+  },
+  {
+    "case_id": "V7-0156",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Nôn khan nhiều lần liên tục rồi nghe tiếng 'rách' nhói giữa ngực, sau đó đau đớn dữ dội không nuốt được ngụm nước nào, da cổ phồng lên ấn vào nghe lạo xạo như bóp xốp."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "perforation_risk"
+    ]
+  },
+  {
+    "case_id": "V7-0157",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh cảnh diễn tiến cấp bách: Nôn khan nhiều lần liên tục rồi nghe tiếng 'rách' nhói giữa ngực, sau đó đau đớn dữ dội không nuốt được ngụm nước nào, da cổ phồng lên ấn vào nghe lạo xạo như bóp xốp."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "perforation_risk"
+    ]
+  },
+  {
+    "case_id": "V7-0158",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Nôn khan nhiều lần liên tục rồi nghe tiếng 'rách' nhói giữa ngực, sau đó đau đớn dữ dội không nuốt được ngụm nước nào, da cổ phồng lên ấn vào nghe lạo xạo như bóp xốp. Cần hỗ trợ khẩn cấp."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "perforation_risk"
+    ]
+  },
+  {
+    "case_id": "V7-0159",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Người nhà phản ánh: Nôn khan nhiều lần liên tục rồi nghe tiếng 'rách' nhói giữa ngực, sau đó đau đớn dữ dội không nuốt được ngụm nước nào, da cổ phồng lên ấn vào nghe lạo xạo như bóp xốp."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "perforation_risk"
+    ]
+  },
+  {
+    "case_id": "V7-0160",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Nôn khan nhiều lần liên tục rồi nghe tiếng 'rách' nhói giữa ngực, sau đó đau đớn dữ dội không nuốt được ngụm nước nào, da cổ phồng lên ấn vào nghe lạo xạo như bóp xốp. Hiện không thể di chuyển bình thường."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "perforation_risk"
+    ]
+  },
+  {
+    "case_id": "V7-0161",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân đau bụng dữ dội toàn thể, sờ vào thành bụng co cứng như một tấm ván gỗ, chạm nhẹ vào cũng la hét đau đớn, sốt 39.2 độ và thở dồn dập."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "perforation_risk"
+    ]
+  },
+  {
+    "case_id": "V7-0162",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh cảnh diễn tiến cấp bách: Bệnh nhân đau bụng dữ dội toàn thể, sờ vào thành bụng co cứng như một tấm ván gỗ, chạm nhẹ vào cũng la hét đau đớn, sốt 39.2 độ và thở dồn dập."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "perforation_risk"
+    ]
+  },
+  {
+    "case_id": "V7-0163",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân đau bụng dữ dội toàn thể, sờ vào thành bụng co cứng như một tấm ván gỗ, chạm nhẹ vào cũng la hét đau đớn, sốt 39.2 độ và thở dồn dập. Cần hỗ trợ khẩn cấp."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "perforation_risk"
+    ]
+  },
+  {
+    "case_id": "V7-0164",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Người nhà phản ánh: Bệnh nhân đau bụng dữ dội toàn thể, sờ vào thành bụng co cứng như một tấm ván gỗ, chạm nhẹ vào cũng la hét đau đớn, sốt 39.2 độ và thở dồn dập."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "perforation_risk"
+    ]
+  },
+  {
+    "case_id": "V7-0165",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân đau bụng dữ dội toàn thể, sờ vào thành bụng co cứng như một tấm ván gỗ, chạm nhẹ vào cũng la hét đau đớn, sốt 39.2 độ và thở dồn dập. Hiện không thể di chuyển bình thường."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "perforation_risk"
+    ]
+  },
+  {
+    "case_id": "V7-0166",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Thanh niên 16 tuổi đột ngột đau nhức dữ dội một bên bìu từ nửa đêm, bìu sưng to bầm tím kéo lệch lên cao, chạm nhẹ vào là thét lên đau đớn, kèm buồn nôn liên tục."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "time_critical_organ_loss"
+    ]
+  },
+  {
+    "case_id": "V7-0167",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh cảnh diễn tiến cấp bách: Thanh niên 16 tuổi đột ngột đau nhức dữ dội một bên bìu từ nửa đêm, bìu sưng to bầm tím kéo lệch lên cao, chạm nhẹ vào là thét lên đau đớn, kèm buồn nôn liên tục."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "time_critical_organ_loss"
+    ]
+  },
+  {
+    "case_id": "V7-0168",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Thanh niên 16 tuổi đột ngột đau nhức dữ dội một bên bìu từ nửa đêm, bìu sưng to bầm tím kéo lệch lên cao, chạm nhẹ vào là thét lên đau đớn, kèm buồn nôn liên tục. Cần hỗ trợ khẩn cấp."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "time_critical_organ_loss"
+    ]
+  },
+  {
+    "case_id": "V7-0169",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Người nhà phản ánh: Thanh niên 16 tuổi đột ngột đau nhức dữ dội một bên bìu từ nửa đêm, bìu sưng to bầm tím kéo lệch lên cao, chạm nhẹ vào là thét lên đau đớn, kèm buồn nôn liên tục."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "time_critical_organ_loss"
+    ]
+  },
+  {
+    "case_id": "V7-0170",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Thanh niên 16 tuổi đột ngột đau nhức dữ dội một bên bìu từ nửa đêm, bìu sưng to bầm tím kéo lệch lên cao, chạm nhẹ vào là thét lên đau đớn, kèm buồn nôn liên tục. Hiện không thể di chuyển bình thường."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "time_critical_organ_loss"
+    ]
+  },
+  {
+    "case_id": "V7-0171",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Phụ nữ trẻ đột ngột đau nhói quặn dữ dội một bên hố chậu dưới, cơn đau dồn dập kèm nôn mật xanh mật vàng, da tái nhợt và toát mồ hôi lạnh."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "time_critical_organ_loss",
+      "acute_tissue_ischemia"
+    ]
+  },
+  {
+    "case_id": "V7-0172",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh cảnh diễn tiến cấp bách: Phụ nữ trẻ đột ngột đau nhói quặn dữ dội một bên hố chậu dưới, cơn đau dồn dập kèm nôn mật xanh mật vàng, da tái nhợt và toát mồ hôi lạnh."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "time_critical_organ_loss",
+      "acute_tissue_ischemia"
+    ]
+  },
+  {
+    "case_id": "V7-0173",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Phụ nữ trẻ đột ngột đau nhói quặn dữ dội một bên hố chậu dưới, cơn đau dồn dập kèm nôn mật xanh mật vàng, da tái nhợt và toát mồ hôi lạnh. Cần hỗ trợ khẩn cấp."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "time_critical_organ_loss",
+      "acute_tissue_ischemia"
+    ]
+  },
+  {
+    "case_id": "V7-0174",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Người nhà phản ánh: Phụ nữ trẻ đột ngột đau nhói quặn dữ dội một bên hố chậu dưới, cơn đau dồn dập kèm nôn mật xanh mật vàng, da tái nhợt và toát mồ hôi lạnh."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "time_critical_organ_loss",
+      "acute_tissue_ischemia"
+    ]
+  },
+  {
+    "case_id": "V7-0175",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Phụ nữ trẻ đột ngột đau nhói quặn dữ dội một bên hố chậu dưới, cơn đau dồn dập kèm nôn mật xanh mật vàng, da tái nhợt và toát mồ hôi lạnh. Hiện không thể di chuyển bình thường."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "time_critical_organ_loss",
+      "acute_tissue_ischemia"
+    ]
+  },
+  {
+    "case_id": "V7-0176",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đột ngột chân phải đau buốt dữ dội không thể chịu nổi, toàn bộ bàn chân và cẳng chân trắng bệch, lạnh như băng tuyết, mất hoàn toàn cảm giác và không sờ thấy mạch đập ở mu chân."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_tissue_ischemia",
+      "time_critical_organ_loss"
+    ]
+  },
+  {
+    "case_id": "V7-0177",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh cảnh diễn tiến cấp bách: Đột ngột chân phải đau buốt dữ dội không thể chịu nổi, toàn bộ bàn chân và cẳng chân trắng bệch, lạnh như băng tuyết, mất hoàn toàn cảm giác và không sờ thấy mạch đập ở mu chân."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_tissue_ischemia",
+      "time_critical_organ_loss"
+    ]
+  },
+  {
+    "case_id": "V7-0178",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đột ngột chân phải đau buốt dữ dội không thể chịu nổi, toàn bộ bàn chân và cẳng chân trắng bệch, lạnh như băng tuyết, mất hoàn toàn cảm giác và không sờ thấy mạch đập ở mu chân. Cần hỗ trợ khẩn cấp."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_tissue_ischemia",
+      "time_critical_organ_loss"
+    ]
+  },
+  {
+    "case_id": "V7-0179",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Người nhà phản ánh: Đột ngột chân phải đau buốt dữ dội không thể chịu nổi, toàn bộ bàn chân và cẳng chân trắng bệch, lạnh như băng tuyết, mất hoàn toàn cảm giác và không sờ thấy mạch đập ở mu chân."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_tissue_ischemia",
+      "time_critical_organ_loss"
+    ]
+  },
+  {
+    "case_id": "V7-0180",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đột ngột chân phải đau buốt dữ dội không thể chịu nổi, toàn bộ bàn chân và cẳng chân trắng bệch, lạnh như băng tuyết, mất hoàn toàn cảm giác và không sờ thấy mạch đập ở mu chân. Hiện không thể di chuyển bình thường."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_tissue_ischemia",
+      "time_critical_organ_loss"
+    ]
+  },
+  {
+    "case_id": "V7-0181",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đau âm ỉ góc phần tư dưới phải 12 tiếng nay, ăn vào buồn nôn, nhiệt độ cơ thể 38.1 độ, đi bộ thấy thốn nhẹ."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0182",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đau quặn từng cơn vùng quanh rốn kèm chướng bụng nhẹ và chưa đi đại tiện được 1 ngày, vẫn trung tiện được rỉ rả."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0183",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Vết mổ bắt con sau 10 ngày thấy rỉ ít dịch vàng ở mép chỉ khâu, hơi đỏ nhẹ nhưng không sốt, không bục mép vết mổ."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0184",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đau tức vùng hạ vị kèm cảm giác mót rặn liên tục nhưng tiểu rắt từng giọt buốt, không sốt, huyết áp 120/80."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0185",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Trĩ ngoại sưng to kích thước bằng đầu ngón tay gây đau rát nhiều khi ngồi, rỉ ít máu tươi khi lau giấy vệ sinh."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0186",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đau nhức khớp ngón chân cái sưng đỏ bóng dữ dội sau bữa tiệc thịt bò, đi lại tập tễnh, không sốt toàn thân."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0187",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảm giác đau thắt ngực thoáng qua 2 phút khi leo cầu thang, ngồi nghỉ thì tự hết hoàn toàn, hiện không còn đau ngực."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0188",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đau tức sườn phải khi hít thở sâu sau va quệt xe máy nhẹ, chụp x-quang chưa thấy gãy xương, SpO2 98%."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0189",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đau tức nhẹ vùng bụng dưới khi gần đến chu kỳ kinh nguyệt hàng tháng, chườm ấm thấy đỡ nhiều, không nôn."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0190",
+    "cohort": "occult_surgical_ischemic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Vết trầy xước nhẹ ở đầu gối sau khi ngã xe đạp, đã rửa cồn đỏ và băng cá nhân, cử động gối bình thường không đau nhức."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0191",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Vùng da đùi sau vết cọ xát nhỏ đột ngột sưng nề đen tím lan rộng cực nhanh, mức độ đau đớn dữ dội vượt xa tổn thương nhìn thấy bên ngoài, sờ vào có tiếng lạo xạo dưới da và chảy dịch mùi thối."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "major_barrier_failure",
+      "perforation_risk"
+    ]
+  },
+  {
+    "case_id": "V7-0192",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình trạng nhiễm khuẩn diễn biến cực xấu: Vùng da đùi sau vết cọ xát nhỏ đột ngột sưng nề đen tím lan rộng cực nhanh, mức độ đau đớn dữ dội vượt xa tổn thương nhìn thấy bên ngoài, sờ vào có tiếng lạo xạo dưới da và chảy dịch mùi thối."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "major_barrier_failure",
+      "perforation_risk"
+    ]
+  },
+  {
+    "case_id": "V7-0193",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Vùng da đùi sau vết cọ xát nhỏ đột ngột sưng nề đen tím lan rộng cực nhanh, mức độ đau đớn dữ dội vượt xa tổn thương nhìn thấy bên ngoài, sờ vào có tiếng lạo xạo dưới da và chảy dịch mùi thối. Gia đình nhận thấy tình trạng suy sụp nhanh."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "major_barrier_failure",
+      "perforation_risk"
+    ]
+  },
+  {
+    "case_id": "V7-0194",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân trong tình trạng nguy kịch: Vùng da đùi sau vết cọ xát nhỏ đột ngột sưng nề đen tím lan rộng cực nhanh, mức độ đau đớn dữ dội vượt xa tổn thương nhìn thấy bên ngoài, sờ vào có tiếng lạo xạo dưới da và chảy dịch mùi thối."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "major_barrier_failure",
+      "perforation_risk"
+    ]
+  },
+  {
+    "case_id": "V7-0195",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Vùng da đùi sau vết cọ xát nhỏ đột ngột sưng nề đen tím lan rộng cực nhanh, mức độ đau đớn dữ dội vượt xa tổn thương nhìn thấy bên ngoài, sờ vào có tiếng lạo xạo dưới da và chảy dịch mùi thối. Mất tri giác từng lúc."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "major_barrier_failure",
+      "perforation_risk"
+    ]
+  },
+  {
+    "case_id": "V7-0196",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Vết trầy da ở cẳng chân chuyển sang màu xám tro, bọng nước phồng rộp rỉ dịch đục như nước rửa thịt, sờ thấy lép bép hơi dưới da, bệnh nhân lơ mơ sốt cao 40 độ."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "major_barrier_failure",
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0197",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình trạng nhiễm khuẩn diễn biến cực xấu: Vết trầy da ở cẳng chân chuyển sang màu xám tro, bọng nước phồng rộp rỉ dịch đục như nước rửa thịt, sờ thấy lép bép hơi dưới da, bệnh nhân lơ mơ sốt cao 40 độ."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "major_barrier_failure",
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0198",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Vết trầy da ở cẳng chân chuyển sang màu xám tro, bọng nước phồng rộp rỉ dịch đục như nước rửa thịt, sờ thấy lép bép hơi dưới da, bệnh nhân lơ mơ sốt cao 40 độ. Gia đình nhận thấy tình trạng suy sụp nhanh."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "major_barrier_failure",
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0199",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân trong tình trạng nguy kịch: Vết trầy da ở cẳng chân chuyển sang màu xám tro, bọng nước phồng rộp rỉ dịch đục như nước rửa thịt, sờ thấy lép bép hơi dưới da, bệnh nhân lơ mơ sốt cao 40 độ."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "major_barrier_failure",
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0200",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Vết trầy da ở cẳng chân chuyển sang màu xám tro, bọng nước phồng rộp rỉ dịch đục như nước rửa thịt, sờ thấy lép bép hơi dưới da, bệnh nhân lơ mơ sốt cao 40 độ. Mất tri giác từng lúc."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "major_barrier_failure",
+      "systemic_toxic_state"
+    ]
+  },
+  {
+    "case_id": "V7-0201",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Người bệnh sốt rét run dữ dội kèm rét buốt, toàn thân nổi ban vân tím loang lổ như cánh hoa, đầu chi tím tái lạnh ngắt, đo huyết áp tụt còn 70/40 mmHg và không đi tiểu cả ngày."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "circulatory_compromise",
+      "organ_hypoperfusion"
+    ]
+  },
+  {
+    "case_id": "V7-0202",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình trạng nhiễm khuẩn diễn biến cực xấu: Người bệnh sốt rét run dữ dội kèm rét buốt, toàn thân nổi ban vân tím loang lổ như cánh hoa, đầu chi tím tái lạnh ngắt, đo huyết áp tụt còn 70/40 mmHg và không đi tiểu cả ngày."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "circulatory_compromise",
+      "organ_hypoperfusion"
+    ]
+  },
+  {
+    "case_id": "V7-0203",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Người bệnh sốt rét run dữ dội kèm rét buốt, toàn thân nổi ban vân tím loang lổ như cánh hoa, đầu chi tím tái lạnh ngắt, đo huyết áp tụt còn 70/40 mmHg và không đi tiểu cả ngày. Gia đình nhận thấy tình trạng suy sụp nhanh."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "circulatory_compromise",
+      "organ_hypoperfusion"
+    ]
+  },
+  {
+    "case_id": "V7-0204",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân trong tình trạng nguy kịch: Người bệnh sốt rét run dữ dội kèm rét buốt, toàn thân nổi ban vân tím loang lổ như cánh hoa, đầu chi tím tái lạnh ngắt, đo huyết áp tụt còn 70/40 mmHg và không đi tiểu cả ngày."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "circulatory_compromise",
+      "organ_hypoperfusion"
+    ]
+  },
+  {
+    "case_id": "V7-0205",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Người bệnh sốt rét run dữ dội kèm rét buốt, toàn thân nổi ban vân tím loang lổ như cánh hoa, đầu chi tím tái lạnh ngắt, đo huyết áp tụt còn 70/40 mmHg và không đi tiểu cả ngày. Mất tri giác từng lúc."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "circulatory_compromise",
+      "organ_hypoperfusion"
+    ]
+  },
+  {
+    "case_id": "V7-0206",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân lớn tuổi nhiễm trùng tiểu nay đột ngột rơi vào lú lẫn mê sảng, thở dốc 32 lần/phút, da nổi vân đá toàn thân, mạch nhanh yếu 130 lần/phút, huyết áp tụt sâu."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "circulatory_compromise",
+      "organ_hypoperfusion"
+    ]
+  },
+  {
+    "case_id": "V7-0207",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình trạng nhiễm khuẩn diễn biến cực xấu: Bệnh nhân lớn tuổi nhiễm trùng tiểu nay đột ngột rơi vào lú lẫn mê sảng, thở dốc 32 lần/phút, da nổi vân đá toàn thân, mạch nhanh yếu 130 lần/phút, huyết áp tụt sâu."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "circulatory_compromise",
+      "organ_hypoperfusion"
+    ]
+  },
+  {
+    "case_id": "V7-0208",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân lớn tuổi nhiễm trùng tiểu nay đột ngột rơi vào lú lẫn mê sảng, thở dốc 32 lần/phút, da nổi vân đá toàn thân, mạch nhanh yếu 130 lần/phút, huyết áp tụt sâu. Gia đình nhận thấy tình trạng suy sụp nhanh."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "circulatory_compromise",
+      "organ_hypoperfusion"
+    ]
+  },
+  {
+    "case_id": "V7-0209",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân trong tình trạng nguy kịch: Bệnh nhân lớn tuổi nhiễm trùng tiểu nay đột ngột rơi vào lú lẫn mê sảng, thở dốc 32 lần/phút, da nổi vân đá toàn thân, mạch nhanh yếu 130 lần/phút, huyết áp tụt sâu."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "circulatory_compromise",
+      "organ_hypoperfusion"
+    ]
+  },
+  {
+    "case_id": "V7-0210",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân lớn tuổi nhiễm trùng tiểu nay đột ngột rơi vào lú lẫn mê sảng, thở dốc 32 lần/phút, da nổi vân đá toàn thân, mạch nhanh yếu 130 lần/phút, huyết áp tụt sâu. Mất tri giác từng lúc."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "circulatory_compromise",
+      "organ_hypoperfusion"
+    ]
+  },
+  {
+    "case_id": "V7-0211",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân tiểu nhiều khát nước dữ dội cả tuần nay rơi vào trạng thái thở sâu và nhanh dồn dập từng hồi, hơi thở tỏa mùi quả chín nồng nặc, mắt trũng sâu, véo da bụng không đàn hồi và lơ mơ."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "metabolic_instability",
+      "respiratory_failure"
+    ]
+  },
+  {
+    "case_id": "V7-0212",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình trạng nhiễm khuẩn diễn biến cực xấu: Bệnh nhân tiểu nhiều khát nước dữ dội cả tuần nay rơi vào trạng thái thở sâu và nhanh dồn dập từng hồi, hơi thở tỏa mùi quả chín nồng nặc, mắt trũng sâu, véo da bụng không đàn hồi và lơ mơ."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "metabolic_instability",
+      "respiratory_failure"
+    ]
+  },
+  {
+    "case_id": "V7-0213",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân tiểu nhiều khát nước dữ dội cả tuần nay rơi vào trạng thái thở sâu và nhanh dồn dập từng hồi, hơi thở tỏa mùi quả chín nồng nặc, mắt trũng sâu, véo da bụng không đàn hồi và lơ mơ. Gia đình nhận thấy tình trạng suy sụp nhanh."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "metabolic_instability",
+      "respiratory_failure"
+    ]
+  },
+  {
+    "case_id": "V7-0214",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân trong tình trạng nguy kịch: Bệnh nhân tiểu nhiều khát nước dữ dội cả tuần nay rơi vào trạng thái thở sâu và nhanh dồn dập từng hồi, hơi thở tỏa mùi quả chín nồng nặc, mắt trũng sâu, véo da bụng không đàn hồi và lơ mơ."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "metabolic_instability",
+      "respiratory_failure"
+    ]
+  },
+  {
+    "case_id": "V7-0215",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân tiểu nhiều khát nước dữ dội cả tuần nay rơi vào trạng thái thở sâu và nhanh dồn dập từng hồi, hơi thở tỏa mùi quả chín nồng nặc, mắt trũng sâu, véo da bụng không đàn hồi và lơ mơ. Mất tri giác từng lúc."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "metabolic_instability",
+      "respiratory_failure"
+    ]
+  },
+  {
+    "case_id": "V7-0216",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Người bệnh đái tháo đường bỏ tiêm thuốc 3 ngày nay, hiện lú lẫn nôn mửa liên tục, thở hổn hển sâu hoắm như thở dốc, da khô cong nứt nẻ và huyết áp 85/55."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "metabolic_instability",
+      "circulatory_compromise"
+    ]
+  },
+  {
+    "case_id": "V7-0217",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tình trạng nhiễm khuẩn diễn biến cực xấu: Người bệnh đái tháo đường bỏ tiêm thuốc 3 ngày nay, hiện lú lẫn nôn mửa liên tục, thở hổn hển sâu hoắm như thở dốc, da khô cong nứt nẻ và huyết áp 85/55."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "metabolic_instability",
+      "circulatory_compromise"
+    ]
+  },
+  {
+    "case_id": "V7-0218",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Người bệnh đái tháo đường bỏ tiêm thuốc 3 ngày nay, hiện lú lẫn nôn mửa liên tục, thở hổn hển sâu hoắm như thở dốc, da khô cong nứt nẻ và huyết áp 85/55. Gia đình nhận thấy tình trạng suy sụp nhanh."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "metabolic_instability",
+      "circulatory_compromise"
+    ]
+  },
+  {
+    "case_id": "V7-0219",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân trong tình trạng nguy kịch: Người bệnh đái tháo đường bỏ tiêm thuốc 3 ngày nay, hiện lú lẫn nôn mửa liên tục, thở hổn hển sâu hoắm như thở dốc, da khô cong nứt nẻ và huyết áp 85/55."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "metabolic_instability",
+      "circulatory_compromise"
+    ]
+  },
+  {
+    "case_id": "V7-0220",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Người bệnh đái tháo đường bỏ tiêm thuốc 3 ngày nay, hiện lú lẫn nôn mửa liên tục, thở hổn hển sâu hoắm như thở dốc, da khô cong nứt nẻ và huyết áp 85/55. Mất tri giác từng lúc."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "metabolic_instability",
+      "circulatory_compromise"
+    ]
+  },
+  {
+    "case_id": "V7-0221",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Sốt 38.5 độ kèm rét run sau khi cạo lông chân, vùng da cẳng chân đỏ ửng diện tích 10cm sưng nóng, chưa có bọng nước hay lạo xạo."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0222",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đường huyết đo tại nhà lên 280 mg/dL, cảm giác khô miệng khát nước nhiều nhưng ăn uống được, không nôn, thở êm 18 lần/phút."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0223",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Sốt cao 39 độ từng cơn 3 ngày nay nghi sốt xuất huyết, đau mỏi hốc mắt và đau khớp dữ dội, tiểu vàng trong, huyết áp 115/75."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0224",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân ho đờm vàng đặc kèm sốt 38.3 độ, nghe có tiếng ran ẩm ở một bên phổi, thở 22 lần/phút, SpO2 95%."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0225",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tiểu buốt tiểu rắt dữ dội kèm sốt nhẹ 38 độ và đau tức hạ vị, nước tiểu đục có mùi hôi, không đau hông lưng."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0226",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Vết mụn nhọt ở mông sưng to có ngòi mủ trắng bao quanh bởi quầng đỏ 4cm, đau nhức khi ngồi, không sốt cao toàn thân."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0227",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Viêm họng đỏ rực nuốt đau dữ dội, sốt 38.6 độ, amidan có giả mạc trắng lấm tấm nhưng thở bình thường không nghẹt thở."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0228",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bệnh nhân xơ gan bụng báng căng nhẹ, sốt 38 độ kèm đau tức bụng âm ỉ, tri giác hoàn toàn tỉnh táo tiếp xúc tốt."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0229",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Nhiệt miệng nổi 2 nốt loét nhỏ màu trắng ở niêm mạc má gây rát khi ăn đồ mặn, không sốt, toàn trạng khỏe mạnh."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0230",
+    "cohort": "deep_infectious_metabolic",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đường huyết sáng lúc đói đo được 105 mg/dL ở người tiền tiểu đường, không có triệu chứng mệt mỏi hay khát nước gì lạ."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0231",
+    "cohort": "multi_turn_evolving",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bác sĩ ơi, tôi vừa bị sốt nhẹ và hơi mệt mỏi từ sáng nay."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn hãy theo dõi nhiệt độ và uống đủ nước nhé."
+      },
+      {
+        "role": "user",
+        "content": "Nhưng cách đây 15 phút tôi tự nhiên thấy méo lệch hẳn một bên miệng, tay phải cầm cốc nước rơi vỡ và ú ớ không nói được thành câu!"
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_neurologic_functional_loss"
+    ]
+  },
+  {
+    "case_id": "V7-0232",
+    "cohort": "multi_turn_evolving",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bác sĩ ơi, tôi vừa bị sốt nhẹ và hơi mệt mỏi từ sáng nay."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn hãy theo dõi nhiệt độ và uống đủ nước nhé."
+      },
+      {
+        "role": "user",
+        "content": "Cập nhật khẩn cấp: Nhưng cách đây 15 phút tôi tự nhiên thấy méo lệch hẳn một bên miệng, tay phải cầm cốc nước rơi vỡ và ú ớ không nói được thành câu!"
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_neurologic_functional_loss"
+    ]
+  },
+  {
+    "case_id": "V7-0233",
+    "cohort": "multi_turn_evolving",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bác sĩ ơi, tôi vừa bị sốt nhẹ và hơi mệt mỏi từ sáng nay."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn hãy theo dõi nhiệt độ và uống đủ nước nhé."
+      },
+      {
+        "role": "user",
+        "content": "Cập nhật khẩn cấp: Nhưng cách đây 15 phút tôi tự nhiên thấy méo lệch hẳn một bên miệng, tay phải cầm cốc nước rơi vỡ và ú ớ không nói được thành câu!"
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_neurologic_functional_loss"
+    ]
+  },
+  {
+    "case_id": "V7-0234",
+    "cohort": "multi_turn_evolving",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bác sĩ ơi, tôi vừa bị sốt nhẹ và hơi mệt mỏi từ sáng nay."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn hãy theo dõi nhiệt độ và uống đủ nước nhé."
+      },
+      {
+        "role": "user",
+        "content": "Cập nhật khẩn cấp: Nhưng cách đây 15 phút tôi tự nhiên thấy méo lệch hẳn một bên miệng, tay phải cầm cốc nước rơi vỡ và ú ớ không nói được thành câu!"
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_neurologic_functional_loss"
+    ]
+  },
+  {
+    "case_id": "V7-0235",
+    "cohort": "multi_turn_evolving",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bác sĩ ơi, tôi vừa bị sốt nhẹ và hơi mệt mỏi từ sáng nay."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn hãy theo dõi nhiệt độ và uống đủ nước nhé."
+      },
+      {
+        "role": "user",
+        "content": "Cập nhật khẩn cấp: Nhưng cách đây 15 phút tôi tự nhiên thấy méo lệch hẳn một bên miệng, tay phải cầm cốc nước rơi vỡ và ú ớ không nói được thành câu!"
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_neurologic_functional_loss"
+    ]
+  },
+  {
+    "case_id": "V7-0236",
+    "cohort": "multi_turn_evolving",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị đau tức ngực nhẹ khi làm việc nhà lúc chiều."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn đã nghỉ ngơi chưa và có đỡ hơn không?"
+      },
+      {
+        "role": "user",
+        "content": "Tôi nghỉ rồi nhưng giờ cơn đau bóp nghẹt ngực dữ dội như đá tảng đè, toát mồ hôi ướt sũng áo và khó thở không thở nổi!"
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_tissue_ischemia"
+    ]
+  },
+  {
+    "case_id": "V7-0237",
+    "cohort": "multi_turn_evolving",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị đau tức ngực nhẹ khi làm việc nhà lúc chiều."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn đã nghỉ ngơi chưa và có đỡ hơn không?"
+      },
+      {
+        "role": "user",
+        "content": "Cập nhật khẩn cấp: Tôi nghỉ rồi nhưng giờ cơn đau bóp nghẹt ngực dữ dội như đá tảng đè, toát mồ hôi ướt sũng áo và khó thở không thở nổi!"
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_tissue_ischemia"
+    ]
+  },
+  {
+    "case_id": "V7-0238",
+    "cohort": "multi_turn_evolving",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị đau tức ngực nhẹ khi làm việc nhà lúc chiều."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn đã nghỉ ngơi chưa và có đỡ hơn không?"
+      },
+      {
+        "role": "user",
+        "content": "Cập nhật khẩn cấp: Tôi nghỉ rồi nhưng giờ cơn đau bóp nghẹt ngực dữ dội như đá tảng đè, toát mồ hôi ướt sũng áo và khó thở không thở nổi!"
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_tissue_ischemia"
+    ]
+  },
+  {
+    "case_id": "V7-0239",
+    "cohort": "multi_turn_evolving",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị đau tức ngực nhẹ khi làm việc nhà lúc chiều."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn đã nghỉ ngơi chưa và có đỡ hơn không?"
+      },
+      {
+        "role": "user",
+        "content": "Cập nhật khẩn cấp: Tôi nghỉ rồi nhưng giờ cơn đau bóp nghẹt ngực dữ dội như đá tảng đè, toát mồ hôi ướt sũng áo và khó thở không thở nổi!"
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_tissue_ischemia"
+    ]
+  },
+  {
+    "case_id": "V7-0240",
+    "cohort": "multi_turn_evolving",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị đau tức ngực nhẹ khi làm việc nhà lúc chiều."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn đã nghỉ ngơi chưa và có đỡ hơn không?"
+      },
+      {
+        "role": "user",
+        "content": "Cập nhật khẩn cấp: Tôi nghỉ rồi nhưng giờ cơn đau bóp nghẹt ngực dữ dội như đá tảng đè, toát mồ hôi ướt sũng áo và khó thở không thở nổi!"
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "acute_tissue_ischemia"
+    ]
+  },
+  {
+    "case_id": "V7-0241",
+    "cohort": "multi_turn_evolving",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi vừa bị ong đốt 1 nốt ở cánh tay, hơi sưng ngứa một chút."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn chườm lạnh tại chỗ vết đốt nhé."
+      },
+      {
+        "role": "user",
+        "content": "Nguy rồi, tự nhiên cổ họng tôi thắt nghẹn lại, thở rít lên từng hồi không nuốt được nước bọt và mắt môi sưng vù!"
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "airway_obstruction"
+    ]
+  },
+  {
+    "case_id": "V7-0242",
+    "cohort": "multi_turn_evolving",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi vừa bị ong đốt 1 nốt ở cánh tay, hơi sưng ngứa một chút."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn chườm lạnh tại chỗ vết đốt nhé."
+      },
+      {
+        "role": "user",
+        "content": "Cập nhật khẩn cấp: Nguy rồi, tự nhiên cổ họng tôi thắt nghẹn lại, thở rít lên từng hồi không nuốt được nước bọt và mắt môi sưng vù!"
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "airway_obstruction"
+    ]
+  },
+  {
+    "case_id": "V7-0243",
+    "cohort": "multi_turn_evolving",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi vừa bị ong đốt 1 nốt ở cánh tay, hơi sưng ngứa một chút."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn chườm lạnh tại chỗ vết đốt nhé."
+      },
+      {
+        "role": "user",
+        "content": "Cập nhật khẩn cấp: Nguy rồi, tự nhiên cổ họng tôi thắt nghẹn lại, thở rít lên từng hồi không nuốt được nước bọt và mắt môi sưng vù!"
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "airway_obstruction"
+    ]
+  },
+  {
+    "case_id": "V7-0244",
+    "cohort": "multi_turn_evolving",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi vừa bị ong đốt 1 nốt ở cánh tay, hơi sưng ngứa một chút."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn chườm lạnh tại chỗ vết đốt nhé."
+      },
+      {
+        "role": "user",
+        "content": "Cập nhật khẩn cấp: Nguy rồi, tự nhiên cổ họng tôi thắt nghẹn lại, thở rít lên từng hồi không nuốt được nước bọt và mắt môi sưng vù!"
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "airway_obstruction"
+    ]
+  },
+  {
+    "case_id": "V7-0245",
+    "cohort": "multi_turn_evolving",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi vừa bị ong đốt 1 nốt ở cánh tay, hơi sưng ngứa một chút."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn chườm lạnh tại chỗ vết đốt nhé."
+      },
+      {
+        "role": "user",
+        "content": "Cập nhật khẩn cấp: Nguy rồi, tự nhiên cổ họng tôi thắt nghẹn lại, thở rít lên từng hồi không nuốt được nước bọt và mắt môi sưng vù!"
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "airway_obstruction"
+    ]
+  },
+  {
+    "case_id": "V7-0246",
+    "cohort": "multi_turn_evolving",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bố tôi bị đau bụng âm ỉ sau ăn."
+      },
+      {
+        "role": "assistant",
+        "content": "Bác đau ở vị trí nào và có sốt không?"
+      },
+      {
+        "role": "user",
+        "content": "Giờ cụ tự nhiên nôn ra nửa chậu máu tươi, người lả đi ngất xỉu chân tay lạnh ngắt áo ướt mồ hôi lạnh!"
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "internal_hemorrhage",
+      "circulatory_compromise"
+    ]
+  },
+  {
+    "case_id": "V7-0247",
+    "cohort": "multi_turn_evolving",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bố tôi bị đau bụng âm ỉ sau ăn."
+      },
+      {
+        "role": "assistant",
+        "content": "Bác đau ở vị trí nào và có sốt không?"
+      },
+      {
+        "role": "user",
+        "content": "Cập nhật khẩn cấp: Giờ cụ tự nhiên nôn ra nửa chậu máu tươi, người lả đi ngất xỉu chân tay lạnh ngắt áo ướt mồ hôi lạnh!"
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "internal_hemorrhage",
+      "circulatory_compromise"
+    ]
+  },
+  {
+    "case_id": "V7-0248",
+    "cohort": "multi_turn_evolving",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bố tôi bị đau bụng âm ỉ sau ăn."
+      },
+      {
+        "role": "assistant",
+        "content": "Bác đau ở vị trí nào và có sốt không?"
+      },
+      {
+        "role": "user",
+        "content": "Cập nhật khẩn cấp: Giờ cụ tự nhiên nôn ra nửa chậu máu tươi, người lả đi ngất xỉu chân tay lạnh ngắt áo ướt mồ hôi lạnh!"
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "internal_hemorrhage",
+      "circulatory_compromise"
+    ]
+  },
+  {
+    "case_id": "V7-0249",
+    "cohort": "multi_turn_evolving",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bố tôi bị đau bụng âm ỉ sau ăn."
+      },
+      {
+        "role": "assistant",
+        "content": "Bác đau ở vị trí nào và có sốt không?"
+      },
+      {
+        "role": "user",
+        "content": "Cập nhật khẩn cấp: Giờ cụ tự nhiên nôn ra nửa chậu máu tươi, người lả đi ngất xỉu chân tay lạnh ngắt áo ướt mồ hôi lạnh!"
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "internal_hemorrhage",
+      "circulatory_compromise"
+    ]
+  },
+  {
+    "case_id": "V7-0250",
+    "cohort": "multi_turn_evolving",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bố tôi bị đau bụng âm ỉ sau ăn."
+      },
+      {
+        "role": "assistant",
+        "content": "Bác đau ở vị trí nào và có sốt không?"
+      },
+      {
+        "role": "user",
+        "content": "Cập nhật khẩn cấp: Giờ cụ tự nhiên nôn ra nửa chậu máu tươi, người lả đi ngất xỉu chân tay lạnh ngắt áo ướt mồ hôi lạnh!"
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": [
+      "internal_hemorrhage",
+      "circulatory_compromise"
+    ]
+  },
+  {
+    "case_id": "V7-0251",
+    "cohort": "multi_turn_evolving",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị đau âm ỉ vùng hố chậu phải từ trưa."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn có sốt hay buồn nôn kèm theo không?"
+      },
+      {
+        "role": "user",
+        "content": "Hiện tại sốt 38.3 độ, đau nhói hơn khi bước đi nhưng chưa nôn, bụng không cứng đơ."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0252",
+    "cohort": "multi_turn_evolving",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Con tôi sốt 38.5 độ từ tối qua."
+      },
+      {
+        "role": "assistant",
+        "content": "Bé ăn uống và chơi có ngoan không?"
+      },
+      {
+        "role": "user",
+        "content": "Bé quấy khóc nhiều và không chịu bú, nhưng vẫn tỉnh táo nhận biết bố mẹ."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0253",
+    "cohort": "multi_turn_evolving",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị va quẹt xe máy trầy xước cẳng tay."
+      },
+      {
+        "role": "assistant",
+        "content": "Vết thương có chảy máu nhiều không?"
+      },
+      {
+        "role": "user",
+        "content": "Máu vẫn rỉ thấm qua băng gạc, cổ tay hơi nhức khi cử động mạnh."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0254",
+    "cohort": "multi_turn_evolving",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị ho rát họng 2 ngày nay."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn có ho ra đờm hay khó thở không?"
+      },
+      {
+        "role": "user",
+        "content": "Bắt đầu ho ra ít đờm vàng đặc kèm sốt 38.2 độ, thở bình thường."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0255",
+    "cohort": "multi_turn_evolving",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị đau âm ỉ vùng hố chậu phải từ trưa."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn có sốt hay buồn nôn kèm theo không?"
+      },
+      {
+        "role": "user",
+        "content": "Hiện tại sốt 38.3 độ, đau nhói hơn khi bước đi nhưng chưa nôn, bụng không cứng đơ."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0256",
+    "cohort": "multi_turn_evolving",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Con tôi sốt 38.5 độ từ tối qua."
+      },
+      {
+        "role": "assistant",
+        "content": "Bé ăn uống và chơi có ngoan không?"
+      },
+      {
+        "role": "user",
+        "content": "Bé quấy khóc nhiều và không chịu bú, nhưng vẫn tỉnh táo nhận biết bố mẹ."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0257",
+    "cohort": "multi_turn_evolving",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị va quẹt xe máy trầy xước cẳng tay."
+      },
+      {
+        "role": "assistant",
+        "content": "Vết thương có chảy máu nhiều không?"
+      },
+      {
+        "role": "user",
+        "content": "Máu vẫn rỉ thấm qua băng gạc, cổ tay hơi nhức khi cử động mạnh."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0258",
+    "cohort": "multi_turn_evolving",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị ho rát họng 2 ngày nay."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn có ho ra đờm hay khó thở không?"
+      },
+      {
+        "role": "user",
+        "content": "Bắt đầu ho ra ít đờm vàng đặc kèm sốt 38.2 độ, thở bình thường."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0259",
+    "cohort": "multi_turn_evolving",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị ngạt mũi khó ngủ đêm qua."
+      },
+      {
+        "role": "assistant",
+        "content": "Bạn có chảy nước mũi hay sốt không?"
+      },
+      {
+        "role": "user",
+        "content": "Chỉ chảy ít nước mũi trong và hắt hơi, sáng nay dậy thấy người khỏe bình thường."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0260",
+    "cohort": "multi_turn_evolving",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hôm qua tập tạ bắp tay hơi căng."
+      },
+      {
+        "role": "assistant",
+        "content": "Cơ có sưng nề hay bầm tím không?"
+      },
+      {
+        "role": "user",
+        "content": "Không sưng bầm gì cả, chỉ mỏi cơ thông thường khi co tay lại."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0261",
+    "cohort": "uncertainty_conflicting",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Nãy giờ thấy hơi đỡ nhưng tự nhiên vừa xong người lả đi chân tay lạnh ngắt như người chết trôi, đo huyết áp thấy tụt mất hút 70/40, ngực đau nghẹn thở."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0262",
+    "cohort": "uncertainty_conflicting",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi tưởng chỉ trúng gió bình thường cạo gió đỏ lưng nhưng bà ấy tự nhiên sùi bọt mép, mắt trợn ngược giật đùng đùng không biết trời đất gì nữa!"
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0263",
+    "cohort": "uncertainty_conflicting",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Chỉ là nhậu xỉn nôn thốc nôn tháo thôi mà sao giờ ngực đau thấu xương tủy, dưới da cổ sờ vào lạo xạo như có bọt khí xì xèo bên trong thế này?"
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0264",
+    "cohort": "uncertainty_conflicting",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Ban đầu tưởng đau bụng giun nhưng giờ bụng cứng ngắc như thanh gỗ lim, động nhẹ vào là rên la, toát mồ hôi hạt ướt cả chiếu."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0265",
+    "cohort": "uncertainty_conflicting",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Không biết có phải do ăn bậy không mà nôn ra cả đống máu tươi tanh tưởi, giờ mắt hoa mày tối sầm đứng không vững ngã bổ nhào."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0266",
+    "cohort": "uncertainty_conflicting",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cứ bảo nghỉ tí là hết nhưng giờ một bên mặt xệ hẳn xuống, nước bọt chảy ròng ròng không nói được lời nào rõ nghĩa cả!"
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0267",
+    "cohort": "uncertainty_conflicting",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tự nhiên một bên chân trắng ởn như xác chết, lạnh toát buốt thấu xương, rờ không thấy mạch đập đâu nữa mà đau thấu trời."
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0268",
+    "cohort": "uncertainty_conflicting",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Lúc trước bảo đỡ sốt rồi mà giờ đùng cái thân nhiệt vọt lên hơn 40 độ, người cứng đờ ngắc ngơ run bắn lên như điện giật!"
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0269",
+    "cohort": "uncertainty_conflicting",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Thằng bé tự nhiên hóc hạt gì đó tím tái cả mặt mày, thở rít eng éc không ra hơi, hai mắt trợn trừng giãy giụa!"
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0270",
+    "cohort": "uncertainty_conflicting",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Thành bụng chỗ mổ cũ tự nhiên bục toạc ra lòi cả khúc ruột đỏ lòm ra ngoài gạc, cứu với gấp lắm rồi!"
+      }
+    ],
+    "expected_triage": "T4",
+    "acceptable_triage": [
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0271",
+    "cohort": "uncertainty_conflicting",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Lúc nãy thấy đau quặn hông lưng muốn chết đi sống lại, giờ có vẻ bớt quặn hơn tí nhưng vẫn buốt nhói lan xuống bẹn kèm buồn nôn."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0272",
+    "cohort": "uncertainty_conflicting",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Sốt hâm hấp từ chiều qua, lúc nóng lúc lạnh, tự đo nhiệt độ thấy 38.4 độ, đau mỏi toàn thân nhưng đầu óc vẫn tỉnh táo."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0273",
+    "cohort": "uncertainty_conflicting",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Uống nhầm viên thuốc của vợ, hình như là thuốc dị ứng hay thuốc ngủ gì đấy, thấy người hơi lâng lâng buồn ngủ nhưng tim đập đều."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0274",
+    "cohort": "uncertainty_conflicting",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Ngã xe trầy xước tùm lum, máu me be bét ở đầu gối nhưng cử động các khớp vẫn được, không biết có cần đi khâu không."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0275",
+    "cohort": "uncertainty_conflicting",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đau bụng lâm râm hố chậu phải cả buổi, lúc thì đau nhiều lúc thì hơi dịu, ấn vào thấy nhói, người hơi ấm đầu 38 độ."
+      }
+    ],
+    "expected_triage": "URGENT",
+    "acceptable_triage": [
+      "URGENT",
+      "EMERGENCY"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0276",
+    "cohort": "uncertainty_conflicting",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cứ tưởng bị bệnh gì ghê gớm lắm vì đi ngoài ra phân màu đỏ tươi, hóa ra tối qua vừa ăn hết nửa quả thanh long ruột đỏ, bụng dạ êm ru không đau."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0277",
+    "cohort": "uncertainty_conflicting",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tự nhiên buốt nhói đầu dữ dội như búa bổ sau khi cắn miếng kem lạnh buốt, được 30 giây thì hết sạch cơn đau, người bình thường."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0278",
+    "cohort": "uncertainty_conflicting",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hôm qua hít đất 50 cái nay hai bên cơ ngực căng tức đau ê ẩm khi giơ tay, ngồi yên không đau, tim mạch hoàn toàn bình thường."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0279",
+    "cohort": "uncertainty_conflicting",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bị tờ giấy A4 cứa rách da ngón tay chảy tí xíu máu, đã dán băng dán cá nhân, hỏi có cần kiêng nước không."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0280",
+    "cohort": "uncertainty_conflicting",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Uống lon nước ngọt có ga xong bị nấc cụt liên tục 5 phút, uống ngụm nước ấm thì đỡ, không đau ngực khó thở gì."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0281",
+    "cohort": "benign_mimics",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Vừa ăn một thìa kem đá lạnh toát thì đột ngột bị đau buốt nhói đỉnh đầu dữ dội trong khoảng 20 giây, sau đó cơn đau tan biến hoàn toàn, người tỉnh táo khỏe mạnh."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0282",
+    "cohort": "benign_mimics",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Uống cốc trà sữa nhiều đá lạnh cắn ngập đá bị buốt nhói vùng trán 15 giây rồi hết hẳn, hiện không còn đau đớn gì."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0283",
+    "cohort": "benign_mimics",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hôm qua đi tập gym đẩy tạ ngực nặng hơn bình thường, sáng nay thấy hai bên cơ ngực căng tức ê ẩm khi dùng tay ấn vào thành ngực, ngồi nghỉ ngơi thở bình thường không đau nhói bên trong."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0284",
+    "cohort": "benign_mimics",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tập hít đất nhiều lần hôm qua nay vùng cơ ngực trước sưng mỏi nhẹ khi vươn vai, nhịp tim đều 72 nhịp/phút, huyết áp 115/75, không khó thở."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0285",
+    "cohort": "benign_mimics",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Sáng nay đi đại tiện thấy phân có màu đỏ thẩm, nhớ lại tối qua đã ăn một quả thanh long ruột đỏ to đùng, bụng dạ hoàn toàn êm ái không đau quặn không mệt mỏi."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0286",
+    "cohort": "benign_mimics",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hôm qua ăn chè củ dền đỏ nay đi tiểu thấy nước tiểu có ánh hồng đỏ nhẹ, tiểu thông suốt không rát buốt, người khỏe mạnh bình thường."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0287",
+    "cohort": "benign_mimics",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Sau khi uống vội lon nước ngọt có gas thì bị nấc cụt liên tục khoảng 3 phút, sau khi uống một cốc nước ấm thì hết nấc hoàn toàn, ngực bụng bình thường."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0288",
+    "cohort": "benign_mimics",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảm giác ợ hơi nhẹ sau bữa cơm trưa có nhiều hành tỏi, không buồn nôn, không đau rát xương ức, sinh hoạt làm việc bình thường."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0289",
+    "cohort": "benign_mimics",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bị mép tờ bìa carton cứa nhẹ vào đầu ngón trỏ rỉ ít dịch mô và một giọt máu nhỏ, đã rửa cồn sát trùng, ngón tay cử động hoàn toàn bình thường."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0290",
+    "cohort": "benign_mimics",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đi giày thể thao mới bị cọ xát trợt một lớp da mỏng ở gót chân bằng hạt đậu, hơi rát nhẹ khi đi lại, không sưng đỏ lan rộng."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0291",
+    "cohort": "benign_mimics",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Mới phát hiện một nốt ruồi nhỏ màu nâu 1mm phẳng trên mu bàn tay đã có từ nhiều năm nay không thay đổi kích thước, hỏi có nguy hiểm không."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0292",
+    "cohort": "benign_mimics",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bị một vết muỗi cắn ở cẳng chân hơi ngứa nhẹ từ chiều qua, da hơi gồ lên nốt đỏ nhỏ 2mm, không lan rộng, không sốt."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0293",
+    "cohort": "benign_mimics",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Ngồi máy tính làm việc liên tục 4 tiếng thấy mỏi cổ vai gáy nhẹ, đứng dậy xoay cổ vài cái thấy dễ chịu, không tê bì tay chân."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0294",
+    "cohort": "benign_mimics",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đi bộ mua sắm cả buổi chiều về thấy mỏi nhẹ ở lòng bàn chân, ngâm chân nước ấm thấy khoan khoái dễ chịu."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0295",
+    "cohort": "benign_mimics",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Sáng ngủ dậy nằm nghiêng đè lên cánh tay thấy tê rần như kiến bò trong 30 giây, cử động vài cái thì hết tê hoàn toàn, cầm nắm bình thường."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0296",
+    "cohort": "benign_mimics",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hắt hơi 2 cái sau khi quét dọn bụi nhà kho, mũi hơi cay cay một lát rồi hết, không sốt, không ho khan."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0297",
+    "cohort": "benign_mimics",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Nhìn màn hình điện thoại trong bóng tối hơi mỏi mắt nhẹ, nhắm mắt nghỉ ngơi 5 phút thấy mắt trở lại bình thường không nhìn đôi không đau nhức."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0298",
+    "cohort": "benign_mimics",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bị một sợi lông mi rơi vào khóe mắt gây cộm nhẹ, chớp mắt trong cốc nước sạch đã trôi ra ngoài, mắt hết cộm đỏ."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0299",
+    "cohort": "benign_mimics",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảm giác đói cồn cào ruột gan lúc 12 giờ trưa chưa kịp ăn cơm, sau khi ăn một bát phở thì bụng êm ru khỏe khoắn."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  },
+  {
+    "case_id": "V7-0300",
+    "cohort": "benign_mimics",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Uống một cốc cà phê đen buổi sáng thấy tim đập hơi rộn ràng một chút rồi thôi, không chóng mặt, huyết áp đo 118/76."
+      }
+    ],
+    "expected_triage": "ROUTINE",
+    "acceptable_triage": [
+      "ROUTINE"
+    ],
+    "must_detect": []
+  }
+]

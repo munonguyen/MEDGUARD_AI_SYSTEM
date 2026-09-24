@@ -1,0 +1,12 @@
+{
+  "total_cases": 100,
+  "two_gate_critical_errors": 50,
+  "three_gate_critical_errors": 0,
+  "prevented_undertriages": 50,
+  "jev_invocations": 60,
+  "jev_impact_count": 50,
+  "jev_decision_impact_rate_pct": 83.33,
+  "jev_induced_overtriage": 0,
+  "g19_safety_pass": true,
+  "g20_overtriage_pass": true
+}

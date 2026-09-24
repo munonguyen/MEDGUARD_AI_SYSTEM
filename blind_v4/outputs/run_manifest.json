@@ -1,0 +1,15 @@
+{
+  "run_id": "V4-ONE-SHOT-20260915151251",
+  "git_commit": "8455226695c5d2be046b84b7120dd4c357bc5ee8",
+  "freeze_manifest_sha256": "95c2917dc73bcd73976a6757805cb15c29f3e4e865696ef4018e2541855252c3",
+  "cases_sha256": "3e0c34800dd546924f389b66d6840db6c3ea5cc381165dc20d715bf16296d0ea",
+  "predictions_sha256": "f8816874371ded38586ab916cbc7b1858700007fdf48d514811e235934351a95",
+  "case_count": 300,
+  "completed_case_count": 300,
+  "retry_count": 0,
+  "system_error_count": 0,
+  "oracle_leakage_detected": false,
+  "started_at": "2026-09-15T15:10:01.495136+00:00",
+  "sealed_at": "2026-09-15T15:12:51.699019+00:00",
+  "status": "SEALED"
+}

@@ -1,0 +1,3098 @@
+[
+  {
+    "case_id": "V6-0068",
+    "oracle": "T4",
+    "actual": "URGENT",
+    "severity": "HIGH",
+    "primary_failure": "F5_CLINICAL_SEMANTIC_REASONING",
+    "secondary_failures": [
+      "F16_UNDER_TRIAGE"
+    ],
+    "failure_nature": "KNOWLEDGE_GAP",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Cụ ông 88 tuổi trượt chân ngã trong nhà tắm, đau chói vùng khớp háng không thể đứng dậy, chân phải ngắn hơn và xoay ngoài, mạch nhanh nhỏ huyết áp tụt 85/50."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "URGENT",
+      "decision_source": "rule",
+      "confidence": 0.96
+    },
+    "response_layer": {
+      "response_text": "Đau chân cần được đánh giá theo vị trí, nguyên nhân khởi phát và khả năng chịu lực. Nếu đau đến mức khó đi hoặc không thể chịu lực, bạn không nên tiếp tục đi lại nhiều, đứng lâu hay tham gia hoạt động đông người lúc này.",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "mapped_concepts": [
+        "cu",
+        "ong",
+        "88",
+        "tuoi",
+        "truot",
+        "chan",
+        "nga",
+        "trong",
+        "nha",
+        "tam,",
+        "dau",
+        "choi",
+        "vung",
+        "khop",
+        "hang",
+        "khong",
+        "the",
+        "dung",
+        "day,",
+        "chan",
+        "phai",
+        "ngan",
+        "hon",
+        "va",
+        "xoay",
+        "ngoai,",
+        "mach",
+        "nhanh",
+        "nho",
+        "huyet",
+        "ap",
+        "tut",
+        "85/50."
+      ],
+      "affirmed_facts": [],
+      "semantic_risk": "ROUTINE",
+      "rule_matched": true
+    }
+  },
+  {
+    "case_id": "V6-0134",
+    "oracle": "T4",
+    "actual": "URGENT",
+    "severity": "HIGH",
+    "primary_failure": "F7_DOSE_REASONING",
+    "secondary_failures": [],
+    "failure_nature": "BUG",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Ca ngộ độc dược chất khẩn cấp 134: Bệnh nhân sốt cao cứng cơ toàn thân vã mồ hôi rối loạn nhịp tim sau khi tăng liều thuốc an thần Haloperidol."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [
+        "sốt",
+        "cổ cứng"
+      ],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "URGENT",
+      "decision_source": "rule",
+      "confidence": 0.96
+    },
+    "response_layer": {
+      "response_text": "Phân luồng: URGENT",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "dose_layer": {
+        "activated": false,
+        "drug": null,
+        "total_dose_mg": null,
+        "dose_mg_per_kg": null,
+        "time_pattern": null,
+        "urgency": null
+      }
+    }
+  },
+  {
+    "case_id": "V6-0139",
+    "oracle": "T4",
+    "actual": "URGENT",
+    "severity": "HIGH",
+    "primary_failure": "F7_DOSE_REASONING",
+    "secondary_failures": [],
+    "failure_nature": "BUG",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Ca ngộ độc dược chất khẩn cấp 139: Bệnh nhân sốt cao cứng cơ toàn thân vã mồ hôi rối loạn nhịp tim sau khi tăng liều thuốc an thần Haloperidol."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [
+        "sốt",
+        "cổ cứng"
+      ],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "URGENT",
+      "decision_source": "rule",
+      "confidence": 0.96
+    },
+    "response_layer": {
+      "response_text": "Phân luồng: URGENT",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "dose_layer": {
+        "activated": false,
+        "drug": null,
+        "total_dose_mg": null,
+        "dose_mg_per_kg": null,
+        "time_pattern": null,
+        "urgency": null
+      }
+    }
+  },
+  {
+    "case_id": "V6-0144",
+    "oracle": "T4",
+    "actual": "URGENT",
+    "severity": "HIGH",
+    "primary_failure": "F7_DOSE_REASONING",
+    "secondary_failures": [],
+    "failure_nature": "BUG",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Ca ngộ độc dược chất khẩn cấp 144: Bệnh nhân sốt cao cứng cơ toàn thân vã mồ hôi rối loạn nhịp tim sau khi tăng liều thuốc an thần Haloperidol."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [
+        "sốt",
+        "cổ cứng"
+      ],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "URGENT",
+      "decision_source": "rule",
+      "confidence": 0.96
+    },
+    "response_layer": {
+      "response_text": "Phân luồng: URGENT",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "dose_layer": {
+        "activated": false,
+        "drug": null,
+        "total_dose_mg": null,
+        "dose_mg_per_kg": null,
+        "time_pattern": null,
+        "urgency": null
+      }
+    }
+  },
+  {
+    "case_id": "V6-0149",
+    "oracle": "T4",
+    "actual": "URGENT",
+    "severity": "HIGH",
+    "primary_failure": "F7_DOSE_REASONING",
+    "secondary_failures": [],
+    "failure_nature": "BUG",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Ca ngộ độc dược chất khẩn cấp 149: Bệnh nhân sốt cao cứng cơ toàn thân vã mồ hôi rối loạn nhịp tim sau khi tăng liều thuốc an thần Haloperidol."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [
+        "sốt",
+        "cổ cứng"
+      ],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "URGENT",
+      "decision_source": "rule",
+      "confidence": 0.96
+    },
+    "response_layer": {
+      "response_text": "Phân luồng: URGENT",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "dose_layer": {
+        "activated": false,
+        "drug": null,
+        "total_dose_mg": null,
+        "dose_mg_per_kg": null,
+        "time_pattern": null,
+        "urgency": null
+      }
+    }
+  },
+  {
+    "case_id": "V6-0154",
+    "oracle": "T4",
+    "actual": "URGENT",
+    "severity": "HIGH",
+    "primary_failure": "F7_DOSE_REASONING",
+    "secondary_failures": [],
+    "failure_nature": "BUG",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Ca ngộ độc dược chất khẩn cấp 154: Bệnh nhân sốt cao cứng cơ toàn thân vã mồ hôi rối loạn nhịp tim sau khi tăng liều thuốc an thần Haloperidol."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [
+        "sốt",
+        "cổ cứng"
+      ],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "URGENT",
+      "decision_source": "rule",
+      "confidence": 0.96
+    },
+    "response_layer": {
+      "response_text": "Phân luồng: URGENT",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "dose_layer": {
+        "activated": false,
+        "drug": null,
+        "total_dose_mg": null,
+        "dose_mg_per_kg": null,
+        "time_pattern": null,
+        "urgency": null
+      }
+    }
+  },
+  {
+    "case_id": "V6-0159",
+    "oracle": "T4",
+    "actual": "URGENT",
+    "severity": "HIGH",
+    "primary_failure": "F7_DOSE_REASONING",
+    "secondary_failures": [],
+    "failure_nature": "BUG",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Ca ngộ độc dược chất khẩn cấp 159: Bệnh nhân sốt cao cứng cơ toàn thân vã mồ hôi rối loạn nhịp tim sau khi tăng liều thuốc an thần Haloperidol."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [
+        "sốt",
+        "cổ cứng"
+      ],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "URGENT",
+      "decision_source": "rule",
+      "confidence": 0.96
+    },
+    "response_layer": {
+      "response_text": "Phân luồng: URGENT",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "dose_layer": {
+        "activated": false,
+        "drug": null,
+        "total_dose_mg": null,
+        "dose_mg_per_kg": null,
+        "time_pattern": null,
+        "urgency": null
+      }
+    }
+  },
+  {
+    "case_id": "V6-0164",
+    "oracle": "T4",
+    "actual": "URGENT",
+    "severity": "HIGH",
+    "primary_failure": "F7_DOSE_REASONING",
+    "secondary_failures": [],
+    "failure_nature": "BUG",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Ca ngộ độc dược chất khẩn cấp 164: Bệnh nhân sốt cao cứng cơ toàn thân vã mồ hôi rối loạn nhịp tim sau khi tăng liều thuốc an thần Haloperidol."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [
+        "sốt",
+        "cổ cứng"
+      ],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "URGENT",
+      "decision_source": "rule",
+      "confidence": 0.96
+    },
+    "response_layer": {
+      "response_text": "Phân luồng: URGENT",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "dose_layer": {
+        "activated": false,
+        "drug": null,
+        "total_dose_mg": null,
+        "dose_mg_per_kg": null,
+        "time_pattern": null,
+        "urgency": null
+      }
+    }
+  },
+  {
+    "case_id": "V6-0169",
+    "oracle": "T4",
+    "actual": "URGENT",
+    "severity": "HIGH",
+    "primary_failure": "F7_DOSE_REASONING",
+    "secondary_failures": [],
+    "failure_nature": "BUG",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Ca ngộ độc dược chất khẩn cấp 169: Bệnh nhân sốt cao cứng cơ toàn thân vã mồ hôi rối loạn nhịp tim sau khi tăng liều thuốc an thần Haloperidol."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [
+        "sốt",
+        "cổ cứng"
+      ],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "URGENT",
+      "decision_source": "rule",
+      "confidence": 0.96
+    },
+    "response_layer": {
+      "response_text": "Phân luồng: URGENT",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "dose_layer": {
+        "activated": false,
+        "drug": null,
+        "total_dose_mg": null,
+        "dose_mg_per_kg": null,
+        "time_pattern": null,
+        "urgency": null
+      }
+    }
+  },
+  {
+    "case_id": "V6-0174",
+    "oracle": "T4",
+    "actual": "URGENT",
+    "severity": "HIGH",
+    "primary_failure": "F7_DOSE_REASONING",
+    "secondary_failures": [],
+    "failure_nature": "BUG",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Ca ngộ độc dược chất khẩn cấp 174: Bệnh nhân sốt cao cứng cơ toàn thân vã mồ hôi rối loạn nhịp tim sau khi tăng liều thuốc an thần Haloperidol."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [
+        "sốt",
+        "cổ cứng"
+      ],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "URGENT",
+      "decision_source": "rule",
+      "confidence": 0.96
+    },
+    "response_layer": {
+      "response_text": "Phân luồng: URGENT",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "dose_layer": {
+        "activated": false,
+        "drug": null,
+        "total_dose_mg": null,
+        "dose_mg_per_kg": null,
+        "time_pattern": null,
+        "urgency": null
+      }
+    }
+  },
+  {
+    "case_id": "V6-0176",
+    "oracle": "ROUTINE",
+    "actual": "URGENT",
+    "severity": "MODERATE",
+    "primary_failure": "F15_OVER_TRIAGE",
+    "secondary_failures": [],
+    "failure_nature": "KNOWLEDGE_GAP",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Uống thuốc Cefuroxime xong thấy miệng hơi có vị đắng nhẹ khoảng 10 phút, ngoài ra không nổi mề đay, không ngứa, không khó thở."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "URGENT",
+      "decision_source": "semantic",
+      "confidence": 0.93
+    },
+    "response_layer": {
+      "response_text": "Phân luồng: URGENT",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "actual": "URGENT",
+      "expected": "ROUTINE"
+    }
+  },
+  {
+    "case_id": "V6-0177",
+    "oracle": "ROUTINE",
+    "actual": "EMERGENCY",
+    "severity": "MODERATE",
+    "primary_failure": "F15_OVER_TRIAGE",
+    "secondary_failures": [
+      "F5_CLINICAL_SEMANTIC_REASONING"
+    ],
+    "failure_nature": "BENCHMARK_OVERFIT",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Tối qua uống 1 viên Clorpheniramin trị sổ mũi nên sáng nay thức dậy hơi buồn ngủ lơ mơ một chút, rửa mặt xong thấy tỉnh táo bình thường."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [
+        "buồn ngủ"
+      ],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "EMERGENCY",
+      "decision_source": "semantic",
+      "confidence": 0.95
+    },
+    "response_layer": {
+      "response_text": "Phân luồng: EMERGENCY",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "actual_triage": "EMERGENCY",
+      "expected": "ROUTINE"
+    }
+  },
+  {
+    "case_id": "V6-0182",
+    "oracle": "T4",
+    "actual": "ROUTINE",
+    "severity": "CRITICAL",
+    "primary_failure": "F5_CLINICAL_SEMANTIC_REASONING",
+    "secondary_failures": [
+      "F16_UNDER_TRIAGE"
+    ],
+    "failure_nature": "KNOWLEDGE_GAP",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Bị vết xước nhỏ ở mu bàn chân do gai đâm, sau 2 ngày mu bàn chân sưng đỏ thâm tím lan nhanh lên cẳng chân, đau buốt dữ dội không tương xứng vết thương, ấn vào nghe lép bép có bóng nước đen rỉ dịch hôi thối."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "ROUTINE",
+      "decision_source": "semantic",
+      "confidence": 0.95
+    },
+    "response_layer": {
+      "response_text": "Đau chân cần được đánh giá theo vị trí, nguyên nhân khởi phát và khả năng chịu lực. Nếu đau đến mức khó đi hoặc không thể chịu lực, bạn không nên tiếp tục đi lại nhiều, đứng lâu hay tham gia hoạt động đông người lúc này.",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "mapped_concepts": [
+        "bi",
+        "vet",
+        "xuoc",
+        "nho",
+        "o",
+        "mu",
+        "ban",
+        "chan",
+        "do",
+        "gai",
+        "dam,",
+        "sau",
+        "2",
+        "ngay",
+        "mu",
+        "ban",
+        "chan",
+        "sung",
+        "do",
+        "tham",
+        "tim",
+        "lan",
+        "nhanh",
+        "len",
+        "cang",
+        "chan,",
+        "dau",
+        "buot",
+        "du",
+        "doi",
+        "khong",
+        "tuong",
+        "xung",
+        "vet",
+        "thuong,",
+        "an",
+        "vao",
+        "nghe",
+        "lep",
+        "bep",
+        "co",
+        "bong",
+        "nuoc",
+        "den",
+        "ri",
+        "dich",
+        "hoi",
+        "thoi."
+      ],
+      "affirmed_facts": [],
+      "semantic_risk": "ROUTINE",
+      "rule_matched": false
+    }
+  },
+  {
+    "case_id": "V6-0186",
+    "oracle": "T4",
+    "actual": "ROUTINE",
+    "severity": "CRITICAL",
+    "primary_failure": "F7_DOSE_REASONING",
+    "secondary_failures": [],
+    "failure_nature": "BUG",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Khớp gối phải sưng to vù nóng ran đỏ ửng sau tiêm khớp 3 ngày trước, đau nhức dữ dội không thể co duỗi hay đặt chân xuống đất, sốt cao 39.8 độ rét run bần bật."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "ROUTINE",
+      "decision_source": "semantic",
+      "confidence": 0.95
+    },
+    "response_layer": {
+      "response_text": "Đau chân cần được đánh giá theo vị trí, nguyên nhân khởi phát và khả năng chịu lực. Nếu đau đến mức khó đi hoặc không thể chịu lực, bạn không nên tiếp tục đi lại nhiều, đứng lâu hay tham gia hoạt động đông người lúc này.",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "dose_layer": {
+        "activated": false,
+        "drug": null,
+        "total_dose_mg": null,
+        "dose_mg_per_kg": null,
+        "time_pattern": null,
+        "urgency": null
+      }
+    }
+  },
+  {
+    "case_id": "V6-0192",
+    "oracle": "T4",
+    "actual": "ROUTINE",
+    "severity": "CRITICAL",
+    "primary_failure": "F5_CLINICAL_SEMANTIC_REASONING",
+    "secondary_failures": [
+      "F16_UNDER_TRIAGE"
+    ],
+    "failure_nature": "KNOWLEDGE_GAP",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Ca ngoại khoa nhiễm trùng nguy kịch 192: Nhiễm trùng huyết sốt rét run huyết áp tụt 75/45 thở hổn hển 30 lần/phút da tái xanh nổi vân tím."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [
+        "sốt"
+      ],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "ROUTINE",
+      "decision_source": "semantic",
+      "confidence": 0.95
+    },
+    "response_layer": {
+      "response_text": "Phân luồng: ROUTINE",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "mapped_concepts": [
+        "ca",
+        "ngoai",
+        "khoa",
+        "nhiem",
+        "trung",
+        "nguy",
+        "kich",
+        "192:",
+        "nhiem",
+        "trung",
+        "huyet",
+        "sot",
+        "ret",
+        "run",
+        "huyet",
+        "ap",
+        "tut",
+        "75/45",
+        "tho",
+        "hon",
+        "hen",
+        "30",
+        "lan/phut",
+        "da",
+        "tai",
+        "xanh",
+        "noi",
+        "van",
+        "tim."
+      ],
+      "affirmed_facts": [
+        "sốt"
+      ],
+      "semantic_risk": "ROUTINE",
+      "rule_matched": false
+    }
+  },
+  {
+    "case_id": "V6-0194",
+    "oracle": "T4",
+    "actual": "ROUTINE",
+    "severity": "CRITICAL",
+    "primary_failure": "F5_CLINICAL_SEMANTIC_REASONING",
+    "secondary_failures": [
+      "F16_UNDER_TRIAGE"
+    ],
+    "failure_nature": "KNOWLEDGE_GAP",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Ca ngoại khoa nhiễm trùng nguy kịch 194: Vết mổ sau phẫu thuật bỗng bục chỉ rỉ máu mủ ồ ạt ruột non lồi qua vết mổ đau đớn dữ dội."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "ROUTINE",
+      "decision_source": "semantic",
+      "confidence": 0.95
+    },
+    "response_layer": {
+      "response_text": "Phân luồng: ROUTINE",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "mapped_concepts": [
+        "ca",
+        "ngoai",
+        "khoa",
+        "nhiem",
+        "trung",
+        "nguy",
+        "kich",
+        "194:",
+        "vet",
+        "mo",
+        "sau",
+        "phau",
+        "thuat",
+        "bong",
+        "buc",
+        "chi",
+        "ri",
+        "mau",
+        "mu",
+        "o",
+        "at",
+        "ruot",
+        "non",
+        "loi",
+        "qua",
+        "vet",
+        "mo",
+        "dau",
+        "don",
+        "du",
+        "doi."
+      ],
+      "affirmed_facts": [],
+      "semantic_risk": "ROUTINE",
+      "rule_matched": false
+    }
+  },
+  {
+    "case_id": "V6-0197",
+    "oracle": "T4",
+    "actual": "ROUTINE",
+    "severity": "CRITICAL",
+    "primary_failure": "F5_CLINICAL_SEMANTIC_REASONING",
+    "secondary_failures": [
+      "F16_UNDER_TRIAGE"
+    ],
+    "failure_nature": "KNOWLEDGE_GAP",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Ca ngoại khoa nhiễm trùng nguy kịch 197: Nhiễm trùng huyết sốt rét run huyết áp tụt 75/45 thở hổn hển 30 lần/phút da tái xanh nổi vân tím."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [
+        "sốt"
+      ],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "ROUTINE",
+      "decision_source": "semantic",
+      "confidence": 0.95
+    },
+    "response_layer": {
+      "response_text": "Phân luồng: ROUTINE",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "mapped_concepts": [
+        "ca",
+        "ngoai",
+        "khoa",
+        "nhiem",
+        "trung",
+        "nguy",
+        "kich",
+        "197:",
+        "nhiem",
+        "trung",
+        "huyet",
+        "sot",
+        "ret",
+        "run",
+        "huyet",
+        "ap",
+        "tut",
+        "75/45",
+        "tho",
+        "hon",
+        "hen",
+        "30",
+        "lan/phut",
+        "da",
+        "tai",
+        "xanh",
+        "noi",
+        "van",
+        "tim."
+      ],
+      "affirmed_facts": [
+        "sốt"
+      ],
+      "semantic_risk": "ROUTINE",
+      "rule_matched": false
+    }
+  },
+  {
+    "case_id": "V6-0199",
+    "oracle": "T4",
+    "actual": "ROUTINE",
+    "severity": "CRITICAL",
+    "primary_failure": "F5_CLINICAL_SEMANTIC_REASONING",
+    "secondary_failures": [
+      "F16_UNDER_TRIAGE"
+    ],
+    "failure_nature": "KNOWLEDGE_GAP",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Ca ngoại khoa nhiễm trùng nguy kịch 199: Vết mổ sau phẫu thuật bỗng bục chỉ rỉ máu mủ ồ ạt ruột non lồi qua vết mổ đau đớn dữ dội."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "ROUTINE",
+      "decision_source": "semantic",
+      "confidence": 0.95
+    },
+    "response_layer": {
+      "response_text": "Phân luồng: ROUTINE",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "mapped_concepts": [
+        "ca",
+        "ngoai",
+        "khoa",
+        "nhiem",
+        "trung",
+        "nguy",
+        "kich",
+        "199:",
+        "vet",
+        "mo",
+        "sau",
+        "phau",
+        "thuat",
+        "bong",
+        "buc",
+        "chi",
+        "ri",
+        "mau",
+        "mu",
+        "o",
+        "at",
+        "ruot",
+        "non",
+        "loi",
+        "qua",
+        "vet",
+        "mo",
+        "dau",
+        "don",
+        "du",
+        "doi."
+      ],
+      "affirmed_facts": [],
+      "semantic_risk": "ROUTINE",
+      "rule_matched": false
+    }
+  },
+  {
+    "case_id": "V6-0202",
+    "oracle": "T4",
+    "actual": "ROUTINE",
+    "severity": "CRITICAL",
+    "primary_failure": "F5_CLINICAL_SEMANTIC_REASONING",
+    "secondary_failures": [
+      "F16_UNDER_TRIAGE"
+    ],
+    "failure_nature": "KNOWLEDGE_GAP",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Ca ngoại khoa nhiễm trùng nguy kịch 202: Nhiễm trùng huyết sốt rét run huyết áp tụt 75/45 thở hổn hển 30 lần/phút da tái xanh nổi vân tím."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [
+        "sốt"
+      ],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "ROUTINE",
+      "decision_source": "semantic",
+      "confidence": 0.95
+    },
+    "response_layer": {
+      "response_text": "Phân luồng: ROUTINE",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "mapped_concepts": [
+        "ca",
+        "ngoai",
+        "khoa",
+        "nhiem",
+        "trung",
+        "nguy",
+        "kich",
+        "202:",
+        "nhiem",
+        "trung",
+        "huyet",
+        "sot",
+        "ret",
+        "run",
+        "huyet",
+        "ap",
+        "tut",
+        "75/45",
+        "tho",
+        "hon",
+        "hen",
+        "30",
+        "lan/phut",
+        "da",
+        "tai",
+        "xanh",
+        "noi",
+        "van",
+        "tim."
+      ],
+      "affirmed_facts": [
+        "sốt"
+      ],
+      "semantic_risk": "ROUTINE",
+      "rule_matched": false
+    }
+  },
+  {
+    "case_id": "V6-0204",
+    "oracle": "T4",
+    "actual": "ROUTINE",
+    "severity": "CRITICAL",
+    "primary_failure": "F5_CLINICAL_SEMANTIC_REASONING",
+    "secondary_failures": [
+      "F16_UNDER_TRIAGE"
+    ],
+    "failure_nature": "KNOWLEDGE_GAP",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Ca ngoại khoa nhiễm trùng nguy kịch 204: Vết mổ sau phẫu thuật bỗng bục chỉ rỉ máu mủ ồ ạt ruột non lồi qua vết mổ đau đớn dữ dội."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "ROUTINE",
+      "decision_source": "semantic",
+      "confidence": 0.95
+    },
+    "response_layer": {
+      "response_text": "Phân luồng: ROUTINE",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "mapped_concepts": [
+        "ca",
+        "ngoai",
+        "khoa",
+        "nhiem",
+        "trung",
+        "nguy",
+        "kich",
+        "204:",
+        "vet",
+        "mo",
+        "sau",
+        "phau",
+        "thuat",
+        "bong",
+        "buc",
+        "chi",
+        "ri",
+        "mau",
+        "mu",
+        "o",
+        "at",
+        "ruot",
+        "non",
+        "loi",
+        "qua",
+        "vet",
+        "mo",
+        "dau",
+        "don",
+        "du",
+        "doi."
+      ],
+      "affirmed_facts": [],
+      "semantic_risk": "ROUTINE",
+      "rule_matched": false
+    }
+  },
+  {
+    "case_id": "V6-0207",
+    "oracle": "T4",
+    "actual": "ROUTINE",
+    "severity": "CRITICAL",
+    "primary_failure": "F5_CLINICAL_SEMANTIC_REASONING",
+    "secondary_failures": [
+      "F16_UNDER_TRIAGE"
+    ],
+    "failure_nature": "KNOWLEDGE_GAP",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Ca ngoại khoa nhiễm trùng nguy kịch 207: Nhiễm trùng huyết sốt rét run huyết áp tụt 75/45 thở hổn hển 30 lần/phút da tái xanh nổi vân tím."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [
+        "sốt"
+      ],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "ROUTINE",
+      "decision_source": "semantic",
+      "confidence": 0.95
+    },
+    "response_layer": {
+      "response_text": "Phân luồng: ROUTINE",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "mapped_concepts": [
+        "ca",
+        "ngoai",
+        "khoa",
+        "nhiem",
+        "trung",
+        "nguy",
+        "kich",
+        "207:",
+        "nhiem",
+        "trung",
+        "huyet",
+        "sot",
+        "ret",
+        "run",
+        "huyet",
+        "ap",
+        "tut",
+        "75/45",
+        "tho",
+        "hon",
+        "hen",
+        "30",
+        "lan/phut",
+        "da",
+        "tai",
+        "xanh",
+        "noi",
+        "van",
+        "tim."
+      ],
+      "affirmed_facts": [
+        "sốt"
+      ],
+      "semantic_risk": "ROUTINE",
+      "rule_matched": false
+    }
+  },
+  {
+    "case_id": "V6-0209",
+    "oracle": "T4",
+    "actual": "ROUTINE",
+    "severity": "CRITICAL",
+    "primary_failure": "F5_CLINICAL_SEMANTIC_REASONING",
+    "secondary_failures": [
+      "F16_UNDER_TRIAGE"
+    ],
+    "failure_nature": "KNOWLEDGE_GAP",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Ca ngoại khoa nhiễm trùng nguy kịch 209: Vết mổ sau phẫu thuật bỗng bục chỉ rỉ máu mủ ồ ạt ruột non lồi qua vết mổ đau đớn dữ dội."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "ROUTINE",
+      "decision_source": "semantic",
+      "confidence": 0.95
+    },
+    "response_layer": {
+      "response_text": "Phân luồng: ROUTINE",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "mapped_concepts": [
+        "ca",
+        "ngoai",
+        "khoa",
+        "nhiem",
+        "trung",
+        "nguy",
+        "kich",
+        "209:",
+        "vet",
+        "mo",
+        "sau",
+        "phau",
+        "thuat",
+        "bong",
+        "buc",
+        "chi",
+        "ri",
+        "mau",
+        "mu",
+        "o",
+        "at",
+        "ruot",
+        "non",
+        "loi",
+        "qua",
+        "vet",
+        "mo",
+        "dau",
+        "don",
+        "du",
+        "doi."
+      ],
+      "affirmed_facts": [],
+      "semantic_risk": "ROUTINE",
+      "rule_matched": false
+    }
+  },
+  {
+    "case_id": "V6-0212",
+    "oracle": "T4",
+    "actual": "ROUTINE",
+    "severity": "CRITICAL",
+    "primary_failure": "F5_CLINICAL_SEMANTIC_REASONING",
+    "secondary_failures": [
+      "F16_UNDER_TRIAGE"
+    ],
+    "failure_nature": "KNOWLEDGE_GAP",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Ca ngoại khoa nhiễm trùng nguy kịch 212: Nhiễm trùng huyết sốt rét run huyết áp tụt 75/45 thở hổn hển 30 lần/phút da tái xanh nổi vân tím."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [
+        "sốt"
+      ],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "ROUTINE",
+      "decision_source": "semantic",
+      "confidence": 0.95
+    },
+    "response_layer": {
+      "response_text": "Phân luồng: ROUTINE",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "mapped_concepts": [
+        "ca",
+        "ngoai",
+        "khoa",
+        "nhiem",
+        "trung",
+        "nguy",
+        "kich",
+        "212:",
+        "nhiem",
+        "trung",
+        "huyet",
+        "sot",
+        "ret",
+        "run",
+        "huyet",
+        "ap",
+        "tut",
+        "75/45",
+        "tho",
+        "hon",
+        "hen",
+        "30",
+        "lan/phut",
+        "da",
+        "tai",
+        "xanh",
+        "noi",
+        "van",
+        "tim."
+      ],
+      "affirmed_facts": [
+        "sốt"
+      ],
+      "semantic_risk": "ROUTINE",
+      "rule_matched": false
+    }
+  },
+  {
+    "case_id": "V6-0214",
+    "oracle": "T4",
+    "actual": "ROUTINE",
+    "severity": "CRITICAL",
+    "primary_failure": "F5_CLINICAL_SEMANTIC_REASONING",
+    "secondary_failures": [
+      "F16_UNDER_TRIAGE"
+    ],
+    "failure_nature": "KNOWLEDGE_GAP",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Ca ngoại khoa nhiễm trùng nguy kịch 214: Vết mổ sau phẫu thuật bỗng bục chỉ rỉ máu mủ ồ ạt ruột non lồi qua vết mổ đau đớn dữ dội."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "ROUTINE",
+      "decision_source": "semantic",
+      "confidence": 0.95
+    },
+    "response_layer": {
+      "response_text": "Phân luồng: ROUTINE",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "mapped_concepts": [
+        "ca",
+        "ngoai",
+        "khoa",
+        "nhiem",
+        "trung",
+        "nguy",
+        "kich",
+        "214:",
+        "vet",
+        "mo",
+        "sau",
+        "phau",
+        "thuat",
+        "bong",
+        "buc",
+        "chi",
+        "ri",
+        "mau",
+        "mu",
+        "o",
+        "at",
+        "ruot",
+        "non",
+        "loi",
+        "qua",
+        "vet",
+        "mo",
+        "dau",
+        "don",
+        "du",
+        "doi."
+      ],
+      "affirmed_facts": [],
+      "semantic_risk": "ROUTINE",
+      "rule_matched": false
+    }
+  },
+  {
+    "case_id": "V6-0217",
+    "oracle": "T4",
+    "actual": "ROUTINE",
+    "severity": "CRITICAL",
+    "primary_failure": "F5_CLINICAL_SEMANTIC_REASONING",
+    "secondary_failures": [
+      "F16_UNDER_TRIAGE"
+    ],
+    "failure_nature": "KNOWLEDGE_GAP",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Ca ngoại khoa nhiễm trùng nguy kịch 217: Nhiễm trùng huyết sốt rét run huyết áp tụt 75/45 thở hổn hển 30 lần/phút da tái xanh nổi vân tím."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [
+        "sốt"
+      ],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "ROUTINE",
+      "decision_source": "semantic",
+      "confidence": 0.95
+    },
+    "response_layer": {
+      "response_text": "Phân luồng: ROUTINE",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "mapped_concepts": [
+        "ca",
+        "ngoai",
+        "khoa",
+        "nhiem",
+        "trung",
+        "nguy",
+        "kich",
+        "217:",
+        "nhiem",
+        "trung",
+        "huyet",
+        "sot",
+        "ret",
+        "run",
+        "huyet",
+        "ap",
+        "tut",
+        "75/45",
+        "tho",
+        "hon",
+        "hen",
+        "30",
+        "lan/phut",
+        "da",
+        "tai",
+        "xanh",
+        "noi",
+        "van",
+        "tim."
+      ],
+      "affirmed_facts": [
+        "sốt"
+      ],
+      "semantic_risk": "ROUTINE",
+      "rule_matched": false
+    }
+  },
+  {
+    "case_id": "V6-0219",
+    "oracle": "T4",
+    "actual": "ROUTINE",
+    "severity": "CRITICAL",
+    "primary_failure": "F5_CLINICAL_SEMANTIC_REASONING",
+    "secondary_failures": [
+      "F16_UNDER_TRIAGE"
+    ],
+    "failure_nature": "KNOWLEDGE_GAP",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Ca ngoại khoa nhiễm trùng nguy kịch 219: Vết mổ sau phẫu thuật bỗng bục chỉ rỉ máu mủ ồ ạt ruột non lồi qua vết mổ đau đớn dữ dội."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "ROUTINE",
+      "decision_source": "semantic",
+      "confidence": 0.95
+    },
+    "response_layer": {
+      "response_text": "Phân luồng: ROUTINE",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "mapped_concepts": [
+        "ca",
+        "ngoai",
+        "khoa",
+        "nhiem",
+        "trung",
+        "nguy",
+        "kich",
+        "219:",
+        "vet",
+        "mo",
+        "sau",
+        "phau",
+        "thuat",
+        "bong",
+        "buc",
+        "chi",
+        "ri",
+        "mau",
+        "mu",
+        "o",
+        "at",
+        "ruot",
+        "non",
+        "loi",
+        "qua",
+        "vet",
+        "mo",
+        "dau",
+        "don",
+        "du",
+        "doi."
+      ],
+      "affirmed_facts": [],
+      "semantic_risk": "ROUTINE",
+      "rule_matched": false
+    }
+  },
+  {
+    "case_id": "V6-0222",
+    "oracle": "T4",
+    "actual": "ROUTINE",
+    "severity": "CRITICAL",
+    "primary_failure": "F5_CLINICAL_SEMANTIC_REASONING",
+    "secondary_failures": [
+      "F16_UNDER_TRIAGE"
+    ],
+    "failure_nature": "KNOWLEDGE_GAP",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Ca ngoại khoa nhiễm trùng nguy kịch 222: Nhiễm trùng huyết sốt rét run huyết áp tụt 75/45 thở hổn hển 30 lần/phút da tái xanh nổi vân tím."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [
+        "sốt"
+      ],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "ROUTINE",
+      "decision_source": "semantic",
+      "confidence": 0.95
+    },
+    "response_layer": {
+      "response_text": "Phân luồng: ROUTINE",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "mapped_concepts": [
+        "ca",
+        "ngoai",
+        "khoa",
+        "nhiem",
+        "trung",
+        "nguy",
+        "kich",
+        "222:",
+        "nhiem",
+        "trung",
+        "huyet",
+        "sot",
+        "ret",
+        "run",
+        "huyet",
+        "ap",
+        "tut",
+        "75/45",
+        "tho",
+        "hon",
+        "hen",
+        "30",
+        "lan/phut",
+        "da",
+        "tai",
+        "xanh",
+        "noi",
+        "van",
+        "tim."
+      ],
+      "affirmed_facts": [
+        "sốt"
+      ],
+      "semantic_risk": "ROUTINE",
+      "rule_matched": false
+    }
+  },
+  {
+    "case_id": "V6-0224",
+    "oracle": "T4",
+    "actual": "ROUTINE",
+    "severity": "CRITICAL",
+    "primary_failure": "F5_CLINICAL_SEMANTIC_REASONING",
+    "secondary_failures": [
+      "F16_UNDER_TRIAGE"
+    ],
+    "failure_nature": "KNOWLEDGE_GAP",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Ca ngoại khoa nhiễm trùng nguy kịch 224: Vết mổ sau phẫu thuật bỗng bục chỉ rỉ máu mủ ồ ạt ruột non lồi qua vết mổ đau đớn dữ dội."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "ROUTINE",
+      "decision_source": "semantic",
+      "confidence": 0.95
+    },
+    "response_layer": {
+      "response_text": "Phân luồng: ROUTINE",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "mapped_concepts": [
+        "ca",
+        "ngoai",
+        "khoa",
+        "nhiem",
+        "trung",
+        "nguy",
+        "kich",
+        "224:",
+        "vet",
+        "mo",
+        "sau",
+        "phau",
+        "thuat",
+        "bong",
+        "buc",
+        "chi",
+        "ri",
+        "mau",
+        "mu",
+        "o",
+        "at",
+        "ruot",
+        "non",
+        "loi",
+        "qua",
+        "vet",
+        "mo",
+        "dau",
+        "don",
+        "du",
+        "doi."
+      ],
+      "affirmed_facts": [],
+      "semantic_risk": "ROUTINE",
+      "rule_matched": false
+    }
+  },
+  {
+    "case_id": "V6-0227",
+    "oracle": "T4",
+    "actual": "ROUTINE",
+    "severity": "CRITICAL",
+    "primary_failure": "F5_CLINICAL_SEMANTIC_REASONING",
+    "secondary_failures": [
+      "F16_UNDER_TRIAGE"
+    ],
+    "failure_nature": "KNOWLEDGE_GAP",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Ca ngoại khoa nhiễm trùng nguy kịch 227: Nhiễm trùng huyết sốt rét run huyết áp tụt 75/45 thở hổn hển 30 lần/phút da tái xanh nổi vân tím."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [
+        "sốt"
+      ],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "ROUTINE",
+      "decision_source": "semantic",
+      "confidence": 0.95
+    },
+    "response_layer": {
+      "response_text": "Phân luồng: ROUTINE",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "mapped_concepts": [
+        "ca",
+        "ngoai",
+        "khoa",
+        "nhiem",
+        "trung",
+        "nguy",
+        "kich",
+        "227:",
+        "nhiem",
+        "trung",
+        "huyet",
+        "sot",
+        "ret",
+        "run",
+        "huyet",
+        "ap",
+        "tut",
+        "75/45",
+        "tho",
+        "hon",
+        "hen",
+        "30",
+        "lan/phut",
+        "da",
+        "tai",
+        "xanh",
+        "noi",
+        "van",
+        "tim."
+      ],
+      "affirmed_facts": [
+        "sốt"
+      ],
+      "semantic_risk": "ROUTINE",
+      "rule_matched": false
+    }
+  },
+  {
+    "case_id": "V6-0229",
+    "oracle": "T4",
+    "actual": "ROUTINE",
+    "severity": "CRITICAL",
+    "primary_failure": "F5_CLINICAL_SEMANTIC_REASONING",
+    "secondary_failures": [
+      "F16_UNDER_TRIAGE"
+    ],
+    "failure_nature": "KNOWLEDGE_GAP",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Ca ngoại khoa nhiễm trùng nguy kịch 229: Vết mổ sau phẫu thuật bỗng bục chỉ rỉ máu mủ ồ ạt ruột non lồi qua vết mổ đau đớn dữ dội."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "ROUTINE",
+      "decision_source": "semantic",
+      "confidence": 0.95
+    },
+    "response_layer": {
+      "response_text": "Phân luồng: ROUTINE",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "mapped_concepts": [
+        "ca",
+        "ngoai",
+        "khoa",
+        "nhiem",
+        "trung",
+        "nguy",
+        "kich",
+        "229:",
+        "vet",
+        "mo",
+        "sau",
+        "phau",
+        "thuat",
+        "bong",
+        "buc",
+        "chi",
+        "ri",
+        "mau",
+        "mu",
+        "o",
+        "at",
+        "ruot",
+        "non",
+        "loi",
+        "qua",
+        "vet",
+        "mo",
+        "dau",
+        "don",
+        "du",
+        "doi."
+      ],
+      "affirmed_facts": [],
+      "semantic_risk": "ROUTINE",
+      "rule_matched": false
+    }
+  },
+  {
+    "case_id": "V6-0232",
+    "oracle": "T4",
+    "actual": "ROUTINE",
+    "severity": "CRITICAL",
+    "primary_failure": "F5_CLINICAL_SEMANTIC_REASONING",
+    "secondary_failures": [
+      "F16_UNDER_TRIAGE"
+    ],
+    "failure_nature": "KNOWLEDGE_GAP",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Ca ngoại khoa nhiễm trùng nguy kịch 232: Nhiễm trùng huyết sốt rét run huyết áp tụt 75/45 thở hổn hển 30 lần/phút da tái xanh nổi vân tím."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [
+        "sốt"
+      ],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "ROUTINE",
+      "decision_source": "semantic",
+      "confidence": 0.95
+    },
+    "response_layer": {
+      "response_text": "Phân luồng: ROUTINE",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "mapped_concepts": [
+        "ca",
+        "ngoai",
+        "khoa",
+        "nhiem",
+        "trung",
+        "nguy",
+        "kich",
+        "232:",
+        "nhiem",
+        "trung",
+        "huyet",
+        "sot",
+        "ret",
+        "run",
+        "huyet",
+        "ap",
+        "tut",
+        "75/45",
+        "tho",
+        "hon",
+        "hen",
+        "30",
+        "lan/phut",
+        "da",
+        "tai",
+        "xanh",
+        "noi",
+        "van",
+        "tim."
+      ],
+      "affirmed_facts": [
+        "sốt"
+      ],
+      "semantic_risk": "ROUTINE",
+      "rule_matched": false
+    }
+  },
+  {
+    "case_id": "V6-0234",
+    "oracle": "T4",
+    "actual": "ROUTINE",
+    "severity": "CRITICAL",
+    "primary_failure": "F5_CLINICAL_SEMANTIC_REASONING",
+    "secondary_failures": [
+      "F16_UNDER_TRIAGE"
+    ],
+    "failure_nature": "KNOWLEDGE_GAP",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Ca ngoại khoa nhiễm trùng nguy kịch 234: Vết mổ sau phẫu thuật bỗng bục chỉ rỉ máu mủ ồ ạt ruột non lồi qua vết mổ đau đớn dữ dội."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "ROUTINE",
+      "decision_source": "semantic",
+      "confidence": 0.95
+    },
+    "response_layer": {
+      "response_text": "Phân luồng: ROUTINE",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "mapped_concepts": [
+        "ca",
+        "ngoai",
+        "khoa",
+        "nhiem",
+        "trung",
+        "nguy",
+        "kich",
+        "234:",
+        "vet",
+        "mo",
+        "sau",
+        "phau",
+        "thuat",
+        "bong",
+        "buc",
+        "chi",
+        "ri",
+        "mau",
+        "mu",
+        "o",
+        "at",
+        "ruot",
+        "non",
+        "loi",
+        "qua",
+        "vet",
+        "mo",
+        "dau",
+        "don",
+        "du",
+        "doi."
+      ],
+      "affirmed_facts": [],
+      "semantic_risk": "ROUTINE",
+      "rule_matched": false
+    }
+  },
+  {
+    "case_id": "V6-0241",
+    "oracle": "ROUTINE",
+    "actual": "EMERGENCY",
+    "severity": "MODERATE",
+    "primary_failure": "F15_OVER_TRIAGE",
+    "secondary_failures": [
+      "F5_CLINICAL_SEMANTIC_REASONING"
+    ],
+    "failure_nature": "BENCHMARK_OVERFIT",
+    "raw_messages": [
+      {
+        "role": "user",
+        "content": "Cắn một miếng kem đá bào to bỗng đau buốt dữ dội thấu óc như nổ tung trán trong 15 giây, sau đó hết sạch cơn đau đầu, hiện khỏe mạnh bình thường."
+      }
+    ],
+    "fact_extraction": {
+      "affirmed_facts": [
+        "đau đầu"
+      ],
+      "negated_facts": [],
+      "uncertain_facts": [],
+      "historical_facts": [],
+      "corrected_facts": [],
+      "temporal_facts": []
+    },
+    "threat_graph": {
+      "active_dimensions": [
+        "airway",
+        "breathing",
+        "circulation",
+        "neurology",
+        "sepsis_infection",
+        "major_bleeding",
+        "toxic_exposure",
+        "pregnancy_danger",
+        "surgical_abdomen",
+        "vision_threat",
+        "limb_threat",
+        "metabolic_crisis"
+      ],
+      "critical_dimensions": [],
+      "high_dimensions": [],
+      "threat_urgency": "ROUTINE",
+      "threat_confidence": 0.9
+    },
+    "dose_layer": {
+      "activated": false,
+      "drug": null,
+      "total_dose_mg": null,
+      "dose_mg_per_kg": null,
+      "time_pattern": null,
+      "urgency": null
+    },
+    "resolver": {
+      "candidate_levels": {},
+      "final_triage": "EMERGENCY",
+      "decision_source": "semantic",
+      "confidence": 0.95
+    },
+    "response_layer": {
+      "response_text": "Phân luồng: EMERGENCY",
+      "contains_home_monitoring": false,
+      "contains_immediate_action": false,
+      "contains_unsupported_diagnosis": false,
+      "contains_unsupported_treatment": false
+    },
+    "evidence": {
+      "actual_triage": "EMERGENCY",
+      "expected": "ROUTINE"
+    }
+  }
+]

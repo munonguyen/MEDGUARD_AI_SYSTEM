@@ -1,0 +1,30 @@
+{
+  "model_version": "medguard-candidate-v8-tri-gate-frozen",
+  "git_commit": "c07c53458a6328d96cec8b7d311ff45107f9582b",
+  "file_hashes": {
+    "app/models/clinical_events.py": "db2209dd6e8e564a5276ec54348e351f94a1eb02e766737437eef6678ea369f0",
+    "app/models/physiologic_consequences.py": "702074bae9d7ebacc1371daa263b0c6729b9c6a7e76dee344bc9177428653081",
+    "app/models/jev.py": "2a310210a171e27f289124b12d7bb7147b666672858bf0092c572e6d1fbb6b34",
+    "app/services/clinical_fact_parser.py": "19bafc062ad16d527d9715cfacc2296216b060ac8330fe10c9ab8986ab40b8b0",
+    "app/services/clinical_threat_graph.py": "6af4ccfe41ccd0978dfbc714bbfabc62ded3b3529dc1460d53e6ca6178ea301d",
+    "app/services/physiologic_consequence_engine.py": "c63db65684088fcba0eb5b40bddcd9c085eb2466ab6e0bf55c33284732702f72",
+    "app/services/toxicology_reasoner.py": "7e2dac8c1a495ca48ecf85cc2b3c6c2abf167a851bbdfbdfacb11fe7a745a5d1",
+    "app/services/clinical_event_ledger.py": "82bdc8a992596c4c90836296b4e51f3fcd42e3745bb4331c13141dfdd204c1f3",
+    "app/services/compositional_reasoner.py": "0772702139f58552672b37fe3a6ff6cc8a108cf9475ce2dc5486f321b36b3374",
+    "app/services/semantic_risk.py": "aa180f39a847dc04a84b2899280d33d1f76c1617b0fd64c28648c5f19a05ac24",
+    "app/services/dose_reasoning.py": "066ea1feb8f80280f94a1dfd526393681cc43f1919e240d0269cce5d4be427be",
+    "app/services/triage.py": "8348ba9358ee8c6d458a0ea07031cdd132e77f6415db7c7a7b68fea8d20bbe19",
+    "app/services/triage_resolver.py": "8e61b7163556d678fb8072cecdb2069f91d7d47304cfa6225ea0e47209c9250c",
+    "app/services/risk_memory.py": "9b1e535497b443a40ba077773d1d7ee5e10b97bd1bad13b1819148518b027a50",
+    "app/services/rules.py": "8c6c23f99f60985e555454cc8e087c3ec9e253d8f2951e83cc95c42f9f1de56a",
+    "app/services/chat.py": "ab6502312d94fdd883028cba83b68a30e00592453d1bb77044a2491318d2c165",
+    "app/services/ood_guard.py": "6c62ab2e7237fd1565295e2682b2c7a59097eb7a0d23612ecd45bb242d7be8dd",
+    "app/services/clinical_text.py": "358fa663f353ece9f03fe2c1a484446fddd29e75e9457117b54137fff3d25daf",
+    "app/services/jev_engine.py": "c5d3f4b2c5deda71aaae791c01820526b241d002ab6e494439e0cd06d5094a4e",
+    "app/services/jev_governance.py": "8a3aa8b36cf79198511c3e5899429c30b98583805017bf86b4afbb56beb3898a",
+    "app/services/tri_gate_orchestrator.py": "ec04ac44ad5943094a1a525775582873ce42b0ab4eea36c95639c8e709de9a5a",
+    "app/services/tri_gate_resolver.py": "bf7fe9f07912d8bfbce066c24e884096602639f262d6b7173979b3bb60f45e25",
+    "app/knowledge/medication_incident_protocols.json": "951aa39de7259e3890c359d60837534daa61e162d0d86f6014f9b8fa32a8d07a",
+    "app/knowledge/red_flag_protocols.json": "332274b89bde169ea5f752e153e7492e4639c5e5601e6f6ef34aff21df84effb"
+  }
+}

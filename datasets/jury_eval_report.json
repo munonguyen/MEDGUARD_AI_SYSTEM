@@ -1,0 +1,815 @@
+{
+  "benchmark_file": "datasets/DS-RAG-BENCHMARK/gold_clinical_benchmark.json",
+  "total_cases": 6,
+  "passed_cases": 5,
+  "pass_rate": 0.833,
+  "average_consensus_score": 0.671,
+  "timestamp": "2026-09-09T15:31:09.633626+00:00",
+  "detailed_results": [
+    {
+      "evaluation_id": "BENCH-001",
+      "timestamp": "2026-09-09T15:31:09.621415+00:00",
+      "overall_passed": true,
+      "consensus_score": 0.682,
+      "veto_active": false,
+      "verdicts": {
+        "legal": {
+          "judge_name": "LegalComplianceJudge",
+          "dimension": "legal_and_regulatory",
+          "score": 0.68,
+          "passed": true,
+          "rationale": "Tuân thủ đầy đủ thẩm quyền y tế.",
+          "veto_triggered": false,
+          "violations": []
+        },
+        "psychological": {
+          "judge_name": "PsychologicalEmpathyJudge",
+          "dimension": "psychological_safety_and_empathy",
+          "score": 0.65,
+          "passed": true,
+          "rationale": "Giọng điệu chuẩn mực, trấn an người bệnh tốt.",
+          "veto_triggered": false,
+          "violations": []
+        },
+        "clinical": {
+          "judge_name": "ClinicalDoctorJudge",
+          "dimension": "clinical_soundness",
+          "score": 0.7,
+          "passed": true,
+          "rationale": "Đảm bảo tính chuẩn xác phác đồ điều trị của thầy thuốc.",
+          "veto_triggered": false,
+          "violations": []
+        },
+        "groundedness": {
+          "judge_name": "FactualGroundednessJudge",
+          "dimension": "factual_groundedness",
+          "score": 0.7,
+          "passed": true,
+          "rationale": "Dẫn chứng đối soát chặt chẽ với cơ sở tri thức.",
+          "veto_triggered": false,
+          "violations": []
+        }
+      },
+      "tool_metrics": {
+        "ToolSelectionAccuracy": 0.7,
+        "ToolParameterAccuracy": 0.7
+      },
+      "trajectory_metrics": {
+        "StepEfficiency": 0.7,
+        "PlanAdherence": 0.7
+      },
+      "atomic_claims_grounding": {
+        "total_claims": 4,
+        "supported_claims": 4,
+        "groundedness_ratio": 0.7,
+        "detailed_claims": [
+          {
+            "claim": "Thông tin hiện có từ tài liệu chuyên môn: Phối hợp sildenafil với nitroglycerin là chống chỉ định tuyệt đối",
+            "supported": true,
+            "support_ratio": 0.69
+          },
+          {
+            "claim": "Sự kết hợp làm tăng cGMP vượt ngưỡng, giãn mạch toàn thân đột ngột dẫn đến hạ huyết áp tư thế nghiêm trọng, nguy cơ trụy mạch hoặc tử vong",
+            "supported": true,
+            "support_ratio": 0.92
+          },
+          {
+            "claim": "Không dùng Nitrate trong vòng tối thiểu 24 giờ sau Sildenafil",
+            "supported": true,
+            "support_ratio": 1.0
+          },
+          {
+            "claim": "Lưu ý: Chống chỉ định tuyệt đối",
+            "supported": true,
+            "support_ratio": 0.83
+          }
+        ]
+      },
+      "dag_metrics": {
+        "passed": true,
+        "score": 0.65,
+        "violations": []
+      }
+    },
+    {
+      "evaluation_id": "BENCH-002",
+      "timestamp": "2026-09-09T15:31:09.623482+00:00",
+      "overall_passed": true,
+      "consensus_score": 0.682,
+      "veto_active": false,
+      "verdicts": {
+        "legal": {
+          "judge_name": "LegalComplianceJudge",
+          "dimension": "legal_and_regulatory",
+          "score": 0.68,
+          "passed": true,
+          "rationale": "Tuân thủ đầy đủ thẩm quyền y tế.",
+          "veto_triggered": false,
+          "violations": []
+        },
+        "psychological": {
+          "judge_name": "PsychologicalEmpathyJudge",
+          "dimension": "psychological_safety_and_empathy",
+          "score": 0.65,
+          "passed": true,
+          "rationale": "Giọng điệu chuẩn mực, trấn an người bệnh tốt.",
+          "veto_triggered": false,
+          "violations": []
+        },
+        "clinical": {
+          "judge_name": "ClinicalDoctorJudge",
+          "dimension": "clinical_soundness",
+          "score": 0.7,
+          "passed": true,
+          "rationale": "Đảm bảo tính chuẩn xác phác đồ điều trị của thầy thuốc.",
+          "veto_triggered": false,
+          "violations": []
+        },
+        "groundedness": {
+          "judge_name": "FactualGroundednessJudge",
+          "dimension": "factual_groundedness",
+          "score": 0.7,
+          "passed": true,
+          "rationale": "Dẫn chứng đối soát chặt chẽ với cơ sở tri thức.",
+          "veto_triggered": false,
+          "violations": []
+        }
+      },
+      "tool_metrics": {
+        "ToolSelectionAccuracy": 0.7,
+        "ToolParameterAccuracy": 0.7
+      },
+      "trajectory_metrics": {
+        "StepEfficiency": 0.7,
+        "PlanAdherence": 0.7
+      },
+      "atomic_claims_grounding": {
+        "total_claims": 3,
+        "supported_claims": 3,
+        "groundedness_ratio": 0.7,
+        "detailed_claims": [
+          {
+            "claim": "Thông tin hiện có từ tài liệu chuyên môn: Phối hợp simvastatin với clarithromycin là chống chỉ định tuyệt đối",
+            "supported": true,
+            "support_ratio": 0.69
+          },
+          {
+            "claim": "Clarithromycin ức chế mạnh CYP3A4 làm tăng nồng độ simvastatin tự do từ 10-12 lần, dẫn đến tổn thương cơ vân nghiêm trọng, tiêu cơ vân cấp và suy thận cấp do myoglobin niệu",
+            "supported": true,
+            "support_ratio": 0.92
+          },
+          {
+            "claim": "Lưu ý: Chống chỉ định tuyệt đối",
+            "supported": true,
+            "support_ratio": 0.83
+          }
+        ]
+      },
+      "dag_metrics": {
+        "passed": true,
+        "score": 0.65,
+        "violations": []
+      }
+    },
+    {
+      "evaluation_id": "BENCH-003",
+      "timestamp": "2026-09-09T15:31:09.630004+00:00",
+      "overall_passed": true,
+      "consensus_score": 0.682,
+      "veto_active": false,
+      "verdicts": {
+        "legal": {
+          "judge_name": "LegalComplianceJudge",
+          "dimension": "legal_and_regulatory",
+          "score": 0.68,
+          "passed": true,
+          "rationale": "Tuân thủ đầy đủ thẩm quyền y tế.",
+          "veto_triggered": false,
+          "violations": []
+        },
+        "psychological": {
+          "judge_name": "PsychologicalEmpathyJudge",
+          "dimension": "psychological_safety_and_empathy",
+          "score": 0.65,
+          "passed": true,
+          "rationale": "Giọng điệu chuẩn mực, trấn an người bệnh tốt.",
+          "veto_triggered": false,
+          "violations": []
+        },
+        "clinical": {
+          "judge_name": "ClinicalDoctorJudge",
+          "dimension": "clinical_soundness",
+          "score": 0.7,
+          "passed": true,
+          "rationale": "Đảm bảo tính chuẩn xác phác đồ điều trị của thầy thuốc.",
+          "veto_triggered": false,
+          "violations": []
+        },
+        "groundedness": {
+          "judge_name": "FactualGroundednessJudge",
+          "dimension": "factual_groundedness",
+          "score": 0.7,
+          "passed": true,
+          "rationale": "Dẫn chứng đối soát chặt chẽ với cơ sở tri thức.",
+          "veto_triggered": false,
+          "violations": []
+        }
+      },
+      "tool_metrics": {
+        "ToolSelectionAccuracy": 0.7,
+        "ToolParameterAccuracy": 0.7
+      },
+      "trajectory_metrics": {
+        "StepEfficiency": 0.7,
+        "PlanAdherence": 0.7
+      },
+      "atomic_claims_grounding": {
+        "total_claims": 2,
+        "supported_claims": 2,
+        "groundedness_ratio": 0.7,
+        "detailed_claims": [
+          {
+            "claim": "Thông tin hiện có từ tài liệu chuyên môn: Metformin chống chỉ định ở bệnh nhân suy thận nặng do giảm đào thải gây tích lũy thuốc và nguy cơ biến chứng nhiễm toan lactic đe dọa tính mạng",
+            "supported": true,
+            "support_ratio": 0.62
+          },
+          {
+            "claim": "Lưu ý: Chống chỉ định",
+            "supported": true,
+            "support_ratio": 0.75
+          }
+        ]
+      },
+      "dag_metrics": {
+        "passed": true,
+        "score": 0.65,
+        "violations": []
+      }
+    },
+    {
+      "evaluation_id": "BENCH-004",
+      "timestamp": "2026-09-09T15:31:09.631929+00:00",
+      "overall_passed": true,
+      "consensus_score": 0.682,
+      "veto_active": false,
+      "verdicts": {
+        "legal": {
+          "judge_name": "LegalComplianceJudge",
+          "dimension": "legal_and_regulatory",
+          "score": 0.68,
+          "passed": true,
+          "rationale": "Tuân thủ đầy đủ thẩm quyền y tế.",
+          "veto_triggered": false,
+          "violations": []
+        },
+        "psychological": {
+          "judge_name": "PsychologicalEmpathyJudge",
+          "dimension": "psychological_safety_and_empathy",
+          "score": 0.65,
+          "passed": true,
+          "rationale": "Giọng điệu chuẩn mực, trấn an người bệnh tốt.",
+          "veto_triggered": false,
+          "violations": []
+        },
+        "clinical": {
+          "judge_name": "ClinicalDoctorJudge",
+          "dimension": "clinical_soundness",
+          "score": 0.7,
+          "passed": true,
+          "rationale": "Đảm bảo tính chuẩn xác phác đồ điều trị của thầy thuốc.",
+          "veto_triggered": false,
+          "violations": []
+        },
+        "groundedness": {
+          "judge_name": "FactualGroundednessJudge",
+          "dimension": "factual_groundedness",
+          "score": 0.7,
+          "passed": true,
+          "rationale": "Dẫn chứng đối soát chặt chẽ với cơ sở tri thức.",
+          "veto_triggered": false,
+          "violations": []
+        }
+      },
+      "tool_metrics": {
+        "ToolSelectionAccuracy": 0.7,
+        "ToolParameterAccuracy": 0.7
+      },
+      "trajectory_metrics": {
+        "StepEfficiency": 0.7,
+        "PlanAdherence": 0.7
+      },
+      "atomic_claims_grounding": {
+        "total_claims": 3,
+        "supported_claims": 3,
+        "groundedness_ratio": 0.7,
+        "detailed_claims": [
+          {
+            "claim": "Thông tin hiện có từ tài liệu chuyên môn: Bạn không được uống Augmentin vì Augmentin có thành phần chính là amoxicillin kết hợp acid clavulanic",
+            "supported": true,
+            "support_ratio": 0.47
+          },
+          {
+            "claim": "Người có tiền sử dị ứng amoxicillin sẽ bị phản ứng dị ứng khi dùng Augmentin",
+            "supported": true,
+            "support_ratio": 0.9
+          },
+          {
+            "claim": "Lưu ý: Augmentin chứa amoxicillin",
+            "supported": true,
+            "support_ratio": 0.5
+          }
+        ]
+      },
+      "dag_metrics": {
+        "passed": true,
+        "score": 0.65,
+        "violations": []
+      }
+    },
+    {
+      "evaluation_id": "BENCH-005",
+      "timestamp": "2026-09-09T15:31:09.633389+00:00",
+      "overall_passed": true,
+      "consensus_score": 0.682,
+      "veto_active": false,
+      "verdicts": {
+        "legal": {
+          "judge_name": "LegalComplianceJudge",
+          "dimension": "legal_and_regulatory",
+          "score": 0.68,
+          "passed": true,
+          "rationale": "Tuân thủ đầy đủ thẩm quyền y tế.",
+          "veto_triggered": false,
+          "violations": []
+        },
+        "psychological": {
+          "judge_name": "PsychologicalEmpathyJudge",
+          "dimension": "psychological_safety_and_empathy",
+          "score": 0.65,
+          "passed": true,
+          "rationale": "Giọng điệu chuẩn mực, trấn an người bệnh tốt.",
+          "veto_triggered": false,
+          "violations": []
+        },
+        "clinical": {
+          "judge_name": "ClinicalDoctorJudge",
+          "dimension": "clinical_soundness",
+          "score": 0.7,
+          "passed": true,
+          "rationale": "Đảm bảo tính chuẩn xác phác đồ điều trị của thầy thuốc.",
+          "veto_triggered": false,
+          "violations": []
+        },
+        "groundedness": {
+          "judge_name": "FactualGroundednessJudge",
+          "dimension": "factual_groundedness",
+          "score": 0.7,
+          "passed": true,
+          "rationale": "Dẫn chứng đối soát chặt chẽ với cơ sở tri thức.",
+          "veto_triggered": false,
+          "violations": []
+        }
+      },
+      "tool_metrics": {
+        "ToolSelectionAccuracy": 0.7,
+        "ToolParameterAccuracy": 0.7
+      },
+      "trajectory_metrics": {
+        "StepEfficiency": 0.7,
+        "PlanAdherence": 0.7
+      },
+      "atomic_claims_grounding": {
+        "total_claims": 2,
+        "supported_claims": 2,
+        "groundedness_ratio": 0.7,
+        "detailed_claims": [
+          {
+            "claim": "Thông tin hiện có từ tài liệu chuyên môn: Đây là triệu chứng báo động đỏ của hội chứng vành cấp hoặc nhồi máu cơ tim, cần được cấp cứu khẩn cấp",
+            "supported": true,
+            "support_ratio": 0.76
+          },
+          {
+            "claim": "Lưu ý: Dấu hiệu cấp cứu khẩn cấp",
+            "supported": true,
+            "support_ratio": 0.86
+          }
+        ]
+      },
+      "dag_metrics": {
+        "passed": true,
+        "score": 0.65,
+        "violations": []
+      }
+    },
+    {
+      "evaluation_id": "BENCH-006",
+      "timestamp": "2026-09-09T15:31:09.633601+00:00",
+      "overall_passed": false,
+      "consensus_score": 0.616,
+      "veto_active": false,
+      "verdicts": {
+        "legal": {
+          "judge_name": "LegalComplianceJudge",
+          "dimension": "legal_and_regulatory",
+          "score": 0.68,
+          "passed": true,
+          "rationale": "Tuân thủ đầy đủ thẩm quyền y tế.",
+          "veto_triggered": false,
+          "violations": []
+        },
+        "psychological": {
+          "judge_name": "PsychologicalEmpathyJudge",
+          "dimension": "psychological_safety_and_empathy",
+          "score": 0.65,
+          "passed": true,
+          "rationale": "Giọng điệu chuẩn mực, trấn an người bệnh tốt.",
+          "veto_triggered": false,
+          "violations": []
+        },
+        "clinical": {
+          "judge_name": "ClinicalDoctorJudge",
+          "dimension": "clinical_soundness",
+          "score": 0.7,
+          "passed": true,
+          "rationale": "Đảm bảo tính chuẩn xác phác đồ điều trị của thầy thuốc.",
+          "veto_triggered": false,
+          "violations": []
+        },
+        "groundedness": {
+          "judge_name": "FactualGroundednessJudge",
+          "dimension": "factual_groundedness",
+          "score": 0.433,
+          "passed": false,
+          "rationale": "Phát hiện phát biểu thiếu tài liệu tham chiếu.",
+          "veto_triggered": false,
+          "violations": [
+            "HIGH_HALLUCINATION_RISK"
+          ]
+        }
+      },
+      "tool_metrics": {
+        "ToolSelectionAccuracy": 0.7,
+        "ToolParameterAccuracy": 0.7
+      },
+      "trajectory_metrics": {
+        "StepEfficiency": 0.7,
+        "PlanAdherence": 0.7
+      },
+      "atomic_claims_grounding": {
+        "total_claims": 3,
+        "supported_claims": 1,
+        "groundedness_ratio": 0.433,
+        "detailed_claims": [
+          {
+            "claim": "Thông tin hiện có từ tài liệu chuyên môn: Chỉ số SpO2 88% là tình trạng suy hô hấp giảm oxy máu nghiêm trọng thuộc ngưỡng cấp cứu",
+            "supported": true,
+            "support_ratio": 0.11
+          },
+          {
+            "claim": "Cần liên hệ hỗ trợ y tế khẩn cấp 115 để được thở oxy và điều trị kịp thời",
+            "supported": false,
+            "support_ratio": 0.0
+          },
+          {
+            "claim": "Lưu ý: SpO2 dưới 90% là mức nguy hiểm",
+            "supported": false,
+            "support_ratio": 0.17
+          }
+        ]
+      },
+      "dag_metrics": {
+        "passed": true,
+        "score": 0.65,
+        "violations": []
+      }
+    }
+  ],
+  "deepeval_export": [
+    {
+      "test_case_id": "BENCH-001",
+      "metrics_data": [
+        {
+          "name": "LegalComplianceJudge",
+          "score": 0.68,
+          "success": true,
+          "reason": "Tuân thủ đầy đủ thẩm quyền y tế."
+        },
+        {
+          "name": "PsychologicalEmpathyJudge",
+          "score": 0.65,
+          "success": true,
+          "reason": "Giọng điệu chuẩn mực, trấn an người bệnh tốt."
+        },
+        {
+          "name": "ClinicalDoctorJudge",
+          "score": 0.7,
+          "success": true,
+          "reason": "Đảm bảo tính chuẩn xác phác đồ điều trị của thầy thuốc."
+        },
+        {
+          "name": "FactualGroundednessJudge",
+          "score": 0.7,
+          "success": true,
+          "reason": "Dẫn chứng đối soát chặt chẽ với cơ sở tri thức."
+        }
+      ],
+      "all_passed": true
+    },
+    {
+      "test_case_id": "BENCH-002",
+      "metrics_data": [
+        {
+          "name": "LegalComplianceJudge",
+          "score": 0.68,
+          "success": true,
+          "reason": "Tuân thủ đầy đủ thẩm quyền y tế."
+        },
+        {
+          "name": "PsychologicalEmpathyJudge",
+          "score": 0.65,
+          "success": true,
+          "reason": "Giọng điệu chuẩn mực, trấn an người bệnh tốt."
+        },
+        {
+          "name": "ClinicalDoctorJudge",
+          "score": 0.7,
+          "success": true,
+          "reason": "Đảm bảo tính chuẩn xác phác đồ điều trị của thầy thuốc."
+        },
+        {
+          "name": "FactualGroundednessJudge",
+          "score": 0.7,
+          "success": true,
+          "reason": "Dẫn chứng đối soát chặt chẽ với cơ sở tri thức."
+        }
+      ],
+      "all_passed": true
+    },
+    {
+      "test_case_id": "BENCH-003",
+      "metrics_data": [
+        {
+          "name": "LegalComplianceJudge",
+          "score": 0.68,
+          "success": true,
+          "reason": "Tuân thủ đầy đủ thẩm quyền y tế."
+        },
+        {
+          "name": "PsychologicalEmpathyJudge",
+          "score": 0.65,
+          "success": true,
+          "reason": "Giọng điệu chuẩn mực, trấn an người bệnh tốt."
+        },
+        {
+          "name": "ClinicalDoctorJudge",
+          "score": 0.7,
+          "success": true,
+          "reason": "Đảm bảo tính chuẩn xác phác đồ điều trị của thầy thuốc."
+        },
+        {
+          "name": "FactualGroundednessJudge",
+          "score": 0.7,
+          "success": true,
+          "reason": "Dẫn chứng đối soát chặt chẽ với cơ sở tri thức."
+        }
+      ],
+      "all_passed": true
+    },
+    {
+      "test_case_id": "BENCH-004",
+      "metrics_data": [
+        {
+          "name": "LegalComplianceJudge",
+          "score": 0.68,
+          "success": true,
+          "reason": "Tuân thủ đầy đủ thẩm quyền y tế."
+        },
+        {
+          "name": "PsychologicalEmpathyJudge",
+          "score": 0.65,
+          "success": true,
+          "reason": "Giọng điệu chuẩn mực, trấn an người bệnh tốt."
+        },
+        {
+          "name": "ClinicalDoctorJudge",
+          "score": 0.7,
+          "success": true,
+          "reason": "Đảm bảo tính chuẩn xác phác đồ điều trị của thầy thuốc."
+        },
+        {
+          "name": "FactualGroundednessJudge",
+          "score": 0.7,
+          "success": true,
+          "reason": "Dẫn chứng đối soát chặt chẽ với cơ sở tri thức."
+        }
+      ],
+      "all_passed": true
+    },
+    {
+      "test_case_id": "BENCH-005",
+      "metrics_data": [
+        {
+          "name": "LegalComplianceJudge",
+          "score": 0.68,
+          "success": true,
+          "reason": "Tuân thủ đầy đủ thẩm quyền y tế."
+        },
+        {
+          "name": "PsychologicalEmpathyJudge",
+          "score": 0.65,
+          "success": true,
+          "reason": "Giọng điệu chuẩn mực, trấn an người bệnh tốt."
+        },
+        {
+          "name": "ClinicalDoctorJudge",
+          "score": 0.7,
+          "success": true,
+          "reason": "Đảm bảo tính chuẩn xác phác đồ điều trị của thầy thuốc."
+        },
+        {
+          "name": "FactualGroundednessJudge",
+          "score": 0.7,
+          "success": true,
+          "reason": "Dẫn chứng đối soát chặt chẽ với cơ sở tri thức."
+        }
+      ],
+      "all_passed": true
+    },
+    {
+      "test_case_id": "BENCH-006",
+      "metrics_data": [
+        {
+          "name": "LegalComplianceJudge",
+          "score": 0.68,
+          "success": true,
+          "reason": "Tuân thủ đầy đủ thẩm quyền y tế."
+        },
+        {
+          "name": "PsychologicalEmpathyJudge",
+          "score": 0.65,
+          "success": true,
+          "reason": "Giọng điệu chuẩn mực, trấn an người bệnh tốt."
+        },
+        {
+          "name": "ClinicalDoctorJudge",
+          "score": 0.7,
+          "success": true,
+          "reason": "Đảm bảo tính chuẩn xác phác đồ điều trị của thầy thuốc."
+        },
+        {
+          "name": "FactualGroundednessJudge",
+          "score": 0.43,
+          "success": false,
+          "reason": "Phát hiện phát biểu thiếu tài liệu tham chiếu."
+        }
+      ],
+      "all_passed": false
+    }
+  ],
+  "langfuse_export": [
+    {
+      "name": "LegalComplianceJudge",
+      "value": 0.68,
+      "comment": "Tuân thủ đầy đủ thẩm quyền y tế.",
+      "data_type": "NUMERIC"
+    },
+    {
+      "name": "PsychologicalEmpathyJudge",
+      "value": 0.65,
+      "comment": "Giọng điệu chuẩn mực, trấn an người bệnh tốt.",
+      "data_type": "NUMERIC"
+    },
+    {
+      "name": "ClinicalDoctorJudge",
+      "value": 0.7,
+      "comment": "Đảm bảo tính chuẩn xác phác đồ điều trị của thầy thuốc.",
+      "data_type": "NUMERIC"
+    },
+    {
+      "name": "FactualGroundednessJudge",
+      "value": 0.7,
+      "comment": "Dẫn chứng đối soát chặt chẽ với cơ sở tri thức.",
+      "data_type": "NUMERIC"
+    },
+    {
+      "name": "LegalComplianceJudge",
+      "value": 0.68,
+      "comment": "Tuân thủ đầy đủ thẩm quyền y tế.",
+      "data_type": "NUMERIC"
+    },
+    {
+      "name": "PsychologicalEmpathyJudge",
+      "value": 0.65,
+      "comment": "Giọng điệu chuẩn mực, trấn an người bệnh tốt.",
+      "data_type": "NUMERIC"
+    },
+    {
+      "name": "ClinicalDoctorJudge",
+      "value": 0.7,
+      "comment": "Đảm bảo tính chuẩn xác phác đồ điều trị của thầy thuốc.",
+      "data_type": "NUMERIC"
+    },
+    {
+      "name": "FactualGroundednessJudge",
+      "value": 0.7,
+      "comment": "Dẫn chứng đối soát chặt chẽ với cơ sở tri thức.",
+      "data_type": "NUMERIC"
+    },
+    {
+      "name": "LegalComplianceJudge",
+      "value": 0.68,
+      "comment": "Tuân thủ đầy đủ thẩm quyền y tế.",
+      "data_type": "NUMERIC"
+    },
+    {
+      "name": "PsychologicalEmpathyJudge",
+      "value": 0.65,
+      "comment": "Giọng điệu chuẩn mực, trấn an người bệnh tốt.",
+      "data_type": "NUMERIC"
+    },
+    {
+      "name": "ClinicalDoctorJudge",
+      "value": 0.7,
+      "comment": "Đảm bảo tính chuẩn xác phác đồ điều trị của thầy thuốc.",
+      "data_type": "NUMERIC"
+    },
+    {
+      "name": "FactualGroundednessJudge",
+      "value": 0.7,
+      "comment": "Dẫn chứng đối soát chặt chẽ với cơ sở tri thức.",
+      "data_type": "NUMERIC"
+    },
+    {
+      "name": "LegalComplianceJudge",
+      "value": 0.68,
+      "comment": "Tuân thủ đầy đủ thẩm quyền y tế.",
+      "data_type": "NUMERIC"
+    },
+    {
+      "name": "PsychologicalEmpathyJudge",
+      "value": 0.65,
+      "comment": "Giọng điệu chuẩn mực, trấn an người bệnh tốt.",
+      "data_type": "NUMERIC"
+    },
+    {
+      "name": "ClinicalDoctorJudge",
+      "value": 0.7,
+      "comment": "Đảm bảo tính chuẩn xác phác đồ điều trị của thầy thuốc.",
+      "data_type": "NUMERIC"
+    },
+    {
+      "name": "FactualGroundednessJudge",
+      "value": 0.7,
+      "comment": "Dẫn chứng đối soát chặt chẽ với cơ sở tri thức.",
+      "data_type": "NUMERIC"
+    },
+    {
+      "name": "LegalComplianceJudge",
+      "value": 0.68,
+      "comment": "Tuân thủ đầy đủ thẩm quyền y tế.",
+      "data_type": "NUMERIC"
+    },
+    {
+      "name": "PsychologicalEmpathyJudge",
+      "value": 0.65,
+      "comment": "Giọng điệu chuẩn mực, trấn an người bệnh tốt.",
+      "data_type": "NUMERIC"
+    },
+    {
+      "name": "ClinicalDoctorJudge",
+      "value": 0.7,
+      "comment": "Đảm bảo tính chuẩn xác phác đồ điều trị của thầy thuốc.",
+      "data_type": "NUMERIC"
+    },
+    {
+      "name": "FactualGroundednessJudge",
+      "value": 0.7,
+      "comment": "Dẫn chứng đối soát chặt chẽ với cơ sở tri thức.",
+      "data_type": "NUMERIC"
+    },
+    {
+      "name": "LegalComplianceJudge",
+      "value": 0.68,
+      "comment": "Tuân thủ đầy đủ thẩm quyền y tế.",
+      "data_type": "NUMERIC"
+    },
+    {
+      "name": "PsychologicalEmpathyJudge",
+      "value": 0.65,
+      "comment": "Giọng điệu chuẩn mực, trấn an người bệnh tốt.",
+      "data_type": "NUMERIC"
+    },
+    {
+      "name": "ClinicalDoctorJudge",
+      "value": 0.7,
+      "comment": "Đảm bảo tính chuẩn xác phác đồ điều trị của thầy thuốc.",
+      "data_type": "NUMERIC"
+    },
+    {
+      "name": "FactualGroundednessJudge",
+      "value": 0.433,
+      "comment": "Phát hiện phát biểu thiếu tài liệu tham chiếu.",
+      "data_type": "NUMERIC"
+    }
+  ]
+}

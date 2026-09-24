@@ -1,0 +1,6 @@
+-r requirements.txt
+
+# Durable infrastructure adapters
+psycopg[binary,pool]>=3.2,<4
+redis>=5,<7
+boto3>=1.35,<2

@@ -1,0 +1,23 @@
+=====================================================================================
+MEDGUARD AI — BLIND V4 ONE-SHOT PRE-FLIGHT READINESS CHECKLIST (GO / NO-GO)
+=====================================================================================
+#   | Readiness Invariant / Audit Item                 | Status   | Detail
+-------------------------------------------------------------------------------------
+1   | Source commit đã freeze và hash                  | 🟢 [YES]  | 8455226695c5d2be046b84b7120dd4c357bc5ee8
+2   | 9 core files hash khớp manifest                  | 🟢 [YES]  | 100% match (9/9 files)
+3   | Cases không chứa oracle/cohort metadata          | 🟢 [YES]  | 300 cases clean (zero oracle keys)
+4   | Oracle vẫn sealed trước inference (không có plaintext oracle.json) | 🟢 [YES]  | oracle.enc active, oracle.json absent
+5   | Runner không có quyền đọc oracle / import evaluator | 🟢 [YES]  | Import blocker active (_EvaluatorImportBlocker verified)
+6   | Evaluator chưa được gọi trước khi inference hoàn tất | 🟢 [YES]  | final_report.json does not exist yet
+7   | Retry policy đã freeze (infra-only, max 2 attempts, audit log) | 🟢 [YES]  | MAX_INFRA_RETRIES=2, retry_audit.jsonl active, clinical retry forbidden
+8   | Trace không gọi thêm model (observational state capture) | 🟢 [YES]  | Strict state serialization from primary execution only
+9   | Oracle leakage canary test PASS                  | 🟢 [YES]  | Canary token is active in sealed oracle vault
+10  | Output directory sạch & sẵn sàng                 | 🟢 [YES]  | outputs/ ready for fresh append-only run
+11  | predictions.jsonl chưa tồn tại trước inference   | 🟢 [YES]  | No stale prediction file found
+12  | stdout/stderr audit logging sẵn sàng             | 🟢 [YES]  | audit/ directory ready for run execution log
+13  | expected_case_count = 300                        | 🟢 [YES]  | Actual cases ready: 300 / 300
+14  | Không agent nào xem V4 trước run (Sealed Vault enforced) | 🟢 [YES]  | Decryption key withheld until sealed inference completed
+=====================================================================================
+VERDICT: 🟢 >>> GO FOR BLIND V4 ONE-SHOT EXECUTION <<<
+All 14 pre-flight criteria unconditionally passed.
+=====================================================================================

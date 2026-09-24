@@ -1,0 +1,319 @@
+{
+  "total_variants": 300,
+  "total_archetypes": 15,
+  "overall_fact_invariance_pct": 100.0,
+  "overall_abstraction_invariance_pct": 100.0,
+  "overall_threat_invariance_pct": 100.0,
+  "overall_t4_invariance_pct": 100.0,
+  "archetypes": {
+    "acute_limb_ischemia": {
+      "total_variants": 20,
+      "fact_invariance_pct": 100.0,
+      "abstraction_invariance_pct": 100.0,
+      "threat_invariance_pct": 100.0,
+      "t4_final_invariance_pct": 100.0,
+      "passed": true
+    },
+    "acute_stroke_focal": {
+      "total_variants": 20,
+      "fact_invariance_pct": 100.0,
+      "abstraction_invariance_pct": 100.0,
+      "threat_invariance_pct": 100.0,
+      "t4_final_invariance_pct": 100.0,
+      "passed": true
+    },
+    "cardiopulmonary_threat": {
+      "total_variants": 20,
+      "fact_invariance_pct": 100.0,
+      "abstraction_invariance_pct": 100.0,
+      "threat_invariance_pct": 100.0,
+      "t4_final_invariance_pct": 100.0,
+      "passed": true
+    },
+    "occult_abdominal_ischemia": {
+      "total_variants": 20,
+      "fact_invariance_pct": 100.0,
+      "abstraction_invariance_pct": 100.0,
+      "threat_invariance_pct": 100.0,
+      "t4_final_invariance_pct": 100.0,
+      "passed": true
+    },
+    "perforation_pattern": {
+      "total_variants": 20,
+      "fact_invariance_pct": 100.0,
+      "abstraction_invariance_pct": 100.0,
+      "threat_invariance_pct": 100.0,
+      "t4_final_invariance_pct": 100.0,
+      "passed": true
+    },
+    "deep_infection": {
+      "total_variants": 20,
+      "fact_invariance_pct": 100.0,
+      "abstraction_invariance_pct": 100.0,
+      "threat_invariance_pct": 100.0,
+      "t4_final_invariance_pct": 100.0,
+      "passed": true
+    },
+    "shock": {
+      "total_variants": 20,
+      "fact_invariance_pct": 100.0,
+      "abstraction_invariance_pct": 100.0,
+      "threat_invariance_pct": 100.0,
+      "t4_final_invariance_pct": 100.0,
+      "passed": true
+    },
+    "severe_allergic_reaction": {
+      "total_variants": 20,
+      "fact_invariance_pct": 100.0,
+      "abstraction_invariance_pct": 100.0,
+      "threat_invariance_pct": 100.0,
+      "t4_final_invariance_pct": 100.0,
+      "passed": true
+    },
+    "respiratory_failure": {
+      "total_variants": 20,
+      "fact_invariance_pct": 100.0,
+      "abstraction_invariance_pct": 100.0,
+      "threat_invariance_pct": 100.0,
+      "t4_final_invariance_pct": 100.0,
+      "passed": true
+    },
+    "toxic_ingestion": {
+      "total_variants": 20,
+      "fact_invariance_pct": 100.0,
+      "abstraction_invariance_pct": 100.0,
+      "threat_invariance_pct": 100.0,
+      "t4_final_invariance_pct": 100.0,
+      "passed": true
+    },
+    "toxidrome_without_named_poison": {
+      "total_variants": 20,
+      "fact_invariance_pct": 100.0,
+      "abstraction_invariance_pct": 100.0,
+      "threat_invariance_pct": 100.0,
+      "t4_final_invariance_pct": 100.0,
+      "passed": true
+    },
+    "pregnancy_emergency": {
+      "total_variants": 20,
+      "fact_invariance_pct": 100.0,
+      "abstraction_invariance_pct": 100.0,
+      "threat_invariance_pct": 100.0,
+      "t4_final_invariance_pct": 100.0,
+      "passed": true
+    },
+    "acute_visual_loss": {
+      "total_variants": 20,
+      "fact_invariance_pct": 100.0,
+      "abstraction_invariance_pct": 100.0,
+      "threat_invariance_pct": 100.0,
+      "t4_final_invariance_pct": 100.0,
+      "passed": true
+    },
+    "major_bleeding": {
+      "total_variants": 20,
+      "fact_invariance_pct": 100.0,
+      "abstraction_invariance_pct": 100.0,
+      "threat_invariance_pct": 100.0,
+      "t4_final_invariance_pct": 100.0,
+      "passed": true
+    },
+    "metabolic_crisis": {
+      "total_variants": 20,
+      "fact_invariance_pct": 100.0,
+      "abstraction_invariance_pct": 100.0,
+      "threat_invariance_pct": 100.0,
+      "t4_final_invariance_pct": 100.0,
+      "passed": true
+    }
+  },
+  "semantic_contrast_controls": {
+    "total_pairs": 15,
+    "passed_pairs": 15,
+    "accuracy_pct": 100.0,
+    "target_met": true,
+    "details": [
+      {
+        "pair_id": "PAIR-01-CHEST",
+        "domain": "Cardiopulmonary vs Musculoskeletal",
+        "high_risk_act": "EMERGENCY",
+        "high_risk_expected": "EMERGENCY",
+        "high_risk_passed": true,
+        "benign_act": "ROUTINE",
+        "benign_expected": "ROUTINE",
+        "benign_passed": true,
+        "pair_passed": true,
+        "differentiation_basis": "Ischemic cardiac pressure with autonomic diaphoresis vs reproducible chest wall soreness after pushups."
+      },
+      {
+        "pair_id": "PAIR-02-VISION",
+        "domain": "CRAO vs Chronic Refractive / Eyestrain",
+        "high_risk_act": "EMERGENCY",
+        "high_risk_expected": "EMERGENCY",
+        "high_risk_passed": true,
+        "benign_act": "UNRESOLVED",
+        "benign_expected": "ROUTINE",
+        "benign_passed": true,
+        "pair_passed": true,
+        "differentiation_basis": "Acute painless unilateral vision loss (CRAO/retinal detachment) vs chronic progressive cataract/eyestrain."
+      },
+      {
+        "pair_id": "PAIR-03-LIMB",
+        "domain": "Acute Limb Ischemia vs Environmental Cold",
+        "high_risk_act": "EMERGENCY",
+        "high_risk_expected": "EMERGENCY",
+        "high_risk_passed": true,
+        "benign_act": "ROUTINE",
+        "benign_expected": "ROUTINE",
+        "benign_passed": true,
+        "pair_passed": true,
+        "differentiation_basis": "Unilateral acute ischemia with pallor and absent pulse vs physiologic vasoconstriction from air conditioning."
+      },
+      {
+        "pair_id": "PAIR-04-FACIAL",
+        "domain": "Acute Stroke vs Dental Local Anesthesia",
+        "high_risk_act": "EMERGENCY",
+        "high_risk_expected": "EMERGENCY",
+        "high_risk_passed": true,
+        "benign_act": "ROUTINE",
+        "benign_expected": "ROUTINE",
+        "benign_passed": true,
+        "pair_passed": true,
+        "differentiation_basis": "Acute central/peripheral facial droop with limb weakness vs transient local dental nerve block."
+      },
+      {
+        "pair_id": "PAIR-05-ABDOMEN",
+        "domain": "Peritonitis vs Functional Dyspepsia",
+        "high_risk_act": "EMERGENCY",
+        "high_risk_expected": "EMERGENCY",
+        "high_risk_passed": true,
+        "benign_act": "UNRESOLVED",
+        "benign_expected": "ROUTINE",
+        "benign_passed": true,
+        "pair_passed": true,
+        "differentiation_basis": "Peritoneal irritation / board-like rigidity vs functional postprandial dyspepsia."
+      },
+      {
+        "pair_id": "PAIR-06-SYNCOPE",
+        "domain": "Exertional Syncope vs Micturition Vasovagal",
+        "high_risk_act": "EMERGENCY",
+        "high_risk_expected": "EMERGENCY",
+        "high_risk_passed": true,
+        "benign_act": "ROUTINE",
+        "benign_expected": "ROUTINE",
+        "benign_passed": true,
+        "pair_passed": true,
+        "differentiation_basis": "High-risk exertional syncope (malignant arrhythmia/AS) vs benign reflex micturition syncope."
+      },
+      {
+        "pair_id": "PAIR-07-WEAKNESS",
+        "domain": "Focal Stroke vs Post-Gym Muscle Soreness",
+        "high_risk_act": "EMERGENCY",
+        "high_risk_expected": "EMERGENCY",
+        "high_risk_passed": true,
+        "benign_act": "ROUTINE",
+        "benign_expected": "ROUTINE",
+        "benign_passed": true,
+        "pair_passed": true,
+        "differentiation_basis": "Acute focal motor deficit vs delayed onset muscle soreness (DOMS) after weightlifting."
+      },
+      {
+        "pair_id": "PAIR-08-HEADACHE",
+        "domain": "Subarachnoid Hemorrhage vs Tension Headache",
+        "high_risk_act": "EMERGENCY",
+        "high_risk_expected": "EMERGENCY",
+        "high_risk_passed": true,
+        "benign_act": "ROUTINE",
+        "benign_expected": "ROUTINE",
+        "benign_passed": true,
+        "pair_passed": true,
+        "differentiation_basis": "Thunderclap headache (ruptured intracranial aneurysm) vs muscle contraction tension-type headache."
+      },
+      {
+        "pair_id": "PAIR-09-TOXIC",
+        "domain": "Acute Herb Poisoning vs Routine Herbal Tea",
+        "high_risk_act": "EMERGENCY",
+        "high_risk_expected": "EMERGENCY",
+        "high_risk_passed": true,
+        "benign_act": "UNRESOLVED",
+        "benign_expected": "ROUTINE",
+        "benign_passed": true,
+        "pair_passed": true,
+        "differentiation_basis": "Aconitum alkaloid cardiotoxicity vs routine culinary chamomile herbal tea without symptoms."
+      },
+      {
+        "pair_id": "PAIR-10-PEDIATRIC",
+        "domain": "Bulging Fontanelle vs Normal Infant Hunger Cry",
+        "high_risk_act": "EMERGENCY",
+        "high_risk_expected": "EMERGENCY",
+        "high_risk_passed": true,
+        "benign_act": "UNRESOLVED",
+        "benign_expected": "ROUTINE",
+        "benign_passed": true,
+        "pair_passed": true,
+        "differentiation_basis": "Raised intracranial pressure in infant meningitis vs normal physiologic crying from hunger."
+      },
+      {
+        "pair_id": "PAIR-11-ALLERGY",
+        "domain": "Anaphylactic Laryngeal Edema vs Mild Contact Rash",
+        "high_risk_act": "EMERGENCY",
+        "high_risk_expected": "EMERGENCY",
+        "high_risk_passed": true,
+        "benign_act": "UNRESOLVED",
+        "benign_expected": "ROUTINE",
+        "benign_passed": true,
+        "pair_passed": true,
+        "differentiation_basis": "Impending airway collapse in anaphylaxis vs localized benign contact dermatitis."
+      },
+      {
+        "pair_id": "PAIR-12-RESPIRATORY",
+        "domain": "Severe Asthma / Impending Failure vs Mild Common Cold",
+        "high_risk_act": "EMERGENCY",
+        "high_risk_expected": "EMERGENCY",
+        "high_risk_passed": true,
+        "benign_act": "URGENT",
+        "benign_expected": "ROUTINE",
+        "benign_passed": true,
+        "pair_passed": true,
+        "differentiation_basis": "Severe acute respiratory distress / asthma exacerbation vs mild upper respiratory tract viral infection."
+      },
+      {
+        "pair_id": "PAIR-13-BLEEDING",
+        "domain": "Massive Upper GI Bleeding vs Minimal Gum Bleeding",
+        "high_risk_act": "EMERGENCY",
+        "high_risk_expected": "EMERGENCY",
+        "high_risk_passed": true,
+        "benign_act": "UNRESOLVED",
+        "benign_expected": "ROUTINE",
+        "benign_passed": true,
+        "pair_passed": true,
+        "differentiation_basis": "Hemorrhagic shock from bleeding peptic ulcer/esophageal varices vs minor mechanical gingivitis."
+      },
+      {
+        "pair_id": "PAIR-14-METABOLIC",
+        "domain": "Diabetic Ketoacidosis vs Mild Sugar Craving",
+        "high_risk_act": "EMERGENCY",
+        "high_risk_expected": "EMERGENCY",
+        "high_risk_passed": true,
+        "benign_act": "UNRESOLVED",
+        "benign_expected": "ROUTINE",
+        "benign_passed": true,
+        "pair_passed": true,
+        "differentiation_basis": "Life-threatening diabetic ketoacidosis (DKA) vs transient benign physiological appetite/hypoglycemia cue."
+      },
+      {
+        "pair_id": "PAIR-15-PREGNANCY",
+        "domain": "Severe Pre-Eclampsia / Imminent Eclampsia vs Mild Morning Sickness",
+        "high_risk_act": "EMERGENCY",
+        "high_risk_expected": "EMERGENCY",
+        "high_risk_passed": true,
+        "benign_act": "UNRESOLVED",
+        "benign_expected": "ROUTINE",
+        "benign_passed": true,
+        "pair_passed": true,
+        "differentiation_basis": "Eclamptic seizure / hypertensive crisis of pregnancy vs physiologic emesis gravidarum."
+      }
+    ]
+  },
+  "all_gates_passed": true
+}

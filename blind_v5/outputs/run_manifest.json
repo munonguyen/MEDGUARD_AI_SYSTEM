@@ -1,0 +1,15 @@
+{
+  "status": "SEALED",
+  "benchmark_suite": "Blind Benchmark V5",
+  "cases_file": "cases.json",
+  "total_cases": 300,
+  "cases_evaluated": 300,
+  "system_errors": 0,
+  "duration_seconds": 58.77,
+  "avg_latency_ms": 195.9,
+  "predictions_sha256": "35e78fc5df825f6cf22fd4868d76d6b8bfeb7428666acd73f0dcb63a4dd61cdd",
+  "timestamp_utc": "2026-09-16T04:09:54.060887+00:00",
+  "git_commit": "32cd002e446ec67d75747c7d1bb491d55ae35568",
+  "candidate_core_commit": "a78ed98391a9339ae61777a2c3d8afbfae79c5e7",
+  "frozen_audit_commit": "afb9cc182c5f75120c7036d2a09ac33df92665b7"
+}

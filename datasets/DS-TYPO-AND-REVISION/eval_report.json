@@ -1,0 +1,25 @@
+{
+  "dataset_version": "1.0.0",
+  "total": 42,
+  "passed": 42,
+  "accuracy": 1.0,
+  "execution_time_seconds": 36.69,
+  "group_breakdown": {
+    "TYPO_RESILIENCE": {
+      "total": 22,
+      "pass": 22,
+      "fail": 0
+    },
+    "VERIFIER_CRITIQUE_REVISION": {
+      "total": 10,
+      "pass": 10,
+      "fail": 0
+    },
+    "NATURAL_PERSUASIVE_TRIAGE": {
+      "total": 10,
+      "pass": 10,
+      "fail": 0
+    }
+  },
+  "failures": []
+}

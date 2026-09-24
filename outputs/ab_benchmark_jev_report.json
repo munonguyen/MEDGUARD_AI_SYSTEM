@@ -1,0 +1,25 @@
+{
+  "n_cases": 150,
+  "config_a_2gate": {
+    "t4_sensitivity": 100.0,
+    "routine_specificity": 100.0,
+    "mean_latency_ms": 42.16,
+    "p50_ms": 42.92,
+    "p90_ms": 50.08,
+    "p95_ms": 50.61,
+    "p99_ms": 53.86
+  },
+  "config_b_3gate": {
+    "t4_sensitivity": 100.0,
+    "routine_specificity": 100.0,
+    "mean_latency_ms": 43.99,
+    "p50_ms": 44.51,
+    "p90_ms": 51.97,
+    "p95_ms": 53.58,
+    "p99_ms": 71.12
+  },
+  "jev_invocation_rate_pct": 60.0,
+  "cache_hit_rate_pct": 95.56,
+  "mean_latency_delta_ms": 1.83,
+  "mean_latency_delta_pct": 4.34
+}

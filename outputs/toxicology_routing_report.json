@@ -1,0 +1,15 @@
+{
+  "total_cases": 104,
+  "positive_cases": 52,
+  "negative_cases": 52,
+  "true_positives": 52,
+  "false_negatives": 0,
+  "true_negatives": 52,
+  "false_positives": 0,
+  "recall_pct": 100.0,
+  "precision_pct": 100.0,
+  "recall_passed": true,
+  "precision_passed": true,
+  "overall_passed": true,
+  "failures": []
+}

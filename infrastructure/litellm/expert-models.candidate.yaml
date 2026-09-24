@@ -1,0 +1,28 @@
+# Candidate-only fragment. Do not merge into config.yaml until registry promotion
+# and a live shadow evaluation have both passed.
+model_list:
+  - model_name: medguard-answer-expert-candidate
+    litellm_params:
+      model: openai/medguard-answer-v1
+      api_base: os.environ/VLLM_ANSWER_URL
+      api_key: os.environ/VLLM_ANSWER_API_KEY
+      timeout: 45
+      rpm: 40
+      tpm: 300000
+    model_info:
+      mode: chat
+      medguard_role: answer
+      promotion_state: candidate
+
+  - model_name: medguard-verifier-expert-candidate
+    litellm_params:
+      model: openai/medguard-verifier-v1
+      api_base: os.environ/VLLM_VERIFIER_URL
+      api_key: os.environ/VLLM_VERIFIER_API_KEY
+      timeout: 45
+      rpm: 40
+      tpm: 300000
+    model_info:
+      mode: chat
+      medguard_role: verifier
+      promotion_state: candidate

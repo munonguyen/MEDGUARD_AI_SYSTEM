@@ -1,0 +1,118 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "effective_from": "2026-09-07",
+    "source_references": [
+      "WHO ATC Classification — chemical subgroup cross-reactivity",
+      "Dược thư Quốc gia Việt Nam — phân nhóm dị ứng chéo",
+      "Clinical Immunology and Allergy reference patterns"
+    ],
+    "disclaimer": "Development fixture. Cross-reactivity rates vary by source. Must be validated by clinical immunologist before production use.",
+    "approved_by": "[PENDING — requires clinical immunologist review]"
+  },
+  "allergy_groups": [
+    {
+      "group_id": "AG-001",
+      "group_name": "Penicillin / Beta-lactam",
+      "primary_allergen": "penicillin",
+      "cross_reactive_substances": [
+        "amoxicillin", "ampicillin", "piperacillin", "oxacillin",
+        "augmentin", "amoxicillin+clavulanic_acid", "co-amoxiclav"
+      ],
+      "partial_cross_reactive": [
+        "cephalexin", "cefazolin", "ceftriaxone", "cefuroxime",
+        "cefdinir", "cefixime", "cefpodoxime"
+      ],
+      "cross_reactivity_note": "Dị ứng chéo penicillin-cephalosporin khoảng 1-2% với cephalosporin thế hệ 3-4, cao hơn với thế hệ 1. Carbapenem: dị ứng chéo rất thấp nhưng thận trọng.",
+      "severity_if_confirmed": "HIGH",
+      "tier": "HARD_STOP",
+      "confidence": 0.97
+    },
+    {
+      "group_id": "AG-002",
+      "group_name": "Sulfonamide",
+      "primary_allergen": "sulfonamide",
+      "cross_reactive_substances": [
+        "sulfamethoxazole", "co-trimoxazole", "bactrim",
+        "sulfasalazine", "sulfadiazine"
+      ],
+      "partial_cross_reactive": [
+        "furosemide", "thiazide", "celecoxib"
+      ],
+      "cross_reactivity_note": "Dị ứng chéo giữa sulfonamide kháng khuẩn và sulfonamide không kháng khuẩn (furosemide, thiazide) còn tranh cãi. Cần thận trọng ở bệnh nhân có phản ứng nặng.",
+      "severity_if_confirmed": "MODERATE",
+      "tier": "SOFT_STOP",
+      "confidence": 0.85
+    },
+    {
+      "group_id": "AG-003",
+      "group_name": "NSAID",
+      "primary_allergen": "aspirin",
+      "cross_reactive_substances": [
+        "ibuprofen", "naproxen", "diclofenac", "piroxicam",
+        "meloxicam", "indomethacin", "ketorolac", "ketoprofen"
+      ],
+      "partial_cross_reactive": [
+        "celecoxib", "etoricoxib"
+      ],
+      "cross_reactivity_note": "Dị ứng chéo NSAID thường do cơ chế ức chế COX-1 chung, không phải IgE. Celecoxib (COX-2 chọn lọc) ít dị ứng chéo hơn nhưng vẫn cần test ở bệnh nhân có tiền sử phản ứng nặng.",
+      "severity_if_confirmed": "MODERATE",
+      "tier": "SOFT_STOP",
+      "confidence": 0.88
+    },
+    {
+      "group_id": "AG-004",
+      "group_name": "Macrolide",
+      "primary_allergen": "erythromycin",
+      "cross_reactive_substances": [
+        "azithromycin", "clarithromycin", "roxithromycin"
+      ],
+      "partial_cross_reactive": [],
+      "cross_reactivity_note": "Dị ứng chéo giữa các macrolide ít phổ biến nhưng đã được ghi nhận. Nếu dị ứng một macrolide, thận trọng khi dùng macrolide khác.",
+      "severity_if_confirmed": "MODERATE",
+      "tier": "SOFT_STOP",
+      "confidence": 0.82
+    },
+    {
+      "group_id": "AG-005",
+      "group_name": "Fluoroquinolone",
+      "primary_allergen": "ciprofloxacin",
+      "cross_reactive_substances": [
+        "levofloxacin", "moxifloxacin", "ofloxacin", "norfloxacin"
+      ],
+      "partial_cross_reactive": [],
+      "cross_reactivity_note": "Dị ứng chéo giữa các fluoroquinolone tương đối phổ biến do cấu trúc nhân quinolone chung.",
+      "severity_if_confirmed": "MODERATE",
+      "tier": "SOFT_STOP",
+      "confidence": 0.86
+    },
+    {
+      "group_id": "AG-006",
+      "group_name": "Opioid",
+      "primary_allergen": "morphine",
+      "cross_reactive_substances": [
+        "codeine", "hydrocodone", "oxycodone", "heroin"
+      ],
+      "partial_cross_reactive": [
+        "tramadol", "fentanyl", "methadone"
+      ],
+      "cross_reactivity_note": "Dị ứng chéo cao trong nhóm phenanthrene (morphine, codeine, hydrocodone). Tramadol, fentanyl và methadone có cấu trúc khác, dị ứng chéo thấp hơn nhưng không loại trừ.",
+      "severity_if_confirmed": "HIGH",
+      "tier": "HARD_STOP",
+      "confidence": 0.90
+    },
+    {
+      "group_id": "AG-007",
+      "group_name": "Local Anesthetic — Ester",
+      "primary_allergen": "procaine",
+      "cross_reactive_substances": [
+        "benzocaine", "tetracaine", "chloroprocaine"
+      ],
+      "partial_cross_reactive": [],
+      "cross_reactivity_note": "Dị ứng chéo cao trong nhóm ester do chuyển hóa thành PABA. Nhóm amide (lidocaine, bupivacaine) không dị ứng chéo với nhóm ester.",
+      "severity_if_confirmed": "MODERATE",
+      "tier": "SOFT_STOP",
+      "confidence": 0.89
+    }
+  ]
+}

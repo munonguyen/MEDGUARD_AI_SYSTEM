@@ -1,0 +1,9 @@
+{
+  "schema_version": "medguard.model-approval.v1",
+  "model_id": "medguard-answer-vREPLACE",
+  "status": "pending",
+  "approver_role": "clinical_safety",
+  "approval_id": "approval-REPLACE",
+  "approved_at": null,
+  "notes": "Template only. This file cannot promote a model."
+}

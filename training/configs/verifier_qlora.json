@@ -1,0 +1,21 @@
+{
+  "schema_version": "medguard.qlora-config.v1",
+  "role": "verifier",
+  "model_id": "medguard-verifier-v1",
+  "base_model": "REPLACE_WITH_APPROVED_HF_MODEL_ID",
+  "base_revision": "REPLACE_WITH_IMMUTABLE_COMMIT_SHA",
+  "max_length": 4096,
+  "load_in_4bit": true,
+  "bnb_4bit_quant_type": "nf4",
+  "bnb_4bit_use_double_quant": true,
+  "bnb_4bit_compute_dtype": "bfloat16",
+  "lora_rank": 32,
+  "lora_alpha": 64,
+  "lora_dropout": 0.05,
+  "target_modules": "all-linear",
+  "learning_rate": 0.0001,
+  "epochs": 3,
+  "per_device_train_batch_size": 1,
+  "gradient_accumulation_steps": 16,
+  "seed": 20260909
+}

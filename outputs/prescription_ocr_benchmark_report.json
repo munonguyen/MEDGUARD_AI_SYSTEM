@@ -1,0 +1,82 @@
+{
+  "benchmark_name": "DS-PRESCRIPTION-OCR",
+  "total_test_conditions": 10,
+  "total_target_drugs": 20,
+  "drug_identification_recall_pct": 45.0,
+  "strength_extraction_accuracy_pct": 45.0,
+  "critical_extraction_error_rate_pct": 0.0,
+  "unsafe_auto_accept_count": 0,
+  "safety_invariant_passed": true,
+  "case_details": [
+    {
+      "case_id": "OCR-01-CLEAR",
+      "condition": "clear_printed",
+      "expected_drugs_count": 2,
+      "found_drugs_count": 2,
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "case_id": "OCR-02-SKEWED",
+      "condition": "skewed_angle",
+      "expected_drugs_count": 2,
+      "found_drugs_count": 0,
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "case_id": "OCR-03-LOWLIGHT",
+      "condition": "low_light",
+      "expected_drugs_count": 2,
+      "found_drugs_count": 0,
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "case_id": "OCR-04-HANDWRITTEN",
+      "condition": "handwritten",
+      "expected_drugs_count": 2,
+      "found_drugs_count": 0,
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "case_id": "OCR-05-MULTIDRUG",
+      "condition": "multi_drug",
+      "expected_drugs_count": 7,
+      "found_drugs_count": 7,
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "case_id": "OCR-06-BRANDNAMES",
+      "condition": "brand_names",
+      "expected_drugs_count": 2,
+      "found_drugs_count": 0,
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "case_id": "OCR-07-BILINGUAL",
+      "condition": "bilingual_en_vi",
+      "expected_drugs_count": 2,
+      "found_drugs_count": 0,
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "case_id": "OCR-08-COMPLEXDOSE",
+      "condition": "complex_dosing",
+      "expected_drugs_count": 1,
+      "found_drugs_count": 0,
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "case_id": "OCR-09-CROPPED",
+      "condition": "cropped_missing_corner",
+      "expected_drugs_count": 0,
+      "found_drugs_count": 0,
+      "review_status": "PENDING_REVIEW"
+    },
+    {
+      "case_id": "OCR-10-BLURRY",
+      "condition": "blurry_motion",
+      "expected_drugs_count": 0,
+      "found_drugs_count": 0,
+      "review_status": "PENDING_REVIEW"
+    }
+  ]
+}

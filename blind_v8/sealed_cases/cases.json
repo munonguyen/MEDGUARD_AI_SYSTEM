@@ -1,0 +1,3022 @@
+[
+  {
+    "case_id": "V8-PE-0001",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị vã mồ hôi lạnh buốt cả người, người run lẩy bẩy từ 30 phút trước. (Mã ca: V8-PE-0001, ghi nhận lúc 10:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0002",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tự nhiên thấy khó thở dồn dập khi nằm thẳng xuống giường, phải ngồi dậy mới thở được. (Mã ca: V8-PE-0002, ghi nhận lúc 11:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0003",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Một bên khóe miệng thấy tê rần và nước bọt hơi chảy, tay cầm cốc nước thấy yếu đi. (Mã ca: V8-PE-0003, ghi nhận lúc 12:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0004",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đang đi tiểu thì ngất xỉu gục xuống sàn nhà, tỉnh dậy thấy toát mồ hôi hột và hoa mắt. (Mã ca: V8-PE-0004, ghi nhận lúc 13:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0005",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đau thắt lưng dữ dội lan xuống hai chân kèm cảm giác tê vùng quanh hậu môn. (Mã ca: V8-PE-0005, ghi nhận lúc 14:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0006",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bé 3 tháng tuổi sốt 38.5 độ, thóp đỉnh đầu thấy phồng căng và sờ vào thấy cứng. (Mã ca: V8-PE-0006, ghi nhận lúc 15:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0007",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Phụ nữ trễ kinh 2 tuần, đột ngột đau quặn một bên bụng dưới dữ dội kèm choáng váng. (Mã ca: V8-PE-0007, ghi nhận lúc 16:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0008",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đau rát sau xương ức lan lên hàm dưới và vai trái, ngực cảm giác như bị kẹp nghẹt. (Mã ca: V8-PE-0008, ghi nhận lúc 17:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0009",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Nôn ra dịch màu bã cà phê kèm đi ngoài phân đen kịt như hắc ín tanh nồng. (Mã ca: V8-PE-0009, ghi nhận lúc 18:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0010",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Mắt phải đột ngột mất thị lực hoàn toàn tối đen như kéo rèm che trong vòng 5 phút. (Mã ca: V8-PE-0010, ghi nhận lúc 19:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0011",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị vã mồ hôi lạnh buốt cả người, người run lẩy bẩy từ 30 phút trước. (Mã ca: V8-PE-0011, ghi nhận lúc 20:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0012",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tự nhiên thấy khó thở dồn dập khi nằm thẳng xuống giường, phải ngồi dậy mới thở được. (Mã ca: V8-PE-0012, ghi nhận lúc 21:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0013",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Một bên khóe miệng thấy tê rần và nước bọt hơi chảy, tay cầm cốc nước thấy yếu đi. (Mã ca: V8-PE-0013, ghi nhận lúc 10:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0014",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đang đi tiểu thì ngất xỉu gục xuống sàn nhà, tỉnh dậy thấy toát mồ hôi hột và hoa mắt. (Mã ca: V8-PE-0014, ghi nhận lúc 11:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0015",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đau thắt lưng dữ dội lan xuống hai chân kèm cảm giác tê vùng quanh hậu môn. (Mã ca: V8-PE-0015, ghi nhận lúc 12:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0016",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bé 3 tháng tuổi sốt 38.5 độ, thóp đỉnh đầu thấy phồng căng và sờ vào thấy cứng. (Mã ca: V8-PE-0016, ghi nhận lúc 13:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0017",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Phụ nữ trễ kinh 2 tuần, đột ngột đau quặn một bên bụng dưới dữ dội kèm choáng váng. (Mã ca: V8-PE-0017, ghi nhận lúc 14:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0018",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đau rát sau xương ức lan lên hàm dưới và vai trái, ngực cảm giác như bị kẹp nghẹt. (Mã ca: V8-PE-0018, ghi nhận lúc 15:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0019",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Nôn ra dịch màu bã cà phê kèm đi ngoài phân đen kịt như hắc ín tanh nồng. (Mã ca: V8-PE-0019, ghi nhận lúc 16:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0020",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Mắt phải đột ngột mất thị lực hoàn toàn tối đen như kéo rèm che trong vòng 5 phút. (Mã ca: V8-PE-0020, ghi nhận lúc 17:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0021",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị vã mồ hôi lạnh buốt cả người, người run lẩy bẩy từ 30 phút trước. (Mã ca: V8-PE-0021, ghi nhận lúc 18:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0022",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tự nhiên thấy khó thở dồn dập khi nằm thẳng xuống giường, phải ngồi dậy mới thở được. (Mã ca: V8-PE-0022, ghi nhận lúc 19:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0023",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Một bên khóe miệng thấy tê rần và nước bọt hơi chảy, tay cầm cốc nước thấy yếu đi. (Mã ca: V8-PE-0023, ghi nhận lúc 20:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0024",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đang đi tiểu thì ngất xỉu gục xuống sàn nhà, tỉnh dậy thấy toát mồ hôi hột và hoa mắt. (Mã ca: V8-PE-0024, ghi nhận lúc 21:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0025",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đau thắt lưng dữ dội lan xuống hai chân kèm cảm giác tê vùng quanh hậu môn. (Mã ca: V8-PE-0025, ghi nhận lúc 10:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0026",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bé 3 tháng tuổi sốt 38.5 độ, thóp đỉnh đầu thấy phồng căng và sờ vào thấy cứng. (Mã ca: V8-PE-0026, ghi nhận lúc 11:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0027",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Phụ nữ trễ kinh 2 tuần, đột ngột đau quặn một bên bụng dưới dữ dội kèm choáng váng. (Mã ca: V8-PE-0027, ghi nhận lúc 12:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0028",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đau rát sau xương ức lan lên hàm dưới và vai trái, ngực cảm giác như bị kẹp nghẹt. (Mã ca: V8-PE-0028, ghi nhận lúc 13:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0029",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Nôn ra dịch màu bã cà phê kèm đi ngoài phân đen kịt như hắc ín tanh nồng. (Mã ca: V8-PE-0029, ghi nhận lúc 14:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0030",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Mắt phải đột ngột mất thị lực hoàn toàn tối đen như kéo rèm che trong vòng 5 phút. (Mã ca: V8-PE-0030, ghi nhận lúc 15:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0031",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị vã mồ hôi lạnh buốt cả người, người run lẩy bẩy từ 30 phút trước. (Mã ca: V8-PE-0031, ghi nhận lúc 16:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0032",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tự nhiên thấy khó thở dồn dập khi nằm thẳng xuống giường, phải ngồi dậy mới thở được. (Mã ca: V8-PE-0032, ghi nhận lúc 17:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0033",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Một bên khóe miệng thấy tê rần và nước bọt hơi chảy, tay cầm cốc nước thấy yếu đi. (Mã ca: V8-PE-0033, ghi nhận lúc 18:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0034",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đang đi tiểu thì ngất xỉu gục xuống sàn nhà, tỉnh dậy thấy toát mồ hôi hột và hoa mắt. (Mã ca: V8-PE-0034, ghi nhận lúc 19:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0035",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đau thắt lưng dữ dội lan xuống hai chân kèm cảm giác tê vùng quanh hậu môn. (Mã ca: V8-PE-0035, ghi nhận lúc 20:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0036",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bé 3 tháng tuổi sốt 38.5 độ, thóp đỉnh đầu thấy phồng căng và sờ vào thấy cứng. (Mã ca: V8-PE-0036, ghi nhận lúc 21:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0037",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Phụ nữ trễ kinh 2 tuần, đột ngột đau quặn một bên bụng dưới dữ dội kèm choáng váng. (Mã ca: V8-PE-0037, ghi nhận lúc 10:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0038",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đau rát sau xương ức lan lên hàm dưới và vai trái, ngực cảm giác như bị kẹp nghẹt. (Mã ca: V8-PE-0038, ghi nhận lúc 11:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0039",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Nôn ra dịch màu bã cà phê kèm đi ngoài phân đen kịt như hắc ín tanh nồng. (Mã ca: V8-PE-0039, ghi nhận lúc 12:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0040",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Mắt phải đột ngột mất thị lực hoàn toàn tối đen như kéo rèm che trong vòng 5 phút. (Mã ca: V8-PE-0040, ghi nhận lúc 13:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0041",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị vã mồ hôi lạnh buốt cả người, người run lẩy bẩy từ 30 phút trước. (Mã ca: V8-PE-0041, ghi nhận lúc 14:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0042",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tự nhiên thấy khó thở dồn dập khi nằm thẳng xuống giường, phải ngồi dậy mới thở được. (Mã ca: V8-PE-0042, ghi nhận lúc 15:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0043",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Một bên khóe miệng thấy tê rần và nước bọt hơi chảy, tay cầm cốc nước thấy yếu đi. (Mã ca: V8-PE-0043, ghi nhận lúc 16:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0044",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đang đi tiểu thì ngất xỉu gục xuống sàn nhà, tỉnh dậy thấy toát mồ hôi hột và hoa mắt. (Mã ca: V8-PE-0044, ghi nhận lúc 17:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0045",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đau thắt lưng dữ dội lan xuống hai chân kèm cảm giác tê vùng quanh hậu môn. (Mã ca: V8-PE-0045, ghi nhận lúc 18:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0046",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bé 3 tháng tuổi sốt 38.5 độ, thóp đỉnh đầu thấy phồng căng và sờ vào thấy cứng. (Mã ca: V8-PE-0046, ghi nhận lúc 19:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0047",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Phụ nữ trễ kinh 2 tuần, đột ngột đau quặn một bên bụng dưới dữ dội kèm choáng váng. (Mã ca: V8-PE-0047, ghi nhận lúc 20:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0048",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đau rát sau xương ức lan lên hàm dưới và vai trái, ngực cảm giác như bị kẹp nghẹt. (Mã ca: V8-PE-0048, ghi nhận lúc 21:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0049",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Nôn ra dịch màu bã cà phê kèm đi ngoài phân đen kịt như hắc ín tanh nồng. (Mã ca: V8-PE-0049, ghi nhận lúc 10:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0050",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Mắt phải đột ngột mất thị lực hoàn toàn tối đen như kéo rèm che trong vòng 5 phút. (Mã ca: V8-PE-0050, ghi nhận lúc 11:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0051",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị vã mồ hôi lạnh buốt cả người, người run lẩy bẩy từ 30 phút trước. (Mã ca: V8-PE-0051, ghi nhận lúc 12:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0052",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tự nhiên thấy khó thở dồn dập khi nằm thẳng xuống giường, phải ngồi dậy mới thở được. (Mã ca: V8-PE-0052, ghi nhận lúc 13:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0053",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Một bên khóe miệng thấy tê rần và nước bọt hơi chảy, tay cầm cốc nước thấy yếu đi. (Mã ca: V8-PE-0053, ghi nhận lúc 14:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0054",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đang đi tiểu thì ngất xỉu gục xuống sàn nhà, tỉnh dậy thấy toát mồ hôi hột và hoa mắt. (Mã ca: V8-PE-0054, ghi nhận lúc 15:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0055",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đau thắt lưng dữ dội lan xuống hai chân kèm cảm giác tê vùng quanh hậu môn. (Mã ca: V8-PE-0055, ghi nhận lúc 16:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0056",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bé 3 tháng tuổi sốt 38.5 độ, thóp đỉnh đầu thấy phồng căng và sờ vào thấy cứng. (Mã ca: V8-PE-0056, ghi nhận lúc 17:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0057",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Phụ nữ trễ kinh 2 tuần, đột ngột đau quặn một bên bụng dưới dữ dội kèm choáng váng. (Mã ca: V8-PE-0057, ghi nhận lúc 18:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0058",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đau rát sau xương ức lan lên hàm dưới và vai trái, ngực cảm giác như bị kẹp nghẹt. (Mã ca: V8-PE-0058, ghi nhận lúc 19:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0059",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Nôn ra dịch màu bã cà phê kèm đi ngoài phân đen kịt như hắc ín tanh nồng. (Mã ca: V8-PE-0059, ghi nhận lúc 20:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0060",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Mắt phải đột ngột mất thị lực hoàn toàn tối đen như kéo rèm che trong vòng 5 phút. (Mã ca: V8-PE-0060, ghi nhận lúc 21:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0061",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị vã mồ hôi lạnh buốt cả người, người run lẩy bẩy từ 30 phút trước. (Mã ca: V8-PE-0061, ghi nhận lúc 10:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0062",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tự nhiên thấy khó thở dồn dập khi nằm thẳng xuống giường, phải ngồi dậy mới thở được. (Mã ca: V8-PE-0062, ghi nhận lúc 11:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0063",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Một bên khóe miệng thấy tê rần và nước bọt hơi chảy, tay cầm cốc nước thấy yếu đi. (Mã ca: V8-PE-0063, ghi nhận lúc 12:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0064",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đang đi tiểu thì ngất xỉu gục xuống sàn nhà, tỉnh dậy thấy toát mồ hôi hột và hoa mắt. (Mã ca: V8-PE-0064, ghi nhận lúc 13:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0065",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đau thắt lưng dữ dội lan xuống hai chân kèm cảm giác tê vùng quanh hậu môn. (Mã ca: V8-PE-0065, ghi nhận lúc 14:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0066",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bé 3 tháng tuổi sốt 38.5 độ, thóp đỉnh đầu thấy phồng căng và sờ vào thấy cứng. (Mã ca: V8-PE-0066, ghi nhận lúc 15:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0067",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Phụ nữ trễ kinh 2 tuần, đột ngột đau quặn một bên bụng dưới dữ dội kèm choáng váng. (Mã ca: V8-PE-0067, ghi nhận lúc 16:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0068",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Đau rát sau xương ức lan lên hàm dưới và vai trái, ngực cảm giác như bị kẹp nghẹt. (Mã ca: V8-PE-0068, ghi nhận lúc 17:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0069",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Nôn ra dịch màu bã cà phê kèm đi ngoài phân đen kịt như hắc ín tanh nồng. (Mã ca: V8-PE-0069, ghi nhận lúc 18:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-PE-0070",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Mắt phải đột ngột mất thị lực hoàn toàn tối đen như kéo rèm che trong vòng 5 phút. (Mã ca: V8-PE-0070, ghi nhận lúc 19:00)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0001",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Tôi bị tiểu đường type 2 đang uống Metformin 1000mg, 2 ngày nay bị tiêu chảy mất nước nhiều, giờ thấy đau bụng dữ dội, thở nhanh sâu và mệt lả. (Mã ca V8-CD-0001)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0002",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Bệnh nhân COPD giai đoạn 3, ho đờm đục nhiều kèm sốt 38.8 độ, SpO2 đo tại nhà tụt còn 87%, môi hơi tím. (Mã ca V8-CD-0002)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0003",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Đang điều trị rung nhĩ bằng Warfarin, sáng nay đánh răng thấy máu chảy không cầm được, trên đùi xuất hiện nhiều mảng bầm tím to. (Mã ca V8-CD-0003)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0004",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Thai phụ 32 tuần, huyết áp đo tại nhà 160/100 mmHg, nhức đầu nhiều vùng trán kèm mắt nhìn thấy đốm sáng lập lòe và phù to hai chân. (Mã ca V8-CD-0004)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0005",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Bệnh nhân xơ gan cổ trướng, sốt nhẹ 38 độ kèm đau khắp bụng âm ỉ và bụng chướng to nhanh, mắt vàng đậm hơn. (Mã ca V8-CD-0005)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0006",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Bệnh nhân suy tim mạn, tăng 3kg trong 2 ngày, khó thở tăng dần kể cả khi ngồi nghỉ, chân phù lõm đến đầu gối. (Mã ca V8-CD-0006)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0007",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Tôi bị tiểu đường type 2 đang uống Metformin 1000mg, 2 ngày nay bị tiêu chảy mất nước nhiều, giờ thấy đau bụng dữ dội, thở nhanh sâu và mệt lả. (Mã ca V8-CD-0007)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0008",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Bệnh nhân COPD giai đoạn 3, ho đờm đục nhiều kèm sốt 38.8 độ, SpO2 đo tại nhà tụt còn 87%, môi hơi tím. (Mã ca V8-CD-0008)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0009",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Đang điều trị rung nhĩ bằng Warfarin, sáng nay đánh răng thấy máu chảy không cầm được, trên đùi xuất hiện nhiều mảng bầm tím to. (Mã ca V8-CD-0009)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0010",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Thai phụ 32 tuần, huyết áp đo tại nhà 160/100 mmHg, nhức đầu nhiều vùng trán kèm mắt nhìn thấy đốm sáng lập lòe và phù to hai chân. (Mã ca V8-CD-0010)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0011",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Bệnh nhân xơ gan cổ trướng, sốt nhẹ 38 độ kèm đau khắp bụng âm ỉ và bụng chướng to nhanh, mắt vàng đậm hơn. (Mã ca V8-CD-0011)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0012",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Bệnh nhân suy tim mạn, tăng 3kg trong 2 ngày, khó thở tăng dần kể cả khi ngồi nghỉ, chân phù lõm đến đầu gối. (Mã ca V8-CD-0012)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0013",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Tôi bị tiểu đường type 2 đang uống Metformin 1000mg, 2 ngày nay bị tiêu chảy mất nước nhiều, giờ thấy đau bụng dữ dội, thở nhanh sâu và mệt lả. (Mã ca V8-CD-0013)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0014",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Bệnh nhân COPD giai đoạn 3, ho đờm đục nhiều kèm sốt 38.8 độ, SpO2 đo tại nhà tụt còn 87%, môi hơi tím. (Mã ca V8-CD-0014)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0015",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Đang điều trị rung nhĩ bằng Warfarin, sáng nay đánh răng thấy máu chảy không cầm được, trên đùi xuất hiện nhiều mảng bầm tím to. (Mã ca V8-CD-0015)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0016",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Thai phụ 32 tuần, huyết áp đo tại nhà 160/100 mmHg, nhức đầu nhiều vùng trán kèm mắt nhìn thấy đốm sáng lập lòe và phù to hai chân. (Mã ca V8-CD-0016)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0017",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Bệnh nhân xơ gan cổ trướng, sốt nhẹ 38 độ kèm đau khắp bụng âm ỉ và bụng chướng to nhanh, mắt vàng đậm hơn. (Mã ca V8-CD-0017)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0018",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Bệnh nhân suy tim mạn, tăng 3kg trong 2 ngày, khó thở tăng dần kể cả khi ngồi nghỉ, chân phù lõm đến đầu gối. (Mã ca V8-CD-0018)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0019",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Tôi bị tiểu đường type 2 đang uống Metformin 1000mg, 2 ngày nay bị tiêu chảy mất nước nhiều, giờ thấy đau bụng dữ dội, thở nhanh sâu và mệt lả. (Mã ca V8-CD-0019)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0020",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Bệnh nhân COPD giai đoạn 3, ho đờm đục nhiều kèm sốt 38.8 độ, SpO2 đo tại nhà tụt còn 87%, môi hơi tím. (Mã ca V8-CD-0020)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0021",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Đang điều trị rung nhĩ bằng Warfarin, sáng nay đánh răng thấy máu chảy không cầm được, trên đùi xuất hiện nhiều mảng bầm tím to. (Mã ca V8-CD-0021)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0022",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Thai phụ 32 tuần, huyết áp đo tại nhà 160/100 mmHg, nhức đầu nhiều vùng trán kèm mắt nhìn thấy đốm sáng lập lòe và phù to hai chân. (Mã ca V8-CD-0022)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0023",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Bệnh nhân xơ gan cổ trướng, sốt nhẹ 38 độ kèm đau khắp bụng âm ỉ và bụng chướng to nhanh, mắt vàng đậm hơn. (Mã ca V8-CD-0023)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0024",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Bệnh nhân suy tim mạn, tăng 3kg trong 2 ngày, khó thở tăng dần kể cả khi ngồi nghỉ, chân phù lõm đến đầu gối. (Mã ca V8-CD-0024)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0025",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Tôi bị tiểu đường type 2 đang uống Metformin 1000mg, 2 ngày nay bị tiêu chảy mất nước nhiều, giờ thấy đau bụng dữ dội, thở nhanh sâu và mệt lả. (Mã ca V8-CD-0025)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0026",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Bệnh nhân COPD giai đoạn 3, ho đờm đục nhiều kèm sốt 38.8 độ, SpO2 đo tại nhà tụt còn 87%, môi hơi tím. (Mã ca V8-CD-0026)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0027",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Đang điều trị rung nhĩ bằng Warfarin, sáng nay đánh răng thấy máu chảy không cầm được, trên đùi xuất hiện nhiều mảng bầm tím to. (Mã ca V8-CD-0027)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0028",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Thai phụ 32 tuần, huyết áp đo tại nhà 160/100 mmHg, nhức đầu nhiều vùng trán kèm mắt nhìn thấy đốm sáng lập lòe và phù to hai chân. (Mã ca V8-CD-0028)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0029",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Bệnh nhân xơ gan cổ trướng, sốt nhẹ 38 độ kèm đau khắp bụng âm ỉ và bụng chướng to nhanh, mắt vàng đậm hơn. (Mã ca V8-CD-0029)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0030",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Bệnh nhân suy tim mạn, tăng 3kg trong 2 ngày, khó thở tăng dần kể cả khi ngồi nghỉ, chân phù lõm đến đầu gối. (Mã ca V8-CD-0030)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0031",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Tôi bị tiểu đường type 2 đang uống Metformin 1000mg, 2 ngày nay bị tiêu chảy mất nước nhiều, giờ thấy đau bụng dữ dội, thở nhanh sâu và mệt lả. (Mã ca V8-CD-0031)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0032",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Bệnh nhân COPD giai đoạn 3, ho đờm đục nhiều kèm sốt 38.8 độ, SpO2 đo tại nhà tụt còn 87%, môi hơi tím. (Mã ca V8-CD-0032)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0033",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Đang điều trị rung nhĩ bằng Warfarin, sáng nay đánh răng thấy máu chảy không cầm được, trên đùi xuất hiện nhiều mảng bầm tím to. (Mã ca V8-CD-0033)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0034",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Thai phụ 32 tuần, huyết áp đo tại nhà 160/100 mmHg, nhức đầu nhiều vùng trán kèm mắt nhìn thấy đốm sáng lập lòe và phù to hai chân. (Mã ca V8-CD-0034)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0035",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Bệnh nhân xơ gan cổ trướng, sốt nhẹ 38 độ kèm đau khắp bụng âm ỉ và bụng chướng to nhanh, mắt vàng đậm hơn. (Mã ca V8-CD-0035)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0036",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Bệnh nhân suy tim mạn, tăng 3kg trong 2 ngày, khó thở tăng dần kể cả khi ngồi nghỉ, chân phù lõm đến đầu gối. (Mã ca V8-CD-0036)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0037",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Tôi bị tiểu đường type 2 đang uống Metformin 1000mg, 2 ngày nay bị tiêu chảy mất nước nhiều, giờ thấy đau bụng dữ dội, thở nhanh sâu và mệt lả. (Mã ca V8-CD-0037)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0038",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Bệnh nhân COPD giai đoạn 3, ho đờm đục nhiều kèm sốt 38.8 độ, SpO2 đo tại nhà tụt còn 87%, môi hơi tím. (Mã ca V8-CD-0038)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0039",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Đang điều trị rung nhĩ bằng Warfarin, sáng nay đánh răng thấy máu chảy không cầm được, trên đùi xuất hiện nhiều mảng bầm tím to. (Mã ca V8-CD-0039)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0040",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Thai phụ 32 tuần, huyết áp đo tại nhà 160/100 mmHg, nhức đầu nhiều vùng trán kèm mắt nhìn thấy đốm sáng lập lòe và phù to hai chân. (Mã ca V8-CD-0040)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0041",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Bệnh nhân xơ gan cổ trướng, sốt nhẹ 38 độ kèm đau khắp bụng âm ỉ và bụng chướng to nhanh, mắt vàng đậm hơn. (Mã ca V8-CD-0041)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0042",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Bệnh nhân suy tim mạn, tăng 3kg trong 2 ngày, khó thở tăng dần kể cả khi ngồi nghỉ, chân phù lõm đến đầu gối. (Mã ca V8-CD-0042)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0043",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Tôi bị tiểu đường type 2 đang uống Metformin 1000mg, 2 ngày nay bị tiêu chảy mất nước nhiều, giờ thấy đau bụng dữ dội, thở nhanh sâu và mệt lả. (Mã ca V8-CD-0043)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0044",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Bệnh nhân COPD giai đoạn 3, ho đờm đục nhiều kèm sốt 38.8 độ, SpO2 đo tại nhà tụt còn 87%, môi hơi tím. (Mã ca V8-CD-0044)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0045",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Đang điều trị rung nhĩ bằng Warfarin, sáng nay đánh răng thấy máu chảy không cầm được, trên đùi xuất hiện nhiều mảng bầm tím to. (Mã ca V8-CD-0045)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0046",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Thai phụ 32 tuần, huyết áp đo tại nhà 160/100 mmHg, nhức đầu nhiều vùng trán kèm mắt nhìn thấy đốm sáng lập lòe và phù to hai chân. (Mã ca V8-CD-0046)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0047",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Bệnh nhân xơ gan cổ trướng, sốt nhẹ 38 độ kèm đau khắp bụng âm ỉ và bụng chướng to nhanh, mắt vàng đậm hơn. (Mã ca V8-CD-0047)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0048",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Bệnh nhân suy tim mạn, tăng 3kg trong 2 ngày, khó thở tăng dần kể cả khi ngồi nghỉ, chân phù lõm đến đầu gối. (Mã ca V8-CD-0048)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0049",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Tôi bị tiểu đường type 2 đang uống Metformin 1000mg, 2 ngày nay bị tiêu chảy mất nước nhiều, giờ thấy đau bụng dữ dội, thở nhanh sâu và mệt lả. (Mã ca V8-CD-0049)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0050",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Bệnh nhân COPD giai đoạn 3, ho đờm đục nhiều kèm sốt 38.8 độ, SpO2 đo tại nhà tụt còn 87%, môi hơi tím. (Mã ca V8-CD-0050)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0051",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Đang điều trị rung nhĩ bằng Warfarin, sáng nay đánh răng thấy máu chảy không cầm được, trên đùi xuất hiện nhiều mảng bầm tím to. (Mã ca V8-CD-0051)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0052",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Thai phụ 32 tuần, huyết áp đo tại nhà 160/100 mmHg, nhức đầu nhiều vùng trán kèm mắt nhìn thấy đốm sáng lập lòe và phù to hai chân. (Mã ca V8-CD-0052)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0053",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Bệnh nhân xơ gan cổ trướng, sốt nhẹ 38 độ kèm đau khắp bụng âm ỉ và bụng chướng to nhanh, mắt vàng đậm hơn. (Mã ca V8-CD-0053)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0054",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Bệnh nhân suy tim mạn, tăng 3kg trong 2 ngày, khó thở tăng dần kể cả khi ngồi nghỉ, chân phù lõm đến đầu gối. (Mã ca V8-CD-0054)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0055",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Tôi bị tiểu đường type 2 đang uống Metformin 1000mg, 2 ngày nay bị tiêu chảy mất nước nhiều, giờ thấy đau bụng dữ dội, thở nhanh sâu và mệt lả. (Mã ca V8-CD-0055)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0056",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Bệnh nhân COPD giai đoạn 3, ho đờm đục nhiều kèm sốt 38.8 độ, SpO2 đo tại nhà tụt còn 87%, môi hơi tím. (Mã ca V8-CD-0056)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0057",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Đang điều trị rung nhĩ bằng Warfarin, sáng nay đánh răng thấy máu chảy không cầm được, trên đùi xuất hiện nhiều mảng bầm tím to. (Mã ca V8-CD-0057)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0058",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Thai phụ 32 tuần, huyết áp đo tại nhà 160/100 mmHg, nhức đầu nhiều vùng trán kèm mắt nhìn thấy đốm sáng lập lòe và phù to hai chân. (Mã ca V8-CD-0058)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0059",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Bệnh nhân xơ gan cổ trướng, sốt nhẹ 38 độ kèm đau khắp bụng âm ỉ và bụng chướng to nhanh, mắt vàng đậm hơn. (Mã ca V8-CD-0059)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-CD-0060",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hồ sơ đa bệnh lý: Bệnh nhân suy tim mạn, tăng 3kg trong 2 ngày, khó thở tăng dần kể cả khi ngồi nghỉ, chân phù lõm đến đầu gối. (Mã ca V8-CD-0060)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0001",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Em gái em do buồn chuyện gia đình đã uống hết 1 vỉ 10 viên Paracetamol 500mg và 1 vỉ Efferalgan Codein lúc 2 tiếng trước, hiện buồn nôn nhiều. (Mã tiếp nhận: V8-TX-0001)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0002",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Bé 2 tuổi uống nhầm nửa chai nước lau sàn Vim để góc nhà, bé khóc thét nôn khan, niêm mạc miệng sưng đỏ rộp. (Mã tiếp nhận: V8-TX-0002)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0003",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Nhóm bạn ăn lẩu nấm hái trên rừng về, sau 4 tiếng cả 4 người đều đau bụng quặn thắt, nôn mửa liên tục và tiêu chảy xối xả. (Mã tiếp nhận: V8-TX-0003)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0004",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Uống nhầm rượu thuốc không rõ nguồn gốc ngâm củ lạ, sau 1 giờ thấy tê rần quanh môi lưỡi, tay chân lạnh ngắt và tim đập loạn xạ. (Mã tiếp nhận: V8-TX-0004)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0005",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Người nhà phát hiện bệnh nhân nằm hôn mê bên cạnh 2 vỏ lọ thuốc ngủ Seduxen rỗng, lay gọi không tỉnh, thở chậm ngắt quãng. (Mã tiếp nhận: V8-TX-0005)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0006",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Em gái em do buồn chuyện gia đình đã uống hết 1 vỉ 10 viên Paracetamol 500mg và 1 vỉ Efferalgan Codein lúc 2 tiếng trước, hiện buồn nôn nhiều. (Mã tiếp nhận: V8-TX-0006)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0007",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Bé 2 tuổi uống nhầm nửa chai nước lau sàn Vim để góc nhà, bé khóc thét nôn khan, niêm mạc miệng sưng đỏ rộp. (Mã tiếp nhận: V8-TX-0007)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0008",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Nhóm bạn ăn lẩu nấm hái trên rừng về, sau 4 tiếng cả 4 người đều đau bụng quặn thắt, nôn mửa liên tục và tiêu chảy xối xả. (Mã tiếp nhận: V8-TX-0008)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0009",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Uống nhầm rượu thuốc không rõ nguồn gốc ngâm củ lạ, sau 1 giờ thấy tê rần quanh môi lưỡi, tay chân lạnh ngắt và tim đập loạn xạ. (Mã tiếp nhận: V8-TX-0009)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0010",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Người nhà phát hiện bệnh nhân nằm hôn mê bên cạnh 2 vỏ lọ thuốc ngủ Seduxen rỗng, lay gọi không tỉnh, thở chậm ngắt quãng. (Mã tiếp nhận: V8-TX-0010)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0011",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Em gái em do buồn chuyện gia đình đã uống hết 1 vỉ 10 viên Paracetamol 500mg và 1 vỉ Efferalgan Codein lúc 2 tiếng trước, hiện buồn nôn nhiều. (Mã tiếp nhận: V8-TX-0011)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0012",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Bé 2 tuổi uống nhầm nửa chai nước lau sàn Vim để góc nhà, bé khóc thét nôn khan, niêm mạc miệng sưng đỏ rộp. (Mã tiếp nhận: V8-TX-0012)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0013",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Nhóm bạn ăn lẩu nấm hái trên rừng về, sau 4 tiếng cả 4 người đều đau bụng quặn thắt, nôn mửa liên tục và tiêu chảy xối xả. (Mã tiếp nhận: V8-TX-0013)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0014",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Uống nhầm rượu thuốc không rõ nguồn gốc ngâm củ lạ, sau 1 giờ thấy tê rần quanh môi lưỡi, tay chân lạnh ngắt và tim đập loạn xạ. (Mã tiếp nhận: V8-TX-0014)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0015",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Người nhà phát hiện bệnh nhân nằm hôn mê bên cạnh 2 vỏ lọ thuốc ngủ Seduxen rỗng, lay gọi không tỉnh, thở chậm ngắt quãng. (Mã tiếp nhận: V8-TX-0015)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0016",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Em gái em do buồn chuyện gia đình đã uống hết 1 vỉ 10 viên Paracetamol 500mg và 1 vỉ Efferalgan Codein lúc 2 tiếng trước, hiện buồn nôn nhiều. (Mã tiếp nhận: V8-TX-0016)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0017",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Bé 2 tuổi uống nhầm nửa chai nước lau sàn Vim để góc nhà, bé khóc thét nôn khan, niêm mạc miệng sưng đỏ rộp. (Mã tiếp nhận: V8-TX-0017)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0018",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Nhóm bạn ăn lẩu nấm hái trên rừng về, sau 4 tiếng cả 4 người đều đau bụng quặn thắt, nôn mửa liên tục và tiêu chảy xối xả. (Mã tiếp nhận: V8-TX-0018)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0019",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Uống nhầm rượu thuốc không rõ nguồn gốc ngâm củ lạ, sau 1 giờ thấy tê rần quanh môi lưỡi, tay chân lạnh ngắt và tim đập loạn xạ. (Mã tiếp nhận: V8-TX-0019)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0020",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Người nhà phát hiện bệnh nhân nằm hôn mê bên cạnh 2 vỏ lọ thuốc ngủ Seduxen rỗng, lay gọi không tỉnh, thở chậm ngắt quãng. (Mã tiếp nhận: V8-TX-0020)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0021",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Em gái em do buồn chuyện gia đình đã uống hết 1 vỉ 10 viên Paracetamol 500mg và 1 vỉ Efferalgan Codein lúc 2 tiếng trước, hiện buồn nôn nhiều. (Mã tiếp nhận: V8-TX-0021)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0022",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Bé 2 tuổi uống nhầm nửa chai nước lau sàn Vim để góc nhà, bé khóc thét nôn khan, niêm mạc miệng sưng đỏ rộp. (Mã tiếp nhận: V8-TX-0022)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0023",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Nhóm bạn ăn lẩu nấm hái trên rừng về, sau 4 tiếng cả 4 người đều đau bụng quặn thắt, nôn mửa liên tục và tiêu chảy xối xả. (Mã tiếp nhận: V8-TX-0023)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0024",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Uống nhầm rượu thuốc không rõ nguồn gốc ngâm củ lạ, sau 1 giờ thấy tê rần quanh môi lưỡi, tay chân lạnh ngắt và tim đập loạn xạ. (Mã tiếp nhận: V8-TX-0024)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0025",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Người nhà phát hiện bệnh nhân nằm hôn mê bên cạnh 2 vỏ lọ thuốc ngủ Seduxen rỗng, lay gọi không tỉnh, thở chậm ngắt quãng. (Mã tiếp nhận: V8-TX-0025)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0026",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Em gái em do buồn chuyện gia đình đã uống hết 1 vỉ 10 viên Paracetamol 500mg và 1 vỉ Efferalgan Codein lúc 2 tiếng trước, hiện buồn nôn nhiều. (Mã tiếp nhận: V8-TX-0026)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0027",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Bé 2 tuổi uống nhầm nửa chai nước lau sàn Vim để góc nhà, bé khóc thét nôn khan, niêm mạc miệng sưng đỏ rộp. (Mã tiếp nhận: V8-TX-0027)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0028",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Nhóm bạn ăn lẩu nấm hái trên rừng về, sau 4 tiếng cả 4 người đều đau bụng quặn thắt, nôn mửa liên tục và tiêu chảy xối xả. (Mã tiếp nhận: V8-TX-0028)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0029",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Uống nhầm rượu thuốc không rõ nguồn gốc ngâm củ lạ, sau 1 giờ thấy tê rần quanh môi lưỡi, tay chân lạnh ngắt và tim đập loạn xạ. (Mã tiếp nhận: V8-TX-0029)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0030",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Người nhà phát hiện bệnh nhân nằm hôn mê bên cạnh 2 vỏ lọ thuốc ngủ Seduxen rỗng, lay gọi không tỉnh, thở chậm ngắt quãng. (Mã tiếp nhận: V8-TX-0030)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0031",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Em gái em do buồn chuyện gia đình đã uống hết 1 vỉ 10 viên Paracetamol 500mg và 1 vỉ Efferalgan Codein lúc 2 tiếng trước, hiện buồn nôn nhiều. (Mã tiếp nhận: V8-TX-0031)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0032",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Bé 2 tuổi uống nhầm nửa chai nước lau sàn Vim để góc nhà, bé khóc thét nôn khan, niêm mạc miệng sưng đỏ rộp. (Mã tiếp nhận: V8-TX-0032)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0033",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Nhóm bạn ăn lẩu nấm hái trên rừng về, sau 4 tiếng cả 4 người đều đau bụng quặn thắt, nôn mửa liên tục và tiêu chảy xối xả. (Mã tiếp nhận: V8-TX-0033)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0034",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Uống nhầm rượu thuốc không rõ nguồn gốc ngâm củ lạ, sau 1 giờ thấy tê rần quanh môi lưỡi, tay chân lạnh ngắt và tim đập loạn xạ. (Mã tiếp nhận: V8-TX-0034)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0035",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Người nhà phát hiện bệnh nhân nằm hôn mê bên cạnh 2 vỏ lọ thuốc ngủ Seduxen rỗng, lay gọi không tỉnh, thở chậm ngắt quãng. (Mã tiếp nhận: V8-TX-0035)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0036",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Em gái em do buồn chuyện gia đình đã uống hết 1 vỉ 10 viên Paracetamol 500mg và 1 vỉ Efferalgan Codein lúc 2 tiếng trước, hiện buồn nôn nhiều. (Mã tiếp nhận: V8-TX-0036)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0037",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Bé 2 tuổi uống nhầm nửa chai nước lau sàn Vim để góc nhà, bé khóc thét nôn khan, niêm mạc miệng sưng đỏ rộp. (Mã tiếp nhận: V8-TX-0037)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0038",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Nhóm bạn ăn lẩu nấm hái trên rừng về, sau 4 tiếng cả 4 người đều đau bụng quặn thắt, nôn mửa liên tục và tiêu chảy xối xả. (Mã tiếp nhận: V8-TX-0038)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0039",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Uống nhầm rượu thuốc không rõ nguồn gốc ngâm củ lạ, sau 1 giờ thấy tê rần quanh môi lưỡi, tay chân lạnh ngắt và tim đập loạn xạ. (Mã tiếp nhận: V8-TX-0039)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0040",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Người nhà phát hiện bệnh nhân nằm hôn mê bên cạnh 2 vỏ lọ thuốc ngủ Seduxen rỗng, lay gọi không tỉnh, thở chậm ngắt quãng. (Mã tiếp nhận: V8-TX-0040)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0041",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Em gái em do buồn chuyện gia đình đã uống hết 1 vỉ 10 viên Paracetamol 500mg và 1 vỉ Efferalgan Codein lúc 2 tiếng trước, hiện buồn nôn nhiều. (Mã tiếp nhận: V8-TX-0041)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0042",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Bé 2 tuổi uống nhầm nửa chai nước lau sàn Vim để góc nhà, bé khóc thét nôn khan, niêm mạc miệng sưng đỏ rộp. (Mã tiếp nhận: V8-TX-0042)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0043",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Nhóm bạn ăn lẩu nấm hái trên rừng về, sau 4 tiếng cả 4 người đều đau bụng quặn thắt, nôn mửa liên tục và tiêu chảy xối xả. (Mã tiếp nhận: V8-TX-0043)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0044",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Uống nhầm rượu thuốc không rõ nguồn gốc ngâm củ lạ, sau 1 giờ thấy tê rần quanh môi lưỡi, tay chân lạnh ngắt và tim đập loạn xạ. (Mã tiếp nhận: V8-TX-0044)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0045",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Người nhà phát hiện bệnh nhân nằm hôn mê bên cạnh 2 vỏ lọ thuốc ngủ Seduxen rỗng, lay gọi không tỉnh, thở chậm ngắt quãng. (Mã tiếp nhận: V8-TX-0045)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0046",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Em gái em do buồn chuyện gia đình đã uống hết 1 vỉ 10 viên Paracetamol 500mg và 1 vỉ Efferalgan Codein lúc 2 tiếng trước, hiện buồn nôn nhiều. (Mã tiếp nhận: V8-TX-0046)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0047",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Bé 2 tuổi uống nhầm nửa chai nước lau sàn Vim để góc nhà, bé khóc thét nôn khan, niêm mạc miệng sưng đỏ rộp. (Mã tiếp nhận: V8-TX-0047)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0048",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Nhóm bạn ăn lẩu nấm hái trên rừng về, sau 4 tiếng cả 4 người đều đau bụng quặn thắt, nôn mửa liên tục và tiêu chảy xối xả. (Mã tiếp nhận: V8-TX-0048)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0049",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Uống nhầm rượu thuốc không rõ nguồn gốc ngâm củ lạ, sau 1 giờ thấy tê rần quanh môi lưỡi, tay chân lạnh ngắt và tim đập loạn xạ. (Mã tiếp nhận: V8-TX-0049)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-TX-0050",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảnh báo ngộ độc: Người nhà phát hiện bệnh nhân nằm hôn mê bên cạnh 2 vỏ lọ thuốc ngủ Seduxen rỗng, lay gọi không tỉnh, thở chậm ngắt quãng. (Mã tiếp nhận: V8-TX-0050)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0001",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bác sĩ ơi, từ sáng tôi thấy người hơi gai sốt và mỏi cơ bắp, có cần uống thuốc gì không?"
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, bạn có thể theo dõi nhiệt độ và nghỉ ngơi, uống đủ nước. Bạn có triệu chứng nào khác không?"
+      },
+      {
+        "role": "user",
+        "content": "Bây giờ tôi thấy sốt vọt lên 39.8 độ, đau đầu dữ dội không chịu nổi, cổ cứng đơ cúi xuống cằm không chạm ngực được và nôn vọt."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0002",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị ho khan mấy hôm nay, không sốt, người hơi mệt."
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, ho khan kéo dài có thể do kích ứng đường hô hấp. Bạn có đau ngực hay khó thở không?"
+      },
+      {
+        "role": "user",
+        "content": "Chiều nay bắt đầu ho ra đờm có dính vệt máu tươi lẫn trong đờm và thấy tức nhẹ một bên ngực phải khi ho mạnh."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0003",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bác sĩ ơi, từ sáng tôi thấy người hơi gai sốt và mỏi cơ bắp, có cần uống thuốc gì không?"
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, bạn có thể theo dõi nhiệt độ và nghỉ ngơi, uống đủ nước. Bạn có triệu chứng nào khác không?"
+      },
+      {
+        "role": "user",
+        "content": "Bây giờ tôi thấy sốt vọt lên 39.8 độ, đau đầu dữ dội không chịu nổi, cổ cứng đơ cúi xuống cằm không chạm ngực được và nôn vọt."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0004",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị ho khan mấy hôm nay, không sốt, người hơi mệt."
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, ho khan kéo dài có thể do kích ứng đường hô hấp. Bạn có đau ngực hay khó thở không?"
+      },
+      {
+        "role": "user",
+        "content": "Chiều nay bắt đầu ho ra đờm có dính vệt máu tươi lẫn trong đờm và thấy tức nhẹ một bên ngực phải khi ho mạnh."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0005",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bác sĩ ơi, từ sáng tôi thấy người hơi gai sốt và mỏi cơ bắp, có cần uống thuốc gì không?"
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, bạn có thể theo dõi nhiệt độ và nghỉ ngơi, uống đủ nước. Bạn có triệu chứng nào khác không?"
+      },
+      {
+        "role": "user",
+        "content": "Bây giờ tôi thấy sốt vọt lên 39.8 độ, đau đầu dữ dội không chịu nổi, cổ cứng đơ cúi xuống cằm không chạm ngực được và nôn vọt."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0006",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị ho khan mấy hôm nay, không sốt, người hơi mệt."
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, ho khan kéo dài có thể do kích ứng đường hô hấp. Bạn có đau ngực hay khó thở không?"
+      },
+      {
+        "role": "user",
+        "content": "Chiều nay bắt đầu ho ra đờm có dính vệt máu tươi lẫn trong đờm và thấy tức nhẹ một bên ngực phải khi ho mạnh."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0007",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bác sĩ ơi, từ sáng tôi thấy người hơi gai sốt và mỏi cơ bắp, có cần uống thuốc gì không?"
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, bạn có thể theo dõi nhiệt độ và nghỉ ngơi, uống đủ nước. Bạn có triệu chứng nào khác không?"
+      },
+      {
+        "role": "user",
+        "content": "Bây giờ tôi thấy sốt vọt lên 39.8 độ, đau đầu dữ dội không chịu nổi, cổ cứng đơ cúi xuống cằm không chạm ngực được và nôn vọt."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0008",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị ho khan mấy hôm nay, không sốt, người hơi mệt."
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, ho khan kéo dài có thể do kích ứng đường hô hấp. Bạn có đau ngực hay khó thở không?"
+      },
+      {
+        "role": "user",
+        "content": "Chiều nay bắt đầu ho ra đờm có dính vệt máu tươi lẫn trong đờm và thấy tức nhẹ một bên ngực phải khi ho mạnh."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0009",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bác sĩ ơi, từ sáng tôi thấy người hơi gai sốt và mỏi cơ bắp, có cần uống thuốc gì không?"
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, bạn có thể theo dõi nhiệt độ và nghỉ ngơi, uống đủ nước. Bạn có triệu chứng nào khác không?"
+      },
+      {
+        "role": "user",
+        "content": "Bây giờ tôi thấy sốt vọt lên 39.8 độ, đau đầu dữ dội không chịu nổi, cổ cứng đơ cúi xuống cằm không chạm ngực được và nôn vọt."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0010",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị ho khan mấy hôm nay, không sốt, người hơi mệt."
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, ho khan kéo dài có thể do kích ứng đường hô hấp. Bạn có đau ngực hay khó thở không?"
+      },
+      {
+        "role": "user",
+        "content": "Chiều nay bắt đầu ho ra đờm có dính vệt máu tươi lẫn trong đờm và thấy tức nhẹ một bên ngực phải khi ho mạnh."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0011",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bác sĩ ơi, từ sáng tôi thấy người hơi gai sốt và mỏi cơ bắp, có cần uống thuốc gì không?"
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, bạn có thể theo dõi nhiệt độ và nghỉ ngơi, uống đủ nước. Bạn có triệu chứng nào khác không?"
+      },
+      {
+        "role": "user",
+        "content": "Bây giờ tôi thấy sốt vọt lên 39.8 độ, đau đầu dữ dội không chịu nổi, cổ cứng đơ cúi xuống cằm không chạm ngực được và nôn vọt."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0012",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị ho khan mấy hôm nay, không sốt, người hơi mệt."
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, ho khan kéo dài có thể do kích ứng đường hô hấp. Bạn có đau ngực hay khó thở không?"
+      },
+      {
+        "role": "user",
+        "content": "Chiều nay bắt đầu ho ra đờm có dính vệt máu tươi lẫn trong đờm và thấy tức nhẹ một bên ngực phải khi ho mạnh."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0013",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bác sĩ ơi, từ sáng tôi thấy người hơi gai sốt và mỏi cơ bắp, có cần uống thuốc gì không?"
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, bạn có thể theo dõi nhiệt độ và nghỉ ngơi, uống đủ nước. Bạn có triệu chứng nào khác không?"
+      },
+      {
+        "role": "user",
+        "content": "Bây giờ tôi thấy sốt vọt lên 39.8 độ, đau đầu dữ dội không chịu nổi, cổ cứng đơ cúi xuống cằm không chạm ngực được và nôn vọt."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0014",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị ho khan mấy hôm nay, không sốt, người hơi mệt."
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, ho khan kéo dài có thể do kích ứng đường hô hấp. Bạn có đau ngực hay khó thở không?"
+      },
+      {
+        "role": "user",
+        "content": "Chiều nay bắt đầu ho ra đờm có dính vệt máu tươi lẫn trong đờm và thấy tức nhẹ một bên ngực phải khi ho mạnh."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0015",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bác sĩ ơi, từ sáng tôi thấy người hơi gai sốt và mỏi cơ bắp, có cần uống thuốc gì không?"
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, bạn có thể theo dõi nhiệt độ và nghỉ ngơi, uống đủ nước. Bạn có triệu chứng nào khác không?"
+      },
+      {
+        "role": "user",
+        "content": "Bây giờ tôi thấy sốt vọt lên 39.8 độ, đau đầu dữ dội không chịu nổi, cổ cứng đơ cúi xuống cằm không chạm ngực được và nôn vọt."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0016",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị ho khan mấy hôm nay, không sốt, người hơi mệt."
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, ho khan kéo dài có thể do kích ứng đường hô hấp. Bạn có đau ngực hay khó thở không?"
+      },
+      {
+        "role": "user",
+        "content": "Chiều nay bắt đầu ho ra đờm có dính vệt máu tươi lẫn trong đờm và thấy tức nhẹ một bên ngực phải khi ho mạnh."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0017",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bác sĩ ơi, từ sáng tôi thấy người hơi gai sốt và mỏi cơ bắp, có cần uống thuốc gì không?"
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, bạn có thể theo dõi nhiệt độ và nghỉ ngơi, uống đủ nước. Bạn có triệu chứng nào khác không?"
+      },
+      {
+        "role": "user",
+        "content": "Bây giờ tôi thấy sốt vọt lên 39.8 độ, đau đầu dữ dội không chịu nổi, cổ cứng đơ cúi xuống cằm không chạm ngực được và nôn vọt."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0018",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị ho khan mấy hôm nay, không sốt, người hơi mệt."
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, ho khan kéo dài có thể do kích ứng đường hô hấp. Bạn có đau ngực hay khó thở không?"
+      },
+      {
+        "role": "user",
+        "content": "Chiều nay bắt đầu ho ra đờm có dính vệt máu tươi lẫn trong đờm và thấy tức nhẹ một bên ngực phải khi ho mạnh."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0019",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bác sĩ ơi, từ sáng tôi thấy người hơi gai sốt và mỏi cơ bắp, có cần uống thuốc gì không?"
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, bạn có thể theo dõi nhiệt độ và nghỉ ngơi, uống đủ nước. Bạn có triệu chứng nào khác không?"
+      },
+      {
+        "role": "user",
+        "content": "Bây giờ tôi thấy sốt vọt lên 39.8 độ, đau đầu dữ dội không chịu nổi, cổ cứng đơ cúi xuống cằm không chạm ngực được và nôn vọt."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0020",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị ho khan mấy hôm nay, không sốt, người hơi mệt."
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, ho khan kéo dài có thể do kích ứng đường hô hấp. Bạn có đau ngực hay khó thở không?"
+      },
+      {
+        "role": "user",
+        "content": "Chiều nay bắt đầu ho ra đờm có dính vệt máu tươi lẫn trong đờm và thấy tức nhẹ một bên ngực phải khi ho mạnh."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0021",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bác sĩ ơi, từ sáng tôi thấy người hơi gai sốt và mỏi cơ bắp, có cần uống thuốc gì không?"
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, bạn có thể theo dõi nhiệt độ và nghỉ ngơi, uống đủ nước. Bạn có triệu chứng nào khác không?"
+      },
+      {
+        "role": "user",
+        "content": "Bây giờ tôi thấy sốt vọt lên 39.8 độ, đau đầu dữ dội không chịu nổi, cổ cứng đơ cúi xuống cằm không chạm ngực được và nôn vọt."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0022",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị ho khan mấy hôm nay, không sốt, người hơi mệt."
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, ho khan kéo dài có thể do kích ứng đường hô hấp. Bạn có đau ngực hay khó thở không?"
+      },
+      {
+        "role": "user",
+        "content": "Chiều nay bắt đầu ho ra đờm có dính vệt máu tươi lẫn trong đờm và thấy tức nhẹ một bên ngực phải khi ho mạnh."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0023",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bác sĩ ơi, từ sáng tôi thấy người hơi gai sốt và mỏi cơ bắp, có cần uống thuốc gì không?"
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, bạn có thể theo dõi nhiệt độ và nghỉ ngơi, uống đủ nước. Bạn có triệu chứng nào khác không?"
+      },
+      {
+        "role": "user",
+        "content": "Bây giờ tôi thấy sốt vọt lên 39.8 độ, đau đầu dữ dội không chịu nổi, cổ cứng đơ cúi xuống cằm không chạm ngực được và nôn vọt."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0024",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị ho khan mấy hôm nay, không sốt, người hơi mệt."
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, ho khan kéo dài có thể do kích ứng đường hô hấp. Bạn có đau ngực hay khó thở không?"
+      },
+      {
+        "role": "user",
+        "content": "Chiều nay bắt đầu ho ra đờm có dính vệt máu tươi lẫn trong đờm và thấy tức nhẹ một bên ngực phải khi ho mạnh."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0025",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bác sĩ ơi, từ sáng tôi thấy người hơi gai sốt và mỏi cơ bắp, có cần uống thuốc gì không?"
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, bạn có thể theo dõi nhiệt độ và nghỉ ngơi, uống đủ nước. Bạn có triệu chứng nào khác không?"
+      },
+      {
+        "role": "user",
+        "content": "Bây giờ tôi thấy sốt vọt lên 39.8 độ, đau đầu dữ dội không chịu nổi, cổ cứng đơ cúi xuống cằm không chạm ngực được và nôn vọt."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0026",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị ho khan mấy hôm nay, không sốt, người hơi mệt."
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, ho khan kéo dài có thể do kích ứng đường hô hấp. Bạn có đau ngực hay khó thở không?"
+      },
+      {
+        "role": "user",
+        "content": "Chiều nay bắt đầu ho ra đờm có dính vệt máu tươi lẫn trong đờm và thấy tức nhẹ một bên ngực phải khi ho mạnh."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0027",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bác sĩ ơi, từ sáng tôi thấy người hơi gai sốt và mỏi cơ bắp, có cần uống thuốc gì không?"
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, bạn có thể theo dõi nhiệt độ và nghỉ ngơi, uống đủ nước. Bạn có triệu chứng nào khác không?"
+      },
+      {
+        "role": "user",
+        "content": "Bây giờ tôi thấy sốt vọt lên 39.8 độ, đau đầu dữ dội không chịu nổi, cổ cứng đơ cúi xuống cằm không chạm ngực được và nôn vọt."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0028",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị ho khan mấy hôm nay, không sốt, người hơi mệt."
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, ho khan kéo dài có thể do kích ứng đường hô hấp. Bạn có đau ngực hay khó thở không?"
+      },
+      {
+        "role": "user",
+        "content": "Chiều nay bắt đầu ho ra đờm có dính vệt máu tươi lẫn trong đờm và thấy tức nhẹ một bên ngực phải khi ho mạnh."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0029",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bác sĩ ơi, từ sáng tôi thấy người hơi gai sốt và mỏi cơ bắp, có cần uống thuốc gì không?"
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, bạn có thể theo dõi nhiệt độ và nghỉ ngơi, uống đủ nước. Bạn có triệu chứng nào khác không?"
+      },
+      {
+        "role": "user",
+        "content": "Bây giờ tôi thấy sốt vọt lên 39.8 độ, đau đầu dữ dội không chịu nổi, cổ cứng đơ cúi xuống cằm không chạm ngực được và nôn vọt."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0030",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị ho khan mấy hôm nay, không sốt, người hơi mệt."
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, ho khan kéo dài có thể do kích ứng đường hô hấp. Bạn có đau ngực hay khó thở không?"
+      },
+      {
+        "role": "user",
+        "content": "Chiều nay bắt đầu ho ra đờm có dính vệt máu tươi lẫn trong đờm và thấy tức nhẹ một bên ngực phải khi ho mạnh."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0031",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bác sĩ ơi, từ sáng tôi thấy người hơi gai sốt và mỏi cơ bắp, có cần uống thuốc gì không?"
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, bạn có thể theo dõi nhiệt độ và nghỉ ngơi, uống đủ nước. Bạn có triệu chứng nào khác không?"
+      },
+      {
+        "role": "user",
+        "content": "Bây giờ tôi thấy sốt vọt lên 39.8 độ, đau đầu dữ dội không chịu nổi, cổ cứng đơ cúi xuống cằm không chạm ngực được và nôn vọt."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0032",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị ho khan mấy hôm nay, không sốt, người hơi mệt."
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, ho khan kéo dài có thể do kích ứng đường hô hấp. Bạn có đau ngực hay khó thở không?"
+      },
+      {
+        "role": "user",
+        "content": "Chiều nay bắt đầu ho ra đờm có dính vệt máu tươi lẫn trong đờm và thấy tức nhẹ một bên ngực phải khi ho mạnh."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0033",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bác sĩ ơi, từ sáng tôi thấy người hơi gai sốt và mỏi cơ bắp, có cần uống thuốc gì không?"
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, bạn có thể theo dõi nhiệt độ và nghỉ ngơi, uống đủ nước. Bạn có triệu chứng nào khác không?"
+      },
+      {
+        "role": "user",
+        "content": "Bây giờ tôi thấy sốt vọt lên 39.8 độ, đau đầu dữ dội không chịu nổi, cổ cứng đơ cúi xuống cằm không chạm ngực được và nôn vọt."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0034",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị ho khan mấy hôm nay, không sốt, người hơi mệt."
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, ho khan kéo dài có thể do kích ứng đường hô hấp. Bạn có đau ngực hay khó thở không?"
+      },
+      {
+        "role": "user",
+        "content": "Chiều nay bắt đầu ho ra đờm có dính vệt máu tươi lẫn trong đờm và thấy tức nhẹ một bên ngực phải khi ho mạnh."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0035",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bác sĩ ơi, từ sáng tôi thấy người hơi gai sốt và mỏi cơ bắp, có cần uống thuốc gì không?"
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, bạn có thể theo dõi nhiệt độ và nghỉ ngơi, uống đủ nước. Bạn có triệu chứng nào khác không?"
+      },
+      {
+        "role": "user",
+        "content": "Bây giờ tôi thấy sốt vọt lên 39.8 độ, đau đầu dữ dội không chịu nổi, cổ cứng đơ cúi xuống cằm không chạm ngực được và nôn vọt."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0036",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị ho khan mấy hôm nay, không sốt, người hơi mệt."
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, ho khan kéo dài có thể do kích ứng đường hô hấp. Bạn có đau ngực hay khó thở không?"
+      },
+      {
+        "role": "user",
+        "content": "Chiều nay bắt đầu ho ra đờm có dính vệt máu tươi lẫn trong đờm và thấy tức nhẹ một bên ngực phải khi ho mạnh."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0037",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bác sĩ ơi, từ sáng tôi thấy người hơi gai sốt và mỏi cơ bắp, có cần uống thuốc gì không?"
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, bạn có thể theo dõi nhiệt độ và nghỉ ngơi, uống đủ nước. Bạn có triệu chứng nào khác không?"
+      },
+      {
+        "role": "user",
+        "content": "Bây giờ tôi thấy sốt vọt lên 39.8 độ, đau đầu dữ dội không chịu nổi, cổ cứng đơ cúi xuống cằm không chạm ngực được và nôn vọt."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0038",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị ho khan mấy hôm nay, không sốt, người hơi mệt."
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, ho khan kéo dài có thể do kích ứng đường hô hấp. Bạn có đau ngực hay khó thở không?"
+      },
+      {
+        "role": "user",
+        "content": "Chiều nay bắt đầu ho ra đờm có dính vệt máu tươi lẫn trong đờm và thấy tức nhẹ một bên ngực phải khi ho mạnh."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0039",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bác sĩ ơi, từ sáng tôi thấy người hơi gai sốt và mỏi cơ bắp, có cần uống thuốc gì không?"
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, bạn có thể theo dõi nhiệt độ và nghỉ ngơi, uống đủ nước. Bạn có triệu chứng nào khác không?"
+      },
+      {
+        "role": "user",
+        "content": "Bây giờ tôi thấy sốt vọt lên 39.8 độ, đau đầu dữ dội không chịu nổi, cổ cứng đơ cúi xuống cằm không chạm ngực được và nôn vọt."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-MT-0040",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi bị ho khan mấy hôm nay, không sốt, người hơi mệt."
+      },
+      {
+        "role": "assistant",
+        "content": "Chào bạn, ho khan kéo dài có thể do kích ứng đường hô hấp. Bạn có đau ngực hay khó thở không?"
+      },
+      {
+        "role": "user",
+        "content": "Chiều nay bắt đầu ho ra đờm có dính vệt máu tươi lẫn trong đờm và thấy tức nhẹ một bên ngực phải khi ho mạnh."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-IL-0001",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tự nhiên thấy ngực tức nghẹn như có tảng đá lớn đè nặng lên ngực, không tài nào hít sâu được. Tình trạng này mới bị lúc nãy (Ca V8-IL-0001)."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-IL-0002",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Người tôi bủn rủn, mồ hôi hột toát ra như tắm ướt đẫm cả lưng áo, mắt hoa cà hoa cải tối sầm lại. Tình trạng này mới bị lúc nãy (Ca V8-IL-0002)."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-IL-0003",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảm giác ruột gan bị ai bóp nghẹt xoắn lại từng cơn, đau thắt đến mức phải gập người ôm bụng lăn lộn. Tình trạng này mới bị lúc nãy (Ca V8-IL-0003)."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-IL-0004",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cổ họng nghẹn ứ, thở nghe khò khè rít lên như ống sậy, nói không ra hơi chỉ thều thào được từng từ. Tình trạng này mới bị lúc nãy (Ca V8-IL-0004)."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-IL-0005",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Chân tay mềm nhũn, cầm đũa rớt xuống mâm, miệng nói ú ớ ngọng líu ngọng lô như người say rượu. Tình trạng này mới bị lúc nãy (Ca V8-IL-0005)."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-IL-0006",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tự nhiên thấy ngực tức nghẹn như có tảng đá lớn đè nặng lên ngực, không tài nào hít sâu được. Tình trạng này mới bị lúc nãy (Ca V8-IL-0006)."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-IL-0007",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Người tôi bủn rủn, mồ hôi hột toát ra như tắm ướt đẫm cả lưng áo, mắt hoa cà hoa cải tối sầm lại. Tình trạng này mới bị lúc nãy (Ca V8-IL-0007)."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-IL-0008",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảm giác ruột gan bị ai bóp nghẹt xoắn lại từng cơn, đau thắt đến mức phải gập người ôm bụng lăn lộn. Tình trạng này mới bị lúc nãy (Ca V8-IL-0008)."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-IL-0009",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cổ họng nghẹn ứ, thở nghe khò khè rít lên như ống sậy, nói không ra hơi chỉ thều thào được từng từ. Tình trạng này mới bị lúc nãy (Ca V8-IL-0009)."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-IL-0010",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Chân tay mềm nhũn, cầm đũa rớt xuống mâm, miệng nói ú ớ ngọng líu ngọng lô như người say rượu. Tình trạng này mới bị lúc nãy (Ca V8-IL-0010)."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-IL-0011",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tự nhiên thấy ngực tức nghẹn như có tảng đá lớn đè nặng lên ngực, không tài nào hít sâu được. Tình trạng này mới bị lúc nãy (Ca V8-IL-0011)."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-IL-0012",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Người tôi bủn rủn, mồ hôi hột toát ra như tắm ướt đẫm cả lưng áo, mắt hoa cà hoa cải tối sầm lại. Tình trạng này mới bị lúc nãy (Ca V8-IL-0012)."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-IL-0013",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảm giác ruột gan bị ai bóp nghẹt xoắn lại từng cơn, đau thắt đến mức phải gập người ôm bụng lăn lộn. Tình trạng này mới bị lúc nãy (Ca V8-IL-0013)."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-IL-0014",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cổ họng nghẹn ứ, thở nghe khò khè rít lên như ống sậy, nói không ra hơi chỉ thều thào được từng từ. Tình trạng này mới bị lúc nãy (Ca V8-IL-0014)."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-IL-0015",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Chân tay mềm nhũn, cầm đũa rớt xuống mâm, miệng nói ú ớ ngọng líu ngọng lô như người say rượu. Tình trạng này mới bị lúc nãy (Ca V8-IL-0015)."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-IL-0016",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tự nhiên thấy ngực tức nghẹn như có tảng đá lớn đè nặng lên ngực, không tài nào hít sâu được. Tình trạng này mới bị lúc nãy (Ca V8-IL-0016)."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-IL-0017",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Người tôi bủn rủn, mồ hôi hột toát ra như tắm ướt đẫm cả lưng áo, mắt hoa cà hoa cải tối sầm lại. Tình trạng này mới bị lúc nãy (Ca V8-IL-0017)."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-IL-0018",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảm giác ruột gan bị ai bóp nghẹt xoắn lại từng cơn, đau thắt đến mức phải gập người ôm bụng lăn lộn. Tình trạng này mới bị lúc nãy (Ca V8-IL-0018)."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-IL-0019",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cổ họng nghẹn ứ, thở nghe khò khè rít lên như ống sậy, nói không ra hơi chỉ thều thào được từng từ. Tình trạng này mới bị lúc nãy (Ca V8-IL-0019)."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-IL-0020",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Chân tay mềm nhũn, cầm đũa rớt xuống mâm, miệng nói ú ớ ngọng líu ngọng lô như người say rượu. Tình trạng này mới bị lúc nãy (Ca V8-IL-0020)."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-IL-0021",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tự nhiên thấy ngực tức nghẹn như có tảng đá lớn đè nặng lên ngực, không tài nào hít sâu được. Tình trạng này mới bị lúc nãy (Ca V8-IL-0021)."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-IL-0022",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Người tôi bủn rủn, mồ hôi hột toát ra như tắm ướt đẫm cả lưng áo, mắt hoa cà hoa cải tối sầm lại. Tình trạng này mới bị lúc nãy (Ca V8-IL-0022)."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-IL-0023",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảm giác ruột gan bị ai bóp nghẹt xoắn lại từng cơn, đau thắt đến mức phải gập người ôm bụng lăn lộn. Tình trạng này mới bị lúc nãy (Ca V8-IL-0023)."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-IL-0024",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cổ họng nghẹn ứ, thở nghe khò khè rít lên như ống sậy, nói không ra hơi chỉ thều thào được từng từ. Tình trạng này mới bị lúc nãy (Ca V8-IL-0024)."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-IL-0025",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Chân tay mềm nhũn, cầm đũa rớt xuống mâm, miệng nói ú ớ ngọng líu ngọng lô như người say rượu. Tình trạng này mới bị lúc nãy (Ca V8-IL-0025)."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-IL-0026",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tự nhiên thấy ngực tức nghẹn như có tảng đá lớn đè nặng lên ngực, không tài nào hít sâu được. Tình trạng này mới bị lúc nãy (Ca V8-IL-0026)."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-IL-0027",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Người tôi bủn rủn, mồ hôi hột toát ra như tắm ướt đẫm cả lưng áo, mắt hoa cà hoa cải tối sầm lại. Tình trạng này mới bị lúc nãy (Ca V8-IL-0027)."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-IL-0028",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cảm giác ruột gan bị ai bóp nghẹt xoắn lại từng cơn, đau thắt đến mức phải gập người ôm bụng lăn lộn. Tình trạng này mới bị lúc nãy (Ca V8-IL-0028)."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-IL-0029",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Cổ họng nghẹn ứ, thở nghe khò khè rít lên như ống sậy, nói không ra hơi chỉ thều thào được từng từ. Tình trạng này mới bị lúc nãy (Ca V8-IL-0029)."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-IL-0030",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Chân tay mềm nhũn, cầm đũa rớt xuống mâm, miệng nói ú ớ ngọng líu ngọng lô như người say rượu. Tình trạng này mới bị lúc nãy (Ca V8-IL-0030)."
+      }
+    ]
+  },
+  {
+    "case_id": "V8-UC-0001",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi thấy trong người bình thường không đau đớn gì chỉ hơi ngột ngạt nhẹ, nhưng máy đo oxy kẹp ngón tay chỉ số SpO2 chỉ có 85% và mạch 135 lần/phút. (Mã V8-UC-0001)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-UC-0002",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi thấy trong người bình thường không đau đớn gì chỉ hơi ngột ngạt nhẹ, nhưng máy đo oxy kẹp ngón tay chỉ số SpO2 chỉ có 85% và mạch 135 lần/phút. (Mã V8-UC-0002)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-UC-0003",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi thấy trong người bình thường không đau đớn gì chỉ hơi ngột ngạt nhẹ, nhưng máy đo oxy kẹp ngón tay chỉ số SpO2 chỉ có 85% và mạch 135 lần/phút. (Mã V8-UC-0003)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-UC-0004",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi thấy trong người bình thường không đau đớn gì chỉ hơi ngột ngạt nhẹ, nhưng máy đo oxy kẹp ngón tay chỉ số SpO2 chỉ có 85% và mạch 135 lần/phút. (Mã V8-UC-0004)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-UC-0005",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi thấy trong người bình thường không đau đớn gì chỉ hơi ngột ngạt nhẹ, nhưng máy đo oxy kẹp ngón tay chỉ số SpO2 chỉ có 85% và mạch 135 lần/phút. (Mã V8-UC-0005)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-UC-0006",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi thấy trong người bình thường không đau đớn gì chỉ hơi ngột ngạt nhẹ, nhưng máy đo oxy kẹp ngón tay chỉ số SpO2 chỉ có 85% và mạch 135 lần/phút. (Mã V8-UC-0006)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-UC-0007",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi thấy trong người bình thường không đau đớn gì chỉ hơi ngột ngạt nhẹ, nhưng máy đo oxy kẹp ngón tay chỉ số SpO2 chỉ có 85% và mạch 135 lần/phút. (Mã V8-UC-0007)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-UC-0008",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi thấy trong người bình thường không đau đớn gì chỉ hơi ngột ngạt nhẹ, nhưng máy đo oxy kẹp ngón tay chỉ số SpO2 chỉ có 85% và mạch 135 lần/phút. (Mã V8-UC-0008)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-UC-0009",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi thấy trong người bình thường không đau đớn gì chỉ hơi ngột ngạt nhẹ, nhưng máy đo oxy kẹp ngón tay chỉ số SpO2 chỉ có 85% và mạch 135 lần/phút. (Mã V8-UC-0009)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-UC-0010",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi thấy trong người bình thường không đau đớn gì chỉ hơi ngột ngạt nhẹ, nhưng máy đo oxy kẹp ngón tay chỉ số SpO2 chỉ có 85% và mạch 135 lần/phút. (Mã V8-UC-0010)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-UC-0011",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi thấy trong người bình thường không đau đớn gì chỉ hơi ngột ngạt nhẹ, nhưng máy đo oxy kẹp ngón tay chỉ số SpO2 chỉ có 85% và mạch 135 lần/phút. (Mã V8-UC-0011)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-UC-0012",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi thấy trong người bình thường không đau đớn gì chỉ hơi ngột ngạt nhẹ, nhưng máy đo oxy kẹp ngón tay chỉ số SpO2 chỉ có 85% và mạch 135 lần/phút. (Mã V8-UC-0012)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-UC-0013",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi thấy trong người bình thường không đau đớn gì chỉ hơi ngột ngạt nhẹ, nhưng máy đo oxy kẹp ngón tay chỉ số SpO2 chỉ có 85% và mạch 135 lần/phút. (Mã V8-UC-0013)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-UC-0014",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi thấy trong người bình thường không đau đớn gì chỉ hơi ngột ngạt nhẹ, nhưng máy đo oxy kẹp ngón tay chỉ số SpO2 chỉ có 85% và mạch 135 lần/phút. (Mã V8-UC-0014)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-UC-0015",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi thấy trong người bình thường không đau đớn gì chỉ hơi ngột ngạt nhẹ, nhưng máy đo oxy kẹp ngón tay chỉ số SpO2 chỉ có 85% và mạch 135 lần/phút. (Mã V8-UC-0015)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-UC-0016",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi thấy trong người bình thường không đau đớn gì chỉ hơi ngột ngạt nhẹ, nhưng máy đo oxy kẹp ngón tay chỉ số SpO2 chỉ có 85% và mạch 135 lần/phút. (Mã V8-UC-0016)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-UC-0017",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi thấy trong người bình thường không đau đớn gì chỉ hơi ngột ngạt nhẹ, nhưng máy đo oxy kẹp ngón tay chỉ số SpO2 chỉ có 85% và mạch 135 lần/phút. (Mã V8-UC-0017)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-UC-0018",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi thấy trong người bình thường không đau đớn gì chỉ hơi ngột ngạt nhẹ, nhưng máy đo oxy kẹp ngón tay chỉ số SpO2 chỉ có 85% và mạch 135 lần/phút. (Mã V8-UC-0018)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-UC-0019",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi thấy trong người bình thường không đau đớn gì chỉ hơi ngột ngạt nhẹ, nhưng máy đo oxy kẹp ngón tay chỉ số SpO2 chỉ có 85% và mạch 135 lần/phút. (Mã V8-UC-0019)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-UC-0020",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi thấy trong người bình thường không đau đớn gì chỉ hơi ngột ngạt nhẹ, nhưng máy đo oxy kẹp ngón tay chỉ số SpO2 chỉ có 85% và mạch 135 lần/phút. (Mã V8-UC-0020)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-UC-0021",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi thấy trong người bình thường không đau đớn gì chỉ hơi ngột ngạt nhẹ, nhưng máy đo oxy kẹp ngón tay chỉ số SpO2 chỉ có 85% và mạch 135 lần/phút. (Mã V8-UC-0021)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-UC-0022",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi thấy trong người bình thường không đau đớn gì chỉ hơi ngột ngạt nhẹ, nhưng máy đo oxy kẹp ngón tay chỉ số SpO2 chỉ có 85% và mạch 135 lần/phút. (Mã V8-UC-0022)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-UC-0023",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi thấy trong người bình thường không đau đớn gì chỉ hơi ngột ngạt nhẹ, nhưng máy đo oxy kẹp ngón tay chỉ số SpO2 chỉ có 85% và mạch 135 lần/phút. (Mã V8-UC-0023)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-UC-0024",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi thấy trong người bình thường không đau đớn gì chỉ hơi ngột ngạt nhẹ, nhưng máy đo oxy kẹp ngón tay chỉ số SpO2 chỉ có 85% và mạch 135 lần/phút. (Mã V8-UC-0024)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-UC-0025",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi thấy trong người bình thường không đau đớn gì chỉ hơi ngột ngạt nhẹ, nhưng máy đo oxy kẹp ngón tay chỉ số SpO2 chỉ có 85% và mạch 135 lần/phút. (Mã V8-UC-0025)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-BC-0001",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hôm qua tôi đi tập gym nâng tạ chân hơi nặng, hôm nay bắp đùi hơi ê ẩm khi bước lên cầu thang, không sốt không sưng đỏ. (Mã ca chứng: V8-BC-0001)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-BC-0002",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Mấy hôm nay trời giao mùa se lạnh tôi hay bị ngứa mũi và hắt xì vài cái vào buổi sáng sớm, người vẫn khỏe ăn ngủ tốt. (Mã ca chứng: V8-BC-0002)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-BC-0003",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bị mép giấy cứa vào đầu ngón tay trỏ chảy tí xíu máu đã rửa sạch và dán băng cá nhân gâu, giờ hơi xót nhẹ. (Mã ca chứng: V8-BC-0003)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-BC-0004",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Trên trán em mới nổi 2 nốt mụn trứng cá hơi đỏ cộm nhẹ, em muốn hỏi cách chăm sóc rửa mặt. (Mã ca chứng: V8-BC-0004)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-BC-0005",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi làm việc trước màn hình vi tính liên tục 8 tiếng thấy mỏi mắt và hơi khô mắt, nghỉ ngơi thì đỡ hơn. (Mã ca chứng: V8-BC-0005)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-BC-0006",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hôm qua tôi đi tập gym nâng tạ chân hơi nặng, hôm nay bắp đùi hơi ê ẩm khi bước lên cầu thang, không sốt không sưng đỏ. (Mã ca chứng: V8-BC-0006)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-BC-0007",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Mấy hôm nay trời giao mùa se lạnh tôi hay bị ngứa mũi và hắt xì vài cái vào buổi sáng sớm, người vẫn khỏe ăn ngủ tốt. (Mã ca chứng: V8-BC-0007)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-BC-0008",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bị mép giấy cứa vào đầu ngón tay trỏ chảy tí xíu máu đã rửa sạch và dán băng cá nhân gâu, giờ hơi xót nhẹ. (Mã ca chứng: V8-BC-0008)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-BC-0009",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Trên trán em mới nổi 2 nốt mụn trứng cá hơi đỏ cộm nhẹ, em muốn hỏi cách chăm sóc rửa mặt. (Mã ca chứng: V8-BC-0009)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-BC-0010",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi làm việc trước màn hình vi tính liên tục 8 tiếng thấy mỏi mắt và hơi khô mắt, nghỉ ngơi thì đỡ hơn. (Mã ca chứng: V8-BC-0010)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-BC-0011",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hôm qua tôi đi tập gym nâng tạ chân hơi nặng, hôm nay bắp đùi hơi ê ẩm khi bước lên cầu thang, không sốt không sưng đỏ. (Mã ca chứng: V8-BC-0011)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-BC-0012",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Mấy hôm nay trời giao mùa se lạnh tôi hay bị ngứa mũi và hắt xì vài cái vào buổi sáng sớm, người vẫn khỏe ăn ngủ tốt. (Mã ca chứng: V8-BC-0012)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-BC-0013",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bị mép giấy cứa vào đầu ngón tay trỏ chảy tí xíu máu đã rửa sạch và dán băng cá nhân gâu, giờ hơi xót nhẹ. (Mã ca chứng: V8-BC-0013)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-BC-0014",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Trên trán em mới nổi 2 nốt mụn trứng cá hơi đỏ cộm nhẹ, em muốn hỏi cách chăm sóc rửa mặt. (Mã ca chứng: V8-BC-0014)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-BC-0015",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi làm việc trước màn hình vi tính liên tục 8 tiếng thấy mỏi mắt và hơi khô mắt, nghỉ ngơi thì đỡ hơn. (Mã ca chứng: V8-BC-0015)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-BC-0016",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hôm qua tôi đi tập gym nâng tạ chân hơi nặng, hôm nay bắp đùi hơi ê ẩm khi bước lên cầu thang, không sốt không sưng đỏ. (Mã ca chứng: V8-BC-0016)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-BC-0017",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Mấy hôm nay trời giao mùa se lạnh tôi hay bị ngứa mũi và hắt xì vài cái vào buổi sáng sớm, người vẫn khỏe ăn ngủ tốt. (Mã ca chứng: V8-BC-0017)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-BC-0018",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bị mép giấy cứa vào đầu ngón tay trỏ chảy tí xíu máu đã rửa sạch và dán băng cá nhân gâu, giờ hơi xót nhẹ. (Mã ca chứng: V8-BC-0018)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-BC-0019",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Trên trán em mới nổi 2 nốt mụn trứng cá hơi đỏ cộm nhẹ, em muốn hỏi cách chăm sóc rửa mặt. (Mã ca chứng: V8-BC-0019)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-BC-0020",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi làm việc trước màn hình vi tính liên tục 8 tiếng thấy mỏi mắt và hơi khô mắt, nghỉ ngơi thì đỡ hơn. (Mã ca chứng: V8-BC-0020)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-BC-0021",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hôm qua tôi đi tập gym nâng tạ chân hơi nặng, hôm nay bắp đùi hơi ê ẩm khi bước lên cầu thang, không sốt không sưng đỏ. (Mã ca chứng: V8-BC-0021)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-BC-0022",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Mấy hôm nay trời giao mùa se lạnh tôi hay bị ngứa mũi và hắt xì vài cái vào buổi sáng sớm, người vẫn khỏe ăn ngủ tốt. (Mã ca chứng: V8-BC-0022)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-BC-0023",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Bị mép giấy cứa vào đầu ngón tay trỏ chảy tí xíu máu đã rửa sạch và dán băng cá nhân gâu, giờ hơi xót nhẹ. (Mã ca chứng: V8-BC-0023)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-BC-0024",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Trên trán em mới nổi 2 nốt mụn trứng cá hơi đỏ cộm nhẹ, em muốn hỏi cách chăm sóc rửa mặt. (Mã ca chứng: V8-BC-0024)"
+      }
+    ]
+  },
+  {
+    "case_id": "V8-BC-0025",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tôi làm việc trước màn hình vi tính liên tục 8 tiếng thấy mỏi mắt và hơi khô mắt, nghỉ ngơi thì đỡ hơn. (Mã ca chứng: V8-BC-0025)"
+      }
+    ]
+  }
+]

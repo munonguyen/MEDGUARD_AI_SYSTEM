@@ -1,0 +1,457 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "description": "DS-TYPO-AND-REVISION — 40 ca huấn luyện & đánh giá khả năng chịu lỗi chính tả, xử lý teencode và tự hiệu chỉnh câu trả lời thuyết phục",
+    "provenance": "synthetic & real-world mobile typing variations for MedGuard AI robustness",
+    "total": 40,
+    "groups": {
+      "TYPO_RESILIENCE": 20,
+      "VERIFIER_CRITIQUE_REVISION": 10,
+      "NATURAL_PERSUASIVE_TRIAGE": 10
+    }
+  },
+  "cases": [
+    {
+      "case_id": "TR-TYP-001",
+      "group": "TYPO_RESILIENCE",
+      "sub_category": "TEENCODE_STRAIN",
+      "input": "tôi đang đi trên đg do vận sức wá bị kăng kơ tay",
+      "expected_intent": "triage",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "clinical",
+      "normalized_keywords": ["cang co", "van suc", "tay"],
+      "description": "Căng cơ tay gõ teencode (đg, wá, kăng kơ) vẫn phân luồng chuẩn"
+    },
+    {
+      "case_id": "TR-TYP-002",
+      "group": "TYPO_RESILIENCE",
+      "sub_category": "PHONETIC_CRAMP",
+      "input": "bị chuọt zút bắp chân đau wá không đi đc",
+      "expected_intent": "triage",
+      "expected_urgency": "URGENT",
+      "expected_domain": "clinical",
+      "normalized_keywords": ["chuot rut", "bap chan", "khong di duoc"],
+      "description": "Chuột rút kèm khó đi viết sai chính tả (chuọt zút, wá, ko đi đc)"
+    },
+    {
+      "case_id": "TR-TYP-003",
+      "group": "TYPO_RESILIENCE",
+      "sub_category": "UNACCENTED_STRAIN",
+      "input": "toi bi can co tay khi van suc khong biet bi gi",
+      "expected_intent": "triage",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "clinical",
+      "normalized_keywords": ["cang co", "tay", "van suc"],
+      "description": "Gõ không dấu và lỗi gõ thiếu chữ (can co thay vì cang co)"
+    },
+    {
+      "case_id": "TR-TYP-004",
+      "group": "TYPO_RESILIENCE",
+      "sub_category": "CHEST_PAIN_TYPO",
+      "input": "bị đau nguk tuc nguk vói khó thở dữ zội",
+      "expected_intent": "triage",
+      "expected_urgency": "EMERGENCY",
+      "expected_domain": "clinical",
+      "normalized_keywords": ["dau nguc", "tuc nguc", "kho tho"],
+      "description": "Đau ngực cấp cứu gõ teencode nguk và dữ zội"
+    },
+    {
+      "case_id": "TR-TYP-005",
+      "group": "TYPO_RESILIENCE",
+      "sub_category": "ABDOMINAL_TYPO",
+      "input": "e bị đau bụg dưới bên phải quằn quại từ sáng",
+      "expected_intent": "triage",
+      "expected_urgency": "URGENT",
+      "expected_domain": "clinical",
+      "normalized_keywords": ["dau bung"],
+      "description": "Đau bụng viết tắt 'e' và 'bụg'"
+    },
+    {
+      "case_id": "TR-TYP-006",
+      "group": "TYPO_RESILIENCE",
+      "sub_category": "HEADACHE_TYPO",
+      "input": "đau đầu âm ỷ cả ngầy khi thức zậy",
+      "expected_intent": "triage",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "clinical",
+      "normalized_keywords": ["dau dau", "am i", "thuc day"],
+      "description": "Đau đầu gõ sai âm ỷ, ngầy, zậy"
+    },
+    {
+      "case_id": "TR-TYP-007",
+      "group": "TYPO_RESILIENCE",
+      "sub_category": "NECK_PAIN_TYPO",
+      "input": "mỏi kổ vai gáy khi ngồi làm việk nhìu",
+      "expected_intent": "triage",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "clinical",
+      "normalized_keywords": ["co vai gay", "moi co"],
+      "description": "Cổ vai gáy viết kổ và việk"
+    },
+    {
+      "case_id": "TR-TYP-008",
+      "group": "TYPO_RESILIENCE",
+      "sub_category": "MEDICATION_TYPO",
+      "input": "uốg thuốk paracetamol chung zới ibuprofen đc ko bsi",
+      "expected_intent": "safety",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "pharmacology",
+      "normalized_keywords": ["paracetamol", "ibuprofen"],
+      "description": "Tương tác thuốc gõ teencode uốg thuốk, zới, đc ko"
+    },
+    {
+      "case_id": "TR-TYP-009",
+      "group": "TYPO_RESILIENCE",
+      "sub_category": "STOMACH_TYPO",
+      "input": "bị viêm loét dạ zày có dùg aspirin đc k",
+      "expected_intent": "safety",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "pharmacology",
+      "normalized_keywords": ["aspirin", "da day"],
+      "description": "Chống chỉ định gõ dạ zày, dùg, đc k"
+    },
+    {
+      "case_id": "TR-TYP-010",
+      "group": "TYPO_RESILIENCE",
+      "sub_category": "FEVER_TYPO",
+      "input": "bé sốt wá sốt zét lanh run cả buổi chìu",
+      "expected_intent": "triage",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "clinical",
+      "normalized_keywords": ["sot", "lanh run"],
+      "description": "Sốt gõ sốt zét, wá, chìu"
+    },
+    {
+      "case_id": "TR-TYP-011",
+      "group": "TYPO_RESILIENCE",
+      "sub_category": "VOMITING_TYPO",
+      "input": "nôn mữa liên tụk bùn nôn ko ăn đc j",
+      "expected_intent": "triage",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "clinical",
+      "normalized_keywords": ["non", "buon non"],
+      "description": "Nôn buồn nôn gõ bùn nôn, liên tụk, mữa"
+    },
+    {
+      "case_id": "TR-TYP-012",
+      "group": "TYPO_RESILIENCE",
+      "sub_category": "DIARRHEA_TYPO",
+      "input": "đi ngoài tiều chảy hơn 5 lần ngừoi mệt lả",
+      "expected_intent": "triage",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "clinical",
+      "normalized_keywords": ["tieu chay", "met"],
+      "description": "Tiêu chảy gõ tiều chảy, ngừoi"
+    },
+    {
+      "case_id": "TR-TYP-013",
+      "group": "TYPO_RESILIENCE",
+      "sub_category": "STROKE_TYPO",
+      "input": "ông e đột ngột méo miệg nói ngọg tay fải yếu liệt",
+      "expected_intent": "triage",
+      "expected_urgency": "EMERGENCY",
+      "expected_domain": "clinical",
+      "normalized_keywords": ["meo mieng", "noi ngong", "yeu liet"],
+      "description": "Đột quỵ FAST gõ méo miệg, ngọg, fải"
+    },
+    {
+      "case_id": "TR-TYP-014",
+      "group": "TYPO_RESILIENCE",
+      "sub_category": "SHORTNESS_BREATH_TYPO",
+      "input": "khó thở wá thở dốk hổn hển tim đập thình thịch",
+      "expected_intent": "triage",
+      "expected_urgency": "EMERGENCY",
+      "expected_domain": "clinical",
+      "normalized_keywords": ["kho tho", "tim dap nhanh"],
+      "description": "Khó thở tim đập thình thịch viết sai chính tả"
+    },
+    {
+      "case_id": "TR-TYP-015",
+      "group": "TYPO_RESILIENCE",
+      "sub_category": "RASH_ALLERGY_TYPO",
+      "input": "uốg amox xong bị nổi mẫn ngứa đỏ cả ngừoi",
+      "expected_intent": "triage",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "clinical",
+      "normalized_keywords": ["amoxicillin", "di ung", "noi man"],
+      "description": "Dị ứng thuốc gõ nổi mẫn, uốg, ngừoi"
+    },
+    {
+      "case_id": "TR-TYP-016",
+      "group": "TYPO_RESILIENCE",
+      "sub_category": "FATIGUE_STRAIN_TYPO",
+      "input": "vận sức bê đồ nặng xog bị đao kăng kơ bắp tay",
+      "expected_intent": "triage",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "clinical",
+      "normalized_keywords": ["van suc", "cang co", "tay"],
+      "description": "Bê đồ nặng căng cơ tay viết xog, đao kăng kơ"
+    },
+    {
+      "case_id": "TR-TYP-017",
+      "group": "TYPO_RESILIENCE",
+      "sub_category": "ANKLE_SPRAIN_TYPO",
+      "input": "chơi đá banh lật kổ chân sưng to đau wá",
+      "expected_intent": "triage",
+      "expected_urgency": "URGENT",
+      "expected_domain": "clinical",
+      "normalized_keywords": ["co chan", "sung", "dau"],
+      "description": "Lật cổ chân viết lật kổ chân, wá"
+    },
+    {
+      "case_id": "TR-TYP-018",
+      "group": "TYPO_RESILIENCE",
+      "sub_category": "DIZZY_TYPO",
+      "input": "đứg lên bị chóg mặt hoa mắt mún té xỉu",
+      "expected_intent": "triage",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "clinical",
+      "normalized_keywords": ["chong mat", "hoa mat"],
+      "description": "Chóng mặt viết đứg, chóg, mún té"
+    },
+    {
+      "case_id": "TR-TYP-019",
+      "group": "TYPO_RESILIENCE",
+      "sub_category": "COUGH_TYPO",
+      "input": "ho khan kéo zài cả tuần hổng hết rát cổ wá",
+      "expected_intent": "triage",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "clinical",
+      "normalized_keywords": ["ho", "rat co"],
+      "description": "Ho khan kéo zài hổng hết wá"
+    },
+    {
+      "case_id": "TR-TYP-020",
+      "group": "TYPO_RESILIENCE",
+      "sub_category": "HEART_RATE_TYPO",
+      "input": "nhịp tim đập 125 lần/phút thấy hồi hộp hụt hởi",
+      "expected_intent": "triage",
+      "expected_urgency": "EMERGENCY",
+      "expected_domain": "clinical",
+      "normalized_keywords": ["nhip tim", "hoi hop"],
+      "description": "Nhịp tim nhanh gõ hụt hởi"
+    },
+    {
+      "case_id": "TR-TYP-021",
+      "group": "TYPO_RESILIENCE",
+      "sub_category": "SCABIES_TREATMENT",
+      "input": "tôi đang bị ghẻ có cách nào chữa",
+      "expected_intent": "triage",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "clinical",
+      "normalized_keywords": ["ghe", "chua"],
+      "description": "Hỏi cách chữa bệnh ghẻ ngứa ngoài da"
+    },
+    {
+      "case_id": "TR-TYP-022",
+      "group": "TYPO_RESILIENCE",
+      "sub_category": "CUT_WOUND_FIRST_AID",
+      "input": "Tôi đang học tự dưng bị đứt tay đau quá huhu",
+      "expected_intent": "triage",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "clinical",
+      "normalized_keywords": ["dut tay", "dau"],
+      "description": "Bị đứt tay đau cần sơ cứu cầm máu khẩn"
+    },
+    {
+      "case_id": "TR-REV-001",
+      "group": "VERIFIER_CRITIQUE_REVISION",
+      "sub_category": "UNSUPPORTED_DIAGNOSIS_REVISED",
+      "input": "Tôi bị căng cơ bắp tay sau khi nâng tạ, có phải rách cơ rồi không?",
+      "expected_intent": "triage",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "clinical",
+      "description": "Bản nháp Writer phán đoán rách cơ -> Verifier phê bình -> Self-correction giữ diễn giải tự nhiên + khuyến cáo RICE"
+    },
+    {
+      "case_id": "TR-REV-002",
+      "group": "VERIFIER_CRITIQUE_REVISION",
+      "sub_category": "FALSE_REASSURANCE_REVISED",
+      "input": "Đau cơ tay sau khi đẩy xe máy có đáng lo không?",
+      "expected_intent": "triage",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "clinical",
+      "description": "Writer nói không sao -> Verifier gắn cờ false reassurance -> Chỉnh sửa nêu rõ dấu hiệu cảnh báo"
+    },
+    {
+      "case_id": "TR-REV-003",
+      "group": "VERIFIER_CRITIQUE_REVISION",
+      "sub_category": "MISSING_RICE_PROTOCOL",
+      "input": "Tự dưng bị căng cứng cơ đùi khi chạy bộ nên làm gì ngay?",
+      "expected_intent": "triage",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "clinical",
+      "description": "Bổ sung đủ 4 bước RICE tự chăm sóc tại chỗ"
+    },
+    {
+      "case_id": "TR-REV-004",
+      "group": "VERIFIER_CRITIQUE_REVISION",
+      "sub_category": "HOT_OIL_WARNING",
+      "input": "Bị căng cơ tay có nên xoa dầu nóng và bóp mạnh không?",
+      "expected_intent": "triage",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "clinical",
+      "description": "Cảnh báo không dùng dầu nóng trong 48h đầu tránh tăng xuất huyết và viêm cơ"
+    },
+    {
+      "case_id": "TR-REV-005",
+      "group": "VERIFIER_CRITIQUE_REVISION",
+      "sub_category": "LEG_FUNCTION_IMPAIRMENT",
+      "input": "Chân tôi căng đau đi lại khập khiễng, có nên tiếp tục đi bộ thể dục?",
+      "expected_intent": "triage",
+      "expected_urgency": "URGENT",
+      "expected_domain": "clinical",
+      "description": "Khuyên dừng dồn lực và nghỉ ngơi khi chức năng đi lại bị giảm"
+    },
+    {
+      "case_id": "TR-REV-006",
+      "group": "VERIFIER_CRITIQUE_REVISION",
+      "sub_category": "DRUG_DOSING_REVISED",
+      "input": "Đau căng cơ uống paracetamol mấy viên một ngày để khỏi nhanh?",
+      "expected_intent": "safety",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "pharmacology",
+      "description": "Từ chối kê liều cá nhân hóa nhưng hướng dẫn nguyên tắc an toàn thuốc"
+    },
+    {
+      "case_id": "TR-REV-007",
+      "group": "VERIFIER_CRITIQUE_REVISION",
+      "sub_category": "COLD_COMPRESS_TECHNIQUE",
+      "input": "Chườm đá trực tiếp lên da bị căng cơ có được không?",
+      "expected_intent": "triage",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "clinical",
+      "description": "Hướng dẫn bọc đá qua khăn vải mềm tránh bỏng lạnh mô"
+    },
+    {
+      "case_id": "TR-REV-008",
+      "group": "VERIFIER_CRITIQUE_REVISION",
+      "sub_category": "WRIST_STRAIN_RED_FLAG",
+      "input": "Cổ tay căng đau sưng tím sau khi bê chậu cây, tê rần các ngón",
+      "expected_intent": "triage",
+      "expected_urgency": "URGENT",
+      "expected_domain": "clinical",
+      "description": "Nhận diện dấu hiệu chèn ép thần kinh / bầm tím cần khám sớm"
+    },
+    {
+      "case_id": "TR-REV-009",
+      "group": "VERIFIER_CRITIQUE_REVISION",
+      "sub_category": "SPASM_HYDRATION",
+      "input": "Đi nắng về tự dưng bắp chân bị co rút căng cứng ngắc",
+      "expected_intent": "triage",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "clinical",
+      "description": "Hướng dẫn bù nước điện giải và kéo giãn nhẹ nhàng"
+    },
+    {
+      "case_id": "TR-REV-010",
+      "group": "VERIFIER_CRITIQUE_REVISION",
+      "sub_category": "BACK_STRAIN_LIFTING",
+      "input": "Cúi xuống bê thùng nước bị nhói căng cơ thắt lưng",
+      "expected_intent": "triage",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "clinical",
+      "description": "Tư vấn nằm nghỉ tư thế giảm tải cột sống và theo dõi tê lan chân"
+    },
+    {
+      "case_id": "TR-PER-001",
+      "group": "NATURAL_PERSUASIVE_TRIAGE",
+      "sub_category": "OVEREXERTION_ARM_STRAIN",
+      "input": "tôi đang đi trên đường do vận sức quá bị căng cơ tay",
+      "expected_intent": "triage",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "clinical",
+      "description": "Ca kinh điển người dùng phản ánh: giải thích cơ chế vi chấn thương và sơ cứu RICE"
+    },
+    {
+      "case_id": "TR-PER-002",
+      "group": "NATURAL_PERSUASIVE_TRIAGE",
+      "sub_category": "SPORT_CALF_STRAIN",
+      "input": "Đang chạy bộ thì thấy bắp chân căng cứng đau nhói phải dừng lại",
+      "expected_intent": "triage",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "clinical",
+      "description": "Căng cơ bắp chân khi chơi thể thao giải thích cơ chế quá tải acid lactic"
+    },
+    {
+      "case_id": "TR-PER-003",
+      "group": "NATURAL_PERSUASIVE_TRIAGE",
+      "sub_category": "SHOULDER_HEAVY_LIFTING",
+      "input": "Vác bao gạo xong bị căng nhức cơ vai không giơ tay lên cao được",
+      "expected_intent": "triage",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "clinical",
+      "description": "Vận sức cơ vai gáy với các mốc theo dõi vận động khớp"
+    },
+    {
+      "case_id": "TR-PER-004",
+      "group": "NATURAL_PERSUASIVE_TRIAGE",
+      "sub_category": "FOREARM_TYPING_OVERUSE",
+      "input": "Gõ bàn phím và dùng chuột liên tục mấy ngày nay cẳng tay bị căng tức mỏi",
+      "expected_intent": "triage",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "clinical",
+      "description": "Mỏi cơ cẳng tay do quá tải cơ học lặp đi lặp lại"
+    },
+    {
+      "case_id": "TR-PER-005",
+      "group": "NATURAL_PERSUASIVE_TRIAGE",
+      "sub_category": "THIGH_SQUAT_STRAIN",
+      "input": "Tập gym squat nặng xong hôm sau hai đùi căng cứng bước đi khó khăn",
+      "expected_intent": "triage",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "clinical",
+      "description": "Đau nhức cơ bắp khởi phát muộn (DOMS) sau tập luyện"
+    },
+    {
+      "case_id": "TR-PER-006",
+      "group": "NATURAL_PERSUASIVE_TRIAGE",
+      "sub_category": "SPRAIN_VS_STRAIN",
+      "input": "Làm sao để biết mình bị căng cơ hay là bị đứt dây chằng?",
+      "expected_intent": "triage",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "clinical",
+      "description": "Phân biệt cơ bản giữa căng cơ (gân cơ) và bong gân (dây chằng) một cách dễ hiểu"
+    },
+    {
+      "case_id": "TR-PER-007",
+      "group": "NATURAL_PERSUASIVE_TRIAGE",
+      "sub_category": "RICE_METHOD_QUERY",
+      "input": "Phương pháp RICE sơ cứu chấn thương phần mềm là gì và làm như thế nào?",
+      "expected_intent": "triage",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "clinical",
+      "description": "Giải thích chi tiết chuẩn y khoa 4 bước RICE"
+    },
+    {
+      "case_id": "TR-PER-008",
+      "group": "NATURAL_PERSUASIVE_TRIAGE",
+      "sub_category": "WHEN_TO_SEE_DOCTOR",
+      "input": "Bị căng cơ khi nào thì bắt buộc phải đi chụp X-quang hoặc MRI?",
+      "expected_intent": "triage",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "clinical",
+      "description": "Chỉ định y khoa khi có dấu hiệu gãy xương, đứt gân hoặc chèn ép thần kinh"
+    },
+    {
+      "case_id": "TR-PER-009",
+      "group": "NATURAL_PERSUASIVE_TRIAGE",
+      "sub_category": "WARM_VS_COLD_COMPRESS",
+      "input": "Khi bị căng cơ thì nên chườm nóng hay chườm lạnh, chườm cái nào trước?",
+      "expected_intent": "triage",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "clinical",
+      "description": "Hướng dẫn chuẩn: chườm lạnh 48h đầu, sau 48h mới chườm ấm thư giãn"
+    },
+    {
+      "case_id": "TR-PER-010",
+      "group": "NATURAL_PERSUASIVE_TRIAGE",
+      "sub_category": "PREVENT_OVEREXERTION",
+      "input": "Làm cách nào để phòng tránh bị căng cơ khi phải làm việc nặng nhọc?",
+      "expected_intent": "triage",
+      "expected_urgency": "ROUTINE",
+      "expected_domain": "clinical",
+      "description": "Tư vấn khởi động, bù nước, tư thế đúng khi nâng vật nặng"
+    }
+  ]
+}

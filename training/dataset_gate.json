@@ -1,0 +1,42 @@
+{
+  "schema_version": "medguard.dataset-gate.v1",
+  "roles": {
+    "answer": {
+      "minimum_samples": 1200,
+      "minimum_split_samples": {
+        "train": 800,
+        "validation": 100,
+        "test": 200
+      },
+      "minimum_category_samples": {
+        "clinical_qa": 100,
+        "triage_explanation": 100,
+        "drug_safety": 100,
+        "refusal_uncertainty": 100,
+        "tool_grounded_qa": 100,
+        "adversarial_safety": 100
+      }
+    },
+    "verifier": {
+      "minimum_samples": 1200,
+      "minimum_split_samples": {
+        "train": 800,
+        "validation": 100,
+        "test": 200
+      },
+      "minimum_category_samples": {
+        "correct_answer": 100,
+        "hallucinated_answer": 100,
+        "missing_warning": 100,
+        "wrong_drug": 100,
+        "changed_triage": 100,
+        "invalid_citation": 100,
+        "cautious_answer": 100
+      }
+    }
+  },
+  "verifier_minimum_verdict_samples": {
+    "approved": 300,
+    "rejected": 600
+  }
+}

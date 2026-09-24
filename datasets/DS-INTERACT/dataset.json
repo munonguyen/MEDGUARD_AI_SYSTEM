@@ -1,0 +1,4008 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "total": 500
+  },
+  "pairs": [
+    {
+      "pair_id": "INT-POS-0001",
+      "drug_a": "sildenafil",
+      "drug_b": "nitroglycerin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tụt huyết áp trụy mạch đe dọa tính mạng"
+    },
+    {
+      "pair_id": "INT-POS-0002",
+      "drug_a": "simvastatin",
+      "drug_b": "clarithromycin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tiêu cơ vân cấp và suy thận"
+    },
+    {
+      "pair_id": "INT-POS-0003",
+      "drug_a": "warfarin",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Xuất huyết nặng"
+    },
+    {
+      "pair_id": "INT-POS-0004",
+      "drug_a": "warfarin",
+      "drug_b": "ibuprofen",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Xuất huyết tiêu hóa ồ ạt"
+    },
+    {
+      "pair_id": "INT-POS-0005",
+      "drug_a": "linezolid",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng Serotonin"
+    },
+    {
+      "pair_id": "INT-POS-0006",
+      "drug_a": "clopidogrel",
+      "drug_b": "omeprazole",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Giảm hoạt hóa kháng kết tập tiểu cầu"
+    },
+    {
+      "pair_id": "INT-POS-0007",
+      "drug_a": "enalapril",
+      "drug_b": "spironolactone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tăng kali huyết nguy hiểm"
+    },
+    {
+      "pair_id": "INT-POS-0008",
+      "drug_a": "allopurinol",
+      "drug_b": "azathioprine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy tủy xương nặng"
+    },
+    {
+      "pair_id": "INT-POS-0009",
+      "drug_a": "methotrexate",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Độc tính tủy xương và tiêu hóa"
+    },
+    {
+      "pair_id": "INT-POS-0010",
+      "drug_a": "metronidazole",
+      "drug_b": "alcohol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng sợ rượu disulfiram"
+    },
+    {
+      "pair_id": "INT-POS-0011",
+      "drug_a": "digoxin",
+      "drug_b": "amiodarone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Ngộ độc Digoxin"
+    },
+    {
+      "pair_id": "INT-POS-0012",
+      "drug_a": "tramadol",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Hội chứng Serotonin và co giật"
+    },
+    {
+      "pair_id": "INT-POS-0013",
+      "drug_a": "morphine",
+      "drug_b": "lorazepam",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy hô hấp ngừng thở"
+    },
+    {
+      "pair_id": "INT-POS-0014",
+      "drug_a": "ciprofloxacin",
+      "drug_b": "calcium",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tạo phức chelate giảm hấp thu kháng sinh"
+    },
+    {
+      "pair_id": "INT-POS-0015",
+      "drug_a": "salbutamol",
+      "drug_b": "propranolol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Co thắt phế quản cấp ác tính"
+    },
+    {
+      "pair_id": "INT-POS-0016",
+      "drug_a": "sildenafil",
+      "drug_b": "nitroglycerin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tụt huyết áp trụy mạch đe dọa tính mạng"
+    },
+    {
+      "pair_id": "INT-POS-0017",
+      "drug_a": "simvastatin",
+      "drug_b": "clarithromycin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tiêu cơ vân cấp và suy thận"
+    },
+    {
+      "pair_id": "INT-POS-0018",
+      "drug_a": "warfarin",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Xuất huyết nặng"
+    },
+    {
+      "pair_id": "INT-POS-0019",
+      "drug_a": "warfarin",
+      "drug_b": "ibuprofen",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Xuất huyết tiêu hóa ồ ạt"
+    },
+    {
+      "pair_id": "INT-POS-0020",
+      "drug_a": "linezolid",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng Serotonin"
+    },
+    {
+      "pair_id": "INT-POS-0021",
+      "drug_a": "clopidogrel",
+      "drug_b": "omeprazole",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Giảm hoạt hóa kháng kết tập tiểu cầu"
+    },
+    {
+      "pair_id": "INT-POS-0022",
+      "drug_a": "enalapril",
+      "drug_b": "spironolactone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tăng kali huyết nguy hiểm"
+    },
+    {
+      "pair_id": "INT-POS-0023",
+      "drug_a": "allopurinol",
+      "drug_b": "azathioprine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy tủy xương nặng"
+    },
+    {
+      "pair_id": "INT-POS-0024",
+      "drug_a": "methotrexate",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Độc tính tủy xương và tiêu hóa"
+    },
+    {
+      "pair_id": "INT-POS-0025",
+      "drug_a": "metronidazole",
+      "drug_b": "alcohol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng sợ rượu disulfiram"
+    },
+    {
+      "pair_id": "INT-POS-0026",
+      "drug_a": "digoxin",
+      "drug_b": "amiodarone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Ngộ độc Digoxin"
+    },
+    {
+      "pair_id": "INT-POS-0027",
+      "drug_a": "tramadol",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Hội chứng Serotonin và co giật"
+    },
+    {
+      "pair_id": "INT-POS-0028",
+      "drug_a": "morphine",
+      "drug_b": "lorazepam",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy hô hấp ngừng thở"
+    },
+    {
+      "pair_id": "INT-POS-0029",
+      "drug_a": "ciprofloxacin",
+      "drug_b": "calcium",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tạo phức chelate giảm hấp thu kháng sinh"
+    },
+    {
+      "pair_id": "INT-POS-0030",
+      "drug_a": "salbutamol",
+      "drug_b": "propranolol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Co thắt phế quản cấp ác tính"
+    },
+    {
+      "pair_id": "INT-POS-0031",
+      "drug_a": "sildenafil",
+      "drug_b": "nitroglycerin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tụt huyết áp trụy mạch đe dọa tính mạng"
+    },
+    {
+      "pair_id": "INT-POS-0032",
+      "drug_a": "simvastatin",
+      "drug_b": "clarithromycin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tiêu cơ vân cấp và suy thận"
+    },
+    {
+      "pair_id": "INT-POS-0033",
+      "drug_a": "warfarin",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Xuất huyết nặng"
+    },
+    {
+      "pair_id": "INT-POS-0034",
+      "drug_a": "warfarin",
+      "drug_b": "ibuprofen",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Xuất huyết tiêu hóa ồ ạt"
+    },
+    {
+      "pair_id": "INT-POS-0035",
+      "drug_a": "linezolid",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng Serotonin"
+    },
+    {
+      "pair_id": "INT-POS-0036",
+      "drug_a": "clopidogrel",
+      "drug_b": "omeprazole",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Giảm hoạt hóa kháng kết tập tiểu cầu"
+    },
+    {
+      "pair_id": "INT-POS-0037",
+      "drug_a": "enalapril",
+      "drug_b": "spironolactone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tăng kali huyết nguy hiểm"
+    },
+    {
+      "pair_id": "INT-POS-0038",
+      "drug_a": "allopurinol",
+      "drug_b": "azathioprine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy tủy xương nặng"
+    },
+    {
+      "pair_id": "INT-POS-0039",
+      "drug_a": "methotrexate",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Độc tính tủy xương và tiêu hóa"
+    },
+    {
+      "pair_id": "INT-POS-0040",
+      "drug_a": "metronidazole",
+      "drug_b": "alcohol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng sợ rượu disulfiram"
+    },
+    {
+      "pair_id": "INT-POS-0041",
+      "drug_a": "digoxin",
+      "drug_b": "amiodarone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Ngộ độc Digoxin"
+    },
+    {
+      "pair_id": "INT-POS-0042",
+      "drug_a": "tramadol",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Hội chứng Serotonin và co giật"
+    },
+    {
+      "pair_id": "INT-POS-0043",
+      "drug_a": "morphine",
+      "drug_b": "lorazepam",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy hô hấp ngừng thở"
+    },
+    {
+      "pair_id": "INT-POS-0044",
+      "drug_a": "ciprofloxacin",
+      "drug_b": "calcium",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tạo phức chelate giảm hấp thu kháng sinh"
+    },
+    {
+      "pair_id": "INT-POS-0045",
+      "drug_a": "salbutamol",
+      "drug_b": "propranolol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Co thắt phế quản cấp ác tính"
+    },
+    {
+      "pair_id": "INT-POS-0046",
+      "drug_a": "sildenafil",
+      "drug_b": "nitroglycerin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tụt huyết áp trụy mạch đe dọa tính mạng"
+    },
+    {
+      "pair_id": "INT-POS-0047",
+      "drug_a": "simvastatin",
+      "drug_b": "clarithromycin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tiêu cơ vân cấp và suy thận"
+    },
+    {
+      "pair_id": "INT-POS-0048",
+      "drug_a": "warfarin",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Xuất huyết nặng"
+    },
+    {
+      "pair_id": "INT-POS-0049",
+      "drug_a": "warfarin",
+      "drug_b": "ibuprofen",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Xuất huyết tiêu hóa ồ ạt"
+    },
+    {
+      "pair_id": "INT-POS-0050",
+      "drug_a": "linezolid",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng Serotonin"
+    },
+    {
+      "pair_id": "INT-POS-0051",
+      "drug_a": "clopidogrel",
+      "drug_b": "omeprazole",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Giảm hoạt hóa kháng kết tập tiểu cầu"
+    },
+    {
+      "pair_id": "INT-POS-0052",
+      "drug_a": "enalapril",
+      "drug_b": "spironolactone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tăng kali huyết nguy hiểm"
+    },
+    {
+      "pair_id": "INT-POS-0053",
+      "drug_a": "allopurinol",
+      "drug_b": "azathioprine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy tủy xương nặng"
+    },
+    {
+      "pair_id": "INT-POS-0054",
+      "drug_a": "methotrexate",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Độc tính tủy xương và tiêu hóa"
+    },
+    {
+      "pair_id": "INT-POS-0055",
+      "drug_a": "metronidazole",
+      "drug_b": "alcohol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng sợ rượu disulfiram"
+    },
+    {
+      "pair_id": "INT-POS-0056",
+      "drug_a": "digoxin",
+      "drug_b": "amiodarone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Ngộ độc Digoxin"
+    },
+    {
+      "pair_id": "INT-POS-0057",
+      "drug_a": "tramadol",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Hội chứng Serotonin và co giật"
+    },
+    {
+      "pair_id": "INT-POS-0058",
+      "drug_a": "morphine",
+      "drug_b": "lorazepam",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy hô hấp ngừng thở"
+    },
+    {
+      "pair_id": "INT-POS-0059",
+      "drug_a": "ciprofloxacin",
+      "drug_b": "calcium",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tạo phức chelate giảm hấp thu kháng sinh"
+    },
+    {
+      "pair_id": "INT-POS-0060",
+      "drug_a": "salbutamol",
+      "drug_b": "propranolol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Co thắt phế quản cấp ác tính"
+    },
+    {
+      "pair_id": "INT-POS-0061",
+      "drug_a": "sildenafil",
+      "drug_b": "nitroglycerin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tụt huyết áp trụy mạch đe dọa tính mạng"
+    },
+    {
+      "pair_id": "INT-POS-0062",
+      "drug_a": "simvastatin",
+      "drug_b": "clarithromycin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tiêu cơ vân cấp và suy thận"
+    },
+    {
+      "pair_id": "INT-POS-0063",
+      "drug_a": "warfarin",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Xuất huyết nặng"
+    },
+    {
+      "pair_id": "INT-POS-0064",
+      "drug_a": "warfarin",
+      "drug_b": "ibuprofen",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Xuất huyết tiêu hóa ồ ạt"
+    },
+    {
+      "pair_id": "INT-POS-0065",
+      "drug_a": "linezolid",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng Serotonin"
+    },
+    {
+      "pair_id": "INT-POS-0066",
+      "drug_a": "clopidogrel",
+      "drug_b": "omeprazole",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Giảm hoạt hóa kháng kết tập tiểu cầu"
+    },
+    {
+      "pair_id": "INT-POS-0067",
+      "drug_a": "enalapril",
+      "drug_b": "spironolactone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tăng kali huyết nguy hiểm"
+    },
+    {
+      "pair_id": "INT-POS-0068",
+      "drug_a": "allopurinol",
+      "drug_b": "azathioprine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy tủy xương nặng"
+    },
+    {
+      "pair_id": "INT-POS-0069",
+      "drug_a": "methotrexate",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Độc tính tủy xương và tiêu hóa"
+    },
+    {
+      "pair_id": "INT-POS-0070",
+      "drug_a": "metronidazole",
+      "drug_b": "alcohol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng sợ rượu disulfiram"
+    },
+    {
+      "pair_id": "INT-POS-0071",
+      "drug_a": "digoxin",
+      "drug_b": "amiodarone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Ngộ độc Digoxin"
+    },
+    {
+      "pair_id": "INT-POS-0072",
+      "drug_a": "tramadol",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Hội chứng Serotonin và co giật"
+    },
+    {
+      "pair_id": "INT-POS-0073",
+      "drug_a": "morphine",
+      "drug_b": "lorazepam",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy hô hấp ngừng thở"
+    },
+    {
+      "pair_id": "INT-POS-0074",
+      "drug_a": "ciprofloxacin",
+      "drug_b": "calcium",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tạo phức chelate giảm hấp thu kháng sinh"
+    },
+    {
+      "pair_id": "INT-POS-0075",
+      "drug_a": "salbutamol",
+      "drug_b": "propranolol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Co thắt phế quản cấp ác tính"
+    },
+    {
+      "pair_id": "INT-POS-0076",
+      "drug_a": "sildenafil",
+      "drug_b": "nitroglycerin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tụt huyết áp trụy mạch đe dọa tính mạng"
+    },
+    {
+      "pair_id": "INT-POS-0077",
+      "drug_a": "simvastatin",
+      "drug_b": "clarithromycin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tiêu cơ vân cấp và suy thận"
+    },
+    {
+      "pair_id": "INT-POS-0078",
+      "drug_a": "warfarin",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Xuất huyết nặng"
+    },
+    {
+      "pair_id": "INT-POS-0079",
+      "drug_a": "warfarin",
+      "drug_b": "ibuprofen",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Xuất huyết tiêu hóa ồ ạt"
+    },
+    {
+      "pair_id": "INT-POS-0080",
+      "drug_a": "linezolid",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng Serotonin"
+    },
+    {
+      "pair_id": "INT-POS-0081",
+      "drug_a": "clopidogrel",
+      "drug_b": "omeprazole",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Giảm hoạt hóa kháng kết tập tiểu cầu"
+    },
+    {
+      "pair_id": "INT-POS-0082",
+      "drug_a": "enalapril",
+      "drug_b": "spironolactone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tăng kali huyết nguy hiểm"
+    },
+    {
+      "pair_id": "INT-POS-0083",
+      "drug_a": "allopurinol",
+      "drug_b": "azathioprine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy tủy xương nặng"
+    },
+    {
+      "pair_id": "INT-POS-0084",
+      "drug_a": "methotrexate",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Độc tính tủy xương và tiêu hóa"
+    },
+    {
+      "pair_id": "INT-POS-0085",
+      "drug_a": "metronidazole",
+      "drug_b": "alcohol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng sợ rượu disulfiram"
+    },
+    {
+      "pair_id": "INT-POS-0086",
+      "drug_a": "digoxin",
+      "drug_b": "amiodarone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Ngộ độc Digoxin"
+    },
+    {
+      "pair_id": "INT-POS-0087",
+      "drug_a": "tramadol",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Hội chứng Serotonin và co giật"
+    },
+    {
+      "pair_id": "INT-POS-0088",
+      "drug_a": "morphine",
+      "drug_b": "lorazepam",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy hô hấp ngừng thở"
+    },
+    {
+      "pair_id": "INT-POS-0089",
+      "drug_a": "ciprofloxacin",
+      "drug_b": "calcium",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tạo phức chelate giảm hấp thu kháng sinh"
+    },
+    {
+      "pair_id": "INT-POS-0090",
+      "drug_a": "salbutamol",
+      "drug_b": "propranolol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Co thắt phế quản cấp ác tính"
+    },
+    {
+      "pair_id": "INT-POS-0091",
+      "drug_a": "sildenafil",
+      "drug_b": "nitroglycerin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tụt huyết áp trụy mạch đe dọa tính mạng"
+    },
+    {
+      "pair_id": "INT-POS-0092",
+      "drug_a": "simvastatin",
+      "drug_b": "clarithromycin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tiêu cơ vân cấp và suy thận"
+    },
+    {
+      "pair_id": "INT-POS-0093",
+      "drug_a": "warfarin",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Xuất huyết nặng"
+    },
+    {
+      "pair_id": "INT-POS-0094",
+      "drug_a": "warfarin",
+      "drug_b": "ibuprofen",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Xuất huyết tiêu hóa ồ ạt"
+    },
+    {
+      "pair_id": "INT-POS-0095",
+      "drug_a": "linezolid",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng Serotonin"
+    },
+    {
+      "pair_id": "INT-POS-0096",
+      "drug_a": "clopidogrel",
+      "drug_b": "omeprazole",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Giảm hoạt hóa kháng kết tập tiểu cầu"
+    },
+    {
+      "pair_id": "INT-POS-0097",
+      "drug_a": "enalapril",
+      "drug_b": "spironolactone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tăng kali huyết nguy hiểm"
+    },
+    {
+      "pair_id": "INT-POS-0098",
+      "drug_a": "allopurinol",
+      "drug_b": "azathioprine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy tủy xương nặng"
+    },
+    {
+      "pair_id": "INT-POS-0099",
+      "drug_a": "methotrexate",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Độc tính tủy xương và tiêu hóa"
+    },
+    {
+      "pair_id": "INT-POS-0100",
+      "drug_a": "metronidazole",
+      "drug_b": "alcohol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng sợ rượu disulfiram"
+    },
+    {
+      "pair_id": "INT-POS-0101",
+      "drug_a": "digoxin",
+      "drug_b": "amiodarone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Ngộ độc Digoxin"
+    },
+    {
+      "pair_id": "INT-POS-0102",
+      "drug_a": "tramadol",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Hội chứng Serotonin và co giật"
+    },
+    {
+      "pair_id": "INT-POS-0103",
+      "drug_a": "morphine",
+      "drug_b": "lorazepam",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy hô hấp ngừng thở"
+    },
+    {
+      "pair_id": "INT-POS-0104",
+      "drug_a": "ciprofloxacin",
+      "drug_b": "calcium",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tạo phức chelate giảm hấp thu kháng sinh"
+    },
+    {
+      "pair_id": "INT-POS-0105",
+      "drug_a": "salbutamol",
+      "drug_b": "propranolol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Co thắt phế quản cấp ác tính"
+    },
+    {
+      "pair_id": "INT-POS-0106",
+      "drug_a": "sildenafil",
+      "drug_b": "nitroglycerin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tụt huyết áp trụy mạch đe dọa tính mạng"
+    },
+    {
+      "pair_id": "INT-POS-0107",
+      "drug_a": "simvastatin",
+      "drug_b": "clarithromycin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tiêu cơ vân cấp và suy thận"
+    },
+    {
+      "pair_id": "INT-POS-0108",
+      "drug_a": "warfarin",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Xuất huyết nặng"
+    },
+    {
+      "pair_id": "INT-POS-0109",
+      "drug_a": "warfarin",
+      "drug_b": "ibuprofen",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Xuất huyết tiêu hóa ồ ạt"
+    },
+    {
+      "pair_id": "INT-POS-0110",
+      "drug_a": "linezolid",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng Serotonin"
+    },
+    {
+      "pair_id": "INT-POS-0111",
+      "drug_a": "clopidogrel",
+      "drug_b": "omeprazole",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Giảm hoạt hóa kháng kết tập tiểu cầu"
+    },
+    {
+      "pair_id": "INT-POS-0112",
+      "drug_a": "enalapril",
+      "drug_b": "spironolactone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tăng kali huyết nguy hiểm"
+    },
+    {
+      "pair_id": "INT-POS-0113",
+      "drug_a": "allopurinol",
+      "drug_b": "azathioprine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy tủy xương nặng"
+    },
+    {
+      "pair_id": "INT-POS-0114",
+      "drug_a": "methotrexate",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Độc tính tủy xương và tiêu hóa"
+    },
+    {
+      "pair_id": "INT-POS-0115",
+      "drug_a": "metronidazole",
+      "drug_b": "alcohol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng sợ rượu disulfiram"
+    },
+    {
+      "pair_id": "INT-POS-0116",
+      "drug_a": "digoxin",
+      "drug_b": "amiodarone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Ngộ độc Digoxin"
+    },
+    {
+      "pair_id": "INT-POS-0117",
+      "drug_a": "tramadol",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Hội chứng Serotonin và co giật"
+    },
+    {
+      "pair_id": "INT-POS-0118",
+      "drug_a": "morphine",
+      "drug_b": "lorazepam",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy hô hấp ngừng thở"
+    },
+    {
+      "pair_id": "INT-POS-0119",
+      "drug_a": "ciprofloxacin",
+      "drug_b": "calcium",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tạo phức chelate giảm hấp thu kháng sinh"
+    },
+    {
+      "pair_id": "INT-POS-0120",
+      "drug_a": "salbutamol",
+      "drug_b": "propranolol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Co thắt phế quản cấp ác tính"
+    },
+    {
+      "pair_id": "INT-POS-0121",
+      "drug_a": "sildenafil",
+      "drug_b": "nitroglycerin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tụt huyết áp trụy mạch đe dọa tính mạng"
+    },
+    {
+      "pair_id": "INT-POS-0122",
+      "drug_a": "simvastatin",
+      "drug_b": "clarithromycin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tiêu cơ vân cấp và suy thận"
+    },
+    {
+      "pair_id": "INT-POS-0123",
+      "drug_a": "warfarin",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Xuất huyết nặng"
+    },
+    {
+      "pair_id": "INT-POS-0124",
+      "drug_a": "warfarin",
+      "drug_b": "ibuprofen",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Xuất huyết tiêu hóa ồ ạt"
+    },
+    {
+      "pair_id": "INT-POS-0125",
+      "drug_a": "linezolid",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng Serotonin"
+    },
+    {
+      "pair_id": "INT-POS-0126",
+      "drug_a": "clopidogrel",
+      "drug_b": "omeprazole",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Giảm hoạt hóa kháng kết tập tiểu cầu"
+    },
+    {
+      "pair_id": "INT-POS-0127",
+      "drug_a": "enalapril",
+      "drug_b": "spironolactone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tăng kali huyết nguy hiểm"
+    },
+    {
+      "pair_id": "INT-POS-0128",
+      "drug_a": "allopurinol",
+      "drug_b": "azathioprine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy tủy xương nặng"
+    },
+    {
+      "pair_id": "INT-POS-0129",
+      "drug_a": "methotrexate",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Độc tính tủy xương và tiêu hóa"
+    },
+    {
+      "pair_id": "INT-POS-0130",
+      "drug_a": "metronidazole",
+      "drug_b": "alcohol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng sợ rượu disulfiram"
+    },
+    {
+      "pair_id": "INT-POS-0131",
+      "drug_a": "digoxin",
+      "drug_b": "amiodarone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Ngộ độc Digoxin"
+    },
+    {
+      "pair_id": "INT-POS-0132",
+      "drug_a": "tramadol",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Hội chứng Serotonin và co giật"
+    },
+    {
+      "pair_id": "INT-POS-0133",
+      "drug_a": "morphine",
+      "drug_b": "lorazepam",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy hô hấp ngừng thở"
+    },
+    {
+      "pair_id": "INT-POS-0134",
+      "drug_a": "ciprofloxacin",
+      "drug_b": "calcium",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tạo phức chelate giảm hấp thu kháng sinh"
+    },
+    {
+      "pair_id": "INT-POS-0135",
+      "drug_a": "salbutamol",
+      "drug_b": "propranolol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Co thắt phế quản cấp ác tính"
+    },
+    {
+      "pair_id": "INT-POS-0136",
+      "drug_a": "sildenafil",
+      "drug_b": "nitroglycerin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tụt huyết áp trụy mạch đe dọa tính mạng"
+    },
+    {
+      "pair_id": "INT-POS-0137",
+      "drug_a": "simvastatin",
+      "drug_b": "clarithromycin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tiêu cơ vân cấp và suy thận"
+    },
+    {
+      "pair_id": "INT-POS-0138",
+      "drug_a": "warfarin",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Xuất huyết nặng"
+    },
+    {
+      "pair_id": "INT-POS-0139",
+      "drug_a": "warfarin",
+      "drug_b": "ibuprofen",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Xuất huyết tiêu hóa ồ ạt"
+    },
+    {
+      "pair_id": "INT-POS-0140",
+      "drug_a": "linezolid",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng Serotonin"
+    },
+    {
+      "pair_id": "INT-POS-0141",
+      "drug_a": "clopidogrel",
+      "drug_b": "omeprazole",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Giảm hoạt hóa kháng kết tập tiểu cầu"
+    },
+    {
+      "pair_id": "INT-POS-0142",
+      "drug_a": "enalapril",
+      "drug_b": "spironolactone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tăng kali huyết nguy hiểm"
+    },
+    {
+      "pair_id": "INT-POS-0143",
+      "drug_a": "allopurinol",
+      "drug_b": "azathioprine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy tủy xương nặng"
+    },
+    {
+      "pair_id": "INT-POS-0144",
+      "drug_a": "methotrexate",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Độc tính tủy xương và tiêu hóa"
+    },
+    {
+      "pair_id": "INT-POS-0145",
+      "drug_a": "metronidazole",
+      "drug_b": "alcohol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng sợ rượu disulfiram"
+    },
+    {
+      "pair_id": "INT-POS-0146",
+      "drug_a": "digoxin",
+      "drug_b": "amiodarone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Ngộ độc Digoxin"
+    },
+    {
+      "pair_id": "INT-POS-0147",
+      "drug_a": "tramadol",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Hội chứng Serotonin và co giật"
+    },
+    {
+      "pair_id": "INT-POS-0148",
+      "drug_a": "morphine",
+      "drug_b": "lorazepam",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy hô hấp ngừng thở"
+    },
+    {
+      "pair_id": "INT-POS-0149",
+      "drug_a": "ciprofloxacin",
+      "drug_b": "calcium",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tạo phức chelate giảm hấp thu kháng sinh"
+    },
+    {
+      "pair_id": "INT-POS-0150",
+      "drug_a": "salbutamol",
+      "drug_b": "propranolol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Co thắt phế quản cấp ác tính"
+    },
+    {
+      "pair_id": "INT-POS-0151",
+      "drug_a": "sildenafil",
+      "drug_b": "nitroglycerin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tụt huyết áp trụy mạch đe dọa tính mạng"
+    },
+    {
+      "pair_id": "INT-POS-0152",
+      "drug_a": "simvastatin",
+      "drug_b": "clarithromycin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tiêu cơ vân cấp và suy thận"
+    },
+    {
+      "pair_id": "INT-POS-0153",
+      "drug_a": "warfarin",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Xuất huyết nặng"
+    },
+    {
+      "pair_id": "INT-POS-0154",
+      "drug_a": "warfarin",
+      "drug_b": "ibuprofen",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Xuất huyết tiêu hóa ồ ạt"
+    },
+    {
+      "pair_id": "INT-POS-0155",
+      "drug_a": "linezolid",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng Serotonin"
+    },
+    {
+      "pair_id": "INT-POS-0156",
+      "drug_a": "clopidogrel",
+      "drug_b": "omeprazole",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Giảm hoạt hóa kháng kết tập tiểu cầu"
+    },
+    {
+      "pair_id": "INT-POS-0157",
+      "drug_a": "enalapril",
+      "drug_b": "spironolactone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tăng kali huyết nguy hiểm"
+    },
+    {
+      "pair_id": "INT-POS-0158",
+      "drug_a": "allopurinol",
+      "drug_b": "azathioprine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy tủy xương nặng"
+    },
+    {
+      "pair_id": "INT-POS-0159",
+      "drug_a": "methotrexate",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Độc tính tủy xương và tiêu hóa"
+    },
+    {
+      "pair_id": "INT-POS-0160",
+      "drug_a": "metronidazole",
+      "drug_b": "alcohol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng sợ rượu disulfiram"
+    },
+    {
+      "pair_id": "INT-POS-0161",
+      "drug_a": "digoxin",
+      "drug_b": "amiodarone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Ngộ độc Digoxin"
+    },
+    {
+      "pair_id": "INT-POS-0162",
+      "drug_a": "tramadol",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Hội chứng Serotonin và co giật"
+    },
+    {
+      "pair_id": "INT-POS-0163",
+      "drug_a": "morphine",
+      "drug_b": "lorazepam",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy hô hấp ngừng thở"
+    },
+    {
+      "pair_id": "INT-POS-0164",
+      "drug_a": "ciprofloxacin",
+      "drug_b": "calcium",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tạo phức chelate giảm hấp thu kháng sinh"
+    },
+    {
+      "pair_id": "INT-POS-0165",
+      "drug_a": "salbutamol",
+      "drug_b": "propranolol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Co thắt phế quản cấp ác tính"
+    },
+    {
+      "pair_id": "INT-POS-0166",
+      "drug_a": "sildenafil",
+      "drug_b": "nitroglycerin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tụt huyết áp trụy mạch đe dọa tính mạng"
+    },
+    {
+      "pair_id": "INT-POS-0167",
+      "drug_a": "simvastatin",
+      "drug_b": "clarithromycin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tiêu cơ vân cấp và suy thận"
+    },
+    {
+      "pair_id": "INT-POS-0168",
+      "drug_a": "warfarin",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Xuất huyết nặng"
+    },
+    {
+      "pair_id": "INT-POS-0169",
+      "drug_a": "warfarin",
+      "drug_b": "ibuprofen",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Xuất huyết tiêu hóa ồ ạt"
+    },
+    {
+      "pair_id": "INT-POS-0170",
+      "drug_a": "linezolid",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng Serotonin"
+    },
+    {
+      "pair_id": "INT-POS-0171",
+      "drug_a": "clopidogrel",
+      "drug_b": "omeprazole",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Giảm hoạt hóa kháng kết tập tiểu cầu"
+    },
+    {
+      "pair_id": "INT-POS-0172",
+      "drug_a": "enalapril",
+      "drug_b": "spironolactone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tăng kali huyết nguy hiểm"
+    },
+    {
+      "pair_id": "INT-POS-0173",
+      "drug_a": "allopurinol",
+      "drug_b": "azathioprine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy tủy xương nặng"
+    },
+    {
+      "pair_id": "INT-POS-0174",
+      "drug_a": "methotrexate",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Độc tính tủy xương và tiêu hóa"
+    },
+    {
+      "pair_id": "INT-POS-0175",
+      "drug_a": "metronidazole",
+      "drug_b": "alcohol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng sợ rượu disulfiram"
+    },
+    {
+      "pair_id": "INT-POS-0176",
+      "drug_a": "digoxin",
+      "drug_b": "amiodarone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Ngộ độc Digoxin"
+    },
+    {
+      "pair_id": "INT-POS-0177",
+      "drug_a": "tramadol",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Hội chứng Serotonin và co giật"
+    },
+    {
+      "pair_id": "INT-POS-0178",
+      "drug_a": "morphine",
+      "drug_b": "lorazepam",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy hô hấp ngừng thở"
+    },
+    {
+      "pair_id": "INT-POS-0179",
+      "drug_a": "ciprofloxacin",
+      "drug_b": "calcium",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tạo phức chelate giảm hấp thu kháng sinh"
+    },
+    {
+      "pair_id": "INT-POS-0180",
+      "drug_a": "salbutamol",
+      "drug_b": "propranolol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Co thắt phế quản cấp ác tính"
+    },
+    {
+      "pair_id": "INT-POS-0181",
+      "drug_a": "sildenafil",
+      "drug_b": "nitroglycerin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tụt huyết áp trụy mạch đe dọa tính mạng"
+    },
+    {
+      "pair_id": "INT-POS-0182",
+      "drug_a": "simvastatin",
+      "drug_b": "clarithromycin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tiêu cơ vân cấp và suy thận"
+    },
+    {
+      "pair_id": "INT-POS-0183",
+      "drug_a": "warfarin",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Xuất huyết nặng"
+    },
+    {
+      "pair_id": "INT-POS-0184",
+      "drug_a": "warfarin",
+      "drug_b": "ibuprofen",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Xuất huyết tiêu hóa ồ ạt"
+    },
+    {
+      "pair_id": "INT-POS-0185",
+      "drug_a": "linezolid",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng Serotonin"
+    },
+    {
+      "pair_id": "INT-POS-0186",
+      "drug_a": "clopidogrel",
+      "drug_b": "omeprazole",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Giảm hoạt hóa kháng kết tập tiểu cầu"
+    },
+    {
+      "pair_id": "INT-POS-0187",
+      "drug_a": "enalapril",
+      "drug_b": "spironolactone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tăng kali huyết nguy hiểm"
+    },
+    {
+      "pair_id": "INT-POS-0188",
+      "drug_a": "allopurinol",
+      "drug_b": "azathioprine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy tủy xương nặng"
+    },
+    {
+      "pair_id": "INT-POS-0189",
+      "drug_a": "methotrexate",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Độc tính tủy xương và tiêu hóa"
+    },
+    {
+      "pair_id": "INT-POS-0190",
+      "drug_a": "metronidazole",
+      "drug_b": "alcohol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng sợ rượu disulfiram"
+    },
+    {
+      "pair_id": "INT-POS-0191",
+      "drug_a": "digoxin",
+      "drug_b": "amiodarone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Ngộ độc Digoxin"
+    },
+    {
+      "pair_id": "INT-POS-0192",
+      "drug_a": "tramadol",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Hội chứng Serotonin và co giật"
+    },
+    {
+      "pair_id": "INT-POS-0193",
+      "drug_a": "morphine",
+      "drug_b": "lorazepam",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy hô hấp ngừng thở"
+    },
+    {
+      "pair_id": "INT-POS-0194",
+      "drug_a": "ciprofloxacin",
+      "drug_b": "calcium",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tạo phức chelate giảm hấp thu kháng sinh"
+    },
+    {
+      "pair_id": "INT-POS-0195",
+      "drug_a": "salbutamol",
+      "drug_b": "propranolol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Co thắt phế quản cấp ác tính"
+    },
+    {
+      "pair_id": "INT-POS-0196",
+      "drug_a": "sildenafil",
+      "drug_b": "nitroglycerin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tụt huyết áp trụy mạch đe dọa tính mạng"
+    },
+    {
+      "pair_id": "INT-POS-0197",
+      "drug_a": "simvastatin",
+      "drug_b": "clarithromycin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tiêu cơ vân cấp và suy thận"
+    },
+    {
+      "pair_id": "INT-POS-0198",
+      "drug_a": "warfarin",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Xuất huyết nặng"
+    },
+    {
+      "pair_id": "INT-POS-0199",
+      "drug_a": "warfarin",
+      "drug_b": "ibuprofen",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Xuất huyết tiêu hóa ồ ạt"
+    },
+    {
+      "pair_id": "INT-POS-0200",
+      "drug_a": "linezolid",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng Serotonin"
+    },
+    {
+      "pair_id": "INT-POS-0201",
+      "drug_a": "clopidogrel",
+      "drug_b": "omeprazole",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Giảm hoạt hóa kháng kết tập tiểu cầu"
+    },
+    {
+      "pair_id": "INT-POS-0202",
+      "drug_a": "enalapril",
+      "drug_b": "spironolactone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tăng kali huyết nguy hiểm"
+    },
+    {
+      "pair_id": "INT-POS-0203",
+      "drug_a": "allopurinol",
+      "drug_b": "azathioprine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy tủy xương nặng"
+    },
+    {
+      "pair_id": "INT-POS-0204",
+      "drug_a": "methotrexate",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Độc tính tủy xương và tiêu hóa"
+    },
+    {
+      "pair_id": "INT-POS-0205",
+      "drug_a": "metronidazole",
+      "drug_b": "alcohol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng sợ rượu disulfiram"
+    },
+    {
+      "pair_id": "INT-POS-0206",
+      "drug_a": "digoxin",
+      "drug_b": "amiodarone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Ngộ độc Digoxin"
+    },
+    {
+      "pair_id": "INT-POS-0207",
+      "drug_a": "tramadol",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Hội chứng Serotonin và co giật"
+    },
+    {
+      "pair_id": "INT-POS-0208",
+      "drug_a": "morphine",
+      "drug_b": "lorazepam",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy hô hấp ngừng thở"
+    },
+    {
+      "pair_id": "INT-POS-0209",
+      "drug_a": "ciprofloxacin",
+      "drug_b": "calcium",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tạo phức chelate giảm hấp thu kháng sinh"
+    },
+    {
+      "pair_id": "INT-POS-0210",
+      "drug_a": "salbutamol",
+      "drug_b": "propranolol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Co thắt phế quản cấp ác tính"
+    },
+    {
+      "pair_id": "INT-POS-0211",
+      "drug_a": "sildenafil",
+      "drug_b": "nitroglycerin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tụt huyết áp trụy mạch đe dọa tính mạng"
+    },
+    {
+      "pair_id": "INT-POS-0212",
+      "drug_a": "simvastatin",
+      "drug_b": "clarithromycin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tiêu cơ vân cấp và suy thận"
+    },
+    {
+      "pair_id": "INT-POS-0213",
+      "drug_a": "warfarin",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Xuất huyết nặng"
+    },
+    {
+      "pair_id": "INT-POS-0214",
+      "drug_a": "warfarin",
+      "drug_b": "ibuprofen",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Xuất huyết tiêu hóa ồ ạt"
+    },
+    {
+      "pair_id": "INT-POS-0215",
+      "drug_a": "linezolid",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng Serotonin"
+    },
+    {
+      "pair_id": "INT-POS-0216",
+      "drug_a": "clopidogrel",
+      "drug_b": "omeprazole",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Giảm hoạt hóa kháng kết tập tiểu cầu"
+    },
+    {
+      "pair_id": "INT-POS-0217",
+      "drug_a": "enalapril",
+      "drug_b": "spironolactone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tăng kali huyết nguy hiểm"
+    },
+    {
+      "pair_id": "INT-POS-0218",
+      "drug_a": "allopurinol",
+      "drug_b": "azathioprine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy tủy xương nặng"
+    },
+    {
+      "pair_id": "INT-POS-0219",
+      "drug_a": "methotrexate",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Độc tính tủy xương và tiêu hóa"
+    },
+    {
+      "pair_id": "INT-POS-0220",
+      "drug_a": "metronidazole",
+      "drug_b": "alcohol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng sợ rượu disulfiram"
+    },
+    {
+      "pair_id": "INT-POS-0221",
+      "drug_a": "digoxin",
+      "drug_b": "amiodarone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Ngộ độc Digoxin"
+    },
+    {
+      "pair_id": "INT-POS-0222",
+      "drug_a": "tramadol",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Hội chứng Serotonin và co giật"
+    },
+    {
+      "pair_id": "INT-POS-0223",
+      "drug_a": "morphine",
+      "drug_b": "lorazepam",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy hô hấp ngừng thở"
+    },
+    {
+      "pair_id": "INT-POS-0224",
+      "drug_a": "ciprofloxacin",
+      "drug_b": "calcium",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tạo phức chelate giảm hấp thu kháng sinh"
+    },
+    {
+      "pair_id": "INT-POS-0225",
+      "drug_a": "salbutamol",
+      "drug_b": "propranolol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Co thắt phế quản cấp ác tính"
+    },
+    {
+      "pair_id": "INT-POS-0226",
+      "drug_a": "sildenafil",
+      "drug_b": "nitroglycerin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tụt huyết áp trụy mạch đe dọa tính mạng"
+    },
+    {
+      "pair_id": "INT-POS-0227",
+      "drug_a": "simvastatin",
+      "drug_b": "clarithromycin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tiêu cơ vân cấp và suy thận"
+    },
+    {
+      "pair_id": "INT-POS-0228",
+      "drug_a": "warfarin",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Xuất huyết nặng"
+    },
+    {
+      "pair_id": "INT-POS-0229",
+      "drug_a": "warfarin",
+      "drug_b": "ibuprofen",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Xuất huyết tiêu hóa ồ ạt"
+    },
+    {
+      "pair_id": "INT-POS-0230",
+      "drug_a": "linezolid",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng Serotonin"
+    },
+    {
+      "pair_id": "INT-POS-0231",
+      "drug_a": "clopidogrel",
+      "drug_b": "omeprazole",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Giảm hoạt hóa kháng kết tập tiểu cầu"
+    },
+    {
+      "pair_id": "INT-POS-0232",
+      "drug_a": "enalapril",
+      "drug_b": "spironolactone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tăng kali huyết nguy hiểm"
+    },
+    {
+      "pair_id": "INT-POS-0233",
+      "drug_a": "allopurinol",
+      "drug_b": "azathioprine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy tủy xương nặng"
+    },
+    {
+      "pair_id": "INT-POS-0234",
+      "drug_a": "methotrexate",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Độc tính tủy xương và tiêu hóa"
+    },
+    {
+      "pair_id": "INT-POS-0235",
+      "drug_a": "metronidazole",
+      "drug_b": "alcohol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng sợ rượu disulfiram"
+    },
+    {
+      "pair_id": "INT-POS-0236",
+      "drug_a": "digoxin",
+      "drug_b": "amiodarone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Ngộ độc Digoxin"
+    },
+    {
+      "pair_id": "INT-POS-0237",
+      "drug_a": "tramadol",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Hội chứng Serotonin và co giật"
+    },
+    {
+      "pair_id": "INT-POS-0238",
+      "drug_a": "morphine",
+      "drug_b": "lorazepam",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy hô hấp ngừng thở"
+    },
+    {
+      "pair_id": "INT-POS-0239",
+      "drug_a": "ciprofloxacin",
+      "drug_b": "calcium",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tạo phức chelate giảm hấp thu kháng sinh"
+    },
+    {
+      "pair_id": "INT-POS-0240",
+      "drug_a": "salbutamol",
+      "drug_b": "propranolol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Co thắt phế quản cấp ác tính"
+    },
+    {
+      "pair_id": "INT-POS-0241",
+      "drug_a": "sildenafil",
+      "drug_b": "nitroglycerin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tụt huyết áp trụy mạch đe dọa tính mạng"
+    },
+    {
+      "pair_id": "INT-POS-0242",
+      "drug_a": "simvastatin",
+      "drug_b": "clarithromycin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Tiêu cơ vân cấp và suy thận"
+    },
+    {
+      "pair_id": "INT-POS-0243",
+      "drug_a": "warfarin",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Xuất huyết nặng"
+    },
+    {
+      "pair_id": "INT-POS-0244",
+      "drug_a": "warfarin",
+      "drug_b": "ibuprofen",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Xuất huyết tiêu hóa ồ ạt"
+    },
+    {
+      "pair_id": "INT-POS-0245",
+      "drug_a": "linezolid",
+      "drug_b": "fluoxetine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng Serotonin"
+    },
+    {
+      "pair_id": "INT-POS-0246",
+      "drug_a": "clopidogrel",
+      "drug_b": "omeprazole",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Giảm hoạt hóa kháng kết tập tiểu cầu"
+    },
+    {
+      "pair_id": "INT-POS-0247",
+      "drug_a": "enalapril",
+      "drug_b": "spironolactone",
+      "has_interaction": true,
+      "severity": "SOFT_STOP",
+      "mechanism": "Tăng kali huyết nguy hiểm"
+    },
+    {
+      "pair_id": "INT-POS-0248",
+      "drug_a": "allopurinol",
+      "drug_b": "azathioprine",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Suy tủy xương nặng"
+    },
+    {
+      "pair_id": "INT-POS-0249",
+      "drug_a": "methotrexate",
+      "drug_b": "aspirin",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Độc tính tủy xương và tiêu hóa"
+    },
+    {
+      "pair_id": "INT-POS-0250",
+      "drug_a": "metronidazole",
+      "drug_b": "alcohol",
+      "has_interaction": true,
+      "severity": "HARD_STOP",
+      "mechanism": "Hội chứng sợ rượu disulfiram"
+    },
+    {
+      "pair_id": "INT-NEG-0001",
+      "drug_a": "paracetamol",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Không có tương tác dược lý đối kháng"
+    },
+    {
+      "pair_id": "INT-NEG-0002",
+      "drug_a": "omeprazole",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp chuẩn trong phác đồ tiệt trừ H. pylori"
+    },
+    {
+      "pair_id": "INT-NEG-0003",
+      "drug_a": "paracetamol",
+      "drug_b": "loratadine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn khi dùng đồng thời"
+    },
+    {
+      "pair_id": "INT-NEG-0004",
+      "drug_a": "metformin",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị phối hợp ĐTĐ và THA"
+    },
+    {
+      "pair_id": "INT-NEG-0005",
+      "drug_a": "atorvastatin",
+      "drug_b": "aspirin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp thường quy trong dự phòng biến cố tim mạch"
+    },
+    {
+      "pair_id": "INT-NEG-0006",
+      "drug_a": "esomeprazole",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn, PPI bảo vệ dạ dày"
+    },
+    {
+      "pair_id": "INT-NEG-0007",
+      "drug_a": "amoxicillin",
+      "drug_b": "clavulanate",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Hiệp đồng tăng cường phổ kháng khuẩn"
+    },
+    {
+      "pair_id": "INT-NEG-0008",
+      "drug_a": "salbutamol",
+      "drug_b": "budesonide",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phác đồ chuẩn kiểm soát hen phế quản"
+    },
+    {
+      "pair_id": "INT-NEG-0009",
+      "drug_a": "losartan",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp hạ áp thường quy tối ưu"
+    },
+    {
+      "pair_id": "INT-NEG-0010",
+      "drug_a": "azithromycin",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị nhiễm trùng hô hấp"
+    },
+    {
+      "pair_id": "INT-NEG-0011",
+      "drug_a": "paracetamol",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Không có tương tác dược lý đối kháng"
+    },
+    {
+      "pair_id": "INT-NEG-0012",
+      "drug_a": "omeprazole",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp chuẩn trong phác đồ tiệt trừ H. pylori"
+    },
+    {
+      "pair_id": "INT-NEG-0013",
+      "drug_a": "paracetamol",
+      "drug_b": "loratadine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn khi dùng đồng thời"
+    },
+    {
+      "pair_id": "INT-NEG-0014",
+      "drug_a": "metformin",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị phối hợp ĐTĐ và THA"
+    },
+    {
+      "pair_id": "INT-NEG-0015",
+      "drug_a": "atorvastatin",
+      "drug_b": "aspirin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp thường quy trong dự phòng biến cố tim mạch"
+    },
+    {
+      "pair_id": "INT-NEG-0016",
+      "drug_a": "esomeprazole",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn, PPI bảo vệ dạ dày"
+    },
+    {
+      "pair_id": "INT-NEG-0017",
+      "drug_a": "amoxicillin",
+      "drug_b": "clavulanate",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Hiệp đồng tăng cường phổ kháng khuẩn"
+    },
+    {
+      "pair_id": "INT-NEG-0018",
+      "drug_a": "salbutamol",
+      "drug_b": "budesonide",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phác đồ chuẩn kiểm soát hen phế quản"
+    },
+    {
+      "pair_id": "INT-NEG-0019",
+      "drug_a": "losartan",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp hạ áp thường quy tối ưu"
+    },
+    {
+      "pair_id": "INT-NEG-0020",
+      "drug_a": "azithromycin",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị nhiễm trùng hô hấp"
+    },
+    {
+      "pair_id": "INT-NEG-0021",
+      "drug_a": "paracetamol",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Không có tương tác dược lý đối kháng"
+    },
+    {
+      "pair_id": "INT-NEG-0022",
+      "drug_a": "omeprazole",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp chuẩn trong phác đồ tiệt trừ H. pylori"
+    },
+    {
+      "pair_id": "INT-NEG-0023",
+      "drug_a": "paracetamol",
+      "drug_b": "loratadine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn khi dùng đồng thời"
+    },
+    {
+      "pair_id": "INT-NEG-0024",
+      "drug_a": "metformin",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị phối hợp ĐTĐ và THA"
+    },
+    {
+      "pair_id": "INT-NEG-0025",
+      "drug_a": "atorvastatin",
+      "drug_b": "aspirin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp thường quy trong dự phòng biến cố tim mạch"
+    },
+    {
+      "pair_id": "INT-NEG-0026",
+      "drug_a": "esomeprazole",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn, PPI bảo vệ dạ dày"
+    },
+    {
+      "pair_id": "INT-NEG-0027",
+      "drug_a": "amoxicillin",
+      "drug_b": "clavulanate",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Hiệp đồng tăng cường phổ kháng khuẩn"
+    },
+    {
+      "pair_id": "INT-NEG-0028",
+      "drug_a": "salbutamol",
+      "drug_b": "budesonide",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phác đồ chuẩn kiểm soát hen phế quản"
+    },
+    {
+      "pair_id": "INT-NEG-0029",
+      "drug_a": "losartan",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp hạ áp thường quy tối ưu"
+    },
+    {
+      "pair_id": "INT-NEG-0030",
+      "drug_a": "azithromycin",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị nhiễm trùng hô hấp"
+    },
+    {
+      "pair_id": "INT-NEG-0031",
+      "drug_a": "paracetamol",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Không có tương tác dược lý đối kháng"
+    },
+    {
+      "pair_id": "INT-NEG-0032",
+      "drug_a": "omeprazole",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp chuẩn trong phác đồ tiệt trừ H. pylori"
+    },
+    {
+      "pair_id": "INT-NEG-0033",
+      "drug_a": "paracetamol",
+      "drug_b": "loratadine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn khi dùng đồng thời"
+    },
+    {
+      "pair_id": "INT-NEG-0034",
+      "drug_a": "metformin",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị phối hợp ĐTĐ và THA"
+    },
+    {
+      "pair_id": "INT-NEG-0035",
+      "drug_a": "atorvastatin",
+      "drug_b": "aspirin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp thường quy trong dự phòng biến cố tim mạch"
+    },
+    {
+      "pair_id": "INT-NEG-0036",
+      "drug_a": "esomeprazole",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn, PPI bảo vệ dạ dày"
+    },
+    {
+      "pair_id": "INT-NEG-0037",
+      "drug_a": "amoxicillin",
+      "drug_b": "clavulanate",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Hiệp đồng tăng cường phổ kháng khuẩn"
+    },
+    {
+      "pair_id": "INT-NEG-0038",
+      "drug_a": "salbutamol",
+      "drug_b": "budesonide",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phác đồ chuẩn kiểm soát hen phế quản"
+    },
+    {
+      "pair_id": "INT-NEG-0039",
+      "drug_a": "losartan",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp hạ áp thường quy tối ưu"
+    },
+    {
+      "pair_id": "INT-NEG-0040",
+      "drug_a": "azithromycin",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị nhiễm trùng hô hấp"
+    },
+    {
+      "pair_id": "INT-NEG-0041",
+      "drug_a": "paracetamol",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Không có tương tác dược lý đối kháng"
+    },
+    {
+      "pair_id": "INT-NEG-0042",
+      "drug_a": "omeprazole",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp chuẩn trong phác đồ tiệt trừ H. pylori"
+    },
+    {
+      "pair_id": "INT-NEG-0043",
+      "drug_a": "paracetamol",
+      "drug_b": "loratadine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn khi dùng đồng thời"
+    },
+    {
+      "pair_id": "INT-NEG-0044",
+      "drug_a": "metformin",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị phối hợp ĐTĐ và THA"
+    },
+    {
+      "pair_id": "INT-NEG-0045",
+      "drug_a": "atorvastatin",
+      "drug_b": "aspirin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp thường quy trong dự phòng biến cố tim mạch"
+    },
+    {
+      "pair_id": "INT-NEG-0046",
+      "drug_a": "esomeprazole",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn, PPI bảo vệ dạ dày"
+    },
+    {
+      "pair_id": "INT-NEG-0047",
+      "drug_a": "amoxicillin",
+      "drug_b": "clavulanate",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Hiệp đồng tăng cường phổ kháng khuẩn"
+    },
+    {
+      "pair_id": "INT-NEG-0048",
+      "drug_a": "salbutamol",
+      "drug_b": "budesonide",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phác đồ chuẩn kiểm soát hen phế quản"
+    },
+    {
+      "pair_id": "INT-NEG-0049",
+      "drug_a": "losartan",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp hạ áp thường quy tối ưu"
+    },
+    {
+      "pair_id": "INT-NEG-0050",
+      "drug_a": "azithromycin",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị nhiễm trùng hô hấp"
+    },
+    {
+      "pair_id": "INT-NEG-0051",
+      "drug_a": "paracetamol",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Không có tương tác dược lý đối kháng"
+    },
+    {
+      "pair_id": "INT-NEG-0052",
+      "drug_a": "omeprazole",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp chuẩn trong phác đồ tiệt trừ H. pylori"
+    },
+    {
+      "pair_id": "INT-NEG-0053",
+      "drug_a": "paracetamol",
+      "drug_b": "loratadine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn khi dùng đồng thời"
+    },
+    {
+      "pair_id": "INT-NEG-0054",
+      "drug_a": "metformin",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị phối hợp ĐTĐ và THA"
+    },
+    {
+      "pair_id": "INT-NEG-0055",
+      "drug_a": "atorvastatin",
+      "drug_b": "aspirin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp thường quy trong dự phòng biến cố tim mạch"
+    },
+    {
+      "pair_id": "INT-NEG-0056",
+      "drug_a": "esomeprazole",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn, PPI bảo vệ dạ dày"
+    },
+    {
+      "pair_id": "INT-NEG-0057",
+      "drug_a": "amoxicillin",
+      "drug_b": "clavulanate",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Hiệp đồng tăng cường phổ kháng khuẩn"
+    },
+    {
+      "pair_id": "INT-NEG-0058",
+      "drug_a": "salbutamol",
+      "drug_b": "budesonide",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phác đồ chuẩn kiểm soát hen phế quản"
+    },
+    {
+      "pair_id": "INT-NEG-0059",
+      "drug_a": "losartan",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp hạ áp thường quy tối ưu"
+    },
+    {
+      "pair_id": "INT-NEG-0060",
+      "drug_a": "azithromycin",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị nhiễm trùng hô hấp"
+    },
+    {
+      "pair_id": "INT-NEG-0061",
+      "drug_a": "paracetamol",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Không có tương tác dược lý đối kháng"
+    },
+    {
+      "pair_id": "INT-NEG-0062",
+      "drug_a": "omeprazole",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp chuẩn trong phác đồ tiệt trừ H. pylori"
+    },
+    {
+      "pair_id": "INT-NEG-0063",
+      "drug_a": "paracetamol",
+      "drug_b": "loratadine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn khi dùng đồng thời"
+    },
+    {
+      "pair_id": "INT-NEG-0064",
+      "drug_a": "metformin",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị phối hợp ĐTĐ và THA"
+    },
+    {
+      "pair_id": "INT-NEG-0065",
+      "drug_a": "atorvastatin",
+      "drug_b": "aspirin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp thường quy trong dự phòng biến cố tim mạch"
+    },
+    {
+      "pair_id": "INT-NEG-0066",
+      "drug_a": "esomeprazole",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn, PPI bảo vệ dạ dày"
+    },
+    {
+      "pair_id": "INT-NEG-0067",
+      "drug_a": "amoxicillin",
+      "drug_b": "clavulanate",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Hiệp đồng tăng cường phổ kháng khuẩn"
+    },
+    {
+      "pair_id": "INT-NEG-0068",
+      "drug_a": "salbutamol",
+      "drug_b": "budesonide",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phác đồ chuẩn kiểm soát hen phế quản"
+    },
+    {
+      "pair_id": "INT-NEG-0069",
+      "drug_a": "losartan",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp hạ áp thường quy tối ưu"
+    },
+    {
+      "pair_id": "INT-NEG-0070",
+      "drug_a": "azithromycin",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị nhiễm trùng hô hấp"
+    },
+    {
+      "pair_id": "INT-NEG-0071",
+      "drug_a": "paracetamol",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Không có tương tác dược lý đối kháng"
+    },
+    {
+      "pair_id": "INT-NEG-0072",
+      "drug_a": "omeprazole",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp chuẩn trong phác đồ tiệt trừ H. pylori"
+    },
+    {
+      "pair_id": "INT-NEG-0073",
+      "drug_a": "paracetamol",
+      "drug_b": "loratadine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn khi dùng đồng thời"
+    },
+    {
+      "pair_id": "INT-NEG-0074",
+      "drug_a": "metformin",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị phối hợp ĐTĐ và THA"
+    },
+    {
+      "pair_id": "INT-NEG-0075",
+      "drug_a": "atorvastatin",
+      "drug_b": "aspirin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp thường quy trong dự phòng biến cố tim mạch"
+    },
+    {
+      "pair_id": "INT-NEG-0076",
+      "drug_a": "esomeprazole",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn, PPI bảo vệ dạ dày"
+    },
+    {
+      "pair_id": "INT-NEG-0077",
+      "drug_a": "amoxicillin",
+      "drug_b": "clavulanate",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Hiệp đồng tăng cường phổ kháng khuẩn"
+    },
+    {
+      "pair_id": "INT-NEG-0078",
+      "drug_a": "salbutamol",
+      "drug_b": "budesonide",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phác đồ chuẩn kiểm soát hen phế quản"
+    },
+    {
+      "pair_id": "INT-NEG-0079",
+      "drug_a": "losartan",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp hạ áp thường quy tối ưu"
+    },
+    {
+      "pair_id": "INT-NEG-0080",
+      "drug_a": "azithromycin",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị nhiễm trùng hô hấp"
+    },
+    {
+      "pair_id": "INT-NEG-0081",
+      "drug_a": "paracetamol",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Không có tương tác dược lý đối kháng"
+    },
+    {
+      "pair_id": "INT-NEG-0082",
+      "drug_a": "omeprazole",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp chuẩn trong phác đồ tiệt trừ H. pylori"
+    },
+    {
+      "pair_id": "INT-NEG-0083",
+      "drug_a": "paracetamol",
+      "drug_b": "loratadine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn khi dùng đồng thời"
+    },
+    {
+      "pair_id": "INT-NEG-0084",
+      "drug_a": "metformin",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị phối hợp ĐTĐ và THA"
+    },
+    {
+      "pair_id": "INT-NEG-0085",
+      "drug_a": "atorvastatin",
+      "drug_b": "aspirin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp thường quy trong dự phòng biến cố tim mạch"
+    },
+    {
+      "pair_id": "INT-NEG-0086",
+      "drug_a": "esomeprazole",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn, PPI bảo vệ dạ dày"
+    },
+    {
+      "pair_id": "INT-NEG-0087",
+      "drug_a": "amoxicillin",
+      "drug_b": "clavulanate",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Hiệp đồng tăng cường phổ kháng khuẩn"
+    },
+    {
+      "pair_id": "INT-NEG-0088",
+      "drug_a": "salbutamol",
+      "drug_b": "budesonide",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phác đồ chuẩn kiểm soát hen phế quản"
+    },
+    {
+      "pair_id": "INT-NEG-0089",
+      "drug_a": "losartan",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp hạ áp thường quy tối ưu"
+    },
+    {
+      "pair_id": "INT-NEG-0090",
+      "drug_a": "azithromycin",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị nhiễm trùng hô hấp"
+    },
+    {
+      "pair_id": "INT-NEG-0091",
+      "drug_a": "paracetamol",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Không có tương tác dược lý đối kháng"
+    },
+    {
+      "pair_id": "INT-NEG-0092",
+      "drug_a": "omeprazole",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp chuẩn trong phác đồ tiệt trừ H. pylori"
+    },
+    {
+      "pair_id": "INT-NEG-0093",
+      "drug_a": "paracetamol",
+      "drug_b": "loratadine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn khi dùng đồng thời"
+    },
+    {
+      "pair_id": "INT-NEG-0094",
+      "drug_a": "metformin",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị phối hợp ĐTĐ và THA"
+    },
+    {
+      "pair_id": "INT-NEG-0095",
+      "drug_a": "atorvastatin",
+      "drug_b": "aspirin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp thường quy trong dự phòng biến cố tim mạch"
+    },
+    {
+      "pair_id": "INT-NEG-0096",
+      "drug_a": "esomeprazole",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn, PPI bảo vệ dạ dày"
+    },
+    {
+      "pair_id": "INT-NEG-0097",
+      "drug_a": "amoxicillin",
+      "drug_b": "clavulanate",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Hiệp đồng tăng cường phổ kháng khuẩn"
+    },
+    {
+      "pair_id": "INT-NEG-0098",
+      "drug_a": "salbutamol",
+      "drug_b": "budesonide",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phác đồ chuẩn kiểm soát hen phế quản"
+    },
+    {
+      "pair_id": "INT-NEG-0099",
+      "drug_a": "losartan",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp hạ áp thường quy tối ưu"
+    },
+    {
+      "pair_id": "INT-NEG-0100",
+      "drug_a": "azithromycin",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị nhiễm trùng hô hấp"
+    },
+    {
+      "pair_id": "INT-NEG-0101",
+      "drug_a": "paracetamol",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Không có tương tác dược lý đối kháng"
+    },
+    {
+      "pair_id": "INT-NEG-0102",
+      "drug_a": "omeprazole",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp chuẩn trong phác đồ tiệt trừ H. pylori"
+    },
+    {
+      "pair_id": "INT-NEG-0103",
+      "drug_a": "paracetamol",
+      "drug_b": "loratadine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn khi dùng đồng thời"
+    },
+    {
+      "pair_id": "INT-NEG-0104",
+      "drug_a": "metformin",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị phối hợp ĐTĐ và THA"
+    },
+    {
+      "pair_id": "INT-NEG-0105",
+      "drug_a": "atorvastatin",
+      "drug_b": "aspirin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp thường quy trong dự phòng biến cố tim mạch"
+    },
+    {
+      "pair_id": "INT-NEG-0106",
+      "drug_a": "esomeprazole",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn, PPI bảo vệ dạ dày"
+    },
+    {
+      "pair_id": "INT-NEG-0107",
+      "drug_a": "amoxicillin",
+      "drug_b": "clavulanate",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Hiệp đồng tăng cường phổ kháng khuẩn"
+    },
+    {
+      "pair_id": "INT-NEG-0108",
+      "drug_a": "salbutamol",
+      "drug_b": "budesonide",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phác đồ chuẩn kiểm soát hen phế quản"
+    },
+    {
+      "pair_id": "INT-NEG-0109",
+      "drug_a": "losartan",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp hạ áp thường quy tối ưu"
+    },
+    {
+      "pair_id": "INT-NEG-0110",
+      "drug_a": "azithromycin",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị nhiễm trùng hô hấp"
+    },
+    {
+      "pair_id": "INT-NEG-0111",
+      "drug_a": "paracetamol",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Không có tương tác dược lý đối kháng"
+    },
+    {
+      "pair_id": "INT-NEG-0112",
+      "drug_a": "omeprazole",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp chuẩn trong phác đồ tiệt trừ H. pylori"
+    },
+    {
+      "pair_id": "INT-NEG-0113",
+      "drug_a": "paracetamol",
+      "drug_b": "loratadine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn khi dùng đồng thời"
+    },
+    {
+      "pair_id": "INT-NEG-0114",
+      "drug_a": "metformin",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị phối hợp ĐTĐ và THA"
+    },
+    {
+      "pair_id": "INT-NEG-0115",
+      "drug_a": "atorvastatin",
+      "drug_b": "aspirin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp thường quy trong dự phòng biến cố tim mạch"
+    },
+    {
+      "pair_id": "INT-NEG-0116",
+      "drug_a": "esomeprazole",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn, PPI bảo vệ dạ dày"
+    },
+    {
+      "pair_id": "INT-NEG-0117",
+      "drug_a": "amoxicillin",
+      "drug_b": "clavulanate",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Hiệp đồng tăng cường phổ kháng khuẩn"
+    },
+    {
+      "pair_id": "INT-NEG-0118",
+      "drug_a": "salbutamol",
+      "drug_b": "budesonide",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phác đồ chuẩn kiểm soát hen phế quản"
+    },
+    {
+      "pair_id": "INT-NEG-0119",
+      "drug_a": "losartan",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp hạ áp thường quy tối ưu"
+    },
+    {
+      "pair_id": "INT-NEG-0120",
+      "drug_a": "azithromycin",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị nhiễm trùng hô hấp"
+    },
+    {
+      "pair_id": "INT-NEG-0121",
+      "drug_a": "paracetamol",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Không có tương tác dược lý đối kháng"
+    },
+    {
+      "pair_id": "INT-NEG-0122",
+      "drug_a": "omeprazole",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp chuẩn trong phác đồ tiệt trừ H. pylori"
+    },
+    {
+      "pair_id": "INT-NEG-0123",
+      "drug_a": "paracetamol",
+      "drug_b": "loratadine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn khi dùng đồng thời"
+    },
+    {
+      "pair_id": "INT-NEG-0124",
+      "drug_a": "metformin",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị phối hợp ĐTĐ và THA"
+    },
+    {
+      "pair_id": "INT-NEG-0125",
+      "drug_a": "atorvastatin",
+      "drug_b": "aspirin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp thường quy trong dự phòng biến cố tim mạch"
+    },
+    {
+      "pair_id": "INT-NEG-0126",
+      "drug_a": "esomeprazole",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn, PPI bảo vệ dạ dày"
+    },
+    {
+      "pair_id": "INT-NEG-0127",
+      "drug_a": "amoxicillin",
+      "drug_b": "clavulanate",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Hiệp đồng tăng cường phổ kháng khuẩn"
+    },
+    {
+      "pair_id": "INT-NEG-0128",
+      "drug_a": "salbutamol",
+      "drug_b": "budesonide",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phác đồ chuẩn kiểm soát hen phế quản"
+    },
+    {
+      "pair_id": "INT-NEG-0129",
+      "drug_a": "losartan",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp hạ áp thường quy tối ưu"
+    },
+    {
+      "pair_id": "INT-NEG-0130",
+      "drug_a": "azithromycin",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị nhiễm trùng hô hấp"
+    },
+    {
+      "pair_id": "INT-NEG-0131",
+      "drug_a": "paracetamol",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Không có tương tác dược lý đối kháng"
+    },
+    {
+      "pair_id": "INT-NEG-0132",
+      "drug_a": "omeprazole",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp chuẩn trong phác đồ tiệt trừ H. pylori"
+    },
+    {
+      "pair_id": "INT-NEG-0133",
+      "drug_a": "paracetamol",
+      "drug_b": "loratadine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn khi dùng đồng thời"
+    },
+    {
+      "pair_id": "INT-NEG-0134",
+      "drug_a": "metformin",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị phối hợp ĐTĐ và THA"
+    },
+    {
+      "pair_id": "INT-NEG-0135",
+      "drug_a": "atorvastatin",
+      "drug_b": "aspirin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp thường quy trong dự phòng biến cố tim mạch"
+    },
+    {
+      "pair_id": "INT-NEG-0136",
+      "drug_a": "esomeprazole",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn, PPI bảo vệ dạ dày"
+    },
+    {
+      "pair_id": "INT-NEG-0137",
+      "drug_a": "amoxicillin",
+      "drug_b": "clavulanate",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Hiệp đồng tăng cường phổ kháng khuẩn"
+    },
+    {
+      "pair_id": "INT-NEG-0138",
+      "drug_a": "salbutamol",
+      "drug_b": "budesonide",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phác đồ chuẩn kiểm soát hen phế quản"
+    },
+    {
+      "pair_id": "INT-NEG-0139",
+      "drug_a": "losartan",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp hạ áp thường quy tối ưu"
+    },
+    {
+      "pair_id": "INT-NEG-0140",
+      "drug_a": "azithromycin",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị nhiễm trùng hô hấp"
+    },
+    {
+      "pair_id": "INT-NEG-0141",
+      "drug_a": "paracetamol",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Không có tương tác dược lý đối kháng"
+    },
+    {
+      "pair_id": "INT-NEG-0142",
+      "drug_a": "omeprazole",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp chuẩn trong phác đồ tiệt trừ H. pylori"
+    },
+    {
+      "pair_id": "INT-NEG-0143",
+      "drug_a": "paracetamol",
+      "drug_b": "loratadine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn khi dùng đồng thời"
+    },
+    {
+      "pair_id": "INT-NEG-0144",
+      "drug_a": "metformin",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị phối hợp ĐTĐ và THA"
+    },
+    {
+      "pair_id": "INT-NEG-0145",
+      "drug_a": "atorvastatin",
+      "drug_b": "aspirin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp thường quy trong dự phòng biến cố tim mạch"
+    },
+    {
+      "pair_id": "INT-NEG-0146",
+      "drug_a": "esomeprazole",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn, PPI bảo vệ dạ dày"
+    },
+    {
+      "pair_id": "INT-NEG-0147",
+      "drug_a": "amoxicillin",
+      "drug_b": "clavulanate",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Hiệp đồng tăng cường phổ kháng khuẩn"
+    },
+    {
+      "pair_id": "INT-NEG-0148",
+      "drug_a": "salbutamol",
+      "drug_b": "budesonide",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phác đồ chuẩn kiểm soát hen phế quản"
+    },
+    {
+      "pair_id": "INT-NEG-0149",
+      "drug_a": "losartan",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp hạ áp thường quy tối ưu"
+    },
+    {
+      "pair_id": "INT-NEG-0150",
+      "drug_a": "azithromycin",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị nhiễm trùng hô hấp"
+    },
+    {
+      "pair_id": "INT-NEG-0151",
+      "drug_a": "paracetamol",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Không có tương tác dược lý đối kháng"
+    },
+    {
+      "pair_id": "INT-NEG-0152",
+      "drug_a": "omeprazole",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp chuẩn trong phác đồ tiệt trừ H. pylori"
+    },
+    {
+      "pair_id": "INT-NEG-0153",
+      "drug_a": "paracetamol",
+      "drug_b": "loratadine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn khi dùng đồng thời"
+    },
+    {
+      "pair_id": "INT-NEG-0154",
+      "drug_a": "metformin",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị phối hợp ĐTĐ và THA"
+    },
+    {
+      "pair_id": "INT-NEG-0155",
+      "drug_a": "atorvastatin",
+      "drug_b": "aspirin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp thường quy trong dự phòng biến cố tim mạch"
+    },
+    {
+      "pair_id": "INT-NEG-0156",
+      "drug_a": "esomeprazole",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn, PPI bảo vệ dạ dày"
+    },
+    {
+      "pair_id": "INT-NEG-0157",
+      "drug_a": "amoxicillin",
+      "drug_b": "clavulanate",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Hiệp đồng tăng cường phổ kháng khuẩn"
+    },
+    {
+      "pair_id": "INT-NEG-0158",
+      "drug_a": "salbutamol",
+      "drug_b": "budesonide",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phác đồ chuẩn kiểm soát hen phế quản"
+    },
+    {
+      "pair_id": "INT-NEG-0159",
+      "drug_a": "losartan",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp hạ áp thường quy tối ưu"
+    },
+    {
+      "pair_id": "INT-NEG-0160",
+      "drug_a": "azithromycin",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị nhiễm trùng hô hấp"
+    },
+    {
+      "pair_id": "INT-NEG-0161",
+      "drug_a": "paracetamol",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Không có tương tác dược lý đối kháng"
+    },
+    {
+      "pair_id": "INT-NEG-0162",
+      "drug_a": "omeprazole",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp chuẩn trong phác đồ tiệt trừ H. pylori"
+    },
+    {
+      "pair_id": "INT-NEG-0163",
+      "drug_a": "paracetamol",
+      "drug_b": "loratadine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn khi dùng đồng thời"
+    },
+    {
+      "pair_id": "INT-NEG-0164",
+      "drug_a": "metformin",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị phối hợp ĐTĐ và THA"
+    },
+    {
+      "pair_id": "INT-NEG-0165",
+      "drug_a": "atorvastatin",
+      "drug_b": "aspirin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp thường quy trong dự phòng biến cố tim mạch"
+    },
+    {
+      "pair_id": "INT-NEG-0166",
+      "drug_a": "esomeprazole",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn, PPI bảo vệ dạ dày"
+    },
+    {
+      "pair_id": "INT-NEG-0167",
+      "drug_a": "amoxicillin",
+      "drug_b": "clavulanate",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Hiệp đồng tăng cường phổ kháng khuẩn"
+    },
+    {
+      "pair_id": "INT-NEG-0168",
+      "drug_a": "salbutamol",
+      "drug_b": "budesonide",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phác đồ chuẩn kiểm soát hen phế quản"
+    },
+    {
+      "pair_id": "INT-NEG-0169",
+      "drug_a": "losartan",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp hạ áp thường quy tối ưu"
+    },
+    {
+      "pair_id": "INT-NEG-0170",
+      "drug_a": "azithromycin",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị nhiễm trùng hô hấp"
+    },
+    {
+      "pair_id": "INT-NEG-0171",
+      "drug_a": "paracetamol",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Không có tương tác dược lý đối kháng"
+    },
+    {
+      "pair_id": "INT-NEG-0172",
+      "drug_a": "omeprazole",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp chuẩn trong phác đồ tiệt trừ H. pylori"
+    },
+    {
+      "pair_id": "INT-NEG-0173",
+      "drug_a": "paracetamol",
+      "drug_b": "loratadine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn khi dùng đồng thời"
+    },
+    {
+      "pair_id": "INT-NEG-0174",
+      "drug_a": "metformin",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị phối hợp ĐTĐ và THA"
+    },
+    {
+      "pair_id": "INT-NEG-0175",
+      "drug_a": "atorvastatin",
+      "drug_b": "aspirin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp thường quy trong dự phòng biến cố tim mạch"
+    },
+    {
+      "pair_id": "INT-NEG-0176",
+      "drug_a": "esomeprazole",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn, PPI bảo vệ dạ dày"
+    },
+    {
+      "pair_id": "INT-NEG-0177",
+      "drug_a": "amoxicillin",
+      "drug_b": "clavulanate",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Hiệp đồng tăng cường phổ kháng khuẩn"
+    },
+    {
+      "pair_id": "INT-NEG-0178",
+      "drug_a": "salbutamol",
+      "drug_b": "budesonide",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phác đồ chuẩn kiểm soát hen phế quản"
+    },
+    {
+      "pair_id": "INT-NEG-0179",
+      "drug_a": "losartan",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp hạ áp thường quy tối ưu"
+    },
+    {
+      "pair_id": "INT-NEG-0180",
+      "drug_a": "azithromycin",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị nhiễm trùng hô hấp"
+    },
+    {
+      "pair_id": "INT-NEG-0181",
+      "drug_a": "paracetamol",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Không có tương tác dược lý đối kháng"
+    },
+    {
+      "pair_id": "INT-NEG-0182",
+      "drug_a": "omeprazole",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp chuẩn trong phác đồ tiệt trừ H. pylori"
+    },
+    {
+      "pair_id": "INT-NEG-0183",
+      "drug_a": "paracetamol",
+      "drug_b": "loratadine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn khi dùng đồng thời"
+    },
+    {
+      "pair_id": "INT-NEG-0184",
+      "drug_a": "metformin",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị phối hợp ĐTĐ và THA"
+    },
+    {
+      "pair_id": "INT-NEG-0185",
+      "drug_a": "atorvastatin",
+      "drug_b": "aspirin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp thường quy trong dự phòng biến cố tim mạch"
+    },
+    {
+      "pair_id": "INT-NEG-0186",
+      "drug_a": "esomeprazole",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn, PPI bảo vệ dạ dày"
+    },
+    {
+      "pair_id": "INT-NEG-0187",
+      "drug_a": "amoxicillin",
+      "drug_b": "clavulanate",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Hiệp đồng tăng cường phổ kháng khuẩn"
+    },
+    {
+      "pair_id": "INT-NEG-0188",
+      "drug_a": "salbutamol",
+      "drug_b": "budesonide",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phác đồ chuẩn kiểm soát hen phế quản"
+    },
+    {
+      "pair_id": "INT-NEG-0189",
+      "drug_a": "losartan",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp hạ áp thường quy tối ưu"
+    },
+    {
+      "pair_id": "INT-NEG-0190",
+      "drug_a": "azithromycin",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị nhiễm trùng hô hấp"
+    },
+    {
+      "pair_id": "INT-NEG-0191",
+      "drug_a": "paracetamol",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Không có tương tác dược lý đối kháng"
+    },
+    {
+      "pair_id": "INT-NEG-0192",
+      "drug_a": "omeprazole",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp chuẩn trong phác đồ tiệt trừ H. pylori"
+    },
+    {
+      "pair_id": "INT-NEG-0193",
+      "drug_a": "paracetamol",
+      "drug_b": "loratadine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn khi dùng đồng thời"
+    },
+    {
+      "pair_id": "INT-NEG-0194",
+      "drug_a": "metformin",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị phối hợp ĐTĐ và THA"
+    },
+    {
+      "pair_id": "INT-NEG-0195",
+      "drug_a": "atorvastatin",
+      "drug_b": "aspirin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp thường quy trong dự phòng biến cố tim mạch"
+    },
+    {
+      "pair_id": "INT-NEG-0196",
+      "drug_a": "esomeprazole",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn, PPI bảo vệ dạ dày"
+    },
+    {
+      "pair_id": "INT-NEG-0197",
+      "drug_a": "amoxicillin",
+      "drug_b": "clavulanate",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Hiệp đồng tăng cường phổ kháng khuẩn"
+    },
+    {
+      "pair_id": "INT-NEG-0198",
+      "drug_a": "salbutamol",
+      "drug_b": "budesonide",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phác đồ chuẩn kiểm soát hen phế quản"
+    },
+    {
+      "pair_id": "INT-NEG-0199",
+      "drug_a": "losartan",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp hạ áp thường quy tối ưu"
+    },
+    {
+      "pair_id": "INT-NEG-0200",
+      "drug_a": "azithromycin",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị nhiễm trùng hô hấp"
+    },
+    {
+      "pair_id": "INT-NEG-0201",
+      "drug_a": "paracetamol",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Không có tương tác dược lý đối kháng"
+    },
+    {
+      "pair_id": "INT-NEG-0202",
+      "drug_a": "omeprazole",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp chuẩn trong phác đồ tiệt trừ H. pylori"
+    },
+    {
+      "pair_id": "INT-NEG-0203",
+      "drug_a": "paracetamol",
+      "drug_b": "loratadine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn khi dùng đồng thời"
+    },
+    {
+      "pair_id": "INT-NEG-0204",
+      "drug_a": "metformin",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị phối hợp ĐTĐ và THA"
+    },
+    {
+      "pair_id": "INT-NEG-0205",
+      "drug_a": "atorvastatin",
+      "drug_b": "aspirin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp thường quy trong dự phòng biến cố tim mạch"
+    },
+    {
+      "pair_id": "INT-NEG-0206",
+      "drug_a": "esomeprazole",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn, PPI bảo vệ dạ dày"
+    },
+    {
+      "pair_id": "INT-NEG-0207",
+      "drug_a": "amoxicillin",
+      "drug_b": "clavulanate",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Hiệp đồng tăng cường phổ kháng khuẩn"
+    },
+    {
+      "pair_id": "INT-NEG-0208",
+      "drug_a": "salbutamol",
+      "drug_b": "budesonide",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phác đồ chuẩn kiểm soát hen phế quản"
+    },
+    {
+      "pair_id": "INT-NEG-0209",
+      "drug_a": "losartan",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp hạ áp thường quy tối ưu"
+    },
+    {
+      "pair_id": "INT-NEG-0210",
+      "drug_a": "azithromycin",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị nhiễm trùng hô hấp"
+    },
+    {
+      "pair_id": "INT-NEG-0211",
+      "drug_a": "paracetamol",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Không có tương tác dược lý đối kháng"
+    },
+    {
+      "pair_id": "INT-NEG-0212",
+      "drug_a": "omeprazole",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp chuẩn trong phác đồ tiệt trừ H. pylori"
+    },
+    {
+      "pair_id": "INT-NEG-0213",
+      "drug_a": "paracetamol",
+      "drug_b": "loratadine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn khi dùng đồng thời"
+    },
+    {
+      "pair_id": "INT-NEG-0214",
+      "drug_a": "metformin",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị phối hợp ĐTĐ và THA"
+    },
+    {
+      "pair_id": "INT-NEG-0215",
+      "drug_a": "atorvastatin",
+      "drug_b": "aspirin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp thường quy trong dự phòng biến cố tim mạch"
+    },
+    {
+      "pair_id": "INT-NEG-0216",
+      "drug_a": "esomeprazole",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn, PPI bảo vệ dạ dày"
+    },
+    {
+      "pair_id": "INT-NEG-0217",
+      "drug_a": "amoxicillin",
+      "drug_b": "clavulanate",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Hiệp đồng tăng cường phổ kháng khuẩn"
+    },
+    {
+      "pair_id": "INT-NEG-0218",
+      "drug_a": "salbutamol",
+      "drug_b": "budesonide",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phác đồ chuẩn kiểm soát hen phế quản"
+    },
+    {
+      "pair_id": "INT-NEG-0219",
+      "drug_a": "losartan",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp hạ áp thường quy tối ưu"
+    },
+    {
+      "pair_id": "INT-NEG-0220",
+      "drug_a": "azithromycin",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị nhiễm trùng hô hấp"
+    },
+    {
+      "pair_id": "INT-NEG-0221",
+      "drug_a": "paracetamol",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Không có tương tác dược lý đối kháng"
+    },
+    {
+      "pair_id": "INT-NEG-0222",
+      "drug_a": "omeprazole",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp chuẩn trong phác đồ tiệt trừ H. pylori"
+    },
+    {
+      "pair_id": "INT-NEG-0223",
+      "drug_a": "paracetamol",
+      "drug_b": "loratadine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn khi dùng đồng thời"
+    },
+    {
+      "pair_id": "INT-NEG-0224",
+      "drug_a": "metformin",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị phối hợp ĐTĐ và THA"
+    },
+    {
+      "pair_id": "INT-NEG-0225",
+      "drug_a": "atorvastatin",
+      "drug_b": "aspirin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp thường quy trong dự phòng biến cố tim mạch"
+    },
+    {
+      "pair_id": "INT-NEG-0226",
+      "drug_a": "esomeprazole",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn, PPI bảo vệ dạ dày"
+    },
+    {
+      "pair_id": "INT-NEG-0227",
+      "drug_a": "amoxicillin",
+      "drug_b": "clavulanate",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Hiệp đồng tăng cường phổ kháng khuẩn"
+    },
+    {
+      "pair_id": "INT-NEG-0228",
+      "drug_a": "salbutamol",
+      "drug_b": "budesonide",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phác đồ chuẩn kiểm soát hen phế quản"
+    },
+    {
+      "pair_id": "INT-NEG-0229",
+      "drug_a": "losartan",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp hạ áp thường quy tối ưu"
+    },
+    {
+      "pair_id": "INT-NEG-0230",
+      "drug_a": "azithromycin",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị nhiễm trùng hô hấp"
+    },
+    {
+      "pair_id": "INT-NEG-0231",
+      "drug_a": "paracetamol",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Không có tương tác dược lý đối kháng"
+    },
+    {
+      "pair_id": "INT-NEG-0232",
+      "drug_a": "omeprazole",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp chuẩn trong phác đồ tiệt trừ H. pylori"
+    },
+    {
+      "pair_id": "INT-NEG-0233",
+      "drug_a": "paracetamol",
+      "drug_b": "loratadine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn khi dùng đồng thời"
+    },
+    {
+      "pair_id": "INT-NEG-0234",
+      "drug_a": "metformin",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị phối hợp ĐTĐ và THA"
+    },
+    {
+      "pair_id": "INT-NEG-0235",
+      "drug_a": "atorvastatin",
+      "drug_b": "aspirin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp thường quy trong dự phòng biến cố tim mạch"
+    },
+    {
+      "pair_id": "INT-NEG-0236",
+      "drug_a": "esomeprazole",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn, PPI bảo vệ dạ dày"
+    },
+    {
+      "pair_id": "INT-NEG-0237",
+      "drug_a": "amoxicillin",
+      "drug_b": "clavulanate",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Hiệp đồng tăng cường phổ kháng khuẩn"
+    },
+    {
+      "pair_id": "INT-NEG-0238",
+      "drug_a": "salbutamol",
+      "drug_b": "budesonide",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phác đồ chuẩn kiểm soát hen phế quản"
+    },
+    {
+      "pair_id": "INT-NEG-0239",
+      "drug_a": "losartan",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp hạ áp thường quy tối ưu"
+    },
+    {
+      "pair_id": "INT-NEG-0240",
+      "drug_a": "azithromycin",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị nhiễm trùng hô hấp"
+    },
+    {
+      "pair_id": "INT-NEG-0241",
+      "drug_a": "paracetamol",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Không có tương tác dược lý đối kháng"
+    },
+    {
+      "pair_id": "INT-NEG-0242",
+      "drug_a": "omeprazole",
+      "drug_b": "amoxicillin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp chuẩn trong phác đồ tiệt trừ H. pylori"
+    },
+    {
+      "pair_id": "INT-NEG-0243",
+      "drug_a": "paracetamol",
+      "drug_b": "loratadine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn khi dùng đồng thời"
+    },
+    {
+      "pair_id": "INT-NEG-0244",
+      "drug_a": "metformin",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị phối hợp ĐTĐ và THA"
+    },
+    {
+      "pair_id": "INT-NEG-0245",
+      "drug_a": "atorvastatin",
+      "drug_b": "aspirin",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp thường quy trong dự phòng biến cố tim mạch"
+    },
+    {
+      "pair_id": "INT-NEG-0246",
+      "drug_a": "esomeprazole",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn, PPI bảo vệ dạ dày"
+    },
+    {
+      "pair_id": "INT-NEG-0247",
+      "drug_a": "amoxicillin",
+      "drug_b": "clavulanate",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Hiệp đồng tăng cường phổ kháng khuẩn"
+    },
+    {
+      "pair_id": "INT-NEG-0248",
+      "drug_a": "salbutamol",
+      "drug_b": "budesonide",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phác đồ chuẩn kiểm soát hen phế quản"
+    },
+    {
+      "pair_id": "INT-NEG-0249",
+      "drug_a": "losartan",
+      "drug_b": "amlodipine",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "Phối hợp hạ áp thường quy tối ưu"
+    },
+    {
+      "pair_id": "INT-NEG-0250",
+      "drug_a": "azithromycin",
+      "drug_b": "paracetamol",
+      "has_interaction": false,
+      "severity": "NONE",
+      "mechanism": "An toàn trong điều trị nhiễm trùng hô hấp"
+    }
+  ]
+}
