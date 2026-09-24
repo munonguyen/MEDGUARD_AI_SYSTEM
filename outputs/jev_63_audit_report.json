@@ -1,0 +1,2273 @@
+{
+  "audit_meta": {
+    "benchmark": "Blind-V10 Post-Audit",
+    "target_candidate": "Candidate V11",
+    "total_blind_cases": 300,
+    "jev_correct_to_wrong_total": 63,
+    "jev_wrong_to_correct_total": 7,
+    "non_em_fp_total": 12,
+    "severe_tox_misses_total": 5,
+    "ood_misses_total": 9,
+    "contrast_pair_fails_total": 3
+  },
+  "jev_63_classification_summary": {
+    "J1 (ROUTINE -> URGENT)": 63,
+    "J4 (Override on upstream consensus)": 63,
+    "J5 (DecisionState missing context / low fact coverage)": 63
+  },
+  "jev_63_cases": [
+    {
+      "case_id": "V10-BAC-0001",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "benign_adversarial_controls",
+      "input_snippet": "[ca doi chung loai tru lanh tinh v10 1]: toi muon tim hieu thong tin ve che do tap yoga buoi sang ch..."
+    },
+    {
+      "case_id": "V10-BAC-0003",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "benign_adversarial_controls",
+      "input_snippet": "[ca doi chung loai tru lanh tinh v10 3]: toi nay thoi tiet mat me di dao cong vien 30 phut co tot ch..."
+    },
+    {
+      "case_id": "V10-BAC-0004",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "benign_adversarial_controls",
+      "input_snippet": "[ca doi chung loai tru lanh tinh v10 4]: sang nay toi uong 1 coc tra hoa cuc am mat ong thao moc tho..."
+    },
+    {
+      "case_id": "V10-BAC-0005",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "benign_adversarial_controls",
+      "input_snippet": "[ca doi chung loai tru lanh tinh v10 5]: toi uong 1 vien multivitamin tong hop sau bua an sang theo ..."
+    },
+    {
+      "case_id": "V10-BAC-0006",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "benign_adversarial_controls",
+      "input_snippet": "[ca doi chung loai tru lanh tinh v10 6]: trua nay an com gia dinh binh thuong voi canh rau ngot thit..."
+    },
+    {
+      "case_id": "V10-BAC-0007",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "benign_adversarial_controls",
+      "input_snippet": "[ca doi chung loai tru lanh tinh v10 7]: huyet ap do luc nghi ngoi la 120/80 mmhg, hoan toan tinh ta..."
+    },
+    {
+      "case_id": "V10-BAC-0008",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "benign_adversarial_controls",
+      "input_snippet": "[ca doi chung loai tru lanh tinh v10 8]: huyet ap 125/82 mmhg hoan toan binh thuong, thi luc nhin ro..."
+    },
+    {
+      "case_id": "V10-BAC-0009",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "benign_adversarial_controls",
+      "input_snippet": "[ca doi chung loai tru lanh tinh v10 9]: sau khi bung be may thung sach hoi moi co tay, ngoi nghi 15..."
+    },
+    {
+      "case_id": "V10-BAC-0010",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "benign_adversarial_controls",
+      "input_snippet": "[ca doi chung loai tru lanh tinh v10 10]: toi muon tim hieu thong tin ve che do tap yoga buoi sang c..."
+    },
+    {
+      "case_id": "V10-BAC-0012",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "benign_adversarial_controls",
+      "input_snippet": "[ca doi chung loai tru lanh tinh v10 12]: toi nay thoi tiet mat me di dao cong vien 30 phut co tot c..."
+    },
+    {
+      "case_id": "V10-BAC-0013",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "benign_adversarial_controls",
+      "input_snippet": "[ca doi chung loai tru lanh tinh v10 13]: sang nay toi uong 1 coc tra hoa cuc am mat ong thao moc th..."
+    },
+    {
+      "case_id": "V10-BAC-0014",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "benign_adversarial_controls",
+      "input_snippet": "[ca doi chung loai tru lanh tinh v10 14]: toi uong 1 vien multivitamin tong hop sau bua an sang theo..."
+    },
+    {
+      "case_id": "V10-BAC-0015",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "benign_adversarial_controls",
+      "input_snippet": "[ca doi chung loai tru lanh tinh v10 15]: trua nay an com gia dinh binh thuong voi canh rau ngot thi..."
+    },
+    {
+      "case_id": "V10-BAC-0016",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "benign_adversarial_controls",
+      "input_snippet": "[ca doi chung loai tru lanh tinh v10 16]: huyet ap do luc nghi ngoi la 120/80 mmhg, hoan toan tinh t..."
+    },
+    {
+      "case_id": "V10-BAC-0017",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "benign_adversarial_controls",
+      "input_snippet": "[ca doi chung loai tru lanh tinh v10 17]: huyet ap 125/82 mmhg hoan toan binh thuong, thi luc nhin r..."
+    },
+    {
+      "case_id": "V10-BAC-0018",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "benign_adversarial_controls",
+      "input_snippet": "[ca doi chung loai tru lanh tinh v10 18]: sau khi bung be may thung sach hoi moi co tay, ngoi nghi 1..."
+    },
+    {
+      "case_id": "V10-BAC-0019",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "benign_adversarial_controls",
+      "input_snippet": "[ca doi chung loai tru lanh tinh v10 19]: toi muon tim hieu thong tin ve che do tap yoga buoi sang c..."
+    },
+    {
+      "case_id": "V10-BAC-0021",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "benign_adversarial_controls",
+      "input_snippet": "[ca doi chung loai tru lanh tinh v10 21]: toi nay thoi tiet mat me di dao cong vien 30 phut co tot c..."
+    },
+    {
+      "case_id": "V10-BAC-0022",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "benign_adversarial_controls",
+      "input_snippet": "[ca doi chung loai tru lanh tinh v10 22]: sang nay toi uong 1 coc tra hoa cuc am mat ong thao moc th..."
+    },
+    {
+      "case_id": "V10-BAC-0023",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "benign_adversarial_controls",
+      "input_snippet": "[ca doi chung loai tru lanh tinh v10 23]: toi uong 1 vien multivitamin tong hop sau bua an sang theo..."
+    },
+    {
+      "case_id": "V10-BAC-0024",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "benign_adversarial_controls",
+      "input_snippet": "[ca doi chung loai tru lanh tinh v10 24]: trua nay an com gia dinh binh thuong voi canh rau ngot thi..."
+    },
+    {
+      "case_id": "V10-BAC-0025",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "benign_adversarial_controls",
+      "input_snippet": "[ca doi chung loai tru lanh tinh v10 25]: huyet ap do luc nghi ngoi la 120/80 mmhg, hoan toan tinh t..."
+    },
+    {
+      "case_id": "V10-CLI-0031",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "cross_layer_interference",
+      "input_snippet": "[phan luong da tang thong thuong 1]: moi mat va kho mat nhe sau khi lam viec may tinh 8 tieng lien t..."
+    },
+    {
+      "case_id": "V10-CLI-0032",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "cross_layer_interference",
+      "input_snippet": "[phan luong da tang thong thuong 2]: hai bap chan thay moi co sinh ly nhe sau buoi chay bo chieu qua..."
+    },
+    {
+      "case_id": "V10-CLI-0033",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "cross_layer_interference",
+      "input_snippet": "[phan luong da tang thong thuong 3]: ngua nhe mot not do muoi dot o cang tay, da khong sung tay lan ..."
+    },
+    {
+      "case_id": "V10-CLI-0034",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "cross_layer_interference",
+      "input_snippet": "[phan luong da tang thong thuong 4]: moi mat va kho mat nhe sau khi lam viec may tinh 8 tieng lien t..."
+    },
+    {
+      "case_id": "V10-CLI-0035",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "cross_layer_interference",
+      "input_snippet": "[phan luong da tang thong thuong 5]: hai bap chan thay moi co sinh ly nhe sau buoi chay bo chieu qua..."
+    },
+    {
+      "case_id": "V10-CLI-0036",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "cross_layer_interference",
+      "input_snippet": "[phan luong da tang thong thuong 6]: ngua nhe mot not do muoi dot o cang tay, da khong sung tay lan ..."
+    },
+    {
+      "case_id": "V10-CLI-0037",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "cross_layer_interference",
+      "input_snippet": "[phan luong da tang thong thuong 7]: moi mat va kho mat nhe sau khi lam viec may tinh 8 tieng lien t..."
+    },
+    {
+      "case_id": "V10-CLI-0038",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "cross_layer_interference",
+      "input_snippet": "[phan luong da tang thong thuong 8]: hai bap chan thay moi co sinh ly nhe sau buoi chay bo chieu qua..."
+    },
+    {
+      "case_id": "V10-CLI-0039",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "cross_layer_interference",
+      "input_snippet": "[phan luong da tang thong thuong 9]: ngua nhe mot not do muoi dot o cang tay, da khong sung tay lan ..."
+    },
+    {
+      "case_id": "V10-CLI-0040",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "cross_layer_interference",
+      "input_snippet": "[phan luong da tang thong thuong 10]: moi mat va kho mat nhe sau khi lam viec may tinh 8 tieng lien ..."
+    },
+    {
+      "case_id": "V10-ICL-0002",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "ROUTINE",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "indirect_colloquial_language",
+      "input_snippet": "[danh gia ngu canh lam sang tuong phan 1b - lanh tinh]: nguc hoi nhuc moi sau buoi tap chong day hit..."
+    },
+    {
+      "case_id": "V10-ICL-0004",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "indirect_colloquial_language",
+      "input_snippet": "[danh gia ngu canh lam sang tuong phan 2b - lanh tinh]: tim dap nhanh mot chut sau khi uong ly tra d..."
+    },
+    {
+      "case_id": "V10-ICL-0006",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "indirect_colloquial_language",
+      "input_snippet": "[danh gia ngu canh lam sang tuong phan 3b - lanh tinh]: bung cang tuc day hoi am ach kho tieu sau bu..."
+    },
+    {
+      "case_id": "V10-ICL-0010",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "indirect_colloquial_language",
+      "input_snippet": "[danh gia ngu canh lam sang tuong phan 5b - lanh tinh]: khoe mieng va moi con hoi te bi sau khi tiem..."
+    },
+    {
+      "case_id": "V10-ICL-0014",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "ROUTINE",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "indirect_colloquial_language",
+      "input_snippet": "[danh gia ngu canh lam sang tuong phan 7b - lanh tinh]: dang ngu day di ve sinh dung len hoi nhanh t..."
+    },
+    {
+      "case_id": "V10-ICL-0016",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "indirect_colloquial_language",
+      "input_snippet": "[danh gia ngu canh lam sang tuong phan 8b - lanh tinh]: hai mu ban chan hoi sung nhe ve chieu sau kh..."
+    },
+    {
+      "case_id": "V10-ICL-0018",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "indirect_colloquial_language",
+      "input_snippet": "[danh gia ngu canh lam sang tuong phan 9b - lanh tinh]: dau hoi nhuc am i vung tran do mat ngu dem q..."
+    },
+    {
+      "case_id": "V10-ICL-0020",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "indirect_colloquial_language",
+      "input_snippet": "[danh gia ngu canh lam sang tuong phan 10b - lanh tinh]: hong co chut dom lan mot vet chi mau nho li..."
+    },
+    {
+      "case_id": "V10-ICL-0022",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "indirect_colloquial_language",
+      "input_snippet": "[danh gia ngu canh lam sang tuong phan 11b - lanh tinh]: hai bap tay moi co sau khi xach hai xo nuoc..."
+    },
+    {
+      "case_id": "V10-ICL-0024",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "indirect_colloquial_language",
+      "input_snippet": "[danh gia ngu canh lam sang tuong phan 12b - lanh tinh]: thinh thoang hat hoi so mui nuoc trong do t..."
+    },
+    {
+      "case_id": "V10-ICL-0026",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.92
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "indirect_colloquial_language",
+      "input_snippet": "[danh gia ngu canh lam sang tuong phan 13b - lanh tinh]: buon non nhe va con cao ruot do de bung qua..."
+    },
+    {
+      "case_id": "V10-ICL-0028",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "indirect_colloquial_language",
+      "input_snippet": "[danh gia ngu canh lam sang tuong phan 14b - lanh tinh]: sot nhe 37.6 do trong dot cam cum, van tinh..."
+    },
+    {
+      "case_id": "V10-ICL-0030",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "indirect_colloquial_language",
+      "input_snippet": "[danh gia ngu canh lam sang tuong phan 15b - lanh tinh]: mat hoi cay va com nhe sau khi di duong bui..."
+    },
+    {
+      "case_id": "V10-UNH-0001",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "uncertainty_negation_hypothetical",
+      "input_snippet": "[ca danh gia do bat dinh phu dinh 1]: toi hoan toan khong bi dau nguc va khong kho tho, chi la hoi l..."
+    },
+    {
+      "case_id": "V10-UNH-0002",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "uncertainty_negation_hypothetical",
+      "input_snippet": "[ca danh gia do bat dinh phu dinh 2]: khong co sot, khong ho, nguoi khoe khoan binh thuong, xin tu v..."
+    },
+    {
+      "case_id": "V10-UNH-0003",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "uncertainty_negation_hypothetical",
+      "input_snippet": "[ca danh gia do bat dinh phu dinh 3]: neu sau nay toi bi cam cum thong thuong thi nen uong nhieu nuo..."
+    },
+    {
+      "case_id": "V10-UNH-0004",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "uncertainty_negation_hypothetical",
+      "input_snippet": "[ca danh gia do bat dinh phu dinh 4]: hom qua thay hoi dau dau nhe nhung nay da khoi han hoan toan, ..."
+    },
+    {
+      "case_id": "V10-UNH-0005",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "uncertainty_negation_hypothetical",
+      "input_snippet": "[ca danh gia do bat dinh phu dinh 5]: thuoc bo sung canxi thong thuong nen uong vao buoi sang hay bu..."
+    },
+    {
+      "case_id": "V10-UNH-0006",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "uncertainty_negation_hypothetical",
+      "input_snippet": "[ca danh gia do bat dinh phu dinh 6]: da mat thinh thoang co vai not mun trung ca nho khong dau khon..."
+    },
+    {
+      "case_id": "V10-UNH-0007",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "uncertainty_negation_hypothetical",
+      "input_snippet": "[ca danh gia do bat dinh phu dinh 7]: toi hoan toan khong bi dau nguc va khong kho tho, chi la hoi l..."
+    },
+    {
+      "case_id": "V10-UNH-0008",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "uncertainty_negation_hypothetical",
+      "input_snippet": "[ca danh gia do bat dinh phu dinh 8]: khong co sot, khong ho, nguoi khoe khoan binh thuong, xin tu v..."
+    },
+    {
+      "case_id": "V10-UNH-0009",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "uncertainty_negation_hypothetical",
+      "input_snippet": "[ca danh gia do bat dinh phu dinh 9]: neu sau nay toi bi cam cum thong thuong thi nen uong nhieu nuo..."
+    },
+    {
+      "case_id": "V10-UNH-0010",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "uncertainty_negation_hypothetical",
+      "input_snippet": "[ca danh gia do bat dinh phu dinh 10]: hom qua thay hoi dau dau nhe nhung nay da khoi han hoan toan,..."
+    },
+    {
+      "case_id": "V10-UNH-0011",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "uncertainty_negation_hypothetical",
+      "input_snippet": "[ca danh gia do bat dinh phu dinh 11]: thuoc bo sung canxi thong thuong nen uong vao buoi sang hay b..."
+    },
+    {
+      "case_id": "V10-UNH-0012",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "uncertainty_negation_hypothetical",
+      "input_snippet": "[ca danh gia do bat dinh phu dinh 12]: da mat thinh thoang co vai not mun trung ca nho khong dau kho..."
+    },
+    {
+      "case_id": "V10-UNH-0013",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "uncertainty_negation_hypothetical",
+      "input_snippet": "[ca danh gia do bat dinh phu dinh 13]: toi hoan toan khong bi dau nguc va khong kho tho, chi la hoi ..."
+    },
+    {
+      "case_id": "V10-UNH-0014",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "uncertainty_negation_hypothetical",
+      "input_snippet": "[ca danh gia do bat dinh phu dinh 14]: khong co sot, khong ho, nguoi khoe khoan binh thuong, xin tu ..."
+    },
+    {
+      "case_id": "V10-UNH-0015",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "uncertainty_negation_hypothetical",
+      "input_snippet": "[ca danh gia do bat dinh phu dinh 15]: neu sau nay toi bi cam cum thong thuong thi nen uong nhieu nu..."
+    },
+    {
+      "case_id": "V10-UNH-0016",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "uncertainty_negation_hypothetical",
+      "input_snippet": "[ca danh gia do bat dinh phu dinh 16]: hom qua thay hoi dau dau nhe nhung nay da khoi han hoan toan,..."
+    },
+    {
+      "case_id": "V10-UNH-0017",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "uncertainty_negation_hypothetical",
+      "input_snippet": "[ca danh gia do bat dinh phu dinh 17]: thuoc bo sung canxi thong thuong nen uong vao buoi sang hay b..."
+    },
+    {
+      "case_id": "V10-UNH-0018",
+      "oracle": "ROUTINE",
+      "without_jev": "ROUTINE",
+      "with_jev": "URGENT",
+      "gate0": "UNRESOLVED",
+      "gate1": "ROUTINE",
+      "gate2": "N/A (disabled in runner)",
+      "jev": "URGENT (epistemic_low_coverage_guard)",
+      "final_without_jev": "ROUTINE",
+      "final_with_jev": "URGENT",
+      "decision_state": {
+        "triage_floor": "ROUTINE",
+        "reasoner_triage": "ROUTINE",
+        "fact_coverage": 0.0,
+        "confidence": 0.85
+      },
+      "risk_features": [],
+      "hard_flags": [],
+      "jev_confidence": 0.6,
+      "classification_tags": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "why_correct_without_jev": "Upstream resolver (Floor=ROUTINE, Gate1=ROUTINE) correctly recognized benign / non-critical presentation with zero red flags and zero toxic/end-organ indicators; fully consistent with clinical oracle ROUTINE.",
+      "why_wrong_with_jev": "Jev triggered rule 'epistemic_low_coverage_guard' purely because fact_coverage=0.00 < 0.35. It dogmatically escalated ROUTINE -> URGENT ('AMBIGUOUS_CLARIFY'), overriding unanimous upstream consensus despite zero hard safety flags and zero critical risk features.",
+      "cohort": "uncertainty_negation_hypothetical",
+      "input_snippet": "[ca danh gia do bat dinh phu dinh 18]: da mat thinh thoang co vai not mun trung ca nho khong dau kho..."
+    }
+  ],
+  "false_positive_attribution": {
+    "summary": {
+      "gate0_safety_floor_rules": 4,
+      "gate1_semantic_escalation": 6,
+      "safety_floor_compositional_misparse": 2,
+      "ood_bypass": 0,
+      "end_organ_coupling": 0,
+      "tox_router": 0,
+      "gate2": 0,
+      "jev": 0
+    },
+    "details": [
+      {
+        "case_id": "V10-CLI-0021",
+        "expected": "URGENT",
+        "actual": "EMERGENCY",
+        "cohort": "cross_layer_interference",
+        "attributed_source": "gate0_safety_floor_rules",
+        "decision_source": "rule",
+        "floor": "EMERGENCY",
+        "gate0_urgency": "EMERGENCY",
+        "gate1_urgency": null,
+        "gate1_source": "rule",
+        "snippet": "[phan luong da tang kham som 1]: sot 39 do ngay thu 3, dau nhuc moi co toan than, co vai c"
+      },
+      {
+        "case_id": "V10-CLI-0023",
+        "expected": "URGENT",
+        "actual": "EMERGENCY",
+        "cohort": "cross_layer_interference",
+        "attributed_source": "gate1_semantic_escalation",
+        "decision_source": "semantic",
+        "floor": "ROUTINE",
+        "gate0_urgency": "UNRESOLVED",
+        "gate1_urgency": "EMERGENCY",
+        "gate1_source": "semantic",
+        "snippet": "[phan luong da tang kham som 3]: dau bung am i vung ho chau phai tu sang nay, dau tang dan"
+      },
+      {
+        "case_id": "V10-CLI-0024",
+        "expected": "URGENT",
+        "actual": "EMERGENCY",
+        "cohort": "cross_layer_interference",
+        "attributed_source": "gate0_safety_floor_rules",
+        "decision_source": "rule",
+        "floor": "EMERGENCY",
+        "gate0_urgency": "EMERGENCY",
+        "gate1_urgency": null,
+        "gate1_source": "rule",
+        "snippet": "[phan luong da tang kham som 4]: sot 39 do ngay thu 3, dau nhuc moi co toan than, co vai c"
+      },
+      {
+        "case_id": "V10-CLI-0026",
+        "expected": "URGENT",
+        "actual": "EMERGENCY",
+        "cohort": "cross_layer_interference",
+        "attributed_source": "gate1_semantic_escalation",
+        "decision_source": "semantic",
+        "floor": "ROUTINE",
+        "gate0_urgency": "UNRESOLVED",
+        "gate1_urgency": "EMERGENCY",
+        "gate1_source": "semantic",
+        "snippet": "[phan luong da tang kham som 6]: dau bung am i vung ho chau phai tu sang nay, dau tang dan"
+      },
+      {
+        "case_id": "V10-CLI-0027",
+        "expected": "URGENT",
+        "actual": "EMERGENCY",
+        "cohort": "cross_layer_interference",
+        "attributed_source": "gate0_safety_floor_rules",
+        "decision_source": "rule",
+        "floor": "EMERGENCY",
+        "gate0_urgency": "EMERGENCY",
+        "gate1_urgency": null,
+        "gate1_source": "rule",
+        "snippet": "[phan luong da tang kham som 7]: sot 39 do ngay thu 3, dau nhuc moi co toan than, co vai c"
+      },
+      {
+        "case_id": "V10-CLI-0029",
+        "expected": "URGENT",
+        "actual": "EMERGENCY",
+        "cohort": "cross_layer_interference",
+        "attributed_source": "gate1_semantic_escalation",
+        "decision_source": "semantic",
+        "floor": "ROUTINE",
+        "gate0_urgency": "UNRESOLVED",
+        "gate1_urgency": "EMERGENCY",
+        "gate1_source": "semantic",
+        "snippet": "[phan luong da tang kham som 9]: dau bung am i vung ho chau phai tu sang nay, dau tang dan"
+      },
+      {
+        "case_id": "V10-CLI-0030",
+        "expected": "URGENT",
+        "actual": "EMERGENCY",
+        "cohort": "cross_layer_interference",
+        "attributed_source": "gate0_safety_floor_rules",
+        "decision_source": "rule",
+        "floor": "EMERGENCY",
+        "gate0_urgency": "EMERGENCY",
+        "gate1_urgency": null,
+        "gate1_source": "rule",
+        "snippet": "[phan luong da tang kham som 10]: sot 39 do ngay thu 3, dau nhuc moi co toan than, co vai "
+      },
+      {
+        "case_id": "V10-ICL-0008",
+        "expected": "ROUTINE",
+        "actual": "EMERGENCY",
+        "cohort": "indirect_colloquial_language",
+        "attributed_source": "safety_floor_compositional_misparse",
+        "decision_source": "compositional",
+        "floor": "EMERGENCY",
+        "gate0_urgency": "ROUTINE",
+        "gate1_urgency": null,
+        "gate1_source": "compositional",
+        "snippet": "[danh gia ngu canh lam sang tuong phan 4b - lanh tinh]: hai ban chan bi lanh buot do ngoi "
+      },
+      {
+        "case_id": "V10-ICL-0012",
+        "expected": "ROUTINE",
+        "actual": "EMERGENCY",
+        "cohort": "indirect_colloquial_language",
+        "attributed_source": "safety_floor_compositional_misparse",
+        "decision_source": "compositional",
+        "floor": "EMERGENCY",
+        "gate0_urgency": "UNRESOLVED",
+        "gate1_urgency": null,
+        "gate1_source": "compositional",
+        "snippet": "[danh gia ngu canh lam sang tuong phan 6b - lanh tinh]: dau moi co vung lung tren giua hai"
+      },
+      {
+        "case_id": "V10-UNH-0020",
+        "expected": "URGENT",
+        "actual": "EMERGENCY",
+        "cohort": "uncertainty_negation_hypothetical",
+        "attributed_source": "gate1_semantic_escalation",
+        "decision_source": "semantic",
+        "floor": "URGENT",
+        "gate0_urgency": "UNRESOLVED",
+        "gate1_urgency": "EMERGENCY",
+        "gate1_source": "semantic",
+        "snippet": "[ca danh gia do bat dinh can kham 2]: vet mo cu o bung hoi ne do nhe va ngua ram ran ngay "
+      },
+      {
+        "case_id": "V10-UNH-0022",
+        "expected": "URGENT",
+        "actual": "EMERGENCY",
+        "cohort": "uncertainty_negation_hypothetical",
+        "attributed_source": "gate1_semantic_escalation",
+        "decision_source": "semantic",
+        "floor": "URGENT",
+        "gate0_urgency": "UNRESOLVED",
+        "gate1_urgency": "EMERGENCY",
+        "gate1_source": "semantic",
+        "snippet": "[ca danh gia do bat dinh can kham 4]: vet mo cu o bung hoi ne do nhe va ngua ram ran ngay "
+      },
+      {
+        "case_id": "V10-UNH-0024",
+        "expected": "URGENT",
+        "actual": "EMERGENCY",
+        "cohort": "uncertainty_negation_hypothetical",
+        "attributed_source": "gate1_semantic_escalation",
+        "decision_source": "semantic",
+        "floor": "URGENT",
+        "gate0_urgency": "UNRESOLVED",
+        "gate1_urgency": "EMERGENCY",
+        "gate1_source": "semantic",
+        "snippet": "[ca danh gia do bat dinh can kham 6]: vet mo cu o bung hoi ne do nhe va ngua ram ran ngay "
+      }
+    ]
+  },
+  "severe_tox_replay": {
+    "summary": {
+      "T2 (toxidrome features incomplete)": 5,
+      "T1 (exposure event not extracted)": 5
+    },
+    "details": [
+      {
+        "case_id": "V10-TOX-0004",
+        "actual": "URGENT",
+        "expected": "EMERGENCY",
+        "matched_dimensions": [
+          "autonomic_signs"
+        ],
+        "suspected_syndrome": "unknown_toxic_exposure",
+        "rationale": "Không phát hiện yếu tố phơi nhiễm hay chữ ký độc học.",
+        "primary_classification": "T2 (toxidrome features incomplete)",
+        "secondary_classification": "T1 (exposure event not extracted)",
+        "signature_family": "severe_sympathomimetic_toxidrome",
+        "mechanistic_gap": "Regex for severe tachycardia checked only 150/160 and 'nhip tim nhanh', missing 'mach nhanh 155'; agitation detector lacked 'hoang tuong' (delusional psychosis) and 'run ray toan than'."
+      },
+      {
+        "case_id": "V10-TOX-0014",
+        "actual": "URGENT",
+        "expected": "EMERGENCY",
+        "matched_dimensions": [
+          "autonomic_signs"
+        ],
+        "suspected_syndrome": "unknown_toxic_exposure",
+        "rationale": "Không phát hiện yếu tố phơi nhiễm hay chữ ký độc học.",
+        "primary_classification": "T2 (toxidrome features incomplete)",
+        "secondary_classification": "T1 (exposure event not extracted)",
+        "signature_family": "severe_sympathomimetic_toxidrome",
+        "mechanistic_gap": "Regex for severe tachycardia checked only 150/160 and 'nhip tim nhanh', missing 'mach nhanh 155'; agitation detector lacked 'hoang tuong' (delusional psychosis) and 'run ray toan than'."
+      },
+      {
+        "case_id": "V10-TOX-0024",
+        "actual": "URGENT",
+        "expected": "EMERGENCY",
+        "matched_dimensions": [
+          "autonomic_signs"
+        ],
+        "suspected_syndrome": "unknown_toxic_exposure",
+        "rationale": "Không phát hiện yếu tố phơi nhiễm hay chữ ký độc học.",
+        "primary_classification": "T2 (toxidrome features incomplete)",
+        "secondary_classification": "T1 (exposure event not extracted)",
+        "signature_family": "severe_sympathomimetic_toxidrome",
+        "mechanistic_gap": "Regex for severe tachycardia checked only 150/160 and 'nhip tim nhanh', missing 'mach nhanh 155'; agitation detector lacked 'hoang tuong' (delusional psychosis) and 'run ray toan than'."
+      },
+      {
+        "case_id": "V10-TOX-0034",
+        "actual": "URGENT",
+        "expected": "EMERGENCY",
+        "matched_dimensions": [
+          "autonomic_signs"
+        ],
+        "suspected_syndrome": "unknown_toxic_exposure",
+        "rationale": "Không phát hiện yếu tố phơi nhiễm hay chữ ký độc học.",
+        "primary_classification": "T2 (toxidrome features incomplete)",
+        "secondary_classification": "T1 (exposure event not extracted)",
+        "signature_family": "severe_sympathomimetic_toxidrome",
+        "mechanistic_gap": "Regex for severe tachycardia checked only 150/160 and 'nhip tim nhanh', missing 'mach nhanh 155'; agitation detector lacked 'hoang tuong' (delusional psychosis) and 'run ray toan than'."
+      },
+      {
+        "case_id": "V10-TOX-0044",
+        "actual": "URGENT",
+        "expected": "EMERGENCY",
+        "matched_dimensions": [
+          "autonomic_signs"
+        ],
+        "suspected_syndrome": "unknown_toxic_exposure",
+        "rationale": "Không phát hiện yếu tố phơi nhiễm hay chữ ký độc học.",
+        "primary_classification": "T2 (toxidrome features incomplete)",
+        "secondary_classification": "T1 (exposure event not extracted)",
+        "signature_family": "severe_sympathomimetic_toxidrome",
+        "mechanistic_gap": "Regex for severe tachycardia checked only 150/160 and 'nhip tim nhanh', missing 'mach nhanh 155'; agitation detector lacked 'hoang tuong' (delusional psychosis) and 'run ray toan than'."
+      }
+    ]
+  },
+  "ood_bypass_analysis": [
+    {
+      "case_id": "V10-OOD-0007",
+      "actual": "URGENT",
+      "expected": "EMERGENCY",
+      "floor": "URGENT",
+      "ood_detected": false,
+      "ood_bypass_applied": false,
+      "text": "[ca ood xung dot day an toan 7]: bo phim nao dang chieu rap hay, con toi dot nhien te liet",
+      "mechanistic_gap": "Conversational OOD prefix diluted extraction. Specifically, 'đột nhiên tê liệt' lacked adverb 'đột nhiên' in acute stroke regex; unresponsiveness and facial droop in multi-clause sentences were not elevated to EMERGENCY safety floor before OOD evaluation."
+    },
+    {
+      "case_id": "V10-OOD-0008",
+      "actual": "ROUTINE",
+      "expected": "EMERGENCY",
+      "floor": "ROUTINE",
+      "ood_detected": false,
+      "ood_bypass_applied": false,
+      "text": "[ca ood xung dot day an toan 8]: tim dia chi quan an ngon gan day, nguoi nha toi dot ngot ",
+      "mechanistic_gap": "Conversational OOD prefix diluted extraction. Specifically, 'đột nhiên tê liệt' lacked adverb 'đột nhiên' in acute stroke regex; unresponsiveness and facial droop in multi-clause sentences were not elevated to EMERGENCY safety floor before OOD evaluation."
+    },
+    {
+      "case_id": "V10-OOD-0009",
+      "actual": "ROUTINE",
+      "expected": "EMERGENCY",
+      "floor": "ROUTINE",
+      "ood_detected": false,
+      "ood_bypass_applied": false,
+      "text": "[ca ood xung dot day an toan 9]: cach sua loi may giat khong vat, me toi dot ngot hoa mat ",
+      "mechanistic_gap": "Conversational OOD prefix diluted extraction. Specifically, 'đột nhiên tê liệt' lacked adverb 'đột nhiên' in acute stroke regex; unresponsiveness and facial droop in multi-clause sentences were not elevated to EMERGENCY safety floor before OOD evaluation."
+    },
+    {
+      "case_id": "V10-OOD-0022",
+      "actual": "URGENT",
+      "expected": "EMERGENCY",
+      "floor": "URGENT",
+      "ood_detected": false,
+      "ood_bypass_applied": false,
+      "text": "[ca ood xung dot day an toan 22]: bo phim nao dang chieu rap hay, con toi dot nhien te lie",
+      "mechanistic_gap": "Conversational OOD prefix diluted extraction. Specifically, 'đột nhiên tê liệt' lacked adverb 'đột nhiên' in acute stroke regex; unresponsiveness and facial droop in multi-clause sentences were not elevated to EMERGENCY safety floor before OOD evaluation."
+    },
+    {
+      "case_id": "V10-OOD-0023",
+      "actual": "ROUTINE",
+      "expected": "EMERGENCY",
+      "floor": "ROUTINE",
+      "ood_detected": false,
+      "ood_bypass_applied": false,
+      "text": "[ca ood xung dot day an toan 23]: tim dia chi quan an ngon gan day, nguoi nha toi dot ngot",
+      "mechanistic_gap": "Conversational OOD prefix diluted extraction. Specifically, 'đột nhiên tê liệt' lacked adverb 'đột nhiên' in acute stroke regex; unresponsiveness and facial droop in multi-clause sentences were not elevated to EMERGENCY safety floor before OOD evaluation."
+    },
+    {
+      "case_id": "V10-OOD-0024",
+      "actual": "ROUTINE",
+      "expected": "EMERGENCY",
+      "floor": "ROUTINE",
+      "ood_detected": false,
+      "ood_bypass_applied": false,
+      "text": "[ca ood xung dot day an toan 24]: cach sua loi may giat khong vat, me toi dot ngot hoa mat",
+      "mechanistic_gap": "Conversational OOD prefix diluted extraction. Specifically, 'đột nhiên tê liệt' lacked adverb 'đột nhiên' in acute stroke regex; unresponsiveness and facial droop in multi-clause sentences were not elevated to EMERGENCY safety floor before OOD evaluation."
+    },
+    {
+      "case_id": "V10-OOD-0037",
+      "actual": "URGENT",
+      "expected": "EMERGENCY",
+      "floor": "URGENT",
+      "ood_detected": false,
+      "ood_bypass_applied": false,
+      "text": "[ca ood xung dot day an toan 37]: bo phim nao dang chieu rap hay, con toi dot nhien te lie",
+      "mechanistic_gap": "Conversational OOD prefix diluted extraction. Specifically, 'đột nhiên tê liệt' lacked adverb 'đột nhiên' in acute stroke regex; unresponsiveness and facial droop in multi-clause sentences were not elevated to EMERGENCY safety floor before OOD evaluation."
+    },
+    {
+      "case_id": "V10-OOD-0038",
+      "actual": "ROUTINE",
+      "expected": "EMERGENCY",
+      "floor": "ROUTINE",
+      "ood_detected": false,
+      "ood_bypass_applied": false,
+      "text": "[ca ood xung dot day an toan 38]: tim dia chi quan an ngon gan day, nguoi nha toi dot ngot",
+      "mechanistic_gap": "Conversational OOD prefix diluted extraction. Specifically, 'đột nhiên tê liệt' lacked adverb 'đột nhiên' in acute stroke regex; unresponsiveness and facial droop in multi-clause sentences were not elevated to EMERGENCY safety floor before OOD evaluation."
+    },
+    {
+      "case_id": "V10-OOD-0039",
+      "actual": "ROUTINE",
+      "expected": "EMERGENCY",
+      "floor": "ROUTINE",
+      "ood_detected": false,
+      "ood_bypass_applied": false,
+      "text": "[ca ood xung dot day an toan 39]: cach sua loi may giat khong vat, me toi dot ngot hoa mat",
+      "mechanistic_gap": "Conversational OOD prefix diluted extraction. Specifically, 'đột nhiên tê liệt' lacked adverb 'đột nhiên' in acute stroke regex; unresponsiveness and facial droop in multi-clause sentences were not elevated to EMERGENCY safety floor before OOD evaluation."
+    }
+  ],
+  "contrast_pairs_analysis": [
+    {
+      "pair_id": "PAIR-004",
+      "high_case": "V10-ICL-0007 (acute limb ischemia -> EMERGENCY, PASS)",
+      "benign_case": "V10-ICL-0008 (cold feet in winter -> expected ROUTINE, actual EMERGENCY, FAIL)",
+      "failure_mode": "Benign Over-triage",
+      "root_cause": "Compositional safety floor fired acute peripheral vascular ischemia rule on benign winter coldness without requiring pain, pallor, or pulselessness."
+    },
+    {
+      "pair_id": "PAIR-006",
+      "high_case": "V10-ICL-0011 (aortic dissection tearing pain -> EMERGENCY, PASS)",
+      "benign_case": "V10-ICL-0012 (back muscle soreness after lifting -> expected ROUTINE, actual EMERGENCY, FAIL)",
+      "failure_mode": "Benign Over-triage",
+      "root_cause": "Safety floor matched 'đau lưng' + positional stress without factoring in relief with rest and absence of tearing sensation."
+    },
+    {
+      "pair_id": "PAIR-009",
+      "high_case": "V10-ICL-0017 (thunderclap headache SAH -> expected EMERGENCY, actual URGENT, FAIL)",
+      "benign_case": "V10-ICL-0018 (tension headache -> expected ROUTINE, actual ROUTINE, PASS)",
+      "failure_mode": "High-Acuity Under-triage",
+      "root_cause": "Semantic abstraction missed colloquial idiom 'như búa tạ giáng xuống đỉnh đầu' as thunderclap headache, falling back to routine tension headache urgent threshold."
+    }
+  ]
+}

@@ -268,7 +268,11 @@ def _needs_information(
     )
 
 
-def _triage_answer(result: dict[str, Any], sources: list[ChatEvidenceSource]) -> GroundedAnswer:
+def _triage_answer(
+    result: dict[str, Any],
+    sources: list[ChatEvidenceSource],
+    reply: str = "",
+) -> GroundedAnswer:
     urgency = str(result.get("urgency", "ROUTINE"))
     esi = result.get("esi_level")
     specialty = result.get("recommended_specialty") or {}
@@ -288,21 +292,42 @@ def _triage_answer(result: dict[str, Any], sources: list[ChatEvidenceSource]) ->
     if specialty_label:
         key_points.append(f"Hướng tiếp nhận do quy tắc lựa chọn: {specialty_label}")
     key_points.extend(f"Dấu hiệu được nhận diện: {flag}" for flag in result.get("red_flags", []))
-    if emergency:
-        summary = (
-            "Thông tin bạn mô tả khớp với dấu hiệu cảnh báo khẩn cấp trong quy tắc "
-            "phân luồng. Bạn cần được nhân viên cấp cứu đánh giá ngay; hệ thống không "
-            "xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này."
+
+    is_dual_crisis = bool(
+        result.get("crisis_support_flag")
+        or (
+            reply
+            and any(
+                k in reply.lower()
+                for k in ("khủng hoảng", "khung hoang", "111", "tự hại", "tu hai", "tự sát", "tu sat")
+            )
         )
+    )
+
+    if emergency:
+        if is_dual_crisis and reply and ("115" in reply or "cấp cứu" in reply.lower()):
+            summary = reply
+        else:
+            summary = (
+                "Thông tin bạn mô tả khớp với dấu hiệu cảnh báo khẩn cấp trong quy tắc "
+                "phân luồng. Bạn cần được nhân viên cấp cứu đánh giá ngay; hệ thống không "
+                "xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này."
+            )
         # Emergency Override: strictly disable routine self-care and home monitoring advice
         next_steps = [
             "Dừng ngay mọi hoạt động đang làm hoặc gắng sức, ở nơi an toàn và nhờ người bên cạnh hỗ trợ trong khi liên hệ cấp cứu.",
             str(result.get("advice") or "Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay lập tức; không tự lái xe."),
             "Tuyệt đối không tự điều trị hoặc trì hoãn việc đánh giá y tế khẩn cấp.",
         ]
+        if is_dual_crisis:
+            next_steps.append(
+                "Đồng thời, bạn xứng đáng được hỗ trợ qua khủng hoảng này: hãy chia sẻ với người thân và liên hệ Tổng đài Quốc gia 111 để được trợ giúp khẩn cấp."
+            )
         safety_notes = [
             "Không trì hoãn việc gọi 115 hoặc đến khoa Cấp cứu ngay lập tức; tuyệt đối không chần chừ tại nhà."
         ]
+        if is_dual_crisis:
+            safety_notes.append("Không ở một mình lúc này; hãy nhờ người thân hoặc người bên cạnh ở cùng bạn.")
         questions = []
         clinical_hypotheses = []
     elif urgency == "URGENT":
@@ -530,7 +555,7 @@ def build_grounded_answer(
 
     sources = _sources(intent)
     if intent == "triage":
-        return _with_narrative(_triage_answer(result, sources), intent)
+        return _with_narrative(_triage_answer(result, sources, reply=reply), intent)
     if intent == "safety":
         return _with_narrative(_safety_answer(result, sources), intent)
     if intent == "monitoring":
