@@ -79,7 +79,16 @@ def evaluate_abstraction_lattice(graph: SemanticRelationGraph) -> LatticeEvaluat
     has_eyestrain = bool(re.search(r"\b(kinh ban|bui bay vao|nhin man hinh|nhin may tinh|moi mat|chua lau kinh|duc thuy tinh the lau nam|nhieu nam nay|nhieu thang nay)\b", norm))
     has_ac_cold = bool(re.search(r"\b(ngoi phong dieu hoa|may lanh|troi lanh|quen di tat|di mua|thoi tiet lanh)\b", norm))
     has_postprandial = bool(re.search(r"\b(an no|buffet|day bung|chuong bung|lam ram)\b", norm))
-    has_stress_headache = bool(re.search(r"\b(cang thang cong viec|thieu ngu|ngoi may tinh|am i hai ben)\b", norm))
+    # Context such as sleep deprivation or computer work is not a symptom.
+    # Only create a benign tension-headache abstraction when a headache/head-location
+    # symptom is actually present in the user's text.
+    has_headache_symptom = bool(re.search(
+        r"\b(dau dau|nhuc dau|nang dau|dau thai duong|thai duong.*?dau|dau.*?thai duong)\b",
+        norm,
+    ))
+    has_stress_headache = has_headache_symptom and bool(
+        re.search(r"\b(cang thang cong viec|thieu ngu|ngoi may tinh|am i hai ben)\b", norm)
+    )
 
     # -------------------------------------------------------------------------
     # 1. Context Differentiation: Musculoskeletal Chest vs Cardiopulmonary
@@ -234,13 +243,33 @@ def evaluate_abstraction_lattice(graph: SemanticRelationGraph) -> LatticeEvaluat
             )
         )
     elif has_obstetric and (has_syncope or has_diaphoresis or bool(re.search(r"\b(choang vang|chong mat|ngat|xuat huyet|chay mau)\b", norm))):
+        # Patient-facing rationale must only assert features present in the input.
+        # Differential diagnoses may be named as possibilities, but rule antecedents
+        # that were not observed must never be rewritten as patient facts.
+        obstetric_evidence: list[str] = []
+        if re.search(r"\b(mang thai|co bau|san phu)\b", norm):
+            obstetric_evidence.append("đang mang thai")
+        elif re.search(r"\b(tre kinh|cham kinh)\b", norm):
+            obstetric_evidence.append("trễ/chậm kinh")
+        if re.search(r"\b(dau bung|dau ho chau)\b", norm):
+            obstetric_evidence.append("đau bụng/đau hố chậu")
+        if re.search(r"\b(xuat huyet|chay mau)\b", norm):
+            obstetric_evidence.append("chảy máu")
+        if has_syncope or re.search(r"\b(choang vang|chong mat|ngat)\b", norm):
+            obstetric_evidence.append("choáng/ngất")
+        if has_diaphoresis:
+            obstetric_evidence.append("vã mồ hôi/dấu hiệu tuần hoàn")
+        evidence_text = ", ".join(dict.fromkeys(obstetric_evidence)) or "dấu hiệu sản khoa cấp"
         patterns.append(
             AbstractionPattern(
                 archetype=AbstractThreatArchetype.PREGNANCY_EMERGENCY,
                 is_emergency=True,
                 confidence=0.99,
                 grounding_concepts=["obstetric_acute_abdomen", "hemodynamic_compromise"],
-                clinical_rationale="Nghi ngờ thai ngoài tử cung vỡ hoặc cấp cứu bụng sản phụ khoa (đau bụng cấp kèm trễ kinh và choáng váng).",
+                clinical_rationale=(
+                    f"Nhóm dấu hiệu sản khoa cấp ({evidence_text}) cần được đánh giá khẩn để "
+                    "loại trừ nguyên nhân nguy hiểm như thai ngoài tử cung hoặc chảy máu sản khoa."
+                ),
             )
         )
     elif has_abdo and (has_diaphoresis or has_pallor or has_rigid or (has_agony and has_acute_onset)):
