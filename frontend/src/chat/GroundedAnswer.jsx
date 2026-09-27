@@ -67,7 +67,10 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
     || ['HIGH', 'MODERATE'].includes(result?.overall_risk)
     || ['suspected_counterfeit', 'recalled', 'invalid'].includes(result?.verification_status)
   );
-  const displayQuestions = answer.display_questions?.length
+  // An empty display_questions array is an intentional policy decision (most
+  // importantly for EMERGENCY). Only fall back when older payloads omit the
+  // field entirely; never repopulate an explicitly empty question plan.
+  const displayQuestions = Array.isArray(answer.display_questions)
     ? answer.display_questions
     : (answer.questions || []).slice(0, 2);
   const narrativeBlocks = hasNarrative
