@@ -19,7 +19,12 @@ headers_base = {
 }
 
 
-def chat(messages: list[dict[str, str]], key: str, intent: str = "auto") -> dict:
+def chat(
+    messages: list[dict[str, str]],
+    key: str,
+    intent: str = "auto",
+    context: dict | None = None,
+) -> dict:
     headers = {**headers_base, "Idempotency-Key": key}
     response = client.post(
         "/v1/chat",
@@ -28,6 +33,7 @@ def chat(messages: list[dict[str, str]], key: str, intent: str = "auto") -> dict
             "conversation_id": key,
             "intent_hint": intent,
             "messages": messages,
+            "context": context or {},
         },
     )
     response.raise_for_status()
@@ -91,6 +97,45 @@ print(
             "summary": (gi.get("answer") or {}).get("summary"),
             "questions": (gi.get("answer") or {}).get("questions"),
             "safety_notes": (gi.get("answer") or {}).get("safety_notes"),
+        },
+        ensure_ascii=False,
+        indent=2,
+    ),
+)
+
+schedule = chat(
+    [
+        {"role": "user", "content": "Tôi bị đau ngực và khó thở"},
+        {"role": "assistant", "content": "Bạn cần được đánh giá cấp cứu ngay."},
+        {"role": "user", "content": "Tôi đang cảm thấy bụng cứ cồn cào, sốt ruột không rõ lắm."},
+        {"role": "assistant", "content": chest_gi.get("reply", "")},
+        {"role": "user", "content": "Cảm giác nó cứ khó chịu, buồn nôn lắm."},
+        {"role": "assistant", "content": "Thông tin hiện tại chưa cho thấy rõ dấu hiệu cấp cứu."},
+        {"role": "user", "content": "#lichthuoc uống amoxicillin lúc 8h và 20h mỗi ngày."},
+    ],
+    "diag-schedule-after-switch",
+    "auto",
+    {
+        "patient_ref": "BN-UI-DIAG",
+        "age": 36,
+        "sex": "male",
+        "current_medications": ["warfarin"],
+        "allergies": [],
+        "conditions": ["tăng huyết áp"],
+        "last_result": None,
+    },
+)
+print(
+    "SCHEDULE_AFTER_SWITCH",
+    json.dumps(
+        {
+            "intent": schedule.get("intent"),
+            "status": schedule.get("status"),
+            "reply": schedule.get("reply"),
+            "required_fields": schedule.get("required_fields"),
+            "answer_summary": (schedule.get("answer") or {}).get("summary"),
+            "narrative": (schedule.get("answer") or {}).get("narrative"),
+            "result": schedule.get("result"),
         },
         ensure_ascii=False,
         indent=2,
