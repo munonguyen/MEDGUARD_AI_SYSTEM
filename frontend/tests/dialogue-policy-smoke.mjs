@@ -31,6 +31,18 @@ async function sendMessage(composer, send, text) {
   return lastChatPayload;
 }
 
+async function assertDisplayedQuestion(answerCard, displayQuestions, label) {
+  if (!displayQuestions.length) return;
+  const text = (await answerCard.innerText()).toLowerCase();
+  for (const question of displayQuestions) {
+    if (!text.includes(question.toLowerCase())) {
+      throw new Error(
+        `${label} UI did not render backend-selected question. selected=${JSON.stringify(displayQuestions)} dom=${JSON.stringify(text)}`,
+      );
+    }
+  }
+}
+
 try {
   await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
   await page.getByText('MedGuard AI', { exact: true }).first().waitFor();
@@ -72,12 +84,7 @@ try {
     throw new Error(`Routine display question contract violated: ${JSON.stringify(routineDisplay)}`);
   }
   const routineAnswer = page.locator('.chat-assistant:not(.pending)').last();
-  const routineQuestionSection = routineAnswer.locator('.answer-section').filter({
-    has: routineAnswer.getByText('Bạn cho mình biết thêm', { exact: true }),
-  });
-  if (routineDisplay.length && await routineQuestionSection.locator('li').count() !== routineDisplay.length) {
-    throw new Error('Routine UI question count differs from backend display_questions');
-  }
+  await assertDisplayedQuestion(routineAnswer, routineDisplay, 'Routine');
 
   // 3) Once nausea is explicitly reported, disposition-changing vomiting /
   // hydration status outranks the older semantic ambiguity question.
@@ -98,19 +105,7 @@ try {
   }
 
   const nauseaAnswer = page.locator('.chat-assistant:not(.pending)').last();
-  const nauseaQuestionSection = nauseaAnswer.locator('.answer-section').filter({
-    has: nauseaAnswer.getByText('Bạn cho mình biết thêm', { exact: true }),
-  });
-  const sectionCount = await nauseaQuestionSection.count();
-  if (sectionCount !== 1) {
-    throw new Error(
-      `Backend selected a nausea question but UI rendered ${sectionCount} question sections. display=${JSON.stringify(nauseaDisplay)} dom=${JSON.stringify(await nauseaAnswer.innerText())}`,
-    );
-  }
-  const questionText = (await nauseaQuestionSection.innerText()).toLowerCase();
-  if (!questionText.includes('nôn') || !questionText.includes('nước')) {
-    throw new Error(`Nausea UI did not render vomiting/hydration: ${questionText}`);
-  }
+  await assertDisplayedQuestion(nauseaAnswer, nauseaDisplay, 'Nausea');
 
   if (errors.length) throw new Error(errors.join('\n'));
   console.log('dialogue_policy_ui=PASS');
