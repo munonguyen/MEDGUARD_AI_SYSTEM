@@ -19,6 +19,7 @@ QuestionCategory = Literal[
     "DISPOSITION",
     "TREATMENT_SAFETY",
     "CONTRADICTION",
+    "SEMANTIC_CLARIFICATION",
     "DIAGNOSTIC",
     "PERSONALIZATION",
 ]
@@ -115,6 +116,13 @@ _TREATMENT_SAFETY_MARKERS = (
     "sintrom",
 )
 
+_SEMANTIC_CLARIFICATION_MARKERS = (
+    "khi noi",
+    "ban muon noi",
+    "ban dang muon noi",
+    "y cua ban la",
+)
+
 _CONTRADICTION_MARKERS = (
     "xac nhan lai",
     "thuc te",
@@ -177,6 +185,7 @@ _BASE_SCORE: dict[QuestionCategory, float] = {
     "DISPOSITION": 76.0,
     "TREATMENT_SAFETY": 90.0,
     "CONTRADICTION": 96.0,
+    "SEMANTIC_CLARIFICATION": 98.0,
     "DIAGNOSTIC": 55.0,
     "PERSONALIZATION": 35.0,
 }
@@ -191,6 +200,8 @@ def _contains_any(text: str, markers: tuple[str, ...]) -> bool:
 
 
 def _classify(normalized: str) -> tuple[QuestionCategory, bool, list[str]]:
+    if _contains_any(normalized, _SEMANTIC_CLARIFICATION_MARKERS):
+        return "SEMANTIC_CLARIFICATION", True, ["resolves_semantic_ambiguity"]
     if _contains_any(normalized, _CONTRADICTION_MARKERS):
         return "CONTRADICTION", True, ["resolves_contradiction"]
     if _contains_any(normalized, _TREATMENT_SAFETY_MARKERS):
@@ -215,9 +226,6 @@ def _score_question(
     score = _BASE_SCORE[category]
     reasons: list[str] = []
 
-    # Safety questions dominate urgent decisions, but routine answers already
-    # carry a full safety-net; in routine care, decision-changing information
-    # should normally be asked before repeating every red flag.
     if urgency == "URGENT":
         if category == "SAFETY":
             score += 25.0
@@ -233,9 +241,6 @@ def _score_question(
             score -= 25.0
             reasons.append("routine_safety_net_already_present")
 
-    # Information-gain bonuses. These are intentionally concept based rather
-    # than disease-name based, so keywords route a question's purpose without
-    # becoming a diagnosis or clinical conclusion.
     if _contains_any(normalized, _SEVERITY_MARKERS):
         score += 18.0
         reasons.append("severity_changes_disposition")
@@ -255,8 +260,6 @@ def _score_question(
     if mandatory:
         score += 5.0
 
-    # Conversational burden penalty: prefer one answerable clinical decision
-    # question over an intake-form sentence containing many unrelated clauses.
     if len(text) > 180:
         score -= 8.0
         reasons.append("long_question_penalty")
