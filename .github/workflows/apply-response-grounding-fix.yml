@@ -1,0 +1,284 @@
+name: Apply response grounding repair
+
+on:
+  push:
+    branches:
+      - fix/response-grounding-p0
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-validate:
+    if: ${{ !contains(github.event.head_commit.message, 'fix(response-grounding):') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: fix/response-grounding-p0
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install backend dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Apply semantic grounding repair
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          p = Path('app/services/semantic_abstraction_lattice.py')
+          text = p.read_text(encoding='utf-8')
+
+          old = '    has_stress_headache = bool(re.search(r"\\b(cang thang cong viec|thieu ngu|ngoi may tinh|am i hai ben)\\b", norm))\n'
+          new = (
+              '    # Context such as sleep deprivation or computer work is not a symptom.\n'
+              '    # A benign tension-headache override is allowed only when the user also\n'
+              '    # actually reports a headache/head-location symptom. This prevents\n'
+              '    # unrelated complaints (for example chest pain + "thiếu ngủ") from\n'
+              '    # being rewritten as a benign headache.\n'
+              '    has_headache_symptom = bool(re.search(\n'
+              '        r"\\b(dau dau|nhuc dau|nang dau|dau thai duong|thai duong.*?dau|dau.*?thai duong)\\b",\n'
+              '        norm,\n'
+              '    ))\n'
+              '    has_stress_headache = has_headache_symptom and bool(\n'
+              '        re.search(r"\\b(cang thang cong viec|thieu ngu|ngoi may tinh|am i hai ben)\\b", norm)\n'
+              '    )\n'
+          )
+          if text.count(old) != 1:
+              raise SystemExit(f'expected 1 stress-headache gate, found {text.count(old)}')
+          text = text.replace(old, new)
+
+          old = '''    elif has_obstetric and (has_syncope or has_diaphoresis or bool(re.search(r"\\b(choang vang|chong mat|ngat|xuat huyet|chay mau)\\b", norm))):
+        patterns.append(
+            AbstractionPattern(
+                archetype=AbstractThreatArchetype.PREGNANCY_EMERGENCY,
+                is_emergency=True,
+                confidence=0.99,
+                grounding_concepts=["obstetric_acute_abdomen", "hemodynamic_compromise"],
+                clinical_rationale="Nghi ngờ thai ngoài tử cung vỡ hoặc cấp cứu bụng sản phụ khoa (đau bụng cấp kèm trễ kinh và choáng váng).",
+            )
+        )
+'''
+          new = '''    elif has_obstetric and (has_syncope or has_diaphoresis or bool(re.search(r"\\b(choang vang|chong mat|ngat|xuat huyet|chay mau)\\b", norm))):
+        obstetric_evidence: list[str] = []
+        if re.search(r"\\b(mang thai|co bau|san phu)\\b", norm):
+            obstetric_evidence.append("đang mang thai")
+        elif re.search(r"\\b(tre kinh|cham kinh)\\b", norm):
+            obstetric_evidence.append("trễ/chậm kinh")
+        if re.search(r"\\b(dau bung|dau ho chau)\\b", norm):
+            obstetric_evidence.append("đau bụng/đau hố chậu")
+        if re.search(r"\\b(xuat huyet|chay mau)\\b", norm):
+            obstetric_evidence.append("chảy máu")
+        if has_syncope or re.search(r"\\b(choang vang|chong mat|ngat)\\b", norm):
+            obstetric_evidence.append("choáng/ngất")
+        if has_diaphoresis:
+            obstetric_evidence.append("vã mồ hôi/dấu hiệu tuần hoàn")
+        evidence_text = ", ".join(dict.fromkeys(obstetric_evidence)) or "dấu hiệu sản khoa cấp"
+        patterns.append(
+            AbstractionPattern(
+                archetype=AbstractThreatArchetype.PREGNANCY_EMERGENCY,
+                is_emergency=True,
+                confidence=0.99,
+                grounding_concepts=["obstetric_acute_abdomen", "hemodynamic_compromise"],
+                clinical_rationale=(
+                    f"Nhóm dấu hiệu sản khoa cấp ({evidence_text}) cần được đánh giá khẩn để "
+                    "loại trừ nguyên nhân nguy hiểm như thai ngoài tử cung hoặc chảy máu sản khoa."
+                ),
+            )
+        )
+'''
+          if text.count(old) != 1:
+              raise SystemExit(f'expected 1 pregnancy rationale block, found {text.count(old)}')
+          text = text.replace(old, new)
+          p.write_text(text, encoding='utf-8')
+
+          p = Path('app/services/answering.py')
+          text = p.read_text(encoding='utf-8')
+          old = '                "phân luồng. Bạn cần được nhân viên cấp cứu đánh giá ngay; hệ thống không "\n                "xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này."\n'
+          new = '                "phân luồng. Bạn cần được nhân viên cấp cứu đánh giá ngay; hệ thống không "\n                "thể xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này."\n'
+          if text.count(old) != 1:
+              raise SystemExit(f'expected 1 emergency uncertainty phrase, found {text.count(old)}')
+          text = text.replace(old, new)
+          p.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Add P0 regression tests
+        run: |
+          cat > app/tests/test_response_grounding_p0.py <<'PY'
+          from fastapi.testclient import TestClient
+
+          from app.main import app
+          from app.services.semantic_abstraction_lattice import (
+              AbstractThreatArchetype,
+              evaluate_abstraction_lattice,
+          )
+          from app.services.semantic_relation_extractor import extract_semantic_relations
+
+
+          def _archetypes(text: str):
+              graph = extract_semantic_relations(text)
+              return evaluate_abstraction_lattice(graph).active_archetypes
+
+
+          def test_sleep_deprivation_cannot_invent_tension_headache_for_chest_pain():
+              patterns = _archetypes(
+                  "Tôi bị đau ngực nhưng tôi nghĩ chỉ do thiếu ngủ. Tôi cứ ở nhà theo dõi được không?"
+              )
+              assert all(
+                  p.archetype != AbstractThreatArchetype.BENIGN_TENSION_HEADACHE
+                  for p in patterns
+              )
+
+
+          def test_actual_tension_headache_remains_supported():
+              patterns = _archetypes(
+                  "Tôi đau đầu âm ỉ hai bên thái dương sau mấy hôm thiếu ngủ và ngồi máy tính nhiều."
+              )
+              assert any(
+                  p.archetype == AbstractThreatArchetype.BENIGN_TENSION_HEADACHE
+                  for p in patterns
+              )
+
+
+          def test_pregnancy_emergency_rationale_only_states_observed_features():
+              patterns = _archetypes(
+                  "Tôi đang mang thai và bị đau bụng kèm chảy máu. Tôi nên làm gì?"
+              )
+              pregnancy = next(
+                  p for p in patterns
+                  if p.archetype == AbstractThreatArchetype.PREGNANCY_EMERGENCY
+              )
+              rationale = pregnancy.clinical_rationale.lower()
+              assert "đang mang thai" in rationale
+              assert "đau bụng" in rationale
+              assert "chảy máu" in rationale
+              assert "trễ kinh" not in rationale
+              assert "choáng" not in rationale
+
+
+          def test_chat_chest_pain_sleep_deprivation_never_turns_into_headache():
+              client = TestClient(app)
+              response = client.post(
+                  "/v1/chat",
+                  headers={
+                      "X-API-Key": "demo-key",
+                      "X-Tenant-Id": "tenant-demo",
+                      "X-Consent-Token": "consent-grounding-regression",
+                      "Idempotency-Key": "grounding-chest-sleep",
+                  },
+                  json={
+                      "conversation_id": "grounding-chest-sleep",
+                      "messages": [{
+                          "role": "user",
+                          "content": "Tôi bị đau ngực nhưng tôi nghĩ chỉ do thiếu ngủ. Tôi cứ ở nhà theo dõi được không?",
+                      }],
+                  },
+              )
+              assert response.status_code == 200
+              body = response.json()
+              answer = body.get("answer") or {}
+              rendered = " ".join(
+                  str(v)
+                  for key in ("summary", "clinical_hypotheses", "key_points", "next_steps", "safety_notes")
+                  for v in (answer.get(key) if isinstance(answer.get(key), list) else [answer.get(key)])
+                  if v
+              ).lower()
+              specialty = ((body.get("result") or {}).get("recommended_specialty") or {}).get("code")
+              assert "đau đầu" not in rendered
+              assert specialty != "NEUROLOGY"
+
+
+          def test_emergency_summary_uses_explicit_diagnostic_uncertainty():
+              client = TestClient(app)
+              response = client.post(
+                  "/v1/chat",
+                  headers={
+                      "X-API-Key": "demo-key",
+                      "X-Tenant-Id": "tenant-demo",
+                      "X-Consent-Token": "consent-grounding-regression",
+                      "Idempotency-Key": "grounding-stroke-uncertainty",
+                  },
+                  json={
+                      "conversation_id": "grounding-stroke-uncertainty",
+                      "messages": [{
+                          "role": "user",
+                          "content": "Người nhà tôi có dấu hiệu méo miệng, nói khó và yếu một bên tay.",
+                      }],
+                  },
+              )
+              assert response.status_code == 200
+              body = response.json()
+              assert (body.get("result") or {}).get("urgency") == "EMERGENCY"
+              assert "không thể xác định" in ((body.get("answer") or {}).get("summary") or "").lower()
+          PY
+
+      - name: Compile
+        run: python -m compileall -q app scripts training
+
+      - name: Run targeted regressions
+        run: pytest -q app/tests/test_response_grounding_p0.py app/tests/test_medical_response_quality_benchmark.py
+
+      - name: Run full backend suite
+        run: pytest -q
+
+      - name: Measure 40-case quality
+        run: |
+          set +e
+          python scripts/evaluate_medical_response_quality.py --no-report
+          echo "quality_exit_code=$?"
+          exit 0
+
+      - name: Inspect P0 cases after patch
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from unittest.mock import patch
+          from fastapi.testclient import TestClient
+          from app.main import app
+
+          dataset = json.loads(Path('datasets/DS-MEDICAL-RESPONSE-QUALITY/dataset.json').read_text(encoding='utf-8'))
+          wanted = {'MRQ-026', 'MRQ-030', 'MRQ-033'}
+          cases = {c['case_id']: c for c in dataset['cases'] if c['case_id'] in wanted}
+          client = TestClient(app)
+          with patch('app.services.chat.background_agent_runner.submit', return_value=False), patch('app.services.chat.active_learning_store.capture_case', return_value=None):
+              for case_id in sorted(wanted):
+                  c = cases[case_id]
+                  r = client.post('/v1/chat', headers={
+                      'X-API-Key':'demo-key','X-Tenant-Id':'tenant-demo',
+                      'X-Consent-Token':'consent-p0-inspect','Idempotency-Key':f'p0-{case_id}'
+                  }, json={'conversation_id':f'p0-{case_id}','messages':[{'role':'user','content':c['prompt']}]})
+                  body = r.json(); answer = body.get('answer') or {}; result = body.get('result') or {}
+                  print('P0_CASE', case_id, json.dumps({
+                      'intent': body.get('intent'), 'urgency': result.get('urgency'),
+                      'specialty': result.get('recommended_specialty'),
+                      'summary': answer.get('summary'), 'hypotheses': answer.get('clinical_hypotheses'),
+                      'key_points': answer.get('key_points'), 'next_steps': answer.get('next_steps'),
+                      'safety_notes': answer.get('safety_notes'), 'questions': answer.get('questions'),
+                      'display_questions': answer.get('display_questions')
+                  }, ensure_ascii=False))
+          PY
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Frontend production build
+        working-directory: frontend
+        run: npm ci && npm run build
+
+      - name: Commit validated repair
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/services/semantic_abstraction_lattice.py app/services/answering.py app/tests/test_response_grounding_p0.py
+          git commit -m "fix(response-grounding): prevent cross-symptom contamination"
+          git push origin HEAD:fix/response-grounding-p0
