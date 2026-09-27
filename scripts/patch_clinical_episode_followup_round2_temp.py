@@ -12,6 +12,13 @@ def replace_once(path: str, old: str, new: str) -> None:
     target.write_text(text.replace(old, new, 1), encoding="utf-8")
 
 
+# The state-aware GI tailoring introduced by the primary patch uses regexes.
+replace_once(
+    "app/services/triage.py",
+    "from time import perf_counter\n",
+    "import re\nfrom time import perf_counter\n",
+)
+
 # "bụng cồn cào" is a concrete GI chief complaint. Without it the episode
 # router cannot distinguish a new GI episode from a previous chest emergency.
 replace_once(
