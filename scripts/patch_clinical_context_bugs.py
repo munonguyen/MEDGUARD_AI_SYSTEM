@@ -5,7 +5,7 @@ import re
 def sub_once(path: str, pattern: str, replacement: str) -> None:
     p = Path(path)
     text = p.read_text()
-    updated, count = re.subn(pattern, replacement, text, count=1, flags=re.S)
+    updated, count = re.subn(pattern, lambda _match: replacement, text, count=1, flags=re.S)
     if count != 1:
         raise SystemExit(f"regex target count {count} in {path}: {pattern[:100]!r}")
     p.write_text(updated)
@@ -134,7 +134,7 @@ replacement = '''    def find_symptom_guidance(self, symptoms_text: str) -> dict
 
     @property
     def contraindications'''
-loader_text, count = re.subn(pattern, replacement, loader_text, count=1, flags=re.S)
+loader_text, count = re.subn(pattern, lambda _match: replacement, loader_text, count=1, flags=re.S)
 if count != 1:
     raise SystemExit(f"loader guidance regex count={count}")
 loader.write_text(loader_text)
