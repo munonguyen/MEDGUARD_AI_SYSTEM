@@ -310,7 +310,8 @@ def _triage_answer(
             summary = (
                 "Thông tin bạn mô tả khớp với dấu hiệu cảnh báo khẩn cấp trong quy tắc "
                 "phân luồng. Bạn cần được nhân viên cấp cứu đánh giá ngay; hệ thống không "
-                "xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này."
+                "xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; đồng thời không thể "
+                "khẳng định chẩn đoán từ xa."
             )
         next_steps = [
             "Dừng ngay mọi hoạt động đang làm hoặc gắng sức, ở nơi an toàn và nhờ người bên cạnh hỗ trợ trong khi liên hệ cấp cứu.",
