@@ -1,0 +1,96 @@
+name: Temporary Clinical Bugfix Validation V3
+
+on:
+  push:
+    branches:
+      - fix/clinical-episode-orchestration
+
+permissions:
+  contents: write
+
+jobs:
+  patch-test-commit:
+    if: github.event.head_commit.message != 'fix-clinical-episode-followup-validated'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v7
+        with:
+          ref: fix/clinical-episode-orchestration
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install backend dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Stage guarded source fixes
+        run: |
+          python scripts/repair_clinical_patch_harness_temp.py
+          python scripts/patch_clinical_episode_followup_temp.py
+          python scripts/patch_clinical_episode_followup_round2_temp.py
+
+      - name: Compile patched application
+        run: python -m compileall -q app scripts training
+
+      - name: Print targeted diagnostics
+        run: python scripts/clinical_bugfix_diagnostics_temp.py
+
+      - name: Run targeted regressions
+        run: pytest app/tests/test_clinical_episode_orchestration.py -q
+
+      - name: Run full backend suite
+        run: pytest -q
+
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Start MedGuard
+        run: |
+          python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 > /tmp/medguard-bugfix.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8000/v1/health >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/medguard-bugfix.log
+          exit 1
+
+      - name: Run real Playwright UI smoke
+        working-directory: frontend
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          test -n "$CHROME_BIN"
+          CHROME_PATH="$CHROME_BIN" MEDGUARD_UI_URL=http://127.0.0.1:8000 npm run test:ui
+
+      - name: Re-run diagnostics against validated runtime
+        run: python scripts/clinical_bugfix_diagnostics_temp.py
+
+      - name: Show backend log
+        if: always()
+        run: tail -n 200 /tmp/medguard-bugfix.log || true
+
+      - name: Commit validated source fixes
+        run: |
+          git config user.name "medguard-ci-bot"
+          git config user.email "medguard-ci-bot@users.noreply.github.com"
+          git add app/services/chat.py app/services/risk_memory.py app/knowledge/loader.py app/services/triage.py app/tests/test_clinical_episode_orchestration.py frontend/src/chat/GroundedAnswer.jsx frontend/tests/ui-smoke.mjs
+          git diff --cached --check
+          git commit -m "fix-clinical-episode-followup-validated"
+          git push origin HEAD:fix/clinical-episode-orchestration
