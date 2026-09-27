@@ -19,6 +19,7 @@ from app.models.clinical_events import (
     SeverityLevel,
 )
 from app.services.clinical_text import normalize_search_text
+from app.services.risk_memory import infer_episode_domain
 
 
 class LedgerEventStatus(str, Enum):
@@ -80,11 +81,35 @@ _RELIEF_PATTERNS = (
 
 
 class ClinicalEventLedger:
-    """Episode-scoped clinical event ledger maintaining risk monotonicity."""
+    """Episode-scoped clinical event ledger maintaining risk monotonicity.
+
+    The ledger may be reconstructed from the entire chat history on every API
+    request.  Therefore it must segment unrelated user complaints while replaying
+    history; otherwise a previous back-pain or chest-pain episode can contaminate
+    a later abdominal/dizziness episode.
+    """
 
     def __init__(self, episode_id: str = "default_episode") -> None:
         self.episode_id = episode_id
         self.entries: list[LedgerEntry] = []
+        self._active_episode_domain: str | None = None
+
+    def _start_new_episode(self, turn_index: int, user_text: str, domain: str) -> None:
+        """Close prior acute events when a clearly unrelated complaint begins.
+
+        Historical entries remain in the ledger for auditability but are marked
+        INVALIDATED for *current-episode risk resolution*.  This does not claim
+        that the old symptom was medically false; it only prevents stale acute
+        state from governing the new complaint.
+        """
+        for entry in self.entries:
+            if entry.status in (LedgerEventStatus.ACTIVE, LedgerEventStatus.HISTORICALLY_CONFIRMED):
+                entry.status = LedgerEventStatus.INVALIDATED
+                entry.invalidation_reason = (
+                    f"Episode switch before turn {turn_index}: new complaint domain={domain}; "
+                    f"text='{user_text[:60]}'"
+                )
+        self._active_episode_domain = domain
 
     def process_turn(
         self,
@@ -94,6 +119,15 @@ class ClinicalEventLedger:
     ) -> None:
         """Update the ledger with observations from a new conversation turn."""
         normalized = normalize_search_text(user_text)
+
+        # 0. Episode segmentation.  Keyword/domain signals are used only to
+        # separate unrelated complaints; they never set diagnosis or triage.
+        turn_domain = infer_episode_domain(user_text)
+        if turn_domain:
+            if self._active_episode_domain and turn_domain != self._active_episode_domain:
+                self._start_new_episode(turn_index, user_text, turn_domain)
+            elif self._active_episode_domain is None:
+                self._active_episode_domain = turn_domain
 
         # 1. Check for explicit factual retraction
         is_correction = any(bool(re.search(pat, normalized)) for pat in _CORRECTION_PATTERNS)
@@ -120,8 +154,11 @@ class ClinicalEventLedger:
 
         # 3. Add new confirmed events from current turn (must be active patient threats)
         for e in fact_set.active_patient_events:
-            # Check if this exact concept was already logged
-            existing = [ent for ent in self.entries if ent.event.concept == e.concept and ent.status != LedgerEventStatus.INVALIDATED]
+            # Check if this exact concept was already logged in the *active* episode.
+            existing = [
+                ent for ent in self.entries
+                if ent.event.concept == e.concept and ent.status != LedgerEventStatus.INVALIDATED
+            ]
             if existing:
                 # Refresh status if re-affirmed
                 if not has_relief:
@@ -131,14 +168,14 @@ class ClinicalEventLedger:
                 self.entries.append(LedgerEntry(turn_index=turn_index, event=e, status=initial_status))
 
     def get_effective_events(self) -> list[ClinicalEvent]:
-        """Return all non-invalidated clinical events (ACTIVE and HISTORICALLY_CONFIRMED)."""
+        """Return all non-invalidated clinical events for the active episode."""
         return [
             entry.event for entry in self.entries
             if entry.status in (LedgerEventStatus.ACTIVE, LedgerEventStatus.HISTORICALLY_CONFIRMED)
         ]
 
     def has_active_emergency(self) -> bool:
-        """Check if any non-invalidated event represents a critical emergency threat."""
+        """Check if the active episode contains a critical emergency threat."""
         for entry in self.entries:
             if entry.status in (LedgerEventStatus.ACTIVE, LedgerEventStatus.HISTORICALLY_CONFIRMED):
                 if entry.event.is_active_patient_threat and (entry.event.is_critical or entry.event.physiologic_consequence in (
