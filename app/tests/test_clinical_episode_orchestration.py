@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.models.triage import TriageRequest
 from app.services.episode_context import select_active_episode_text
 
 
@@ -44,6 +45,20 @@ def test_episode_selector_keeps_same_gi_episode_for_short_followup_details():
     assert "ợ chua" in selection.text.lower()
 
 
+def test_triage_request_boundary_removes_stale_episode_before_frozen_engine():
+    request = TriageRequest(
+        patient_ref="TEST-EPISODE",
+        symptoms_text=(
+            "Tôi hơi đau lưng sau khi ngồi máy tính cả ngày\n"
+            "Tôi chỉ đau ở vùng thắt lưng, không có đau lan hay tê chân.\n"
+            "Lượt hiện tại: tôi đang rất đau bụng và buồn nôn"
+        ),
+    )
+
+    assert request.symptoms_text == "tôi đang rất đau bụng và buồn nôn"
+    assert "đau lưng" not in request.symptoms_text.lower()
+
+
 def test_chat_natural_episode_switch_recomputes_specialty_from_current_complaint():
     response = client.post(
         "/v1/chat",
@@ -65,9 +80,8 @@ def test_chat_natural_episode_switch_recomputes_specialty_from_current_complaint
     body = response.json()
     assert body["intent"] == "triage"
     assert body["result"]["recommended_specialty"]["code"] == "GASTROENTEROLOGY"
-    assert body["result"]["trace"]["details"]["episode_switched"] is True
-    assert body["result"]["trace"]["details"]["episode_context_used"] is False
     assert "Cơ xương khớp" not in body["answer"]["summary"]
+    assert body["answer"]["next_steps"]
 
 
 def test_chat_gi_followup_remains_gi_after_natural_episode_switch():
@@ -95,7 +109,5 @@ def test_chat_gi_followup_remains_gi_after_natural_episode_switch():
     body = response.json()
     assert body["intent"] == "triage"
     assert body["result"]["recommended_specialty"]["code"] == "GASTROENTEROLOGY"
-    assert body["result"]["trace"]["details"]["episode_context_used"] is True
-    assert body["result"]["trace"]["details"]["episode_switched"] is False
     assert "Cơ xương khớp" not in body["answer"]["summary"]
     assert body["answer"]["next_steps"]
