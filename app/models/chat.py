@@ -55,9 +55,11 @@ class GroundedAnswer(BaseModel):
     next_steps: list[str] = Field(default_factory=list)
     safety_notes: list[str] = Field(default_factory=list)
     # Full clinical candidate set retained for audit, evaluation and backwards
-    # compatibility. Patient surfaces should render display_questions instead.
+    # compatibility. Patient surfaces should render display_questions when a
+    # dialogue policy has explicitly produced one. None means "not planned";
+    # [] means "policy intentionally asks nothing" (for example EMERGENCY).
     questions: list[str] = Field(default_factory=list)
-    display_questions: list[str] = Field(default_factory=list)
+    display_questions: list[str] | None = None
     decision_basis: Literal[
         "versioned_rules",
         "registry_record",
