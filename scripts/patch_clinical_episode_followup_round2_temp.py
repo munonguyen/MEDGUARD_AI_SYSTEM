@@ -27,6 +27,24 @@ replace_once(
 ''',
 )
 
+# Accent stripping turns both "còn" and "cồn" into "con". A bare "con "
+# continuation marker therefore misclassifies "cồn cào" as continuation of a
+# previous episode. Keep only semantically specific continuation markers.
+replace_once(
+    "app/services/risk_memory.py",
+    '''    "van ",
+    "van con",
+    "van bi",
+    "con ",
+    "ngoai ra",
+''',
+    '''    "van ",
+    "van con",
+    "van bi",
+    "ngoai ra",
+''',
+)
+
 # Back-pain guidance needs a relation-aware matcher for natural Vietnamese such
 # as "đau ở vùng thắt lưng". It must run before lower-limb detection so an
 # explicitly negated "không ... tê chân" cannot hijack the topic.
@@ -57,6 +75,94 @@ replace_once(
                     return guidance
 
         for guidance in self.symptom_guidance:
+''',
+)
+
+# Retrieval/guidance availability is separate from disposition authority.
+# Even when a deterministic rule locks URGENT, patient-facing summary,
+# clarifying questions and safety-net should consume already-known episode
+# details instead of falling back to a generic template. Guidance actions and
+# self-care remain restricted to their original conservative conditions.
+replace_once(
+    "app/services/triage.py",
+    '''    guidance = knowledge.find_symptom_guidance(payload.symptoms_text)
+    use_guidance = guidance is not None and (
+        final_urgency == "ROUTINE" or guidance.get("topic") == "lower_limb_pain"
+    )
+    guidance_summary, guidance_questions = (
+        _tailor_guidance(guidance, payload.symptoms_text)
+        if use_guidance and guidance is not None
+        else (None, [])
+    )
+    clarifying_questions = guidance_questions if use_guidance else rule.clarifying_questions
+''',
+    '''    guidance = knowledge.find_symptom_guidance(payload.symptoms_text)
+    has_guidance = guidance is not None
+    use_guidance_actions = has_guidance and (
+        final_urgency == "ROUTINE" or guidance.get("topic") == "lower_limb_pain"
+    )
+    guidance_summary, guidance_questions = (
+        _tailor_guidance(guidance, payload.symptoms_text)
+        if has_guidance and guidance is not None
+        else (None, [])
+    )
+    if final_urgency == "URGENT" and guidance_summary:
+        guidance_summary = (
+            guidance_summary.rstrip()
+            + " Do mức độ triệu chứng hiện tại, bạn nên được nhân viên y tế đánh giá trực tiếp sớm trong ngày."
+        )
+    clarifying_questions = guidance_questions if has_guidance else rule.clarifying_questions
+''',
+)
+
+replace_once(
+    "app/services/triage.py",
+    '''        if use_guidance and guidance
+        else []
+''',
+    '''        if use_guidance_actions and guidance
+        else []
+''',
+)
+
+replace_once(
+    "app/services/triage.py",
+    '''    if use_guidance and guidance and final_urgency == "ROUTINE":
+''',
+    '''    if use_guidance_actions and guidance and final_urgency == "ROUTINE":
+''',
+)
+
+replace_once(
+    "app/services/triage.py",
+    '''    elif use_guidance and guidance and guidance.get("advice"):
+''',
+    '''    elif use_guidance_actions and guidance and guidance.get("advice"):
+''',
+)
+
+replace_once(
+    "app/services/triage.py",
+    '''        self_care=[str(value) for value in guidance.get("self_care", [])] if use_guidance else [],
+        safety_net=[str(value) for value in guidance.get("safety_net", [])] if use_guidance else [],
+''',
+    '''        self_care=[str(value) for value in guidance.get("self_care", [])] if use_guidance_actions else [],
+        safety_net=(
+            [str(value) for value in guidance.get("safety_net", [])]
+            if has_guidance and guidance and final_urgency in {"ROUTINE", "URGENT"}
+            else []
+        ),
+''',
+)
+
+replace_once(
+    "app/services/triage.py",
+    '''                "symptom_guidance": guidance.get("topic") if use_guidance else None,
+                "knowledge_integrity": knowledge.integrity_report(),
+''',
+    '''                "symptom_guidance": guidance.get("topic") if has_guidance and guidance else None,
+                "guidance_actions_applied": bool(use_guidance_actions),
+                "knowledge_integrity": knowledge.integrity_report(),
 ''',
 )
 
