@@ -1,0 +1,228 @@
+name: Temporary Clinical Bugfix Validation V2
+
+on:
+  push:
+    branches:
+      - fix/clinical-episode-orchestration
+
+permissions:
+  contents: write
+
+jobs:
+  patch-test-commit:
+    if: ${{ !startsWith(github.event.head_commit.message, 'fix: isolate clinical episodes') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v7
+        with:
+          ref: fix/clinical-episode-orchestration
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install backend dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Stage guarded source fixes
+        run: |
+          python scripts/repair_clinical_patch_harness_temp.py
+          python scripts/patch_clinical_episode_followup_temp.py
+          python scripts/patch_clinical_episode_followup_round2_temp.py
+
+      - name: Compile patched application
+        run: python -m compileall -q app scripts training
+
+      - name: Print targeted clinical diagnostics
+        run: |
+          python - <<'PY'
+          import json
+          from fastapi.testclient import TestClient
+          from app.main import app
+          from app.services.risk_memory import infer_episode_domain, should_start_new_episode
+
+          print("DOMAIN chest:", infer_episode_domain("Tôi bị đau ngực và khó thở"))
+          print("DOMAIN GI:", infer_episode_domain("Tôi đang cảm thấy bụng cứ cồn cào, sốt ruột không rõ lắm."))
+          print("SWITCH chest->GI:", should_start_new_episode(
+              "Tôi đang cảm thấy bụng cứ cồn cào, sốt ruột không rõ lắm.",
+              "Tôi bị đau ngực và khó thở",
+          ))
+
+          client = TestClient(app)
+          headers = {
+              "X-API-Key": "demo-key",
+              "X-Tenant-Id": "tenant-demo",
+              "Idempotency-Key": "diag-pretest-chest-gi",
+              "X-Consent-Token": "consent-chat-test",
+          }
+          r = client.post("/v1/chat", headers=headers, json={
+              "conversation_id": "diag-pretest-chest-gi",
+              "intent_hint": "auto",
+              "messages": [
+                  {"role": "user", "content": "Tôi bị đau ngực và khó thở"},
+                  {"role": "assistant", "content": "Bạn cần được đánh giá cấp cứu ngay."},
+                  {"role": "user", "content": "Tôi đang cảm thấy bụng cứ cồn cào, sốt ruột không rõ lắm."},
+              ],
+          })
+          body = r.json()
+          print("CHEST_TO_GI", json.dumps({
+              "intent": body.get("intent"),
+              "urgency": (body.get("result") or {}).get("urgency"),
+              "specialty": (body.get("result") or {}).get("recommended_specialty"),
+              "trace": ((body.get("result") or {}).get("trace") or {}).get("details"),
+              "extracted": body.get("extracted"),
+              "summary": (body.get("answer") or {}).get("summary"),
+          }, ensure_ascii=False, indent=2))
+
+          headers["Idempotency-Key"] = "diag-pretest-gi-delta"
+          r2 = client.post("/v1/chat", headers=headers, json={
+              "conversation_id": "diag-pretest-gi-delta",
+              "intent_hint": "triage",
+              "messages": [
+                  {"role":"user","content":"tôi đang rất đau bụng và buồn nôn"},
+                  {"role":"assistant","content":"Bạn đau ở vị trí nào?"},
+                  {"role":"user","content":"Cơn đau của tôi tập trung ở vùng trên rốn."},
+                  {"role":"assistant","content":"Đau có liên quan bữa ăn không?"},
+                  {"role":"user","content":"Cơn đau thường xuất hiện hoặc tăng lên khi đói"},
+                  {"role":"assistant","content":"Có nóng rát hay ợ chua không?"},
+                  {"role":"user","content":"Cơn đau có kèm theo nóng rát và ợ chua"},
+              ],
+          })
+          body2 = r2.json()
+          print("GI_DELTA", json.dumps({
+              "urgency": (body2.get("result") or {}).get("urgency"),
+              "specialty": (body2.get("result") or {}).get("recommended_specialty"),
+              "trace": ((body2.get("result") or {}).get("trace") or {}).get("details"),
+              "summary": (body2.get("answer") or {}).get("summary"),
+              "questions": (body2.get("answer") or {}).get("questions"),
+              "safety_notes": (body2.get("answer") or {}).get("safety_notes"),
+          }, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Run targeted clinical episode regressions
+        run: pytest app/tests/test_clinical_episode_orchestration.py -q
+
+      - name: Run full backend regression suite
+        run: pytest -q
+
+      - name: Install and build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Start MedGuard backend
+        run: |
+          python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 > /tmp/medguard-bugfix.log 2>&1 &
+          echo $! > /tmp/medguard-bugfix.pid
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8000/v1/health >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/medguard-bugfix.log
+          exit 1
+
+      - name: Run real Playwright UI smoke
+        working-directory: frontend
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          test -n "$CHROME_BIN"
+          CHROME_PATH="$CHROME_BIN" MEDGUARD_UI_URL=http://127.0.0.1:8000 npm run test:ui
+
+      - name: Run final multi-turn API diagnostics
+        run: |
+          python - <<'PY'
+          import json, uuid, httpx
+
+          base = "http://127.0.0.1:8000"
+          headers_base = {
+              "X-API-Key": "demo-key",
+              "X-Tenant-Id": "tenant-demo",
+              "X-Consent-Token": "consent-valid-ui",
+          }
+
+          def call(messages, key, intent="auto"):
+              headers = {**headers_base, "Idempotency-Key": key}
+              r = httpx.post(base + "/v1/chat", headers=headers, json={
+                  "conversation_id": "diag-" + str(uuid.uuid4()),
+                  "messages": messages,
+                  "context": {
+                      "patient_ref": None,
+                      "age": None,
+                      "sex": None,
+                      "current_medications": [],
+                      "allergies": [],
+                      "conditions": [],
+                      "last_result": None,
+                  },
+                  "intent_hint": intent,
+                  "locale": "vi-VN",
+              }, timeout=20)
+              r.raise_for_status()
+              return r.json()
+
+          switch = call([
+              {"role":"user","content":"Tôi bị đau ngực và khó thở"},
+              {"role":"assistant","content":"Bạn cần được đánh giá cấp cứu ngay."},
+              {"role":"user","content":"Tôi đang cảm thấy bụng cứ cồn cào, sốt ruột không rõ lắm."},
+          ], "diag-switch-final")
+          assert switch["result"]["urgency"] == "ROUTINE", switch
+          assert switch["result"]["recommended_specialty"]["code"] == "GASTROENTEROLOGY", switch
+          assert switch["extracted"]["episode_switched"] is True, switch
+
+          back = call([
+              {"role":"user","content":"Tôi hơi đau lưng sau khi ngồi máy tính cả ngày"},
+              {"role":"assistant","content":"Bạn có đau lan xuống chân không?"},
+              {"role":"user","content":"Tôi chỉ đau ở vùng thắt lưng, không có đau lan hay tê chân."},
+          ], "diag-back-negation-final", "triage")
+          assert back["result"]["trace"]["details"]["symptom_guidance"] == "back_pain", back
+          assert back["result"]["recommended_specialty"]["code"] == "MUSCULOSKELETAL", back
+          assert not back["answer"]["summary"].startswith("Đau chân cần được đánh giá"), back
+
+          print(json.dumps({
+              "switch": {
+                  "urgency": switch["result"]["urgency"],
+                  "specialty": switch["result"]["recommended_specialty"],
+                  "episode_switched": switch["extracted"]["episode_switched"],
+              },
+              "back": {
+                  "urgency": back["result"]["urgency"],
+                  "specialty": back["result"]["recommended_specialty"],
+                  "guidance": back["result"]["trace"]["details"]["symptom_guidance"],
+              },
+          }, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Show backend log
+        if: always()
+        run: tail -n 200 /tmp/medguard-bugfix.log || true
+
+      - name: Commit validated fixes
+        run: |
+          git config user.name "medguard-ci-bot"
+          git config user.email "medguard-ci-bot@users.noreply.github.com"
+          git add \
+            app/services/chat.py \
+            app/services/risk_memory.py \
+            app/knowledge/loader.py \
+            app/services/triage.py \
+            app/tests/test_clinical_episode_orchestration.py \
+            frontend/src/chat/GroundedAnswer.jsx \
+            frontend/tests/ui-smoke.mjs
+          git diff --cached --check
+          git commit -m "fix: isolate clinical episodes and consume follow-up state"
+          git push origin HEAD:fix/clinical-episode-orchestration
