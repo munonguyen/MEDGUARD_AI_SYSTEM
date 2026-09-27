@@ -12,6 +12,7 @@ from app.services.clinical_text import (
     extract_clinical_facts,
     filter_known_clarifying_questions,
 )
+from app.services.episode_context import select_active_episode_text
 from app.services.rules import triage_rules
 
 
@@ -147,8 +148,6 @@ def _tailor_guidance(
         "và có sốt, đầy hơi, ợ chua, tiêu chảy, táo bón, chướng hoặc cứng bụng không?"
     )
     questions = [question for question in questions if "buồn nôn" not in question]
-    # Narrative rendering intentionally limits follow-up prompts to three.
-    # Put the user's newly reported symptom inside that visible priority set.
     questions.insert(min(2, len(questions)), follow_up)
     return summary, questions
 
@@ -164,8 +163,19 @@ def evaluate_triage(
     conversation_risk: str | None = None,
 ) -> TriageResponse:
     start = perf_counter()
-    rule = triage_rules(payload.symptoms_text, payload.vitals)
-    facts = extract_clinical_facts(payload.symptoms_text)
+
+    # The chat layer may supply a few recent user turns for continuity. Before
+    # any rule, semantic model, specialty resolver, or guidance lookup runs,
+    # restrict that text to the active clinical episode. This prevents stale
+    # symptoms from becoming clinical truth while preserving useful same-episode
+    # follow-up context.
+    episode_selection = select_active_episode_text(payload.symptoms_text)
+    symptoms_text = episode_selection.text
+    if episode_selection.switched_episode:
+        conversation_risk = None
+
+    rule = triage_rules(symptoms_text, payload.vitals)
+    facts = extract_clinical_facts(symptoms_text)
 
     from app.services.dose_reasoning import evaluate_dose_reasoning
     from app.services.toxicology_reasoner import evaluate_toxicology, ToxicologyUrgency
@@ -174,17 +184,15 @@ def evaluate_triage(
     from app.services.clinical_fact_parser import parse_semantic_clinical_facts
     from app.services.partial_evidence_safety import evaluate_partial_evidence_safety
 
-    dose_assessment = evaluate_dose_reasoning(payload.symptoms_text)
-    tox_assessment = evaluate_toxicology(payload.symptoms_text)
+    dose_assessment = evaluate_dose_reasoning(symptoms_text)
+    tox_assessment = evaluate_toxicology(symptoms_text)
     is_emergency_tox = (tox_assessment.urgency == ToxicologyUrgency.EMERGENCY)
-    fact_set = getattr(facts, "fact_set", None) or parse_semantic_clinical_facts(payload.symptoms_text)
+    fact_set = getattr(facts, "fact_set", None) or parse_semantic_clinical_facts(symptoms_text)
     vitals_dict = payload.vitals.model_dump(exclude_none=True) if payload.vitals else None
-    clinical_safety_floor = evaluate_clinical_safety_floor(payload.symptoms_text, vitals_dict)
+    clinical_safety_floor = evaluate_clinical_safety_floor(symptoms_text, vitals_dict)
     comp_hypothesis = evaluate_compositional_risk(fact_set, vitals_dict)
-    partial_safety = evaluate_partial_evidence_safety(payload.symptoms_text, vitals_dict, fact_set=fact_set)
+    partial_safety = evaluate_partial_evidence_safety(symptoms_text, vitals_dict, fact_set=fact_set)
 
-    # Hybrid Conservative Resolution across Rule, Compositional Threat Reasoner, Semantic Evaluator, Partial Safety, Dose, and Multi-turn
-    # 1. Fast-path: Explicit Emergency from deterministic rule, dose toxicity, toxicology reasoner, threat graph, or partial safety
     if (
         rule.urgency == "EMERGENCY"
         or (dose_assessment and dose_assessment.urgency == "EMERGENCY")
@@ -209,7 +217,6 @@ def evaluate_triage(
             partial_safety_confidence=partial_safety.confidence,
             fact_coverage=fact_set.semantic_coverage,
         )
-    # 2. Fast-path: High-Confidence Explicit Benign Pattern from deterministic rule or benign gate
     elif clinical_safety_floor.disposition == "ROUTINE" and (
         (rule.urgency == "ROUTINE" and rule.matched and rule.confidence >= 0.95 and not partial_safety.safety_floor)
         or (comp_hypothesis.disposition == "ROUTINE" and comp_hypothesis.risk_confidence >= 0.98 and not conversation_risk and not partial_safety.safety_floor)
@@ -224,11 +231,10 @@ def evaluate_triage(
             compositional_confidence=comp_hypothesis.risk_confidence,
             fact_coverage=fact_set.semantic_coverage,
         )
-    # 3. Otherwise: Invoke Semantic Clinical Risk Evaluator
     else:
         semantic_result = safe_semantic_evaluate(
             semantic_risk_evaluator,
-            payload.symptoms_text,
+            symptoms_text,
             clinical_facts=facts,
         )
         if semantic_result and not semantic_result.uncertain:
@@ -264,7 +270,6 @@ def evaluate_triage(
     final_urgency = resolved.urgency
     emergency_flag = (final_urgency == "EMERGENCY")
 
-    # Merge red flags from rule and semantic evaluation
     merged_red_flags = list(rule.red_flags)
     if semantic_result:
         for rf in semantic_result.red_flags:
@@ -275,7 +280,6 @@ def evaluate_triage(
             if reason not in merged_red_flags:
                 merged_red_flags.append(reason)
 
-    # Determine aligned ESI level
     esi_level = rule.esi_level
     if final_urgency == "EMERGENCY" and (esi_level is None or esi_level > 2):
         esi_level = 2
@@ -284,12 +288,12 @@ def evaluate_triage(
     elif final_urgency == "ROUTINE" and esi_level is None:
         esi_level = 4
 
-    guidance = knowledge.find_symptom_guidance(payload.symptoms_text)
+    guidance = knowledge.find_symptom_guidance(symptoms_text)
     use_guidance = guidance is not None and (
         final_urgency == "ROUTINE" or guidance.get("topic") == "lower_limb_pain"
     )
     guidance_summary, guidance_questions = (
-        _tailor_guidance(guidance, payload.symptoms_text)
+        _tailor_guidance(guidance, symptoms_text)
         if use_guidance and guidance is not None
         else (None, [])
     )
@@ -357,6 +361,8 @@ def evaluate_triage(
                 "confidence": resolved.confidence,
                 "semantic_status": resolved.semantic_status.value if hasattr(resolved.semantic_status, "value") else str(resolved.semantic_status),
                 "symptom_guidance": guidance.get("topic") if use_guidance else None,
+                "episode_context_used": episode_selection.used_history,
+                "episode_switched": episode_selection.switched_episode,
                 "knowledge_integrity": knowledge.integrity_report(),
             },
         ),
