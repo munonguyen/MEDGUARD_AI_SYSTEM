@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.models.common import DisclaimerMixin, Status, Trace
 from app.services.episode_context import select_active_episode_text
+from app.services.question_policy import plan_clinical_questions
 
 
 class CurrentMedication(BaseModel):
@@ -48,7 +49,7 @@ class TriageRequest(BaseModel):
         """Keep direct triage input unchanged, but isolate chat episode history.
 
         The chat orchestrator serializes recent user turns and prefixes the latest
-        one with ``Lượt hiện tại:``.  Active-episode filtering happens here at the
+        one with ``Lượt hiện tại:``. Active-episode filtering happens here at the
         request boundary so the frozen V10 triage engine remains byte-for-byte
         unchanged and keyword signals cannot contaminate downstream reasoning.
         """
@@ -79,3 +80,22 @@ class TriageResponse(DisclaimerMixin):
     clinical_hypotheses: list[str] = Field(default_factory=list)
     advice: str
     trace: Trace
+
+    @model_validator(mode="after")
+    def apply_dialogue_question_policy(self) -> "TriageResponse":
+        """Select high-information questions without changing clinical decisions.
+
+        This boundary is intentionally downstream of risk resolution. The policy
+        can only rank/drop already-approved clarifying questions. It cannot alter
+        urgency, emergency flags, specialty, red flags, advice, or safety-net.
+        """
+        plan = plan_clinical_questions(
+            list(self.clarifying_questions),
+            urgency=self.urgency,
+        )
+        self.clarifying_questions = plan.questions
+
+        details = dict(self.trace.details)
+        details["question_policy"] = plan.trace_payload()
+        self.trace = self.trace.model_copy(update={"details": details})
+        return self
