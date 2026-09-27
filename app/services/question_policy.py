@@ -1,9 +1,8 @@
-"""Deterministic clinical dialogue policy for selecting clarifying questions.
+"""Deterministic clinical dialogue policy for selecting patient-facing questions.
 
-The policy never diagnoses, changes triage, or invents clinical facts. It only
-ranks already-approved question candidates produced by clinical rules/guidance.
-This keeps keyword/phrase matching in a routing role instead of allowing it to
-control patient-facing clinical conclusions.
+The policy is deliberately downstream of clinical decision making. It never
+changes triage, specialty, red flags, advice, evidence, or clinical facts. It
+only ranks questions already produced by approved rules/guidance.
 """
 
 from __future__ import annotations
@@ -57,6 +56,7 @@ class QuestionPlan:
                     "category": candidate.category,
                     "score": round(candidate.score, 2),
                     "mandatory": candidate.mandatory,
+                    "reasons": list(candidate.reasons),
                 }
                 for candidate in self.selected
             ],
@@ -82,6 +82,8 @@ _SAFETY_MARKERS = (
     "noi kho",
     "tim tai",
     "chay mau",
+    "lan tay",
+    "lan ham",
 )
 
 _DISPOSITION_MARKERS = (
@@ -119,7 +121,6 @@ _CONTRADICTION_MARKERS = (
     "noi nham",
     "dinh chinh",
     "y ban la",
-    "hay la",
 )
 
 _PERSONALIZATION_MARKERS = (
@@ -129,51 +130,83 @@ _PERSONALIZATION_MARKERS = (
     "ban muon",
 )
 
+_SEVERITY_MARKERS = (
+    "0 den 10",
+    "muc dau",
+    "muc do dau",
+    "dang tang nhanh",
+    "dau tang",
+)
+
+_FUNCTION_MARKERS = (
+    "chiu luc",
+    "di duoc",
+    "co the di lai",
+    "kho di",
+    "khong di duoc",
+)
+
+_HYDRATION_MARKERS = (
+    "da non chua",
+    "uong duoc nuoc",
+    "giu duoc nuoc",
+    "non lien tuc",
+)
+
+_ONSET_MARKERS = (
+    "bat dau tu khi nao",
+    "bat dau luc nao",
+    "bao lau",
+    "lien tuc hay tung con",
+)
+
+_LOCALIZATION_MARKERS = (
+    "vi tri nao",
+    "o dau",
+    "vung nao",
+    "tren hay duoi bung",
+    "tren ron",
+    "quanh ron",
+    "bap chan",
+    "dui",
+    "co chan",
+)
+
 _BASE_SCORE: dict[QuestionCategory, float] = {
     "SAFETY": 80.0,
     "DISPOSITION": 76.0,
-    "TREATMENT_SAFETY": 84.0,
-    "CONTRADICTION": 88.0,
+    "TREATMENT_SAFETY": 90.0,
+    "CONTRADICTION": 96.0,
     "DIAGNOSTIC": 55.0,
     "PERSONALIZATION": 35.0,
 }
 
 
 def _question_id(normalized_question: str) -> str:
-    digest = sha1(normalized_question.encode("utf-8")).hexdigest()[:10]
-    return f"Q-{digest}"
+    return f"Q-{sha1(normalized_question.encode('utf-8')).hexdigest()[:10]}"
 
 
 def _contains_any(text: str, markers: tuple[str, ...]) -> bool:
     return any(marker in text for marker in markers)
 
 
-def _classify(question: str) -> tuple[QuestionCategory, bool, list[str]]:
-    normalized = normalize_search_text(question)
-    reasons: list[str] = []
-
+def _classify(normalized: str) -> tuple[QuestionCategory, bool, list[str]]:
     if _contains_any(normalized, _CONTRADICTION_MARKERS):
-        reasons.append("resolves_contradiction")
-        return "CONTRADICTION", True, reasons
+        return "CONTRADICTION", True, ["resolves_contradiction"]
     if _contains_any(normalized, _TREATMENT_SAFETY_MARKERS):
-        reasons.append("treatment_safety_impact")
-        return "TREATMENT_SAFETY", True, reasons
+        return "TREATMENT_SAFETY", True, ["treatment_safety_impact"]
     if _contains_any(normalized, _SAFETY_MARKERS):
-        reasons.append("potential_safety_impact")
-        return "SAFETY", True, reasons
+        return "SAFETY", True, ["potential_safety_impact"]
     if _contains_any(normalized, _DISPOSITION_MARKERS):
-        reasons.append("can_change_disposition")
-        return "DISPOSITION", False, reasons
+        return "DISPOSITION", False, ["can_change_disposition"]
     if _contains_any(normalized, _PERSONALIZATION_MARKERS):
-        reasons.append("personalization_only")
-        return "PERSONALIZATION", False, reasons
-
-    reasons.append("diagnostic_refinement")
-    return "DIAGNOSTIC", False, reasons
+        return "PERSONALIZATION", False, ["personalization_only"]
+    return "DIAGNOSTIC", False, ["diagnostic_refinement"]
 
 
 def _score_question(
     text: str,
+    normalized: str,
     category: QuestionCategory,
     *,
     urgency: str,
@@ -181,11 +214,13 @@ def _score_question(
 ) -> tuple[float, list[str]]:
     score = _BASE_SCORE[category]
     reasons: list[str] = []
-    normalized = normalize_search_text(text)
 
+    # Safety questions dominate urgent decisions, but routine answers already
+    # carry a full safety-net; in routine care, decision-changing information
+    # should normally be asked before repeating every red flag.
     if urgency == "URGENT":
         if category == "SAFETY":
-            score += 15.0
+            score += 25.0
             reasons.append("urgent_safety_priority")
         elif category == "DISPOSITION":
             score += 10.0
@@ -195,18 +230,33 @@ def _score_question(
             score += 6.0
             reasons.append("routine_information_gain")
         elif category == "SAFETY":
-            # Routine answers already contain a safety-net. A safety question is
-            # useful, but should not automatically crowd out the next question
-            # that most improves the current decision.
-            score -= 20.0
+            score -= 25.0
             reasons.append("routine_safety_net_already_present")
+
+    # Information-gain bonuses. These are intentionally concept based rather
+    # than disease-name based, so keywords route a question's purpose without
+    # becoming a diagnosis or clinical conclusion.
+    if _contains_any(normalized, _SEVERITY_MARKERS):
+        score += 18.0
+        reasons.append("severity_changes_disposition")
+    if _contains_any(normalized, _FUNCTION_MARKERS):
+        score += 18.0
+        reasons.append("functional_status_changes_disposition")
+    if _contains_any(normalized, _HYDRATION_MARKERS):
+        score += 20.0
+        reasons.append("hydration_or_vomiting_changes_disposition")
+    if _contains_any(normalized, _LOCALIZATION_MARKERS):
+        score += 8.0
+        reasons.append("localization_information_gain")
+    if _contains_any(normalized, _ONSET_MARKERS):
+        score += 4.0
+        reasons.append("timeline_information_gain")
 
     if mandatory:
         score += 5.0
 
-    # Prefer concise, single-purpose questions. Multi-clause intake forms are
-    # intentionally penalized because they increase user burden and reduce
-    # answer quality in conversational use.
+    # Conversational burden penalty: prefer one answerable clinical decision
+    # question over an intake-form sentence containing many unrelated clauses.
     if len(text) > 180:
         score -= 8.0
         reasons.append("long_question_penalty")
@@ -221,7 +271,6 @@ def _score_question(
     elif conjunctions >= 2:
         score -= 3.0
         reasons.append("multi_part_burden_penalty")
-
     if text.count("?") > 1:
         score -= 4.0
         reasons.append("multiple_question_marks_penalty")
@@ -235,24 +284,29 @@ def plan_clinical_questions(
     urgency: str,
     max_questions: int | None = None,
 ) -> QuestionPlan:
-    """Rank approved clarifying questions by expected clinical utility.
+    """Select the smallest useful subset from an approved candidate set.
 
     Invariants:
-    - EMERGENCY never waits for a clarifying question.
-    - ROUTINE normally asks at most one high-value question per turn.
-    - URGENT may ask at most two questions, with safety/disposition first.
-    - Duplicate questions are removed before scoring.
-    - This function does not create new clinical questions.
+    - EMERGENCY never waits for clarification.
+    - ROUTINE displays at most one high-information question.
+    - URGENT displays at most two questions, prioritizing safety/disposition.
+    - No question is invented here; output is always a subset of input.
+    - Candidate questions remain available upstream for audit/evaluation.
     """
     urgency = urgency.upper().strip()
     if urgency == "EMERGENCY":
-        return QuestionPlan(selected=(), candidate_count=len(questions), dropped_count=len(questions), max_questions=0)
+        return QuestionPlan(
+            selected=(),
+            candidate_count=len(questions),
+            dropped_count=len(questions),
+            max_questions=0,
+        )
 
     if max_questions is None:
         max_questions = 2 if urgency == "URGENT" else 1
     max_questions = max(0, min(max_questions, 2))
 
-    deduped: list[str] = []
+    deduped: list[tuple[str, str]] = []
     seen: set[str] = set()
     for raw in questions:
         text = raw.strip()
@@ -262,14 +316,14 @@ def plan_clinical_questions(
         if not normalized or normalized in seen:
             continue
         seen.add(normalized)
-        deduped.append(text)
+        deduped.append((text, normalized))
 
     candidates: list[QuestionCandidate] = []
-    for text in deduped:
-        normalized = normalize_search_text(text)
-        category, mandatory, classification_reasons = _classify(text)
+    for text, normalized in deduped:
+        category, mandatory, classification_reasons = _classify(normalized)
         score, score_reasons = _score_question(
             text,
+            normalized,
             category,
             urgency=urgency,
             mandatory=mandatory,
@@ -287,11 +341,7 @@ def plan_clinical_questions(
 
     ranked = sorted(
         candidates,
-        key=lambda candidate: (
-            candidate.score,
-            candidate.mandatory,
-            -len(candidate.text),
-        ),
+        key=lambda candidate: (candidate.score, candidate.mandatory, -len(candidate.text)),
         reverse=True,
     )
 
@@ -301,7 +351,6 @@ def plan_clinical_questions(
         if len(selected) >= max_questions:
             break
         if selected and candidate.category in selected_categories:
-            # Prefer a second question that adds a different kind of information.
             alternative_exists = any(
                 other.category not in selected_categories
                 and other not in selected
