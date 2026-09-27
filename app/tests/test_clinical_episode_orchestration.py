@@ -96,5 +96,6 @@ def test_chat_gi_followup_remains_gi_after_natural_episode_switch():
     assert body["intent"] == "triage"
     assert body["result"]["recommended_specialty"]["code"] == "GASTROENTEROLOGY"
     assert body["result"]["trace"]["details"]["episode_context_used"] is True
-    assert body["result"]["trace"]["details"]["episode_switched"] is True
+    assert body["result"]["trace"]["details"]["episode_switched"] is False
+    assert "Cơ xương khớp" not in body["answer"]["summary"]
     assert body["answer"]["next_steps"]
