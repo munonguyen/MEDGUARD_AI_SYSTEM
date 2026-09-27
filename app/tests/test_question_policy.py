@@ -63,3 +63,26 @@ def test_policy_never_invents_question_not_supplied_by_clinical_layer():
     plan = plan_clinical_questions(supplied, urgency="URGENT")
 
     assert set(plan.questions).issubset(set(supplied))
+
+
+def test_routine_hydration_question_outranks_older_semantic_ambiguity():
+    semantic = (
+        "Khi nói “sốt ruột”, bạn muốn nói cảm giác bồn chồn hoặc lo lắng, "
+        "hay cảm giác nóng rát và cồn cào trong bụng?"
+    )
+    hydration = "Bạn đã nôn chưa và hiện có uống giữ được nước không?"
+
+    plan = plan_clinical_questions([semantic, hydration], urgency="ROUTINE")
+
+    assert plan.questions == [hydration]
+    assert plan.selected[0].category == "DISPOSITION"
+
+
+def test_semantic_clarification_still_outranks_low_value_diagnostic_question():
+    semantic = "Khi nói “sốt ruột”, bạn muốn nói bồn chồn hay cồn cào trong bụng?"
+    diagnostic = "Bạn có thấy đầy hơi sau bữa ăn không?"
+
+    plan = plan_clinical_questions([diagnostic, semantic], urgency="ROUTINE")
+
+    assert plan.questions == [semantic]
+    assert plan.selected[0].category == "SEMANTIC_CLARIFICATION"
