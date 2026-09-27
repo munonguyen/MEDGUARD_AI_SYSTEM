@@ -1,0 +1,475 @@
+name: Patch and Validate Clinical Context Bugs
+
+on:
+  push:
+    branches:
+      - fix/clinical-episode-orchestration
+    paths:
+      - .github/workflows/fix-clinical-context-bugs.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch-test-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Apply targeted fixes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              p = Path(path)
+              text = p.read_text()
+              if old not in text:
+                  raise SystemExit(f"target not found in {path}: {old[:120]!r}")
+              if text.count(old) != 1:
+                  raise SystemExit(f"target count != 1 in {path}: {text.count(old)}")
+              p.write_text(text.replace(old, new, 1))
+
+          # 1) Episode text must use semantic domain switching, not explicit markers only.
+          replace_once(
+              "app/services/chat.py",
+              '''def _triage_episode_text(payload: ChatRequest, latest_text: str) -> tuple[str, bool]:
+              """Carry clinical context across follow-up turns in an active episode."""
+              normalized_latest = _normalize(latest_text)
+              if should_start_new_episode(latest_text) or is_explicit_correction(latest_text) or any(marker in normalized_latest for marker in _NEW_CLINICAL_EPISODE_MARKERS):
+                  return latest_text, False
+
+              user_messages = [
+                  message.content.strip()
+                  for message in payload.messages[:-1]
+                  if message.role == "user" and message.content.strip()
+              ]
+              if not user_messages:
+                  return latest_text, False
+
+              # Retain the immediate previous clinical statements as active episode context
+              relevant_history = user_messages[-3:]
+              episode_text = "\\n".join([
+                  *relevant_history,
+                  f"Lượt hiện tại: {latest_text}",
+              ])
+
+              return episode_text, True
+          ''',
+              '''def _triage_episode_text(payload: ChatRequest, latest_text: str) -> tuple[str, bool]:
+              """Return only the active clinical episode, bounded to recent user turns.
+
+              Natural chief-complaint changes are episode boundaries even when the user
+              does not say "vấn đề mới" explicitly.  This prevents an old emergency
+              from contaminating a new complaint while preserving short follow-ups that
+              omit the body region (for example "tăng khi đói" or "vẫn còn đau").
+              """
+              normalized_latest = _normalize(latest_text)
+              user_messages = [
+                  message.content.strip()
+                  for message in payload.messages[:-1]
+                  if message.role == "user" and message.content.strip()
+              ]
+              previous_text = user_messages[-1] if user_messages else None
+              if (
+                  should_start_new_episode(latest_text, previous_text)
+                  or is_explicit_correction(latest_text)
+                  or any(marker in normalized_latest for marker in _NEW_CLINICAL_EPISODE_MARKERS)
+              ):
+                  return latest_text, False
+              if not user_messages:
+                  return latest_text, False
+
+              # Walk backwards only while turns belong to the same episode.  Keep a
+              # small bound for latency/token control but never cross a domain boundary.
+              relevant_history: list[str] = []
+              cursor_text = latest_text
+              for previous in reversed(user_messages):
+                  if should_start_new_episode(cursor_text, previous):
+                      break
+                  relevant_history.append(previous)
+                  cursor_text = previous
+                  if len(relevant_history) >= 4:
+                      break
+              relevant_history.reverse()
+              if not relevant_history:
+                  return latest_text, False
+              episode_text = "\\n".join([*relevant_history, f"Lượt hiện tại: {latest_text}"])
+              return episode_text, True
+          ''',
+          )
+
+          # 2) Do not let a historical emergency override a newly detected episode.
+          replace_once(
+              "app/services/chat.py",
+              '''    has_monitoring_metrics = bool(_extract_monitoring(latest_text))
+              latest_concept_norm = normalize_clinical_concepts(normalize_search_text(latest_text))
+              has_active_emergency = ledger.has_active_emergency() or bool(_check_red_flag_patterns(latest_concept_norm))
+              if has_active_emergency and not has_monitoring_metrics and (len(payload.messages) > 1 or intent in ("monitoring", "general", "pharmacy")):
+                  intent = "triage"
+
+              if intent == "triage":
+                  episode_text, episode_context_used = _triage_episode_text(payload, latest_text)
+                  vital_signs = _extract_vital_signs(episode_text)
+
+                  # Multi-turn risk escalation tracking via Clinical Event Ledger
+                  conversation_risk = "EMERGENCY" if (len(payload.messages) > 1 and ledger.has_active_emergency()) else None
+                  if not conversation_risk and len(payload.messages) > 1 and not should_start_new_episode(latest_text):
+              ''',
+              '''    has_monitoring_metrics = bool(_extract_monitoring(latest_text))
+              latest_concept_norm = normalize_clinical_concepts(normalize_search_text(latest_text))
+              previous_user_turns = [
+                  message.content.strip()
+                  for message in payload.messages[:-1]
+                  if message.role == "user" and message.content.strip()
+              ]
+              previous_user_text = previous_user_turns[-1] if previous_user_turns else None
+              latest_starts_new_episode = bool(
+                  previous_user_text and should_start_new_episode(latest_text, previous_user_text)
+              ) or is_explicit_correction(latest_text) or any(
+                  marker in normalized for marker in _NEW_CLINICAL_EPISODE_MARKERS
+              )
+              current_turn_emergency = bool(_check_red_flag_patterns(latest_concept_norm))
+              has_active_emergency = current_turn_emergency or (
+                  not latest_starts_new_episode and ledger.has_active_emergency()
+              )
+              if has_active_emergency and not has_monitoring_metrics and (len(payload.messages) > 1 or intent in ("monitoring", "general", "pharmacy")):
+                  intent = "triage"
+
+              if intent == "triage":
+                  episode_text, episode_context_used = _triage_episode_text(payload, latest_text)
+                  vital_signs = _extract_vital_signs(episode_text)
+
+                  # Historical risk is allowed only inside the active episode.  A natural
+                  # episode switch resets the acute floor and forces fresh assessment.
+                  conversation_risk = "EMERGENCY" if (
+                      len(payload.messages) > 1 and episode_context_used and ledger.has_active_emergency()
+                  ) else None
+                  if not conversation_risk and len(payload.messages) > 1 and episode_context_used:
+              ''',
+          )
+
+          # 3) Symptom guidance must respect explicit negation and symptom-region coupling.
+          loader = Path("app/knowledge/loader.py")
+          text = loader.read_text()
+          if "from app.services.clinical_text import contains_affirmed_phrase, normalize_search_text" not in text:
+              text = text.replace(
+                  "from typing import Any\n",
+                  "from typing import Any\n\nfrom app.services.clinical_text import contains_affirmed_phrase, normalize_search_text\n",
+                  1,
+              )
+          old = '''    def find_symptom_guidance(self, symptoms_text: str) -> dict[str, Any] | None:
+                  normalized = symptoms_text.lower().strip()
+                  for guidance in self.symptom_guidance:
+                      if guidance.get("topic") == "lower_limb_pain":
+                          has_lower_limb_region = any(
+                              term in normalized
+                              for term in (
+                                  "chân",
+                                  "đùi",
+                                  "bắp chân",
+                                  "đầu gối",
+                                  "cổ chân",
+                                  "mắt cá",
+                                  "bàn chân",
+                              )
+                          )
+                          has_relevant_problem = any(
+                              term in normalized
+                              for term in ("đau", "nhức", "sưng", "khó đi", "không đi", "chịu lực")
+                          )
+                          if has_lower_limb_region and has_relevant_problem:
+                              return guidance
+                      if any(str(keyword).lower() in normalized for keyword in guidance.get("keywords", [])):
+                          return guidance
+                  return None
+          '''
+          new = '''    def find_symptom_guidance(self, symptoms_text: str) -> dict[str, Any] | None:
+                  normalized = normalize_search_text(symptoms_text)
+                  for guidance in self.symptom_guidance:
+                      if guidance.get("topic") == "lower_limb_pain":
+                          # Do not infer leg pain from unrelated affirmed pain plus a
+                          # negated leg finding (e.g. "đau lưng, không tê chân").
+                          coupled_problem_phrases = (
+                              "dau chan", "nhuc chan", "sung chan",
+                              "dau dui", "nhuc dui", "sung dui",
+                              "dau bap chan", "nhuc bap chan", "sung bap chan",
+                              "dau dau goi", "sung dau goi",
+                              "dau co chan", "sung co chan",
+                              "dau mat ca", "sung mat ca",
+                              "dau ban chan", "sung ban chan",
+                          )
+                          has_coupled_problem = any(
+                              contains_affirmed_phrase(normalized, phrase)
+                              for phrase in coupled_problem_phrases
+                          )
+                          has_functional_problem = any(
+                              contains_affirmed_phrase(normalized, phrase)
+                              for phrase in ("kho di", "khong di duoc", "khong chiu luc duoc", "khong chiu luc")
+                          )
+                          has_affirmed_lower_limb_region = any(
+                              contains_affirmed_phrase(normalized, phrase)
+                              for phrase in ("chan", "dui", "bap chan", "dau goi", "co chan", "mat ca", "ban chan")
+                          )
+                          if has_coupled_problem or (has_functional_problem and has_affirmed_lower_limb_region):
+                              return guidance
+                          # Avoid the generic keyword fallback for this topic because
+                          # the lower-limb matcher above carries stricter negation rules.
+                          continue
+                      if any(
+                          contains_affirmed_phrase(normalized, normalize_search_text(str(keyword)))
+                          for keyword in guidance.get("keywords", [])
+                      ):
+                          return guidance
+                  return None
+          '''
+          if old not in text:
+              raise SystemExit("loader guidance target not found")
+          loader.write_text(text.replace(old, new, 1))
+
+          # 4) Patient-facing specialty must align with routine back-pain guidance.
+          replace_once(
+              "app/services/triage.py",
+              '''    specialty = None
+                  if rule.recommended_specialty:
+                      specialty = RecommendedSpecialty(
+                          code=rule.recommended_specialty[0],
+                          label=rule.recommended_specialty[1],
+                          confidence=1.0 if emergency_flag else 0.78,
+                      )
+              ''',
+              '''    specialty = None
+                  if rule.recommended_specialty:
+                      specialty = RecommendedSpecialty(
+                          code=rule.recommended_specialty[0],
+                          label=rule.recommended_specialty[1],
+                          confidence=1.0 if emergency_flag else 0.78,
+                      )
+                  # Routine symptom guidance is the more specific routing source for
+                  # mechanical/postural back pain.  Never use this override for urgent
+                  # or emergency presentations, where the safety rule remains authoritative.
+                  if use_guidance and guidance and final_urgency == "ROUTINE":
+                      guidance_specialties = {
+                          "back_pain": ("MUSCULOSKELETAL", "Cơ xương khớp"),
+                          "neck_shoulder_pain": ("MUSCULOSKELETAL", "Cơ xương khớp"),
+                      }
+                      override = guidance_specialties.get(str(guidance.get("topic", "")))
+                      if override:
+                          specialty = RecommendedSpecialty(
+                              code=override[0], label=override[1], confidence=0.86
+                          )
+              ''',
+          )
+
+          # 5) GI follow-ups should acknowledge newly supplied information instead of
+          # repeating the initial generic clarification every turn.
+          replace_once(
+              "app/services/triage.py",
+              '''    if summary:
+                      summary += (
+                          " Bạn cũng đã mô tả cảm giác buồn nôn; cần làm rõ liệu đã nôn, "
+                          "có uống được nước hay không và có dấu hiệu cảnh báo đi kèm không."
+                      )
+                  follow_up = (
+              ''',
+              '''    norm = normalize_search_text(symptoms_text)
+                  gi_facts: list[str] = []
+                  if contains_affirmed_phrase(norm, "tren ron"):
+                      gi_facts.append("đau tập trung vùng trên rốn")
+                  if contains_affirmed_phrase(norm, "tang len khi doi") or contains_affirmed_phrase(norm, "tang khi doi"):
+                      gi_facts.append("đau tăng khi đói")
+                  if contains_affirmed_phrase(norm, "nong rat"):
+                      gi_facts.append("có cảm giác nóng rát")
+                  if contains_affirmed_phrase(norm, "o chua"):
+                      gi_facts.append("có ợ chua")
+                  if gi_facts:
+                      summary = (
+                          "Đã ghi nhận " + ", ".join(gi_facts) + ". "
+                          "Các dữ kiện này giúp thu hẹp hướng đánh giá tiêu hóa nhưng chưa đủ để xác định nguyên nhân chỉ từ tin nhắn."
+                      )
+                  elif summary:
+                      summary += (
+                          " Bạn cũng đã mô tả cảm giác buồn nôn; cần làm rõ liệu đã nôn, "
+                          "có uống được nước hay không và có dấu hiệu cảnh báo đi kèm không."
+                      )
+                  follow_up = (
+              ''',
+          )
+          replace_once(
+              "app/services/triage.py",
+              '''    questions = [question for question in questions if "buồn nôn" not in question]
+                  # Narrative rendering intentionally limits follow-up prompts to three.
+              ''',
+              '''    questions = [question for question in questions if "buồn nôn" not in question]
+                  if contains_affirmed_phrase(norm, "tren ron"):
+                      questions = [q for q in questions if not any(x in q.lower() for x in ("vùng trên hay dưới", "quanh rốn", "vị trí"))]
+                  if contains_affirmed_phrase(norm, "tang len khi doi") or contains_affirmed_phrase(norm, "tang khi doi"):
+                      questions = [q for q in questions if not any(x in q.lower() for x in ("sau khi ăn", "trước hoặc sau khi ăn", "liên quan bữa ăn"))]
+                  if contains_affirmed_phrase(norm, "nong rat") or contains_affirmed_phrase(norm, "o chua"):
+                      questions = [q for q in questions if "ợ chua" not in q.lower() and "nóng rát" not in q.lower()]
+                  # Narrative rendering intentionally limits follow-up prompts to three.
+              ''',
+          )
+
+          tests = Path("app/tests/test_clinical_episode_orchestration.py")
+          test_text = tests.read_text()
+          extra = r'''
+
+          def test_negated_leg_findings_do_not_route_to_lower_limb_guidance():
+              from app.knowledge.loader import knowledge
+
+              guidance = knowledge.find_symptom_guidance(
+                  "Tôi chỉ đau ở vùng thắt lưng, không có đau lan hay tê chân."
+              )
+              assert guidance is not None
+              assert guidance.get("topic") == "back_pain"
+
+
+          def test_routine_postural_back_pain_uses_musculoskeletal_specialty():
+              response = client.post(
+                  "/v1/chat",
+                  headers=_headers("episode-back-specialty-1"),
+                  json={
+                      "conversation_id": "conversation-back-specialty",
+                      "intent_hint": "triage",
+                      "messages": [
+                          {"role": "user", "content": "Tôi hơi đau lưng sau khi ngồi máy tính cả ngày"}
+                      ],
+                  },
+              )
+              assert response.status_code == 200
+              body = response.json()
+              assert body["result"]["urgency"] == "ROUTINE"
+              assert body["result"]["recommended_specialty"]["code"] == "MUSCULOSKELETAL"
+              assert body["result"]["recommended_specialty"]["label"] == "Cơ xương khớp"
+
+
+          def test_emergency_chest_episode_does_not_leak_into_new_abdominal_episode():
+              response = client.post(
+                  "/v1/chat",
+                  headers=_headers("episode-emergency-to-abdominal-1"),
+                  json={
+                      "conversation_id": "conversation-emergency-to-abdominal",
+                      "intent_hint": "triage",
+                      "messages": [
+                          {"role": "user", "content": "Tôi đau ngực dữ dội, khó thở và vã mồ hôi."},
+                          {"role": "assistant", "content": "Bạn cần được đánh giá cấp cứu ngay."},
+                          {"role": "user", "content": "Tôi đang cảm thấy bụng cứ cồn cào, sốt ruột không rõ lắm."},
+                      ],
+                  },
+              )
+              assert response.status_code == 200
+              body = response.json()
+              assert body["intent"] == "triage"
+              assert body["result"]["urgency"] != "EMERGENCY"
+              assert body["result"]["recommended_specialty"]["code"] == "GASTROENTEROLOGY"
+              assert body["extracted"]["episode_context_used"] is False
+              assert "đau ngực" not in body["answer"]["summary"].lower()
+
+
+          def test_emergency_chest_continuation_preserves_emergency_floor():
+              response = client.post(
+                  "/v1/chat",
+                  headers=_headers("episode-emergency-continuation-1"),
+                  json={
+                      "conversation_id": "conversation-emergency-continuation",
+                      "intent_hint": "triage",
+                      "messages": [
+                          {"role": "user", "content": "Tôi đau ngực dữ dội và khó thở."},
+                          {"role": "assistant", "content": "Bạn cần được đánh giá cấp cứu ngay."},
+                          {"role": "user", "content": "Tôi vẫn đau ngực và giờ còn vã mồ hôi."},
+                      ],
+                  },
+              )
+              assert response.status_code == 200
+              body = response.json()
+              assert body["result"]["urgency"] == "EMERGENCY"
+              assert body["extracted"]["episode_context_used"] is True
+
+
+          def test_gi_followup_summary_uses_accumulated_episode_facts_without_reasking_known_slots():
+              response = client.post(
+                  "/v1/chat",
+                  headers=_headers("episode-gi-delta-1"),
+                  json={
+                      "conversation_id": "conversation-gi-delta",
+                      "intent_hint": "triage",
+                      "messages": [
+                          {"role": "user", "content": "Tôi đang rất đau bụng và buồn nôn"},
+                          {"role": "assistant", "content": "Bạn đau ở vị trí nào?"},
+                          {"role": "user", "content": "Cơn đau của tôi tập trung ở vùng trên rốn."},
+                          {"role": "assistant", "content": "Đau có liên quan bữa ăn không?"},
+                          {"role": "user", "content": "Cơn đau thường xuất hiện hoặc tăng lên khi đói"},
+                          {"role": "assistant", "content": "Có nóng rát hay ợ chua không?"},
+                          {"role": "user", "content": "Cơn đau có kèm theo nóng rát và ợ chua"},
+                      ],
+                  },
+              )
+              assert response.status_code == 200
+              body = response.json()
+              summary = body["answer"]["summary"].lower()
+              assert "trên rốn" in summary
+              assert "tăng khi đói" in summary
+              assert "ợ chua" in summary
+              questions = " ".join(body["answer"]["questions"]).lower()
+              assert "vùng trên hay dưới" not in questions
+              assert "trước hoặc sau khi ăn" not in questions
+          '''
+          extra = extra.replace("\n          ", "\n")
+          if "test_negated_leg_findings_do_not_route_to_lower_limb_guidance" not in test_text:
+              tests.write_text(test_text + extra)
+          PY
+
+      - name: Install backend dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run targeted clinical regression
+        run: python -m pytest -q app/tests/test_clinical_episode_orchestration.py app/tests/test_chat.py
+
+      - name: Run full backend regression
+        run: python -m pytest -q
+
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Start MedGuard for UI test
+        run: |
+          python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 > /tmp/medguard-ui.log 2>&1 &
+          for i in {1..30}; do
+            curl -fsS http://127.0.0.1:8000/v1/health >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/medguard-ui.log
+          exit 1
+
+      - name: Run Playwright UI smoke
+        working-directory: frontend
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          test -n "$CHROME_BIN"
+          CHROME_PATH="$CHROME_BIN" MEDGUARD_UI_URL=http://127.0.0.1:8000 npm run test:ui
+
+      - name: Commit validated fixes
+        run: |
+          git config user.name "MedGuard CI"
+          git config user.email "actions@github.com"
+          git add app/services/chat.py app/knowledge/loader.py app/services/triage.py app/tests/test_clinical_episode_orchestration.py
+          git commit -m "fix: isolate clinical episodes and respect negation"
+          git push origin HEAD:fix/clinical-episode-orchestration
