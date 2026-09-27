@@ -173,4 +173,25 @@ replace_once(
 ''',
 )
 
+# The regression must distinguish stale current findings from legitimate future
+# safety-net wording. A GI safety-net may mention chest pain as a new warning
+# sign; that is not evidence that the prior chest episode leaked into state.
+replace_once(
+    "app/tests/test_clinical_episode_orchestration.py",
+    '''    answer_text = " ".join(block["text"] for block in body["answer"].get("narrative", []))
+    assert "đau ngực" not in answer_text.lower()
+    assert "khó thở" not in body["answer"]["summary"].lower()
+''',
+    '''    summary = body["answer"]["summary"].lower()
+    current_red_flags = " ".join(body["result"].get("red_flags", [])).lower()
+    trace = body["result"]["trace"]["details"]
+    assert "đau ngực" not in summary
+    assert "khó thở" not in summary
+    assert "đau ngực" not in current_red_flags
+    assert "tức ngực" not in current_red_flags
+    assert trace["conversation_risk"] is None
+    assert trace["rule_urgency"] != "EMERGENCY"
+''',
+)
+
 print("Round-2 clinical episode patch staged successfully")
