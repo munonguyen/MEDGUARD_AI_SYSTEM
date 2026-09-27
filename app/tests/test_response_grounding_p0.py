@@ -10,6 +10,7 @@ from app.services.semantic_abstraction_lattice import (
     evaluate_abstraction_lattice,
 )
 from app.services.semantic_relation_extractor import extract_semantic_relations
+from app.services.clinical_text import contains_affirmed_phrase, normalize_search_text
 
 
 def _archetypes(text: str):
@@ -119,3 +120,33 @@ def test_emergency_summary_uses_explicit_diagnostic_uncertainty():
     summary = ((body.get("answer") or {}).get("summary") or "").lower()
     assert "không xác định nguyên nhân hoặc chẩn đoán" in summary
     assert "không thể khẳng định" in summary
+
+
+def test_yes_no_question_does_not_promote_hypothesis_to_fact():
+    text = normalize_search_text("Tôi nên chờ xem có tự hết không?")
+    assert contains_affirmed_phrase(text, "tu het") is False
+
+
+def test_true_resolved_tia_language_remains_affirmed():
+    text = normalize_search_text("Tôi nói khó và yếu một tay khoảng 10 phút rồi tự hết hoàn toàn.")
+    assert contains_affirmed_phrase(text, "tu het") is True
+
+
+def test_fact_with_separate_negative_clause_is_not_mistaken_for_question():
+    text = normalize_search_text("Tôi có đau ngực, không sốt.")
+    assert contains_affirmed_phrase(text, "dau nguc") is True
+
+
+def test_stroke_question_does_not_render_hypothetical_resolution_as_observed_fact():
+    body = _chat(
+        "Người nhà tôi có dấu hiệu méo miệng, nói khó và yếu một bên tay. Tôi nên chờ xem có tự hết không?",
+        "grounding-stroke-question-scope",
+    )
+    result = body.get("result") or {}
+    answer = body.get("answer") or {}
+    text = _answer_text(body)
+    assert result.get("urgency") == "EMERGENCY"
+    assert answer.get("display_questions") == []
+    assert "gọi cấp cứu 115" in text or "gọi 115" in text
+    assert "[nói khó, tự hết]" not in text
+    assert "[noi kho, tu het]" not in normalize_search_text(text)
