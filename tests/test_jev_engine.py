@@ -82,13 +82,30 @@ def test_jev_benign_routine():
     assert decision.allow_home_monitoring is True
 
 
-def test_jev_epistemic_low_coverage():
+def test_jev_epistemic_low_coverage_invariant_v11_a():
+    """Verify Invariant V11-A: Low coverage on benign consensus MUST NOT escalate to URGENT."""
     state = DecisionState(
         triage_floor="ROUTINE",
         reasoner_triage="ROUTINE",
         fact_coverage=0.20,
+        risk_features=(),
+        hard_safety_flags=(),
     )
     decision = evaluate_jev_decision(state)
-    assert decision.action == "AMBIGUOUS_CLARIFY"
+    assert decision.action == "SELF_CARE"
+    assert decision.triage_recommendation == "ROUTINE"
+    assert decision.allow_home_monitoring is True
+    assert "epistemic_benign_consensus_preserved" in decision.policy_rules_triggered
+
+
+def test_jev_epistemic_low_coverage_with_risk_feature_escalates():
+    """Verify that when real risk features ARE present with low coverage, Jev properly escalates."""
+    state = DecisionState(
+        triage_floor="ROUTINE",
+        reasoner_triage="ROUTINE",
+        fact_coverage=0.20,
+        risk_features=("uncontrolled_moderate_pain",),
+    )
+    decision = evaluate_jev_decision(state)
     assert decision.triage_recommendation == "URGENT"
     assert decision.allow_home_monitoring is False

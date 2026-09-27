@@ -210,8 +210,61 @@ def merge_risk(
     )
 
 
-def should_start_new_episode(latest_text: str) -> bool:
-    """Determine if user explicitly switches to a completely new unrelated problem."""
+# Anatomical domain markers for detecting topic shifts
+_DOMAIN_MARKERS: dict[str, tuple[str, ...]] = {
+    "cardiovascular": (
+        "tuc nguc", "dau nguc", "nang nguc", "dau that nguc", "vung tim", "mach vanh",
+        "danh trong nguc", "hoi hop", "loan nhip", "nhoi mau", "tim dap nhanh",
+    ),
+    "dental": (
+        "rang", "nhuc rang", "dau rang", "sau rang", "nuou", "loi", "tuy rang", "nho rang",
+        "rang khon", "e buot", "buot rang", "viem loi", "viem tuy", "cung ham",
+    ),
+    "musculoskeletal": (
+        "tap gym", "gym", "tap ta", "tang co", "doms", "moi co", "cang co", "chuot rut",
+        "co nguc", "dau co", "gian co", "bong gan", "khop goi", "dau lung", "co bap",
+        "co lien suon", "dau nhuc co", "dau vai", "moi vai", "vai gay", "co vai gay",
+        "bap chan", "cang bap chan", "ngoi lau", "ngoi may tinh", "moi lung", "that lung",
+    ),
+    "neurology": (
+        "meo mieng", "meo mat", "dot quy", "tai bien", "co giat", "dong kinh", "liet nua nguoi",
+        "yeu nua nguoi", "noi ngong", "u o", "dong tu gian",
+    ),
+    "dermatology": (
+        "di ung da", "noi me day", "ngua da", "phat ban", "mun nhot", "man do", "viem da",
+    ),
+    "ent": (
+        "dau hong", "viem hong", "ngat mui", "so mui", "viem xoang", "u tai", "chay nuoc mui",
+    ),
+    "gastrointestinal": (
+        "dau da day", "trao nguoc", "o chua", "day bung", "tieu chay", "tao bon", "dau bung",
+    ),
+    "ophthalmology": (
+        "dau mat", "moi mat", "do mat", "kho mat", "viem ket mac",
+    ),
+}
+
+_ACUTE_RED_FLAGS: tuple[str, ...] = (
+    "kho tho", "lan tay trai", "lan tay", "bop nghet", "de nang",
+    "va mo hoi", "ngat xiu", "ngat", "hon me", "meo mieng", "yeu liet",
+    "khong tho duoc", "tim dap loan", "115", "soc phan ve",
+)
+
+
+def detect_clinical_domain(text: str) -> str | None:
+    """Detect anatomical organ system or clinical domain from text."""
+    norm = normalize_search_text(text)
+    if any(k in norm for k in ("lan tay trai", "bop nghet", "de nang", "kho tho", "hoi chung vanh", "nhoi mau", "tim dap nhanh")):
+        if any(k in norm for k in ("nguc", "tim", "kho tho")):
+            return "cardiovascular_emergency"
+    for domain, keywords in _DOMAIN_MARKERS.items():
+        if any(kw in norm for kw in keywords):
+            return domain
+    return None
+
+
+def should_start_new_episode(latest_text: str, previous_text: str | None = None) -> bool:
+    """Determine if user explicitly switches to a completely new unrelated problem or clinical domain."""
     norm = normalize_search_text(latest_text)
     explicit_markers = (
         "yeu cau moi",
@@ -227,4 +280,17 @@ def should_start_new_episode(latest_text: str) -> bool:
         "benh truoc da khoi",
         "chuyen cu da xong",
     )
-    return any(marker in norm for marker in explicit_markers)
+    if any(marker in norm for marker in explicit_markers):
+        return True
+
+    # If previous_text is provided, check for domain shift
+    if previous_text:
+        latest_domain = detect_clinical_domain(latest_text)
+        prev_domain = detect_clinical_domain(previous_text)
+        if latest_domain and prev_domain and latest_domain != prev_domain:
+            has_acute_red_flag = any(flag in norm for flag in _ACUTE_RED_FLAGS)
+            if not has_acute_red_flag:
+                return True
+
+    return False
+

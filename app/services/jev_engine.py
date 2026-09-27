@@ -114,8 +114,31 @@ def evaluate_jev_decision(state: DecisionState) -> JevDecision:
             source="jev_engine",
         )
 
-    # 5. Epistemic check on low coverage
+    # 5. Epistemic check on low coverage (Invariant V11-A Compliant)
+    has_any_risk_indicator = bool(
+        has_critical_feature
+        or has_urgent_feature
+        or state.risk_features
+        or state.hard_safety_flags
+    )
+
     if state.fact_coverage < 0.35 and state.reasoner_triage == "ROUTINE":
+        # INVARIANT V11-A: If Gate 0 & Gate 1 agreed on ROUTINE and there are ZERO risk features,
+        # Jev MUST NOT escalate to URGENT. Preserve ROUTINE self-care and advise clarification.
+        if state.triage_floor == "ROUTINE" and not has_any_risk_indicator:
+            triggered_rules.append("epistemic_benign_consensus_preserved")
+            latency = (perf_counter() - t0) * 1000.0
+            return JevDecision(
+                action="SELF_CARE",
+                confidence=min(max(state.confidence, 0.90), 0.95),
+                allow_home_monitoring=not has_no_home_flag,
+                require_human_review=False,
+                triage_recommendation="ROUTINE",
+                policy_rules_triggered=tuple(triggered_rules),
+                latency_ms=round(latency, 2),
+                source="jev_engine",
+            )
+
         triggered_rules.append("epistemic_low_coverage_guard")
         latency = (perf_counter() - t0) * 1000.0
         return JevDecision(

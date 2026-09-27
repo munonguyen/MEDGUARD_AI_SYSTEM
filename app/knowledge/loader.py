@@ -87,9 +87,36 @@ class KnowledgeStore:
         ).data.get("reported_ingestion_protocols", [])
 
     def find_symptom_guidance(self, symptoms_text: str) -> dict[str, Any] | None:
+        from app.services.clinical_text import normalize_search_text
         normalized = symptoms_text.lower().strip()
+        norm_unaccent = normalize_search_text(normalized)
         for guidance in self.symptom_guidance:
-            if guidance.get("topic") == "lower_limb_pain":
+            topic = guidance.get("topic")
+            if topic == "lower_limb_pain":
+                # Protect against hijacking back pain queries that merely evaluate radiculopathy (leg radiation)
+                is_back_context = any(
+                    term in normalized or term in norm_unaccent
+                    for term in (
+                        "dau lung", "that lung", "cot song", "ngoi may tinh", "ngoi lau", "ngoi ca ngay",
+                        "đau lưng", "thắt lưng", "cột sống", "ngồi máy tính", "mong", "mông", "lan xuong", "lan xuống",
+                        "dau mong", "đau mông", "chèn ép rễ", "chen ep re", "than kinh toa", "thần kinh tọa",
+                        "dau doc xuong chan", "đau dọc xuống chân", "te chan", "tê chân"
+                    )
+                )
+                if is_back_context:
+                    continue
+
+                # Protect against negated leg symptoms
+                is_negated = any(
+                    neg in normalized or neg in norm_unaccent
+                    for neg in (
+                        "khong dau chan", "khong lan", "khong te", "khong bi", "chua bi", "da khong",
+                        "không đau", "không lan", "không tê", "khong te chan", "không tê chân"
+                    )
+                )
+                if is_negated:
+                    continue
+
                 has_lower_limb_region = any(
                     term in normalized
                     for term in (
@@ -109,6 +136,19 @@ class KnowledgeStore:
                 if has_lower_limb_region and has_relevant_problem:
                     return guidance
             if any(str(keyword).lower() in normalized for keyword in guidance.get("keywords", [])):
+                if topic == "lower_limb_pain" and (
+                    is_back_context
+                    or any(
+                        term in normalized or term in norm_unaccent
+                        for term in (
+                            "dau lung", "that lung", "cot song", "ngoi may tinh", "ngoi lau", "ngoi ca ngay",
+                            "đau lưng", "thắt lưng", "cột sống", "ngồi máy tính", "mong", "mông", "lan xuong", "lan xuống",
+                            "dau mong", "đau mông", "chèn ép rễ", "chen ep re", "than kinh toa", "thần kinh tọa",
+                            "dau doc xuong chan", "đau dọc xuống chân", "te chan", "tê chân"
+                        )
+                    )
+                ):
+                    continue
                 return guidance
         return None
 

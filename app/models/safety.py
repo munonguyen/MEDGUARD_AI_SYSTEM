@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -63,3 +63,23 @@ class SafetyResponse(DisclaimerMixin):
     warnings: list[SafetyWarning] = Field(default_factory=list)
     unknown_ingredients: list[str] = Field(default_factory=list)
     trace: Trace
+
+
+class SafetyKernelResult(BaseModel):
+    """Deterministic Safety Kernel result running independently before reasoning."""
+    emergency_lock: bool = Field(default=False, description="Hard lock on emergency care; cannot be downgraded by LLMs")
+    minimum_triage: Literal["ROUTINE", "URGENT", "EMERGENCY"] = Field(default="ROUTINE")
+    hard_red_flags: list[str] = Field(default_factory=list, description="Life-threatening clinical red flags triggered")
+    medication_hard_blocks: list[str] = Field(default_factory=list, description="Hard contraindications triggered")
+    mandatory_actions: list[str] = Field(default_factory=list, description="Non-negotiable clinical directives (e.g. Call 115)")
+    triggered_rules: list[str] = Field(default_factory=list, description="Safety rule identifiers that triggered")
+    disposition: str = Field(default="SAFE")
+
+
+class ClinicalOutputGuardResult(BaseModel):
+    """Output validation result from the independent Clinical Output Guard."""
+    safe: bool = Field(description="True if output passes all clinical and medication safety checks")
+    violations: list[dict[str, Any]] = Field(default_factory=list, description="Safety violations detected")
+    action: Literal["PASS", "REPAIR", "SAFE_FALLBACK"] = Field(default="PASS")
+    reasons: list[str] = Field(default_factory=list)
+

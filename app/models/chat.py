@@ -22,6 +22,7 @@ ChatIntent = Literal[
     "ocr",
     "schedule",
     "authenticity",
+    "appointment_search",
 ]
 
 
@@ -70,6 +71,7 @@ class GroundedAnswer(BaseModel):
     sources: list[ChatEvidenceSource] = Field(default_factory=list)
     limitations: list[str] = Field(default_factory=list)
     requires_human_review: bool = False
+    is_clarification: bool = False
     narrative: list[AnswerNarrativeBlock] = Field(default_factory=list)
     researched_sources: list[AgentEvidenceSource] = Field(default_factory=list)
     answer_assurance: AnswerAssurance | None = None
@@ -108,6 +110,7 @@ class ChatRequest(BaseModel):
         "ocr",
         "schedule",
         "authenticity",
+        "appointment_search",
     ] = "auto"
     locale: str = "vi-VN"
 

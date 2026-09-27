@@ -36,7 +36,7 @@ _FIELD_QUESTIONS = {
     "request_detail": "Bạn có thể chia sẻ cụ thể hơn về triệu chứng, vị trí khó chịu hoặc băn khoăn sức khỏe của bạn không?",
 }
 
-_CLINICAL_INTENTS = {"triage", "safety", "monitoring", "followup", "pharmacy"}
+_CLINICAL_INTENTS = {"triage", "safety", "monitoring", "followup", "pharmacy", "appointment_search"}
 
 
 def _as_sentences(items: list[str]) -> str:
@@ -130,7 +130,7 @@ def _with_narrative(answer: GroundedAnswer, intent: ChatIntent) -> GroundedAnswe
             )
         )
 
-    visible_questions = answer.questions[:3]
+    visible_questions = answer.questions[:2]
     if visible_questions:
         prompt_label = "Thông tin cần báo nhân viên y tế nếu có thể" if is_emergency else "Bạn cho mình biết thêm"
         blocks.append(
@@ -566,6 +566,7 @@ def build_grounded_answer(
     titles = {
         "schedule": "Đã cập nhật lịch uống thuốc",
         "followup": "Kế hoạch tái khám",
+        "appointment_search": "Lịch ca khám & Danh sách Bác sĩ trực hôm nay",
         "pharmacy": "Phương án cấp phát thuốc",
         "queue": "Đã sắp xếp thứ tự tiếp nhận",
         "fhir": "Đã tạo dữ liệu FHIR",

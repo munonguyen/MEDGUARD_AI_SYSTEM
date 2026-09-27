@@ -45,6 +45,8 @@ class AbstractThreatArchetype(str, Enum):
     BENIGN_CHRONIC_VISUAL_OR_EYESTRAIN = "benign_chronic_visual_or_eyestrain"
     BENIGN_FUNCTIONAL_DYSPEPSIA = "benign_functional_dyspepsia"
     BENIGN_TENSION_HEADACHE = "benign_tension_headache"
+    LUMBAR_RADICULAR_MOTOR_INVOLVEMENT = "lumbar_radicular_motor_involvement"
+    CAUDA_EQUINA_COMPRESSION = "cauda_equina_compression"
     NON_THREATENING_OBSERVATION = "non_threatening_observation"
 
 
@@ -193,6 +195,30 @@ def evaluate_abstraction_lattice(graph: SemanticRelationGraph) -> LatticeEvaluat
                 is_benign_exclusion=True,
             )
         )
+    elif has_weakness and bool(re.search(r"\b(dau lung|that lung|cot song|dau doc|thoat vi|than kinh toa|kho nhac chan|te chan|te bi|kho buoc|ngoi lau|ngoi may tinh|kho nhac|kem te)\b", norm)) and not (has_facial or has_speech or has_vision or bool(re.search(r"\b(nua nguoi|meo|ngong|u o|mat ngon ngu|rot dua|canh tay)\b", norm))):
+        has_cauda_equina = bool(re.search(r"\b(bi tieu|tieu khong tu chu|dai tien khong tu chu|te yen ngua|te hau mon|yeu ca hai chan|liet ca hai chan|yeu tang nhanh)\b", norm))
+        if has_cauda_equina:
+            patterns.append(
+                AbstractionPattern(
+                    archetype=AbstractThreatArchetype.CAUDA_EQUINA_COMPRESSION,
+                    is_emergency=True,
+                    confidence=0.98,
+                    grounding_concepts=["focal_weakness"],
+                    clinical_rationale="Dấu hiệu chèn ép chùm đuôi ngựa hoặc tủy sống cấp tính (yếu chân tiến triển nhanh kèm rối loạn cơ tròn hoặc tê yên ngựa).",
+                    is_benign_exclusion=False,
+                )
+            )
+        else:
+            patterns.append(
+                AbstractionPattern(
+                    archetype=AbstractThreatArchetype.LUMBAR_RADICULAR_MOTOR_INVOLVEMENT,
+                    is_emergency=False,
+                    confidence=0.95,
+                    grounding_concepts=["focal_weakness"],
+                    clinical_rationale="Triệu chứng yếu chân hoặc khó nhấc chân mới xuất hiện trong bối cảnh đau thắt lưng lan chân và tê bì nghi ngờ tổn thương rễ thần kinh thắt lưng cần được đánh giá y tế trong ngày.",
+                    is_benign_exclusion=True,
+                )
+            )
     elif has_weakness or has_facial or has_speech or has_vision:
         groundings = []
         if has_weakness: groundings.append("focal_weakness")

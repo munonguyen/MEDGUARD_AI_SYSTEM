@@ -87,8 +87,13 @@ def resolve_tri_gate(tri_result: TriGateResult) -> FinalResolution:
         }
 
     else:  # ROUTINE
-        # Strict Benign Guard: if Jev or Verifier rejected self-care, escalate
-        if tri_result.gate3_jev and not tri_result.gate3_jev.allow_home_monitoring:
+        # Invariant V11-A: If upstream consensus is ROUTINE, Jev cannot force URGENT without risk features.
+        has_real_risk = bool(
+            tri_result.decision_state.risk_features
+            or tri_result.decision_state.hard_safety_flags
+            or tri_result.hard_safety_floor != "ROUTINE"
+        )
+        if tri_result.gate3_jev and not tri_result.gate3_jev.allow_home_monitoring and has_real_risk:
             final_triage = "URGENT"
             final_action = "SAME_DAY_EVAL"
             allow_home_monitoring = False
@@ -102,9 +107,12 @@ def resolve_tri_gate(tri_result: TriGateResult) -> FinalResolution:
             require_review = False
             final_conf = min(base_conf, 0.96)
             invariants.append("benign_routine_self_care_permitted")
+            if tri_result.gate3_jev and tri_result.gate3_jev.policy_rules_triggered:
+                invariants.append("jev_advisory_attached_to_policy")
             response_policy = {
                 "template": "routine_self_care_with_red_flags",
                 "mandate_red_flags": True,
+                "jev_advisory_rules": tri_result.gate3_jev.policy_rules_triggered if tri_result.gate3_jev else (),
             }
 
     return FinalResolution(

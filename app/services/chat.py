@@ -12,7 +12,8 @@ from app.core.config import settings
 from app.core.context import RequestContext
 from app.core.observability import metrics
 from app.knowledge.loader import knowledge
-from app.models.chat import ChatIntent, ChatRequest, ChatResponse, ChatSuggestion
+from app.models.agents import AgentEvidenceSource
+from app.models.chat import AnswerNarrativeBlock, ChatIntent, ChatRequest, ChatResponse, ChatSuggestion
 from app.models.delivery import DeliveryRequest
 from app.models.followup import FollowUpRequest
 from app.models.monitoring import MonitoringPoint, MonitoringRequest
@@ -48,7 +49,7 @@ from app.services.risk_memory import (
 )
 from app.services.dose_reasoning import evaluate_dose_reasoning
 from app.services.semantic_risk import safe_semantic_evaluate, semantic_risk_evaluator
-from app.services.ood_guard import evaluate as ood_evaluate, OODResult
+from app.services.ood_guard import evaluate as ood_evaluate, OODResult, SafetyDisposition
 
 
 _INTENT_KEYWORDS: dict[ChatIntent, tuple[str, ...]] = {
@@ -78,6 +79,15 @@ _INTENT_KEYWORDS: dict[ChatIntent, tuple[str, ...]] = {
         "u o",
         "khong noi duoc",
         "yeu tay",
+        "yeu chan",
+        "chan yeu",
+        "chan hoi yeu",
+        "kho nhac chan",
+        "kho nhac",
+        "kho di lai",
+        "kho buoc",
+        "yeu co",
+        "yeu chi",
         "yeu liet",
         "roi coc",
         "te bi",
@@ -236,17 +246,31 @@ _INTENT_KEYWORDS: dict[ChatIntent, tuple[str, ...]] = {
         "tai kham",
         "follow up",
         "follow-up",
-        "lich kham",
         "sau xuat vien",
+        "lap lich tai kham",
+        "ke hoach tai kham",
+        "hen ngay tai kham",
+    ),
+    "appointment_search": (
+        "xem lich",
+        "lich kham",
         "ca kham",
-        "ca truc",
+        "bac si hom nay",
+        "bac si truc",
+        "dat kham",
+        "dat lich kham",
         "lich bac si",
+        "lich ca kham",
+        "ca truc",
         "dat ca kham",
         "ca sang",
         "ca chieu",
         "ca toi",
         "lich hen",
         "dat lich",
+        "tim bac si",
+        "kham gan toi",
+        "dang ky kham",
     ),
     "pharmacy": ("nha thuoc", "cap phat", "tim thuoc", "giao thuoc", "nhan tai quay"),
     "queue": ("hang doi", "xep hang", "thu tu tiep nhan", "uu tien benh nhan"),
@@ -274,6 +298,7 @@ _ALL_GATEWAY_INTENTS: set[ChatIntent] = {
     "ocr",
     "schedule",
     "authenticity",
+    "appointment_search",
 }
 
 
@@ -314,8 +339,20 @@ _SYMPTOM_FALLBACK_MARKERS = (
     "tao bon",
     "co giat",
     "chuot rut",
+    "cang",
     "cang co",
     "cang tuc",
+    "yeu",
+    "yeu chan",
+    "chan yeu",
+    "kho nhac",
+    "kho nhac chan",
+    "kho di",
+    "kho buoc",
+    "bap chan",
+    "cang bap chan",
+    "dau chan",
+    "moi chan",
     "co cung",
     "gian co",
     "co dui",
@@ -395,14 +432,15 @@ def _normalize(value: str) -> str:
 def _triage_episode_text(payload: ChatRequest, latest_text: str) -> tuple[str, bool]:
     """Carry clinical context across follow-up turns in an active episode."""
     normalized_latest = _normalize(latest_text)
-    if should_start_new_episode(latest_text) or is_explicit_correction(latest_text) or any(marker in normalized_latest for marker in _NEW_CLINICAL_EPISODE_MARKERS):
-        return latest_text, False
-
     user_messages = [
         message.content.strip()
         for message in payload.messages[:-1]
         if message.role == "user" and message.content.strip()
     ]
+    prev_user_text = user_messages[-1] if user_messages else None
+    if should_start_new_episode(latest_text, prev_user_text) or is_explicit_correction(latest_text) or any(marker in normalized_latest for marker in _NEW_CLINICAL_EPISODE_MARKERS):
+        return latest_text, False
+
     if not user_messages:
         return latest_text, False
 
@@ -484,6 +522,43 @@ def _detect_intent(payload: ChatRequest, normalized_text: str) -> ChatIntent:
     if len(payload.messages) > 1 and not should_start_new_episode(normalized_text):
         prev_user_texts = [m.content for m in payload.messages[:-1] if m.role == "user"]
         if prev_user_texts:
+            prev_has_clinical = any(
+                any(contains_affirmed_phrase(normalize_search_text(t), k) for k in (
+                    "dau", "moi", "cang", "tuc", "lung", "nguc", "rang", "chan", "tay", "vai", "gay",
+                    "dau bung", "dau dau", "chong mat", "buon non", "sot", "ho", "di ung", "chan thuong"
+                )) or any(contains_affirmed_phrase(normalize_search_text(t), marker) for marker in _SYMPTOM_FALLBACK_MARKERS)
+                for t in prev_user_texts
+            )
+
+            is_short_continuation = bool(
+                len(normalized_text.split()) <= 12
+                and any(
+                    re.search(rf"\b{re.escape(w)}\b", normalized_text)
+                    for w in (
+                        "khong", "co", "da khong", "da co", "chua", "chua bi", "khong bi",
+                        "khong co", "khong lan", "co lan", "khong te", "co te", "te bi",
+                        "lan xuong", "khong dau", "co dau", "dau tang", "dau giam",
+                        "ben trai", "ben phai", "ca hai", "mot ben", "hai ben",
+                        "buoi sang", "buoi toi", "ve dem", "khi van dong", "khi nghi ngoi",
+                        "khi cuoi", "khi hit sau", "khi an", "sau an", "nong", "lanh",
+                        "yeu", "chan yeu", "hoi yeu", "kho nhac", "kho nhac chan", "kho di", "kho di lai", "kho buoc"
+                    )
+                )
+            )
+
+            has_symptom_progression = bool(
+                any(
+                    re.search(rf"\b{re.escape(w)}\b", normalized_text)
+                    for w in (
+                        "yeu", "kho nhac", "kho di", "kho buoc", "dau hon", "te hon",
+                        "nang hon", "tang len", "kho chiu hon", "kho nhac chan", "chan hoi yeu"
+                    )
+                )
+            )
+
+            if prev_has_clinical and (is_short_continuation or has_symptom_progression):
+                scores["triage"] += 50
+
             prev_has_triage = any(
                 _check_red_flag_patterns(normalize_search_text(t))
                 for t in prev_user_texts
@@ -499,6 +574,11 @@ def _detect_intent(payload: ChatRequest, normalized_text: str) -> ChatIntent:
                     scores["triage"] += 60
                 elif comb_sem.urgency == "URGENT":
                     scores["triage"] += 25
+
+    if any(contains(k) for k in _INTENT_KEYWORDS.get("appointment_search", ())) or bool(
+        re.search(r"\b(?:xem\s+lich|ca\s+kham|bac\s+si\s+hom\s+nay|dat\s+kham|dat\s+lich\s+kham|lich\s+bac\s+si|lich\s+ca\s+kham|ca\s+truc|dat\s+ca\s+kham|ca\s+sang|ca\s+chieu|kham\s+gan\s+toi)\b", normalized_text)
+    ):
+        scores["appointment_search"] += 80
 
     has_acute_symptoms = bool(
         has_non_vital_red_flags
@@ -917,19 +997,33 @@ def _extract_schedule(text: str) -> tuple[str | None, list[datetime], str]:
     return medication, scheduled, recurrence
 
 
+def _deduplicate_suggestions(suggestions: list[ChatSuggestion]) -> list[ChatSuggestion]:
+    seen: set[str] = set()
+    deduped: list[ChatSuggestion] = []
+    for s in suggestions:
+        key = s.label.strip().lower()
+        if key not in seen:
+            seen.add(key)
+            deduped.append(s)
+    return deduped
+
+
 def _suggestions(intent: ChatIntent) -> list[ChatSuggestion]:
     common = {
-        "triage": ChatSuggestion(label="Thêm dấu hiệu sinh tồn", prompt="SpO2 94%, huyết áp 150/90, nhịp tim 105", intent="monitoring"),
+        "triage": ChatSuggestion(label="Xem lịch ca khám", prompt="Xem lịch ca khám và bác sĩ hôm nay", intent="appointment_search"),
         "safety": ChatSuggestion(label="Theo dõi chỉ số", prompt="Theo dõi SpO2 97%, nhịp tim 82", intent="monitoring"),
         "monitoring": ChatSuggestion(label="Lập kế hoạch tái khám", prompt="Lập lịch tái khám sau xuất viện", intent="followup"),
+        "appointment_search": ChatSuggestion(label="Khung giờ buổi sáng", prompt="Tôi muốn đăng ký ca khám buổi sáng", intent="appointment_search"),
     }
     values = [common[intent]] if intent in common else []
     if intent == "schedule":
         values.append(ChatSuggestion(label="Xem lịch uống thuốc", prompt="Hiển thị lịch uống thuốc", intent="schedule"))
-    if intent in ("triage", "followup"):
-        values.append(ChatSuggestion(label="Xem lịch ca khám", prompt="Xem lịch ca khám và bác sĩ hôm nay", intent="followup"))
-    values.append(ChatSuggestion(label="Xuất FHIR", prompt="Xuất kết quả này sang FHIR", intent="fhir"))
-    return values
+    elif intent == "followup":
+        values.append(ChatSuggestion(label="Xem lịch ca khám", prompt="Xem lịch ca khám và bác sĩ hôm nay", intent="appointment_search"))
+    elif intent == "appointment_search":
+        values.append(ChatSuggestion(label="Khung giờ buổi chiều", prompt="Tôi muốn đăng ký ca khám buổi chiều", intent="appointment_search"))
+        values.append(ChatSuggestion(label="Khám gần tôi", prompt="Tìm cơ sở khám gần vị trí của tôi nhất", intent="appointment_search"))
+    return _deduplicate_suggestions(values)
 
 
 def _response(
@@ -1095,7 +1189,9 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
     # ── OOD & Crisis Guard (Tier 0 — runs before any clinical logic) ──
     ood_result: OODResult | None = ood_evaluate(latest_text)
     if ood_result is not None:
-        if ood_result.verdict == "crisis_self_harm":
+        if ood_result.disposition == SafetyDisposition.ALLOW:
+            ood_result = None  # MedicalContextBypass or ALLOW: let clinical pipeline evaluate
+        elif ood_result.verdict == "crisis_self_harm":
             if not dual_crisis.is_dual_crisis:
                 return _response(
                     payload,
@@ -1106,6 +1202,13 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
                     extracted={
                         "ood_verdict": ood_result.verdict,
                         "ood_hotline": ood_result.hotline,
+                        "policy_disposition": ood_result.disposition.value,
+                        "policy_category": ood_result.policy_category,
+                        "matched_rule": ood_result.matched_rule,
+                        "matched_keyword": ood_result.matched_keyword,
+                        "block_reason": ood_result.block_reason,
+                        "classifier_raw_output": ood_result.classifier_raw_output,
+                        "classifier_parse_status": ood_result.classifier_parse_status,
                     },
                     agent_question=f"Deterministic guardrail verdict: {ood_result.verdict}",
                 )
@@ -1121,6 +1224,13 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
                 extracted={
                     "ood_verdict": ood_result.verdict,
                     "ood_hotline": ood_result.hotline,
+                    "policy_disposition": ood_result.disposition.value,
+                    "policy_category": ood_result.policy_category,
+                    "matched_rule": ood_result.matched_rule,
+                    "matched_keyword": ood_result.matched_keyword,
+                    "block_reason": ood_result.block_reason,
+                    "classifier_raw_output": ood_result.classifier_raw_output,
+                    "classifier_parse_status": ood_result.classifier_parse_status,
                 },
                 agent_question=f"Deterministic guardrail verdict: {ood_result.verdict}",
             )
@@ -1135,6 +1245,13 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
                     "ood_verdict": ood_result.verdict,
                     "ood_hotline": ood_result.hotline,
                     "clinical_safety_floor": pre_ood_safety_floor.disposition,
+                    "policy_disposition": ood_result.disposition.value,
+                    "policy_category": ood_result.policy_category,
+                    "matched_rule": ood_result.matched_rule,
+                    "matched_keyword": ood_result.matched_keyword,
+                    "block_reason": ood_result.block_reason,
+                    "classifier_raw_output": ood_result.classifier_raw_output,
+                    "classifier_parse_status": ood_result.classifier_parse_status,
                 },
                 agent_question=f"Deterministic guardrail verdict: {ood_result.verdict}",
             )
@@ -1319,35 +1436,71 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
     # but requests with extracted vital monitoring metrics proceed to monitoring engine for metric escalation
     has_monitoring_metrics = bool(_extract_monitoring(latest_text))
     latest_concept_norm = normalize_clinical_concepts(normalize_search_text(latest_text))
-    has_active_emergency = ledger.has_active_emergency() or bool(_check_red_flag_patterns(latest_concept_norm))
+    
+    user_prev_messages = [
+        m.content.strip() for m in payload.messages[:-1]
+        if m.role == "user" and m.content.strip()
+    ]
+    prev_user_text = user_prev_messages[-1] if user_prev_messages else None
+    is_new_topic = bool(prev_user_text and should_start_new_episode(latest_text, prev_user_text))
+
+    has_active_emergency = (
+        (ledger.has_active_emergency() and not is_new_topic)
+        or bool(_check_red_flag_patterns(latest_concept_norm))
+    )
     if has_active_emergency and not has_monitoring_metrics and (len(payload.messages) > 1 or intent in ("monitoring", "general", "pharmacy")):
         intent = "triage"
+    elif intent == "general" and len(payload.messages) > 1 and not is_new_topic:
+        # Check if conversation history is an active clinical triage episode
+        prev_has_clinical = any(
+            any(k in normalize_search_text(t) for k in (
+                "dau", "moi", "cang", "tuc", "lung", "nguc", "rang", "chan", "tay", "vai", "gay",
+                "dau bung", "dau dau", "chong mat", "buon non", "sot", "ho", "di ung", "te"
+            ))
+            for t in user_prev_messages
+        )
+        if prev_has_clinical:
+            intent = "triage"
 
     if intent == "triage":
         episode_text, episode_context_used = _triage_episode_text(payload, latest_text)
         vital_signs = _extract_vital_signs(episode_text)
 
-        # Multi-turn risk escalation tracking via Clinical Event Ledger
-        conversation_risk = "EMERGENCY" if (len(payload.messages) > 1 and ledger.has_active_emergency()) else None
-        if not conversation_risk and len(payload.messages) > 1 and not should_start_new_episode(latest_text):
-            if is_explicit_correction(latest_text):
-                conversation_risk = None
-            else:
-                risk_state = None
-                from app.services.compositional_reasoner import evaluate_compositional_risk
-                from app.services.dose_reasoning import evaluate_dose_reasoning
+        # Multi-turn risk escalation tracking via Clinical Event Ledger & Monotonic Episode Floor
+        from app.services.triage_resolver import URGENCY_RANK, highest_urgency
 
-                for prev_m in payload.messages[:-1]:
-                    if prev_m.role == "user" and prev_m.content.strip():
-                        prev_text = prev_m.content.strip()
-                        prev_dose = evaluate_dose_reasoning(prev_text)
-                        if prev_dose and prev_dose.urgency == "EMERGENCY":
-                            conversation_risk = "EMERGENCY"
-                            break
-                        prev_comp = evaluate_compositional_risk(prev_text)
-                        if prev_comp.disposition == "EMERGENCY":
-                            conversation_risk = "EMERGENCY"
-                            break
+        prev_episode_floor = "ROUTINE"
+        if len(payload.messages) > 1 and not is_new_topic and not is_explicit_correction(latest_text):
+            if ledger.has_active_emergency():
+                prev_episode_floor = "EMERGENCY"
+
+            for prev_m in payload.messages[:-1]:
+                if prev_m.role == "assistant":
+                    c = prev_m.content
+                    if "CẦN ĐÁNH GIÁ CẤP CỨU" in c or "CẤP CỨU" in c or "EMERGENCY" in c or "115" in c:
+                        prev_episode_floor = highest_urgency(prev_episode_floor, "EMERGENCY")
+                    elif "NÊN ĐƯỢC ĐÁNH GIÁ Y TẾ SỚM" in c or "URGENT" in c or "đánh giá y tế sớm" in c:
+                        prev_episode_floor = highest_urgency(prev_episode_floor, "URGENT")
+                elif prev_m.role == "user" and prev_m.content.strip():
+                    u_norm = normalize_search_text(prev_m.content)
+                    if any(rf in u_norm for rf in ("lan xuong chan", "lan xuong mong", "te chan", "yeu chan", "dau doc xuong chan", "lan chan")):
+                        prev_episode_floor = highest_urgency(prev_episode_floor, "URGENT")
+
+                    from app.services.compositional_reasoner import evaluate_compositional_risk
+                    from app.services.dose_reasoning import evaluate_dose_reasoning
+                    prev_dose = evaluate_dose_reasoning(prev_m.content.strip())
+                    if prev_dose and prev_dose.urgency in ("URGENT", "EMERGENCY"):
+                        prev_episode_floor = highest_urgency(prev_episode_floor, prev_dose.urgency)
+                    prev_comp = evaluate_compositional_risk(prev_m.content.strip())
+                    if prev_comp and prev_comp.disposition in ("URGENT", "EMERGENCY"):
+                        prev_episode_floor = highest_urgency(prev_episode_floor, prev_comp.disposition)
+
+            if payload.context.last_result and isinstance(payload.context.last_result, dict):
+                last_u = payload.context.last_result.get("urgency")
+                if last_u in ("URGENT", "EMERGENCY"):
+                    prev_episode_floor = highest_urgency(prev_episode_floor, last_u)
+
+        conversation_risk = prev_episode_floor if prev_episode_floor in ("URGENT", "EMERGENCY") else None
 
         result = evaluate_triage(
             TriageRequest(
@@ -1365,10 +1518,89 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
             ctx,
             conversation_risk=conversation_risk,
         )
+
+        # Clinical Invariant: Episode Triage Monotonicity (Hysteresis / Safety Floor)
+        # episode.minimum_triage = max(previous_minimum_triage, current_evidence_triage)
+        if conversation_risk and not is_new_topic and not is_explicit_correction(latest_text):
+            if URGENCY_RANK.get(conversation_risk, 1) > URGENCY_RANK.get(result.urgency, 1):
+                result.urgency = conversation_risk
+
         specialty = result.recommended_specialty.label if result.recommended_specialty else "chuyên khoa phù hợp"
         reply_msg = f"Đã phân luồng ở mức {result.urgency}, ESI {result.esi_level or 'chưa xác định'}. Hướng xử lý: {specialty}."
         if dual_crisis.is_dual_crisis and ood_result:
             reply_msg = compose_dual_crisis_response(ood_result.reply)
+
+        from app.services.response_policy_engine import ResponsePolicyEngine
+        from app.models.response_policy import ResponseProfile
+        from app.services.clinical_llm_synthesizer import (
+            synthesize_clinical_response,
+            synthesize_deterministic_clinical_response,
+        )
+
+        policy_contract = ResponsePolicyEngine.evaluate(
+            query=latest_text,
+            user_intent="triage",
+            raw_urgency=result.urgency,
+        )
+
+        has_protocol_guidance = False
+        if result:
+            if getattr(result, "urgency", None) == "EMERGENCY" and policy_contract.profile == ResponseProfile.EMERGENCY_ACTION:
+                has_protocol_guidance = True
+            elif hasattr(result, "trace") and result.trace:
+                details = getattr(result.trace, "details", {})
+                sg = details.get("symptom_guidance") if isinstance(details, dict) else None
+                if sg and sg != "back_pain":
+                    is_back_radicular = any(
+                        term in episode_text.lower()
+                        for term in ("đau lưng", "dau lung", "thắt lưng", "that lung", "mông", "mong", "lan xuống", "lan xuong")
+                    )
+                    if not (sg == "lower_limb_pain" and is_back_radicular):
+                        has_protocol_guidance = True
+            elif getattr(result, "guidance_summary", None):
+                norm_q = latest_text.lower()
+                combined_eval = f"{norm_q} {episode_text.lower()}"
+                core_complaint_markers = (
+                    "ngồi máy tính", "ngoi may tinh", "ngồi lâu", "ngoi lau", "đau vai", "dau vai",
+                    "bắp chân", "bap chan", "đau răng", "dau rang", "đau cơ", "dau co",
+                    "vai sau gym", "vai sau tap", "đau lưng", "dau lung", "thắt lưng", "that lung",
+                    "mông", "mong", "lan xuống", "lan xuong", "tự nhiên", "tu nhien",
+                )
+                if not any(m in combined_eval for m in core_complaint_markers):
+                    has_protocol_guidance = True
+
+        clinical_synth = None
+        if not dual_crisis.is_dual_crisis and not has_protocol_guidance:
+            # If not emergency action, attempt LLM synthesis first
+            if policy_contract.profile != ResponseProfile.EMERGENCY_ACTION:
+                try:
+                    clinical_synth = synthesize_clinical_response(
+                        query=latest_text,
+                        conversation_history=[m.model_dump() for m in payload.messages],
+                        context_profile=payload.context.model_dump(),
+                        rule_assessment=result.model_dump(mode="json"),
+                        locale=payload.locale,
+                        contract=policy_contract,
+                    )
+                except Exception:
+                    clinical_synth = None
+
+            # Fallback to rich deterministic clinical synthesis (covers EMERGENCY_ACTION, CLARIFY_FIRST, SELF_CARE)
+            if not clinical_synth:
+                clinical_synth = synthesize_deterministic_clinical_response(
+                    query=latest_text,
+                    conversation_history=[m.model_dump() for m in payload.messages],
+                    context_profile=payload.context.model_dump(),
+                    rule_assessment=result.model_dump(mode="json"),
+                    locale=payload.locale,
+                )
+
+        if clinical_synth:
+            reply_msg = clinical_synth.reply
+            if hasattr(result, "urgency") and clinical_synth.urgency:
+                _rank = {"ROUTINE": 1, "URGENT": 2, "EMERGENCY": 3}
+                if _rank.get(clinical_synth.urgency, 1) > _rank.get(result.urgency, 1):
+                    result.urgency = clinical_synth.urgency
 
         resp = _response(
             payload,
@@ -1398,6 +1630,122 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
             # local model.
             allow_agent=True,
         )
+
+        if clinical_synth:
+            resp.reply = clinical_synth.reply
+            if resp.answer:
+                resp.answer.title = clinical_synth.title
+                if clinical_synth.summary:
+                    resp.answer.summary = clinical_synth.summary
+                resp.answer.is_clarification = clinical_synth.is_clarification
+                if clinical_synth.narrative_blocks:
+                    resp.answer.narrative = [
+                        AnswerNarrativeBlock(
+                            kind=b.get("kind", "paragraph"),
+                            text=b.get("text", ""),
+                            emphasis=b.get("emphasis", []),
+                            source_ids=b.get("source_ids", []),
+                        )
+                        for b in clinical_synth.narrative_blocks
+                    ]
+                if clinical_synth.sources:
+                    resp.answer.researched_sources = [
+                        AgentEvidenceSource(
+                            source_id=s.get("source_id", f"src_{i+1}"),
+                            title=s.get("title", ""),
+                            publisher=s.get("publisher", ""),
+                            url=s.get("url", ""),
+                            authority_tier=s.get("authority_tier", "government_health"),
+                            supports_claim_ids=s.get("supports_claim_ids", ["c_diag", "c_care"]),
+                        )
+                        for i, s in enumerate(clinical_synth.sources)
+                    ]
+                if clinical_synth.red_flags:
+                    resp.answer.safety_notes = clinical_synth.red_flags
+                if clinical_synth.self_care:
+                    resp.answer.next_steps = clinical_synth.self_care
+                if clinical_synth.clarifying_questions:
+                    resp.answer.questions = [clinical_synth.clarifying_questions[0]]
+            if clinical_synth.suggestions:
+                resp.suggestions = _deduplicate_suggestions([
+                    ChatSuggestion(
+                        label=sug["label"],
+                        prompt=sug.get("prompt", sug["label"]),
+                        intent="triage",
+                    )
+                    for sug in clinical_synth.suggestions
+                ])
+
+        # Phase 3.8: Final Consistency Guard audit and consensus reconciliation
+        from app.services.final_consistency_guard import FinalConsistencyGuard
+        raw_urg = (resp.result.get("urgency") if isinstance(resp.result, dict) else getattr(resp.result, "urgency", result.urgency))
+        raw_emg = (resp.result.get("emergency_flag") if isinstance(resp.result, dict) else getattr(resp.result, "emergency_flag", result.emergency_flag))
+        raw_spec_code = None
+        raw_spec_label = None
+        if isinstance(resp.result, dict) and resp.result.get("recommended_specialty"):
+            spec_obj = resp.result["recommended_specialty"]
+            if isinstance(spec_obj, dict):
+                raw_spec_code = spec_obj.get("code")
+                raw_spec_label = spec_obj.get("label")
+            else:
+                raw_spec_code = getattr(spec_obj, "code", None)
+                raw_spec_label = getattr(spec_obj, "label", None)
+        elif resp.result and hasattr(resp.result, "recommended_specialty") and resp.result.recommended_specialty:
+            raw_spec_code = resp.result.recommended_specialty.code
+            raw_spec_label = resp.result.recommended_specialty.label
+        elif result and result.recommended_specialty:
+            raw_spec_code = result.recommended_specialty.code
+            raw_spec_label = result.recommended_specialty.label
+        elif clinical_synth and clinical_synth.specialty_code:
+            raw_spec_code = clinical_synth.specialty_code
+            raw_spec_label = clinical_synth.specialty_label
+
+        guard_result = FinalConsistencyGuard.audit_and_reconcile(
+            query=latest_text,
+            contract=policy_contract,
+            raw_urgency=raw_urg,
+            raw_emergency_flag=bool(raw_emg),
+            raw_specialty_code=raw_spec_code,
+            raw_specialty_label=raw_spec_label,
+            is_clarification=bool(clinical_synth and clinical_synth.is_clarification),
+            final_answer=resp.reply,
+            title=resp.answer.title if resp.answer else None,
+        )
+
+        # Enforce clinical hysteresis / safety floor after FinalConsistencyGuard
+        if conversation_risk and not is_new_topic and not is_explicit_correction(latest_text):
+            if URGENCY_RANK.get(conversation_risk, 1) > URGENCY_RANK.get(guard_result.reconciled_urgency, 1):
+                guard_result.reconciled_urgency = conversation_risk
+
+        if resp.result:
+            if isinstance(resp.result, dict):
+                resp.result["urgency"] = guard_result.reconciled_urgency
+                resp.result["emergency_flag"] = guard_result.reconciled_emergency_flag
+                resp.result["recommended_specialty"] = {
+                    "code": guard_result.reconciled_specialty_code,
+                    "label": guard_result.reconciled_specialty_label,
+                    "confidence": 0.98,
+                }
+            else:
+                resp.result.urgency = guard_result.reconciled_urgency
+                resp.result.emergency_flag = guard_result.reconciled_emergency_flag
+                from app.models.triage import RecommendedSpecialty
+                resp.result.recommended_specialty = RecommendedSpecialty(
+                    code=guard_result.reconciled_specialty_code,
+                    label=guard_result.reconciled_specialty_label,
+                    confidence=0.98,
+                )
+        if resp.answer:
+            resp.answer.is_clarification = guard_result.reconciled_is_clarification
+            resp.answer.title = guard_result.reconciled_title
+        if "medical_emergency_flag" in resp.extracted:
+            resp.extracted["medical_emergency_flag"] = guard_result.reconciled_emergency_flag
+        if guard_result.reconciled_reply:
+            resp.reply = guard_result.reconciled_reply
+
+        # Guarantee deduplicated quick replies
+        resp.suggestions = _deduplicate_suggestions(resp.suggestions)
+
         if not result.guidance_summary and resp.answer:
             active_learning_store.capture_case(
                 request_id=ctx.request_id,
@@ -1497,6 +1845,170 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
             return _response(payload, ctx, status="needs_information", intent=intent, reply="Hãy gửi ít nhất một chỉ số kèm giá trị, ví dụ SpO2 94%, huyết áp 150/90 hoặc nhiệt độ 38.5°C.", required_fields=["monitoring_metric"])
         result = analyze_monitoring(MonitoringRequest(patient_ref=execution_patient_ref, metrics=points), ctx)
         return _response(payload, ctx, status="answered", intent=intent, reply=f"Đã đọc {len(points)} chỉ số. Mức escalation hiện tại là {result.escalation_level} và xu hướng là {result.trend}.", extracted={"patient_ref": patient_ref, "metrics": [point.model_dump(mode="json") for point in points]}, result=result)
+
+    if intent == "appointment_search":
+        user_texts = [m.content for m in payload.messages if m.role == "user"]
+        combined_text = " ".join(user_texts).lower() if user_texts else latest_text.lower()
+        from app.services.specialty_resolver import SpecialtyResolver
+        spec_code, spec_label, _ = SpecialtyResolver.resolve_specialty(combined_text)
+
+        doctor_directory = {
+            "ORTHOPEDICS": [
+                {
+                    "doctor": "BS. CKII Nguyễn Minh Đức",
+                    "title": "Trưởng khoa Cơ xương khớp & Cột sống",
+                    "room": "Phòng 305 - Tầng 3",
+                    "morning_shift": "07:30 - 11:30 (Còn 3 lượt)",
+                    "afternoon_shift": "13:30 - 16:30 (Còn 6 lượt)",
+                    "hospital": "Phòng khám Đa khoa MedGuard (Cơ sở 1)",
+                },
+                {
+                    "doctor": "ThS. BS Trần Thị Thu Hà",
+                    "title": "Bác sĩ Phục hồi chức năng & Vận động",
+                    "room": "Phòng 308 - Tầng 3",
+                    "morning_shift": "07:30 - 11:30 (Còn 1 lượt)",
+                    "afternoon_shift": "13:30 - 16:30 (Còn 4 lượt)",
+                    "hospital": "Phòng khám Đa khoa MedGuard (Cơ sở 1)",
+                },
+            ],
+            "CARDIOLOGY": [
+                {
+                    "doctor": "BS. CKII Trần Quốc Huy",
+                    "title": "Chuyên gia Nội Tim mạch & Can thiệp mạch vành",
+                    "room": "Phòng 204 - Tầng 2",
+                    "morning_shift": "07:30 - 11:30 (Còn 2 lượt)",
+                    "afternoon_shift": "13:30 - 16:30 (Còn 5 lượt)",
+                    "hospital": "Phòng khám Đa khoa MedGuard (Cơ sở 1)",
+                },
+            ],
+            "DENTISTRY": [
+                {
+                    "doctor": "BS. CKI Lê Hoàng Minh",
+                    "title": "Bác sĩ Răng Hàm Mặt - Nha khoa Kỹ thuật cao",
+                    "room": "Phòng 102 - Tầng 1",
+                    "morning_shift": "08:00 - 11:30 (Còn 4 lượt)",
+                    "afternoon_shift": "13:30 - 17:00 (Còn 5 lượt)",
+                    "hospital": "Phòng khám Đa khoa MedGuard (Cơ sở 1)",
+                },
+            ],
+            "NEUROLOGY": [
+                {
+                    "doctor": "TS. BS Phạm Hải Nam",
+                    "title": "Chuyên gia Nội Thần kinh & Cột sống",
+                    "room": "Phòng 210 - Tầng 2",
+                    "morning_shift": "07:30 - 11:30 (Còn 2 lượt)",
+                    "afternoon_shift": "13:30 - 16:30 (Còn 3 lượt)",
+                    "hospital": "Phòng khám Đa khoa MedGuard (Cơ sở 1)",
+                },
+            ],
+            "GASTROENTEROLOGY": [
+                {
+                    "doctor": "BS. CKI Nguyễn Văn Hoàng",
+                    "title": "Bác sĩ Nội Tiêu hóa & Gan mật",
+                    "room": "Phòng 208 - Tầng 2",
+                    "morning_shift": "07:30 - 11:30 (Còn 4 lượt)",
+                    "afternoon_shift": "13:30 - 16:30 (Còn 5 lượt)",
+                    "hospital": "Phòng khám Đa khoa MedGuard (Cơ sở 1)",
+                },
+            ],
+        }
+
+        # Check active triage severity in conversation to adapt booking flow
+        is_emergency_state = ledger.has_active_emergency() or bool(_check_red_flag_patterns(latest_concept_norm))
+        if not is_emergency_state:
+            for m in reversed(payload.messages):
+                if m.role == "user" and _check_red_flag_patterns(normalize_clinical_concepts(normalize_search_text(m.content))):
+                    is_emergency_state = True
+                    break
+
+        is_urgent_state = False
+        if not is_emergency_state:
+            for m in reversed(payload.messages):
+                if m.role == "user":
+                    norm_m = normalize_search_text(m.content)
+                    if any(k in norm_m for k in ("yeu chan", "chan hoi yeu", "kho nhac chan", "te va dau", "dau doc xuong chan", "co lan", "lan xuong chan")):
+                        is_urgent_state = True
+                        break
+
+        if is_emergency_state:
+            reply = (
+                "⚠️ **CẢNH BÁO CẤP CỨU Y TẾ:**\n\n"
+                "Dựa trên các dấu hiệu nguy hiểm được ghi nhận trong phiên tư vấn, tình trạng của bạn "
+                "**cần được can thiệp y tế khẩn cấp, không phù hợp để đặt lịch khám phòng khám thông thường** "
+                "vì sẽ làm chậm trễ thời gian vàng điều trị.\n\n"
+                "• **Gọi Cấp cứu 115 ngay lập tức** hoặc nhờ người thân đưa thẳng tới khoa Cấp cứu của bệnh viện gần nhất.\n"
+                "• Tuyệt đối không tự điều khiển phương tiện hoặc ở nhà chờ đợi lịch hẹn bác sĩ.\n"
+                "• Nếu đang ở nhà một mình, mở cửa sẵn và gọi điện báo cho người thân hoặc hàng xóm gần nhất."
+            )
+            patient_suggestions = [
+                ChatSuggestion(label="Gọi Cấp cứu 115 ngay", prompt="Tôi cần hướng dẫn cấp cứu 115 khẩn cấp", intent="triage"),
+                ChatSuggestion(label="Cơ sở cấp cứu gần nhất", prompt="Tìm bệnh viện có khoa cấp cứu gần vị trí của tôi nhất", intent="appointment_search"),
+            ]
+            result_payload = {
+                "specialty_code": "EMERGENCY",
+                "specialty_label": "Cấp cứu",
+                "emergency_override": True,
+                "urgency": "EMERGENCY",
+                "doctors": [],
+                "slots_available": False,
+                "is_demo": True,
+            }
+        else:
+            doctors = doctor_directory.get(spec_code) or doctor_directory["ORTHOPEDICS"]
+            doc_lines = []
+            for d in doctors:
+                doc_lines.append(
+                    f"• **{d['doctor']}** `[DỮ LIỆU DEMO / MÔ PHỎNG]` – {d['title']}\n"
+                    f"  - Địa điểm: {d['room']} ({d['hospital']})\n"
+                    f"  - Ca sáng: {d['morning_shift']}\n"
+                    f"  - Ca chiều: {d['afternoon_shift']}"
+                )
+            doctors_formatted = "\n\n".join(doc_lines)
+
+            priority_notice = ""
+            if is_urgent_state:
+                priority_notice = (
+                    "*(Lưu ý: Do triệu chứng của bạn cần được đánh giá y tế sớm/trong ngày, "
+                    "hệ thống ưu tiên hiển thị các khung giờ khám sớm nhất hôm nay. Vui lòng chọn ca khám sớm để bác sĩ đánh giá kịp thời.)*\n\n"
+                )
+
+            reply = (
+                f"Dưới đây là lịch ca khám và danh sách bác sĩ trực hôm nay chuyên khoa **{spec_label}** `[DỮ LIỆU DEMO / MÔ PHỎNG]`:\n\n"
+                f"{priority_notice}"
+                f"{doctors_formatted}\n\n"
+                "**Hướng dẫn tiếp nhận:**\n"
+                "• Bạn có thể chọn trước khung giờ buổi sáng hoặc chiều bên dưới để hệ thống giữ lượt tiếp nhận ưu tiên.\n"
+                "• Khi đến khám, vui lòng có mặt trước 15 phút tại Quầy đón tiếp để hoàn tất đo dấu hiệu sinh tồn ban đầu.\n\n"
+                "*(Lưu ý: Danh sách bác sĩ và ca trực trên là dữ liệu mô phỏng / demo phục vụ mục đích kiểm thử hệ thống)*"
+            )
+
+            patient_suggestions = [
+                ChatSuggestion(label=f"Xem bác sĩ {spec_label} hôm nay", prompt=f"Xem thông tin chi tiết bác sĩ {spec_label} hôm nay", intent="appointment_search"),
+                ChatSuggestion(label="Khung giờ buổi sáng", prompt="Tôi muốn đăng ký ca khám buổi sáng", intent="appointment_search"),
+                ChatSuggestion(label="Khung giờ buổi chiều", prompt="Tôi muốn đăng ký ca khám buổi chiều", intent="appointment_search"),
+                ChatSuggestion(label="Khám gần tôi", prompt="Tìm cơ sở khám gần vị trí của tôi nhất", intent="appointment_search"),
+            ]
+
+            result_payload = {
+                "specialty_code": spec_code,
+                "specialty_label": spec_label,
+                "urgency": "URGENT" if is_urgent_state else "ROUTINE",
+                "doctors": doctors,
+                "slots_available": True,
+                "is_demo": True,
+            }
+
+        resp = _response(
+            payload,
+            ctx,
+            status="answered",
+            intent=intent,
+            reply=reply,
+            extracted={"patient_ref": patient_ref, "specialty_code": spec_code},
+            result=result_payload,
+        )
+        resp.suggestions = patient_suggestions
+        return resp
 
     if intent == "followup":
         result = plan_follow_up(FollowUpRequest(patient_ref=execution_patient_ref, diagnosis_text=latest_text, conditions=payload.context.conditions, current_medications=payload.context.current_medications), ctx)

@@ -115,7 +115,7 @@ def policy_for_intent(intent: ChatIntent) -> AgentRequestPolicy:
             single_flight=False,
             cache_ttl_seconds=0,
         )
-    if intent in {"followup", "pharmacy"}:
+    if intent in {"followup", "pharmacy", "appointment_search"}:
         return AgentRequestPolicy(
             risk_class=RiskClass.PERSONALIZED,
             cache_policy=CachePolicy.NO_STORE,

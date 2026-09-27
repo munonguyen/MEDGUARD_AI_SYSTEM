@@ -162,7 +162,12 @@ def _check_vital_signs(vitals: VitalSigns | None) -> list[tuple[str, str, str, i
 
 
 def _route_specialty(text: str) -> tuple[str, str, float] | None:
-    """Route to specialty based on keyword matching from knowledge base."""
+    """Route to specialty based on organ-system resolver and knowledge base."""
+    from app.services.specialty_resolver import SpecialtyResolver
+    spec_code, spec_label, conf = SpecialtyResolver.resolve_specialty(text)
+    if spec_code != "GENERAL":
+        return (spec_code, spec_label, conf)
+
     best: tuple[str, str, float] | None = None
     best_count = 0
     for route in knowledge.specialty_routing:
@@ -175,7 +180,7 @@ def _route_specialty(text: str) -> tuple[str, str, float] | None:
             best_count = matches
             spec = route["specialty"]
             best = (spec["code"], spec["label"], route["confidence"])
-    return best
+    return best or (spec_code, spec_label, conf)
 
 
 def triage_rules(symptoms_text: str, vitals: VitalSigns | None = None) -> TriageRuleResult:
@@ -667,6 +672,18 @@ def triage_rules(symptoms_text: str, vitals: VitalSigns | None = None) -> Triage
     _lat_res = evaluate_abstraction_lattice(_lat_g)
     if _lat_res.has_benign_override and not _lat_res.has_emergency_threat:
         dom = _lat_res.dominant_threat
+        if dom and dom.archetype == AbstractThreatArchetype.LUMBAR_RADICULAR_MOTOR_INVOLVEMENT:
+            return TriageRuleResult(
+                urgency="URGENT",
+                emergency_flag=False,
+                red_flags=["Yếu chân mới xuất hiện trong bối cảnh đau thắt lưng lan chân và tê bì"],
+                esi_level=3,
+                recommended_specialty=("ORTHOPEDICS", "Cơ xương khớp"),
+                clarifying_questions=[
+                    "Bạn có bị bí tiểu, tiểu không tự chủ, tê vùng giữa hai chân hoặc yếu cả hai chân không?",
+                ],
+                advice=dom.clinical_rationale,
+            )
         if dom and dom.is_benign_exclusion:
             spec_map = {
                 AbstractThreatArchetype.BENIGN_MUSCULOSKELETAL_CHEST: ("GENERAL", "Cơ xương khớp"),
@@ -791,6 +808,28 @@ def triage_rules(symptoms_text: str, vitals: VitalSigns | None = None) -> Triage
             recommended_specialty=spec,
             clarifying_questions=[],
             advice=f"{singleton_eval.rationale} Cần liên hệ cấp cứu 115 hoặc đến bệnh viện gần nhất ngay lập tức.",
+        )
+
+    if singleton_eval.concept in ("lumbar_radicular_motor_involvement", "lumbar_radiculopathy"):
+        advice = (
+            "Triệu chứng mới xuất hiện yếu chân kèm đau lưng lan xuống chân và tê cần được đánh giá y tế sớm để kiểm tra mức độ chèn ép rễ thần kinh. "
+            "Nếu xuất hiện yếu chân tăng nhanh, tê vùng yên ngựa hoặc rối loạn tiểu tiện/đại tiện, hãy đến khoa Cấp cứu ngay."
+            if singleton_eval.concept == "lumbar_radicular_motor_involvement"
+            else "Triệu chứng đau thắt lưng lan xuống mông hoặc chân nghi ngờ kích thích rễ thần kinh cần được đánh giá y tế sớm tại chuyên khoa Cơ xương khớp. Nếu xuất hiện yếu chân tăng nhanh, tê vùng yên ngựa hoặc rối loạn tiểu tiện/đại tiện, hãy đến khoa Cấp cứu ngay."
+        )
+        return TriageRuleResult(
+            urgency="URGENT",
+            emergency_flag=False,
+            red_flags=[
+                "Đau thắt lưng lan xuống mông/chân nghi ngờ kích thích hoặc chèn ép rễ thần kinh",
+                "Cần kiểm tra loại trừ chèn ép chùm đuôi ngựa nếu có bí tiểu, tiểu tiện mất kiểm soát hoặc tê vùng yên ngựa",
+            ],
+            esi_level=3,
+            recommended_specialty=("ORTHOPEDICS", "Cơ xương khớp"),
+            clarifying_questions=[
+                "Cơn đau lan xuống một bên hay cả hai bên chân, và bạn có cảm giác tê hay yếu chân không?",
+            ],
+            advice=advice,
         )
 
     from app.services.semantic_relation_extractor import extract_semantic_relations

@@ -191,6 +191,7 @@ class TestInDomainPassThrough:
         ("SpO2 88%, sốt 39.5 độ.", "Critical vitals"),
         ("Tôi bị trầm cảm và mất ngủ 2 tuần nay.", "Depression — clinical, NOT crisis"),
         ("Tôi bị rối loạn lo âu, có nên gặp bác sĩ tâm thần?", "Anxiety disorder — clinical"),
+        ("Tôi chỉ bị tê và đau dọc xuống chân chứ lực chân vẫn bình thường.", "Radiating leg pain: dau doc is NOT dau doc/poisoning"),
     ])
     def test_does_not_block_clinical_queries(self, text: str, description: str):
         result = evaluate(text)
@@ -242,3 +243,53 @@ class TestOODIntegrationViaChatEndpoint:
         assert body["intent"] == "triage"
         assert body["status"] == "answered"
         assert body["result"]["urgency"] == "EMERGENCY"
+
+    def test_radiating_leg_pain_not_blocked_by_toxic_substance_policy(self):
+        """Regression test: 'Tôi chỉ bị tê và đau dọc xuống chân chứ lực chân vẫn bình thường.'
+
+        Must NEVER trigger harmful substance refusal ('chất cấm', 'chất độc').
+        Must preserve clinical context and route to ORTHOPEDICS triage with preserved motor strength acknowledgment.
+        """
+        # 1. Direct guard evaluation
+        guard_result = evaluate("Tôi chỉ bị tê và đau dọc xuống chân chứ lực chân vẫn bình thường.")
+        assert guard_result is None
+
+        # 2. Multi-turn conversation via chat endpoint
+        conv_id = "radiculopathy-regression-conv"
+        # Turn 1: user reports sitting back pain
+        r1 = client.post(
+            "/v1/chat",
+            headers=headers("radic-turn-1"),
+            json={
+                "conversation_id": conv_id,
+                "messages": [
+                    {"role": "user", "content": "Tôi bị đau lưng do ngồi làm việc nhiều cả ngày."}
+                ],
+            }
+        )
+        assert r1.status_code == 200
+
+        # Turn 2: user responds with radiating pain and normal motor strength
+        r2 = client.post(
+            "/v1/chat",
+            headers=headers("radic-turn-2"),
+            json={
+                "conversation_id": conv_id,
+                "messages": [
+                    {"role": "user", "content": "Tôi bị đau lưng do ngồi làm việc nhiều cả ngày."},
+                    {"role": "assistant", "content": r1.json()["reply"]},
+                    {"role": "user", "content": "Tôi chỉ bị tê và đau dọc xuống chân chứ lực chân vẫn bình thường."},
+                ],
+            }
+        )
+        assert r2.status_code == 200
+        body = r2.json()
+        assert body["intent"] == "triage"
+        reply = body["reply"]
+        assert "chất cấm" not in reply
+        assert "chất độc" not in reply
+        assert "nội dung có thể gây hại" not in reply
+        assert "lực chân vẫn bình thường" in reply or "yếu vận động" in reply
+        assert body["result"]["recommended_specialty"]["label"] == "Cơ xương khớp"
+        assert body["result"]["urgency"] == "URGENT"
+

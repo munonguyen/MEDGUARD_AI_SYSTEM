@@ -943,6 +943,129 @@ body { overflow: hidden; background: var(--canvas); color: var(--text); }
   border-color: #0d9488;
 }
 
+/* Researched Medical Sources Card & Jury Audit Tag */
+.researched-sources-card {
+  margin-top: 18px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+}
+
+.sources-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f766e;
+}
+
+.sources-header .sources-icon {
+  color: #0d9488;
+  flex-shrink: 0;
+}
+
+.sources-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.source-item-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.source-item-link:hover {
+  border-color: #14b8a6;
+  background: #f0fdfa;
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.08);
+}
+
+.source-badge {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #047857;
+  font-size: 10.5px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.source-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.source-publisher {
+  font-size: 11px;
+  font-weight: 700;
+  color: #0d9488;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.source-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1e293b;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.source-item-link:hover .source-title {
+  color: #0f766e;
+}
+
+.source-item-link .ext-icon {
+  color: #94a3b8;
+  flex-shrink: 0;
+  transition: color 150ms ease, transform 150ms ease;
+}
+
+.source-item-link:hover .ext-icon {
+  color: #0d9488;
+  transform: translate(1px, -1px);
+}
+
+.jury-audit-tag {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 11px;
+  padding: 6px 11px;
+  background: #f0fdf4;
+  border: 1px dashed #86efac;
+  border-radius: 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #166534;
+}
+
+.jury-audit-tag svg {
+  color: #16a34a;
+  flex-shrink: 0;
+}
+
 .answer-heading {
   display: flex;
   align-items: flex-start;
@@ -1749,18 +1872,21 @@ body { overflow: hidden; background: var(--canvas); color: var(--text); }
 }
 .clinical-header-pill-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
+  gap: 10px;
+  margin-bottom: 8px;
 }
 .triage-status-pill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 11px;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  font-size: 11.5px;
+  font-weight: 600;
   letter-spacing: 0.02em;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 .triage-status-pill.emergency-pill {
   background: #fef2f2;
@@ -1776,6 +1902,35 @@ body { overflow: hidden; background: var(--canvas); color: var(--text); }
   background: #f0fdf4;
   color: #15803d;
   border: 1px solid #bbf7d0;
+}
+.triage-status-pill.clarification-pill {
+  background: #f0f9ff;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+.specialty-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  background: #f1f5f9;
+  color: #1e293b;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+.demo-data-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px dashed #f59e0b;
 }
 .pulse-dot-red {
   width: 7px;
@@ -1852,10 +2007,61 @@ body { overflow: hidden; background: var(--canvas); color: var(--text); }
   font-weight: 500;
   transition: all 0.16s ease;
 }
-.action-chip-btn:hover {
-  background: #e0f2fe;
-  border-color: #7dd3fc;
-  box-shadow: 0 2px 6px rgba(3, 105, 161, 0.14);
+.triage-status-pill.clarification-pill {
+  background: #f0fdfa;
+  color: #0f766e;
+  border: 1px solid #99f6e4;
+}
+
+/* Assistant Interactive Quick Reply Chips */
+.assistant-suggestions-bar {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed #cbd5e1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.suggestions-lead {
+  font-size: 11px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.suggestion-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.suggestion-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  border: 1px solid #99f6e4;
+  background: #f0fdfa;
+  color: #0f766e;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(13, 148, 136, 0.08);
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.suggestion-chip-btn:hover {
+  background: #ccfbf1;
+  border-color: #2dd4bf;
+  color: #042f2e;
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.18);
+}
+.suggestion-chip-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(13, 148, 136, 0.08);
 }
 
 /* ==========================================================================

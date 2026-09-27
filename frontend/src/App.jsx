@@ -170,7 +170,7 @@ function Welcome({ onPrompt }) {
   </div>;
 }
 
-function Conversation({ entries, busy, onNotify }) {
+function Conversation({ entries, busy, onNotify, onSelectSuggestion }) {
   const streamRef = useRef(null);
   const latestRef = useRef(null);
   const [copied, setCopied] = useState(null);
@@ -349,6 +349,23 @@ function Conversation({ entries, busy, onNotify }) {
                 <GroundedAnswer answer={entry.answer} result={entry.result} responseMeta={entry} />
               ) : (
                 <p>{entry.text}</p>
+              )}
+              {entry.suggestions?.length > 0 && index === entries.length - 1 && (
+                <div className="assistant-suggestions-bar">
+                  <span className="suggestions-lead">Gợi ý phản hồi nhanh:</span>
+                  <div className="suggestion-chips-row">
+                    {entry.suggestions.map((sug, sIdx) => (
+                      <button
+                        key={`${sug.label}-${sIdx}`}
+                        type="button"
+                        className="suggestion-chip-btn"
+                        onClick={() => onSelectSuggestion ? onSelectSuggestion(sug.prompt || sug.label) : null}
+                      >
+                        {sug.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               )}
               {entry.status === 'needs_information' && !entry.answer && (
                 <span className="answer-state needs_information">Cần thêm thông tin</span>
@@ -872,6 +889,7 @@ export default function App() {
                 entries={entries}
                 busy={busy}
                 onNotify={notify}
+                onSelectSuggestion={(prompt) => sendText(prompt)}
               />
             ) : (
               <Welcome onPrompt={(text) => { setMessage(text); requestAnimationFrame(() => document.querySelector('[aria-label="Tin nhắn"]')?.focus()); }} />

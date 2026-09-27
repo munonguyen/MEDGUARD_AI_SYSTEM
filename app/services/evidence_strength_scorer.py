@@ -114,6 +114,15 @@ _STRONG_SINGLETON_PATTERNS: list[dict[str, Any]] = [
         ],
         "rationale": "Ngất khi gắng sức có nguy cơ loạn nhịp thất ác tính hoặc hẹp van động mạch chủ nặng.",
     },
+    {
+        "concept": "lumbar_radiculopathy",
+        "patterns": [
+            r"\b(?:dau (?:that )?lung|that lung|cot song)\b.*?\b(?:lan (?:xuong )?(?:mong|chan|dui|cang chan|ban chan)|kem te|te bi|te chan)\b",
+            r"\b(?:lan (?:xuong )?(?:mong|chan|dui|cang chan|ban chan)|te bi chan)\b.*?\b(?:dau (?:that )?lung|that lung|cot song)\b",
+            r"\b(?:lan xuong mong va chan|lan xuong mong|lan xuong chan|dau doc xuong chan)\b",
+        ],
+        "rationale": "Đau thắt lưng lan xuống mông hoặc chân kèm tê bì nghi ngờ kích thích hoặc chèn ép rễ thần kinh thắt lưng cần được đánh giá y tế sớm.",
+    },
 ]
 
 _AMBIGUOUS_SINGLETON_PATTERNS: list[dict[str, Any]] = [
@@ -196,6 +205,21 @@ _BENIGN_CONTEXT_EXCLUSIONS: list[dict[str, Any]] = [
 ]
 
 
+def _is_negated_match(norm_text: str, match_start: int) -> bool:
+    """Check if a symptom match is preceded by explicit negation in the same clause."""
+    preceding = norm_text[max(0, match_start - 45):match_start]
+    clauses = re.split(r"[,.;]|\b(?:nhung|tuy nhien|ma)\b", preceding)
+    clause_before = clauses[-1].strip()
+    negation_patterns = (
+        r"\b(?:khong phai|khong he|khong co|khong bi|chua tung|khong bao gio|nhin nham|loai tru|khong con|het bi|khong he bi|khong phai bi|chua he|chua bi|khong)\b"
+    )
+    if re.search(negation_patterns, clause_before):
+        if re.search(r"\bkhong ro\b", clause_before) and not re.search(r"\b(?:khong phai|khong he|khong co|khong bi|chua|nhin nham|khong)\b(?!\s*ro\b)", clause_before):
+            return False
+        return True
+    return False
+
+
 def score_evidence_strength(text: str, has_supporting_context: bool = False) -> EvidenceStrengthAssessment:
     """Assess whether an isolated finding constitutes a Critical, Strong, Weak, or Ambiguous Singleton."""
     norm = normalize_search_text(text)
@@ -206,6 +230,8 @@ def score_evidence_strength(text: str, has_supporting_context: bool = False) -> 
         for pat in item["patterns"]:
             m = re.search(pat, norm)
             if m:
+                if _is_negated_match(norm, m.start()):
+                    continue
                 # Check if this symptom is explained by a clear benign context
                 is_benign_mimic = False
                 benign_rationale = ""
@@ -230,6 +256,42 @@ def score_evidence_strength(text: str, has_supporting_context: bool = False) -> 
                         evidence_span=m.group(0),
                     )
 
+                # Special disambiguation: Leg weakness in context of back pain / radiculopathy vs Stroke
+                if concept == "acute_focal_limb_weakness":
+                    is_spinal_radicular = bool(re.search(
+                        r"\b(dau lung|that lung|cot song|dau doc|thoat vi|than kinh toa|kho nhac chan|te chan|te bi|kho buoc|ngoi lau|ngoi may tinh|kho nhac|kem te)\b",
+                        norm,
+                    ))
+                    has_stroke_specific = bool(re.search(
+                        r"\b(meo mieng|meo mat|noi ngong|u o|mat ngon ngu|nua nguoi|liet nua nguoi|te nua nguoi|canh tay|rot dua|rot coc)\b",
+                        norm,
+                    ))
+                    if is_spinal_radicular and not has_stroke_specific:
+                        has_cauda_equina = bool(re.search(
+                            r"\b(bi tieu|tieu khong tu chu|dai tien khong tu chu|te yen ngua|te hau mon|yeu ca hai chan|liet ca hai chan|yeu tang nhanh)\b",
+                            norm,
+                        ))
+                        if has_cauda_equina:
+                            return EvidenceStrengthAssessment(
+                                tier=SingletonEvidenceTier.CRITICAL_SINGLETON,
+                                concept="acute_cauda_equina_syndrome",
+                                confidence=0.98,
+                                recommended_floor="EMERGENCY",
+                                requires_targeted_clarification=False,
+                                rationale="Dấu hiệu chèn ép chùm đuôi ngựa hoặc tủy sống cấp tính (yếu chân tiến triển nhanh kèm bí tiểu hoặc rối loạn cơ tròn).",
+                                evidence_span=m.group(0),
+                            )
+                        else:
+                            return EvidenceStrengthAssessment(
+                                tier=SingletonEvidenceTier.STRONG_SINGLETON,
+                                concept="lumbar_radicular_motor_involvement",
+                                confidence=0.95,
+                                recommended_floor="URGENT",
+                                requires_targeted_clarification=False,
+                                rationale="Triệu chứng yếu chân hoặc khó nhấc chân mới xuất hiện trong bối cảnh đau thắt lưng lan chân và tê bì nghi ngờ tổn thương rễ thần kinh thắt lưng cần được đánh giá y tế trong ngày.",
+                                evidence_span=m.group(0),
+                            )
+
                 return EvidenceStrengthAssessment(
                     tier=SingletonEvidenceTier.CRITICAL_SINGLETON,
                     concept=item["concept"],
@@ -245,6 +307,8 @@ def score_evidence_strength(text: str, has_supporting_context: bool = False) -> 
         for pat in item["patterns"]:
             m = re.search(pat, norm)
             if m:
+                if _is_negated_match(norm, m.start()):
+                    continue
                 floor = "EMERGENCY" if has_supporting_context else "URGENT"
                 return EvidenceStrengthAssessment(
                     tier=SingletonEvidenceTier.STRONG_SINGLETON,
@@ -261,6 +325,8 @@ def score_evidence_strength(text: str, has_supporting_context: bool = False) -> 
         for pat in item["patterns"]:
             m = re.search(pat, norm)
             if m:
+                if _is_negated_match(norm, m.start()):
+                    continue
                 return EvidenceStrengthAssessment(
                     tier=SingletonEvidenceTier.AMBIGUOUS_SINGLETON,
                     concept=item["concept"],
@@ -276,6 +342,8 @@ def score_evidence_strength(text: str, has_supporting_context: bool = False) -> 
         for pat in item["patterns"]:
             m = re.search(pat, norm)
             if m:
+                if _is_negated_match(norm, m.start()):
+                    continue
                 return EvidenceStrengthAssessment(
                     tier=SingletonEvidenceTier.WEAK_SINGLETON,
                     concept=item["concept"],

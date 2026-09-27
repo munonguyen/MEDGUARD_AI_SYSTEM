@@ -26,16 +26,26 @@ Design principles
 
 from __future__ import annotations
 
+import logging
 import re
 from dataclasses import dataclass
+from enum import Enum
 from typing import Literal
 
 from app.services.clinical_text import normalize_search_text
 
+logger = logging.getLogger(__name__)
+
 
 # =====================================================================
-# Result Types
+# Result Types & Policy Dispositions
 # =====================================================================
+
+class SafetyDisposition(str, Enum):
+    ALLOW = "allow"
+    REVIEW = "review"
+    BLOCK = "block"
+
 
 OODVerdict = Literal[
     "crisis_self_harm",
@@ -49,11 +59,18 @@ OODVerdict = Literal[
 
 @dataclass(frozen=True)
 class OODResult:
-    """Returned when a query is blocked by the guard layer."""
+    """Returned when a query is processed by the platform guard layer."""
 
     verdict: OODVerdict
     reply: str
     hotline: str | None = None
+    disposition: SafetyDisposition = SafetyDisposition.BLOCK
+    policy_category: str = "none"
+    matched_rule: str | None = None
+    matched_keyword: str | None = None
+    block_reason: str | None = None
+    classifier_raw_output: str | None = None
+    classifier_parse_status: str = "ok"
 
 
 # =====================================================================
@@ -91,7 +108,10 @@ _CRISIS_TOXIC_SUBSTANCE_PATTERNS: list[re.Pattern[str]] = [
         r"tong\s+hop\s+(?:methamphetamine|meth|heroin|fentanyl|ma\s+tuy|cocaine)",
         r"(?:pha\s+che|dieu\s+che|che\s+tao).*(?:doc\s+to|chat\s+doc|thuoc\s+chuot|thuoc\s+doc)",
         r"(?:pha|tao).*thuoc\s+chuot.*(?:lieu\s+manh|manh)",
-        r"dau\s+doc",
+        r"(?:cach\s+)?(?:dau\s+doc|dầu\s+độc)\s+(?:nguoi|ai\s+do|ai|nhau|dong\s+loai)",
+        r"(?:am\s+sat|giet\s+nguoi|muon|toan|y\s+dinh)\s+.*(?:dau\s+doc|dầu\s+độc)",
+        r"(?:thuoc|chat)\s+(?:dau\s+doc|dầu\s+độc)",
+        r"de\s+(?:dau\s+doc|dầu\s+độc)",
         r"cach\s+(?:lam|tao|pha|che).*(?:bom|vu\s+khi|chat\s+no)",
     )
 ]
@@ -148,36 +168,127 @@ _EMERGENCY_OVERRIDE_KEYWORDS: tuple[str, ...] = (
 )
 
 
+def is_genuine_symptom_report(raw_text: str, normalized: str) -> bool:
+    """MedicalContextBypass: Detect if query is an ordinary medical symptom report.
+
+    Ordinary clinical symptom descriptions must NEVER be intercepted by platform
+    safety regexes designed for weapon/drug/poison synthesis requests.
+    """
+    raw_lower = raw_text.lower()
+
+    # 1. Malicious instruction markers that must NEVER be bypassed
+    if "đầu độc" in raw_lower:
+        return False
+    harmful_intent_markers = (
+        "che tao bom", "lam bom", "tong hop ma tuy", "tong hop meth",
+        "chiet xuat ricin", "chiet xuat doc", "chiet xuat nicotine",
+        "chiet xuat cyanide", "pha thuoc chuot", "dieu che thuoc doc",
+        "tu tu bang cach", "cach tu tu", "cat mach mau de chet",
+        "uong bao nhieu vien de chet", "giet nguoi bang", "dau doc ai",
+        "dau doc nguoi", "thuoc dau doc", "de dau doc",
+    )
+    if any(m in normalized for m in harmful_intent_markers):
+        return False
+
+    # 2. Check for radiating pain phrases explicitly (e.g. "đau dọc xuống chân")
+    if (
+        "đau dọc" in raw_lower
+        or "dau doc xuong" in normalized
+        or "dau doc theo" in normalized
+        or "dau doc song" in normalized
+        or "dau doc chan" in normalized
+        or "dau doc tay" in normalized
+        or "dau doc cot" in normalized
+    ):
+        return True
+
+    # 3. Check for personal clinical symptoms or physiological sensations
+    clinical_symptom_markers = (
+        "te", "te bi", "dau", "dau buot", "dau nhuc", "luc chan",
+        "yeu chan", "moi lung", "dau lung", "that lung", "cot song", "chan",
+        "tay", "co bap", "khop", "kho tho", "sot", "ho", "tuc nguc", "hoa mat",
+        "chong mat", "buon non", "da day", "viem", "bong gan", "trat khop",
+        "binh thuong", "kho chiu", "kho di", "di lai", "di dung", "co cung",
+        "chay mau", "sung", "buot", "moi", "ngua", "di ung",
+    )
+    return any(
+        re.search(rf"(?<![a-z0-9]){re.escape(k)}(?![a-z0-9])", normalized)
+        for k in clinical_symptom_markers
+    )
+
+
 def _check_crisis(normalized: str, raw_text: str = "") -> OODResult | None:
     """Check for crisis/harm signals — highest priority."""
+    # 1. Raw explicit self-harm (suicide verbs in raw accented Vietnamese)
     if raw_text and _RAW_CRISIS_PATTERN.search(raw_text):
+        match = _RAW_CRISIS_PATTERN.search(raw_text)
         return OODResult(
             verdict="crisis_self_harm",
             reply=_CRISIS_HOTLINE_RESPONSE,
             hotline="096 306 1414 | 115 | 111",
+            disposition=SafetyDisposition.BLOCK,
+            policy_category="self_harm",
+            matched_rule="raw_crisis_pattern",
+            matched_keyword=match.group(0) if match else None,
+            block_reason="explicit_self_harm_intent",
+            classifier_raw_output=f"raw_match: {match.group(0) if match else None}",
+            classifier_parse_status="ok",
         )
+
+    # 2. Normalized self-harm patterns
     for pattern in _CRISIS_SELF_HARM_PATTERNS:
-        if pattern.search(normalized):
+        match = pattern.search(normalized)
+        if match:
             return OODResult(
                 verdict="crisis_self_harm",
                 reply=_CRISIS_HOTLINE_RESPONSE,
                 hotline="096 306 1414 | 115 | 111",
+                disposition=SafetyDisposition.BLOCK,
+                policy_category="self_harm",
+                matched_rule="normalized_self_harm_pattern",
+                matched_keyword=match.group(0),
+                block_reason="self_harm_or_suicide_pattern",
+                classifier_raw_output=f"pattern: {pattern.pattern}",
+                classifier_parse_status="ok",
             )
-    # Prompt injection: if genuine emergency keywords co-exist,
+
+    # 3. Prompt injection: if genuine emergency keywords co-exist,
     # defer to clinical pipeline (life-threatening takes priority).
     for pattern in _CRISIS_PROMPT_INJECTION_PATTERNS:
-        if pattern.search(normalized):
+        match = pattern.search(normalized)
+        if match:
             if any(kw in normalized for kw in _EMERGENCY_OVERRIDE_KEYWORDS):
                 return None  # let clinical pipeline handle the emergency
             return OODResult(
                 verdict="crisis_prompt_injection",
                 reply=_INJECTION_BLOCK_RESPONSE,
+                disposition=SafetyDisposition.BLOCK,
+                policy_category="prompt_injection",
+                matched_rule="prompt_injection_pattern",
+                matched_keyword=match.group(0),
+                block_reason="jailbreak_or_override_attempt",
+                classifier_raw_output=f"pattern: {pattern.pattern}",
+                classifier_parse_status="ok",
             )
+
+    # 4. Medical Context Bypass: ordinary clinical symptom reports NEVER trigger toxic substance blocking
+    if is_genuine_symptom_report(raw_text, normalized):
+        return None
+
+    # 5. Toxic substance / poison / chemical weapon manufacture
     for pattern in _CRISIS_TOXIC_SUBSTANCE_PATTERNS:
-        if pattern.search(normalized):
+        match = pattern.search(normalized)
+        if match:
             return OODResult(
                 verdict="crisis_toxic_substance",
                 reply=_CRISIS_BLOCK_RESPONSE,
+                disposition=SafetyDisposition.BLOCK,
+                policy_category="harmful_substances",
+                matched_rule="toxic_substance_pattern",
+                matched_keyword=match.group(0),
+                block_reason="chemical_or_biological_harm_synthesis",
+                classifier_raw_output=f"pattern: {pattern.pattern}",
+                classifier_parse_status="ok",
             )
     return None
 
@@ -217,6 +328,13 @@ def _check_veterinary(normalized: str) -> OODResult | None:
             return OODResult(
                 verdict="ood_veterinary",
                 reply=_VETERINARY_RESPONSE,
+                disposition=SafetyDisposition.BLOCK,
+                policy_category="veterinary_redirect",
+                matched_rule="veterinary_marker",
+                matched_keyword=marker,
+                block_reason="animal_care_redirect",
+                classifier_raw_output=f"marker: {marker}",
+                classifier_parse_status="ok",
             )
     return None
 
@@ -263,11 +381,18 @@ def _check_metaphor(normalized: str) -> OODResult | None:
     """Detect figurative medical vocabulary in non-medical context."""
     for pattern, context_clues in _METAPHOR_RULES:
         if pattern.search(normalized):
-            # At least one non-medical context clue must be present
-            if any(clue in normalized for clue in context_clues):
+            matched_clue = next((clue for clue in context_clues if clue in normalized), None)
+            if matched_clue:
                 return OODResult(
                     verdict="ood_metaphor",
                     reply=_METAPHOR_RESPONSE,
+                    disposition=SafetyDisposition.BLOCK,
+                    policy_category="metaphor_disambiguation",
+                    matched_rule="metaphor_rule",
+                    matched_keyword=f"{pattern.pattern} + {matched_clue}",
+                    block_reason="figurative_medical_term",
+                    classifier_raw_output=f"pattern: {pattern.pattern}, clue: {matched_clue}",
+                    classifier_parse_status="ok",
                 )
     return None
 
@@ -356,6 +481,7 @@ _MEDICAL_OVERRIDE_LONG: tuple[str, ...] = (
     "nga quy", "nga lan", "liet", "u o", "khong noi duoc", "khong nhac len",
     "yeu tay", "meo mieng", "bat dong", "bat tinh", "hon me", "me man",
     "cang co", "cang cung", "co bap", "co dui", "gian co", "chuot rut",
+    "bap chan", "cang bap chan", "dau bap chan", "dau chan", "moi co", "moi chan", "moi bap chan",
     "chan thuong", "so cuu", "phan mem", "bong gan", "trat khop",
     "gay xuong", "rach co", "rice", "cho can", "vat can", "meo cao", "rach nat", "vet can", "tiem phong dai",
     "viem da day", "da day", "thuong vi", "men gan", "dinh ky", "xet nghiem", "an uong lanh manh",
@@ -434,12 +560,21 @@ def _check_ood_topic(normalized: str) -> OODResult | None:
     if _has_medical_context(normalized):
         return None
 
-    for _topic, patterns in _OOD_TOPIC_PATTERNS.items():
-        if any(p.search(normalized) for p in patterns):
-            return OODResult(
-                verdict="ood_off_topic",
-                reply=_OOD_RESPONSE,
-            )
+    for topic, patterns in _OOD_TOPIC_PATTERNS.items():
+        for p in patterns:
+            match = p.search(normalized)
+            if match:
+                return OODResult(
+                    verdict="ood_off_topic",
+                    reply=_OOD_RESPONSE,
+                    disposition=SafetyDisposition.BLOCK,
+                    policy_category=f"off_topic_{topic}",
+                    matched_rule="ood_topic_pattern",
+                    matched_keyword=match.group(0),
+                    block_reason=f"out_of_domain_{topic}",
+                    classifier_raw_output=f"topic: {topic}, match: {match.group(0)}",
+                    classifier_parse_status="ok",
+                )
     return None
 
 
@@ -448,15 +583,15 @@ def _check_ood_topic(normalized: str) -> OODResult | None:
 # =====================================================================
 
 def evaluate(text: str) -> OODResult | None:
-    """Run the full guard pipeline on user input text.
+    """Run the platform safety and domain guardrail pipeline on user input text.
 
-    Returns ``None`` when the text is in-domain (clinical / pharma).
-    Otherwise returns an ``OODResult`` with verdict and response.
+    Returns ``None`` when the text is in-domain (clinical / pharma / symptoms).
+    Otherwise returns an ``OODResult`` with verdict, response, and governance metadata.
 
     Priority order:
         1. Crisis / Self-harm  → block + hotline
         2. Prompt injection    → block
-        3. Toxic substance     → block
+        3. Toxic substance     → block (bypassed if genuine medical symptom report)
         4. Veterinary          → redirect
         5. Metaphor            → polite decline
         6. Off-topic           → polite decline
@@ -466,21 +601,48 @@ def evaluate(text: str) -> OODResult | None:
     # --- Tier 1: Crisis (highest priority) ---
     crisis = _check_crisis(normalized, raw_text=text)
     if crisis is not None:
+        logger.warning(
+            "Platform Safety Guard triggered: disposition=%s, category=%s, rule=%s, keyword=%s, reason=%s",
+            crisis.disposition.value,
+            crisis.policy_category,
+            crisis.matched_rule,
+            crisis.matched_keyword,
+            crisis.block_reason,
+        )
         return crisis
 
     # --- Tier 2: Veterinary ---
     vet = _check_veterinary(normalized)
     if vet is not None:
+        logger.info(
+            "Veterinary Guard triggered: disposition=%s, rule=%s, keyword=%s",
+            vet.disposition.value,
+            vet.matched_rule,
+            vet.matched_keyword,
+        )
         return vet
 
     # --- Tier 3: Metaphor disambiguation ---
     metaphor = _check_metaphor(normalized)
     if metaphor is not None:
+        logger.info(
+            "Metaphor Guard triggered: disposition=%s, rule=%s, keyword=%s",
+            metaphor.disposition.value,
+            metaphor.matched_rule,
+            metaphor.matched_keyword,
+        )
         return metaphor
 
     # --- Tier 4: Off-topic ---
     ood = _check_ood_topic(normalized)
     if ood is not None:
+        logger.info(
+            "OOD Topic Guard triggered: disposition=%s, category=%s, rule=%s, keyword=%s",
+            ood.disposition.value,
+            ood.policy_category,
+            ood.matched_rule,
+            ood.matched_keyword,
+        )
         return ood
 
     return None

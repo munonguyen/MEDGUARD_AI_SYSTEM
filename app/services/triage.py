@@ -47,9 +47,8 @@ def _tailor_guidance(
                 "Hiện tại chưa thấy dấu hiệu nguy kịch, bạn nên dừng đi lại nhiều, thả lỏng chân và chườm mát để giảm căng tức."
             )
             questions = [
-                "Đau nằm ở bắp chân, đùi, đầu gối hay cổ chân; bắt đầu ngay khi vận động hay sau đó?",
-                "Bạn có đi và chịu lực bình thường không; vùng đau có sưng, bầm, đỏ nóng hoặc biến dạng không?",
-                "Bạn có tê, yếu, chân lạnh hoặc đổi màu; hay đau và sưng một bên kèm đau ngực hoặc khó thở không?",
+                "Cơn đau có xuất hiện sau chấn thương hay vận động quá mức không, và bạn có thể chịu lực đứng bình thường không?",
+                "Vùng bắp chân có bị sưng to một bên, nóng đỏ hoặc tê bì không?",
             ]
         return summary, questions
     if topic == "headache":
@@ -310,6 +309,15 @@ def evaluate_triage(
             code=rule.recommended_specialty[0],
             label=rule.recommended_specialty[1],
             confidence=1.0 if emergency_flag else 0.78,
+        )
+
+    from app.services.specialty_resolver import SpecialtyResolver
+    resolved_code, resolved_label, resolved_conf = SpecialtyResolver.resolve_specialty(payload.symptoms_text)
+    if not specialty or specialty.code in ("GENERAL", "") or (resolved_code in ("DENTISTRY", "ORTHOPEDICS") and specialty.code != resolved_code):
+        specialty = RecommendedSpecialty(
+            code=resolved_code,
+            label=resolved_label,
+            confidence=resolved_conf if not emergency_flag else 1.0,
         )
 
     advice = rule.advice
