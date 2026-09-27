@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from pydantic.json_schema import SkipJsonSchema
 
 from app.models.agents import AgentEvidenceSource, AnswerAgentTrace, VerificationScores
 from app.models.common import DisclaimerMixin
+from app.services.question_policy import plan_clinical_questions
 
 
 ChatIntent = Literal[
@@ -53,7 +54,10 @@ class GroundedAnswer(BaseModel):
     key_points: list[str] = Field(default_factory=list)
     next_steps: list[str] = Field(default_factory=list)
     safety_notes: list[str] = Field(default_factory=list)
+    # Full clinical candidate set retained for audit, evaluation and backwards
+    # compatibility. Patient surfaces should render display_questions instead.
     questions: list[str] = Field(default_factory=list)
+    display_questions: list[str] = Field(default_factory=list)
     decision_basis: Literal[
         "versioned_rules",
         "registry_record",
@@ -164,6 +168,31 @@ class ChatResponse(DisclaimerMixin):
         "agent_shadow",
         "deterministic_fallback",
     ]] = Field(default="deterministic", exclude=True)
+
+    @model_validator(mode="after")
+    def apply_patient_question_policy(self) -> "ChatResponse":
+        """Choose the smallest useful question set for the patient surface.
+
+        The clinical result keeps every approved clarifying-question candidate.
+        Only ``answer.display_questions`` is reduced, so audit/evaluation data is
+        never destroyed and the dialogue policy cannot change clinical decisions.
+        """
+        if self.intent != "triage" or self.answer is None or not isinstance(self.result, dict):
+            return self
+        urgency = str(self.result.get("urgency", "ROUTINE"))
+        plan = plan_clinical_questions(list(self.answer.questions), urgency=urgency)
+        self.answer = self.answer.model_copy(update={"display_questions": plan.questions})
+
+        trace = self.result.get("trace")
+        if isinstance(trace, dict):
+            details = dict(trace.get("details") or {})
+            details["question_policy"] = plan.trace_payload()
+            updated_trace = dict(trace)
+            updated_trace["details"] = details
+            updated_result = dict(self.result)
+            updated_result["trace"] = updated_trace
+            self.result = updated_result
+        return self
 
 
 class ConversationSummary(BaseModel):
