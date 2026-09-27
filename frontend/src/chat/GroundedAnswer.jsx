@@ -44,6 +44,15 @@ const knowledgeLabels = {
   not_recorded: 'Nguồn chưa ghi nhận phê duyệt',
 };
 
+const legacyQuestionPrefixes = [
+  'Bạn cho mình biết thêm:',
+  'Thông tin cần báo nhân viên y tế nếu có thể:',
+];
+
+function isLegacyQuestionNarrative(block) {
+  return legacyQuestionPrefixes.some((prefix) => block?.text?.startsWith(prefix));
+}
+
 export function GroundedAnswer({ answer, result, responseMeta = {} }) {
   if (!answer) return null;
   const hasNarrative = answer.narrative?.length > 0;
@@ -58,6 +67,12 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
     || ['HIGH', 'MODERATE'].includes(result?.overall_risk)
     || ['suspected_counterfeit', 'recalled', 'invalid'].includes(result?.verification_status)
   );
+  const displayQuestions = answer.display_questions?.length
+    ? answer.display_questions
+    : (answer.questions || []).slice(0, 2);
+  const narrativeBlocks = hasNarrative
+    ? answer.narrative.filter((block) => !isLegacyQuestionNarrative(block))
+    : [];
 
   return (
     <div className="grounded-answer modern-clinical-layout">
@@ -76,7 +91,6 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
           )}
         </div>
       )}
-      {/* Clinical Assessment Header Badge */}
       {(isEmergency || isCaution) && <div className="clinical-header-pill-row">
         {isEmergency ? (
           <span className="triage-status-pill emergency-pill">
@@ -93,38 +107,45 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
       </div>}
 
       {hasNarrative ? (
-        <div className="answer-narrative">
-          {answer.narrative.map((block, index) => {
-            const isUrgentBlock = block.kind === 'urgent';
-            const isCautionBlock = block.kind === 'caution';
-            return (
-              <p className={block.kind} key={`${block.text}-${index}`}>
-                {isUrgentBlock && <AlertCircle size={17} className="block-lead-icon urgent" />}
-                {isCautionBlock && <AlertTriangle size={17} className="block-lead-icon caution" />}
-                <HighlightedText text={block.text} emphasis={block.emphasis} />
-                {block.source_ids?.length > 0 && (
-                  <span className="inline-citations">
-                    {[...new Set(block.source_ids)].map((sourceId) => {
-                      const source = sourcesById.get(sourceId);
-                      return source ? (
-                        <a
-                          key={sourceId}
-                          href={source.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          title={`${source.publisher}: ${source.title}`}
-                          aria-label={`Mở nguồn ${source.index}: ${source.title}`}
-                        >
-                          {source.index}
-                        </a>
-                      ) : null;
-                    })}
-                  </span>
-                )}
-              </p>
-            );
-          })}
-        </div>
+        <>
+          <div className="answer-narrative">
+            {narrativeBlocks.map((block, index) => {
+              const isUrgentBlock = block.kind === 'urgent';
+              const isCautionBlock = block.kind === 'caution';
+              return (
+                <p className={block.kind} key={`${block.text}-${index}`}>
+                  {isUrgentBlock && <AlertCircle size={17} className="block-lead-icon urgent" />}
+                  {isCautionBlock && <AlertTriangle size={17} className="block-lead-icon caution" />}
+                  <HighlightedText text={block.text} emphasis={block.emphasis} />
+                  {block.source_ids?.length > 0 && (
+                    <span className="inline-citations">
+                      {[...new Set(block.source_ids)].map((sourceId) => {
+                        const source = sourcesById.get(sourceId);
+                        return source ? (
+                          <a
+                            key={sourceId}
+                            href={source.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            title={`${source.publisher}: ${source.title}`}
+                            aria-label={`Mở nguồn ${source.index}: ${source.title}`}
+                          >
+                            {source.index}
+                          </a>
+                        ) : null;
+                      })}
+                    </span>
+                  )}
+                </p>
+              );
+            })}
+          </div>
+          <AnswerList
+            title="Câu hỏi quan trọng tiếp theo"
+            icon={CircleHelp}
+            items={displayQuestions}
+          />
+        </>
       ) : (
         <>
           <div className="answer-heading">
@@ -135,7 +156,7 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
           <AnswerList title="Điểm chính" icon={CheckCircle2} items={answer.key_points} />
           <AnswerList title="Bạn nên làm gì" icon={ArrowRight} items={answer.next_steps} ordered />
           <AnswerList title="Dấu hiệu cần lưu ý" icon={ShieldAlert} items={answer.safety_notes} />
-          <AnswerList title="Thông tin cần bổ sung" icon={CircleHelp} items={answer.questions} />
+          <AnswerList title="Câu hỏi quan trọng tiếp theo" icon={CircleHelp} items={displayQuestions} />
         </>
       )}
     </div>
