@@ -9,10 +9,13 @@ so that audit records can reference the exact knowledge snapshot used.
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass, field
 from hashlib import sha256
 from pathlib import Path
 from typing import Any
+
+from app.services.clinical_text import contains_affirmed_phrase, normalize_search_text
 
 
 _KNOWLEDGE_DIR = Path(__file__).resolve().parent
@@ -87,28 +90,63 @@ class KnowledgeStore:
         ).data.get("reported_ingestion_protocols", [])
 
     def find_symptom_guidance(self, symptoms_text: str) -> dict[str, Any] | None:
-        normalized = symptoms_text.lower().strip()
+        normalized = normalize_search_text(symptoms_text)
+
+        back_problem = any(
+            contains_affirmed_phrase(normalized, phrase)
+            for phrase in ("dau lung", "moi lung", "dau that lung", "moi that lung", "nhuc lung")
+        )
+        if not back_problem:
+            back_relation = re.compile(
+                r"\b(?:dau|moi|nhuc)\b(?:\s+[a-z0-9]+){0,4}\s+(?:that lung|lung)\b"
+            )
+            back_problem = any(
+                contains_affirmed_phrase(normalized, match.group(0))
+                for match in back_relation.finditer(normalized)
+            )
+        if back_problem:
+            for guidance in self.symptom_guidance:
+                if guidance.get("topic") == "back_pain":
+                    return guidance
+
         for guidance in self.symptom_guidance:
             if guidance.get("topic") == "lower_limb_pain":
-                has_lower_limb_region = any(
-                    term in normalized
-                    for term in (
-                        "chân",
-                        "đùi",
-                        "bắp chân",
-                        "đầu gối",
-                        "cổ chân",
-                        "mắt cá",
-                        "bàn chân",
+                # A body-region token and an unrelated pain token must never be
+                # combined into a finding. Example: "đau thắt lưng, không tê
+                # chân" previously became lower-limb pain because both "đau"
+                # and "chân" occurred somewhere in the string.
+                direct_problem_phrases = (
+                    "dau chan", "nhuc chan", "sung chan", "te chan", "yeu chan",
+                    "dau dui", "nhuc dui", "dau bap chan", "sung bap chan",
+                    "dau dau goi", "sung dau goi", "dau co chan", "sung co chan",
+                    "dau mat ca", "dau ban chan", "kho di", "khong di duoc",
+                    "khong chiu luc duoc",
+                )
+                has_affirmed_problem = any(
+                    contains_affirmed_phrase(normalized, phrase)
+                    for phrase in direct_problem_phrases
+                )
+                if not has_affirmed_problem:
+                    forward_relation = re.compile(
+                        r"\b(?:dau|nhuc|sung|te|yeu)\b(?:\s+[a-z0-9]+){0,4}\s+"
+                        r"(?:bap chan|dau goi|co chan|mat ca|ban chan|chan|dui)\b"
                     )
-                )
-                has_relevant_problem = any(
-                    term in normalized
-                    for term in ("đau", "nhức", "sưng", "khó đi", "không đi", "chịu lực")
-                )
-                if has_lower_limb_region and has_relevant_problem:
+                    reverse_relation = re.compile(
+                        r"\b(?:bap chan|dau goi|co chan|mat ca|ban chan|chan|dui)\b"
+                        r"(?:\s+[a-z0-9]+){0,4}\s+(?:dau|nhuc|sung|te|yeu)\b"
+                    )
+                    has_affirmed_problem = any(
+                        contains_affirmed_phrase(normalized, match.group(0))
+                        for pattern in (forward_relation, reverse_relation)
+                        for match in pattern.finditer(normalized)
+                    )
+                if has_affirmed_problem:
                     return guidance
-            if any(str(keyword).lower() in normalized for keyword in guidance.get("keywords", [])):
+
+            if any(
+                contains_affirmed_phrase(normalized, normalize_search_text(str(keyword)))
+                for keyword in guidance.get("keywords", [])
+            ):
                 return guidance
         return None
 

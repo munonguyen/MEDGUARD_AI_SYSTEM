@@ -51,6 +51,7 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
   const sourcesById = new Map(researchedSources.map((source, index) => [source.source_id, { ...source, index: index + 1 }]));
 
   const structuredUrgency = result?.urgency || result?.escalation_level;
+  const showTechnicalMeta = responseMeta.showTechnicalMeta === true;
   const isEmergency = structuredUrgency === 'EMERGENCY';
   const isCaution = !isEmergency && (
     structuredUrgency === 'URGENT'
@@ -60,19 +61,21 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
 
   return (
     <div className="grounded-answer modern-clinical-layout">
-      <div className="answer-assurance-row" aria-label="Trạng thái kiểm chứng câu trả lời">
-        <span className={`verification-pill ${responseMeta.verification_status || 'not_requested'}`}>
-          {responseMeta.verification_status === 'verified'
-            ? <CheckCircle2 size={13} />
-            : <CircleHelp size={13} />}
-          {verificationLabels[responseMeta.verification_status] || verificationLabels.not_requested}
-        </span>
-        {responseMeta.knowledge_approval && (
-          <span className={`knowledge-pill ${responseMeta.knowledge_approval}`}>
-            {knowledgeLabels[responseMeta.knowledge_approval]}
+      {showTechnicalMeta && (
+        <div className="answer-assurance-row" aria-label="Trạng thái kiểm chứng câu trả lời">
+          <span className={`verification-pill ${responseMeta.verification_status || 'not_requested'}`}>
+            {responseMeta.verification_status === 'verified'
+              ? <CheckCircle2 size={13} />
+              : <CircleHelp size={13} />}
+            {verificationLabels[responseMeta.verification_status] || verificationLabels.not_requested}
           </span>
-        )}
-      </div>
+          {responseMeta.knowledge_approval && (
+            <span className={`knowledge-pill ${responseMeta.knowledge_approval}`}>
+              {knowledgeLabels[responseMeta.knowledge_approval]}
+            </span>
+          )}
+        </div>
+      )}
       {/* Clinical Assessment Header Badge */}
       {(isEmergency || isCaution) && <div className="clinical-header-pill-row">
         {isEmergency ? (

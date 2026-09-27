@@ -29,6 +29,7 @@ from app.services.agent_background import background_agent_runner
 from app.services.audit import AuditEvent, audit_store
 from app.services.chat_history import chat_history_store
 from app.services.clinical_text import contains_affirmed_phrase, normalize_clinical_concepts, normalize_search_text
+from app.services.episode_context import select_active_episode_text
 from app.services.delivery import prepare_delivery
 from app.services.fhir import to_fhir_bundle, to_fhir_risk_assessment
 from app.services.followup import plan_follow_up
@@ -392,11 +393,37 @@ def _normalize(value: str) -> str:
     return normalize_search_text(value)
 
 
-def _triage_episode_text(payload: ChatRequest, latest_text: str) -> tuple[str, bool]:
-    """Carry clinical context across follow-up turns in an active episode."""
+def _previous_user_text(payload: ChatRequest) -> str | None:
+    for message in reversed(payload.messages[:-1]):
+        if message.role == "user" and message.content.strip():
+            return message.content.strip()
+    return None
+
+
+def _episode_switch_detected(payload: ChatRequest, latest_text: str) -> bool:
+    """Return True only when the current complaint clearly replaces the prior one.
+
+    The previous implementation called ``should_start_new_episode`` with only the
+    latest turn, which meant natural domain switches (for example chest pain ->
+    abdominal pain) were invisible to several history/risk paths.
+    """
     normalized_latest = _normalize(latest_text)
-    if should_start_new_episode(latest_text) or is_explicit_correction(latest_text) or any(marker in normalized_latest for marker in _NEW_CLINICAL_EPISODE_MARKERS):
-        return latest_text, False
+    previous_text = _previous_user_text(payload)
+    return (
+        should_start_new_episode(latest_text, previous_text)
+        or any(marker in normalized_latest for marker in _NEW_CLINICAL_EPISODE_MARKERS)
+    )
+
+
+def _should_isolate_latest_clinical_turn(payload: ChatRequest, latest_text: str) -> bool:
+    return _episode_switch_detected(payload, latest_text) or is_explicit_correction(latest_text)
+
+
+def _triage_episode_text(payload: ChatRequest, latest_text: str) -> tuple[str, bool, bool]:
+    """Return the active clinical episode and whether history was retained."""
+    switched_episode = _episode_switch_detected(payload, latest_text)
+    if switched_episode or is_explicit_correction(latest_text):
+        return latest_text, False, switched_episode
 
     user_messages = [
         message.content.strip()
@@ -404,16 +431,17 @@ def _triage_episode_text(payload: ChatRequest, latest_text: str) -> tuple[str, b
         if message.role == "user" and message.content.strip()
     ]
     if not user_messages:
-        return latest_text, False
+        return latest_text, False, False
 
-    # Retain the immediate previous clinical statements as active episode context
-    relevant_history = user_messages[-3:]
-    episode_text = "\n".join([
-        *relevant_history,
+    # Keep a bounded candidate window, then run the same adjacent-turn episode
+    # selector used at the TriageRequest boundary. This prevents one component
+    # from seeing stale history that another component already discarded.
+    candidate = "\n".join([
+        *user_messages[-3:],
         f"Lượt hiện tại: {latest_text}",
     ])
-
-    return episode_text, True
+    selection = select_active_episode_text(candidate)
+    return selection.text, selection.used_history, selection.switched_episode
 
 
 def _requests_personalized_dose(normalized_text: str) -> bool:
@@ -446,6 +474,11 @@ def _requests_blood_pressure_measurement_guidance(normalized_text: str) -> bool:
 def _detect_intent(payload: ChatRequest, normalized_text: str) -> ChatIntent:
     if payload.intent_hint != "auto":
         return payload.intent_hint
+
+    # Explicit product/control syntax has deterministic user intent and must
+    # never be overridden by historical clinical-risk scores from another turn.
+    if "#lichthuoc" in normalized_text:
+        return "schedule"
 
     def contains(keyword: str) -> bool:
         if " " not in keyword and len(keyword) <= 3:
@@ -481,7 +514,7 @@ def _detect_intent(payload: ChatRequest, normalized_text: str) -> ChatIntent:
     elif sem_intent.urgency == "URGENT":
         scores["triage"] += 12
 
-    if len(payload.messages) > 1 and not should_start_new_episode(normalized_text):
+    if len(payload.messages) > 1 and not _should_isolate_latest_clinical_turn(payload, payload.messages[-1].content):
         prev_user_texts = [m.content for m in payload.messages[:-1] if m.role == "user"]
         if prev_user_texts:
             prev_has_triage = any(
@@ -960,6 +993,9 @@ def _response(
         allow_agent
         and intent in _active_research_agent_intents()
     )
+    agent_patient_context = payload.context.model_dump(mode="json")
+    if intent in {"triage", "safety"}:
+        agent_patient_context["last_result"] = None
     if agent_eligible and settings.agent_sync_enabled:
         answer = answer_agent_pipeline.enhance(
             answer=answer,
@@ -969,7 +1005,7 @@ def _response(
             tenant_id=ctx.tenant_id,
             conversation_id=payload.conversation_id,
             locale=payload.locale,
-            patient_context=payload.context.model_dump(mode="json"),
+            patient_context=agent_patient_context,
         )
     elif agent_eligible and settings.agent_background_enabled:
         agent_submitted = background_agent_runner.submit(
@@ -980,7 +1016,7 @@ def _response(
             tenant_id=ctx.tenant_id,
             conversation_id=payload.conversation_id,
             locale=payload.locale,
-            patient_context=payload.context.model_dump(mode="json"),
+            patient_context=agent_patient_context,
         )
     internal_agent_trace = answer.agent_trace
     if internal_agent_trace:
@@ -1324,30 +1360,29 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
         intent = "triage"
 
     if intent == "triage":
-        episode_text, episode_context_used = _triage_episode_text(payload, latest_text)
+        episode_text, episode_context_used, episode_switched = _triage_episode_text(payload, latest_text)
         vital_signs = _extract_vital_signs(episode_text)
 
-        # Multi-turn risk escalation tracking via Clinical Event Ledger
-        conversation_risk = "EMERGENCY" if (len(payload.messages) > 1 and ledger.has_active_emergency()) else None
-        if not conversation_risk and len(payload.messages) > 1 and not should_start_new_episode(latest_text):
-            if is_explicit_correction(latest_text):
-                conversation_risk = None
-            else:
-                risk_state = None
-                from app.services.compositional_reasoner import evaluate_compositional_risk
-                from app.services.dose_reasoning import evaluate_dose_reasoning
+        # Multi-turn risk memory is scoped to the selected active episode only.
+        # Never rescan the whole conversation after an episode switch: doing so
+        # reintroduced an old emergency floor even after the ledger invalidated it.
+        conversation_risk = "EMERGENCY" if (episode_context_used and ledger.has_active_emergency()) else None
+        if (
+            not conversation_risk
+            and episode_context_used
+            and not episode_switched
+            and not is_explicit_correction(latest_text)
+        ):
+            from app.services.compositional_reasoner import evaluate_compositional_risk
+            from app.services.dose_reasoning import evaluate_dose_reasoning
 
-                for prev_m in payload.messages[:-1]:
-                    if prev_m.role == "user" and prev_m.content.strip():
-                        prev_text = prev_m.content.strip()
-                        prev_dose = evaluate_dose_reasoning(prev_text)
-                        if prev_dose and prev_dose.urgency == "EMERGENCY":
-                            conversation_risk = "EMERGENCY"
-                            break
-                        prev_comp = evaluate_compositional_risk(prev_text)
-                        if prev_comp.disposition == "EMERGENCY":
-                            conversation_risk = "EMERGENCY"
-                            break
+            active_dose = evaluate_dose_reasoning(episode_text)
+            active_comp = evaluate_compositional_risk(episode_text)
+            if (
+                (active_dose and active_dose.urgency == "EMERGENCY")
+                or active_comp.disposition == "EMERGENCY"
+            ):
+                conversation_risk = "EMERGENCY"
 
         result = evaluate_triage(
             TriageRequest(
@@ -1380,6 +1415,7 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
                 "patient_ref": patient_ref,
                 "vital_signs": vital_signs.model_dump(mode="json") if vital_signs else None,
                 "episode_context_used": episode_context_used,
+                "episode_switched": episode_switched,
                 "ood_verdict": ood_result.verdict if ood_result else None,
                 "ood_hotline": ood_result.hotline if ood_result else None,
                 "clinical_safety_floor": pre_ood_safety_floor.disposition,

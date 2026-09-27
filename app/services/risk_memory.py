@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import re
 
-from app.services.clinical_text import normalize_search_text
+from app.services.clinical_text import contains_affirmed_phrase, normalize_search_text
 from app.services.triage_resolver import URGENCY_RANK, highest_urgency
 
 
@@ -126,6 +126,9 @@ _EPISODE_DOMAIN_MARKERS: dict[str, tuple[str, ...]] = {
         "dau da day",
         "nong rat da day",
         "nong rat bung",
+        "bung con cao",
+        "con cao",
+        "kho chiu o bung",
         "o chua",
         "tieu chay",
         "tao bon",
@@ -184,7 +187,6 @@ _EPISODE_CONTINUATION_MARKERS: tuple[str, ...] = (
     "van ",
     "van con",
     "van bi",
-    "con ",
     "ngoai ra",
     "them nua",
     "kem theo",
@@ -209,7 +211,7 @@ def infer_episode_domain(text: str) -> str | None:
     for domain, markers in _EPISODE_DOMAIN_MARKERS.items():
         for marker in markers:
             pos = norm.find(marker)
-            if pos >= 0:
+            if pos >= 0 and contains_affirmed_phrase(norm, marker):
                 matches.append((pos, domain))
                 break
     if not matches:
