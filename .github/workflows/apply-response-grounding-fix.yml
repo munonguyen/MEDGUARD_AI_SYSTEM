@@ -4,13 +4,14 @@ on:
   push:
     branches:
       - fix/response-grounding-p0
+    paths:
+      - .github/workflows/apply-response-grounding-fix.yml
 
 permissions:
   contents: write
 
 jobs:
   patch-and-validate:
-    if: ${{ !contains(github.event.head_commit.message, 'fix(response-grounding):') }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
