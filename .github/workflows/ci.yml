@@ -90,6 +90,10 @@ jobs:
         working-directory: frontend
         run: npm ci
 
+      - name: Build patient UI
+        working-directory: frontend
+        run: npm run build
+
       - name: Start MedGuard
         run: |
           python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 > /tmp/medguard-dialogue-ui.log 2>&1 &
