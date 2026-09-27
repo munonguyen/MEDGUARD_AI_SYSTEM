@@ -141,7 +141,7 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
             })}
           </div>
           <AnswerList
-            title="Câu hỏi quan trọng tiếp theo"
+            title="Bạn cho mình biết thêm"
             icon={CircleHelp}
             items={displayQuestions}
           />
@@ -156,7 +156,7 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
           <AnswerList title="Điểm chính" icon={CheckCircle2} items={answer.key_points} />
           <AnswerList title="Bạn nên làm gì" icon={ArrowRight} items={answer.next_steps} ordered />
           <AnswerList title="Dấu hiệu cần lưu ý" icon={ShieldAlert} items={answer.safety_notes} />
-          <AnswerList title="Câu hỏi quan trọng tiếp theo" icon={CircleHelp} items={displayQuestions} />
+          <AnswerList title="Bạn cho mình biết thêm" icon={CircleHelp} items={displayQuestions} />
         </>
       )}
     </div>
