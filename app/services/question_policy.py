@@ -1,8 +1,8 @@
 """Deterministic clinical dialogue policy for selecting patient-facing questions.
 
-The policy is deliberately downstream of clinical decision making. It never
-changes triage, specialty, red flags, advice, evidence, or clinical facts. It
-only ranks questions already produced by approved rules/guidance.
+The policy runs downstream of clinical decision making. It never changes
+triage, specialty, red flags, advice, evidence, or clinical facts. It only
+ranks questions already produced by approved rules/guidance.
 """
 
 from __future__ import annotations
@@ -180,12 +180,16 @@ _LOCALIZATION_MARKERS = (
     "co chan",
 )
 
+# Base scores reflect the decision hierarchy. A semantic clarification is still
+# preferred over low-value diagnostic refinement, but it must not outrank a
+# question that can materially change disposition (for example vomiting and
+# hydration status after the user has already reported nausea).
 _BASE_SCORE: dict[QuestionCategory, float] = {
     "SAFETY": 80.0,
     "DISPOSITION": 76.0,
     "TREATMENT_SAFETY": 90.0,
     "CONTRADICTION": 96.0,
-    "SEMANTIC_CLARIFICATION": 98.0,
+    "SEMANTIC_CLARIFICATION": 84.0,
     "DIAGNOSTIC": 55.0,
     "PERSONALIZATION": 35.0,
 }
