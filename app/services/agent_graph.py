@@ -8,6 +8,8 @@ V15 preserves the V14 authority contract while adding adaptive execution:
   clinical severity.
 - Provider/model fallback stays inside the selected execution path and never
   changes clinical severity or bypasses Reviewer.
+- A deterministic professional-response gate runs after Reviewer approval and
+  may still reject unsafe, generic or system-jargon patient-facing prose.
 """
 
 from __future__ import annotations
@@ -37,6 +39,7 @@ from app.services.adaptive_agent_runtime import adaptive_agent_runtime
 from app.services.agent_provider import ModelProviderError, StructuredModelProvider
 from app.services.knowledge_retriever import RetrievedChunk, knowledge_retriever
 from app.services.llm_control_plane import AgentRequestPolicy, gateway_controls
+from app.services.professional_response_gate import evaluate_professional_response
 from app.services.trusted_evidence import (
     RuntimeEvidence,
     TRUSTED_MEDICAL_DOMAINS,
@@ -500,6 +503,36 @@ class MedicalAgentGraph:
             ),
             config=self,
         )
+
+        if reason is None:
+            clinical_result = (
+                agent_envelope.get("clinical_result")
+                if isinstance(agent_envelope.get("clinical_result"), dict)
+                else {}
+            )
+            urgency = str(
+                clinical_result.get("urgency")
+                or clinical_result.get("escalation_level")
+                or ""
+            ).upper()
+            quality = evaluate_professional_response(
+                narrative_blocks=[block.text for block in state.draft.narrative],
+                urgency=urgency,
+                locked_claims=[
+                    str(claim.get("text"))
+                    for claim in verification_claims
+                    if claim.get("locked") and claim.get("text")
+                ],
+            )
+            metrics.set_gauge("medguard_professional_response_score", quality.score)
+            if not quality.passed:
+                reason = "professional_response_quality:" + (
+                    quality.reasons[0] if quality.reasons else "below_threshold"
+                )
+                metrics.inc_counter(
+                    "medguard_professional_response_rejections_total",
+                    labels={"reason": quality.reasons[0] if quality.reasons else "below_threshold"},
+                )
 
         state.verification = verification
         state.verified_citations = tuple(verified.citations)
