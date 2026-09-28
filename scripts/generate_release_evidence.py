@@ -25,12 +25,13 @@ from app.services.clinical_validation_governance import (
     clinical_validation_readiness,
     load_medical_response_benchmark_metadata,
 )
+from app.services.external_evidence_registry import evaluate_external_evidence_registry
 from app.services.readiness import build_readiness
 from scripts.benchmark_professional_response import run_professional_response_benchmark
 from scripts.evaluate_medical_response_quality import run_benchmark as run_medical_response_quality_benchmark
 
 
-SCHEMA_VERSION = "1.0.0"
+SCHEMA_VERSION = "1.1.0"
 
 
 def _git_sha() -> str:
@@ -112,6 +113,7 @@ def build_release_evidence(
     medical_quality: dict[str, Any] | None = None,
     professional_quality: dict[str, Any] | None = None,
     clinical_metadata: dict[str, Any] | None = None,
+    external_evidence: dict[str, Any] | None = None,
     git_sha: str | None = None,
     generated_at: str | None = None,
     model_configuration: dict[str, Any] | None = None,
@@ -125,6 +127,7 @@ def build_release_evidence(
         else load_medical_response_benchmark_metadata()
     )
     clinical_status, clinical_detail = clinical_validation_readiness(clinical_meta)
+    external = external_evidence or evaluate_external_evidence_registry()
     readiness_data = _readiness_payload(readiness_obj)
 
     medical_summary = {
@@ -147,6 +150,14 @@ def build_release_evidence(
         "false_rejects": professional.get("false_rejects"),
         "gate_passed": bool(professional.get("gate_passed")),
     }
+    external_summary = {
+        "status": external.get("status"),
+        "valid": bool(external.get("valid")),
+        "required_types": list(external.get("required_types") or []),
+        "valid_types": list(external.get("valid_types") or []),
+        "blockers": list(external.get("blockers") or []),
+        "detail": external.get("detail"),
+    }
 
     blockers = list(readiness_data["required_blockers"])
     if not medical_summary["gate_passed"]:
@@ -155,6 +166,8 @@ def build_release_evidence(
         blockers.append("professional_response_quality")
     if clinical_status != "pass" and "independent_clinical_validation" not in blockers:
         blockers.append("independent_clinical_validation")
+    if not external_summary["valid"]:
+        blockers.append("external_production_evidence")
 
     payload: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
@@ -178,17 +191,19 @@ def build_release_evidence(
                 or clinical_meta.get("clinical_review_version")
             ),
         },
+        "external_production_evidence": external_summary,
         "model_configuration": model_configuration or _safe_model_configuration(),
         "production_release_eligible": (
             bool(readiness_data["production_ready"])
             and medical_summary["gate_passed"]
             and professional_summary["gate_passed"]
             and clinical_status == "pass"
+            and external_summary["valid"]
         ),
         "release_blockers": sorted(set(blockers)),
         "governance_note": (
             "This manifest records engineering evidence and approval state; "
-            "it cannot create or substitute for independent clinical approval."
+            "it cannot create or substitute for independent clinical or operational approval."
         ),
     }
     payload["evidence_digest"] = evidence_digest(payload)
@@ -213,6 +228,7 @@ def validate_release_evidence(payload: dict[str, Any]) -> tuple[bool, list[str]]
         readiness = payload.get("readiness") or {}
         quality = payload.get("quality") or {}
         clinical = payload.get("clinical_validation") or {}
+        external = payload.get("external_production_evidence") or {}
         if readiness.get("production_ready") is not True:
             errors.append("eligible_without_production_readiness")
         if (quality.get("medical_response") or {}).get("gate_passed") is not True:
@@ -221,6 +237,8 @@ def validate_release_evidence(payload: dict[str, Any]) -> tuple[bool, list[str]]
             errors.append("eligible_without_professional_quality")
         if clinical.get("status") != "pass":
             errors.append("eligible_without_clinical_validation")
+        if external.get("valid") is not True:
+            errors.append("eligible_without_external_evidence")
     return not errors, errors
 
 
