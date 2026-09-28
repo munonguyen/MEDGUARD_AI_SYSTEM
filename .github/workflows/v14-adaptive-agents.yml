@@ -37,7 +37,7 @@ jobs:
         run: pytest -q app/tests/test_v13_structured_routing.py app/tests/test_v13_human_behavior_benchmark.py
 
       - name: Verify V10 provenance
-        run: python scripts/freeze_guard.py --verify
+        run: python blind_v10/freeze_guard.py --verify
 
       - name: Run full backend regression
         run: pytest -q
