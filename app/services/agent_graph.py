@@ -10,6 +10,8 @@ V15 preserves the V14 authority contract while adding adaptive execution:
   changes clinical severity or bypasses Reviewer.
 - A deterministic professional-response gate runs after Reviewer approval and
   may still reject unsafe, generic or system-jargon patient-facing prose.
+- FAST/STANDARD routes use bounded token budgets while DEEP emergency/uncertain
+  Writer paths retain the configured full budget.
 """
 
 from __future__ import annotations
@@ -104,7 +106,6 @@ def _is_agent_first_envelope(value: dict[str, Any]) -> bool:
 
 
 def _structured_legacy_envelope(state: MedicalAgentState) -> dict[str, Any]:
-    """Convert a legacy GroundedAnswer dump into structured, non-prose input."""
     source = state.tool_result
     envelope: dict[str, Any] = {
         "version": "v14-structured-agent-input",
@@ -146,10 +147,8 @@ def _structured_legacy_envelope(state: MedicalAgentState) -> dict[str, Any]:
 
 
 def _agent_inputs(state: MedicalAgentState) -> tuple[list[dict[str, Any]], dict[str, Any]]:
-    """Return claims/envelope visible to Writer without legacy presentation prose."""
     if _is_agent_first_envelope(state.tool_result):
         return state.claims, state.tool_result
-
     visible_claims = [
         claim
         for claim in state.claims
@@ -226,7 +225,6 @@ class MedicalAgentGraph:
         self.verifier_search_required = verifier_search_required
 
     def node_researcher(self, state: MedicalAgentState) -> None:
-        """Retrieve a compact curated context before Writer runs."""
         state.retrieved_chunks = knowledge_retriever.retrieve(
             query=state.question,
             intent=state.intent,
@@ -243,7 +241,6 @@ class MedicalAgentGraph:
         redact_question_fn: Any,
         stage_trace_fn: Any,
     ) -> bool:
-        """Generate an original draft from structured state and evidence."""
         rag_contexts = [chunk.to_dict() for chunk in state.retrieved_chunks]
         writer_claims, agent_envelope = _agent_inputs(state)
 
@@ -279,6 +276,17 @@ class MedicalAgentGraph:
             research_payload["verifier_feedback"] = state.feedback_history[-1]
             research_payload["refinement_iteration"] = state.iteration
 
+        budget = adaptive_agent_runtime.token_budget(
+            route=state.adaptive_route,
+            role="answer",
+            base_input_tokens=self.max_input_tokens,
+            base_output_tokens=self.research_max_output_tokens,
+        )
+        metrics.observe_histogram(
+            "medguard_agent_token_budget",
+            budget.max_output_tokens,
+            labels={"role": "answer", "tier": state.adaptive_route.model_tier.value if state.adaptive_route else "standard"},
+        )
         research_controls = gateway_controls(
             role="answer",
             policy=state.policy,
@@ -291,8 +299,8 @@ class MedicalAgentGraph:
             tool_result=agent_envelope,
             instructions=instructions,
             payload=research_payload,
-            max_input_tokens=self.max_input_tokens,
-            max_output_tokens=self.research_max_output_tokens,
+            max_input_tokens=budget.max_input_tokens,
+            max_output_tokens=budget.max_output_tokens,
         )
 
         if research_controls.estimated_input_tokens > research_controls.max_input_tokens:
@@ -376,7 +384,6 @@ class MedicalAgentGraph:
         stage_trace_fn: Any,
         gate_reason_fn: Any,
     ) -> None:
-        """Judge draft independently; never author patient-facing prose."""
         if not state.draft:
             state.status = "fallback"
             return
@@ -409,6 +416,17 @@ class MedicalAgentGraph:
             },
         }
 
+        budget = adaptive_agent_runtime.token_budget(
+            route=state.adaptive_route,
+            role="verifier",
+            base_input_tokens=self.max_input_tokens,
+            base_output_tokens=self.verifier_max_output_tokens,
+        )
+        metrics.observe_histogram(
+            "medguard_agent_token_budget",
+            budget.max_output_tokens,
+            labels={"role": "verifier", "tier": state.adaptive_route.model_tier.value if state.adaptive_route else "standard"},
+        )
         verifier_controls = gateway_controls(
             role="verifier",
             policy=state.policy,
@@ -421,8 +439,8 @@ class MedicalAgentGraph:
             tool_result=agent_envelope,
             instructions=instructions,
             payload=verifier_payload,
-            max_input_tokens=self.max_input_tokens,
-            max_output_tokens=self.verifier_max_output_tokens,
+            max_input_tokens=budget.max_input_tokens,
+            max_output_tokens=budget.max_output_tokens,
         )
 
         if verifier_controls.estimated_input_tokens > verifier_controls.max_input_tokens:
@@ -561,7 +579,6 @@ class MedicalAgentGraph:
     def route_decision(
         self, state: MedicalAgentState
     ) -> Literal["COMPLETE", "REVISE", "FALLBACK"]:
-        """Approve, request one Writer revision, or fail safely."""
         if state.gate_reason is None:
             if state.iteration > 0:
                 metrics.inc_counter("medguard_agent_loop_self_corrected_total")
