@@ -1,14 +1,15 @@
-"""Deterministic Final Safety Resolver for MedGuard Tri-Gate Architecture.
+"""Deterministic safety resolver for MedGuard's multi-signal triage layer.
 
-Design Invariants:
-1. Pure Deterministic Resolution: NO 4th LLM judge.
-   Zero latency overhead (< 0.5 ms), zero hallucination risk.
-2. Monotonic Safety Floor:
-   final_triage = max(safety_floor, reasoner_floor, verifier_floor, jev_floor)
-3. Strict Policy Enforcement:
-   - EMERGENCY: MUST block home monitoring, MUST mandate emergency 115 care.
-   - URGENT: MUST mandate same-day clinical evaluation; blocks unmonitored delays.
-   - ROUTINE: Permits self-care only when no red-flag features or safety flags exist.
+V14 authority model:
+1. The deterministic hard safety floor is the fail-closed authority.
+2. Clinical reasoner + approved verifier determine normal ROUTINE/URGENT/EMERGENCY
+   disposition. Their output is never downgraded by Jev.
+3. Jev is advisory outside an explicit ``emergency_lock`` decision. A Jev-only
+   disagreement requests clarification/human review instead of silently forcing
+   benign cases into URGENT/EMERGENCY.
+4. The resolver emits constraints, not patient-facing prose. Response writing
+   belongs to the selected agent; the downstream output gate only releases or
+   rejects that answer.
 """
 
 from __future__ import annotations
@@ -38,64 +39,152 @@ class FinalResolution:
     response_policy: dict[str, Any] = field(default_factory=dict)
 
 
-def resolve_tri_gate(tri_result: TriGateResult) -> FinalResolution:
-    """Deterministically resolve clinical triage and actions across all 3 gates."""
-    invariants: list[str] = []
+def _is_explicit_jev_emergency_lock(tri_result: TriGateResult) -> bool:
+    jev = tri_result.gate3_jev
+    if jev is None:
+        return False
+    return (
+        getattr(jev, "authority", "advisory") == "emergency_lock"
+        and jev.triage_recommendation == "EMERGENCY"
+        and jev.action in {"EMERGENCY_NOW", "CALL_115"}
+    )
 
-    # 1. Collect candidate urgencies
+
+def _primary_candidates(tri_result: TriGateResult) -> list[tuple[str, TriageAcuity, float]]:
+    """Return authoritative non-Jev disposition candidates.
+
+    The hard safety floor participates as a monotonic lower bound. Jev is kept
+    out of this list deliberately: it can enrich or challenge a decision, but
+    it cannot become the normal governing source by merely choosing a higher
+    acuity.
+    """
     candidates: list[tuple[str, TriageAcuity, float]] = [
         ("hard_safety_floor", tri_result.hard_safety_floor, 0.99),
         ("gate1_reasoner", tri_result.gate1_reasoner_triage, tri_result.gate1_confidence),
     ]
-
     if tri_result.gate2_verifier and tri_result.gate2_verifier.approved:
-        candidates.append(("gate2_verifier", tri_result.gate2_verifier.verifier_urgency, tri_result.gate2_verifier.confidence))
+        candidates.append(
+            (
+                "gate2_verifier",
+                tri_result.gate2_verifier.verifier_urgency,
+                tri_result.gate2_verifier.confidence,
+            )
+        )
+    return candidates
 
-    if tri_result.gate3_jev:
-        candidates.append(("gate3_jev", tri_result.gate3_jev.triage_recommendation, tri_result.gate3_jev.confidence))
 
-    # 2. Monotonic Conservative Max Resolution
-    governing_source, final_triage, base_conf = max(
+def resolve_tri_gate(tri_result: TriGateResult) -> FinalResolution:
+    """Resolve safety constraints without letting Jev author the disposition."""
+    invariants: list[str] = ["jev_non_emergency_authority_is_advisory"]
+
+    # Gate 0 remains an unconditional fail-closed emergency authority.
+    hard_emergency = tri_result.hard_safety_floor == "EMERGENCY"
+    jev_emergency_lock = _is_explicit_jev_emergency_lock(tri_result)
+
+    candidates = _primary_candidates(tri_result)
+    governing_source, primary_triage, base_conf = max(
         candidates,
-        key=lambda c: (_ACUITY_RANK.get(c[1], 1), c[2]),
+        key=lambda candidate: (_ACUITY_RANK.get(candidate[1], 1), candidate[2]),
     )
 
-    # 3. Policy Table & Invariant Enforcement
-    if final_triage == "EMERGENCY":
+    if hard_emergency or jev_emergency_lock:
+        final_triage: TriageAcuity = "EMERGENCY"
         final_action: JevAction = "EMERGENCY_NOW"
         allow_home_monitoring = False
-        invariants.append("enforce_zero_home_monitoring_for_emergency")
-        invariants.append("mandate_emergency_transit_or_115")
         require_review = False
         final_conf = max(base_conf, 0.98)
+        governing_source = "hard_safety_floor" if hard_emergency else "jev_emergency_lock"
+        invariants.extend(
+            (
+                "enforce_zero_home_monitoring_for_emergency",
+                "mandate_emergency_transit_or_115",
+            )
+        )
         response_policy = {
-            "template": "emergency_immediate",
-            "forbid_phrases": ["theo dõi tại nhà", "chờ thêm", "uống thuốc rồi tính"],
-            "mandate_phrases": ["cấp cứu ngay", "115", "cơ sở y tế gần nhất"],
+            "locked_disposition": "EMERGENCY",
+            "required_actions": ["emergency_now", "call_115_or_nearest_emergency_service"],
+            "forbidden_advice": ["delay_for_monitoring", "routine_home_care"],
+            "output_gate_may_reject_but_not_rewrite": True,
+        }
+        return FinalResolution(
+            final_triage=final_triage,
+            final_action=final_action,
+            allow_home_monitoring=allow_home_monitoring,
+            require_human_review=require_review,
+            confidence=round(final_conf, 4),
+            governing_source=governing_source,
+            safety_invariants_enforced=tuple(invariants),
+            response_policy=response_policy,
+        )
+
+    # Normal disposition is owned by the hard floor + reasoner + approved
+    # verifier. Jev can challenge the result but cannot silently replace it.
+    jev = tri_result.gate3_jev
+    jev_upward_disagreement = bool(
+        jev
+        and _ACUITY_RANK.get(jev.triage_recommendation, 1)
+        > _ACUITY_RANK.get(primary_triage, 1)
+    )
+    jev_blocks_home = bool(jev and not jev.allow_home_monitoring)
+    jev_requests_review = bool(jev and jev.require_human_review)
+
+    if primary_triage == "EMERGENCY":
+        final_triage = "EMERGENCY"
+        final_action = "EMERGENCY_NOW"
+        allow_home_monitoring = False
+        require_review = False
+        final_conf = max(base_conf, 0.96)
+        invariants.extend(
+            (
+                "reasoner_or_verifier_emergency_preserved",
+                "enforce_zero_home_monitoring_for_emergency",
+            )
+        )
+        response_policy = {
+            "locked_disposition": "EMERGENCY",
+            "required_actions": ["emergency_now"],
+            "forbidden_advice": ["delay_for_monitoring", "routine_home_care"],
+            "output_gate_may_reject_but_not_rewrite": True,
         }
 
-    elif final_triage == "URGENT":
+    elif primary_triage == "URGENT":
+        final_triage = "URGENT"
         final_action = "SAME_DAY_EVAL"
         allow_home_monitoring = False
-        invariants.append("mandate_same_day_physician_evaluation")
-        require_review = (base_conf < 0.80)
-        final_conf = max(base_conf, 0.90)
+        require_review = base_conf < 0.80 or jev_requests_review
+        final_conf = max(base_conf, 0.88)
+        invariants.append("preserve_reasoner_verifier_urgent_disposition")
         response_policy = {
-            "template": "urgent_same_day",
-            "forbid_phrases": ["không sao đâu", "tự khỏi"],
-            "mandate_phrases": ["khám trong ngày", "chuyên khoa"],
+            "locked_disposition": "URGENT",
+            "required_actions": ["same_day_clinical_evaluation"],
+            "forbidden_advice": ["routine_home_care_only"],
+            "output_gate_may_reject_but_not_rewrite": True,
         }
 
     else:  # ROUTINE
-        # Strict Benign Guard: if Jev or Verifier rejected self-care, escalate
-        if tri_result.gate3_jev and not tri_result.gate3_jev.allow_home_monitoring:
-            final_triage = "URGENT"
-            final_action = "SAME_DAY_EVAL"
+        final_triage = "ROUTINE"
+        if jev_upward_disagreement or jev_blocks_home or jev_requests_review:
+            # Do not mislabel the patient as URGENT solely because Jev disagrees.
+            # Preserve the advisory signal by requiring clarification/review and
+            # withholding a casual home-care endorsement until that conflict is
+            # resolved.
+            final_action = "AMBIGUOUS_CLARIFY"
             allow_home_monitoring = False
-            require_review = False
-            final_conf = 0.90
-            invariants.append("jev_override_blocked_routine_home_care")
-            response_policy = {"template": "urgent_same_day"}
+            require_review = True
+            final_conf = min(base_conf, 0.79)
+            invariants.extend(
+                (
+                    "jev_disagreement_requests_clarification_not_escalation",
+                    "routine_label_not_overridden_by_jev_alone",
+                )
+            )
+            response_policy = {
+                "locked_disposition": "ROUTINE",
+                "clarification_required": True,
+                "advisory_red_flags": list(getattr(jev, "advisory_red_flags", ())) if jev else [],
+                "suggested_clarifications": list(getattr(jev, "suggested_clarifications", ())) if jev else [],
+                "output_gate_may_reject_but_not_rewrite": True,
+            }
         else:
             final_action = "SELF_CARE"
             allow_home_monitoring = True
@@ -103,8 +192,9 @@ def resolve_tri_gate(tri_result: TriGateResult) -> FinalResolution:
             final_conf = min(base_conf, 0.96)
             invariants.append("benign_routine_self_care_permitted")
             response_policy = {
-                "template": "routine_self_care_with_red_flags",
-                "mandate_red_flags": True,
+                "locked_disposition": "ROUTINE",
+                "required_actions": ["context_specific_self_care", "state_relevant_red_flags"],
+                "output_gate_may_reject_but_not_rewrite": True,
             }
 
     return FinalResolution(
