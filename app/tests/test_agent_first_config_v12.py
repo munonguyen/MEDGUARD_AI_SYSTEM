@@ -7,10 +7,18 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
+_AGENT_ENV_KEYS = (
+    "MEDGUARD_AGENT_MODE",
+    "MEDGUARD_AGENT_MAX_ITERATIONS",
+    "MEDGUARD_AGENT_SYNC_ENABLED",
+    "MEDGUARD_AGENT_BACKGROUND_ENABLED",
+)
 
 
 def _probe(extra_env: dict[str, str]) -> str:
     env = os.environ.copy()
+    for key in _AGENT_ENV_KEYS:
+        env.pop(key, None)
     env.update(extra_env)
     env.pop("PYTEST_CURRENT_TEST", None)
     env["PYTHONPATH"] = str(ROOT)
@@ -30,11 +38,7 @@ def _probe(extra_env: dict[str, str]) -> str:
 
 
 def test_development_defaults_to_enforced_agent_first_when_not_overridden():
-    env = {
-        "MEDGUARD_ENVIRONMENT": "development",
-    }
-    env.pop("MEDGUARD_AGENT_MODE", None)
-    assert _probe(env) == "development enforced 1"
+    assert _probe({"MEDGUARD_ENVIRONMENT": "development"}) == "development enforced 1"
 
 
 def test_explicit_agent_mode_override_still_wins():
