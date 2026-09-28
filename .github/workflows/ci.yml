@@ -43,6 +43,49 @@ jobs:
       - name: Run regression suite
         run: pytest -q
 
+  response-quality:
+    name: Medical response quality gate (40 cases)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run full 40-case response-quality release gate
+        run: python scripts/evaluate_medical_response_quality.py
+
+      - name: Print quality report summary on failure
+        if: failure()
+        run: |
+          if [ -f datasets/DS-MEDICAL-RESPONSE-QUALITY/eval_report.json ]; then
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          path = Path("datasets/DS-MEDICAL-RESPONSE-QUALITY/eval_report.json")
+          report = json.loads(path.read_text(encoding="utf-8"))
+          print(json.dumps({
+              "dataset_version": report.get("dataset_version"),
+              "expert_review_status": report.get("expert_review_status"),
+              "production_evaluable": report.get("production_evaluable"),
+              "total": report.get("total"),
+              "average_score": report.get("average_score"),
+              "critical_failures": report.get("critical_failures"),
+              "subthreshold_cases": report.get("subthreshold_cases"),
+              "p95_latency_ms": report.get("p95_latency_ms"),
+              "gate_passed": report.get("gate_passed"),
+          }, ensure_ascii=False, indent=2))
+          PY
+          fi
+
   frontend:
     name: Frontend build
     runs-on: ubuntu-latest
