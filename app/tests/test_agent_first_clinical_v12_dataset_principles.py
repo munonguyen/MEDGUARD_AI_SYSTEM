@@ -12,7 +12,7 @@ def test_v12_contract_encodes_behavioral_principles_not_case_templates():
     principles = contract.envelope["professional_response_principles"]
     joined = " ".join(principles).lower()
 
-    assert "unsafe action" in joined
+    assert "dangerous action" in joined
     assert "specific action plan" in joined
     assert "single highest-information" in joined
     assert "fixed response templates" in joined
