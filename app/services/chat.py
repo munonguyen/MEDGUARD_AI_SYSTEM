@@ -13,6 +13,7 @@ from app.core.context import RequestContext
 from app.core.observability import metrics
 from app.knowledge.loader import knowledge
 from app.models.chat import ChatIntent, ChatRequest, ChatResponse, ChatSuggestion
+from app.models.clinical_task import ClinicalTask
 from app.models.delivery import DeliveryRequest
 from app.models.followup import FollowUpRequest
 from app.models.monitoring import MonitoringPoint, MonitoringRequest
@@ -29,6 +30,10 @@ from app.services.agent_background import background_agent_runner
 from app.services.audit import AuditEvent, audit_store
 from app.services.chat_history import chat_history_store
 from app.services.clinical_text import contains_affirmed_phrase, normalize_clinical_concepts, normalize_search_text
+from app.services.clinical_task_router import resolve_clinical_task
+from app.services.exposure_reasoner import evaluate_exposure_reaction
+from app.services.lab_interpreter import interpret_laboratory_text
+from app.services.temporal_syndrome import evaluate_temporal_syndrome
 from app.services.episode_context import select_active_episode_text
 from app.services.delivery import prepare_delivery
 from app.services.fhir import to_fhir_bundle, to_fhir_risk_assessment
@@ -989,10 +994,18 @@ def _response(
     )
     agent_status: str | None = None
     agent_submitted = False
+    clinical_task_name = (
+        str(serialized.get("clinical_task"))
+        if isinstance(serialized, dict) and serialized.get("clinical_task")
+        else None
+    )
     agent_first_clinical = (
         allow_agent
         and status == "answered"
-        and intent in {"triage", "safety"}
+        and (
+            intent in {"triage", "safety"}
+            or clinical_task_name in {"LAB_INTERPRETATION", "EXPOSURE_REACTION"}
+        )
         and settings.agent_mode == "enforced"
     )
     agent_eligible = agent_first_clinical or (
@@ -1000,7 +1013,7 @@ def _response(
         and intent in _active_research_agent_intents()
     )
     agent_patient_context = payload.context.model_dump(mode="json")
-    if intent in {"triage", "safety"}:
+    if intent in {"triage", "safety"} or clinical_task_name:
         agent_patient_context["last_result"] = None
     if agent_first_clinical:
         answer = answer_agent_pipeline.generate_response(
@@ -1244,6 +1257,84 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
             result={"urgency": "ROUTINE", "red_flags": []},
         )
 
+    # V13: task classification is independent from severity.  The emergency
+    # sentinel may raise urgency later, but it must never turn a lab question
+    # into an acute-triage task or hide an exposure-reaction question behind
+    # the generic fallback.
+    clinical_task_decision = resolve_clinical_task(latest_text)
+
+    if (
+        clinical_task_decision.task == ClinicalTask.LAB_INTERPRETATION
+        and not pre_ood_safety_floor.is_emergency
+    ):
+        lab_result = interpret_laboratory_text(latest_text)
+        lab_dict = lab_result.to_dict()
+        if lab_result.confidence < 0.60:
+            return _response(
+                payload,
+                ctx,
+                status="needs_information",
+                intent="general",
+                reply=lab_result.summary,
+                required_fields=["request_detail"],
+                extracted={"clinical_task": lab_result.clinical_task},
+                result=lab_dict,
+                allow_agent=False,
+            )
+        fallback_reply = " ".join(
+            [
+                lab_result.summary,
+                *lab_result.interpretation_points,
+                *lab_result.prohibited_actions,
+            ]
+        ).strip()
+        return _response(
+            payload,
+            ctx,
+            status="answered",
+            intent="general",
+            reply=fallback_reply,
+            extracted={
+                "clinical_task": lab_result.clinical_task,
+                "task_confidence": clinical_task_decision.confidence,
+            },
+            result=lab_dict,
+            agent_question=latest_text,
+            allow_agent=True,
+        )
+
+    if (
+        clinical_task_decision.task == ClinicalTask.EXPOSURE_REACTION
+        and not pre_ood_safety_floor.is_emergency
+    ):
+        exposure = evaluate_exposure_reaction(latest_text)
+        # Airway/systemic emergencies stay on the established acute-triage path
+        # so deterministic emergency actions remain authoritative.
+        if exposure.urgency != "EMERGENCY":
+            exposure_dict = exposure.to_dict()
+            fallback_reply = " ".join(
+                [
+                    exposure.summary,
+                    *exposure.prohibited_actions,
+                    *exposure.what_to_do_now,
+                    *exposure.warning_signs,
+                ]
+            ).strip()
+            return _response(
+                payload,
+                ctx,
+                status="answered",
+                intent="general",
+                reply=fallback_reply,
+                extracted={
+                    "clinical_task": exposure.clinical_task,
+                    "task_confidence": clinical_task_decision.confidence,
+                },
+                result=exposure_dict,
+                agent_question=latest_text,
+                allow_agent=True,
+            )
+
     intent = _detect_intent(payload, normalized)
     # Monitoring owns messages that contain extractable vital measurements; it
     # applies its own emergency escalation while preserving the monitoring API
@@ -1385,6 +1476,11 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
         # Never rescan the whole conversation after an episode switch: doing so
         # reintroduced an old emergency floor even after the ledger invalidated it.
         conversation_risk = "EMERGENCY" if (episode_context_used and ledger.has_active_emergency()) else None
+        temporal_syndrome = evaluate_temporal_syndrome(episode_text)
+        if temporal_syndrome.urgency == "EMERGENCY":
+            conversation_risk = "EMERGENCY"
+        elif temporal_syndrome.urgency == "URGENT" and conversation_risk != "EMERGENCY":
+            conversation_risk = "URGENT"
         if (
             not conversation_risk
             and episode_context_used
@@ -1443,6 +1539,8 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
                 ),
                 "medical_emergency_flag": result.urgency == "EMERGENCY",
                 "crisis_support_flag": dual_crisis.crisis_support_required,
+                "clinical_task": clinical_task_decision.task.value,
+                "temporal_syndrome": temporal_syndrome.to_dict(),
             },
             result=result,
             agent_question=episode_text,
