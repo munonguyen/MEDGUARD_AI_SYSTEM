@@ -263,9 +263,9 @@ _INTENT_KEYWORDS: dict[ChatIntent, tuple[str, ...]] = {
     "authenticity": ("hang gia", "hang nhai", "chinh hang", "quet qr", "kiem tra qr", "xac thuc thuoc"),
 }
 
-# The synchronous chat path is deliberately bounded and deterministic. Gateway
-# coverage is an explicit deployment contract: ``clinical`` reviews the two
-# patient-safety domains, while ``all`` reviews every public response type.
+# V14 treats ``all`` as the single-path response contract: every public response
+# is eligible for Writer -> non-authoring Reviewer processing. ``clinical`` is
+# retained only as an explicit compatibility/shadow scope.
 _RESEARCH_AGENT_INTENTS: set[ChatIntent] = set()
 _ALL_GATEWAY_INTENTS: set[ChatIntent] = {
     "general",
@@ -438,9 +438,6 @@ def _triage_episode_text(payload: ChatRequest, latest_text: str) -> tuple[str, b
     if not user_messages:
         return latest_text, False, False
 
-    # Keep a bounded candidate window, then run the same adjacent-turn episode
-    # selector used at the TriageRequest boundary. This prevents one component
-    # from seeing stale history that another component already discarded.
     candidate = "\n".join([
         *user_messages[-3:],
         f"Lượt hiện tại: {latest_text}",
@@ -480,8 +477,6 @@ def _detect_intent(payload: ChatRequest, normalized_text: str) -> ChatIntent:
     if payload.intent_hint != "auto":
         return payload.intent_hint
 
-    # Explicit product/control syntax has deterministic user intent and must
-    # never be overridden by historical clinical-risk scores from another turn.
     if "#lichthuoc" in normalized_text:
         return "schedule"
 
@@ -558,13 +553,6 @@ def _detect_intent(payload: ChatRequest, normalized_text: str) -> ChatIntent:
     if _requests_personalized_dose(normalized_text):
         scores["safety"] += 6
 
-    # A medication-safety question may also contain a symptom or the reason the
-    # medicine would be used (for example, "đau" in "uống ibuprofen để giảm
-    # đau được không").  Those symptom words must not win a tie and route the
-    # request away from the contraindication/allergy engine.  Only apply this
-    # priority when a medication in the governed knowledge base is explicitly
-    # present and the user asks about taking/combining it; generic symptom
-    # questions remain triage requests.
     has_known_medication = bool(_medication_occurrences(normalized_text))
     asks_medication_safety = any(
         marker in normalized_text
@@ -602,7 +590,6 @@ def _detect_intent(payload: ChatRequest, normalized_text: str) -> ChatIntent:
     if is_schedule_request:
         scores["schedule"] += 20
 
-    # Direct match against clinical emergency keywords & knowledge red flag patterns
     if any(contains_affirmed_phrase(normalized_text, term) for term in (
         "dau nguc", "tuc nguc", "nang nguc", "dau that nguc", "kho tho", "meo mieng",
         "ngat", "dot quy", "nhoi mau", "tim dap nhanh", "danh trong nguc", "yeu liet",
@@ -715,12 +702,7 @@ def _medication_occurrences(normalized_text: str) -> list[tuple[int, str]]:
 
 
 def _reported_medication_ingestion(normalized_text: str) -> dict[str, Any] | None:
-    """Build a bounded incident result when medicine was already ingested.
-
-    Utilizes pharmacokinetic dose reasoning when specific drugs and doses are
-    reported, otherwise falls back to governed structured incident tables.
-    """
-    # 1. Advanced Pharmacokinetic / Toxicological Dose Reasoning
+    """Build a bounded incident result when medicine was already ingested."""
     dose_assessment = evaluate_dose_reasoning(normalized_text)
     if dose_assessment is not None:
         return {
@@ -813,8 +795,6 @@ def _extract_safety(payload: ChatRequest, normalized_text: str) -> tuple[list[st
             normalized_text,
         )
     ):
-        # A single named medicine in a permission/safety question is the
-        # proposed medicine, not an unknown current medication.
         proposed = [name for _, name in occurrences]
 
     conditions = [condition.lower() for condition in payload.context.conditions]
@@ -999,8 +979,17 @@ def _response(
         if isinstance(serialized, dict) and serialized.get("clinical_task")
         else None
     )
+
+    # V14 single-path invariant: once coverage_scope=all is active, individual
+    # branches are not allowed to bypass Writer/Reviewer with allow_agent=False.
+    # The flag remains only for backward-compatible narrow-scope/shadow runs.
+    effective_allow_agent = allow_agent or (
+        settings.agent_coverage_scope == "all"
+        and settings.agent_mode in {"shadow", "enforced"}
+        and (settings.agent_sync_enabled or settings.agent_background_enabled)
+    )
     agent_first_clinical = (
-        allow_agent
+        effective_allow_agent
         and status == "answered"
         and (
             intent in {"triage", "safety"}
@@ -1009,7 +998,7 @@ def _response(
         and settings.agent_mode == "enforced"
     )
     agent_eligible = agent_first_clinical or (
-        allow_agent
+        effective_allow_agent
         and intent in _active_research_agent_intents()
     )
     agent_patient_context = payload.context.model_dump(mode="json")
@@ -1144,9 +1133,6 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
     latest_text = payload.messages[-1].content
     normalized = _normalize(latest_text)
 
-    # Candidate V10 invariant: clinical danger is assessed before OOD.  The
-    # OOD layer may decline unrelated content, but it has no downgrade authority
-    # once an independent clinical module establishes an emergency floor.
     from app.services.clinical_safety_floor import evaluate_clinical_safety_floor
     from app.services.dual_crisis_policy import (
         compose_dual_crisis_response,
@@ -1159,7 +1145,6 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
         clinical_emergency=pre_ood_safety_floor.is_emergency,
     )
 
-    # ── OOD & Crisis Guard (Tier 0 — runs before any clinical logic) ──
     ood_result: OODResult | None = ood_evaluate(latest_text)
     if ood_result is not None:
         if ood_result.verdict == "crisis_self_harm":
@@ -1176,8 +1161,6 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
                     },
                     agent_question=f"Deterministic guardrail verdict: {ood_result.verdict}",
                 )
-            # Dual crisis: keep both flags active and continue through medical
-            # triage.  Crisis support is composed back into the final response.
         elif ood_result.verdict.startswith("crisis") and not pre_ood_safety_floor.is_emergency:
             return _response(
                 payload,
@@ -1205,10 +1188,7 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
                 },
                 agent_question=f"Deterministic guardrail verdict: {ood_result.verdict}",
             )
-        # Emergency signal present: OOD downgrade/refusal authority is revoked.
 
-    # ── Clinical Conversation Guardrails (Conflict Detection & No Unsupported Diagnosis) ──
-    # Case 186: Age conflict detection
     if (
         ("25 tuổi" in latest_text and "72 tuổi" in latest_text)
         or ("25 tuoi" in normalized and "72 tuoi" in normalized)
@@ -1227,7 +1207,6 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
             result={"conflict_detected": True, "field": "age", "urgency": "ROUTINE"},
         )
 
-    # Case 195: Refusal of definitive unsupported diagnosis (appendicitis)
     if "chắc chắn" in latest_text and ("viêm ruột thừa" in latest_text or "viem ruot thua" in normalized):
         return _response(
             payload,
@@ -1242,7 +1221,6 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
             result={"urgency": "URGENT", "red_flags": ["nghi ngờ viêm ruột thừa cần khám"]},
         )
 
-    # Case 196: Refusal of 100% false guarantee
     if ("cam kết 100%" in latest_text or "chắc chắn 100%" in latest_text) and ("đau cơ" in latest_text or "dau co" in normalized):
         return _response(
             payload,
@@ -1257,10 +1235,6 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
             result={"urgency": "ROUTINE", "red_flags": []},
         )
 
-    # V13: task classification is independent from severity.  The emergency
-    # sentinel may raise urgency later, but it must never turn a lab question
-    # into an acute-triage task or hide an exposure-reaction question behind
-    # the generic fallback.
     clinical_task_decision = resolve_clinical_task(latest_text)
 
     if (
@@ -1279,7 +1253,7 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
                 required_fields=["request_detail"],
                 extracted={"clinical_task": lab_result.clinical_task},
                 result=lab_dict,
-                allow_agent=False,
+                allow_agent=True,
             )
         fallback_reply = " ".join(
             [
@@ -1308,8 +1282,6 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
         and not pre_ood_safety_floor.is_emergency
     ):
         exposure = evaluate_exposure_reaction(latest_text)
-        # Airway/systemic emergencies stay on the established acute-triage path
-        # so deterministic emergency actions remain authoritative.
         if exposure.urgency != "EMERGENCY":
             exposure_dict = exposure.to_dict()
             fallback_reply = " ".join(
@@ -1336,9 +1308,6 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
             )
 
     intent = _detect_intent(payload, normalized)
-    # Monitoring owns messages that contain extractable vital measurements; it
-    # applies its own emergency escalation while preserving the monitoring API
-    # contract.  All other emergency-floor messages are forced into triage.
     if (
         (pre_ood_safety_floor.is_emergency and not _extract_monitoring(latest_text))
         or dual_crisis.emergency_triage_required
@@ -1450,7 +1419,6 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
         "CHAT-" + sha256(f"{ctx.tenant_id}:{payload.conversation_id}".encode("utf-8")).hexdigest()[:16].upper()
     )
 
-    # V6 Architecture: Multi-Turn Clinical Event Ledger
     from app.services.clinical_event_ledger import ClinicalEventLedger
     from app.services.clinical_fact_parser import parse_semantic_clinical_facts
 
@@ -1460,8 +1428,6 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
             msg_facts = parse_semantic_clinical_facts(msg.content)
             ledger.process_turn(t_idx, msg.content, msg_facts)
 
-    # Emergency Intent Lock: Active emergency findings CANNOT be diverted by avoidance keywords
-    # but requests with extracted vital monitoring metrics proceed to monitoring engine for metric escalation
     has_monitoring_metrics = bool(_extract_monitoring(latest_text))
     latest_concept_norm = normalize_clinical_concepts(normalize_search_text(latest_text))
     has_active_emergency = ledger.has_active_emergency() or bool(_check_red_flag_patterns(latest_concept_norm))
@@ -1472,9 +1438,6 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
         episode_text, episode_context_used, episode_switched = _triage_episode_text(payload, latest_text)
         vital_signs = _extract_vital_signs(episode_text)
 
-        # Multi-turn risk memory is scoped to the selected active episode only.
-        # Never rescan the whole conversation after an episode switch: doing so
-        # reintroduced an old emergency floor even after the ledger invalidated it.
         conversation_risk = "EMERGENCY" if (episode_context_used and ledger.has_active_emergency()) else None
         temporal_syndrome = evaluate_temporal_syndrome(episode_text)
         if temporal_syndrome.urgency == "EMERGENCY":
@@ -1544,10 +1507,6 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
             },
             result=result,
             agent_question=episode_text,
-            # Every answered clinical triage case is submitted to the gateway
-            # shadow assessor. Emergency actions still come from deterministic
-            # rules immediately and never wait for, or get replaced by, the
-            # local model.
             allow_agent=True,
         )
         if not result.guidance_summary and resp.answer:
@@ -1596,7 +1555,7 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
                 reply=reply_text,
                 extracted={"patient_ref": patient_ref, "medication_incident": True},
                 result=reported_ingestion,
-                allow_agent=False,
+                allow_agent=True,
             )
         current, proposed, allergens, conditions = _extract_safety(payload, normalized)
         if not proposed:
