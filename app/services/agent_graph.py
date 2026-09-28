@@ -4,9 +4,10 @@ V14 keeps the dual-agent contract explicit:
 - Writer owns patient-facing composition from structured state/evidence.
 - Reviewer is a non-authoring quality gate. It may approve/reject and return
   revision issues, but never writes the patient response itself.
-- Legacy deterministic prose is never supplied to Writer/Reviewer as evidence.
-  Deterministic modules remain authoritative only for structured facts, safety
-  constraints and fail-safe fallback behavior.
+- Legacy deterministic presentation prose is hidden from the Writer so the
+  Writer composes an original answer instead of polishing a template.
+- Reviewer/gate may inspect the full claim registry as read-only verification
+  metadata so claim IDs, locked safety actions and source links remain auditable.
 """
 
 from __future__ import annotations
@@ -144,13 +145,15 @@ def _structured_legacy_envelope(state: MedicalAgentState) -> dict[str, Any]:
 
 
 def _agent_inputs(state: MedicalAgentState) -> tuple[list[dict[str, Any]], dict[str, Any]]:
-    """Return the only claims/envelope visible to Writer and Reviewer."""
+    """Return claims/envelope visible to the Writer.
+
+    The Writer does not receive legacy title/summary claims. The Reviewer uses
+    the original ``state.claims`` separately as read-only verification metadata;
+    otherwise existing claim IDs in a valid draft would become falsely unknown.
+    """
     if _is_agent_first_envelope(state.tool_result):
         return state.claims, state.tool_result
 
-    # title/summary are presentation artifacts in the legacy path. Excluding
-    # them prevents the model from paraphrasing the deterministic answer while
-    # retaining safety/finding/action/question constraints.
     visible_claims = [
         claim
         for claim in state.claims
@@ -227,12 +230,12 @@ class MedicalAgentGraph:
     ) -> bool:
         """Generate an original draft from structured state and evidence."""
         rag_contexts = [chunk.to_dict() for chunk in state.retrieved_chunks]
-        agent_claims, agent_envelope = _agent_inputs(state)
+        writer_claims, agent_envelope = _agent_inputs(state)
         research_payload: dict[str, Any] = {
             "locale": state.locale,
             "intent": state.intent,
             "user_question": redact_question_fn(state.question),
-            "domain_claims": agent_claims,
+            "domain_claims": writer_claims,
             "clinical_envelope": agent_envelope,
             "retrieved_contexts": rag_contexts,
             "trusted_source_domains": [*sorted(TRUSTED_MEDICAL_DOMAINS)],
@@ -313,7 +316,8 @@ class MedicalAgentGraph:
             return
 
         rag_contexts = [chunk.to_dict() for chunk in state.retrieved_chunks]
-        agent_claims, agent_envelope = _agent_inputs(state)
+        _, agent_envelope = _agent_inputs(state)
+        verification_claims = state.claims
         if self.web_search_required and not self.verifier_search_required:
             state.runtime_evidence = trusted_evidence_fetcher.fetch(
                 source.url for source in state.draft.sources
@@ -321,7 +325,7 @@ class MedicalAgentGraph:
 
         verifier_payload = {
             "intent": state.intent,
-            "domain_claims": agent_claims,
+            "domain_claims": verification_claims,
             "clinical_envelope": agent_envelope,
             "retrieved_contexts": rag_contexts,
             "draft": state.draft.model_dump(mode="json"),
@@ -392,7 +396,7 @@ class MedicalAgentGraph:
         reason = gate_reason_fn(
             draft=state.draft,
             verification=verification,
-            claims=agent_claims,
+            claims=verification_claims,
             provider_citations=state.generated_citations,
             provider_queries=state.generated_search_queries,
             verifier_citations=verified.citations,
