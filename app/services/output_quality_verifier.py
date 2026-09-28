@@ -69,7 +69,7 @@ def verify_output_quality(
             action_is_clear=False,
             language_is_understandable=False,
             missing_obligations=obligations.required_content,
-            repaired_text=get_deterministic_template_repair(obligations, clinical_state),
+            repaired_text=None,
         )
 
     norm = normalize_search_text(text)
@@ -120,9 +120,9 @@ def verify_output_quality(
         and language_is_understandable
     )
 
+    # Quality gate is deliberately non-authoring. A failure is routed back
+    # to the Writer/Reviewer loop or to the dedicated safe fallback path.
     repaired = None
-    if not is_valid:
-        repaired = get_deterministic_template_repair(obligations, clinical_state)
 
     return OutputQualityCheckResult(
         is_valid=is_valid,

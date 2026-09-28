@@ -151,6 +151,7 @@ class MedicalAgentGraph:
             "intent": state.intent,
             "user_question": redact_question_fn(state.question),
             "domain_claims": state.claims,
+            "clinical_envelope": state.tool_result,
             "retrieved_contexts": rag_contexts,
             "trusted_source_domains": [
                 *sorted(TRUSTED_MEDICAL_DOMAINS),
@@ -243,6 +244,7 @@ class MedicalAgentGraph:
         verifier_payload = {
             "intent": state.intent,
             "domain_claims": state.claims,
+            "clinical_envelope": state.tool_result,
             "retrieved_contexts": rag_contexts,
             "draft": state.draft.model_dump(mode="json"),
             "provider_citation_urls": list(state.generated_citations),

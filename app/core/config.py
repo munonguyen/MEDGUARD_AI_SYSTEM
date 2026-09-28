@@ -26,6 +26,16 @@ def _env_float(name: str, default: float) -> float:
     return default if value is None else float(value)
 
 
+def _default_agent_mode() -> str:
+    explicit = getenv("MEDGUARD_AGENT_MODE")
+    if explicit:
+        return explicit.lower()
+    if "pytest" in sys.modules or "PYTEST_CURRENT_TEST" in environ:
+        return "disabled"
+    environment = getenv("MEDGUARD_ENVIRONMENT", "development").lower()
+    return "enforced" if environment == "development" else "disabled"
+
+
 def _allowed_tenants() -> tuple[str, ...]:
     value = getenv("MEDGUARD_ALLOWED_TENANTS")
     if not value:
@@ -127,7 +137,7 @@ class Settings:
     enforce_consent: bool = field(default_factory=lambda: _env_bool("MEDGUARD_ENFORCE_CONSENT"))
 
     # Optional two-agent answer presentation and verification
-    agent_mode: str = field(default_factory=lambda: getenv("MEDGUARD_AGENT_MODE", "disabled").lower())
+    agent_mode: str = field(default_factory=_default_agent_mode)
     agent_coverage_scope: str = field(
         default_factory=lambda: getenv("MEDGUARD_AGENT_COVERAGE_SCOPE", "clinical").lower()
     )
@@ -244,7 +254,7 @@ class Settings:
         default_factory=lambda: _env_int("MEDGUARD_AGENT_MAX_INPUT_TOKENS", 12_000)
     )
     agent_max_iterations: int = field(
-        default_factory=lambda: _env_int("MEDGUARD_AGENT_MAX_ITERATIONS", 0)
+        default_factory=lambda: _env_int("MEDGUARD_AGENT_MAX_ITERATIONS", 1)
     )
     research_max_output_tokens: int = field(
         default_factory=lambda: _env_int("MEDGUARD_RESEARCH_MAX_OUTPUT_TOKENS", 700)
@@ -335,9 +345,9 @@ class Settings:
             raise ValueError(
                 "MEDGUARD_AGENT_TOTAL_TIMEOUT_SECONDS must be between 1 and 8 for the 10-second chat SLO"
             )
-        if self.agent_max_iterations != 0:
+        if self.agent_max_iterations not in {0, 1}:
             raise ValueError(
-                "MEDGUARD_AGENT_MAX_ITERATIONS must be 0 to preserve the 10-second chat SLO"
+                "MEDGUARD_AGENT_MAX_ITERATIONS must be 0 or 1; V12 permits one bounded reviewer revision within the total timeout"
             )
         for name, value in {
             "MEDGUARD_AGENT_MAX_INPUT_TOKENS": self.agent_max_input_tokens,

@@ -102,8 +102,7 @@ def test_output_quality_verifier_catches_unsafe_reassurance():
     assert result.is_valid is False
     assert result.contains_unsafe_reassurance is True
     assert "false_reassurance" in result.violated_forbidden
-    assert result.repaired_text is not None
-    assert "115" in result.repaired_text
+    assert result.repaired_text is None
 
 
 def test_output_quality_verifier_catches_unsupported_diagnosis():
@@ -113,7 +112,7 @@ def test_output_quality_verifier_catches_unsupported_diagnosis():
     result = verify_output_quality(unsupported_text, obligations)
     assert result.is_valid is False
     assert result.contains_unsupported_diagnosis is True
-    assert result.repaired_text is not None
+    assert result.repaired_text is None
 
 
 def test_deterministic_template_repair_dual_crisis():

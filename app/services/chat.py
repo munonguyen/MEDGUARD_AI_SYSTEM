@@ -989,14 +989,32 @@ def _response(
     )
     agent_status: str | None = None
     agent_submitted = False
-    agent_eligible = (
+    agent_first_clinical = (
+        allow_agent
+        and status == "answered"
+        and intent in {"triage", "safety"}
+        and settings.agent_mode == "enforced"
+    )
+    agent_eligible = agent_first_clinical or (
         allow_agent
         and intent in _active_research_agent_intents()
     )
     agent_patient_context = payload.context.model_dump(mode="json")
     if intent in {"triage", "safety"}:
         agent_patient_context["last_result"] = None
-    if agent_eligible and settings.agent_sync_enabled:
+    if agent_first_clinical:
+        answer = answer_agent_pipeline.generate_response(
+            fallback_answer=answer,
+            clinical_payload=serialized if isinstance(serialized, dict) else {},
+            intent=intent,
+            question=agent_question or payload.messages[-1].content,
+            request_id=ctx.request_id,
+            tenant_id=ctx.tenant_id,
+            conversation_id=payload.conversation_id,
+            locale=payload.locale,
+            patient_context=agent_patient_context,
+        )
+    elif agent_eligible and settings.agent_sync_enabled:
         answer = answer_agent_pipeline.enhance(
             answer=answer,
             intent=intent,
