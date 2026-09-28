@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from app.services.clinical_validation_governance import clinical_validation_readiness
+from app.services.readiness import build_readiness
 
 
 def test_pending_engineering_benchmark_is_not_clinical_validation() -> None:
@@ -62,3 +63,15 @@ def test_missing_metadata_fails_closed() -> None:
 
     assert status == "fail"
     assert "missing or unreadable" in detail
+
+
+def test_public_readiness_exposes_independent_clinical_validation_blocker() -> None:
+    readiness = build_readiness()
+    checks = {check.name: check for check in readiness.checks}
+
+    assert "independent_clinical_validation" in checks
+    check = checks["independent_clinical_validation"]
+    assert check.required_for_production is True
+    # The repository benchmark is intentionally pending clinician review today.
+    assert check.status == "fail"
+    assert readiness.production_ready is False
