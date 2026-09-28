@@ -160,3 +160,29 @@ def test_missing_adaptive_route_preserves_legacy_budget() -> None:
     )
     assert budget.max_input_tokens == 12000
     assert budget.max_output_tokens == 2400
+
+
+def test_real_kev_cannot_enter_enforced_mode_without_validated_calibration() -> None:
+    runtime = AdaptiveAgentRuntime(
+        AdaptiveAgentRuntimeConfig(
+            mode="enforced",
+            kev_base_url="http://kev:9000",
+            kev_calibration_status="unvalidated",
+            kev_calibration_version=None,
+        )
+    )
+    assert runtime.mode == "shadow"
+    assert runtime.kev.config.mode == "shadow"
+
+
+def test_real_kev_can_enter_enforced_mode_with_versioned_validated_calibration() -> None:
+    runtime = AdaptiveAgentRuntime(
+        AdaptiveAgentRuntimeConfig(
+            mode="enforced",
+            kev_base_url="http://kev:9000",
+            kev_calibration_status="validated",
+            kev_calibration_version="kev-medguard-2026-09-28-v1",
+        )
+    )
+    assert runtime.mode == "enforced"
+    assert runtime.kev.config.mode == "enforced"
