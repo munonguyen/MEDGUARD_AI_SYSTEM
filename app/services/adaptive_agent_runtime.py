@@ -146,7 +146,16 @@ class AdaptiveAgentRuntime:
         base_input_tokens: int,
         base_output_tokens: int,
     ) -> TokenBudget:
-        tier = route.model_tier if route is not None else ModelTier.STANDARD
+        # V15 must not change legacy/non-routed or pharmacology behavior merely
+        # because adaptive execution exists. Only a concrete adaptive route is
+        # allowed to tighten budgets.
+        if route is None:
+            return TokenBudget(
+                max_input_tokens=max(1, base_input_tokens),
+                max_output_tokens=max(1, base_output_tokens),
+            )
+
+        tier = route.model_tier
         input_limit = base_input_tokens
         output_limit = base_output_tokens
 
