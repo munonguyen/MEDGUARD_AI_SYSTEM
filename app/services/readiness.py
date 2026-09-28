@@ -10,6 +10,7 @@ from app.core.storage import storage_manager
 from app.knowledge.loader import knowledge
 from app.models.health import ReadinessCheck, ReadinessResponse
 from app.services.adaptive_agent_runtime import AdaptiveAgentRuntime, adaptive_agent_runtime
+from app.services.clinical_validation_governance import clinical_validation_readiness
 from app.services.ocr.detector import text_detector
 from app.services.ocr.recognizer import line_recognizer
 from app.services.circuit import CircuitState, model_circuit
@@ -187,6 +188,7 @@ def build_readiness() -> ReadinessResponse:
         )
 
     adaptive_status, adaptive_detail = adaptive_routing_readiness()
+    clinical_validation_status, clinical_validation_detail = clinical_validation_readiness()
 
     checks = [
         ReadinessCheck(
@@ -297,6 +299,12 @@ def build_readiness() -> ReadinessResponse:
             name="adaptive_routing_governance",
             status=adaptive_status,
             detail=adaptive_detail,
+            required_for_production=True,
+        ),
+        ReadinessCheck(
+            name="independent_clinical_validation",
+            status=clinical_validation_status,
+            detail=clinical_validation_detail,
             required_for_production=True,
         ),
     ]

@@ -21,6 +21,7 @@ from scripts.benchmark_professional_response import run_professional_response_be
 from scripts.benchmark_runtime import run_runtime_benchmark
 from scripts.benchmark_safety import run_allergy_benchmark, run_interaction_benchmark
 from scripts.benchmark_triage import run_triage_benchmark
+from scripts.evaluate_medical_response_quality import run_benchmark as run_medical_response_quality_benchmark
 from scripts.validate_external_datasets import validate_mimic_demo
 from scripts.validate_training_plane import validate_training_plane
 
@@ -40,6 +41,7 @@ def _run_iteration(iteration: int, profile: str) -> bool:
     adversarial = run_adversarial_benchmark()
     chat_hard = run_chat_hard_benchmark()
     output_quality = run_professional_response_benchmark()
+    medical_response_quality = run_medical_response_quality_benchmark()
     external_integrity = validate_mimic_demo()
     mimic = run_mimic_ed_benchmark()
     runtime = run_runtime_benchmark(iterations_per_endpoint=25)
@@ -60,6 +62,7 @@ def _run_iteration(iteration: int, profile: str) -> bool:
             adversarial["zero_default_catalog_violations"],
             chat_hard["gate_passed"],
             output_quality["gate_passed"],
+            medical_response_quality["gate_passed"],
             external_integrity["valid"],
             runtime["development_gate_passed"],
             llm_control["all_passed"],
@@ -79,6 +82,8 @@ def _run_iteration(iteration: int, profile: str) -> bool:
             mimic["severe_undertriage_rate"] <= 0.01,
             output_quality["critical_failures"] == [],
             output_quality["false_accepts"] == [],
+            medical_response_quality["critical_failures"] == 0,
+            medical_response_quality["subthreshold_cases"] == 0,
         )
     )
     passed = production_gate if profile == "production" else common_gate
@@ -93,6 +98,9 @@ def _run_iteration(iteration: int, profile: str) -> bool:
         f"chat_hard={chat_hard['passed']}/{chat_hard['total']} "
         f"output_quality={output_quality['correct']}/{output_quality['total']} "
         f"quality_score={output_quality['average_good_score']} "
+        f"medical_response_quality={medical_response_quality['average_score']}/14 "
+        f"medical_critical_failures={medical_response_quality['critical_failures']} "
+        f"medical_quality_p95_ms={medical_response_quality['p95_latency_ms']} "
         f"training_plane={'pass' if training_plane['all_passed'] else 'fail'} "
         f"readiness={readiness.status} production_ready={readiness.production_ready}"
     )
