@@ -30,6 +30,29 @@ _INQUIRY_PREFIX = re.compile(
     r"\b(?:doc\s+ve|tim\s+hieu\s+ve|nghe\s+noi\s+ve|lo\s+so\s+vi\s+doc\s+ve)\s*$",
     re.IGNORECASE,
 )
+_YES_NO_QUESTION_TAIL = re.compile(
+    r"^\s*(?:khong|ko|k)(?:\s+(?:a|ha|nhi|vay))?\s*(?:[?.!]|$)",
+    re.IGNORECASE,
+)
+_QUESTION_MODAL = re.compile(
+    r"(?:\b(?:lieu|khong\s+biet|muon\s+biet)\b|\bco\s*$)",
+    re.IGNORECASE,
+)
+
+
+def _occurrence_is_yes_no_question(text: str, start: int, end: int) -> bool:
+    """Return true when an occurrence is scoped inside a Vietnamese yes/no question.
+
+    The matcher operates on normalized text. It intentionally requires a
+    question-shaped tail such as ``khong?`` plus a nearby question modal, so a
+    factual clause such as ``toi co dau nguc, khong sot`` is not suppressed.
+    """
+    prefix = text[max(0, start - 96):start]
+    suffix = text[end:min(len(text), end + 32)]
+    if _YES_NO_QUESTION_TAIL.match(suffix) is None:
+        return False
+    clause = re.split(r"[.!?;]", prefix)[-1]
+    return _QUESTION_MODAL.search(clause) is not None
 
 # Pre-normalization dictionary for common Vietnamese mobile typing / teencode / phonetic typos
 _RAW_TYPO_MAP: list[tuple[re.Pattern[str], str]] = [
@@ -131,7 +154,10 @@ def contains_affirmed_phrase(text: str, phrase: str) -> bool:
                         not _NEGATION_CONTRAST.search(scoped_text)
                         and len(scoped_text.split()) <= 10
                     )
-        is_inquiry = _INQUIRY_PREFIX.search(prefix) is not None
+        is_inquiry = (
+            _INQUIRY_PREFIX.search(prefix) is not None
+            or _occurrence_is_yes_no_question(text, match.start(), match.end())
+        )
         if not directly_negated and not coordinated_negation and not is_inquiry:
             return True
     return False

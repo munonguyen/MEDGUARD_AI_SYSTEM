@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from time import perf_counter
 
 from app.core.context import RequestContext
@@ -11,6 +12,7 @@ from app.services.clinical_text import (
     contains_affirmed_phrase,
     extract_clinical_facts,
     filter_known_clarifying_questions,
+    normalize_search_text,
 )
 from app.services.rules import triage_rules
 
@@ -134,23 +136,90 @@ def _tailor_guidance(
 
     if topic not in {"abdominal_pain", "upper_abdominal_discomfort"}:
         return summary, questions
-    if not contains_affirmed_phrase(symptoms_text, "buồn nôn"):
+
+    norm = normalize_search_text(symptoms_text)
+    has_nausea = contains_affirmed_phrase(norm, "buon non")
+    location_label = None
+    for label, markers in (
+        ("vùng trên rốn", ("tren ron", "thuong vi", "dau da day")),
+        ("quanh rốn", ("quanh ron",)),
+        ("vùng bụng dưới", ("duoi bung", "bung duoi")),
+        ("bên phải bụng", ("ben phai bung", "bung ben phai")),
+        ("bên trái bụng", ("ben trai bung", "bung ben trai")),
+    ):
+        if any(contains_affirmed_phrase(norm, marker) for marker in markers):
+            location_label = label
+            break
+
+    meal_relation = None
+    if any(marker in norm for marker in ("tang khi doi", "khi doi", "luc doi", "doi bung")):
+        meal_relation = "tăng khi đói"
+    elif any(marker in norm for marker in ("sau khi an", "sau an", "an no", "sau bua an")):
+        meal_relation = "liên quan sau ăn"
+
+    has_burning = contains_affirmed_phrase(norm, "nong rat")
+    has_reflux = contains_affirmed_phrase(norm, "o chua")
+    has_high_information_detail = bool(location_label or meal_relation or has_burning or has_reflux)
+
+    if not has_high_information_detail:
+        if not has_nausea:
+            return summary, questions
+        if summary:
+            summary += (
+                " Bạn cũng đã mô tả cảm giác buồn nôn; cần làm rõ liệu đã nôn, "
+                "có uống được nước hay không và có dấu hiệu cảnh báo đi kèm không."
+            )
+        follow_up = (
+            "Bạn đã mô tả buồn nôn; bạn đã nôn chưa, có uống được nước không, "
+            "và có sốt, đầy hơi, ợ chua, tiêu chảy, táo bón, chướng hoặc cứng bụng không?"
+        )
+        questions = [question for question in questions if "buồn nôn" not in question]
+        questions.insert(min(2, len(questions)), follow_up)
         return summary, questions
 
-    if summary:
-        summary += (
-            " Bạn cũng đã mô tả cảm giác buồn nôn; cần làm rõ liệu đã nôn, "
-            "có uống được nước hay không và có dấu hiệu cảnh báo đi kèm không."
-        )
-    follow_up = (
-        "Bạn đã mô tả buồn nôn; bạn đã nôn chưa, có uống được nước không, "
-        "và có sốt, đầy hơi, ợ chua, tiêu chảy, táo bón, chướng hoặc cứng bụng không?"
+    details: list[str] = []
+    if location_label:
+        details.append(f"khó chịu/đau ở {location_label}")
+    if meal_relation:
+        details.append(meal_relation)
+    if has_nausea:
+        details.append("kèm buồn nôn")
+    if has_burning and has_reflux:
+        details.append("kèm nóng rát và ợ chua")
+    elif has_burning:
+        details.append("kèm nóng rát")
+    elif has_reflux:
+        details.append("kèm ợ chua")
+
+    summary = (
+        "Thông tin hiện đã rõ hơn: " + ", ".join(details) + ". "
+        "Những dữ kiện này giúp thu hẹp đánh giá nhưng chưa đủ để xác định nguyên nhân cụ thể."
     )
-    questions = [question for question in questions if "buồn nôn" not in question]
-    # Narrative rendering intentionally limits follow-up prompts to three.
-    # Put the user's newly reported symptom inside that visible priority set.
-    questions.insert(min(2, len(questions)), follow_up)
-    return summary, questions
+
+    refined_questions: list[str] = []
+    severity_known = bool(re.search(r"\b(?:10|[0-9])\s*/\s*10\b", norm))
+    if not severity_known:
+        refined_questions.append("Mức đau hiện tại từ 0 đến 10 là bao nhiêu và có đang tăng nhanh không?")
+    onset_known = bool(re.search(r"\b(?:tu sang|tu trua|tu toi|hom nay|hom qua|\d+\s*(?:gio|ngay|tuan)|bat dau)\b", norm))
+    if not onset_known:
+        refined_questions.append("Triệu chứng bắt đầu từ khi nào và diễn tiến liên tục hay từng cơn?")
+    if not meal_relation:
+        refined_questions.append("Cảm giác thay đổi thế nào khi đói, trong bữa ăn hoặc sau khi ăn?")
+    vomiting_known = any(
+        marker in norm
+        for marker in ("da non", "bi non", "non oi", "non ra", "khong non", "chua non")
+    )
+    if has_nausea and not vomiting_known:
+        refined_questions.append("Bạn đã nôn chưa và hiện có uống giữ được nước không?")
+    if not (has_burning or has_reflux):
+        refined_questions.append("Bạn có kèm nóng rát, ợ chua hoặc cảm giác trào lên cổ họng không?")
+
+    # Preserve one explicit safety check while keeping the conversational surface
+    # short. The full safety-net remains in result.safety_net.
+    refined_questions.append(
+        "Có đau tăng dữ dội, bụng cứng/chướng nhiều, ngất, nôn ra máu hoặc đi ngoài phân đen không?"
+    )
+    return summary, list(dict.fromkeys(refined_questions))[:3]
 
 
 from app.services.semantic_risk import safe_semantic_evaluate, semantic_risk_evaluator
@@ -285,15 +354,21 @@ def evaluate_triage(
         esi_level = 4
 
     guidance = knowledge.find_symptom_guidance(payload.symptoms_text)
-    use_guidance = guidance is not None and (
+    has_guidance = guidance is not None
+    use_guidance_actions = has_guidance and (
         final_urgency == "ROUTINE" or guidance.get("topic") == "lower_limb_pain"
     )
     guidance_summary, guidance_questions = (
         _tailor_guidance(guidance, payload.symptoms_text)
-        if use_guidance and guidance is not None
+        if has_guidance and guidance is not None
         else (None, [])
     )
-    clarifying_questions = guidance_questions if use_guidance else rule.clarifying_questions
+    if final_urgency == "URGENT" and guidance_summary:
+        guidance_summary = (
+            guidance_summary.rstrip()
+            + " Do mức độ triệu chứng hiện tại, bạn nên được nhân viên y tế đánh giá trực tiếp sớm trong ngày."
+        )
+    clarifying_questions = guidance_questions if has_guidance else rule.clarifying_questions
     if emergency_flag:
         clarifying_questions = []
     else:
@@ -301,11 +376,29 @@ def evaluate_triage(
 
     clinical_hypotheses = (
         [str(item) for item in guidance.get("clinical_hypotheses", [])]
-        if use_guidance and guidance
+        if use_guidance_actions and guidance
         else []
     )
     specialty = None
-    if rule.recommended_specialty:
+    guidance_specialty = None
+    if use_guidance_actions and guidance and final_urgency == "ROUTINE":
+        guidance_specialty = {
+            "back_pain": ("MUSCULOSKELETAL", "Cơ xương khớp"),
+            "neck_shoulder_pain": ("MUSCULOSKELETAL", "Cơ xương khớp"),
+            "muscle_strain_overexertion": ("MUSCULOSKELETAL", "Cơ xương khớp"),
+            "lower_limb_pain": ("MUSCULOSKELETAL", "Cơ xương khớp"),
+            "ankle_sprain": ("ORTHOPEDICS", "Chấn thương Chỉnh hình"),
+            "abdominal_pain": ("GASTROENTEROLOGY", "Tiêu hóa"),
+            "upper_abdominal_discomfort": ("GASTROENTEROLOGY", "Tiêu hóa"),
+            "headache": ("NEUROLOGY", "Thần kinh"),
+        }.get(str(guidance.get("topic", "")))
+    if guidance_specialty:
+        specialty = RecommendedSpecialty(
+            code=guidance_specialty[0],
+            label=guidance_specialty[1],
+            confidence=0.86,
+        )
+    elif rule.recommended_specialty:
         specialty = RecommendedSpecialty(
             code=rule.recommended_specialty[0],
             label=rule.recommended_specialty[1],
@@ -317,7 +410,7 @@ def evaluate_triage(
         advice = "Tình trạng có dấu hiệu nguy kịch cần liên hệ cấp cứu 115 hoặc đến cơ sở y tế gần nhất ngay lập tức."
     elif final_urgency == "URGENT" and rule.urgency in ("ROUTINE", "UNRESOLVED"):
         advice = "Nên được nhân viên y tế đánh giá sớm trong ngày; nếu triệu chứng nặng lên, hãy đến cơ sở cấp cứu."
-    elif use_guidance and guidance and guidance.get("advice"):
+    elif use_guidance_actions and guidance and guidance.get("advice"):
         advice = str(guidance.get("advice"))
 
     response = TriageResponse(
@@ -329,8 +422,12 @@ def evaluate_triage(
         recommended_specialty=specialty,
         red_flags=merged_red_flags,
         clarifying_questions=clarifying_questions,
-        self_care=[str(value) for value in guidance.get("self_care", [])] if use_guidance else [],
-        safety_net=[str(value) for value in guidance.get("safety_net", [])] if use_guidance else [],
+        self_care=[str(value) for value in guidance.get("self_care", [])] if use_guidance_actions else [],
+        safety_net=(
+            [str(value) for value in guidance.get("safety_net", [])]
+            if has_guidance and guidance and final_urgency in {"ROUTINE", "URGENT"}
+            else []
+        ),
         guidance_summary=guidance_summary,
         clinical_hypotheses=clinical_hypotheses,
         advice=advice,
@@ -354,9 +451,11 @@ def evaluate_triage(
                 ),
                 "conversation_risk": conversation_risk,
                 "resolution_source": resolved.source,
+                "resolution_reasons": list(resolved.reasons),
                 "confidence": resolved.confidence,
                 "semantic_status": resolved.semantic_status.value if hasattr(resolved.semantic_status, "value") else str(resolved.semantic_status),
-                "symptom_guidance": guidance.get("topic") if use_guidance else None,
+                "symptom_guidance": guidance.get("topic") if has_guidance and guidance else None,
+                "guidance_actions_applied": bool(use_guidance_actions),
                 "knowledge_integrity": knowledge.integrity_report(),
             },
         ),

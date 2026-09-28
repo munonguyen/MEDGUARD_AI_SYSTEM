@@ -194,7 +194,6 @@ def _sanitize_clinical_response(answer: GroundedAnswer) -> GroundedAnswer:
                 )
             )
 
-    # Invariant: An emergency response MUST explicitly instruct immediate emergency action
     if not has_emergency_action:
         cleaned_blocks.append(
             AnswerNarrativeBlock(
@@ -311,9 +310,9 @@ def _triage_answer(
             summary = (
                 "Thông tin bạn mô tả khớp với dấu hiệu cảnh báo khẩn cấp trong quy tắc "
                 "phân luồng. Bạn cần được nhân viên cấp cứu đánh giá ngay; hệ thống không "
-                "xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này."
+                "xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; đồng thời không thể "
+                "khẳng định chẩn đoán từ xa."
             )
-        # Emergency Override: strictly disable routine self-care and home monitoring advice
         next_steps = [
             "Dừng ngay mọi hoạt động đang làm hoặc gắng sức, ở nơi an toàn và nhờ người bên cạnh hỗ trợ trong khi liên hệ cấp cứu.",
             str(result.get("advice") or "Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay lập tức; không tự lái xe."),
@@ -339,6 +338,11 @@ def _triage_answer(
         next_steps = [str(value) for value in result.get("self_care", [])]
         if result.get("advice"):
             next_steps.append(str(result["advice"]))
+        if not next_steps:
+            next_steps.append(
+                "Với mức phân luồng hiện tại, bạn nên sắp xếp đánh giá y tế trực tiếp sớm; "
+                "nếu triệu chứng tăng nhanh hoặc xuất hiện dấu hiệu cảnh báo mới, hãy chuyển sang cơ sở cấp cứu."
+            )
         questions = [str(value) for value in result.get("clarifying_questions", [])]
         safety_notes = [str(value) for value in result.get("safety_net", [])]
         clinical_hypotheses = [str(value) for value in result.get("clinical_hypotheses", [])]
@@ -350,6 +354,11 @@ def _triage_answer(
         next_steps = [str(value) for value in result.get("self_care", [])]
         if result.get("advice"):
             next_steps.append(str(result["advice"]))
+        if not next_steps:
+            next_steps.append(
+                "Nếu triệu chứng vẫn nhẹ và ổn định, bạn có thể tiếp tục theo dõi tại nhà; "
+                "nếu không cải thiện, tái diễn nhiều lần hoặc ảnh hưởng sinh hoạt, hãy sắp xếp khám trực tiếp."
+            )
         questions = [str(value) for value in result.get("clarifying_questions", [])]
         safety_notes = [str(value) for value in result.get("safety_net", [])]
         clinical_hypotheses = [str(value) for value in result.get("clinical_hypotheses", [])]
@@ -359,7 +368,7 @@ def _triage_answer(
         summary=summary,
         clinical_hypotheses=clinical_hypotheses,
         key_points=key_points,
-        next_steps=next_steps,
+        next_steps=list(dict.fromkeys(next_steps)),
         safety_notes=safety_notes,
         questions=questions,
         decision_basis="versioned_rules",
@@ -424,10 +433,6 @@ def _safety_answer(result: dict[str, Any], sources: list[ChatEvidenceSource]) ->
         if warning.get("clinical_consequence"):
             point += f" Hệ quả được ghi nhận: {warning['clinical_consequence']}"
         key_points.append(point)
-        # A HARD_STOP recommendation in the knowledge table may contain a
-        # possible replacement drug. Do not surface it as personalized advice
-        # from chat; the contraindication remains visible and a clinician or
-        # pharmacist must select any alternative after reviewing the patient.
         if warning.get("recommendation") and warning.get("tier") != "HARD_STOP":
             next_steps.append(str(warning["recommendation"]))
     key_points.extend(f"Chưa xác định được hoạt chất: {value}" for value in unknown)

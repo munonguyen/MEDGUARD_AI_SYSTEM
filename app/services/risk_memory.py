@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import re
 
-from app.services.clinical_text import normalize_search_text
+from app.services.clinical_text import contains_affirmed_phrase, normalize_search_text
 from app.services.triage_resolver import URGENCY_RANK, highest_urgency
 
 
@@ -102,6 +102,122 @@ _REPLACEMENT_FACT_PATTERNS: tuple[str, ...] = (
     r"\b(nham sang|khong phai toi|hoi ho nguoi nha|benh cua me|benh cua bo|benh cua con|chua tung)\b",
     r"\b(chi dau co vai|chi moi tay|chi hoi che do an|chua tung bi|nguoi nha bi)\b",
 )
+
+
+# Episode detection is intentionally a lexical/semantic routing aid only.  These
+# markers never determine diagnosis, urgency, specialty, or patient-facing text.
+# They only decide whether previous acute symptom state belongs to the current
+# complaint.  Keep markers specific enough to represent a chief complaint, not
+# generic associated symptoms such as nausea or fatigue.
+_EPISODE_DOMAIN_MARKERS: dict[str, tuple[str, ...]] = {
+    "dental": (
+        "dau rang",
+        "e buot rang",
+        "nhuc rang",
+        "sung loi",
+        "sung nuou",
+    ),
+    "gastrointestinal": (
+        "dau bung",
+        "dau thuong vi",
+        "thuong vi",
+        "vung tren ron",
+        "tren ron",
+        "dau da day",
+        "nong rat da day",
+        "nong rat bung",
+        "bung con cao",
+        "con cao",
+        "kho chiu o bung",
+        "o chua",
+        "tieu chay",
+        "tao bon",
+        "phan den",
+        "non ra mau",
+    ),
+    "cardiorespiratory": (
+        "dau nguc",
+        "tuc nguc",
+        "nang nguc",
+        "dau that nguc",
+        "danh trong nguc",
+        "hoi hop",
+        "kho tho",
+        "hut hoi",
+    ),
+    "neurovestibular": (
+        "chong mat",
+        "choang vang",
+        "hoa mat",
+        "toi sam",
+        "sap ngat",
+        "ngat xiu",
+        "dau dau",
+        "meo mieng",
+        "noi ngong",
+        "kho noi",
+    ),
+    "musculoskeletal_spine": (
+        "dau lung",
+        "moi lung",
+        "that lung",
+        "dau co",
+        "moi co",
+        "dau vai",
+        "vai gay",
+        "dau khop",
+        "dau bap chan",
+        "dau chan",
+        "te chan",
+        "lan xuong chan",
+        "lan xuong mong",
+        "yeu chan",
+    ),
+    "dermatology": (
+        "phat ban",
+        "noi man",
+        "ngua da",
+        "zona",
+        "benh ghe",
+        "nam da",
+    ),
+}
+
+_EPISODE_CONTINUATION_MARKERS: tuple[str, ...] = (
+    "van ",
+    "van con",
+    "van bi",
+    "ngoai ra",
+    "them nua",
+    "kem theo",
+    "cung luc",
+    "va gio",
+    "trieu chung nay",
+    "con dau nay",
+    "luc nay",
+    "tu luc do",
+)
+
+
+def infer_episode_domain(text: str) -> str | None:
+    """Return a lightweight chief-complaint domain for episode routing only.
+
+    This is deliberately *not* a clinical diagnosis classifier.  Keyword hits
+    are treated as weak routing signals so unrelated acute complaints do not
+    inherit stale symptoms, triage floors, specialties, or quick replies.
+    """
+    norm = normalize_search_text(text)
+    matches: list[tuple[int, str]] = []
+    for domain, markers in _EPISODE_DOMAIN_MARKERS.items():
+        for marker in markers:
+            pos = norm.find(marker)
+            if pos >= 0 and contains_affirmed_phrase(norm, marker):
+                matches.append((pos, domain))
+                break
+    if not matches:
+        return None
+    matches.sort(key=lambda item: item[0])
+    return matches[0][1]
 
 
 def is_explicit_correction(text: str) -> bool:
@@ -210,8 +326,15 @@ def merge_risk(
     )
 
 
-def should_start_new_episode(latest_text: str) -> bool:
-    """Determine if user explicitly switches to a completely new unrelated problem."""
+def should_start_new_episode(latest_text: str, previous_text: str | None = None) -> bool:
+    """Determine whether the latest user turn starts an unrelated clinical episode.
+
+    Explicit switch phrases remain authoritative.  When a previous user turn is
+    provided, a strong chief-complaint domain change is also treated as a new
+    episode unless the latest text explicitly indicates continuation/addition.
+    This keeps keywords in their intended role: routing signals only, never
+    clinical truth or response-template selectors.
+    """
     norm = normalize_search_text(latest_text)
     explicit_markers = (
         "yeu cau moi",
@@ -227,4 +350,21 @@ def should_start_new_episode(latest_text: str) -> bool:
         "benh truoc da khoi",
         "chuyen cu da xong",
     )
-    return any(marker in norm for marker in explicit_markers)
+    if any(marker in norm for marker in explicit_markers):
+        return True
+
+    if not previous_text:
+        return False
+
+    # Phrases such as "vẫn...", "ngoài ra...", "kèm theo..." indicate that
+    # the user is extending the current episode rather than replacing it.
+    if any(marker in norm for marker in _EPISODE_CONTINUATION_MARKERS):
+        return False
+
+    previous_domain = infer_episode_domain(previous_text)
+    current_domain = infer_episode_domain(latest_text)
+    return bool(
+        previous_domain
+        and current_domain
+        and previous_domain != current_domain
+    )

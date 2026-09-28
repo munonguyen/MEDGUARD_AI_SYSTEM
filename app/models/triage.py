@@ -5,6 +5,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.models.common import DisclaimerMixin, Status, Trace
+from app.services.episode_context import select_active_episode_text
 
 
 class CurrentMedication(BaseModel):
@@ -40,6 +41,21 @@ class TriageRequest(BaseModel):
         if not value:
             raise ValueError("patient_ref must not be blank")
         return value
+
+    @field_validator("symptoms_text")
+    @classmethod
+    def symptoms_text_must_use_active_episode(cls, value: str) -> str:
+        """Keep direct triage input unchanged, but isolate chat episode history.
+
+        The chat orchestrator serializes recent user turns and prefixes the latest
+        one with ``Lượt hiện tại:``.  Active-episode filtering happens here at the
+        request boundary so the frozen V10 triage engine remains byte-for-byte
+        unchanged and keyword signals cannot contaminate downstream reasoning.
+        """
+        value = value.strip()
+        if not value:
+            raise ValueError("symptoms_text must not be blank")
+        return select_active_episode_text(value).text
 
 
 class RecommendedSpecialty(BaseModel):

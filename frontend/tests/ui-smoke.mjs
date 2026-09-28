@@ -103,6 +103,9 @@ try {
     throw new Error('Routine guidance must render as conversational prose without a status badge');
   }
   await abdominalAnswer.getByText(/Khi nói “sốt ruột”/).waitFor();
+  if (await abdominalAnswer.getByText(/Gateway|Nguồn chưa ghi nhận phê duyệt|Nguồn đang chờ chuyên gia duyệt/).count()) {
+    throw new Error('Internal gateway/knowledge governance metadata must not render in patient chat');
+  }
   if (await abdominalAnswer.getByText(/Điều phối tiếp theo|Thêm dấu hiệu sinh tồn|Xuất FHIR/).count()) {
     throw new Error('Automatic workflow shortcuts must not interrupt the conversational answer');
   }
