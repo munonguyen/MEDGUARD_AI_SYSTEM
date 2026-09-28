@@ -22,6 +22,19 @@ def _float_env(name: str, default: float) -> float:
         return default
 
 
+def _int_env(name: str, default: int) -> int:
+    try:
+        return max(1, int(os.getenv(name, str(default))))
+    except (TypeError, ValueError):
+        return default
+
+
+@dataclass(frozen=True)
+class TokenBudget:
+    max_input_tokens: int
+    max_output_tokens: int
+
+
 @dataclass(frozen=True)
 class AdaptiveAgentRuntimeConfig:
     mode: str = "shadow"
@@ -33,6 +46,13 @@ class AdaptiveAgentRuntimeConfig:
     deep_writer_model: str | None = None
     writer_fallback_models: tuple[str, ...] = ()
     verifier_fallback_models: tuple[str, ...] = ()
+    fast_max_input_tokens: int = 7000
+    fast_max_output_tokens: int = 900
+    standard_max_input_tokens: int = 10000
+    standard_max_output_tokens: int = 1400
+    verifier_fast_max_output_tokens: int = 700
+    verifier_standard_max_output_tokens: int = 900
+    verifier_deep_max_output_tokens: int = 1200
 
     @classmethod
     def from_env(cls) -> "AdaptiveAgentRuntimeConfig":
@@ -46,6 +66,13 @@ class AdaptiveAgentRuntimeConfig:
             deep_writer_model=(os.getenv("MEDGUARD_DEEP_WRITER_MODEL") or None),
             writer_fallback_models=_csv(os.getenv("MEDGUARD_WRITER_FALLBACK_MODELS")),
             verifier_fallback_models=_csv(os.getenv("MEDGUARD_VERIFIER_FALLBACK_MODELS")),
+            fast_max_input_tokens=_int_env("MEDGUARD_FAST_MAX_INPUT_TOKENS", 7000),
+            fast_max_output_tokens=_int_env("MEDGUARD_FAST_MAX_OUTPUT_TOKENS", 900),
+            standard_max_input_tokens=_int_env("MEDGUARD_STANDARD_MAX_INPUT_TOKENS", 10000),
+            standard_max_output_tokens=_int_env("MEDGUARD_STANDARD_MAX_OUTPUT_TOKENS", 1400),
+            verifier_fast_max_output_tokens=_int_env("MEDGUARD_VERIFIER_FAST_MAX_OUTPUT_TOKENS", 700),
+            verifier_standard_max_output_tokens=_int_env("MEDGUARD_VERIFIER_STANDARD_MAX_OUTPUT_TOKENS", 900),
+            verifier_deep_max_output_tokens=_int_env("MEDGUARD_VERIFIER_DEEP_MAX_OUTPUT_TOKENS", 1200),
         )
 
 
@@ -53,8 +80,8 @@ class AdaptiveAgentRuntime:
     """Resolve execution routing without owning the clinical decision.
 
     The clinical envelope is read-only. The runtime may choose an execution
-    agent/model tier or request a deeper uncertainty path, but it never mutates
-    ``clinical_result.urgency``. Provider/model fallback is therefore orthogonal
+    agent/model tier, token budget, or provider model ladder, but it never
+    mutates ``clinical_result.urgency``. Model fallback is therefore orthogonal
     to clinical severity.
     """
 
@@ -110,6 +137,41 @@ class AdaptiveAgentRuntime:
 
     def verifier_models(self, *, default_model: str) -> tuple[str, ...]:
         return self._dedupe((default_model, *self.config.verifier_fallback_models))
+
+    def token_budget(
+        self,
+        *,
+        route: AdaptiveRouteDecision | None,
+        role: str,
+        base_input_tokens: int,
+        base_output_tokens: int,
+    ) -> TokenBudget:
+        tier = route.model_tier if route is not None else ModelTier.STANDARD
+        input_limit = base_input_tokens
+        output_limit = base_output_tokens
+
+        if tier == ModelTier.FAST:
+            input_limit = min(input_limit, self.config.fast_max_input_tokens)
+            if role == "verifier":
+                output_limit = min(output_limit, self.config.verifier_fast_max_output_tokens)
+            else:
+                output_limit = min(output_limit, self.config.fast_max_output_tokens)
+        elif tier == ModelTier.STANDARD:
+            input_limit = min(input_limit, self.config.standard_max_input_tokens)
+            if role == "verifier":
+                output_limit = min(output_limit, self.config.verifier_standard_max_output_tokens)
+            else:
+                output_limit = min(output_limit, self.config.standard_max_output_tokens)
+        elif role == "verifier":
+            output_limit = min(output_limit, self.config.verifier_deep_max_output_tokens)
+
+        # Deep Writer keeps the caller's full budget. Emergency/uncertain routes
+        # are deliberately DEEP, so cost optimization can never truncate the
+        # highest-risk clinical path below its configured baseline.
+        return TokenBudget(
+            max_input_tokens=max(1, input_limit),
+            max_output_tokens=max(1, output_limit),
+        )
 
     @staticmethod
     def _dedupe(models: tuple[str, ...]) -> tuple[str, ...]:
