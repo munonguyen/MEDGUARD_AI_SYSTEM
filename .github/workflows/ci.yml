@@ -109,3 +109,57 @@ jobs:
 
       - name: Build production workspace
         run: npm run build
+
+  release-evidence:
+    name: Release evidence bundle
+    needs:
+      - backend
+      - response-quality
+      - frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Generate integrity-bound release evidence
+        run: python scripts/generate_release_evidence.py --output artifacts/release_evidence.json
+
+      - name: Verify manifest is valid but does not self-authorize production
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from scripts.generate_release_evidence import validate_release_evidence
+
+          path = Path("artifacts/release_evidence.json")
+          payload = json.loads(path.read_text(encoding="utf-8"))
+          valid, errors = validate_release_evidence(payload)
+          if not valid:
+              raise SystemExit("invalid release evidence: " + ",".join(errors))
+          print(
+              "release_evidence_valid=true "
+              f"production_release_eligible={str(bool(payload.get('production_release_eligible'))).lower()} "
+              f"blockers={','.join(payload.get('release_blockers') or []) or 'none'} "
+              f"digest={payload.get('evidence_digest')}"
+          )
+          PY
+
+      - name: Upload release evidence bundle
+        uses: actions/upload-artifact@v6
+        with:
+          name: medguard-release-evidence-${{ github.sha }}
+          path: artifacts/release_evidence.json
+          if-no-files-found: error
+          retention-days: 30
