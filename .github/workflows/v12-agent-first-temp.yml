@@ -10,6 +10,7 @@ on:
       - scripts/fix_v12_iteration_guard_temp.py
       - scripts/fix_v12_contract_test_temp.py
       - scripts/fix_v12_shadow_semantics_temp.py
+      - scripts/fix_v12_generated_whitespace_temp.py
       - .github/workflows/v12-agent-first-temp.yml
 
 permissions:
@@ -48,6 +49,9 @@ jobs:
 
       - name: Apply V12 agent-first patch
         run: python scripts/apply_agent_first_v12_temp.py
+
+      - name: Normalize generated source whitespace
+        run: python scripts/fix_v12_generated_whitespace_temp.py
 
       - name: Compile application
         run: python -m compileall -q app scripts training
