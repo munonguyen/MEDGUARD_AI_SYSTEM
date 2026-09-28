@@ -13,6 +13,9 @@ from app.services.agent_provider import ModelProviderError, ProviderResult
 from app.services.llm_control_plane import policy_for_intent
 
 
+RUNTIME_SOURCE_URL = "https://www.nice.org.uk/guidance/cg88"
+
+
 class ModelAwareProvider:
     def __init__(self, name: str, data: Any, *, fail_models: set[str] | None = None) -> None:
         self.provider_name = name
@@ -42,21 +45,36 @@ def _draft() -> AgentDraft:
         {
             "question_analysis": {
                 "interpreted_request": "Đánh giá triệu chứng.",
-                "key_questions": [],
+                "key_questions": ["Có dấu hiệu cảnh báo mới hay không?"],
                 "ambiguities": [],
                 "risk_level": "low",
             },
-            "evidence_claims": [],
+            "evidence_claims": [
+                {
+                    "claim_id": "ext_runtime_guidance",
+                    "text": "Theo dõi triệu chứng và thực hiện hướng dẫn đã được xác nhận.",
+                    "source_ids": ["src_runtime"],
+                }
+            ],
             "narrative": [
                 {
                     "kind": "paragraph",
                     "text": "Theo dõi triệu chứng và thực hiện hướng dẫn đã được xác nhận.",
                     "emphasis": [],
-                    "claim_ids": [],
-                    "source_ids": [],
+                    "claim_ids": ["ext_runtime_guidance"],
+                    "source_ids": ["src_runtime"],
                 }
             ],
-            "sources": [],
+            "sources": [
+                {
+                    "source_id": "src_runtime",
+                    "title": "Clinical guidance",
+                    "publisher": "NICE",
+                    "url": RUNTIME_SOURCE_URL,
+                    "authority_tier": "guideline_or_regulator",
+                    "supports_claim_ids": ["ext_runtime_guidance"],
+                }
+            ],
             "notes": "runtime test",
         }
     )
