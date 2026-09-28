@@ -7,7 +7,7 @@ on:
 
 jobs:
   apply-and-validate:
-    if: ${{ !contains(github.event.head_commit.message, 'feat: apply V14 adaptive severity routing') }}
+    if: "${{ !contains(github.event.head_commit.message, 'feat: apply V14 adaptive severity routing') }}"
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
