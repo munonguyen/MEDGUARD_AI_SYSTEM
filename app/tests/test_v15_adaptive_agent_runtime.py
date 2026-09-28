@@ -143,3 +143,20 @@ def test_verifier_budget_is_bounded_but_not_bypassed() -> None:
     )
     assert budget.max_input_tokens <= 7000
     assert budget.max_output_tokens == 600
+
+
+def test_missing_adaptive_route_preserves_legacy_budget() -> None:
+    runtime = AdaptiveAgentRuntime(
+        AdaptiveAgentRuntimeConfig(
+            standard_max_input_tokens=1000,
+            standard_max_output_tokens=100,
+        )
+    )
+    budget = runtime.token_budget(
+        route=None,
+        role="answer",
+        base_input_tokens=12000,
+        base_output_tokens=2400,
+    )
+    assert budget.max_input_tokens == 12000
+    assert budget.max_output_tokens == 2400
