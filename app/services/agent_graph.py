@@ -1,13 +1,17 @@
 """StateGraph orchestrator for MedGuard AI (Harness -> Graph -> bounded Loop).
 
-V14 keeps the dual-agent contract explicit:
+V15 preserves the V14 authority contract while adding adaptive execution:
 - Writer owns patient-facing composition from structured state/evidence.
-- Reviewer is a non-authoring quality gate. It may approve/reject and return
-  revision issues, but never writes the patient response itself.
-- Legacy deterministic presentation prose is hidden from the Writer so the
-  Writer composes an original answer instead of polishing a template.
-- Reviewer/gate may inspect the full claim registry as read-only verification
-  metadata so claim IDs, locked safety actions and source links remain auditable.
+- Reviewer is a mandatory non-authoring quality gate.
+- Clinical severity remains owned by the deterministic safety/clinical stack.
+- Kev/adaptive routing may choose execution agent/model tier, never rewrite
+  clinical severity.
+- Provider/model fallback stays inside the selected execution path and never
+  changes clinical severity or bypasses Reviewer.
+- A deterministic professional-response gate runs after Reviewer approval and
+  may still reject unsafe, generic or system-jargon patient-facing prose.
+- FAST/STANDARD routes use bounded token budgets while DEEP emergency/uncertain
+  Writer paths retain the configured full budget.
 """
 
 from __future__ import annotations
@@ -20,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 from app.core.observability import metrics
 from app.knowledge.loader import knowledge
+from app.models.adaptive_routing import AdaptiveRouteDecision
 from app.models.agents import (
     AgentDraft,
     AgentStageTrace,
@@ -32,9 +37,11 @@ from app.models.chat import (
     ChatIntent,
     GroundedAnswer,
 )
-from app.services.agent_provider import StructuredModelProvider
+from app.services.adaptive_agent_runtime import adaptive_agent_runtime
+from app.services.agent_provider import ModelProviderError, StructuredModelProvider
 from app.services.knowledge_retriever import RetrievedChunk, knowledge_retriever
 from app.services.llm_control_plane import AgentRequestPolicy, gateway_controls
+from app.services.professional_response_gate import evaluate_professional_response
 from app.services.trusted_evidence import (
     RuntimeEvidence,
     TRUSTED_MEDICAL_DOMAINS,
@@ -70,6 +77,10 @@ class MedicalAgentState:
     runtime_evidence: list[RuntimeEvidence] = field(default_factory=list)
     gate_reason: str | None = None
 
+    adaptive_route: AdaptiveRouteDecision | None = None
+    selected_writer_model: str | None = None
+    selected_verifier_model: str | None = None
+
     iteration: int = 0
     max_iterations: int = 2
     feedback_history: list[str] = field(default_factory=list)
@@ -95,13 +106,6 @@ def _is_agent_first_envelope(value: dict[str, Any]) -> bool:
 
 
 def _structured_legacy_envelope(state: MedicalAgentState) -> dict[str, Any]:
-    """Convert a legacy GroundedAnswer dump into structured, non-prose input.
-
-    V11/V12 ``enhance`` calls historically sent title/summary/template prose to
-    the Writer, anchoring model output to the old response. V14 strips those
-    presentation fields while retaining bounded clinical/workflow facts and
-    safety/action constraints. The original answer remains only as fallback.
-    """
     source = state.tool_result
     envelope: dict[str, Any] = {
         "version": "v14-structured-agent-input",
@@ -133,8 +137,6 @@ def _structured_legacy_envelope(state: MedicalAgentState) -> dict[str, Any]:
             "reviewer_is_non_authoring": True,
         },
     }
-    # Preserve any additional non-presentation structured fields introduced by
-    # a workflow without forwarding prose-first fields.
     for key, value in source.items():
         if key in _LEGACY_PRESENTATION_KEYS or key in envelope:
             continue
@@ -145,21 +147,33 @@ def _structured_legacy_envelope(state: MedicalAgentState) -> dict[str, Any]:
 
 
 def _agent_inputs(state: MedicalAgentState) -> tuple[list[dict[str, Any]], dict[str, Any]]:
-    """Return claims/envelope visible to the Writer.
-
-    The Writer does not receive legacy title/summary claims. The Reviewer uses
-    the original ``state.claims`` separately as read-only verification metadata;
-    otherwise existing claim IDs in a valid draft would become falsely unknown.
-    """
     if _is_agent_first_envelope(state.tool_result):
         return state.claims, state.tool_result
-
     visible_claims = [
         claim
         for claim in state.claims
         if claim.get("category") not in {"title", "summary"}
     ]
     return visible_claims, _structured_legacy_envelope(state)
+
+
+def _route_metadata(route: AdaptiveRouteDecision | None) -> dict[str, Any] | None:
+    if route is None:
+        return None
+    return {
+        "clinical_task": route.clinical_task,
+        "resolved_severity": route.resolved_severity,
+        "agent": route.agent.value,
+        "model_tier": route.model_tier.value,
+        "emergency_lock": route.emergency_lock,
+        "requires_clarification": route.requires_clarification,
+        "requires_review": route.requires_review,
+        "kev_choice": route.kev_choice.value,
+        "confidence": route.confidence,
+        "margin": route.margin,
+        "fact_coverage": route.fact_coverage,
+        "reasons": list(route.reasons),
+    }
 
 
 class MedicalAgentGraph:
@@ -211,7 +225,6 @@ class MedicalAgentGraph:
         self.verifier_search_required = verifier_search_required
 
     def node_researcher(self, state: MedicalAgentState) -> None:
-        """Retrieve a compact curated context before the Writer runs."""
         state.retrieved_chunks = knowledge_retriever.retrieve(
             query=state.question,
             intent=state.intent,
@@ -228,9 +241,24 @@ class MedicalAgentGraph:
         redact_question_fn: Any,
         stage_trace_fn: Any,
     ) -> bool:
-        """Generate an original draft from structured state and evidence."""
         rag_contexts = [chunk.to_dict() for chunk in state.retrieved_chunks]
         writer_claims, agent_envelope = _agent_inputs(state)
+
+        if state.domain == "clinical":
+            state.adaptive_route = adaptive_agent_runtime.resolve(
+                envelope=agent_envelope,
+                patient_context=state.patient_context,
+            )
+            if state.adaptive_route is not None:
+                metrics.inc_counter(
+                    "medguard_adaptive_route_total",
+                    labels={
+                        "agent": state.adaptive_route.agent.value,
+                        "model_tier": state.adaptive_route.model_tier.value,
+                        "emergency_lock": str(state.adaptive_route.emergency_lock).lower(),
+                    },
+                )
+
         research_payload: dict[str, Any] = {
             "locale": state.locale,
             "intent": state.intent,
@@ -240,11 +268,25 @@ class MedicalAgentGraph:
             "retrieved_contexts": rag_contexts,
             "trusted_source_domains": [*sorted(TRUSTED_MEDICAL_DOMAINS)],
         }
+        route_meta = _route_metadata(state.adaptive_route)
+        if route_meta is not None:
+            research_payload["execution_route"] = route_meta
 
         if state.feedback_history:
             research_payload["verifier_feedback"] = state.feedback_history[-1]
             research_payload["refinement_iteration"] = state.iteration
 
+        budget = adaptive_agent_runtime.token_budget(
+            route=state.adaptive_route,
+            role="answer",
+            base_input_tokens=self.max_input_tokens,
+            base_output_tokens=self.research_max_output_tokens,
+        )
+        metrics.observe_histogram(
+            "medguard_agent_token_budget",
+            budget.max_output_tokens,
+            labels={"role": "answer", "tier": state.adaptive_route.model_tier.value if state.adaptive_route else "standard"},
+        )
         research_controls = gateway_controls(
             role="answer",
             policy=state.policy,
@@ -257,8 +299,8 @@ class MedicalAgentGraph:
             tool_result=agent_envelope,
             instructions=instructions,
             payload=research_payload,
-            max_input_tokens=self.max_input_tokens,
-            max_output_tokens=self.research_max_output_tokens,
+            max_input_tokens=budget.max_input_tokens,
+            max_output_tokens=budget.max_output_tokens,
         )
 
         if research_controls.estimated_input_tokens > research_controls.max_input_tokens:
@@ -269,30 +311,62 @@ class MedicalAgentGraph:
             state.status = "fallback"
             return False
 
-        model = (
+        default_model = (
             (self.pharma_research_model or self.research_model)
             if state.domain == "pharmacology"
             else (self.clinical_research_model or self.research_model)
+        )
+        model_candidates = (
+            (default_model,)
+            if state.domain == "pharmacology"
+            else adaptive_agent_runtime.writer_models(
+                route=state.adaptive_route,
+                default_model=default_model,
+            )
         )
         metrics.inc_counter(
             "medguard_agent_branch_requests_total",
             labels={"domain": state.domain, "role": "answer"},
         )
 
-        generated = self.research_provider.complete(
-            stage="research",
-            model=model,
-            instructions=instructions,
-            payload=research_payload,
-            response_model=AgentDraft,
-            request_id=state.request_id,
-            controls=research_controls,
-        )
+        generated = None
+        selected_model = default_model
+        last_error: ModelProviderError | None = None
+        for index, model in enumerate(model_candidates):
+            try:
+                generated = self.research_provider.complete(
+                    stage="research",
+                    model=model,
+                    instructions=instructions,
+                    payload=research_payload,
+                    response_model=AgentDraft,
+                    request_id=state.request_id,
+                    controls=research_controls,
+                )
+                selected_model = model
+                if index > 0:
+                    metrics.inc_counter(
+                        "medguard_agent_model_fallback_success_total",
+                        labels={"role": "answer"},
+                    )
+                break
+            except ModelProviderError as exc:
+                last_error = exc
+                metrics.inc_counter(
+                    "medguard_agent_model_attempt_failures_total",
+                    labels={"role": "answer"},
+                )
+                logger.warning("Writer model attempt failed model=%s: %s", model, exc)
+
+        if generated is None:
+            raise last_error or ModelProviderError("writer model ladder exhausted")
+
         draft = AgentDraft.model_validate(generated.data)
+        state.selected_writer_model = selected_model
         state.generator_trace = stage_trace_fn(
             "answer",
             self.research_provider,
-            model,
+            selected_model,
             generated,
             research_controls.estimated_input_tokens,
         )
@@ -310,7 +384,6 @@ class MedicalAgentGraph:
         stage_trace_fn: Any,
         gate_reason_fn: Any,
     ) -> None:
-        """Judge the draft independently; never author patient-facing prose."""
         if not state.draft:
             state.status = "fallback"
             return
@@ -335,12 +408,25 @@ class MedicalAgentGraph:
                 evidence.to_dict() for evidence in state.runtime_evidence
             ],
             "trusted_source_domains": [*sorted(TRUSTED_MEDICAL_DOMAINS)],
+            "execution_route": _route_metadata(state.adaptive_route),
             "review_contract": {
                 "author_response": False,
                 "allowed_actions": ["approve", "reject", "request_revision"],
+                "reviewer_bypass_allowed": False,
             },
         }
 
+        budget = adaptive_agent_runtime.token_budget(
+            route=state.adaptive_route,
+            role="verifier",
+            base_input_tokens=self.max_input_tokens,
+            base_output_tokens=self.verifier_max_output_tokens,
+        )
+        metrics.observe_histogram(
+            "medguard_agent_token_budget",
+            budget.max_output_tokens,
+            labels={"role": "verifier", "tier": state.adaptive_route.model_tier.value if state.adaptive_route else "standard"},
+        )
         verifier_controls = gateway_controls(
             role="verifier",
             policy=state.policy,
@@ -353,8 +439,8 @@ class MedicalAgentGraph:
             tool_result=agent_envelope,
             instructions=instructions,
             payload=verifier_payload,
-            max_input_tokens=self.max_input_tokens,
-            max_output_tokens=self.verifier_max_output_tokens,
+            max_input_tokens=budget.max_input_tokens,
+            max_output_tokens=budget.max_output_tokens,
         )
 
         if verifier_controls.estimated_input_tokens > verifier_controls.max_input_tokens:
@@ -365,30 +451,55 @@ class MedicalAgentGraph:
             state.status = "fallback"
             return
 
-        model = (
+        default_model = (
             (self.pharma_verifier_model or self.verifier_model)
             if state.domain == "pharmacology"
             else (self.clinical_verifier_model or self.verifier_model)
         )
+        model_candidates = adaptive_agent_runtime.verifier_models(default_model=default_model)
         metrics.inc_counter(
             "medguard_agent_branch_requests_total",
             labels={"domain": state.domain, "role": "verifier"},
         )
 
-        verified = self.verifier_provider.complete(
-            stage="verifier",
-            model=model,
-            instructions=instructions,
-            payload=verifier_payload,
-            response_model=AgentVerification,
-            request_id=state.request_id,
-            controls=verifier_controls,
-        )
+        verified = None
+        selected_model = default_model
+        last_error: ModelProviderError | None = None
+        for index, model in enumerate(model_candidates):
+            try:
+                verified = self.verifier_provider.complete(
+                    stage="verifier",
+                    model=model,
+                    instructions=instructions,
+                    payload=verifier_payload,
+                    response_model=AgentVerification,
+                    request_id=state.request_id,
+                    controls=verifier_controls,
+                )
+                selected_model = model
+                if index > 0:
+                    metrics.inc_counter(
+                        "medguard_agent_model_fallback_success_total",
+                        labels={"role": "verifier"},
+                    )
+                break
+            except ModelProviderError as exc:
+                last_error = exc
+                metrics.inc_counter(
+                    "medguard_agent_model_attempt_failures_total",
+                    labels={"role": "verifier"},
+                )
+                logger.warning("Reviewer model attempt failed model=%s: %s", model, exc)
+
+        if verified is None:
+            raise last_error or ModelProviderError("verifier model ladder exhausted")
+
         verification = AgentVerification.model_validate(verified.data)
+        state.selected_verifier_model = selected_model
         state.verifier_trace = stage_trace_fn(
             "verifier",
             self.verifier_provider,
-            model,
+            selected_model,
             verified,
             verifier_controls.estimated_input_tokens,
         )
@@ -410,6 +521,36 @@ class MedicalAgentGraph:
             ),
             config=self,
         )
+
+        if reason is None:
+            clinical_result = (
+                agent_envelope.get("clinical_result")
+                if isinstance(agent_envelope.get("clinical_result"), dict)
+                else {}
+            )
+            urgency = str(
+                clinical_result.get("urgency")
+                or clinical_result.get("escalation_level")
+                or ""
+            ).upper()
+            quality = evaluate_professional_response(
+                narrative_blocks=[block.text for block in state.draft.narrative],
+                urgency=urgency,
+                locked_claims=[
+                    str(claim.get("text"))
+                    for claim in verification_claims
+                    if claim.get("locked") and claim.get("text")
+                ],
+            )
+            metrics.set_gauge("medguard_professional_response_score", quality.score)
+            if not quality.passed:
+                reason = "professional_response_quality:" + (
+                    quality.reasons[0] if quality.reasons else "below_threshold"
+                )
+                metrics.inc_counter(
+                    "medguard_professional_response_rejections_total",
+                    labels={"reason": quality.reasons[0] if quality.reasons else "below_threshold"},
+                )
 
         state.verification = verification
         state.verified_citations = tuple(verified.citations)
@@ -438,7 +579,6 @@ class MedicalAgentGraph:
     def route_decision(
         self, state: MedicalAgentState
     ) -> Literal["COMPLETE", "REVISE", "FALLBACK"]:
-        """Approve, request one Writer revision, or fail safely."""
         if state.gate_reason is None:
             if state.iteration > 0:
                 metrics.inc_counter("medguard_agent_loop_self_corrected_total")
