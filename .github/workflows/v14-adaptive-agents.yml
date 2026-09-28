@@ -1,0 +1,63 @@
+name: V14 Adaptive Severity Agents
+
+on:
+  push:
+    branches:
+      - feature/v14-adaptive-severity-agents
+
+jobs:
+  apply-and-validate:
+    if: ${{ !contains(github.event.head_commit.message, 'feat: apply V14 adaptive severity routing') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install backend dependencies
+        run: pip install -r requirements.txt
+
+      - name: Apply runtime patch
+        run: python scripts/apply_v14_adaptive_agents.py
+
+      - name: Compile adaptive routing
+        run: python -m py_compile app/models/adaptive_routing.py app/services/kev_router.py app/services/adaptive_dispatcher.py app/services/severity_agent_policy.py app/services/answer_agents.py app/services/chat.py app/core/config.py
+
+      - name: Run V14 routing matrix
+        run: pytest -q app/tests/test_v14_adaptive_routing.py
+
+      - name: Run V13 behavior gates
+        run: pytest -q app/tests/test_v13_structured_routing.py app/tests/test_v13_human_behavior_benchmark.py
+
+      - name: Verify V10 provenance
+        run: python scripts/freeze_guard.py --verify
+
+      - name: Run full backend regression
+        run: pytest -q
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Commit validated runtime integration
+        run: |
+          git config user.name "MedGuard CI"
+          git config user.email "medguard-ci@users.noreply.github.com"
+          git add app/core/config.py app/services/answer_agents.py app/services/chat.py
+          if git diff --cached --quiet; then
+            echo "No runtime changes to commit"
+            exit 0
+          fi
+          git commit -m "feat: apply V14 adaptive severity routing"
+          git push
