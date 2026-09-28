@@ -26,6 +26,8 @@ from app.services.circuit import CircuitBreaker, model_circuit
 from app.services.knowledge_retriever import knowledge_retriever, resolve_domain
 from app.services.jury_evaluator import MedicalSafetyGate, QAGEvaluator
 from app.services.clinical_agent_contract import build_clinical_agent_contract
+from app.models.adaptive_routing import AgentTier
+from app.services.severity_agent_policy import profile_for_tier
 from app.services.llm_control_plane import (
     AgentRequestPolicy,
     SingleFlightCoordinator,
@@ -510,8 +512,9 @@ class AnswerAgentPipeline:
         conversation_id: str = "unscoped",
         locale: str = "vi-VN",
         patient_context: dict[str, Any] | None = None,
+        agent_tier: str | None = None,
     ) -> GroundedAnswer:
-        """Primary V12 clinical response path.
+        """Primary V12/V14 clinical response path.
 
         The fallback answer is retained only for fail-safe degradation. Writer
         input comes from the structured clinical contract, never from legacy
@@ -525,11 +528,21 @@ class AnswerAgentPipeline:
             self._record_result(result, policy)
             return result
 
-        configured = (
+        requested_tier = None
+        try:
+            requested_tier = AgentTier(agent_tier) if agent_tier else None
+        except ValueError:
+            requested_tier = None
+        requested_profile = profile_for_tier(requested_tier, settings) if requested_tier else None
+        single_agent_requested = bool(
+            requested_profile
+            and not requested_profile.reviewer_required
+            and getattr(settings, "severity_single_agent_enabled", True)
+        )
+        configured = bool(
             self.research_provider.is_configured
-            and self.verifier_provider.is_configured
-            and self.config.research_model
-            and self.config.verifier_model
+            and (requested_profile.model if requested_profile else self.config.research_model)
+            and (single_agent_requested or (self.verifier_provider.is_configured and self.config.verifier_model))
         )
         if not configured:
             result = fallback_answer.model_copy(
@@ -563,6 +576,7 @@ class AnswerAgentPipeline:
             policy=policy,
             claims_override=contract.claims,
             tool_result_override=contract.envelope,
+            agent_tier=agent_tier,
         )
 
         def invoke() -> GroundedAnswer:
@@ -621,10 +635,23 @@ class AnswerAgentPipeline:
         policy: AgentRequestPolicy,
         claims_override: list[dict[str, Any]] | None = None,
         tool_result_override: dict[str, Any] | None = None,
+        agent_tier: str | None = None,
     ) -> GroundedAnswer:
         domain = resolve_domain(intent, question)
         claims = claims_override if claims_override is not None else _claims(answer, intent)
         tool_result = tool_result_override if tool_result_override is not None else answer.model_dump(mode="json", exclude={"agent_trace"})
+        selected_tier = None
+        try:
+            selected_tier = AgentTier(agent_tier) if agent_tier else None
+        except ValueError:
+            selected_tier = None
+        selected_profile = profile_for_tier(selected_tier, settings) if selected_tier else None
+        single_agent_path = bool(
+            selected_profile
+            and not selected_profile.reviewer_required
+            and getattr(settings, "severity_single_agent_enabled", True)
+        )
+
         state = MedicalAgentState(
             request_id=request_id,
             tenant_id=tenant_id,
@@ -643,15 +670,18 @@ class AnswerAgentPipeline:
         # Synchronize runtime settings with the graph instance
         self.graph.research_model = self.config.research_model or "medguard-answer"
         self.graph.verifier_model = self.config.verifier_model or "medguard-verifier"
-        self.graph.clinical_research_model = self.config.clinical_research_model
+        self.graph.clinical_research_model = (
+            selected_profile.model if selected_profile and state.domain == "clinical"
+            else self.config.clinical_research_model
+        )
         self.graph.clinical_verifier_model = self.config.clinical_verifier_model
         self.graph.pharma_research_model = self.config.pharma_research_model
         self.graph.pharma_verifier_model = self.config.pharma_verifier_model
         self.graph.research_provider = self.research_provider
         self.graph.verifier_provider = self.verifier_provider
         self.graph.mode = self.config.mode
-        self.graph.max_input_tokens = self.config.max_input_tokens
-        self.graph.research_max_output_tokens = self.config.research_max_output_tokens
+        self.graph.max_input_tokens = selected_profile.max_input_tokens if selected_profile else self.config.max_input_tokens
+        self.graph.research_max_output_tokens = selected_profile.max_output_tokens if selected_profile else self.config.research_max_output_tokens
         self.graph.verifier_max_output_tokens = self.config.verifier_max_output_tokens
         self.graph.prompt_version = self.config.prompt_version
         self.graph.min_grounding = self.config.min_grounding
@@ -669,6 +699,8 @@ class AnswerAgentPipeline:
             if domain == "pharmacology"
             else _CLINICAL_RESEARCH_INSTRUCTIONS
         )
+        if selected_profile and domain == "clinical":
+            writer_instructions = selected_profile.instruction_prefix + "\n\n" + writer_instructions
         verifier_instructions = (
             _PHARMA_VERIFIER_INSTRUCTIONS
             if domain == "pharmacology"
@@ -679,30 +711,38 @@ class AnswerAgentPipeline:
             # 1. Researcher Node (Fan-out retrieval)
             self.graph.node_researcher(state)
 
-            # 2. Graph execution loop (Writer <-> Reviewer feedback cycle)
-            while state.iteration <= self.graph.max_iterations:
+            # Resolved severity paths call exactly one Writer LLM.
+            # UNCERTAIN/DEEP retains the existing Writer/Reviewer graph.
+            if single_agent_path:
                 writer_ok = self.graph.node_writer(
                     state,
                     instructions=writer_instructions,
                     redact_question_fn=_redact_question,
                     stage_trace_fn=_stage,
                 )
-                if not writer_ok:
-                    break
-
-                self.graph.node_reviewer(
-                    state,
-                    instructions=verifier_instructions,
-                    stage_trace_fn=_stage,
-                    gate_reason_fn=_gate_reason,
-                )
-
-                decision = self.graph.route_decision(state)
-                if decision == "COMPLETE":
-                    break
-                elif decision == "REVISE":
-                    continue
-                else:  # FALLBACK
+                if writer_ok:
+                    state.status = "verified"
+            else:
+                while state.iteration <= self.graph.max_iterations:
+                    writer_ok = self.graph.node_writer(
+                        state,
+                        instructions=writer_instructions,
+                        redact_question_fn=_redact_question,
+                        stage_trace_fn=_stage,
+                    )
+                    if not writer_ok:
+                        break
+                    self.graph.node_reviewer(
+                        state,
+                        instructions=verifier_instructions,
+                        stage_trace_fn=_stage,
+                        gate_reason_fn=_gate_reason,
+                    )
+                    decision = self.graph.route_decision(state)
+                    if decision == "COMPLETE":
+                        break
+                    if decision == "REVISE":
+                        continue
                     break
 
             self.circuit.record_success()
@@ -785,9 +825,9 @@ class AnswerAgentPipeline:
                 abstains_from_diagnosis=True,
                 red_flags_present=answer.title.startswith("Bạn cần được đánh giá cấp cứu"),
                 triage_urgency=(
-                    "EMERGENCY"
-                    if answer.title.startswith("Bạn cần được đánh giá cấp cứu")
-                    else "ROUTINE"
+                    selected_tier.value.upper()
+                    if selected_tier in {AgentTier.ROUTINE, AgentTier.URGENT, AgentTier.EMERGENCY}
+                    else ("EMERGENCY" if answer.title.startswith("Bạn cần được đánh giá cấp cứu") else "ROUTINE")
                 ),
                 grounding=grounding,
             )
@@ -808,7 +848,10 @@ class AnswerAgentPipeline:
                 update={
                     "narrative": narrative,
                     "researched_sources": state.draft.sources,
-                    "answer_assurance": AnswerAssurance(status="verified", scores=state.verification.scores),
+                    "answer_assurance": (
+                        AnswerAssurance(status="verified", scores=state.verification.scores)
+                        if state.verification is not None else None
+                    ),
                     "agent_trace": trace,
                 }
             )

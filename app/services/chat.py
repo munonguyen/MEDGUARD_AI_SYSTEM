@@ -34,6 +34,9 @@ from app.services.clinical_task_router import resolve_clinical_task
 from app.services.exposure_reasoner import evaluate_exposure_reaction
 from app.services.lab_interpreter import interpret_laboratory_text
 from app.services.temporal_syndrome import evaluate_temporal_syndrome
+from app.models.adaptive_routing import AgentTier
+from app.services.adaptive_dispatcher import adjudicate_uncertain_route, resolve_adaptive_route
+from app.services.kev_router import KevRouter, KevRouterConfig, build_compact_kev_state
 from app.services.episode_context import select_active_episode_text
 from app.services.delivery import prepare_delivery
 from app.services.fhir import to_fhir_bundle, to_fhir_risk_assessment
@@ -55,6 +58,16 @@ from app.services.risk_memory import (
 from app.services.dose_reasoning import evaluate_dose_reasoning
 from app.services.semantic_risk import safe_semantic_evaluate, semantic_risk_evaluator
 from app.services.ood_guard import evaluate as ood_evaluate, OODResult
+
+
+_kev_router = KevRouter(
+    KevRouterConfig(
+        base_url=getattr(settings, "kev_base_url", None),
+        model=getattr(settings, "kev_model", "kev-latest"),
+        timeout_seconds=getattr(settings, "kev_timeout_seconds", 0.35),
+        mode=getattr(settings, "kev_mode", "shadow"),
+    )
+)
 
 
 _INTENT_KEYWORDS: dict[ChatIntent, tuple[str, ...]] = {
@@ -1015,6 +1028,30 @@ def _response(
     agent_patient_context = payload.context.model_dump(mode="json")
     if intent in {"triage", "safety"} or clinical_task_name:
         agent_patient_context["last_result"] = None
+    adaptive_agent_tier: str | None = None
+    if agent_first_clinical and isinstance(serialized, dict):
+        task_for_route = (clinical_task_name or "acute_symptom").lower()
+        kev_state = build_compact_kev_state(
+            clinical_task=task_for_route, clinical_result=serialized, patient_context=agent_patient_context
+        )
+        kev_signal = _kev_router.evaluate(kev_state, serialized)
+        adaptive_route = resolve_adaptive_route(
+            clinical_task=task_for_route,
+            clinical_result=serialized,
+            kev=kev_signal,
+            kev_mode=getattr(settings, "kev_mode", "shadow"),
+            min_confidence=getattr(settings, "kev_min_confidence", 0.72),
+            min_margin=getattr(settings, "kev_min_margin", 0.15),
+        )
+        if adaptive_route.requires_jev:
+            adaptive_route = adjudicate_uncertain_route(decision=adaptive_route, clinical_result=serialized)
+        if adaptive_route.agent_tier in {AgentTier.ROUTINE, AgentTier.URGENT, AgentTier.EMERGENCY}:
+            adaptive_agent_tier = adaptive_route.agent_tier.value
+        serialized = {
+            **serialized,
+            "adaptive_routing": {**adaptive_route.model_dump(mode="json"), "kev": kev_signal.model_dump(mode="json")},
+        }
+
     if agent_first_clinical:
         answer = answer_agent_pipeline.generate_response(
             fallback_answer=answer,
@@ -1026,6 +1063,7 @@ def _response(
             conversation_id=payload.conversation_id,
             locale=payload.locale,
             patient_context=agent_patient_context,
+            agent_tier=adaptive_agent_tier,
         )
     elif agent_eligible and settings.agent_sync_enabled:
         answer = answer_agent_pipeline.enhance(

@@ -223,6 +223,52 @@ class Settings:
     pharma_verifier_model: str = field(
         default_factory=lambda: getenv("MEDGUARD_PHARMA_VERIFIER_MODEL", "medguard-pharma-verifier")
     )
+
+    # V14 adaptive compute. These are gateway aliases, not hard-coded vendors.
+    severity_single_agent_enabled: bool = field(
+        default_factory=lambda: _env_bool("MEDGUARD_SEVERITY_SINGLE_AGENT_ENABLED", True)
+    )
+    routine_agent_model: str = field(
+        default_factory=lambda: getenv("MEDGUARD_ROUTINE_AGENT_MODEL", "medguard-routine-free")
+    )
+    urgent_agent_model: str = field(
+        default_factory=lambda: getenv("MEDGUARD_URGENT_AGENT_MODEL", "medguard-urgent-free")
+    )
+    emergency_agent_model: str = field(
+        default_factory=lambda: getenv("MEDGUARD_EMERGENCY_AGENT_MODEL", "medguard-emergency-free")
+    )
+    routine_agent_max_input_tokens: int = field(
+        default_factory=lambda: _env_int("MEDGUARD_ROUTINE_AGENT_MAX_INPUT_TOKENS", 4_000)
+    )
+    urgent_agent_max_input_tokens: int = field(
+        default_factory=lambda: _env_int("MEDGUARD_URGENT_AGENT_MAX_INPUT_TOKENS", 6_000)
+    )
+    emergency_agent_max_input_tokens: int = field(
+        default_factory=lambda: _env_int("MEDGUARD_EMERGENCY_AGENT_MAX_INPUT_TOKENS", 3_000)
+    )
+    routine_agent_max_output_tokens: int = field(
+        default_factory=lambda: _env_int("MEDGUARD_ROUTINE_AGENT_MAX_OUTPUT_TOKENS", 450)
+    )
+    urgent_agent_max_output_tokens: int = field(
+        default_factory=lambda: _env_int("MEDGUARD_URGENT_AGENT_MAX_OUTPUT_TOKENS", 650)
+    )
+    emergency_agent_max_output_tokens: int = field(
+        default_factory=lambda: _env_int("MEDGUARD_EMERGENCY_AGENT_MAX_OUTPUT_TOKENS", 350)
+    )
+    kev_base_url: str | None = field(
+        default_factory=lambda: (getenv("MEDGUARD_KEV_BASE_URL", "").rstrip("/") or None)
+    )
+    kev_model: str = field(default_factory=lambda: getenv("MEDGUARD_KEV_MODEL", "kev-latest"))
+    kev_mode: str = field(default_factory=lambda: getenv("MEDGUARD_KEV_MODE", "shadow").lower())
+    kev_timeout_seconds: float = field(
+        default_factory=lambda: _env_float("MEDGUARD_KEV_TIMEOUT_SECONDS", 0.35)
+    )
+    kev_min_confidence: float = field(
+        default_factory=lambda: _env_float("MEDGUARD_KEV_MIN_CONFIDENCE", 0.72)
+    )
+    kev_min_margin: float = field(
+        default_factory=lambda: _env_float("MEDGUARD_KEV_MIN_MARGIN", 0.15)
+    )
     research_reasoning_effort: str = field(
         default_factory=lambda: getenv("MEDGUARD_RESEARCH_REASONING_EFFORT", "high").lower()
     )
@@ -303,6 +349,22 @@ class Settings:
             raise ValueError("MEDGUARD_AGENT_MODE must be disabled, shadow, or enforced")
         if self.agent_coverage_scope not in {"clinical", "all"}:
             raise ValueError("MEDGUARD_AGENT_COVERAGE_SCOPE must be clinical or all")
+        if self.kev_mode not in {"disabled", "shadow", "enforced"}:
+            raise ValueError("MEDGUARD_KEV_MODE must be disabled, shadow, or enforced")
+        if self.kev_timeout_seconds <= 0 or self.kev_timeout_seconds > 2:
+            raise ValueError("MEDGUARD_KEV_TIMEOUT_SECONDS must be > 0 and <= 2")
+        if not 0 <= self.kev_min_confidence <= 1 or not 0 <= self.kev_min_margin <= 1:
+            raise ValueError("Kev confidence and margin thresholds must be between 0 and 1")
+        for name, value in {
+            "MEDGUARD_ROUTINE_AGENT_MAX_INPUT_TOKENS": self.routine_agent_max_input_tokens,
+            "MEDGUARD_URGENT_AGENT_MAX_INPUT_TOKENS": self.urgent_agent_max_input_tokens,
+            "MEDGUARD_EMERGENCY_AGENT_MAX_INPUT_TOKENS": self.emergency_agent_max_input_tokens,
+            "MEDGUARD_ROUTINE_AGENT_MAX_OUTPUT_TOKENS": self.routine_agent_max_output_tokens,
+            "MEDGUARD_URGENT_AGENT_MAX_OUTPUT_TOKENS": self.urgent_agent_max_output_tokens,
+            "MEDGUARD_EMERGENCY_AGENT_MAX_OUTPUT_TOKENS": self.emergency_agent_max_output_tokens,
+        }.items():
+            if value < 1:
+                raise ValueError(f"{name} must be at least 1")
         if self.agent_sync_enabled and self.agent_background_enabled:
             raise ValueError(
                 "MEDGUARD_AGENT_SYNC_ENABLED and MEDGUARD_AGENT_BACKGROUND_ENABLED cannot both be true"
