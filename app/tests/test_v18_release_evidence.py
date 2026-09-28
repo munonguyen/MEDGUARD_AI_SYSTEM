@@ -52,6 +52,17 @@ def _professional(*, passed: bool = True) -> dict:
     }
 
 
+def _external(*, valid: bool = True) -> dict:
+    return {
+        "status": "pass" if valid else "fail",
+        "valid": valid,
+        "required_types": ["database_backup_restore"],
+        "valid_types": ["database_backup_restore"] if valid else [],
+        "blockers": [] if valid else ["missing:database_backup_restore"],
+        "detail": "external evidence complete" if valid else "external evidence incomplete",
+    }
+
+
 def _models() -> dict:
     return {
         "agent_mode": "enforced",
@@ -80,6 +91,7 @@ def test_pending_clinician_review_is_explicit_release_blocker() -> None:
             "expert_review_status": "pending",
             "production_evaluable": False,
         },
+        external_evidence=_external(),
         git_sha="abc123",
         generated_at="2026-09-28T00:00:00+00:00",
         model_configuration=_models(),
@@ -102,6 +114,7 @@ def test_fully_approved_evidence_can_be_release_eligible() -> None:
             "production_evaluable": True,
             "clinical_approval_id": "board-v1",
         },
+        external_evidence=_external(),
         git_sha="abc123",
         generated_at="2026-09-28T00:00:00+00:00",
         model_configuration=_models(),
@@ -114,6 +127,27 @@ def test_fully_approved_evidence_can_be_release_eligible() -> None:
     assert errors == []
 
 
+def test_external_evidence_is_required_for_release_eligibility() -> None:
+    payload = build_release_evidence(
+        readiness=_readiness(production_ready=True),
+        medical_quality=_medical(),
+        professional_quality=_professional(),
+        clinical_metadata={
+            "expert_review_status": "approved",
+            "production_evaluable": True,
+            "clinical_approval_id": "board-v1",
+        },
+        external_evidence=_external(valid=False),
+        git_sha="abc123",
+        generated_at="2026-09-28T00:00:00+00:00",
+        model_configuration=_models(),
+    )
+
+    assert payload["production_release_eligible"] is False
+    assert "external_production_evidence" in payload["release_blockers"]
+    assert payload["external_production_evidence"]["valid"] is False
+
+
 def test_failed_quality_gate_is_recorded_as_blocker() -> None:
     payload = build_release_evidence(
         readiness=_readiness(production_ready=True),
@@ -124,6 +158,7 @@ def test_failed_quality_gate_is_recorded_as_blocker() -> None:
             "production_evaluable": True,
             "clinical_approval_id": "board-v1",
         },
+        external_evidence=_external(),
         git_sha="abc123",
         generated_at="2026-09-28T00:00:00+00:00",
         model_configuration=_models(),
@@ -143,6 +178,7 @@ def test_digest_detects_manifest_tampering() -> None:
             "production_evaluable": True,
             "clinical_approval_id": "board-v1",
         },
+        external_evidence=_external(),
         git_sha="abc123",
         generated_at="2026-09-28T00:00:00+00:00",
         model_configuration=_models(),
@@ -154,6 +190,29 @@ def test_digest_detects_manifest_tampering() -> None:
     assert "evidence_digest_mismatch" in errors
 
 
+def test_validator_rejects_eligible_manifest_without_external_evidence() -> None:
+    payload = build_release_evidence(
+        readiness=_readiness(production_ready=True),
+        medical_quality=_medical(),
+        professional_quality=_professional(),
+        clinical_metadata={
+            "expert_review_status": "approved",
+            "production_evaluable": True,
+            "clinical_approval_id": "board-v1",
+        },
+        external_evidence=_external(),
+        git_sha="abc123",
+        generated_at="2026-09-28T00:00:00+00:00",
+        model_configuration=_models(),
+    )
+    payload["external_production_evidence"]["valid"] = False
+    payload["evidence_digest"] = __import__("scripts.generate_release_evidence", fromlist=["evidence_digest"]).evidence_digest(payload)
+
+    valid, errors = validate_release_evidence(payload)
+    assert valid is False
+    assert "eligible_without_external_evidence" in errors
+
+
 def test_manifest_does_not_need_or_store_secret_values() -> None:
     payload = build_release_evidence(
         readiness=_readiness(production_ready=False, failed_required=("database",)),
@@ -163,6 +222,7 @@ def test_manifest_does_not_need_or_store_secret_values() -> None:
             "expert_review_status": "pending",
             "production_evaluable": False,
         },
+        external_evidence=_external(valid=False),
         git_sha="abc123",
         generated_at="2026-09-28T00:00:00+00:00",
         model_configuration=_models(),
