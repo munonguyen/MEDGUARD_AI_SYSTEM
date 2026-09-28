@@ -7,10 +7,11 @@ from app.services.adaptive_agent_runtime import AdaptiveAgentRuntime, AdaptiveAg
 def _route(tier: ModelTier) -> AdaptiveRouteDecision:
     return AdaptiveRouteDecision(
         clinical_task="acute_symptom",
-        resolved_severity="ROUTINE",
-        agent=SeverityAgent.ROUTINE,
+        resolved_severity="ROUTINE" if tier != ModelTier.DEEP else "EMERGENCY",
+        agent=SeverityAgent.ROUTINE if tier != ModelTier.DEEP else SeverityAgent.EMERGENCY,
         model_tier=tier,
-        kev_choice=SeverityChoice.ROUTINE,
+        emergency_lock=tier == ModelTier.DEEP,
+        kev_choice=SeverityChoice.ROUTINE if tier != ModelTier.DEEP else SeverityChoice.EMERGENCY,
         confidence=0.95,
         margin=0.8,
         fact_coverage=0.95,
@@ -82,3 +83,63 @@ def test_verifier_ladder_always_keeps_primary_first() -> None:
         AdaptiveAgentRuntimeConfig(verifier_fallback_models=("judge-b", "judge-c"))
     )
     assert runtime.verifier_models(default_model="judge-a") == ("judge-a", "judge-b", "judge-c")
+
+
+def test_fast_route_reduces_writer_token_budget() -> None:
+    runtime = AdaptiveAgentRuntime(
+        AdaptiveAgentRuntimeConfig(
+            fast_max_input_tokens=6000,
+            fast_max_output_tokens=800,
+        )
+    )
+    budget = runtime.token_budget(
+        route=_route(ModelTier.FAST),
+        role="answer",
+        base_input_tokens=12000,
+        base_output_tokens=2400,
+    )
+    assert budget.max_input_tokens == 6000
+    assert budget.max_output_tokens == 800
+
+
+def test_standard_route_uses_intermediate_budget() -> None:
+    runtime = AdaptiveAgentRuntime(
+        AdaptiveAgentRuntimeConfig(
+            standard_max_input_tokens=9000,
+            standard_max_output_tokens=1200,
+        )
+    )
+    budget = runtime.token_budget(
+        route=_route(ModelTier.STANDARD),
+        role="answer",
+        base_input_tokens=12000,
+        base_output_tokens=2400,
+    )
+    assert budget.max_input_tokens == 9000
+    assert budget.max_output_tokens == 1200
+
+
+def test_deep_emergency_writer_keeps_full_configured_budget() -> None:
+    runtime = AdaptiveAgentRuntime(AdaptiveAgentRuntimeConfig())
+    budget = runtime.token_budget(
+        route=_route(ModelTier.DEEP),
+        role="answer",
+        base_input_tokens=12000,
+        base_output_tokens=2400,
+    )
+    assert budget.max_input_tokens == 12000
+    assert budget.max_output_tokens == 2400
+
+
+def test_verifier_budget_is_bounded_but_not_bypassed() -> None:
+    runtime = AdaptiveAgentRuntime(
+        AdaptiveAgentRuntimeConfig(verifier_fast_max_output_tokens=600)
+    )
+    budget = runtime.token_budget(
+        route=_route(ModelTier.FAST),
+        role="verifier",
+        base_input_tokens=12000,
+        base_output_tokens=1800,
+    )
+    assert budget.max_input_tokens <= 7000
+    assert budget.max_output_tokens == 600
