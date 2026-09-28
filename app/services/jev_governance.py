@@ -1,12 +1,12 @@
-"""Governance, Circuit Breaker, Timeout Budget & Caching for Gate 3 (Jev).
+"""Governance, circuit breaking, timeout budget and caching for Jev.
 
-Design Principles:
-1. Circuit Breaker: If Jev latency spikes (P95 > 250ms) or error rate exceeds 5%,
-   the circuit trips to OPEN, instantly bypassing Jev to keep 2-gate throughput stable.
-2. Timeout Budget: Strict per-request SLA (default 250ms). If exceeded, falls back
-   gracefully to max(deterministic_floor, reasoner) without blocking user responses.
-3. Abstract Decision State Cache: Caches Jev decisions indexed by state_hash.
-   Only caches pure clinical abstraction tuples, strictly avoiding PHI leakage.
+V14 keeps Jev fast and PHI-free while preserving its new authority boundary:
+- cache/circuit/timeout wrappers must not promote an advisory decision into a
+  disposition authority;
+- an ``emergency_lock`` is preserved only when it originated from an existing
+  deterministic emergency floor;
+- failures return advisory signals and human-review hints instead of creating a
+  new ROUTINE->URGENT escalation on their own.
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ from enum import Enum
 import logging
 from threading import RLock
 import time
-from typing import Any, Callable
+from typing import Callable
 
 from app.models.jev import DecisionState, JevDecision
 from app.services.jev_engine import evaluate_jev_decision
@@ -27,9 +27,9 @@ logger = logging.getLogger(__name__)
 
 
 class CircuitState(str, Enum):
-    CLOSED = "CLOSED"      # Healthy, executing Jev
-    OPEN = "OPEN"          # Unhealthy, bypassing Jev
-    HALF_OPEN = "HALF_OPEN"# Trialing recovery
+    CLOSED = "CLOSED"
+    OPEN = "OPEN"
+    HALF_OPEN = "HALF_OPEN"
 
 
 @dataclass
@@ -43,7 +43,7 @@ class CircuitBreakerStats:
 
 
 class JevCircuitBreaker:
-    """Rolling window circuit breaker for Gate 3 (Jev)."""
+    """Rolling-window circuit breaker for Jev."""
 
     def __init__(
         self,
@@ -95,23 +95,22 @@ class JevCircuitBreaker:
     def _evaluate_health(self) -> None:
         if self.stats.total_calls < self.min_samples:
             return
-
         total_errs = self.stats.error_count + self.stats.timeout_count
         error_rate = total_errs / max(self.stats.total_calls, 1)
-
         if self.stats.latencies_ms:
             sorted_lat = sorted(self.stats.latencies_ms)
             p95_idx = int(0.95 * len(sorted_lat))
             p95_lat = sorted_lat[min(p95_idx, len(sorted_lat) - 1)]
         else:
             p95_lat = 0.0
-
         if error_rate >= self.failure_threshold or p95_lat >= self.p95_threshold_ms:
             if self.stats.state != CircuitState.OPEN:
                 self.stats.state = CircuitState.OPEN
                 self.stats.last_state_change = time.time()
                 logger.warning(
-                    f"Jev CircuitBreaker TRIPPED to OPEN! err_rate={error_rate:.2%}, p95={p95_lat:.1f}ms"
+                    "Jev CircuitBreaker TRIPPED to OPEN! err_rate=%.2f%%, p95=%.1fms",
+                    error_rate * 100.0,
+                    p95_lat,
                 )
 
     def reset(self) -> None:
@@ -120,7 +119,7 @@ class JevCircuitBreaker:
 
 
 class DecisionStateCache:
-    """Thread-safe TTL in-memory cache for abstract DecisionState hashes."""
+    """Thread-safe TTL cache for PHI-free DecisionState hashes."""
 
     def __init__(self, ttl_seconds: float = 300.0, max_size: int = 1000) -> None:
         self.ttl_seconds = ttl_seconds
@@ -142,10 +141,11 @@ class DecisionStateCache:
     def put(self, state_hash: str, decision: JevDecision) -> None:
         with self._lock:
             if len(self._cache) >= self.max_size:
-                # Evict oldest 20%
-                oldest_keys = sorted(self._cache.keys(), key=lambda k: self._cache[k][0])[: self.max_size // 5]
-                for k in oldest_keys:
-                    self._cache.pop(k, None)
+                oldest_keys = sorted(
+                    self._cache.keys(), key=lambda key: self._cache[key][0]
+                )[: self.max_size // 5]
+                for key in oldest_keys:
+                    self._cache.pop(key, None)
             self._cache[state_hash] = (time.time(), decision)
 
     def clear(self) -> None:
@@ -153,10 +153,58 @@ class DecisionStateCache:
             self._cache.clear()
 
 
-# Global Singleton Instances
 jev_circuit_breaker = JevCircuitBreaker()
 jev_decision_cache = DecisionStateCache()
 _JEV_POOL = ThreadPoolExecutor(max_workers=4, thread_name_prefix="medguard-jev")
+
+
+def _fallback_decision(
+    state: DecisionState,
+    *,
+    rule: str,
+    source: str,
+    latency_ms: float = 0.1,
+    require_human_review: bool = False,
+    circuit_bypassed: bool = False,
+    timed_out: bool = False,
+) -> JevDecision:
+    """Return a governance fallback without inventing new Jev authority."""
+    if state.triage_floor == "EMERGENCY":
+        action = "EMERGENCY_NOW"
+        recommendation = "EMERGENCY"
+        authority = "emergency_lock"
+        allow_home = False
+    elif state.reasoner_triage == "EMERGENCY":
+        action = "EMERGENCY_NOW"
+        recommendation = "EMERGENCY"
+        authority = "advisory"
+        allow_home = False
+    elif state.triage_floor == "URGENT" or state.reasoner_triage == "URGENT":
+        action = "SAME_DAY_EVAL"
+        recommendation = "URGENT"
+        authority = "advisory"
+        allow_home = False
+    else:
+        action = "AMBIGUOUS_CLARIFY" if require_human_review else "SELF_CARE"
+        recommendation = "ROUTINE"
+        authority = "advisory"
+        allow_home = not require_human_review
+
+    return JevDecision(
+        action=action,
+        confidence=state.confidence if not require_human_review else min(state.confidence, 0.70),
+        allow_home_monitoring=allow_home,
+        require_human_review=require_human_review,
+        triage_recommendation=recommendation,
+        policy_rules_triggered=(rule,),
+        clinical_insights=(rule,),
+        suggested_clarifications=("review_jev_governance_failure",) if require_human_review else (),
+        authority=authority,
+        latency_ms=round(latency_ms, 2),
+        source=source,
+        circuit_breaker_bypassed=circuit_bypassed,
+        timeout_fallback=timed_out,
+    )
 
 
 def execute_jev_governed(
@@ -165,11 +213,10 @@ def execute_jev_governed(
     *,
     engine_fn: Callable[[DecisionState], JevDecision] = evaluate_jev_decision,
 ) -> JevDecision:
-    """Execute Gate 3 (Jev) with cache lookup, circuit breaking, and timeout enforcement."""
-    s_hash = state.state_hash()
+    """Execute Jev with cache, circuit breaking and a bounded timeout."""
+    state_hash = state.state_hash()
 
-    # 1. Cache Check
-    cached_val = jev_decision_cache.get(s_hash)
+    cached_val = jev_decision_cache.get(state_hash)
     if cached_val is not None:
         return JevDecision(
             action=cached_val.action,
@@ -178,71 +225,55 @@ def execute_jev_governed(
             require_human_review=cached_val.require_human_review,
             triage_recommendation=cached_val.triage_recommendation,
             policy_rules_triggered=cached_val.policy_rules_triggered,
+            clinical_insights=cached_val.clinical_insights,
+            advisory_red_flags=cached_val.advisory_red_flags,
+            suggested_clarifications=cached_val.suggested_clarifications,
+            authority=cached_val.authority,
             latency_ms=0.1,
             source="jev_cache",
             cached=True,
         )
 
-    # 2. Circuit Breaker Check
     if not jev_circuit_breaker.allow_request():
-        # Fail-Open / Bypass Jev gracefully
-        fallback_action = "EMERGENCY_NOW" if state.triage_floor == "EMERGENCY" else (
-            "SAME_DAY_EVAL" if state.triage_floor == "URGENT" or state.reasoner_triage == "URGENT" else "SELF_CARE"
-        )
-        return JevDecision(
-            action=fallback_action,
-            confidence=state.confidence,
-            allow_home_monitoring=(fallback_action == "SELF_CARE"),
-            require_human_review=False,
-            triage_recommendation=state.reasoner_triage,
-            policy_rules_triggered=("circuit_breaker_bypassed_fallback",),
-            latency_ms=0.1,
+        return _fallback_decision(
+            state,
+            rule="circuit_breaker_bypassed_fallback",
             source="circuit_breaker_bypass",
-            circuit_breaker_bypassed=True,
+            circuit_bypassed=True,
         )
 
-    # 3. Execution with Timeout Budget
     t0 = time.perf_counter()
     try:
         future = _JEV_POOL.submit(engine_fn, state)
         decision = future.result(timeout=timeout_ms / 1000.0)
         elapsed_ms = (time.perf_counter() - t0) * 1000.0
-
         jev_circuit_breaker.record_success(elapsed_ms)
-        jev_decision_cache.put(s_hash, decision)
+        jev_decision_cache.put(state_hash, decision)
         return decision
-
     except FutureTimeoutError:
         elapsed_ms = (time.perf_counter() - t0) * 1000.0
         jev_circuit_breaker.record_failure(is_timeout=True)
-        logger.warning(f"Jev timed out after {elapsed_ms:.1f}ms (budget={timeout_ms}ms); applying safety fallback.")
-
-        fallback_action = "EMERGENCY_NOW" if state.triage_floor == "EMERGENCY" or state.reasoner_triage == "EMERGENCY" else (
-            "SAME_DAY_EVAL" if state.triage_floor == "URGENT" or state.reasoner_triage == "URGENT" else "SELF_CARE"
+        logger.warning(
+            "Jev timed out after %.1fms (budget=%.1fms); returning advisory fallback.",
+            elapsed_ms,
+            timeout_ms,
         )
-        return JevDecision(
-            action=fallback_action,
-            confidence=state.confidence,
-            allow_home_monitoring=(fallback_action == "SELF_CARE"),
-            require_human_review=False,
-            triage_recommendation=state.reasoner_triage if state.triage_floor == "ROUTINE" else state.triage_floor,
-            policy_rules_triggered=("jev_timeout_safety_floor",),
-            latency_ms=round(elapsed_ms, 2),
+        return _fallback_decision(
+            state,
+            rule="jev_timeout_advisory_fallback",
             source="timeout_fallback",
-            timeout_fallback=True,
+            latency_ms=elapsed_ms,
+            require_human_review=True,
+            timed_out=True,
         )
     except Exception as exc:
         elapsed_ms = (time.perf_counter() - t0) * 1000.0
         jev_circuit_breaker.record_failure(is_timeout=False)
-        logger.error(f"Jev execution error ({exc}); applying safety fallback.")
-
-        return JevDecision(
-            action="EMERGENCY_NOW" if state.triage_floor == "EMERGENCY" else "SAME_DAY_EVAL",
-            confidence=0.70,
-            allow_home_monitoring=False,
-            require_human_review=True,
-            triage_recommendation="URGENT" if state.triage_floor == "ROUTINE" else state.triage_floor,
-            policy_rules_triggered=("jev_exception_fail_closed",),
-            latency_ms=round(elapsed_ms, 2),
+        logger.error("Jev execution error (%s); returning advisory fallback.", exc)
+        return _fallback_decision(
+            state,
+            rule="jev_exception_advisory_fallback",
             source="exception_fallback",
+            latency_ms=elapsed_ms,
+            require_human_review=True,
         )
