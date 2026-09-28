@@ -17,6 +17,7 @@ from scripts.benchmark_chat_hard import run_chat_hard_benchmark
 from scripts.benchmark_mimic_ed import run_mimic_ed_benchmark
 from scripts.benchmark_llm_control_plane import run_llm_control_plane_benchmark
 from scripts.benchmark_ocr import run_ocr_benchmark
+from scripts.benchmark_professional_response import run_professional_response_benchmark
 from scripts.benchmark_runtime import run_runtime_benchmark
 from scripts.benchmark_safety import run_allergy_benchmark, run_interaction_benchmark
 from scripts.benchmark_triage import run_triage_benchmark
@@ -38,6 +39,7 @@ def _run_iteration(iteration: int, profile: str) -> bool:
     allergies = run_allergy_benchmark()
     adversarial = run_adversarial_benchmark()
     chat_hard = run_chat_hard_benchmark()
+    output_quality = run_professional_response_benchmark()
     external_integrity = validate_mimic_demo()
     mimic = run_mimic_ed_benchmark()
     runtime = run_runtime_benchmark(iterations_per_endpoint=25)
@@ -57,6 +59,7 @@ def _run_iteration(iteration: int, profile: str) -> bool:
             adversarial["fail_closed_passed"],
             adversarial["zero_default_catalog_violations"],
             chat_hard["gate_passed"],
+            output_quality["gate_passed"],
             external_integrity["valid"],
             runtime["development_gate_passed"],
             llm_control["all_passed"],
@@ -74,6 +77,8 @@ def _run_iteration(iteration: int, profile: str) -> bool:
             mimic["production_evaluable"],
             mimic["emergency_recall"] >= 0.98,
             mimic["severe_undertriage_rate"] <= 0.01,
+            output_quality["critical_failures"] == [],
+            output_quality["false_accepts"] == [],
         )
     )
     passed = production_gate if profile == "production" else common_gate
@@ -86,6 +91,8 @@ def _run_iteration(iteration: int, profile: str) -> bool:
         f"runtime_p95_ms={runtime['max_endpoint_p95_ms']} "
         f"llm_control={'pass' if llm_control['all_passed'] else 'fail'} "
         f"chat_hard={chat_hard['passed']}/{chat_hard['total']} "
+        f"output_quality={output_quality['correct']}/{output_quality['total']} "
+        f"quality_score={output_quality['average_good_score']} "
         f"training_plane={'pass' if training_plane['all_passed'] else 'fail'} "
         f"readiness={readiness.status} production_ready={readiness.production_ready}"
     )
