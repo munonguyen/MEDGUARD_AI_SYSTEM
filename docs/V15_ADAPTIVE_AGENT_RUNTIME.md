@@ -56,6 +56,16 @@ Verified patient-facing output or deterministic fallback
 4. **Reviewer cannot be bypassed.** If every Reviewer model fails, the model draft is not released.
 5. **Explicit emergency lock is non-downgradable.** Emergency Writer keeps the full configured Writer token budget.
 6. **Clinical generated responses remain `NO_STORE`.** Repeated medical text is not blindly served from response cache. Safe exact caching remains limited to approved low-risk scopes.
+7. **A real Kev endpoint cannot enter `enforced` mode without a versioned validated calibration marker.** An invalid enforcement request is automatically degraded to `shadow`.
+
+## Kev calibration guard
+
+`MEDGUARD_ADAPTIVE_ROUTING_MODE=enforced` is only effective for a configured real Kev endpoint when both conditions hold:
+
+- `MEDGUARD_KEV_CALIBRATION_STATUS=validated`
+- `MEDGUARD_KEV_CALIBRATION_VERSION=<approved-version>`
+
+If either condition is missing, the runtime records an enforcement-guard metric and uses `shadow`. This prevents an uncalibrated checkpoint from affecting execution simply because an environment variable was changed. A missing Kev URL still uses the validated clinical fallback signal and does not require the calibration marker.
 
 ## Adaptive model ladder
 
@@ -77,6 +87,7 @@ Route-aware token caps reduce routine cost while preserving high-risk capacity:
 - STANDARD Writer: bounded by `MEDGUARD_STANDARD_MAX_INPUT_TOKENS` / `MEDGUARD_STANDARD_MAX_OUTPUT_TOKENS`.
 - DEEP Writer: keeps the existing global Writer budget. Emergency and uncertain routes are intentionally DEEP.
 - Reviewer remains mandatory for all tiers. Reviewer output caps are controlled separately for FAST/STANDARD/DEEP.
+- A missing adaptive route keeps the pre-V15 budget unchanged, protecting legacy and pharmacology paths from accidental throttling.
 
 The gateway still performs the pre-call token estimate and fails before provider execution when the estimated input exceeds the selected route budget.
 
@@ -113,18 +124,21 @@ Quality telemetry includes professional response score and rejection reason coun
 
 1. Keep `MEDGUARD_ADAPTIVE_ROUTING_MODE=shadow` while collecting deidentified routing telemetry.
 2. Validate Kev calibration on MedGuard-labeled routing data. Do not infer calibration from generic model confidence.
-3. Exercise primary/fallback model outages in staging and verify that severity remains unchanged.
-4. Run the full backend regression suite, V10 provenance guard, frontend build, V15 routing/runtime tests, and response-quality regressions.
-5. Promote to `enforced` only after the routing and output-quality gates pass the agreed acceptance thresholds.
+3. Register the approved calibration status/version before requesting `enforced`.
+4. Exercise primary/fallback model outages in staging and verify that severity remains unchanged.
+5. Run the full backend regression suite, V10 provenance guard, frontend build, V15 routing/runtime tests, and response-quality regressions.
+6. Promote to `enforced` only after the routing and output-quality gates pass the agreed acceptance thresholds.
 
 ## V15 acceptance criteria
 
 - Every clinical response remains on the V14 Writer -> Reviewer single path.
 - Emergency lock cannot be downgraded.
 - Kev disagreement does not directly set a new severity.
+- Unvalidated real Kev cannot enter enforced mode.
 - Writer model fallback succeeds without changing route when a fallback model is healthy.
 - Reviewer model fallback succeeds without bypass; complete Reviewer outage fails safe.
 - FAST/STANDARD token caps reach provider request controls.
+- Missing adaptive route preserves the legacy budget.
 - DEEP emergency Writer keeps full configured budget.
 - Generic, unsafe, jargon-leaking, or emergency-delaying prose is rejected even when model Reviewer approves.
 - Existing medical quality regressions, historical V10 provenance, and frontend production build remain green.
