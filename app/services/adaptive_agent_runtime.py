@@ -4,6 +4,7 @@ import os
 from dataclasses import dataclass
 from typing import Any
 
+from app.core.observability import metrics
 from app.models.adaptive_routing import AdaptiveRouteDecision, ModelTier
 from app.services.adaptive_dispatcher import resolve_adaptive_route
 from app.services.kev_router import KevRouter, KevRouterConfig, build_compact_kev_state
@@ -41,6 +42,8 @@ class AdaptiveAgentRuntimeConfig:
     kev_base_url: str | None = None
     kev_model: str = "kev-latest"
     kev_timeout_seconds: float = 0.35
+    kev_calibration_status: str = "unvalidated"
+    kev_calibration_version: str | None = None
     fast_writer_model: str | None = None
     standard_writer_model: str | None = None
     deep_writer_model: str | None = None
@@ -61,6 +64,10 @@ class AdaptiveAgentRuntimeConfig:
             kev_base_url=(os.getenv("MEDGUARD_KEV_URL") or None),
             kev_model=(os.getenv("MEDGUARD_KEV_MODEL", "kev-latest") or "kev-latest").strip(),
             kev_timeout_seconds=_float_env("MEDGUARD_KEV_TIMEOUT_SECONDS", 0.35),
+            kev_calibration_status=(
+                os.getenv("MEDGUARD_KEV_CALIBRATION_STATUS", "unvalidated") or "unvalidated"
+            ).strip().lower(),
+            kev_calibration_version=(os.getenv("MEDGUARD_KEV_CALIBRATION_VERSION") or None),
             fast_writer_model=(os.getenv("MEDGUARD_FAST_WRITER_MODEL") or None),
             standard_writer_model=(os.getenv("MEDGUARD_STANDARD_WRITER_MODEL") or None),
             deep_writer_model=(os.getenv("MEDGUARD_DEEP_WRITER_MODEL") or None),
@@ -75,6 +82,26 @@ class AdaptiveAgentRuntimeConfig:
             verifier_deep_max_output_tokens=_int_env("MEDGUARD_VERIFIER_DEEP_MAX_OUTPUT_TOKENS", 1200),
         )
 
+    @property
+    def effective_mode(self) -> str:
+        requested = self.mode if self.mode in {"disabled", "shadow", "enforced"} else "shadow"
+        if requested != "enforced":
+            return requested
+        # A real Kev endpoint may affect execution only after an explicitly
+        # versioned calibration has been approved. Missing Kev still falls back
+        # to the validated clinical result and therefore does not require this
+        # approval marker.
+        if self.kev_base_url and not self.kev_is_calibrated:
+            return "shadow"
+        return "enforced"
+
+    @property
+    def kev_is_calibrated(self) -> bool:
+        return (
+            self.kev_calibration_status == "validated"
+            and bool((self.kev_calibration_version or "").strip())
+        )
+
 
 class AdaptiveAgentRuntime:
     """Resolve execution routing without owning the clinical decision.
@@ -82,17 +109,24 @@ class AdaptiveAgentRuntime:
     The clinical envelope is read-only. The runtime may choose an execution
     agent/model tier, token budget, or provider model ladder, but it never
     mutates ``clinical_result.urgency``. Model fallback is therefore orthogonal
-    to clinical severity.
+    to clinical severity. A real Kev endpoint cannot enter enforced routing
+    unless a versioned calibration has been explicitly marked validated.
     """
 
     def __init__(self, config: AdaptiveAgentRuntimeConfig | None = None) -> None:
         self.config = config or AdaptiveAgentRuntimeConfig.from_env()
+        self.mode = self.config.effective_mode
+        if self.config.mode == "enforced" and self.mode != "enforced":
+            metrics.inc_counter(
+                "medguard_kev_enforcement_guard_total",
+                labels={"reason": "calibration_not_validated"},
+            )
         self.kev = KevRouter(
             KevRouterConfig(
                 base_url=self.config.kev_base_url,
                 model=self.config.kev_model,
                 timeout_seconds=self.config.kev_timeout_seconds,
-                mode=self.config.mode,
+                mode=self.mode,
             )
         )
 
@@ -121,7 +155,7 @@ class AdaptiveAgentRuntime:
             clinical_task=clinical_task,
             clinical_result=clinical_result,
             kev=kev,
-            kev_mode=self.config.mode,
+            kev_mode=self.mode,
         )
 
     def writer_models(self, *, route: AdaptiveRouteDecision | None, default_model: str) -> tuple[str, ...]:
