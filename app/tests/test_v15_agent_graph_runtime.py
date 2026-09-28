@@ -140,6 +140,9 @@ def test_writer_and_reviewer_fallback_keep_same_clinical_route(monkeypatch: pyte
             standard_writer_model="writer-primary",
             writer_fallback_models=("writer-backup",),
             verifier_fallback_models=("judge-backup",),
+            standard_max_input_tokens=4000,
+            standard_max_output_tokens=500,
+            verifier_standard_max_output_tokens=300,
         )
     )
     monkeypatch.setattr(agent_graph_module, "adaptive_agent_runtime", runtime)
@@ -157,6 +160,8 @@ def test_writer_and_reviewer_fallback_keep_same_clinical_route(monkeypatch: pyte
     ) is True
 
     assert [call["model"] for call in writer.calls] == ["writer-primary", "writer-backup"]
+    assert writer.calls[-1]["controls"].max_input_tokens == 4000
+    assert writer.calls[-1]["controls"].max_output_tokens == 500
     assert state.selected_writer_model == "writer-backup"
     assert state.adaptive_route is not None
     assert state.adaptive_route.resolved_severity == "ROUTINE"
@@ -169,8 +174,11 @@ def test_writer_and_reviewer_fallback_keep_same_clinical_route(monkeypatch: pyte
     )
 
     assert [call["model"] for call in reviewer.calls] == ["judge-primary", "judge-backup"]
+    assert reviewer.calls[-1]["controls"].max_input_tokens == 4000
+    assert reviewer.calls[-1]["controls"].max_output_tokens == 300
     assert state.selected_verifier_model == "judge-backup"
     assert state.verification is not None and state.verification.approved is True
+    assert state.gate_reason is None
     assert state.adaptive_route.resolved_severity == "ROUTINE"
 
 
