@@ -8,6 +8,7 @@ on:
       - scripts/apply_agent_first_v12_temp.py
       - scripts/fix_v12_harness_locator_temp.py
       - scripts/fix_v12_iteration_guard_temp.py
+      - scripts/fix_v12_contract_test_temp.py
       - .github/workflows/v12-agent-first-temp.yml
 
 permissions:
@@ -37,6 +38,9 @@ jobs:
 
       - name: Repair bounded review iteration guard
         run: python scripts/fix_v12_iteration_guard_temp.py
+
+      - name: Repair V12 contract regression assertion
+        run: python scripts/fix_v12_contract_test_temp.py
 
       - name: Apply V12 agent-first patch
         run: python scripts/apply_agent_first_v12_temp.py
