@@ -20,7 +20,7 @@ class SeverityAgentProfile:
 def profile_for_tier(tier: AgentTier, settings: Any) -> SeverityAgentProfile:
     """Return the single patient-facing agent profile for one resolved tier.
 
-    Model names are gateway aliases.  LiteLLM (or another compatible gateway)
+    Model names are gateway aliases. LiteLLM (or another compatible gateway)
     can map each alias to a free-credit provider pool plus same-tier fallback;
     provider failure must never change the clinical severity tier.
     """
@@ -66,7 +66,21 @@ def profile_for_tier(tier: AgentTier, settings: Any) -> SeverityAgentProfile:
                 "Do not open with generic triage boilerplate."
             ),
         )
-    # UNCERTAIN/DEEP routes intentionally retain the existing multi-stage graph.
+    if tier == AgentTier.CLARIFICATION:
+        return SeverityAgentProfile(
+            tier=tier,
+            model=getattr(settings, "clarification_agent_model", "medguard-clarification-free"),
+            max_input_tokens=getattr(settings, "clarification_agent_max_input_tokens", 2500),
+            max_output_tokens=getattr(settings, "clarification_agent_max_output_tokens", 180),
+            web_search_required=False,
+            reviewer_required=False,
+            instruction_prefix=(
+                "CLARIFICATION MODE. The clinical state is not sufficient for safe severity routing. "
+                "Do not diagnose and do not invent a care level. Briefly reflect what is understood, then ask "
+                "exactly one concrete high-information question that most reduces routing uncertainty."
+            ),
+        )
+    # DEEP routes intentionally retain the existing multi-stage graph.
     return SeverityAgentProfile(
         tier=tier,
         model=getattr(settings, "clinical_research_model", "medguard-clinical-answer"),
