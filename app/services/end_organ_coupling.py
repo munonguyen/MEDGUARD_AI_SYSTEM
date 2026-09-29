@@ -48,38 +48,22 @@ def _extract_bp(norm: str, vitals: dict[str, Any] | None) -> tuple[int | None, i
 
 
 def _has_affirmed_presyncope(norm: str) -> bool:
-    """Return true only when at least one presyncope concept is affirmed.
+    """Return true only when a presyncope concept remains after local negation.
 
-    The coupling is high impact, so negation is evaluated per occurrence rather
-    than by deleting text globally.  This correctly distinguishes
-    ``khong choang va khong gan ngat`` from ``khong choang nhung gan ngat``.
+    This is a high-impact coupling, so we first remove only directly negated
+    presyncope spans and then search the remaining text.  The approach handles
+    repeated negatives such as ``khong choang va khong gan ngat`` while still
+    preserving contrastive statements such as ``khong choang nhung gan ngat``.
     """
-    phrases = (
-        "hoa mat",
-        "choang vang",
-        "choang",
-        "gan ngat",
-        "muon ngat",
-        "muon xiu",
-        "sap ngat",
-        "ngat xiu",
-        "bat tinh",
+    concept_pattern = (
+        r"(?:hoa mat|choang vang|choang|gan ngat|muon ngat|muon xiu|sap ngat|"
+        r"ngat xiu|bat tinh)"
     )
-    negation = re.compile(
-        r"\b(?:khong|chua|ko|k)(?:\s+(?:co|bi|thay|he))?\s*$"
+    negated = re.compile(
+        rf"\b(?:khong|chua|ko|k)(?:\s+(?:co|bi|thay|he))?\s+{concept_pattern}\b"
     )
-
-    for phrase in phrases:
-        for match in re.finditer(rf"\b{re.escape(phrase)}\b", norm):
-            # Only a short local prefix is relevant for direct Vietnamese
-            # negation.  A contrastive conjunction before a later occurrence
-            # therefore does not suppress that later affirmed finding.
-            prefix = norm[max(0, match.start() - 24):match.start()]
-            if negation.search(prefix):
-                continue
-            if contains_affirmed_phrase(norm, phrase):
-                return True
-    return False
+    remaining = negated.sub(" ", norm)
+    return bool(re.search(rf"\b{concept_pattern}\b", remaining))
 
 
 def evaluate_end_organ_coupling(
