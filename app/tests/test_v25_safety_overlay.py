@@ -56,6 +56,10 @@ EMERGENCY_CASES = (
         "V25-RF-DEHYDRATION-COLLAPSE-001",
         "Tôi nôn và tiêu chảy, không giữ được nước, vừa gần ngất và tim đập rất nhanh.",
     ),
+    (
+        "V25-RF-SYNCOPE-001",
+        "Vừa rồi tôi ngất hẳn khoảng một phút và người nhà phải gọi mới tỉnh.",
+    ),
 )
 
 
@@ -75,8 +79,34 @@ def test_v25_compositional_overlay_promotes_complete_emergency_patterns(expected
 
 def test_v25_safety_overlay_is_versioned_and_in_integrity_report():
     assert "v25_safety_overlay.json" in knowledge.files
-    assert knowledge.files["v25_safety_overlay.json"].version == "25.4.1"
+    assert knowledge.files["v25_safety_overlay.json"].version == "25.5.0"
     assert "v25_safety_overlay.json" in knowledge.integrity_report()
+
+
+def test_v25_overlay_matches_benchmark_style_evidence_distributed_across_turns():
+    abdominal_episode = "\n".join(
+        [
+            "Tôi đau âm ỉ quanh rốn từ sáng nay.",
+            "Đau chuyển xuống bụng dưới bên phải và tôi hơi sốt.",
+            "Cơn đau giờ rất dữ dội, bụng cứng và tôi choáng muốn ngất.",
+        ]
+    )
+    meningeal_episode = "\n".join(
+        [
+            "Tôi sốt 38.5 và đau đầu từ tối qua.",
+            "Sáng nay đau đầu tăng và cổ bắt đầu cứng.",
+            "Tôi rất sợ ánh sáng và người nhà bảo tôi trả lời chậm hơn bình thường.",
+        ]
+    )
+
+    for expected_id, text in (
+        ("V25-RF-ACUTE-ABDOMEN-001", abdominal_episode),
+        ("V25-RF-MENINGEAL-AMS-001", meningeal_episode),
+    ):
+        normalized = normalize_clinical_concepts(text)
+        matched_ids = {str(item.get("id")) for item in _check_red_flag_patterns(normalized)}
+        assert expected_id in matched_ids
+        assert triage_rules(text).urgency == "EMERGENCY"
 
 
 @pytest.mark.parametrize(
@@ -88,6 +118,7 @@ def test_v25_safety_overlay_is_versioned_and_in_integrity_report():
         "Tôi vừa chạy ngoài trời nóng nhưng hoàn toàn tỉnh táo và đi đứng bình thường.",
         "Tôi bị vết cắt nhỏ, đã ép gạc và máu đã cầm hoàn toàn.",
         "Tôi mang thai 8 tuần, hơi đau bụng lan tỏa nhưng không choáng, không đau vai và không ra máu.",
+        "Tôi chỉ hơi choáng, chưa từng ngất hẳn hay mất ý thức.",
     ),
 )
 def test_v25_overlay_does_not_fire_when_required_composition_is_absent_or_negated(text: str):
