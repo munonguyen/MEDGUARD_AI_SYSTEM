@@ -205,6 +205,90 @@ class ChatResponse(DisclaimerMixin):
         self.result = updated_result
 
     @model_validator(mode="after")
+    def ensure_structured_next_steps(self) -> "ChatResponse":
+        """Expose bounded workflow/safety actions as structured UI steps.
+
+        The response writer may already state the action in prose.  This layer
+        does not invent a diagnosis or severity; it makes the already-resolved
+        workflow decision visible to the structured report UI and downstream
+        clients as a concrete next action.
+        """
+        if self.answer is None or self.answer.next_steps:
+            return self
+
+        # A direct refusal of individualized dosing is still useful only when it
+        # tells the user what to do instead.  This policy is process advice, not
+        # a medication dose recommendation.
+        if self.intent == "safety" and self.status == "unsupported":
+            self.answer = self.answer.model_copy(
+                update={
+                    "next_steps": [
+                        "Không tự bắt đầu, bỏ, tăng, giảm hoặc thử liều thuốc dựa trên hội thoại; hãy xác nhận kế hoạch dùng thuốc với bác sĩ hoặc dược sĩ có thông tin lâm sàng đầy đủ."
+                    ]
+                }
+            )
+            return self
+
+        if not isinstance(self.result, dict) or self.status != "answered":
+            return self
+
+        steps: list[str] = []
+        if self.intent == "schedule":
+            action = str(self.result.get("action") or "").lower()
+            if action == "create":
+                steps = [
+                    "Kiểm tra lại card lịch thuốc để xác nhận tên thuốc và các mốc giờ vừa tạo trước lần uống tiếp theo."
+                ]
+            elif action == "view":
+                steps = [
+                    "Đối chiếu các mốc giờ đang hoạt động trên card và tiếp tục theo dõi theo lịch đã xác nhận."
+                ]
+            elif action == "update":
+                steps = [
+                    "Kiểm tra lại card để xác nhận giờ mới và dùng mốc giờ đã cập nhật cho lần uống tiếp theo."
+                ]
+            elif action in {"delete", "cancel"}:
+                steps = [
+                    "Kiểm tra danh sách lịch để xác nhận card này không còn hoạt động và các card còn lại vẫn đúng."
+                ]
+        elif self.intent == "monitoring":
+            escalation = str(
+                self.result.get("escalation_level")
+                or self.result.get("urgency")
+                or "NONE"
+            ).upper()
+            if escalation == "EMERGENCY":
+                steps = [
+                    "Liên hệ cấp cứu hoặc đến khoa Cấp cứu ngay; không trì hoãn chỉ để tiếp tục đo chỉ số tại nhà."
+                ]
+            elif escalation == "URGENT":
+                steps = [
+                    "Liên hệ cơ sở y tế để được đánh giá sớm; nếu triệu chứng nặng lên hoặc xuất hiện dấu hiệu cấp cứu, hãy chuyển sang cấp cứu ngay."
+                ]
+            elif escalation == "CLINIC":
+                steps = [
+                    "Sắp xếp khám trực tiếp và mang theo các lần đo đã ghi lại để nhân viên y tế đánh giá xu hướng."
+                ]
+            else:
+                steps = [
+                    "Tiếp tục ghi lại chỉ số đúng kỹ thuật và theo dõi xu hướng; nếu giá trị xấu đi hoặc xuất hiện triệu chứng mới, hãy liên hệ cơ sở y tế."
+                ]
+        elif self.intent == "safety":
+            risk = str(self.result.get("overall_risk") or "LOW").upper()
+            if risk in {"HIGH", "MODERATE"} or bool(self.result.get("requires_human_review")):
+                steps = [
+                    "Không tự bắt đầu, ngừng hoặc thay đổi cách phối hợp thuốc; hãy mang danh sách thuốc hiện tại để bác sĩ hoặc dược sĩ rà soát trực tiếp."
+                ]
+            else:
+                steps = [
+                    "Nếu bạn định bắt đầu, ngừng hoặc phối hợp thuốc mới, hãy đối chiếu lại tên hoạt chất và xác nhận với bác sĩ hoặc dược sĩ khi còn điểm chưa chắc chắn."
+                ]
+
+        if steps:
+            self.answer = self.answer.model_copy(update={"next_steps": steps})
+        return self
+
+    @model_validator(mode="after")
     def apply_patient_question_policy(self) -> "ChatResponse":
         """Enforce patient-surface dialogue and emergency output invariants."""
         if self.answer is None or not isinstance(self.result, dict):
