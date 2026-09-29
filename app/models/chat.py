@@ -253,6 +253,49 @@ class ChatResponse(DisclaimerMixin):
 
         return None
 
+    def _narrative_with_selected_questions(
+        self,
+        selected_questions: list[str],
+    ) -> list[AnswerNarrativeBlock]:
+        """Keep one selected question consistent across every patient surface."""
+        if self.answer is None:
+            return []
+        prompt_label = "Bạn cho mình biết thêm"
+        selected = selected_questions[:1]
+        replacement = ""
+        if selected:
+            question = selected[0].strip()
+            if question and question[-1] not in "?!":
+                question += "?"
+            replacement = f"{prompt_label}: {question}"
+
+        updated: list[AnswerNarrativeBlock] = []
+        found_question_block = False
+        for block in self.answer.narrative:
+            if block.text.strip().startswith(prompt_label):
+                found_question_block = True
+                if replacement:
+                    updated.append(
+                        block.model_copy(
+                            update={
+                                "text": replacement,
+                                "emphasis": [prompt_label],
+                            }
+                        )
+                    )
+                continue
+            updated.append(block)
+
+        if replacement and not found_question_block:
+            updated.append(
+                AnswerNarrativeBlock(
+                    kind="paragraph",
+                    text=replacement,
+                    emphasis=[prompt_label],
+                )
+            )
+        return updated
+
     @model_validator(mode="after")
     def apply_patient_question_policy(self) -> "ChatResponse":
         """Enforce patient-surface dialogue, actionability and emergency invariants."""
@@ -295,6 +338,8 @@ class ChatResponse(DisclaimerMixin):
                 text = block.text.replace(obsolete_phrase, "ngay")
                 if "không thể khẳng định" in text.lower():
                     has_uncertainty = True
+                if text.strip().startswith("Bạn cho mình biết thêm"):
+                    continue
                 narrative.append(block.model_copy(update={"text": text}))
             if not has_uncertainty:
                 insert_at = 1 if narrative else 0
@@ -319,7 +364,14 @@ class ChatResponse(DisclaimerMixin):
             return self
 
         plan = plan_clinical_questions(list(self.answer.questions), urgency=urgency)
-        self.answer = self.answer.model_copy(update={"display_questions": plan.questions})
+        selected_questions = list(plan.questions)[:1]
+        self.answer = self.answer.model_copy(
+            update={
+                "questions": selected_questions,
+                "display_questions": selected_questions,
+                "narrative": self._narrative_with_selected_questions(selected_questions),
+            }
+        )
         self._attach_question_policy_trace(plan)
         return self
 
