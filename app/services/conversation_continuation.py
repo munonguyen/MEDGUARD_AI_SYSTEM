@@ -132,6 +132,8 @@ _SAFETY_CONTEXT_MARKERS = (
     "naproxen",
     "paracetamol",
     "acetaminophen",
+    "amoxicillin",
+    "penicillin",
     "metformin",
     "thuoc ngu",
     "thuoc chong dong",
@@ -146,6 +148,8 @@ _SAFETY_CONTINUATION_MARKERS = (
     "warfarin",
     "naproxen",
     "paracetamol",
+    "amoxicillin",
+    "penicillin",
     "metformin",
     "thuoc ngu",
     "thuoc chong dong",
@@ -161,6 +165,23 @@ _SAFETY_CONTINUATION_MARKERS = (
     "doi lieu",
 )
 
+_EXPLICIT_SAFETY_QUESTION_MARKERS = (
+    "co dung duoc khong",
+    "co uong duoc khong",
+    "dung duoc khong",
+    "uong duoc khong",
+    "co an toan",
+    "dung chung",
+    "uong chung",
+    "uong kem",
+    "nua vien",
+    "thu nua vien",
+    "chia vien",
+    "tu gay non",
+    "gay non de day thuoc ra",
+    "day thuoc ra",
+)
+
 _EYE_COMPLAINT = re.compile(
     r"(?:\bmat\b(?:\s+[a-z0-9]+){0,6}\s+\b(?:do|com|dau|nhuc|mo|sung|ngua|chay nuoc mat)\b"
     r"|\b(?:do|com|dau|nhuc|mo|sung|ngua)\b(?:\s+[a-z0-9]+){0,6}\s+\bmat\b)"
@@ -172,19 +193,41 @@ def _user_texts(messages: list[tuple[str, str]]) -> list[str]:
 
 
 def _has_workflow_intent(latest: str) -> bool:
-    """Protect explicit workflow commands from clinical continuation recovery.
-
-    The user may mention a medicine name inside a card command (for example
-    ``xem lại card lịch uống aspirin``).  That is still a schedule workflow,
-    not a medication-safety continuation.  Workflow ownership therefore has
-    precedence over inferred clinical continuation intent.
-    """
+    """Protect explicit workflow commands from clinical continuation recovery."""
     if any(marker in latest for marker in _WORKFLOW_MARKERS):
         return True
     return bool(
         "card" in latest
         and any(word in latest for word in ("uong", "thuoc", "nhac", "gio", "lich"))
     )
+
+
+def _explicit_current_turn_safety(latest: str, history: str) -> str | None:
+    """Return a reason when the latest turn clearly owns medication-safety intent.
+
+    Current explicit medication decisions must not be swallowed by a prior
+    triage episode.  This function only selects the domain; urgency remains with
+    the medication safety / clinical safety layers.
+    """
+    has_med_context = any(marker in latest for marker in _SAFETY_CONTEXT_MARKERS)
+    prior_med_context = any(marker in history for marker in _SAFETY_CONTEXT_MARKERS) or "thuoc" in history
+    relation_question = bool(
+        re.search(
+            r"\b(?:co\s+)?(?:uong|dung)\b(?:\s+[a-z0-9+._-]+){0,8}\s+duoc\s+khong\b",
+            latest,
+        )
+    )
+    direct_question = relation_question or any(
+        marker in latest for marker in _EXPLICIT_SAFETY_QUESTION_MARKERS
+    )
+
+    if "chuyen viec khac" in latest and has_med_context and direct_question:
+        return "explicit_domain_switch_to_medication_safety"
+    if direct_question and (has_med_context or prior_med_context or "thuoc" in latest or "vien" in latest):
+        return "explicit_current_turn_medication_safety"
+    if "tu gay non" in latest and ("thuoc" in latest or prior_med_context):
+        return "medication_decontamination_question"
+    return None
 
 
 def _prior_metric_domain(history: str) -> str | None:
@@ -220,12 +263,7 @@ def _numeric_percentage(text: str) -> float | None:
 
 
 def _spo2_stays_in_acute_episode(*, history: str, latest: str) -> bool:
-    """Keep severe hypoxia follow-ups inside the acute triage episode.
-
-    Threshold authority comes from the versioned monitoring registry rather
-    than being duplicated here.  This function changes only domain ownership:
-    severity remains the responsibility of the existing safety/triage layers.
-    """
+    """Keep severe hypoxia follow-ups inside the acute triage episode."""
     rule = _monitoring_rule("spo2")
     critical_below = rule.get("critical_below") if rule else None
     if not isinstance(critical_below, (int, float)):
@@ -285,6 +323,10 @@ def resolve_conversation_continuation(
     prior_users = [normalize_search_text(value) for value in users[:-1]]
     history = "\n".join(reversed(prior_users[-4:]))
 
+    explicit_safety_reason = _explicit_current_turn_safety(latest, history)
+    if explicit_safety_reason:
+        return ContinuationResolution("safety", explicit_safety_reason, 0.995)
+
     if any(marker in latest for marker in _SAFETY_DIRECT_MARKERS):
         return ContinuationResolution("safety", "explicit_medication_self_management", 0.98)
 
@@ -293,10 +335,6 @@ def resolve_conversation_continuation(
 
     metric = _prior_metric_domain(history)
 
-    # A vital-sign continuation that also reports circulatory compromise is no
-    # longer a pure monitoring task.  Keep the measurement in the text but hand
-    # the turn to triage so the shared clinical-safety/end-organ layers can
-    # reason over the combination rather than a numeric threshold in isolation.
     if metric == "heart_rate" and any(marker in latest for marker in _HIGH_RISK_CIRCULATORY_MARKERS):
         return ContinuationResolution(
             "triage",
