@@ -112,6 +112,9 @@ _RESPIRATORY_EPISODE_MARKERS = (
     "dau hong",
 )
 
+# Explicit medication-management actions have ownership over stale clinical
+# history.  These markers intentionally describe an action/risk question rather
+# than a diagnosis or severity signal.
 _SAFETY_DIRECT_MARKERS = (
     "tu doi lieu",
     "tu dieu chinh lieu",
@@ -120,9 +123,15 @@ _SAFETY_DIRECT_MARKERS = (
     "lieu chinh xac",
     "lieu cu the",
     "nua lieu thuoc",
+    "nua vien",
+    "thu nua vien",
     "dung chung an toan",
     "uong chung an toan",
     "co an toan hon",
+    "tu gay non",
+    "co nen gay non",
+    "gay non de day thuoc",
+    "gay non de tong thuoc",
 )
 
 _SAFETY_CONTEXT_MARKERS = (
@@ -132,6 +141,8 @@ _SAFETY_CONTEXT_MARKERS = (
     "naproxen",
     "paracetamol",
     "acetaminophen",
+    "amoxicillin",
+    "penicillin",
     "metformin",
     "thuoc ngu",
     "thuoc chong dong",
@@ -146,10 +157,13 @@ _SAFETY_CONTINUATION_MARKERS = (
     "warfarin",
     "naproxen",
     "paracetamol",
+    "amoxicillin",
+    "penicillin",
     "metformin",
     "thuoc ngu",
     "thuoc chong dong",
     "lieu",
+    "nua vien",
     "nhan",
     "thanh phan",
     "hon hop thao duoc",
@@ -159,11 +173,30 @@ _SAFETY_CONTINUATION_MARKERS = (
     "uong them",
     "bo lieu",
     "doi lieu",
+    "gay non",
+)
+
+_MEDICATION_SAFETY_QUESTION_MARKERS = (
+    "uong duoc khong",
+    "dung duoc khong",
+    "co uong duoc",
+    "co dung duoc",
+    "uong chung",
+    "dung chung",
+    "uong them",
+    "dung them",
+    "co an toan",
+    "co nguy hiem",
+    "co sao khong",
 )
 
 _EYE_COMPLAINT = re.compile(
     r"(?:\bmat\b(?:\s+[a-z0-9]+){0,6}\s+\b(?:do|com|dau|nhuc|mo|sung|ngua|chay nuoc mat)\b"
     r"|\b(?:do|com|dau|nhuc|mo|sung|ngua)\b(?:\s+[a-z0-9]+){0,6}\s+\bmat\b)"
+)
+
+_MEDICATION_PERMISSION_QUESTION = re.compile(
+    r"\b(?:co\s+)?(?:uong|dung)\b.{0,80}\b(?:duoc\s+khong|co\s+sao\s+khong|co\s+on\s+khong)\b"
 )
 
 
@@ -187,11 +220,30 @@ def _has_workflow_intent(latest: str) -> bool:
     )
 
 
+def _is_direct_medication_safety(latest: str) -> bool:
+    """Return True when the current turn independently owns medication safety.
+
+    A fresh medication question must not inherit a previous triage episode just
+    because an earlier user turn contained symptoms.  Conversely, a bare phrase
+    such as ``uống được không`` is not enough by itself; it must mention a known
+    medication context unless it is an explicit unsafe self-management action.
+    """
+    if any(marker in latest for marker in _SAFETY_DIRECT_MARKERS):
+        return True
+    mentions_medication = any(marker in latest for marker in _SAFETY_CONTEXT_MARKERS)
+    asks_safety = any(marker in latest for marker in _MEDICATION_SAFETY_QUESTION_MARKERS)
+    # Natural questions often place the medicine name between the verb and
+    # "được không", e.g. "có dùng ibuprofen được không".  Match that grammar
+    # without binding this resolver to any one drug name.
+    asks_safety = asks_safety or bool(_MEDICATION_PERMISSION_QUESTION.search(latest))
+    return mentions_medication and asks_safety
+
+
 def _prior_metric_domain(history: str) -> str | None:
     """Return the most recently established monitoring metric family."""
     if "spo2" in history or "do bao hoa oxy" in history:
         return "spo2"
-    if "huyet ap" in history or re.search(r"\b\d{2,3}\s*/\s*\d{2,3}\s*mmhg\b", history):
+    if "huyet ap" in history or re.search(r"\b\d{2,3}\s*/\s*(\d{2,3})\s*mmhg\b", history):
         return "blood_pressure"
     if "nhip tim" in history or "mach" in history or "lan/phut" in history or "bpm" in history:
         return "heart_rate"
@@ -285,8 +337,11 @@ def resolve_conversation_continuation(
     prior_users = [normalize_search_text(value) for value in users[:-1]]
     history = "\n".join(reversed(prior_users[-4:]))
 
-    if any(marker in latest for marker in _SAFETY_DIRECT_MARKERS):
-        return ContinuationResolution("safety", "explicit_medication_self_management", 0.98)
+    # Current-turn ownership wins over stale history.  This is intentionally
+    # evaluated before metric/history recovery because a user can switch from a
+    # symptom conversation to a medication-safety question in one sentence.
+    if _is_direct_medication_safety(latest):
+        return ContinuationResolution("safety", "explicit_medication_self_management", 0.99)
 
     if "thuoc chong dong" in latest and any(marker in latest for marker in ("chay mau", "chay mau cam", "bo lieu")):
         return ContinuationResolution("safety", "anticoagulant_safety_context", 0.97)

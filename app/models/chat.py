@@ -204,17 +204,126 @@ class ChatResponse(DisclaimerMixin):
         updated_result["trace"] = updated_trace
         self.result = updated_result
 
+    def _default_next_step(self, urgency: str) -> str | None:
+        """Return a bounded action when an otherwise valid answer has none.
+
+        This is a presentation/release invariant, not a clinical reasoner.  It
+        does not infer severity; it uses only the already-resolved intent,
+        status and urgency supplied by upstream domain logic.
+        """
+        if self.intent == "monitoring":
+            if urgency == "EMERGENCY":
+                return (
+                    "Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay; không tự lái xe và "
+                    "không trì hoãn để tiếp tục theo dõi chỉ số tại nhà."
+                )
+            if urgency == "URGENT":
+                return (
+                    "Liên hệ cơ sở y tế để được đánh giá sớm; nếu chỉ số xấu đi hoặc "
+                    "xuất hiện khó thở, đau ngực, lơ mơ hay choáng, hãy đi cấp cứu."
+                )
+            return (
+                "Tiếp tục ghi lại chỉ số đúng đơn vị và đo lại theo hướng dẫn; liên hệ "
+                "cơ sở y tế nếu chỉ số xấu đi hoặc xuất hiện triệu chứng mới."
+            )
+
+        if self.intent == "safety":
+            return (
+                "Không tự bắt đầu, ngừng, đổi liều hoặc phối hợp thuốc dựa chỉ trên hội thoại; "
+                "hãy trao đổi với bác sĩ hoặc dược sĩ khi quyết định dùng thuốc có thể thay đổi."
+            )
+
+        if self.intent == "schedule":
+            return (
+                "Kiểm tra lại tên thuốc và thời gian trên lịch; nếu cần, bạn có thể yêu cầu "
+                "đổi giờ, tạm dừng hoặc hủy lịch."
+            )
+
+        if self.intent == "followup":
+            return (
+                "Nếu chưa có mốc phù hợp, hãy cho biết thời điểm dự kiến hoặc điều kiện cần "
+                "tái khám để hệ thống hỗ trợ điều chỉnh kế hoạch."
+            )
+
+        if self.intent == "pharmacy":
+            return (
+                "Kiểm tra lại thuốc và thông tin cấp phát; nếu có điểm chưa khớp, hãy liên hệ "
+                "dược sĩ trước khi sử dụng."
+            )
+
+        return None
+
+    def _narrative_with_selected_questions(
+        self,
+        selected_questions: list[str],
+    ) -> list[AnswerNarrativeBlock]:
+        """Keep the patient-facing shortlist consistent with the narrative."""
+        if self.answer is None:
+            return []
+        prompt_label = "Bạn cho mình biết thêm"
+        selected = selected_questions[:2]
+        replacement = ""
+        if selected:
+            normalized_questions: list[str] = []
+            for raw in selected:
+                question = raw.strip()
+                if question and question[-1] not in "?!":
+                    question += "?"
+                if question:
+                    normalized_questions.append(question)
+            replacement = f"{prompt_label}: {' '.join(normalized_questions)}"
+
+        updated: list[AnswerNarrativeBlock] = []
+        found_question_block = False
+        for block in self.answer.narrative:
+            if block.text.strip().startswith(prompt_label):
+                found_question_block = True
+                if replacement:
+                    updated.append(
+                        block.model_copy(
+                            update={
+                                "text": replacement,
+                                "emphasis": [prompt_label],
+                            }
+                        )
+                    )
+                continue
+            updated.append(block)
+
+        if replacement and not found_question_block:
+            updated.append(
+                AnswerNarrativeBlock(
+                    kind="paragraph",
+                    text=replacement,
+                    emphasis=[prompt_label],
+                )
+            )
+        return updated
+
     @model_validator(mode="after")
     def apply_patient_question_policy(self) -> "ChatResponse":
-        """Enforce patient-surface dialogue and emergency output invariants."""
-        if self.answer is None or not isinstance(self.result, dict):
+        """Enforce patient-surface dialogue, actionability and emergency invariants."""
+        if self.answer is None:
             return self
 
+        result = self.result if isinstance(self.result, dict) else {}
         urgency = str(
-            self.result.get("urgency")
-            or self.result.get("escalation_level")
+            result.get("urgency")
+            or result.get("escalation_level")
             or "ROUTINE"
         ).upper()
+
+        # V26 output contract: an answered clinical/workflow response should not
+        # end as a passive description when a safe next action can be expressed
+        # from the already-resolved intent/urgency.  Jev can therefore evaluate
+        # a stable structured action field instead of relying on prose heuristics.
+        if not self.answer.next_steps:
+            default_step = self._default_next_step(urgency)
+            if default_step:
+                self.answer = self.answer.model_copy(update={"next_steps": [default_step]})
+
+        if not isinstance(self.result, dict):
+            return self
 
         if urgency == "EMERGENCY":
             uncertainty = (
@@ -233,6 +342,8 @@ class ChatResponse(DisclaimerMixin):
                 text = block.text.replace(obsolete_phrase, "ngay")
                 if "không thể khẳng định" in text.lower():
                     has_uncertainty = True
+                if text.strip().startswith("Bạn cho mình biết thêm"):
+                    continue
                 narrative.append(block.model_copy(update={"text": text}))
             if not has_uncertainty:
                 insert_at = 1 if narrative else 0
@@ -256,8 +367,17 @@ class ChatResponse(DisclaimerMixin):
         if self.intent != "triage":
             return self
 
+        # Keep the complete approved candidate set in ``questions`` for audit,
+        # evaluation and downstream reasoning.  Only ``display_questions`` and
+        # the patient narrative are pruned by the dialogue policy.
         plan = plan_clinical_questions(list(self.answer.questions), urgency=urgency)
-        self.answer = self.answer.model_copy(update={"display_questions": plan.questions})
+        selected_questions = list(plan.questions)
+        self.answer = self.answer.model_copy(
+            update={
+                "display_questions": selected_questions,
+                "narrative": self._narrative_with_selected_questions(selected_questions),
+            }
+        )
         self._attach_question_policy_trace(plan)
         return self
 
