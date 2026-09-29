@@ -49,7 +49,8 @@ PROFESSIONAL CLINICAL COMMUNICATION RULES:
 7. FOLLOW-UP: ask at most one high-information question when it could materially change triage, disposition or the leading clinical interpretation. Do not re-ask facts already present in the envelope.
 8. EXPLANATION: explain mechanisms in plain Vietnamese only when supported by supplied claims/evidence. Use a calm, confident professional tone without false certainty.
 9. ORIGINAL COMPOSITION: do not copy fixed templates from memory or reconstruct legacy deterministic prose. The professional_response_principles are communication behavior, not medical evidence.
-10. Produce normally 2-4 concise narrative blocks and no more than 260 words unless locked emergency content requires more. Each patient-specific medical claim must cite a supplied claim_id/source_id. All locked claims must appear verbatim. Return structured output only."""
+10. SEMANTIC ABSTENTION: if the envelope says INSUFFICIENT_CONTEXT or PARTIALLY_UNDERSTOOD, do not expand into a confident disease explanation. State what is understood, what remains unclear, and ask only the single highest-information question supplied by the reasoning frame.
+11. Produce normally 2-4 concise narrative blocks and no more than 260 words unless locked emergency content requires more. Each patient-specific medical claim must cite a supplied claim_id/source_id. All locked claims must appear verbatim. Return structured output only."""
 
 
 _CLINICAL_VERIFIER_INSTRUCTIONS = """You are MedGuard's independent Clinical Quality Judge.
@@ -62,10 +63,11 @@ JUDGE RULES:
 4. ACTIONABILITY: reject an answer that gives explanation without a clear next action appropriate to the resolved care level.
 5. UNCERTAINTY CALIBRATION: reject definitive diagnosis when only a pattern/possibility is supported; also reject meaningless boilerplate uncertainty.
 6. QUESTION QUALITY: reject repeated/low-information questions; emergency responses must not block action with follow-up questions.
-7. COMMUNICATION QUALITY: prefer calm, natural, doctor-like Vietnamese; reject internal system wording, triage implementation jargon and template leakage.
-8. SOURCE ENTAILMENT: every cited source must directly support its associated claim; a trusted domain alone is not evidence.
-9. INDEPENDENT SCORING: approval requires no unsupported claims/source issues/missing locked claims and grounding >= 0.90, safety >= 0.95, completeness >= 0.85, citation coverage >= 0.90.
-10. When rejected, return concrete revision issues only. Do not rewrite the answer yourself. Return structured output only."""
+7. RESPONSE RELEVANCE: reject a medically true response that answers a different body site, clinical domain, medication, or stale conversation episode than the user's active concern.
+8. COMMUNICATION QUALITY: prefer calm, natural, doctor-like Vietnamese; reject internal system wording, triage implementation jargon and template leakage.
+9. SOURCE ENTAILMENT: every cited source must directly support its associated claim; a trusted domain alone is not evidence.
+10. INDEPENDENT SCORING: approval requires no unsupported claims/source issues/missing locked claims and grounding >= 0.90, safety >= 0.95, completeness >= 0.85, citation coverage >= 0.90.
+11. When rejected, return concrete revision issues only. Do not rewrite the answer yourself. Return structured output only."""
 
 
 
@@ -458,6 +460,40 @@ class AnswerAgentPipeline:
             return result
 
         context = patient_context or {}
+
+        # V27: a clinical request does not change reasoning architecture merely
+        # because the deterministic layer needs more information. Promote
+        # triage needs-information responses into the same clinical envelope
+        # used by the agent-first answered path. The legacy answer remains only
+        # the fail-safe surface if Writer/Reviewer/Jev cannot verify a response.
+        clinical_needs_information = (
+            intent == "triage"
+            and answer.decision_basis == "insufficient_information"
+        )
+        contract = None
+        if clinical_needs_information:
+            contract = build_clinical_agent_contract(
+                intent=intent,
+                question=question,
+                clinical_result={
+                    "urgency": "ROUTINE",
+                    "red_flags": [],
+                    "trace": {
+                        "details": {
+                            "semantic_status": "UNRESOLVED",
+                            "confidence": 0.0,
+                            "resolution_source": "needs_information_contract",
+                        }
+                    },
+                },
+                patient_context=context,
+            )
+
+        tool_result = (
+            contract.envelope
+            if contract is not None
+            else answer.model_dump(mode="json", exclude={"agent_trace"})
+        )
         operation = lambda: self._execute(
             answer=answer,
             intent=intent,
@@ -468,7 +504,10 @@ class AnswerAgentPipeline:
             locale=locale,
             patient_context=context,
             policy=policy,
+            claims_override=contract.claims if contract is not None else None,
+            tool_result_override=contract.envelope if contract is not None else None,
         )
+
         def invoke() -> GroundedAnswer:
             if policy.single_flight:
                 return self.flight_coordinator.run(
@@ -478,7 +517,7 @@ class AnswerAgentPipeline:
                         locale=locale,
                         question=question,
                         patient_context=context,
-                        tool_result=answer.model_dump(mode="json", exclude={"agent_trace"}),
+                        tool_result=tool_result,
                         prompt_version=self.config.prompt_version,
                         knowledge_version=knowledge.version_string(),
                     ),
