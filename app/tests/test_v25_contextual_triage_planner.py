@@ -15,8 +15,11 @@ def test_question_five_style_fallback_explains_mechanism_without_diagnosing():
     assert "mỏi thị giác" in normalized or "điều tiết" in normalized
     assert "không phải chẩn đoán" in normalized
     assert "chưa biết" in normalized
-    assert len(plan.questions) == 1
+    # V25 adds the preferred question without destroying approved candidates.
+    assert len(plan.questions) == 3
     assert "đột ngột" in plan.questions[0].lower()
+    assert "Đau ở đâu?" in plan.questions
+    assert "Đau mấy điểm?" in plan.questions
     assert plan.reasoning is not None
     assert plan.reasoning.next_question_key == "onset_speed"
 
@@ -57,30 +60,35 @@ def test_emergency_plan_never_adds_mechanism_or_question_before_action():
     assert plan.reasoning is None
 
 
-def test_planner_keeps_only_one_information_gain_question():
+def test_planner_preserves_all_candidates_and_places_information_gain_question_first():
+    existing = ["Đau mấy điểm?", "Đau bao lâu?", "Có sốt không?"]
     plan = build_contextual_triage_plan(
         symptoms_text="Tôi đau lưng sau khi ngồi máy tính cả ngày.",
         urgency="ROUTINE",
-        existing_questions=["Đau mấy điểm?", "Đau bao lâu?", "Có sốt không?"],
+        existing_questions=existing,
     )
 
-    assert len(plan.questions) <= 1
     assert plan.reasoning is not None
     assert plan.reasoning.next_question_key in {
         "cauda_equina_features",
         "motor_sensory_deficit",
         "onset_speed",
     }
+    assert len(plan.questions) == 4
+    assert set(existing).issubset(set(plan.questions))
+    assert plan.questions[0] == plan.reasoning.next_best_question
 
 
 def test_planner_does_not_replace_existing_output_when_no_supported_mechanism():
     existing = "Bạn nên theo dõi diễn biến và cung cấp thêm thông tin."
+    questions = ["Bạn khó chịu ở vị trí nào?"]
     plan = build_contextual_triage_plan(
         symptoms_text="Tôi thấy khó chịu không rõ ở đâu.",
         urgency="ROUTINE",
         existing_summary=existing,
-        existing_questions=["Bạn khó chịu ở vị trí nào?"],
+        existing_questions=questions,
     )
 
+    assert plan.applied is False
     assert plan.summary == existing
-    assert len(plan.questions) <= 1
+    assert list(plan.questions) == questions
