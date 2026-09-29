@@ -195,6 +195,10 @@ _EYE_COMPLAINT = re.compile(
     r"|\b(?:do|com|dau|nhuc|mo|sung|ngua)\b(?:\s+[a-z0-9]+){0,6}\s+\bmat\b)"
 )
 
+_MEDICATION_PERMISSION_QUESTION = re.compile(
+    r"\b(?:co\s+)?(?:uong|dung)\b.{0,80}\b(?:duoc\s+khong|co\s+sao\s+khong|co\s+on\s+khong)\b"
+)
+
 
 def _user_texts(messages: list[tuple[str, str]]) -> list[str]:
     return [content.strip() for role, content in messages if role == "user" and content.strip()]
@@ -228,6 +232,10 @@ def _is_direct_medication_safety(latest: str) -> bool:
         return True
     mentions_medication = any(marker in latest for marker in _SAFETY_CONTEXT_MARKERS)
     asks_safety = any(marker in latest for marker in _MEDICATION_SAFETY_QUESTION_MARKERS)
+    # Natural questions often place the medicine name between the verb and
+    # "được không", e.g. "có dùng ibuprofen được không".  Match that grammar
+    # without binding this resolver to any one drug name.
+    asks_safety = asks_safety or bool(_MEDICATION_PERMISSION_QUESTION.search(latest))
     return mentions_medication and asks_safety
 
 
@@ -235,7 +243,7 @@ def _prior_metric_domain(history: str) -> str | None:
     """Return the most recently established monitoring metric family."""
     if "spo2" in history or "do bao hoa oxy" in history:
         return "spo2"
-    if "huyet ap" in history or re.search(r"\b\d{2,3}\s*/\s*\d{2,3}\s*mmhg\b", history):
+    if "huyet ap" in history or re.search(r"\b\d{2,3}\s*/\s*(\d{2,3})\s*mmhg\b", history):
         return "blood_pressure"
     if "nhip tim" in history or "mach" in history or "lan/phut" in history or "bpm" in history:
         return "heart_rate"
