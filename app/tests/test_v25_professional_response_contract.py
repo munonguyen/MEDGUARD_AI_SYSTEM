@@ -98,3 +98,34 @@ def test_new_vaginal_bleeding_continuation_does_not_fall_to_general():
     body = response.json()
     assert body["intent"] == "triage"
     assert body["result"]["urgency"] in {"URGENT", "EMERGENCY"}
+
+
+def test_eye_redness_with_foreign_body_sensation_routes_to_triage():
+    response = _chat(
+        [{"role": "user", "content": "Mắt trái của tôi đỏ và hơi cộm từ sáng."}],
+        "v25-eye-complaint-routing",
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["intent"] == "triage"
+    assert body["status"] == "answered"
+
+
+def test_persistent_critical_spo2_followup_stays_in_acute_triage_episode():
+    response = _chat(
+        [
+            {"role": "user", "content": "Tôi ho, đau họng và sốt 38 độ từ hôm qua."},
+            {"role": "assistant", "content": "Bạn nên được đánh giá sớm."},
+            {"role": "user", "content": "Hôm nay tôi thở nhanh hơn khi đi cầu thang."},
+            {"role": "assistant", "content": "Bạn nên đi khám trong ngày."},
+            {"role": "user", "content": "Máy đo ở nhà báo SpO2 88% khi đang ngồi nghỉ."},
+            {"role": "assistant", "content": "Hãy gọi 115 hoặc đến khoa Cấp cứu ngay."},
+            {"role": "user", "content": "Đo lại được 90% và tôi thấy đỡ hụt hơi hơn một chút."},
+        ],
+        "v25-persistent-critical-spo2",
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["intent"] == "triage"
+    assert body["result"]["urgency"] == "EMERGENCY"
+    assert body["answer"]["display_questions"] == []
