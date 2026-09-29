@@ -26,9 +26,11 @@ from app.services.response_path_policy import (
 
 # Preserve the public/private compatibility surface used by historical runners,
 # tests and API routes. The only intentionally replaced symbol is ``_response``.
+_CORE_EXPORTS: set[str] = set()
 for _name in dir(_core):
     if not _name.startswith("__"):
         globals()[_name] = getattr(_core, _name)
+        _CORE_EXPORTS.add(_name)
 
 
 def _response(
@@ -235,8 +237,26 @@ def _response(
     return response
 
 
-# ``orchestrate_chat`` was defined in chat_core and resolves ``_response`` from
-# that module's globals at call time. Point it to the V27 policy above without
-# duplicating the routing/safety implementation.
+def _sync_core_globals() -> None:
+    """Mirror facade monkeypatches into the preserved orchestration module.
+
+    Historical tests and extensions patch symbols on ``app.services.chat``.
+    Since ``orchestrate_chat`` was originally defined in the monolithic module,
+    its global lookups now occur in ``chat_core``. Synchronizing exported names
+    before dispatch preserves those hooks without changing routing semantics.
+    """
+    for name in _CORE_EXPORTS:
+        if name == "orchestrate_chat":
+            continue
+        if name in globals():
+            setattr(_core, name, globals()[name])
+    _core._response = _response
+
+
+def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
+    _sync_core_globals()
+    return _core.orchestrate_chat(payload, ctx)
+
+
+# Direct callers inside chat_core must also use the V27 response policy.
 _core._response = _response
-orchestrate_chat = _core.orchestrate_chat
