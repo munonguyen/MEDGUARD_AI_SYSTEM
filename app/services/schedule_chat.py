@@ -110,14 +110,9 @@ def _extract_medication(text: str) -> str | None:
         r"do\b|nay\b|vua\b|giup\s+toi|thoi\b|hien\s+tai\b|tu\s+hom\s+nay\b)|[,.!?;]|$)"
     )
     patterns = (
-        # "uống thuốc aspirin" / "lịch uống thuốc aspirin"
         rf"\bthuoc\s+([a-z][a-z0-9+._ -]{{1,80}}?){stop}",
-        # "card lịch uống aspirin", "card nhắc aspirin",
-        # "card nhắc tôi uống aspirin", or simply "card aspirin".
         rf"\bcard(?:\s+(?:lich\s+uong(?:\s+thuoc)?|lich\s+thuoc|nhac(?:\s+toi)?(?:\s+uong)?))?\s+([a-z][a-z0-9+._ -]{{1,80}}?){stop}",
-        # "nhắc tôi uống aspirin", "nhắc aspirin", "uống aspirin".
         rf"\b(?:nhac\s+toi\s+uong|nhac\s+uong|nhac|uong)\s+([a-z][a-z0-9+._ -]{{1,80}}?){stop}",
-        # "lịch nhắc losartan" / "lịch uống metformin".
         rf"\blich\s+(?:nhac|uong)(?:\s+thuoc)?\s+([a-z][a-z0-9+._ -]{{1,80}}?){stop}",
     )
     for pattern in patterns:
@@ -261,8 +256,9 @@ def execute_schedule_chat_command(
         return ScheduleCommandResult(
             status="answered",
             reply=(
-                f"Đã tạo {len(created)} card/mốc lịch uống {medication}; "
-                f"hiện có {len(schedules)} mốc đang hoạt động."
+                f"Đã thêm {len(created)} mốc uống {medication} vào card lịch thuốc; "
+                f"hiện có {len(schedules)} mốc đang hoạt động. "
+                "Bạn có thể kiểm tra lại card để xác nhận giờ uống và theo dõi lịch hằng ngày."
             ),
             extracted={
                 "patient_ref": patient_ref,
@@ -296,7 +292,8 @@ def execute_schedule_chat_command(
             status="answered",
             reply=(
                 f"Đây là {len(matches)} card lịch uống {medication} đang hoạt động; "
-                "mình không tạo thêm card mới."
+                "mình không tạo thêm card mới. Bạn có thể kiểm tra các mốc giờ bên dưới "
+                "và theo dõi lịch đang hoạt động."
             ),
             extracted={
                 "patient_ref": patient_ref,
@@ -312,7 +309,10 @@ def execute_schedule_chat_command(
     if not matches:
         return ScheduleCommandResult(
             status="needs_information",
-            reply=f"Không tìm thấy card lịch uống {medication} đang hoạt động cho hồ sơ này.",
+            reply=(
+                f"Không tìm thấy card lịch uống {medication} đang hoạt động cho hồ sơ này. "
+                "Bạn có thể kiểm tra lại tên thuốc hoặc cho biết card muốn thao tác."
+            ),
             required_fields=["existing_schedule"],
             extracted={
                 "patient_ref": patient_ref,
@@ -335,8 +335,6 @@ def execute_schedule_chat_command(
                     "action": action,
                 },
             )
-        # Update commands can contain both the old and the new time. The final
-        # explicit clock is the requested destination time.
         requested = targets[-1]
         current = matches[0]
         updated_at = current.scheduled_at.replace(
@@ -365,7 +363,8 @@ def execute_schedule_chat_command(
             status="answered",
             reply=(
                 f"Đã đổi giờ uống {medication} sang "
-                f"{requested.hour:02d}:{requested.minute:02d} và giữ đúng một card hoạt động."
+                f"{requested.hour:02d}:{requested.minute:02d} và giữ đúng một card hoạt động. "
+                "Bạn có thể kiểm tra lại card để xác nhận giờ mới và theo dõi lịch từ lần uống tiếp theo."
             ),
             extracted={
                 "patient_ref": patient_ref,
@@ -392,7 +391,10 @@ def execute_schedule_chat_command(
         verb = "tạm dừng"
     return ScheduleCommandResult(
         status="answered",
-        reply=f"Đã {verb} card lịch uống {medication}; card này không còn hoạt động.",
+        reply=(
+            f"Đã {verb} card lịch uống {medication}; card này không còn hoạt động. "
+            "Bạn có thể kiểm tra danh sách lịch và theo dõi các card còn đang hoạt động."
+        ),
         extracted={
             "patient_ref": patient_ref,
             "medication_name": medication,

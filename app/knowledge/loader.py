@@ -25,6 +25,8 @@ _FILE_NAMES = (
     "allergy_cross_matrix.json",
     "red_flag_protocols.json",
     "v25_safety_overlay.json",
+    "v25_urgent_overlay.json",
+    "v25_response_policy_overlay.json",
     "contraindications.json",
     "atc_codes.json",
     "icd10_codes.json",
@@ -48,10 +50,6 @@ class KnowledgeStore:
 
     files: dict[str, KnowledgeFile] = field(default_factory=dict)
 
-    # ------------------------------------------------------------------
-    # Typed accessors
-    # ------------------------------------------------------------------
-
     @property
     def drug_interactions(self) -> list[dict[str, Any]]:
         return self.files.get("drug_interactions.json", KnowledgeFile("", "", "", {})).data.get("interactions", [])
@@ -62,11 +60,7 @@ class KnowledgeStore:
 
     @property
     def red_flag_patterns(self) -> list[dict[str, Any]]:
-        """Return the frozen/base registry plus versioned post-V10 overlays.
-
-        Keeping overlays in separate files makes later safety additions auditable
-        and reversible without rewriting historical benchmark knowledge.
-        """
+        """Return the frozen/base registry plus versioned post-V10 overlays."""
         base = self.files.get(
             "red_flag_protocols.json", KnowledgeFile("", "", "", {})
         ).data.get("red_flag_patterns", [])
@@ -77,7 +71,17 @@ class KnowledgeStore:
 
     @property
     def urgent_patterns(self) -> list[dict[str, Any]]:
-        return self.files.get("red_flag_protocols.json", KnowledgeFile("", "", "", {})).data.get("urgent_patterns", [])
+        """Return frozen urgent rules plus post-V10 V25 urgent overlays."""
+        base = self.files.get(
+            "red_flag_protocols.json", KnowledgeFile("", "", "", {})
+        ).data.get("urgent_patterns", [])
+        overlay = self.files.get(
+            "v25_urgent_overlay.json", KnowledgeFile("", "", "", {})
+        ).data.get("urgent_patterns", [])
+        policy_overlay = self.files.get(
+            "v25_response_policy_overlay.json", KnowledgeFile("", "", "", {})
+        ).data.get("urgent_patterns", [])
+        return [*base, *overlay, *policy_overlay]
 
     @property
     def routine_administrative_patterns(self) -> list[dict[str, Any]]:
@@ -93,7 +97,14 @@ class KnowledgeStore:
 
     @property
     def symptom_guidance(self) -> list[dict[str, Any]]:
-        return self.files.get("red_flag_protocols.json", KnowledgeFile("", "", "", {})).data.get("symptom_guidance", [])
+        """Return response-policy guidance before general symptom guidance."""
+        policy = self.files.get(
+            "v25_response_policy_overlay.json", KnowledgeFile("", "", "", {})
+        ).data.get("symptom_guidance", [])
+        base = self.files.get(
+            "red_flag_protocols.json", KnowledgeFile("", "", "", {})
+        ).data.get("symptom_guidance", [])
+        return [*policy, *base]
 
     @property
     def reported_ingestion_protocols(self) -> list[dict[str, Any]]:
@@ -102,13 +113,7 @@ class KnowledgeStore:
         ).data.get("reported_ingestion_protocols", [])
 
     def _contextualize_guidance(self, guidance: dict[str, Any], symptoms_text: str) -> dict[str, Any]:
-        """Overlay V25 explanation/question planning without mutating knowledge.
-
-        The knowledge file still decides whether a symptom topic matched. V25
-        only improves the explanatory hypotheses and follow-up question after a
-        match exists. The import is intentionally local so the immutable
-        knowledge snapshot can load before the clinical reasoning modules.
-        """
+        """Overlay V25 explanation/question planning without mutating knowledge."""
         try:
             from app.services.contextual_triage_planner import (
                 build_contextual_triage_plan,
@@ -144,8 +149,31 @@ class KnowledgeStore:
         contextual["v25_contextual_reasoning"] = reasoning_trace_payload(plan)
         return contextual
 
+    def _find_explicit_response_policy(self, normalized: str) -> dict[str, Any] | None:
+        """Match explicit workflow/policy requests without clinical-negation semantics.
+
+        Requests such as ``hãy kê đơn`` are commands, not symptom assertions.
+        They should therefore use lexical command matching rather than the
+        clinical affirmed-phrase matcher, whose job is to reason about negated
+        symptoms and can intentionally suppress question-like language.
+        """
+        policy = self.files.get(
+            "v25_response_policy_overlay.json", KnowledgeFile("", "", "", {})
+        ).data.get("symptom_guidance", [])
+        for guidance in policy:
+            if any(
+                normalize_search_text(str(keyword)) in normalized
+                for keyword in guidance.get("keywords", [])
+            ):
+                return guidance
+        return None
+
     def find_symptom_guidance(self, symptoms_text: str) -> dict[str, Any] | None:
         normalized = normalize_search_text(symptoms_text)
+
+        explicit_policy = self._find_explicit_response_policy(normalized)
+        if explicit_policy is not None:
+            return self._contextualize_guidance(explicit_policy, symptoms_text)
 
         back_problem = any(
             contains_affirmed_phrase(normalized, phrase)
@@ -165,11 +193,9 @@ class KnowledgeStore:
                     return self._contextualize_guidance(guidance, symptoms_text)
 
         for guidance in self.symptom_guidance:
+            if guidance.get("topic") == "remote_prescribing_request":
+                continue
             if guidance.get("topic") == "lower_limb_pain":
-                # A body-region token and an unrelated pain token must never be
-                # combined into a finding. Example: "đau thắt lưng, không tê
-                # chân" previously became lower-limb pain because both "đau"
-                # and "chân" occurred somewhere in the string.
                 direct_problem_phrases = (
                     "dau chan", "nhuc chan", "sung chan", "te chan", "yeu chan",
                     "dau dui", "nhuc dui", "dau bap chan", "sung bap chan",
@@ -232,10 +258,6 @@ class KnowledgeStore:
     def product_registry(self) -> list[dict[str, Any]]:
         return self.files.get("product_registry.json", KnowledgeFile("", "", "", {})).data.get("products", [])
 
-    # ------------------------------------------------------------------
-    # Domain Helpers
-    # ------------------------------------------------------------------
-
     def find_atc(self, substance_name: str) -> dict[str, Any] | None:
         normalized = substance_name.lower().strip()
         return self.atc_directory.get(normalized)
@@ -243,10 +265,6 @@ class KnowledgeStore:
     def find_icd10(self, code: str) -> dict[str, Any] | None:
         normalized = code.upper().strip()
         return self.icd10_directory.get(normalized)
-
-    # ------------------------------------------------------------------
-    # Integrity & versioning (memoized for zero-allocation trace generation)
-    # ------------------------------------------------------------------
 
     _version_string_cache: str | None = None
     _integrity_report_cache: dict[str, dict[str, str]] | None = None
@@ -285,11 +303,9 @@ def load_knowledge_store() -> KnowledgeStore:
         path = _KNOWLEDGE_DIR / name
         if path.exists():
             store.files[name] = _load_knowledge_file(path)
-    # Pre-warm memoized reports
     store.version_string()
     store.integrity_report()
     return store
 
 
-# Singleton loaded once at import time.
 knowledge = load_knowledge_store()

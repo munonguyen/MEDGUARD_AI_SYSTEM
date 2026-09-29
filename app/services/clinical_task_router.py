@@ -69,18 +69,35 @@ _MONITORING_MARKERS = ("spo2", "huyet ap", "nhip tim", "nhiet do", "duong huyet"
 _FOLLOWUP_MARKERS = ("tai kham", "lich kham", "follow up", "follow-up", "lich hen")
 
 
+def _contains_marker(norm: str, marker: str) -> bool:
+    """Match task markers as lexical units, never arbitrary substrings.
+
+    Short laboratory abbreviations such as ``AST`` and ``ALT`` previously
+    matched inside medication names (for example ``atorvastatin``), causing an
+    explicit schedule command to be routed into LAB_INTERPRETATION before the
+    workflow intent router could run.  Word-boundary matching preserves true
+    lab signals while eliminating that class of cross-domain collision.
+    """
+    return re.search(
+        rf"(?<![a-z0-9]){re.escape(marker)}(?![a-z0-9])",
+        norm,
+    ) is not None
+
+
 def resolve_clinical_task(text: str) -> ClinicalTaskDecision:
     """Classify the *kind of clinical work* requested by the user.
 
-    This router intentionally does not determine urgency.  Safety/triage remain
+    This router intentionally does not determine urgency. Safety/triage remain
     independent and may raise the care level later without changing the task.
     """
     norm = normalize_search_text(text)
 
-    lab_hits = [marker for marker in _LAB_MARKERS if marker in norm]
+    lab_hits = [marker for marker in _LAB_MARKERS if _contains_marker(norm, marker)]
     # Qualitative +/- result syntax is a strong lab signal even when a test name
     # is uncommon and absent from the small marker vocabulary.
-    qualitative_result = bool(re.search(r"\b[a-z][a-z0-9-]{1,20}\s*(?:am tinh|duong tinh|\(-\)|\(\+\))", norm))
+    qualitative_result = bool(
+        re.search(r"\b[a-z][a-z0-9-]{1,20}\s*(?:am tinh|duong tinh|\(-\)|\(\+\))", norm)
+    )
     if lab_hits or qualitative_result:
         return ClinicalTaskDecision(
             task=ClinicalTask.LAB_INTERPRETATION,
@@ -89,8 +106,10 @@ def resolve_clinical_task(text: str) -> ClinicalTaskDecision:
             domain="laboratory",
         )
 
-    has_exposure = any(marker in norm for marker in _EXPOSURE_MARKERS)
-    reaction_hits = [marker for marker in _EXPOSURE_REACTION_MARKERS if marker in norm]
+    has_exposure = any(_contains_marker(norm, marker) for marker in _EXPOSURE_MARKERS)
+    reaction_hits = [
+        marker for marker in _EXPOSURE_REACTION_MARKERS if _contains_marker(norm, marker)
+    ]
     if has_exposure and reaction_hits:
         return ClinicalTaskDecision(
             task=ClinicalTask.EXPOSURE_REACTION,
@@ -99,7 +118,7 @@ def resolve_clinical_task(text: str) -> ClinicalTaskDecision:
             domain="dermatology_exposure",
         )
 
-    if any(marker in norm for marker in _MEDICATION_MARKERS):
+    if any(_contains_marker(norm, marker) for marker in _MEDICATION_MARKERS):
         return ClinicalTaskDecision(
             task=ClinicalTask.MEDICATION_SAFETY,
             confidence=0.92,
@@ -107,7 +126,9 @@ def resolve_clinical_task(text: str) -> ClinicalTaskDecision:
             domain="medication",
         )
 
-    if any(marker in norm for marker in _MONITORING_MARKERS) and bool(re.search(r"\d", norm)):
+    if any(_contains_marker(norm, marker) for marker in _MONITORING_MARKERS) and bool(
+        re.search(r"\d", norm)
+    ):
         return ClinicalTaskDecision(
             task=ClinicalTask.MONITORING,
             confidence=0.90,
@@ -115,7 +136,7 @@ def resolve_clinical_task(text: str) -> ClinicalTaskDecision:
             domain="monitoring",
         )
 
-    if any(marker in norm for marker in _FOLLOWUP_MARKERS):
+    if any(_contains_marker(norm, marker) for marker in _FOLLOWUP_MARKERS):
         return ClinicalTaskDecision(
             task=ClinicalTask.FOLLOWUP,
             confidence=0.88,
@@ -123,13 +144,26 @@ def resolve_clinical_task(text: str) -> ClinicalTaskDecision:
             domain="followup",
         )
 
-    # Broad symptom language belongs to acute symptom reasoning.  The clinical
+    # Broad symptom language belongs to acute symptom reasoning. The clinical
     # intent router can still refine the operational intent after this layer.
     if any(
-        marker in norm
+        _contains_marker(norm, marker)
         for marker in (
-            "dau", "sot", "kho tho", "buon non", "non", "chong mat", "te", "yeu",
-            "sung", "do", "ngua", "phat ban", "chay mau", "co giat", "ngat",
+            "dau",
+            "sot",
+            "kho tho",
+            "buon non",
+            "non",
+            "chong mat",
+            "te",
+            "yeu",
+            "sung",
+            "do",
+            "ngua",
+            "phat ban",
+            "chay mau",
+            "co giat",
+            "ngat",
         )
     ):
         return ClinicalTaskDecision(
