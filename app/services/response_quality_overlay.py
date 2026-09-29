@@ -155,6 +155,56 @@ def _dose_refusal_update(answer: Any) -> Any:
     )
 
 
+def _safety_actionability_update(answer: Any, result: dict[str, Any]) -> Any:
+    """Add bounded next actions only when the safety engine supplied none.
+
+    The overlay intentionally does not rewrite or prepend anything when a
+    domain-specific action already exists.  It also does nothing for emergency
+    safety results so the existing action-first emergency contract remains the
+    sole authority for those cases.
+    """
+    urgency = str(result.get("urgency") or "").upper()
+    if urgency == "EMERGENCY":
+        return answer
+
+    next_steps = list(getattr(answer, "next_steps", []) or [])
+    if next_steps:
+        return answer
+
+    questions = list(getattr(answer, "questions", []) or [])
+    key_points = list(getattr(answer, "key_points", []) or [])
+    warnings = list(result.get("warnings") or [])
+    unknown_ingredients = list(result.get("unknown_ingredients") or [])
+
+    bounded_steps = [
+        "Không tự thêm, phối hợp, chia, bỏ hoặc đổi liều thuốc chỉ dựa trên hội thoại này.",
+        "Đối chiếu tên thuốc, hàm lượng/hoạt chất trên nhãn và thời điểm liều gần nhất; cung cấp các thông tin đó cùng bệnh nền, dị ứng và thuốc đang dùng cho bác sĩ hoặc dược sĩ khi cần xác nhận.",
+    ]
+    if unknown_ingredients:
+        bounded_steps.insert(
+            0,
+            "Chưa nên dùng thêm sản phẩm có thành phần hoặc hàm lượng chưa xác định cho đến khi nhãn đầy đủ được kiểm tra.",
+        )
+    elif warnings:
+        bounded_steps.insert(
+            0,
+            "Giữ nguyên trạng thái chưa dùng thêm thuốc mới cho đến khi cảnh báo hiện có được bác sĩ hoặc dược sĩ xác nhận.",
+        )
+
+    if not questions:
+        questions = [
+            "Bạn có thể cung cấp tên thuốc/sản phẩm, hàm lượng trên nhãn, thời điểm liều gần nhất và các thuốc đang dùng cùng lúc không?"
+        ]
+
+    return answer.model_copy(
+        update={
+            "key_points": _dedupe(key_points),
+            "next_steps": _dedupe(bounded_steps),
+            "questions": _dedupe(questions),
+        }
+    )
+
+
 def enhance_response_answer(
     answer: Any,
     *,
@@ -174,4 +224,6 @@ def enhance_response_answer(
         return _followup_update(answer, result)
     if intent == "safety" and status == "unsupported":
         return _dose_refusal_update(answer)
+    if intent == "safety" and status == "answered" and isinstance(result, dict):
+        return _safety_actionability_update(answer, result)
     return answer
