@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from fastapi.testclient import TestClient
 
 from app.main import app
@@ -17,11 +19,13 @@ def _headers(key: str) -> dict[str, str]:
 
 
 def _chat(messages: list[dict[str, str]], key: str):
+    suffix = uuid4().hex[:10]
+    isolated = f"{key}-{suffix}"
     return client.post(
         "/v1/chat",
-        headers=_headers(key),
+        headers=_headers(isolated),
         json={
-            "conversation_id": f"conversation-{key}",
+            "conversation_id": f"conversation-{isolated}",
             "messages": messages,
             "locale": "vi-VN",
         },
