@@ -155,9 +155,13 @@ def evaluate_end_organ_coupling(
         coupling_ids.append("sudden_sensorineural_hearing_loss")
         findings.append("mất thính lực cấp tính một bên")
 
+    # Symptomatic rapid rhythm is a combination rule, not a raw pulse cutoff:
+    # a rate in the mid-140s alone remains below the standalone critical
+    # monitoring threshold, but the same rate plus presyncope indicates impaired
+    # perfusion and must enter the emergency safety path.
     arrhythmia_presyncope = bool(re.search(
-        r"\b(?:tim dap|mach|nhip tim)\b.{0,35}\b(?:loan nhip|loan xa|thinh thich|tren 150|1[5-9]\d)\b"
-        r".{0,70}\b(?:hoa mat|choang|choang vang|muon xiu|sap ngat|ngat)\b",
+        r"\b(?:tim dap|mach|nhip tim)\b.{0,35}\b(?:loan nhip|loan xa|thinh thich|tren 140|1[4-9]\d)\b"
+        r".{0,70}\b(?:hoa mat|choang|choang vang|gan ngat|muon ngat|muon xiu|sap ngat|ngat)\b",
         norm,
     ))
     if arrhythmia_presyncope:
