@@ -47,6 +47,39 @@ def _extract_bp(norm: str, vitals: dict[str, Any] | None) -> tuple[int | None, i
     return int(match.group(1)), int(match.group(2))
 
 
+def _has_affirmed_presyncope(norm: str) -> bool:
+    """Return true only for an explicitly affirmed presyncope/syncope concept.
+
+    ``contains_affirmed_phrase`` is the shared matcher, but this coupling is
+    intentionally stricter because an isolated false positive would promote a
+    mid-140s pulse from URGENT to EMERGENCY.  Each candidate is therefore also
+    checked for an explicit local negation of that exact concept.  This keeps
+    ``không choáng nhưng gần ngất`` positive while rejecting
+    ``không choáng và không gần ngất``.
+    """
+    phrases = (
+        "hoa mat",
+        "choang vang",
+        "choang",
+        "gan ngat",
+        "muon ngat",
+        "muon xiu",
+        "sap ngat",
+        "ngat xiu",
+        "bat tinh",
+    )
+    for phrase in phrases:
+        if not contains_affirmed_phrase(norm, phrase):
+            continue
+        explicitly_negated = re.search(
+            rf"\b(?:khong|chua|ko|k)\s+(?:(?:co|bi|thay)\s+)?{re.escape(phrase)}\b",
+            norm,
+        )
+        if explicitly_negated is None:
+            return True
+    return False
+
+
 def evaluate_end_organ_coupling(
     text: str,
     vitals: dict[str, Any] | None = None,
@@ -144,28 +177,11 @@ def evaluate_end_organ_coupling(
         findings.append("mất thính lực cấp tính một bên")
 
     # Symptomatic rapid rhythm is a combination rule, not a raw pulse cutoff.
-    # Use only complete presyncope/syncope concepts here.  Bare "ngat" is
-    # intentionally excluded because it is a substring of relations such as
-    # "gần ngất" and could otherwise escape local negation in "không gần ngất".
     rapid_rhythm = bool(re.search(
         r"\b(?:tim dap|mach|nhip tim)\b.{0,35}\b(?:loan nhip|loan xa|thinh thich|tren 140|1[4-9]\d)\b",
         norm,
     ))
-    presyncope = any(
-        contains_affirmed_phrase(norm, phrase)
-        for phrase in (
-            "hoa mat",
-            "choang vang",
-            "choang",
-            "gan ngat",
-            "muon ngat",
-            "muon xiu",
-            "sap ngat",
-            "ngat xiu",
-            "bat tinh",
-        )
-    )
-    if rapid_rhythm and presyncope:
+    if rapid_rhythm and _has_affirmed_presyncope(norm):
         coupling_ids.append("symptomatic_tachyarrhythmia_hypoperfusion")
         findings.append("rối loạn nhịp nhanh kèm tiền ngất/giảm tưới máu")
 
