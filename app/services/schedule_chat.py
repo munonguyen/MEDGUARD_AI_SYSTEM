@@ -38,8 +38,16 @@ _VIEW_MARKERS = (
     "hien thi lich uong",
 )
 _UPDATE_MARKERS = ("doi gio", "cap nhat gio", "sua gio", "chuyen gio")
-_DELETE_MARKERS = ("xoa card", "xoa lich nhac", "xoa lich uong")
-_CANCEL_MARKERS = ("huy card", "tam dung card", "ngung card", "huy lich nhac", "tam dung lich")
+_DELETE_MARKERS = ("xoa card", "xoa lich nhac", "xoa lich uong", "xoa nhac")
+_CANCEL_MARKERS = (
+    "huy card",
+    "tam dung card",
+    "ngung card",
+    "huy lich nhac",
+    "tam dung lich",
+    "huy nhac",
+    "tam dung nhac",
+)
 _CREATE_MARKERS = (
     "#lichthuoc",
     "tao card",
@@ -47,6 +55,7 @@ _CREATE_MARKERS = (
     "dat card",
     "card lich uong",
     "card lich thuoc",
+    "card nhac",
     "lich uong thuoc",
     "nhac toi uong",
     "nhac uong",
@@ -57,7 +66,16 @@ _CREATE_MARKERS = (
 def is_schedule_chat_command(text: str) -> bool:
     """Recognize explicit medication-card workflow language before triage routing."""
     normalized = normalize_search_text(text)
-    if any(marker in normalized for marker in (*_VIEW_MARKERS, *_UPDATE_MARKERS, *_DELETE_MARKERS, *_CANCEL_MARKERS, *_CREATE_MARKERS)):
+    if any(
+        marker in normalized
+        for marker in (
+            *_VIEW_MARKERS,
+            *_UPDATE_MARKERS,
+            *_DELETE_MARKERS,
+            *_CANCEL_MARKERS,
+            *_CREATE_MARKERS,
+        )
+    ):
         return True
     return bool(
         "card" in normalized
@@ -79,26 +97,44 @@ def _action(text: str) -> ScheduleAction:
 
 
 def _extract_medication(text: str) -> str | None:
+    """Extract the medication name while discarding schedule-command scaffolding.
+
+    Command nouns such as ``card nhắc`` or ``lịch uống`` are intentionally
+    consumed by the regex rather than becoming part of the medicine name. This
+    keeps create/view/update/cancel/delete references stable across follow-up
+    wording variants.
+    """
     normalized = normalize_search_text(text)
-    stop = r"(?=\s+(?:moi\s+ngay|hang\s+ngay|luc|vao|tu\s+\d|sang\s+\d|do\b|nay\b|vua\b|giup\s+toi|thoi\b)|[,.!?;]|$)"
+    stop = (
+        r"(?=\s+(?:moi\s+ngay|hang\s+ngay|luc|vao|tu\s+\d|sang\s+\d|"
+        r"do\b|nay\b|vua\b|giup\s+toi|thoi\b|hien\s+tai\b|tu\s+hom\s+nay\b)|[,.!?;]|$)"
+    )
     patterns = (
+        # "uống thuốc aspirin" / "lịch uống thuốc aspirin"
         rf"\bthuoc\s+([a-z][a-z0-9+._ -]{{1,80}}?){stop}",
-        rf"\bcard(?:\s+lich\s+uong(?:\s+thuoc)?)?\s+([a-z][a-z0-9+._ -]{{1,80}}?){stop}",
-        rf"\b(?:nhac\s+toi\s+uong|nhac\s+uong|uong)\s+([a-z][a-z0-9+._ -]{{1,80}}?){stop}",
+        # "card lịch uống aspirin", "card nhắc aspirin",
+        # "card nhắc tôi uống aspirin", or simply "card aspirin".
+        rf"\bcard(?:\s+(?:lich\s+uong(?:\s+thuoc)?|lich\s+thuoc|nhac(?:\s+toi)?(?:\s+uong)?))?\s+([a-z][a-z0-9+._ -]{{1,80}}?){stop}",
+        # "nhắc tôi uống aspirin", "nhắc aspirin", "uống aspirin".
+        rf"\b(?:nhac\s+toi\s+uong|nhac\s+uong|nhac|uong)\s+([a-z][a-z0-9+._ -]{{1,80}}?){stop}",
+        # "lịch nhắc losartan" / "lịch uống metformin".
         rf"\blich\s+(?:nhac|uong)(?:\s+thuoc)?\s+([a-z][a-z0-9+._ -]{{1,80}}?){stop}",
     )
     for pattern in patterns:
         match = re.search(pattern, normalized)
         if match:
             value = re.sub(r"\s+", " ", match.group(1)).strip(" ._-")
-            if value and value not in {"nay", "do", "moi ngay"}:
+            if value and value not in {"nay", "do", "moi ngay", "hien tai"}:
                 return value
     return None
 
 
 def _extract_times(text: str) -> list[datetime_time]:
     normalized = normalize_search_text(text)
-    raw = re.findall(r"(?<!\d)([01]?\d|2[0-3])(?:h(?:(\d{2}))?|:(\d{2}))(?!\d)", normalized)
+    raw = re.findall(
+        r"(?<!\d)([01]?\d|2[0-3])(?:h(?:(\d{2}))?|:(\d{2}))(?!\d)",
+        normalized,
+    )
     values: list[datetime_time] = []
     for hour, h_minutes, colon_minutes in raw:
         minute = int(h_minutes or colon_minutes or 0)
@@ -124,7 +160,11 @@ def _target_datetimes(text: str, *, recurrence: str) -> list[datetime]:
             if iso:
                 target_date = date(int(iso.group(1)), int(iso.group(2)), int(iso.group(3)))
             elif local:
-                target_date = date(int(local.group(3) or now.year), int(local.group(2)), int(local.group(1)))
+                target_date = date(
+                    int(local.group(3) or now.year),
+                    int(local.group(2)),
+                    int(local.group(1)),
+                )
         except ValueError:
             return []
     values: list[datetime] = []
@@ -140,7 +180,12 @@ def _norm_medication(value: str) -> str:
     return re.sub(r"\s+", " ", normalize_search_text(value)).strip()
 
 
-def _matching_active(store: MedicationScheduleStore, tenant_id: str, patient_ref: str, medication: str):
+def _matching_active(
+    store: MedicationScheduleStore,
+    tenant_id: str,
+    patient_ref: str,
+    medication: str,
+):
     target = _norm_medication(medication)
     return [
         item
@@ -160,7 +205,11 @@ def execute_schedule_chat_command(
     action = _action(text)
     medication = _extract_medication(text)
     normalized = normalize_search_text(text)
-    recurrence = "daily" if any(marker in normalized for marker in ("moi ngay", "hang ngay")) else "once"
+    recurrence = (
+        "daily"
+        if any(marker in normalized for marker in ("moi ngay", "hang ngay"))
+        else "once"
+    )
 
     required: list[str] = []
     if not patient_ref:
@@ -177,10 +226,19 @@ def execute_schedule_chat_command(
                 status="needs_information",
                 reply="Hãy cho biết hồ sơ, tên thuốc và giờ uống để tạo card lịch thuốc.",
                 required_fields=required,
-                extracted={"patient_ref": patient_ref, "medication_name": medication, "action": action},
+                extracted={
+                    "patient_ref": patient_ref,
+                    "medication_name": medication,
+                    "action": action,
+                },
             )
-        existing = _matching_active(store, tenant_id, patient_ref or "", medication or "")
-        existing_slots = {(item.scheduled_at.hour, item.scheduled_at.minute, item.recurrence) for item in existing}
+        existing = _matching_active(
+            store, tenant_id, patient_ref or "", medication or ""
+        )
+        existing_slots = {
+            (item.scheduled_at.hour, item.scheduled_at.minute, item.recurrence)
+            for item in existing
+        }
         created = []
         for scheduled_at in targets:
             slot = (scheduled_at.hour, scheduled_at.minute, recurrence)
@@ -202,9 +260,20 @@ def execute_schedule_chat_command(
         schedules = [*existing, *created]
         return ScheduleCommandResult(
             status="answered",
-            reply=f"Đã tạo {len(created)} card/mốc lịch uống {medication}; hiện có {len(schedules)} mốc đang hoạt động.",
-            extracted={"patient_ref": patient_ref, "medication_name": medication, "recurrence": recurrence, "action": action},
-            result={"action": action, "schedules": [item.model_dump(mode="json") for item in schedules]},
+            reply=(
+                f"Đã tạo {len(created)} card/mốc lịch uống {medication}; "
+                f"hiện có {len(schedules)} mốc đang hoạt động."
+            ),
+            extracted={
+                "patient_ref": patient_ref,
+                "medication_name": medication,
+                "recurrence": recurrence,
+                "action": action,
+            },
+            result={
+                "action": action,
+                "schedules": [item.model_dump(mode="json") for item in schedules],
+            },
         )
 
     if required:
@@ -212,16 +281,32 @@ def execute_schedule_chat_command(
             status="needs_information",
             reply="Mình cần hồ sơ và tên thuốc để thao tác đúng card lịch uống thuốc.",
             required_fields=required,
-            extracted={"patient_ref": patient_ref, "medication_name": medication, "action": action},
+            extracted={
+                "patient_ref": patient_ref,
+                "medication_name": medication,
+                "action": action,
+            },
         )
 
-    matches = _matching_active(store, tenant_id, patient_ref or "", medication or "")
+    matches = _matching_active(
+        store, tenant_id, patient_ref or "", medication or ""
+    )
     if action == "view":
         return ScheduleCommandResult(
             status="answered",
-            reply=f"Đây là {len(matches)} card lịch uống {medication} đang hoạt động; mình không tạo thêm card mới.",
-            extracted={"patient_ref": patient_ref, "medication_name": medication, "action": action},
-            result={"action": action, "schedules": [item.model_dump(mode="json") for item in matches]},
+            reply=(
+                f"Đây là {len(matches)} card lịch uống {medication} đang hoạt động; "
+                "mình không tạo thêm card mới."
+            ),
+            extracted={
+                "patient_ref": patient_ref,
+                "medication_name": medication,
+                "action": action,
+            },
+            result={
+                "action": action,
+                "schedules": [item.model_dump(mode="json") for item in matches],
+            },
         )
 
     if not matches:
@@ -229,7 +314,11 @@ def execute_schedule_chat_command(
             status="needs_information",
             reply=f"Không tìm thấy card lịch uống {medication} đang hoạt động cho hồ sơ này.",
             required_fields=["existing_schedule"],
-            extracted={"patient_ref": patient_ref, "medication_name": medication, "action": action},
+            extracted={
+                "patient_ref": patient_ref,
+                "medication_name": medication,
+                "action": action,
+            },
             result={"action": action, "schedules": []},
         )
 
@@ -240,11 +329,22 @@ def execute_schedule_chat_command(
                 status="needs_information",
                 reply="Bạn muốn đổi card lịch uống thuốc sang giờ nào?",
                 required_fields=["scheduled_at"],
-                extracted={"patient_ref": patient_ref, "medication_name": medication, "action": action},
+                extracted={
+                    "patient_ref": patient_ref,
+                    "medication_name": medication,
+                    "action": action,
+                },
             )
+        # Update commands can contain both the old and the new time. The final
+        # explicit clock is the requested destination time.
         requested = targets[-1]
         current = matches[0]
-        updated_at = current.scheduled_at.replace(hour=requested.hour, minute=requested.minute, second=0, microsecond=0)
+        updated_at = current.scheduled_at.replace(
+            hour=requested.hour,
+            minute=requested.minute,
+            second=0,
+            microsecond=0,
+        )
         zone = current.scheduled_at.tzinfo or ZoneInfo("Asia/Ho_Chi_Minh")
         now = datetime.now(zone)
         if current.recurrence == "daily" and updated_at <= now:
@@ -255,13 +355,27 @@ def execute_schedule_chat_command(
             MedicationScheduleUpdate(scheduled_at=updated_at),
         )
         for duplicate in matches[1:]:
-            store.update(tenant_id, duplicate.schedule_id, MedicationScheduleUpdate(status="cancelled"))
+            store.update(
+                tenant_id,
+                duplicate.schedule_id,
+                MedicationScheduleUpdate(status="cancelled"),
+            )
         schedules = [updated] if updated is not None else []
         return ScheduleCommandResult(
             status="answered",
-            reply=f"Đã đổi giờ uống {medication} sang {requested.hour:02d}:{requested.minute:02d} và giữ đúng một card hoạt động.",
-            extracted={"patient_ref": patient_ref, "medication_name": medication, "action": action},
-            result={"action": action, "schedules": [item.model_dump(mode="json") for item in schedules]},
+            reply=(
+                f"Đã đổi giờ uống {medication} sang "
+                f"{requested.hour:02d}:{requested.minute:02d} và giữ đúng một card hoạt động."
+            ),
+            extracted={
+                "patient_ref": patient_ref,
+                "medication_name": medication,
+                "action": action,
+            },
+            result={
+                "action": action,
+                "schedules": [item.model_dump(mode="json") for item in schedules],
+            },
         )
 
     if action == "delete":
@@ -270,11 +384,19 @@ def execute_schedule_chat_command(
         verb = "xóa"
     else:
         for item in matches:
-            store.update(tenant_id, item.schedule_id, MedicationScheduleUpdate(status="cancelled"))
+            store.update(
+                tenant_id,
+                item.schedule_id,
+                MedicationScheduleUpdate(status="cancelled"),
+            )
         verb = "tạm dừng"
     return ScheduleCommandResult(
         status="answered",
         reply=f"Đã {verb} card lịch uống {medication}; card này không còn hoạt động.",
-        extracted={"patient_ref": patient_ref, "medication_name": medication, "action": action},
+        extracted={
+            "patient_ref": patient_ref,
+            "medication_name": medication,
+            "action": action,
+        },
         result={"action": action, "schedules": []},
     )
