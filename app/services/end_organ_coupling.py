@@ -48,22 +48,26 @@ def _extract_bp(norm: str, vitals: dict[str, Any] | None) -> tuple[int | None, i
 
 
 def _has_affirmed_presyncope(norm: str) -> bool:
-    """Return true only when a presyncope concept remains after local negation.
+    """Return true only for an affirmed presyncope/syncope finding.
 
-    This is a high-impact coupling, so we first remove only directly negated
-    presyncope spans and then search the remaining text.  The approach handles
-    repeated negatives such as ``khong choang va khong gan ngat`` while still
-    preserving contrastive statements such as ``khong choang nhung gan ngat``.
+    Reuse the shared clinical-text negation contract instead of maintaining a
+    second local negation grammar.  This keeps phrases such as ``gần ngất``
+    positive while correctly rejecting ``không choáng`` / ``không gần ngất``.
     """
-    concept_pattern = (
-        r"(?:hoa mat|choang vang|choang|gan ngat|muon ngat|muon xiu|sap ngat|"
-        r"ngat xiu|bat tinh)"
+    return any(
+        contains_affirmed_phrase(norm, phrase)
+        for phrase in (
+            "hoa mat",
+            "choang vang",
+            "choang",
+            "gan ngat",
+            "muon ngat",
+            "muon xiu",
+            "sap ngat",
+            "ngat xiu",
+            "bat tinh",
+        )
     )
-    negated = re.compile(
-        rf"\b(?:khong|chua|ko|k)(?:\s+(?:co|bi|thay|he))?\s+{concept_pattern}\b"
-    )
-    remaining = negated.sub(" ", norm)
-    return bool(re.search(rf"\b{concept_pattern}\b", remaining))
 
 
 def evaluate_end_organ_coupling(
