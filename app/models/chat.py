@@ -206,18 +206,30 @@ class ChatResponse(DisclaimerMixin):
 
     @model_validator(mode="after")
     def ensure_structured_next_steps(self) -> "ChatResponse":
-        """Expose already-bounded workflow actions as structured UI steps.
+        """Expose bounded workflow/safety actions as structured UI steps.
 
-        V25 made schedule and monitoring prose actionable, but several workflow
-        responses still left ``answer.next_steps`` empty.  The structured report
-        UI and downstream evaluators therefore could not distinguish an actual
-        action plan from descriptive prose.  This validator adds no diagnosis or
-        new clinical threshold; it only converts the resolved workflow state into
-        a concise next action.
+        The response writer may already state the action in prose.  This layer
+        does not invent a diagnosis or severity; it makes the already-resolved
+        workflow decision visible to the structured report UI and downstream
+        clients as a concrete next action.
         """
-        if self.answer is None or not isinstance(self.result, dict) or self.status != "answered":
+        if self.answer is None or self.answer.next_steps:
             return self
-        if self.answer.next_steps:
+
+        # A direct refusal of individualized dosing is still useful only when it
+        # tells the user what to do instead.  This policy is process advice, not
+        # a medication dose recommendation.
+        if self.intent == "safety" and self.status == "unsupported":
+            self.answer = self.answer.model_copy(
+                update={
+                    "next_steps": [
+                        "Không tự bắt đầu, bỏ, tăng, giảm hoặc thử liều thuốc dựa trên hội thoại; hãy xác nhận kế hoạch dùng thuốc với bác sĩ hoặc dược sĩ có thông tin lâm sàng đầy đủ."
+                    ]
+                }
+            )
+            return self
+
+        if not isinstance(self.result, dict) or self.status != "answered":
             return self
 
         steps: list[str] = []
@@ -260,6 +272,16 @@ class ChatResponse(DisclaimerMixin):
             else:
                 steps = [
                     "Tiếp tục ghi lại chỉ số đúng kỹ thuật và theo dõi xu hướng; nếu giá trị xấu đi hoặc xuất hiện triệu chứng mới, hãy liên hệ cơ sở y tế."
+                ]
+        elif self.intent == "safety":
+            risk = str(self.result.get("overall_risk") or "LOW").upper()
+            if risk in {"HIGH", "MODERATE"} or bool(self.result.get("requires_human_review")):
+                steps = [
+                    "Không tự bắt đầu, ngừng hoặc thay đổi cách phối hợp thuốc; hãy mang danh sách thuốc hiện tại để bác sĩ hoặc dược sĩ rà soát trực tiếp."
+                ]
+            else:
+                steps = [
+                    "Nếu bạn định bắt đầu, ngừng hoặc phối hợp thuốc mới, hãy đối chiếu lại tên hoạt chất và xác nhận với bác sĩ hoặc dược sĩ khi còn điểm chưa chắc chắn."
                 ]
 
         if steps:
