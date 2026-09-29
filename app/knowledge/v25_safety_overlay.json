@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "version": "25.4.1",
+    "version": "25.5.0",
     "effective_from": "2026-09-29",
     "purpose": "Versioned compositional emergency overlay for multi-turn clinical safety. Patterns require conjunctions of affirmed concepts and never replace the base red-flag registry.",
     "authority_contract": [
@@ -17,7 +17,6 @@
       "patterns_vi": [],
       "patterns_en": [],
       "required_groups_vi": [
-        ["đau bụng", "cơn đau bụng"],
         ["dữ dội", "rất dữ dội", "đau tăng mạnh", "tăng mạnh"],
         ["bụng cứng", "cứng bụng", "bụng cứng như gỗ"],
         ["choáng muốn ngất", "gần ngất", "ngất", "lơ mơ"]
@@ -49,9 +48,8 @@
       "patterns_vi": [],
       "patterns_en": [],
       "required_groups_vi": [
-        ["chảy máu", "máu chảy"],
         ["ép liên tục", "ép gạc", "ép trực tiếp"],
-        ["vẫn chảy nhiều", "không cầm", "thấm ướt gạc", "ướt đẫm gạc"]
+        ["vẫn chảy nhiều", "thấm ướt gạc", "ướt đẫm gạc", "máu vẫn chảy nhiều"]
       ],
       "label_vi": "chảy máu ngoài không kiểm soát dù đã ép trực tiếp liên tục",
       "esi_level": 2,
@@ -97,7 +95,7 @@
       "patterns_en": [],
       "required_groups_vi": [
         ["sốt", "sốt cao"],
-        ["cứng gáy", "cổ cứng", "không cúi được cổ"],
+        ["cứng gáy", "cổ cứng", "cổ bắt đầu cứng", "gáy cứng", "không cúi được cổ"],
         ["lơ mơ", "trả lời chậm", "lú lẫn", "khó đánh thức", "thay đổi ý thức", "sợ ánh sáng"]
       ],
       "label_vi": "sốt và cứng gáy kèm thay đổi ý thức/triệu chứng màng não",
@@ -196,6 +194,17 @@
       "urgency": "EMERGENCY",
       "specialty": {"code": "EMERGENCY", "label": "Cấp cứu - Nội khoa"},
       "advice": "Nôn/tiêu chảy kèm gần ngất hoặc ngất có thể là mất nước nặng và giảm tuần hoàn. Cần đánh giá cấp cứu ngay."
+    },
+    {
+      "id": "V25-RF-SYNCOPE-001",
+      "category": "true_loss_of_consciousness",
+      "patterns_vi": ["ngất hẳn", "mất ý thức", "bất tỉnh"],
+      "patterns_en": ["lost consciousness", "passed out completely"],
+      "label_vi": "cơn mất ý thức/ngất thực sự",
+      "esi_level": 2,
+      "urgency": "EMERGENCY",
+      "specialty": {"code": "EMERGENCY", "label": "Cấp cứu - Tim mạch/Thần kinh"},
+      "advice": "Một cơn mất ý thức thực sự cần được đánh giá cấp cứu để loại trừ nguyên nhân tim mạch, thần kinh hoặc giảm tưới máu, kể cả khi hiện đã tỉnh lại."
     }
   ]
 }
