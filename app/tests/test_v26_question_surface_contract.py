@@ -45,7 +45,8 @@ def test_triage_question_policy_preserves_candidates_and_limits_patient_surface(
     assert response.answer is not None
     # Full approved candidates remain available for audit/evaluation.
     assert len(response.answer.questions) == 3
-    # The patient surface follows the deterministic dialogue policy.
+    # The patient surface follows the deterministic dialogue policy: ROUTINE <=1,
+    # URGENT <=2, while EMERGENCY is handled separately below with zero questions.
     assert response.answer.display_questions is not None
     assert len(response.answer.display_questions) <= 2
     assert set(response.answer.display_questions).issubset(set(response.answer.questions))
