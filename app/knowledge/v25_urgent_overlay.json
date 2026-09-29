@@ -1,0 +1,198 @@
+{
+  "_meta": {
+    "version": "25.7.0",
+    "effective_from": "2026-09-29",
+    "purpose": "Versioned URGENT precursor overlay for clinically meaningful intermediate-risk states that should be assessed promptly but do not independently satisfy the deterministic emergency lock.",
+    "authority_contract": [
+      "Emergency red-flag patterns remain higher priority than every urgent precursor.",
+      "Urgent patterns cannot downgrade an emergency disposition.",
+      "Patterns use affirmed concepts and conjunctions to avoid treating not-mentioned findings as negative findings.",
+      "The overlay is post-V10 and never rewrites the frozen historical knowledge snapshot."
+    ]
+  },
+  "urgent_patterns": [
+    {
+      "id": "V25-URG-NEW-MED-URTICARIA-001",
+      "category": "new_medication_urticarial_reaction",
+      "patterns_vi": [],
+      "patterns_en": [],
+      "required_groups_vi": [
+        ["thuốc mới", "mới uống thuốc", "mới dùng thuốc", "sau khi uống thuốc mới", "sau khi dùng thuốc mới"],
+        ["mề đay", "nổi mề đay", "phát ban", "nổi mẩn"]
+      ],
+      "label_vi": "mề đay/phát ban xuất hiện sau thuốc mới",
+      "esi_level": 3,
+      "urgency": "URGENT",
+      "specialty": {"code": "ALLERGY_IMMUNOLOGY", "label": "Dị ứng - Miễn dịch"},
+      "advice": "Mề đay hoặc phát ban mới xuất hiện sau khi dùng thuốc cần được đánh giá y tế sớm trong ngày. Nếu xuất hiện sưng môi/lưỡi, nghẹn họng, khò khè, khó thở, choáng hoặc ngất, cần chuyển sang cấp cứu ngay."
+    },
+    {
+      "id": "V25-URG-SPREADING-RASH-001",
+      "category": "progressive_urticarial_reaction",
+      "patterns_vi": [],
+      "patterns_en": [],
+      "required_groups_vi": [
+        ["ban đang lan", "ban lan", "mề đay lan", "nổi mẩn lan", "phát ban lan"],
+        ["lên ngực", "xuống ngực", "toàn thân", "thân mình", "lan thêm"]
+      ],
+      "label_vi": "ban/mề đay đang lan rộng",
+      "esi_level": 3,
+      "urgency": "URGENT",
+      "specialty": {"code": "ALLERGY_IMMUNOLOGY", "label": "Dị ứng - Miễn dịch"},
+      "advice": "Ban hoặc mề đay đang lan rộng nên được đánh giá y tế sớm, đặc biệt khi có liên quan thuốc hoặc thực phẩm mới. Nếu có triệu chứng đường thở hay choáng, cần cấp cứu ngay."
+    },
+    {
+      "id": "V25-URG-RLQ-FEVER-001",
+      "category": "right_lower_quadrant_pain_with_fever",
+      "patterns_vi": [],
+      "patterns_en": [],
+      "required_groups_vi": [
+        ["bụng dưới bên phải", "hố chậu phải", "đau chuyển xuống bụng dưới bên phải", "đau bên phải bụng dưới"],
+        ["sốt", "hơi sốt", "sốt nhẹ"]
+      ],
+      "label_vi": "đau khu trú/chuyển xuống bụng dưới phải kèm sốt",
+      "esi_level": 3,
+      "urgency": "URGENT",
+      "specialty": {"code": "GENERAL_SURGERY", "label": "Ngoại tổng quát"},
+      "advice": "Đau bụng dưới bên phải kèm sốt cần được khám trực tiếp sớm trong ngày để loại trừ nguyên nhân ngoại khoa. Nếu đau dữ dội, bụng cứng, choáng/ngất hoặc nôn liên tục, cần cấp cứu ngay."
+    },
+    {
+      "id": "V25-URG-FOCAL-HAND-MOTOR-001",
+      "category": "new_focal_limb_motor_change",
+      "patterns_vi": [],
+      "patterns_en": [],
+      "required_groups_vi": [
+        ["tay phải", "tay trái", "một tay", "cánh tay phải", "cánh tay trái"],
+        ["vụng hơn", "vụng về", "yếu hơn", "khó cầm", "khó nắm", "khó điều khiển"]
+      ],
+      "label_vi": "thay đổi vận động khu trú mới ở một tay",
+      "esi_level": 3,
+      "urgency": "URGENT",
+      "specialty": {"code": "NEUROLOGY", "label": "Thần kinh"},
+      "advice": "Thay đổi vận động mới ở một bên tay cần được đánh giá y tế sớm. Nếu kèm méo miệng, nói khó, yếu rõ, mất thăng bằng hoặc khởi phát đột ngột, cần xử trí như cấp cứu thần kinh."
+    },
+    {
+      "id": "V25-URG-BRIEF-AWARENESS-001",
+      "category": "transient_altered_awareness",
+      "patterns_vi": ["đơ người vài giây", "đờ người vài giây"],
+      "patterns_en": [],
+      "required_groups_vi": [
+        ["đơ người", "đờ người", "nhìn trân trân", "mất đáp ứng thoáng qua", "không đáp ứng thoáng qua"],
+        ["vài giây", "mấy giây", "thoáng qua", "lúc nãy"]
+      ],
+      "label_vi": "cơn thay đổi ý thức/đáp ứng thoáng qua",
+      "esi_level": 3,
+      "urgency": "URGENT",
+      "specialty": {"code": "NEUROLOGY", "label": "Thần kinh"},
+      "advice": "Một cơn đờ/đơ người hoặc mất đáp ứng thoáng qua chưa giải thích được cần được đánh giá y tế sớm, nhất là khi là lần đầu. Co giật kéo dài, tái diễn hoặc không hồi phục tỉnh táo là cấp cứu."
+    },
+    {
+      "id": "V25-URG-PERSISTENT-BLEEDING-001",
+      "category": "persistent_external_bleeding_after_pressure",
+      "patterns_vi": [],
+      "patterns_en": [],
+      "required_groups_vi": [
+        ["ép gạc", "ép trực tiếp", "ép vết thương", "ép chặt"],
+        ["vẫn rỉ máu", "vẫn còn chảy", "vẫn chảy máu", "còn rỉ máu"]
+      ],
+      "label_vi": "chảy máu còn tiếp diễn sau ép trực tiếp",
+      "esi_level": 3,
+      "urgency": "URGENT",
+      "specialty": {"code": "GENERAL_SURGERY", "label": "Ngoại tổng quát"},
+      "advice": "Chảy máu vẫn tiếp diễn sau khi đã ép trực tiếp cần được đánh giá sớm và tiếp tục ép liên tục. Nếu máu chảy nhiều, thấm ướt gạc dù ép liên tục hoặc có choáng/ngất, cần cấp cứu ngay."
+    },
+    {
+      "id": "V25-URG-COLD-NUMB-LIMB-001",
+      "category": "limb_neurovascular_warning",
+      "patterns_vi": [],
+      "patterns_en": [],
+      "required_groups_vi": [
+        ["bàn chân", "chân", "ngón chân", "bàn tay", "tay"],
+        ["tê", "mất cảm giác"],
+        ["lạnh hơn", "lạnh hơn chân còn lại", "lạnh hơn tay còn lại", "chi lạnh"]
+      ],
+      "label_vi": "chi tê kèm lạnh hơn bên đối diện",
+      "esi_level": 3,
+      "urgency": "URGENT",
+      "specialty": {"code": "VASCULAR", "label": "Mạch máu - Chấn thương"},
+      "advice": "Tê kèm chi lạnh hơn bên đối diện sau chấn thương hoặc khởi phát mới cần được đánh giá sớm về tưới máu và thần kinh. Nếu chi tím, yếu rõ hoặc khó cử động, cần cấp cứu ngay."
+    },
+    {
+      "id": "V25-URG-EYE-PAIN-PHOTOPHOBIA-001",
+      "category": "painful_eye_with_photophobia",
+      "patterns_vi": [],
+      "patterns_en": [],
+      "required_groups_vi": [
+        ["đau mắt", "nhức mắt", "đau mắt nhiều hơn"],
+        ["sợ ánh sáng", "chói sáng", "khó chịu với ánh sáng"]
+      ],
+      "label_vi": "đau mắt kèm sợ ánh sáng",
+      "esi_level": 3,
+      "urgency": "URGENT",
+      "specialty": {"code": "OPHTHALMOLOGY", "label": "Mắt"},
+      "advice": "Đau mắt kèm sợ ánh sáng cần được khám mắt sớm để loại trừ tổn thương giác mạc hoặc viêm trong mắt. Giảm/mất thị lực đột ngột là cấp cứu."
+    },
+    {
+      "id": "V25-URG-CHEMICAL-INHALATION-001",
+      "category": "chemical_inhalation_enclosed_space",
+      "patterns_vi": [],
+      "patterns_en": [],
+      "required_groups_vi": [
+        ["hít phải hóa chất", "mùi hóa chất", "hơi hóa chất", "hóa chất tẩy rửa", "khí tẩy rửa"],
+        ["phòng kín", "không gian kín", "phòng không thoáng"]
+      ],
+      "label_vi": "hít hóa chất tẩy rửa trong không gian kín",
+      "esi_level": 3,
+      "urgency": "URGENT",
+      "specialty": {"code": "TOXICOLOGY", "label": "Chống độc - Hô hấp"},
+      "advice": "Sau khi hít hóa chất trong không gian kín, cần rời nguồn phơi nhiễm nếu an toàn, ra nơi thoáng khí và được đánh giá y tế/độc chất sớm nếu có triệu chứng. Khó thở, tức ngực, lơ mơ hoặc tím tái là dấu hiệu cấp cứu."
+    },
+    {
+      "id": "V25-URG-HEAT-ILLNESS-001",
+      "category": "heat_illness_without_cns_dysfunction",
+      "patterns_vi": [],
+      "patterns_en": [],
+      "required_groups_vi": [
+        ["trời nóng", "nắng gắt", "chạy ngoài trời nóng", "tập ngoài trời nóng", "phòng nóng"],
+        ["đau đầu", "nhức đầu"],
+        ["buồn nôn", "nôn nao"],
+        ["chuột rút", "co rút cơ"]
+      ],
+      "label_vi": "bệnh do nóng kèm đau đầu, buồn nôn và chuột rút",
+      "esi_level": 3,
+      "urgency": "URGENT",
+      "specialty": {"code": "EMERGENCY", "label": "Cấp cứu - Nội tổng quát"},
+      "advice": "Đau đầu, buồn nôn và chuột rút sau phơi nhiễm nóng phù hợp với bệnh do nóng cần làm mát, bù dịch phù hợp và được đánh giá sớm nếu triệu chứng rõ hoặc kéo dài. Lú lẫn, đi không vững, ngất hoặc co giật là cấp cứu."
+    },
+    {
+      "id": "V25-URG-EARLY-PREGNANCY-PAIN-001",
+      "category": "early_pregnancy_lower_abdominal_pain",
+      "patterns_vi": [],
+      "patterns_en": [],
+      "required_groups_vi": [
+        ["mang thai", "có thai", "thai 8 tuần", "thai khoảng 8 tuần", "thai sớm", "3 tháng đầu"],
+        ["đau bụng dưới", "hơi đau bụng dưới", "đau hạ vị"]
+      ],
+      "label_vi": "thai sớm kèm đau bụng dưới",
+      "esi_level": 3,
+      "urgency": "URGENT",
+      "specialty": {"code": "OBSTETRICS_GYNECOLOGY", "label": "Sản phụ khoa"},
+      "advice": "Đau bụng dưới trong giai đoạn thai sớm cần được đánh giá sản khoa sớm, đặc biệt nếu đau tăng, lệch một bên hoặc xuất hiện ra máu. Choáng/ngất, đau vai hoặc đau dữ dội cần cấp cứu."
+    },
+    {
+      "id": "V25-URG-PREGNANCY-BLEEDING-001",
+      "category": "pregnancy_vaginal_bleeding",
+      "patterns_vi": [],
+      "patterns_en": [],
+      "required_groups_vi": [
+        ["mang thai", "có thai", "thai 8 tuần", "thai khoảng 8 tuần", "thai sớm", "3 tháng đầu"],
+        ["ra máu âm đạo", "chảy máu âm đạo", "ra một ít máu âm đạo", "máu âm đạo"]
+      ],
+      "label_vi": "thai sớm kèm ra máu âm đạo",
+      "esi_level": 3,
+      "urgency": "URGENT",
+      "specialty": {"code": "OBSTETRICS_GYNECOLOGY", "label": "Sản phụ khoa"},
+      "advice": "Ra máu âm đạo trong thai kỳ cần được đánh giá sản khoa. Nếu kèm đau lệch một bên, đau tăng, choáng/ngất, đau vai hoặc chảy máu nhiều, cần cấp cứu ngay."
+    }
+  ]
+}
