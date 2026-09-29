@@ -1,0 +1,61 @@
+{
+  "_meta": {
+    "version": "25.10.0",
+    "effective_from": "2026-09-29",
+    "purpose": "Post-V10 response-policy overlay for direct remote-prescribing refusal and clinically meaningful continuation cues.",
+    "authority_contract": [
+      "This overlay cannot downgrade any emergency or urgent disposition.",
+      "Remote-prescribing policy changes communication/action guidance only; it does not create a diagnosis.",
+      "Continuation rules are conservative and must remain auditable independently from frozen V10 knowledge."
+    ]
+  },
+  "urgent_patterns": [
+    {
+      "id": "V25-URG-NEW-VAGINAL-BLEEDING-001",
+      "category": "new_unexplained_vaginal_bleeding",
+      "patterns_vi": [
+        "ra một ít máu âm đạo",
+        "ra ít máu âm đạo",
+        "mới ra máu âm đạo",
+        "vừa ra máu âm đạo",
+        "chảy một ít máu âm đạo",
+        "mới chảy máu âm đạo"
+      ],
+      "patterns_en": [],
+      "required_groups_vi": [],
+      "label_vi": "ra máu âm đạo mới xuất hiện/chưa rõ nguyên nhân",
+      "esi_level": 3,
+      "urgency": "URGENT",
+      "specialty": {"code": "OBSTETRICS_GYNECOLOGY", "label": "Sản phụ khoa"},
+      "advice": "Ra máu âm đạo mới xuất hiện hoặc chưa rõ nguyên nhân cần được đánh giá y tế sớm, đặc biệt nếu có khả năng mang thai. Nếu đau bụng tăng, đau lệch một bên, choáng/ngất, đau vai hoặc chảy máu nhiều, cần cấp cứu ngay."
+    }
+  ],
+  "symptom_guidance": [
+    {
+      "topic": "remote_prescribing_request",
+      "keywords": [
+        "hãy kê đơn",
+        "kê đơn cho tôi",
+        "kê kháng sinh cho tôi",
+        "hãy kê kháng sinh",
+        "hướng dẫn liều uống cụ thể",
+        "hướng dẫn liều cụ thể",
+        "tính giúp tôi liều",
+        "liều chính xác tiếp theo"
+      ],
+      "summary": "MedGuard không kê đơn hoặc xác định liều thuốc cá nhân hóa từ hội thoại. Việc có cần thuốc kê đơn và liều phù hợp phụ thuộc chẩn đoán, tuổi/cân nặng, bệnh nền, dị ứng, các thuốc đang dùng và đánh giá trực tiếp; tự dùng kháng sinh hoặc tự điều chỉnh liều có thể không hiệu quả và gây hại.",
+      "clinical_hypotheses": [],
+      "self_care": [
+        "Không tự bắt đầu kháng sinh, dùng thuốc kê đơn còn dư hoặc dùng đơn thuốc của người khác.",
+        "Nếu cần thuốc kê đơn, hãy trao đổi với bác sĩ hoặc dược sĩ để xác nhận chỉ định, lựa chọn thuốc và liều phù hợp."
+      ],
+      "safety_net": [
+        "Nếu triệu chứng nặng nhanh, khó thở, nuốt nghẹn, lơ mơ, ngất, co giật hoặc xuất hiện dấu hiệu cấp cứu khác, hãy đi cấp cứu thay vì chờ kê đơn trực tuyến."
+      ],
+      "clarifying_questions": [
+        "Triệu chứng nào khiến bạn muốn dùng thuốc kê đơn, và hiện có dấu hiệu nặng lên hoặc phản ứng thuốc nào không?"
+      ],
+      "advice": "Không tự dùng thuốc kê đơn hoặc tự điều chỉnh liều; cần bác sĩ hoặc dược sĩ xác nhận chỉ định và liều dựa trên bệnh cảnh cụ thể."
+    }
+  ]
+}
