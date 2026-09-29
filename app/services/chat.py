@@ -1,7 +1,7 @@
 """V27 chat orchestration facade.
 
 The existing deterministic/domain orchestrator is preserved byte-for-byte in
-``chat_core.py``.  This facade changes only the response-authority policy:
+``chat_core.py``. This facade changes only the response-authority policy:
 clinical requests in enforced mode always enter the same agent-first clinical
 contract, regardless of whether upstream reasoning currently has enough data to
 answer or needs one targeted clarification.
@@ -19,9 +19,13 @@ from __future__ import annotations
 from typing import Any
 
 from app.services import chat_core as _core
+from app.services.response_path_policy import (
+    clinical_payload_with_outcome,
+    is_clinical_response_path,
+)
 
 # Preserve the public/private compatibility surface used by historical runners,
-# tests and API routes.  The only intentionally replaced symbol is ``_response``.
+# tests and API routes. The only intentionally replaced symbol is ``_response``.
 for _name in dir(_core):
     if not _name.startswith("__"):
         globals()[_name] = getattr(_core, _name)
@@ -60,17 +64,13 @@ def _response(
         else None
     )
 
-    # V27: clinicality and epistemic state are separate axes.  Do not gate the
-    # clinical contract on status == "answered".  A missing medication name,
-    # low-confidence lab interpretation, or other clinical ambiguity remains on
-    # the same Writer/Reviewer path and may result in a targeted clarification.
-    clinical_request = (
-        intent in {"triage", "safety"}
-        or clinical_task_name in {
-            "LAB_INTERPRETATION",
-            "EXPOSURE_REACTION",
-            "PERIPHERAL_JOINT",
-        }
+    # V27: clinicality and epistemic state are separate axes. A missing
+    # medication name, low-confidence lab interpretation, or other clinical
+    # ambiguity remains on the Writer/Reviewer path and may result in a targeted
+    # clarification rather than switching contracts.
+    clinical_request = is_clinical_response_path(
+        intent=intent,
+        clinical_task_name=clinical_task_name,
     )
 
     effective_allow_agent = allow_agent or (
@@ -93,13 +93,12 @@ def _response(
         agent_patient_context["last_result"] = None
 
     if agent_first_clinical:
-        clinical_payload = dict(serialized) if isinstance(serialized, dict) else {}
-        # These are orchestration facts, not medical evidence. They let the
-        # clinical contract represent uncertainty explicitly instead of
-        # fabricating a ROUTINE/ESI conclusion when inputs are incomplete.
-        clinical_payload["_response_status"] = status
-        clinical_payload["required_fields"] = list(fields)
-        clinical_payload["extracted"] = dict(extracted_values)
+        clinical_payload = clinical_payload_with_outcome(
+            serialized,
+            status=status,
+            required_fields=fields,
+            extracted=extracted_values,
+        )
         answer = answer_agent_pipeline.generate_response(
             fallback_answer=answer,
             clinical_payload=clinical_payload,
