@@ -38,6 +38,30 @@ _FIELD_QUESTIONS = {
 
 _CLINICAL_INTENTS = {"triage", "safety", "monitoring", "followup", "pharmacy"}
 
+_WORKFLOW_ACTIONS: dict[ChatIntent, list[str]] = {
+    "schedule": [
+        "Kiểm tra lại card lịch thuốc để xác nhận tên thuốc và giờ đang hoạt động; nếu lịch chưa đúng, hãy yêu cầu sửa hoặc xóa card trước khi dựa vào nhắc lịch.",
+    ],
+    "followup": [
+        "Kiểm tra lại thời gian và thông tin tái khám trong kế hoạch; nếu lịch thay đổi hoặc triệu chứng nặng lên, hãy liên hệ cơ sở y tế để được hướng dẫn tiếp.",
+    ],
+    "pharmacy": [
+        "Kiểm tra tên thuốc, hàm lượng và phương án cấp phát trước khi nhận; trao đổi với dược sĩ nếu có thông tin chưa khớp.",
+    ],
+    "queue": [
+        "Theo dõi thứ tự tiếp nhận và báo nhân viên y tế ngay nếu tình trạng người bệnh thay đổi trong lúc chờ.",
+    ],
+    "fhir": [
+        "Kiểm tra lại tài nguyên và định danh trong bundle FHIR trước khi chuyển tiếp sang hệ thống khác.",
+    ],
+    "delivery": [
+        "Kiểm tra trạng thái chuyển tiếp và xác nhận hệ thống đích đã nhận được gói dữ liệu trước khi kết thúc quy trình.",
+    ],
+    "ocr": [
+        "Kiểm tra lại tên thuốc, hàm lượng và hướng dẫn đọc được từ ảnh với bản gốc; không dùng kết quả OCR để tự quyết định dùng thuốc khi chưa được xác nhận.",
+    ],
+}
+
 
 def _as_sentences(items: list[str]) -> str:
     normalized = []
@@ -48,6 +72,10 @@ def _as_sentences(items: list[str]) -> str:
         if value:
             normalized.append(value)
     return " ".join(normalized)
+
+
+def _dedupe(items: list[str]) -> list[str]:
+    return list(dict.fromkeys(value.strip() for value in items if value and value.strip()))
 
 
 def _block(
@@ -111,7 +139,7 @@ def _with_narrative(answer: GroundedAnswer, intent: ChatIntent) -> GroundedAnswe
     if visible_points:
         blocks.append(
             _block(
-                f"Hệ thống nhận diện từ thông tin bạn cung cấp: {_as_sentences(visible_points)}",
+                f"Dữ kiện chính từ thông tin bạn cung cấp: {_as_sentences(visible_points)}",
                 emphasis=[visible_points[0]],
             )
         )
@@ -146,7 +174,7 @@ def _with_narrative(answer: GroundedAnswer, intent: ChatIntent) -> GroundedAnswe
         blocks.append(
             _block(
                 safety_text,
-                kind="urgent" if is_emergency else "paragraph",
+                kind="urgent" if is_emergency else "caution",
                 emphasis=[emergency_phrase],
             )
         )
@@ -159,19 +187,18 @@ def _with_narrative(answer: GroundedAnswer, intent: ChatIntent) -> GroundedAnswe
         visible_next_steps = [*visible_next_steps[:3], visible_next_steps[-1]]
     if visible_next_steps:
         action_text = _as_sentences(visible_next_steps)
+        prefix = "Bạn nên làm gì lúc này: " if not is_emergency else ""
         blocks.append(
             _block(
-                action_text,
+                f"{prefix}{action_text}",
                 kind="urgent" if is_emergency else "paragraph",
-                emphasis=[visible_next_steps[0] if is_emergency else ""],
+                emphasis=[visible_next_steps[0] if is_emergency else "Bạn nên làm gì lúc này"],
             )
         )
 
-    # Emergency communication is action-first and zero-question. Any additional
-    # history can be collected by clinical staff after the user has acted.
     visible_questions = [] if is_emergency else answer.questions[:3]
     if visible_questions:
-        prompt_label = "Bạn cho mình biết thêm"
+        prompt_label = "Thông tin cần biết thêm"
         blocks.append(
             _block(
                 f"{prompt_label}: {_as_sentences(visible_questions)}",
@@ -299,13 +326,17 @@ def _needs_information(
         if intent in _CLINICAL_INTENTS or intent == "general"
         else "Mình cần thêm thông tin"
     )
+    questions = [
+        _FIELD_QUESTIONS.get(field, f"Bạn vui lòng chia sẻ thêm về {field.replace('_', ' ')} nhé.")
+        for field in required_fields
+    ]
     return GroundedAnswer(
         title=title,
         summary=reply,
-        questions=[
-            _FIELD_QUESTIONS.get(field, f"Bạn vui lòng chia sẻ thêm về {field.replace('_', ' ')} nhé.")
-            for field in required_fields
+        next_steps=[
+            "Gửi các thông tin được hỏi bên dưới; sau khi nhận đủ dữ kiện, hệ thống sẽ kiểm tra lại yêu cầu và đưa ra bước tiếp theo phù hợp."
         ],
+        questions=questions,
         decision_basis="insufficient_information",
         evidence_state="partial_input",
         limitations=["Hệ thống cần thêm dữ kiện lâm sàng để đưa ra định hướng xử trí chuẩn xác nhất."],
@@ -416,7 +447,7 @@ def _triage_answer(
         summary=summary,
         clinical_hypotheses=clinical_hypotheses,
         key_points=key_points,
-        next_steps=list(dict.fromkeys(next_steps)),
+        next_steps=_dedupe(next_steps),
         safety_notes=safety_notes,
         questions=questions,
         decision_basis="versioned_rules",
@@ -476,7 +507,7 @@ def _safety_answer(result: dict[str, Any], sources: list[ChatEvidenceSource]) ->
     else:
         summary = "Không tìm thấy cảnh báo trong dữ liệu đã nhập và bảng quy tắc hiện có. Kết quả này không chứng minh thuốc hoặc phối hợp thuốc là an toàn."
     key_points = []
-    next_steps = []
+    next_steps: list[str] = []
     for warning in warnings:
         medication = f"{warning.get('medication')}: " if warning.get("medication") else ""
         point = f"{medication}{warning.get('detail') or warning.get('type', 'Cảnh báo thuốc')}"
@@ -510,13 +541,17 @@ def _safety_answer(result: dict[str, Any], sources: list[ChatEvidenceSource]) ->
         safety_notes.append(
             "Không trì hoãn đánh giá khẩn cấp để tiếp tục tự điều chỉnh thuốc hoặc trả lời thêm câu hỏi trực tuyến."
         )
+    elif not next_steps:
+        next_steps.append(
+            "Nếu bạn đang cân nhắc bắt đầu hoặc phối hợp thuốc, hãy kiểm tra lại tên thuốc, hàm lượng và các thuốc đang dùng; trao đổi với bác sĩ hoặc dược sĩ khi còn điểm chưa chắc chắn."
+        )
 
     questions = [] if safety_emergency else [str(value) for value in result.get("clarifying_questions", [])]
     return GroundedAnswer(
         title="Bạn cần được đánh giá cấp cứu ngay" if safety_emergency else titles.get(risk, "Kết quả kiểm tra thuốc"),
         summary=summary,
         key_points=key_points,
-        next_steps=list(dict.fromkeys(next_steps)),
+        next_steps=_dedupe(next_steps),
         safety_notes=safety_notes,
         questions=questions,
         decision_basis="versioned_rules",
@@ -551,7 +586,9 @@ def _monitoring_answer(result: dict[str, Any], sources: list[ChatEvidenceSource]
             ],
             requires_human_review=False,
         )
+
     escalation = str(result.get("escalation_level", "NONE"))
+    trend = str(result.get("trend", "chưa xác định"))
     alerts = result.get("alerts", [])
     titles = {
         "EMERGENCY": "Chỉ số nằm trong vùng cần đánh giá cấp cứu",
@@ -560,12 +597,47 @@ def _monitoring_answer(result: dict[str, Any], sources: list[ChatEvidenceSource]
         "SELF_CARE": "Tiếp tục theo dõi theo hướng dẫn",
         "NONE": "Chưa có ngưỡng cảnh báo từ dữ liệu hiện có",
     }
+    summaries = {
+        "EMERGENCY": "Chỉ số hiện chạm ngưỡng cảnh báo cấp cứu theo bộ quy tắc đang dùng. Ưu tiên là được đánh giá trực tiếp ngay thay vì chờ thêm số đo.",
+        "URGENT": "Chỉ số hiện nằm trong vùng cần được nhân viên y tế đánh giá sớm; kết quả đo tại nhà không đủ để xác định nguyên nhân.",
+        "CLINIC": "Chỉ số chưa ở mức cấp cứu nhưng cần được cơ sở y tế xem lại cùng triệu chứng, thuốc đang dùng và các lần đo lặp lại.",
+        "SELF_CARE": "Chỉ số hiện phù hợp với tiếp tục theo dõi theo kế hoạch; hãy chú ý xu hướng qua các lần đo thay vì dựa vào một giá trị đơn lẻ.",
+        "NONE": "Chưa phát hiện ngưỡng cảnh báo trong dữ liệu hiện có; tiếp tục theo dõi đúng kỹ thuật và ghi lại các lần đo để nhận biết thay đổi.",
+    }
     key_points = [str(alert.get("detail")) for alert in alerts if alert.get("detail")]
+
+    if escalation == "EMERGENCY":
+        next_steps = [
+            "Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay; không trì hoãn để chờ thêm lần đo nếu chỉ số vẫn ở mức cảnh báo cấp cứu hoặc bạn đang có triệu chứng nặng."
+        ]
+        safety_notes = ["Không tự lái xe nếu bạn đang choáng, khó thở, đau ngực, lú lẫn hoặc có nguy cơ ngất."]
+    elif escalation == "URGENT":
+        next_steps = [
+            "Liên hệ cơ sở y tế để được đánh giá sớm và mang theo các lần đo gần nhất; nếu xuất hiện đau ngực, khó thở, ngất, yếu liệt hoặc lú lẫn, hãy chuyển sang cấp cứu ngay."
+        ]
+        safety_notes = []
+    elif escalation == "CLINIC":
+        next_steps = [
+            "Sắp xếp khám hoặc liên hệ nhân viên y tế để xem lại chỉ số cùng triệu chứng và thuốc đang dùng; tiếp tục ghi lại các lần đo trong lúc chờ."
+        ]
+        safety_notes = []
+    elif trend == "insufficient_data":
+        next_steps = [
+            "Đo lại đúng kỹ thuật vào thời điểm phù hợp và ghi lại giá trị, đơn vị cùng thời gian đo để có đủ dữ liệu đánh giá xu hướng."
+        ]
+        safety_notes = []
+    else:
+        next_steps = [
+            "Tiếp tục theo dõi theo kế hoạch và ghi lại các lần đo; liên hệ cơ sở y tế nếu xu hướng xấu đi hoặc xuất hiện triệu chứng mới đáng lo."
+        ]
+        safety_notes = []
+
     return GroundedAnswer(
         title=titles.get(escalation, "Kết quả theo dõi chỉ số"),
-        summary=f"Hệ thống đã đối chiếu chỉ số với ngưỡng cấu hình. Mức chuyển tuyến hiện tại: {escalation}; xu hướng: {result.get('trend', 'chưa xác định')}.",
+        summary=f"{summaries.get(escalation, summaries['NONE'])} Xu hướng hiện ghi nhận: {trend}.",
         key_points=key_points,
-        next_steps=["Cung cấp các giá trị đo lặp lại cùng thời điểm và đơn vị để đánh giá xu hướng chính xác hơn."] if result.get("trend") == "insufficient_data" else [],
+        next_steps=next_steps,
+        safety_notes=safety_notes,
         decision_basis="versioned_rules",
         evidence_state="direct_rule_match" if any(alert.get("basis") == "threshold" for alert in alerts) else "bounded_result",
         rule_version=_trace_rule_version(result),
@@ -596,7 +668,7 @@ def _authenticity_answer(result: dict[str, Any], sources: list[ChatEvidenceSourc
         title=titles.get(status, "Kết quả đối chiếu mã"),
         summary="Kết quả phản ánh việc đối chiếu dữ liệu trong mã với registry đang kết nối, không phải kiểm định vật lý sản phẩm.",
         key_points=points,
-        next_steps=["Không sử dụng sản phẩm và liên hệ nhà thuốc, nhà sản xuất hoặc cơ quan quản lý để xác minh."] if status != "registry_match" else [],
+        next_steps=["Không sử dụng sản phẩm và liên hệ nhà thuốc, nhà sản xuất hoặc cơ quan quản lý để xác minh."] if status != "registry_match" else ["Lưu lại kết quả đối chiếu và tiếp tục kiểm tra bao bì, nguồn mua và thông tin sản phẩm trước khi sử dụng."],
         decision_basis="registry_record",
         evidence_state="direct_rule_match" if status != "unknown" else "bounded_result",
         rule_version=_trace_rule_version(result),
@@ -621,9 +693,13 @@ def build_grounded_answer(
     if status == "needs_information":
         return _with_narrative(_needs_information(intent, reply, required_fields), intent)
     if not result:
+        fallback_actions = [
+            "Kiểm tra lại thông tin đầu vào hoặc mô tả rõ hơn mục tiêu bạn muốn thực hiện để hệ thống có thể xử lý bước tiếp theo."
+        ]
         return _with_narrative(GroundedAnswer(
             title="Mình chưa thể xử lý yêu cầu này" if status == "unsupported" else "Kết quả xử lý",
             summary=reply,
+            next_steps=fallback_actions,
             decision_basis="insufficient_information" if status == "unsupported" else "workflow_record",
             evidence_state="partial_input" if status == "unsupported" else "operation_confirmed",
             limitations=["Không có kết quả nghiệp vụ có cấu trúc để kiểm chứng thêm."],
@@ -654,9 +730,10 @@ def build_grounded_answer(
     return _with_narrative(GroundedAnswer(
         title=titles.get(intent, "Kết quả xử lý"),
         summary=reply,
+        next_steps=_WORKFLOW_ACTIONS.get(intent, ["Kiểm tra kết quả vừa xử lý và tiếp tục bước nghiệp vụ phù hợp nếu thông tin đã chính xác."]),
         decision_basis="workflow_record",
         evidence_state="operation_confirmed",
         rule_version=_trace_rule_version(result),
-        limitations=list(dict.fromkeys(limitations)),
+        limitations=_dedupe(limitations),
         requires_human_review=bool(result.get("requires_human_review")) or intent in {"followup", "pharmacy", "ocr"},
     ), intent)
