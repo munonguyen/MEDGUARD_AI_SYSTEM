@@ -8,6 +8,8 @@ from pydantic.json_schema import SkipJsonSchema
 from app.models.agents import AgentEvidenceSource, AnswerAgentTrace, VerificationScores
 from app.models.common import DisclaimerMixin
 from app.services.conversation_continuation import resolve_conversation_continuation
+from app.services.monitoring_text import canonicalize_monitoring_measurement
+from app.services.patient_surface_enricher import enrich_patient_surface
 from app.services.question_policy import plan_clinical_questions
 
 
@@ -124,6 +126,26 @@ class ChatRequest(BaseModel):
         return value
 
     @model_validator(mode="after")
+    def normalize_explicit_monitoring_measurement(self) -> "ChatRequest":
+        """Create a bounded routing view for natural monitoring sentences.
+
+        The durable user-authored text remains available in
+        ``original_latest_content``.  This stage does not infer urgency; it only
+        makes an explicitly labelled measurement readable by the existing
+        monitoring extractor.
+        """
+        if not self.messages or self.intent_hint not in {"auto", "monitoring"}:
+            return self
+        original = self.messages[-1].content
+        canonical = canonicalize_monitoring_measurement(original)
+        if canonical is None or canonical == original:
+            return self
+        if self.original_latest_content is None:
+            self.original_latest_content = original
+        self.messages[-1] = self.messages[-1].model_copy(update={"content": canonical})
+        return self
+
+    @model_validator(mode="after")
     def recover_high_confidence_continuation(self) -> "ChatRequest":
         if self.intent_hint != "auto" or not self.messages:
             return self
@@ -136,8 +158,8 @@ class ChatRequest(BaseModel):
         self.intent_hint = resolution.intent
         self.continuation_reason = resolution.reason
         if resolution.augmented_latest:
-            original = self.messages[-1].content
-            self.original_latest_content = original
+            if self.original_latest_content is None:
+                self.original_latest_content = self.messages[-1].content
             self.messages[-1] = self.messages[-1].model_copy(
                 update={"content": resolution.augmented_latest}
             )
@@ -210,6 +232,17 @@ class ChatResponse(DisclaimerMixin):
         if self.answer is None or not isinstance(self.result, dict):
             return self
 
+        # Enrichment is intentionally performed before selection so any bounded
+        # disposition question added from the resolved state passes through the
+        # same ranking, display bound and audit trace as upstream candidates.
+        self.answer = enrich_patient_surface(
+            intent=self.intent,
+            status=self.status,
+            reply=self.reply,
+            result=self.result,
+            answer=self.answer,
+        )
+
         urgency = str(
             self.result.get("urgency")
             or self.result.get("escalation_level")
@@ -259,6 +292,24 @@ class ChatResponse(DisclaimerMixin):
         plan = plan_clinical_questions(list(self.answer.questions), urgency=urgency)
         self.answer = self.answer.model_copy(update={"display_questions": plan.questions})
         self._attach_question_policy_trace(plan)
+        return self
+
+    @model_validator(mode="after")
+    def enrich_patient_facing_structure(self) -> "ChatResponse":
+        """Improve usability without changing the authoritative domain result.
+
+        This second call is idempotent and covers responses that do not enter the
+        question-policy path because they have no structured clinical result.
+        """
+        if self.answer is None:
+            return self
+        self.answer = enrich_patient_surface(
+            intent=self.intent,
+            status=self.status,
+            reply=self.reply,
+            result=self.result if isinstance(self.result, dict) else None,
+            answer=self.answer,
+        )
         return self
 
 
