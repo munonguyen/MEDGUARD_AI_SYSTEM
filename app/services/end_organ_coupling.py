@@ -48,13 +48,11 @@ def _extract_bp(norm: str, vitals: dict[str, Any] | None) -> tuple[int | None, i
 
 
 def _has_affirmed_presyncope(norm: str) -> bool:
-    """Return true only for an explicitly affirmed presyncope/syncope concept.
+    """Return true only when at least one presyncope concept is affirmed.
 
-    A tachycardia + presyncope coupling is high impact, so this helper first
-    removes explicitly negated presyncope concepts from a local copy and only
-    then looks for an affirmed concept.  This avoids false promotion for text
-    such as ``khong choang va khong gan ngat`` while preserving contrastive
-    statements such as ``khong choang nhung gan ngat``.
+    The coupling is high impact, so negation is evaluated per occurrence rather
+    than by deleting text globally.  This correctly distinguishes
+    ``khong choang va khong gan ngat`` from ``khong choang nhung gan ngat``.
     """
     phrases = (
         "hoa mat",
@@ -67,13 +65,21 @@ def _has_affirmed_presyncope(norm: str) -> bool:
         "ngat xiu",
         "bat tinh",
     )
-    phrase_pattern = "|".join(re.escape(phrase) for phrase in phrases)
-    sanitized = re.sub(
-        rf"\b(?:khong|chua|ko|k)\s+(?:(?:co|bi|thay|he)\s+)?(?:{phrase_pattern})\b",
-        " ",
-        norm,
+    negation = re.compile(
+        r"\b(?:khong|chua|ko|k)(?:\s+(?:co|bi|thay|he))?\s*$"
     )
-    return any(contains_affirmed_phrase(sanitized, phrase) for phrase in phrases)
+
+    for phrase in phrases:
+        for match in re.finditer(rf"\b{re.escape(phrase)}\b", norm):
+            # Only a short local prefix is relevant for direct Vietnamese
+            # negation.  A contrastive conjunction before a later occurrence
+            # therefore does not suppress that later affirmed finding.
+            prefix = norm[max(0, match.start() - 24):match.start()]
+            if negation.search(prefix):
+                continue
+            if contains_affirmed_phrase(norm, phrase):
+                return True
+    return False
 
 
 def evaluate_end_organ_coupling(
