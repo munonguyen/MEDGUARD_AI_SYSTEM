@@ -157,6 +157,27 @@ _EPISODE_DOMAIN_MARKERS: dict[str, tuple[str, ...]] = {
         "noi ngong",
         "kho noi",
     ),
+    # V27: peripheral-joint complaints are not spine complaints.  Keep these
+    # markers ahead of the broader musculoskeletal bucket so hand/wrist/finger/
+    # knee/ankle joint symptoms do not inherit cauda-equina questions.
+    "peripheral_joint": (
+        "dau khop tay",
+        "dau cac khop tay",
+        "dau khop ngon tay",
+        "dau khop ngon",
+        "dau co tay",
+        "dau khop co tay",
+        "dau khop goi",
+        "dau dau goi",
+        "dau khop co chan",
+        "sung khop",
+        "khop sung",
+        "khop nong do",
+        "cung khop buoi sang",
+        "dau nhieu khop",
+        "dau da khop",
+        "dau khop",
+    ),
     "musculoskeletal_spine": (
         "dau lung",
         "moi lung",
@@ -165,7 +186,6 @@ _EPISODE_DOMAIN_MARKERS: dict[str, tuple[str, ...]] = {
         "moi co",
         "dau vai",
         "vai gay",
-        "dau khop",
         "dau bap chan",
         "dau chan",
         "te chan",
