@@ -31,10 +31,10 @@ def _triage_answer() -> GroundedAnswer:
     )
 
 
-def test_triage_question_policy_is_consistent_on_all_patient_surfaces() -> None:
+def test_triage_question_policy_preserves_candidates_and_limits_patient_surface() -> None:
     response = ChatResponse(
-        request_id="v26-one-question",
-        conversation_id="v26-one-question",
+        request_id="v26-question-surface",
+        conversation_id="v26-question-surface",
         status="answered",
         intent="triage",
         reply="Đã đánh giá.",
@@ -43,13 +43,17 @@ def test_triage_question_policy_is_consistent_on_all_patient_surfaces() -> None:
     )
 
     assert response.answer is not None
-    assert len(response.answer.questions) <= 1
-    assert response.answer.questions == response.answer.display_questions
+    # Full approved candidates remain available for audit/evaluation.
+    assert len(response.answer.questions) == 3
+    # The patient surface follows the deterministic dialogue policy.
+    assert response.answer.display_questions is not None
+    assert len(response.answer.display_questions) <= 2
+    assert set(response.answer.display_questions).issubset(set(response.answer.questions))
 
     rendered = " ".join(block.text for block in response.answer.narrative)
-    assert rendered.count("?") <= 1
-    if response.answer.questions:
-        assert response.answer.questions[0] in rendered
+    assert rendered.count("?") <= len(response.answer.display_questions)
+    for question in response.answer.display_questions:
+        assert question in rendered
 
 
 def test_emergency_surface_removes_all_followup_questions() -> None:
