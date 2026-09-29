@@ -82,6 +82,11 @@ _UNCERTAINTY_MARKERS = (
     "dựa trên thông tin hiện có",
     "cần thêm thông tin",
     "không thay thế chẩn đoán",
+    # Probabilistic pattern language is also calibrated uncertainty.  It is
+    # intentionally narrower than generic words such as "có thể" so Jev does
+    # not reward vague hedging that adds no clinical information.
+    "thường phù hợp với",
+    "phù hợp hơn là",
 )
 
 
