@@ -211,7 +211,15 @@ def _explicit_current_turn_safety(latest: str, history: str) -> str | None:
     """
     has_med_context = any(marker in latest for marker in _SAFETY_CONTEXT_MARKERS)
     prior_med_context = any(marker in history for marker in _SAFETY_CONTEXT_MARKERS) or "thuoc" in history
-    direct_question = any(marker in latest for marker in _EXPLICIT_SAFETY_QUESTION_MARKERS)
+    relation_question = bool(
+        re.search(
+            r"\b(?:co\s+)?(?:uong|dung)\b(?:\s+[a-z0-9+._-]+){0,8}\s+duoc\s+khong\b",
+            latest,
+        )
+    )
+    direct_question = relation_question or any(
+        marker in latest for marker in _EXPLICIT_SAFETY_QUESTION_MARKERS
+    )
 
     if "chuyen viec khac" in latest and has_med_context and direct_question:
         return "explicit_domain_switch_to_medication_safety"
