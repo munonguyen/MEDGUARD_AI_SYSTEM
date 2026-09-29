@@ -157,14 +157,27 @@ def evaluate_end_organ_coupling(
 
     # Symptomatic rapid rhythm is a combination rule, not a raw pulse cutoff:
     # a rate in the mid-140s alone remains below the standalone critical
-    # monitoring threshold, but the same rate plus presyncope indicates impaired
-    # perfusion and must enter the emergency safety path.
-    arrhythmia_presyncope = bool(re.search(
-        r"\b(?:tim dap|mach|nhip tim)\b.{0,35}\b(?:loan nhip|loan xa|thinh thich|tren 140|1[4-9]\d)\b"
-        r".{0,70}\b(?:hoa mat|choang|choang vang|gan ngat|muon ngat|muon xiu|sap ngat|ngat)\b",
+    # monitoring threshold, but the same rate plus affirmed presyncope indicates
+    # impaired perfusion and must enter the emergency safety path.  Presyncope
+    # uses the shared negation-aware matcher so "không gần ngất" stays negative.
+    rapid_rhythm = bool(re.search(
+        r"\b(?:tim dap|mach|nhip tim)\b.{0,35}\b(?:loan nhip|loan xa|thinh thich|tren 140|1[4-9]\d)\b",
         norm,
     ))
-    if arrhythmia_presyncope:
+    presyncope = any(
+        contains_affirmed_phrase(norm, phrase)
+        for phrase in (
+            "hoa mat",
+            "choang",
+            "choang vang",
+            "gan ngat",
+            "muon ngat",
+            "muon xiu",
+            "sap ngat",
+            "ngat",
+        )
+    )
+    if rapid_rhythm and presyncope:
         coupling_ids.append("symptomatic_tachyarrhythmia_hypoperfusion")
         findings.append("rối loạn nhịp nhanh kèm tiền ngất/giảm tưới máu")
 
