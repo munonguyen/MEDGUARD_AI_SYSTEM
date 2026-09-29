@@ -32,14 +32,22 @@ class ContinuationResolution:
 _WORKFLOW_MARKERS = (
     "#lichthuoc",
     "tao card",
+    "tao cho toi mot card",
     "xem card",
+    "xem lai card",
     "hien thi card",
+    "card lich",
+    "card nhac",
     "doi gio",
     "cap nhat gio",
     "sua gio",
+    "chuyen gio",
     "xoa card",
     "huy card",
+    "tam dung card",
+    "ngung card",
     "lich uong thuoc",
+    "lich nhac",
     "nhac uong",
     "hen gio uong",
     "fhir",
@@ -133,13 +141,23 @@ def _user_texts(messages: list[tuple[str, str]]) -> list[str]:
 
 
 def _has_workflow_intent(latest: str) -> bool:
-    return any(marker in latest for marker in _WORKFLOW_MARKERS)
+    """Protect explicit workflow commands from clinical continuation recovery.
+
+    The user may mention a medicine name inside a card command (for example
+    ``xem lại card lịch uống aspirin``).  That is still a schedule workflow,
+    not a medication-safety continuation.  Workflow ownership therefore has
+    precedence over inferred clinical continuation intent.
+    """
+    if any(marker in latest for marker in _WORKFLOW_MARKERS):
+        return True
+    return bool(
+        "card" in latest
+        and any(word in latest for word in ("uong", "thuoc", "nhac", "gio", "lich"))
+    )
 
 
 def _prior_metric_domain(history: str) -> str | None:
     """Return the most recently established monitoring metric family."""
-    # Search the most recent text first by relying on the caller joining turns
-    # newest-to-oldest.
     if "spo2" in history or "do bao hoa oxy" in history:
         return "spo2"
     if "huyet ap" in history or re.search(r"\b\d{2,3}\s*/\s*\d{2,3}\s*mmhg\b", history):
@@ -192,19 +210,14 @@ def resolve_conversation_continuation(
         return None
 
     prior_users = [normalize_search_text(value) for value in users[:-1]]
-    # Newest first so a recent domain switch wins over an older episode.
     history = "\n".join(reversed(prior_users[-4:]))
 
-    # Explicit medication self-management questions are safety workflow even
-    # when a symptom word elsewhere would otherwise bias acute-triage scoring.
     if any(marker in latest for marker in _SAFETY_DIRECT_MARKERS):
         return ContinuationResolution("safety", "explicit_medication_self_management", 0.98)
 
     if "thuoc chong dong" in latest and any(marker in latest for marker in ("chay mau", "chay mau cam", "bo lieu")):
         return ContinuationResolution("safety", "anticoagulant_safety_context", 0.97)
 
-    # Monitoring values often omit the metric label after the first turn:
-    # "SpO2 95%" -> "đi lại thì 92%"; "HA 148/92" -> "đo lại 152/94".
     metric = _prior_metric_domain(history)
     if metric:
         canonical = _canonical_metric(latest, metric)
@@ -216,21 +229,14 @@ def resolve_conversation_continuation(
                 augmented_latest=canonical,
             )
 
-    # Pregnancy is an episode-level condition.  Vaginal bleeding in a later
-    # short turn must stay attached to the active pregnancy episode.
     if prior_users and any(marker in history for marker in _PREGNANCY_MARKERS):
         if any(marker in latest for marker in _PREGNANCY_BLEEDING_MARKERS):
             return ContinuationResolution("triage", "pregnancy_bleeding_continuation", 0.99)
 
-    # A medication-safety conversation commonly receives a short follow-up
-    # containing only a newly disclosed medicine, condition or label detail.
     if prior_users and any(marker in history for marker in _SAFETY_CONTEXT_MARKERS):
         if any(marker in latest for marker in _SAFETY_CONTINUATION_MARKERS):
             return ContinuationResolution("safety", "medication_safety_continuation", 0.94)
 
-    # First-turn symptom phrases that are clinically meaningful but previously
-    # fell through to general because they do not contain the older fallback
-    # vocabulary.  This changes only intent ownership, never severity.
     if any(marker in latest for marker in _DIRECT_TRIAGE_MARKERS):
         return ContinuationResolution("triage", "direct_clinical_symptom", 0.93)
 
