@@ -75,7 +75,7 @@ def test_v25_compositional_overlay_promotes_complete_emergency_patterns(expected
 
 def test_v25_safety_overlay_is_versioned_and_in_integrity_report():
     assert "v25_safety_overlay.json" in knowledge.files
-    assert knowledge.files["v25_safety_overlay.json"].version == "25.4.0"
+    assert knowledge.files["v25_safety_overlay.json"].version == "25.4.1"
     assert "v25_safety_overlay.json" in knowledge.integrity_report()
 
 
