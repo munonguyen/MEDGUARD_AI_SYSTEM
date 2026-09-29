@@ -173,15 +173,60 @@ class ChatResponse(DisclaimerMixin):
 
     @model_validator(mode="after")
     def apply_patient_question_policy(self) -> "ChatResponse":
-        """Choose the smallest useful question set for the patient surface.
+        """Enforce patient-surface dialogue and emergency output invariants.
 
-        The clinical result keeps every approved clarifying-question candidate.
-        Only ``answer.display_questions`` is reduced, so audit/evaluation data is
-        never destroyed and the dialogue policy cannot change clinical decisions.
+        Full approved question candidates normally remain in ``answer.questions``
+        for audit/evaluation while ``display_questions`` is bounded for the UI.
+        Emergency is deliberately stricter: no follow-up question may compete
+        with the locked action, and explicit diagnostic uncertainty must survive
+        every deterministic/agent presentation path.
         """
-        if self.intent != "triage" or self.answer is None or not isinstance(self.result, dict):
+        if self.answer is None or not isinstance(self.result, dict):
             return self
-        urgency = str(self.result.get("urgency", "ROUTINE"))
+
+        urgency = str(
+            self.result.get("urgency")
+            or self.result.get("escalation_level")
+            or "ROUTINE"
+        ).upper()
+
+        if urgency == "EMERGENCY":
+            uncertainty = "Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này."
+            obsolete_phrase = "thay vì tiếp tục tự theo dõi tại nhà"
+
+            summary = self.answer.summary.replace(obsolete_phrase, "ngay")
+            if "không xác định nguyên nhân hoặc chẩn đoán" not in summary.lower():
+                summary = f"{summary.rstrip()} {uncertainty}".strip()
+
+            narrative: list[AnswerNarrativeBlock] = []
+            has_uncertainty = False
+            for block in self.answer.narrative:
+                text = block.text.replace(obsolete_phrase, "ngay")
+                if "không xác định nguyên nhân hoặc chẩn đoán" in text.lower():
+                    has_uncertainty = True
+                narrative.append(block.model_copy(update={"text": text}))
+            if not has_uncertainty:
+                # Preserve action-first ordering: the first emergency block stays
+                # untouched and diagnostic uncertainty follows immediately after.
+                insert_at = 1 if narrative else 0
+                narrative.insert(
+                    insert_at,
+                    AnswerNarrativeBlock(kind="paragraph", text=uncertainty),
+                )
+
+            self.answer = self.answer.model_copy(
+                update={
+                    "summary": summary,
+                    "questions": [],
+                    "display_questions": [],
+                    "narrative": narrative,
+                }
+            )
+            return self
+
+        if self.intent != "triage":
+            return self
+
         plan = plan_clinical_questions(list(self.answer.questions), urgency=urgency)
         self.answer = self.answer.model_copy(update={"display_questions": plan.questions})
 
