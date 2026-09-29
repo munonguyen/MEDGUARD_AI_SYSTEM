@@ -26,6 +26,7 @@ _FILE_NAMES = (
     "red_flag_protocols.json",
     "v25_safety_overlay.json",
     "v25_urgent_overlay.json",
+    "v25_response_policy_overlay.json",
     "contraindications.json",
     "atc_codes.json",
     "icd10_codes.json",
@@ -49,10 +50,6 @@ class KnowledgeStore:
 
     files: dict[str, KnowledgeFile] = field(default_factory=dict)
 
-    # ------------------------------------------------------------------
-    # Typed accessors
-    # ------------------------------------------------------------------
-
     @property
     def drug_interactions(self) -> list[dict[str, Any]]:
         return self.files.get("drug_interactions.json", KnowledgeFile("", "", "", {})).data.get("interactions", [])
@@ -63,11 +60,7 @@ class KnowledgeStore:
 
     @property
     def red_flag_patterns(self) -> list[dict[str, Any]]:
-        """Return the frozen/base registry plus versioned post-V10 overlays.
-
-        Keeping overlays in separate files makes later safety additions auditable
-        and reversible without rewriting historical benchmark knowledge.
-        """
+        """Return the frozen/base registry plus versioned post-V10 overlays."""
         base = self.files.get(
             "red_flag_protocols.json", KnowledgeFile("", "", "", {})
         ).data.get("red_flag_patterns", [])
@@ -78,14 +71,17 @@ class KnowledgeStore:
 
     @property
     def urgent_patterns(self) -> list[dict[str, Any]]:
-        """Return frozen urgent rules plus the post-V10 V25 urgent overlay."""
+        """Return frozen urgent rules plus post-V10 V25 urgent overlays."""
         base = self.files.get(
             "red_flag_protocols.json", KnowledgeFile("", "", "", {})
         ).data.get("urgent_patterns", [])
         overlay = self.files.get(
             "v25_urgent_overlay.json", KnowledgeFile("", "", "", {})
         ).data.get("urgent_patterns", [])
-        return [*base, *overlay]
+        policy_overlay = self.files.get(
+            "v25_response_policy_overlay.json", KnowledgeFile("", "", "", {})
+        ).data.get("urgent_patterns", [])
+        return [*base, *overlay, *policy_overlay]
 
     @property
     def routine_administrative_patterns(self) -> list[dict[str, Any]]:
@@ -101,7 +97,19 @@ class KnowledgeStore:
 
     @property
     def symptom_guidance(self) -> list[dict[str, Any]]:
-        return self.files.get("red_flag_protocols.json", KnowledgeFile("", "", "", {})).data.get("symptom_guidance", [])
+        """Return response-policy guidance before general symptom guidance.
+
+        Policy guidance is intentionally checked first so explicit workflow
+        requests such as remote prescribing are answered directly instead of
+        being hidden behind a generic symptom template.
+        """
+        policy = self.files.get(
+            "v25_response_policy_overlay.json", KnowledgeFile("", "", "", {})
+        ).data.get("symptom_guidance", [])
+        base = self.files.get(
+            "red_flag_protocols.json", KnowledgeFile("", "", "", {})
+        ).data.get("symptom_guidance", [])
+        return [*policy, *base]
 
     @property
     def reported_ingestion_protocols(self) -> list[dict[str, Any]]:
@@ -110,13 +118,7 @@ class KnowledgeStore:
         ).data.get("reported_ingestion_protocols", [])
 
     def _contextualize_guidance(self, guidance: dict[str, Any], symptoms_text: str) -> dict[str, Any]:
-        """Overlay V25 explanation/question planning without mutating knowledge.
-
-        The knowledge file still decides whether a symptom topic matched. V25
-        only improves the explanatory hypotheses and follow-up question after a
-        match exists. The import is intentionally local so the immutable
-        knowledge snapshot can load before the clinical reasoning modules.
-        """
+        """Overlay V25 explanation/question planning without mutating knowledge."""
         try:
             from app.services.contextual_triage_planner import (
                 build_contextual_triage_plan,
@@ -236,10 +238,6 @@ class KnowledgeStore:
     def product_registry(self) -> list[dict[str, Any]]:
         return self.files.get("product_registry.json", KnowledgeFile("", "", "", {})).data.get("products", [])
 
-    # ------------------------------------------------------------------
-    # Domain Helpers
-    # ------------------------------------------------------------------
-
     def find_atc(self, substance_name: str) -> dict[str, Any] | None:
         normalized = substance_name.lower().strip()
         return self.atc_directory.get(normalized)
@@ -247,10 +245,6 @@ class KnowledgeStore:
     def find_icd10(self, code: str) -> dict[str, Any] | None:
         normalized = code.upper().strip()
         return self.icd10_directory.get(normalized)
-
-    # ------------------------------------------------------------------
-    # Integrity & versioning (memoized for zero-allocation trace generation)
-    # ------------------------------------------------------------------
 
     _version_string_cache: str | None = None
     _integrity_report_cache: dict[str, dict[str, str]] | None = None
