@@ -232,6 +232,17 @@ class ChatResponse(DisclaimerMixin):
         if self.answer is None or not isinstance(self.result, dict):
             return self
 
+        # Enrichment is intentionally performed before selection so any bounded
+        # disposition question added from the resolved state passes through the
+        # same ranking, display bound and audit trace as upstream candidates.
+        self.answer = enrich_patient_surface(
+            intent=self.intent,
+            status=self.status,
+            reply=self.reply,
+            result=self.result,
+            answer=self.answer,
+        )
+
         urgency = str(
             self.result.get("urgency")
             or self.result.get("escalation_level")
@@ -285,7 +296,11 @@ class ChatResponse(DisclaimerMixin):
 
     @model_validator(mode="after")
     def enrich_patient_facing_structure(self) -> "ChatResponse":
-        """Improve usability without changing the authoritative domain result."""
+        """Improve usability without changing the authoritative domain result.
+
+        This second call is idempotent and covers responses that do not enter the
+        question-policy path because they have no structured clinical result.
+        """
         if self.answer is None:
             return self
         self.answer = enrich_patient_surface(
