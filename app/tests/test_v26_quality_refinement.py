@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from app.models.chat import ChatResponse, GroundedAnswer
+from app.models.chat import ChatRequest, ChatResponse, GroundedAnswer
 from app.services.conversation_continuation import resolve_conversation_continuation
 
 
@@ -64,12 +64,58 @@ def test_monitoring_emergency_action_plan_keeps_zero_question_policy() -> None:
     assert response.answer.display_questions == []
 
 
+def test_safety_answer_exposes_structured_action_plan_when_missing() -> None:
+    response = ChatResponse(
+        request_id="v26-safety",
+        conversation_id="v26-safety",
+        status="answered",
+        intent="safety",
+        reply="Đã kiểm tra an toàn thuốc.",
+        result={"overall_risk": "MODERATE", "requires_human_review": True, "urgency": "URGENT"},
+        answer=_answer(),
+    )
+    assert response.answer is not None
+    assert response.answer.next_steps
+    assert "bác sĩ" in response.answer.next_steps[0].lower() or "dược sĩ" in response.answer.next_steps[0].lower()
+
+
+def test_unsupported_personalized_dose_refusal_has_safe_next_step() -> None:
+    response = ChatResponse(
+        request_id="v26-dose-refusal",
+        conversation_id="v26-dose-refusal",
+        status="unsupported",
+        intent="safety",
+        reply="MedGuard không tính liều cá nhân hóa.",
+        answer=_answer(),
+    )
+    assert response.answer is not None
+    assert response.answer.next_steps
+    assert "không tự" in response.answer.next_steps[0].lower()
+
+
 def test_half_tablet_trial_is_owned_by_medication_safety() -> None:
     resolution = resolve_conversation_continuation(
         [("user", "Tôi bị đau họng."), ("user", "Tôi chưa uống amoxicillin, có nên thử nửa viên xem sao không?")]
     )
     assert resolution is not None
     assert resolution.intent == "safety"
+    assert resolution.augmented_latest is not None
+    assert resolution.augmented_latest.startswith("Liều chính xác.")
+
+
+def test_specific_dose_word_order_reuses_direct_refusal_policy() -> None:
+    request = ChatRequest.model_validate(
+        {
+            "conversation_id": "v26-specific-dose",
+            "messages": [
+                {"role": "user", "content": "Tôi đang dùng thuốc giảm đau."},
+                {"role": "user", "content": "Bạn cho tôi liều ibuprofen cụ thể để dùng xen kẽ nhé."},
+            ],
+        }
+    )
+    assert request.intent_hint == "safety"
+    assert request.original_latest_content is not None
+    assert request.messages[-1].content.startswith("Liều chính xác.")
 
 
 def test_self_induced_vomiting_is_owned_by_medication_safety() -> None:
