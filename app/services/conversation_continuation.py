@@ -92,6 +92,15 @@ _DIRECT_TRIAGE_MARKERS = (
     "kho khe",
 )
 
+_HIGH_RISK_CIRCULATORY_MARKERS = (
+    "gan ngat",
+    "sap ngat",
+    "muon ngat",
+    "muon xiu",
+    "ngat xiu",
+    "bat tinh",
+)
+
 _SAFETY_DIRECT_MARKERS = (
     "tu doi lieu",
     "tu dieu chinh lieu",
@@ -225,6 +234,18 @@ def resolve_conversation_continuation(
         return ContinuationResolution("safety", "anticoagulant_safety_context", 0.97)
 
     metric = _prior_metric_domain(history)
+
+    # A vital-sign continuation that also reports circulatory compromise is no
+    # longer a pure monitoring task.  Keep the measurement in the text but hand
+    # the turn to triage so the shared clinical-safety/end-organ layers can
+    # reason over the combination rather than a numeric threshold in isolation.
+    if metric == "heart_rate" and any(marker in latest for marker in _HIGH_RISK_CIRCULATORY_MARKERS):
+        return ContinuationResolution(
+            "triage",
+            "heart_rate_with_presyncope",
+            0.995,
+        )
+
     if metric:
         canonical = _canonical_metric(latest, metric)
         if canonical:
