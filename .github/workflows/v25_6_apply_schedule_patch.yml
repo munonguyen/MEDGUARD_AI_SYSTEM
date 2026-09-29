@@ -6,6 +6,7 @@ on:
       - feature/v25-clinical-contextual-reasoning
     paths:
       - .github/workflows/v25_6_apply_schedule_patch.yml
+      - app/services/schedule_chat.py
 
 permissions:
   contents: write
@@ -61,14 +62,11 @@ jobs:
           python -m compileall -q app
           pytest -q app/tests/test_v25_schedule_card_crud.py app/tests/test_chat_history_schedule_product.py
 
-      - name: Commit patch to feature branch
+      - name: Commit source patch and remove temporary workflow
         run: |
-          if git diff --quiet -- app/services/chat.py; then
-            echo "chat.py already patched"
-            exit 0
-          fi
           git config user.name "medguard-ci"
           git config user.email "medguard-ci@users.noreply.github.com"
           git add app/services/chat.py
-          git commit -m "V25.6 route medication card CRUD before clinical triage"
+          git rm .github/workflows/v25_6_apply_schedule_patch.yml
+          git commit -m "V25.6 route stateful medication card CRUD before clinical triage"
           git push origin HEAD:feature/v25-clinical-contextual-reasoning
