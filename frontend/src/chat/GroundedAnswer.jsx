@@ -8,6 +8,7 @@ import {
   ShieldAlert,
   Stethoscope,
 } from 'lucide-react';
+import { selectPatientResponseSurface } from './responseAuthority.js';
 import './GroundedAnswer.css';
 
 const evidenceLabels = {
@@ -36,16 +37,7 @@ const knowledgeLabels = {
   not_recorded: 'Nguồn chưa ghi nhận phê duyệt',
 };
 
-const legacyQuestionPrefixes = [
-  'Bạn cho mình biết thêm:',
-  'Thông tin cần báo nhân viên y tế nếu có thể:',
-];
-
 const clinicalIntents = new Set(['triage', 'safety', 'monitoring', 'followup', 'pharmacy']);
-
-function isLegacyQuestionNarrative(block) {
-  return legacyQuestionPrefixes.some((prefix) => block?.text?.startsWith(prefix));
-}
 
 function ClinicalSection({ title, icon: Icon, items, tone = 'neutral', ordered = false, className = '' }) {
   if (!items?.length) return null;
@@ -103,8 +95,11 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
   const sourcesById = new Map(
     researchedSources.map((source, index) => [source.source_id, { ...source, index: index + 1 }]),
   );
-  const rawNarrativeBlocks = Array.isArray(answer.narrative) ? answer.narrative : [];
-  const narrativeBlocks = rawNarrativeBlocks.filter((block) => !isLegacyQuestionNarrative(block));
+  const responseSurface = selectPatientResponseSurface({
+    answer,
+    verificationStatus: responseMeta.verification_status,
+  });
+  const narrativeBlocks = responseSurface.narrativeBlocks;
   const hasNarrative = narrativeBlocks.length > 0;
 
   const structuredUrgency = result?.urgency || result?.escalation_level;
@@ -117,22 +112,7 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
   });
   const StatusIcon = status.icon;
 
-  /*
-   * V27 Single Patient Response Authority
-   * -------------------------------------
-   * When the synchronous gateway reports `verified`, the Writer narrative has
-   * already passed Reviewer + Jev/professional-response gates. It is therefore
-   * the canonical patient-facing answer. Deterministic title/summary/key-points
-   * remain safety/evidence fallback state, but must not visually override the
-   * verified response. This keeps the surface Jev evaluated identical to the
-   * surface the patient reads.
-   *
-   * Safety severity is the sole deterministic overlay retained on verified
-   * clinical output because urgency ownership remains outside the Writer.
-   */
-  const canonicalVerifiedResponse = responseMeta.verification_status === 'verified' && hasNarrative;
-
-  if (canonicalVerifiedResponse) {
+  if (responseSurface.canonicalVerifiedResponse) {
     return (
       <div className="grounded-answer modern-clinical-layout canonical-patient-response">
         {showTechnicalMeta && (
@@ -171,7 +151,6 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
     );
   }
 
-  // Deterministic / unavailable / rejected gateway fallback surface.
   const displayQuestions = Array.isArray(answer.display_questions)
     ? answer.display_questions
     : (answer.questions || []).slice(0, 2);
