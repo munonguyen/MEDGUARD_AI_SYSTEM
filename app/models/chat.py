@@ -9,6 +9,7 @@ from app.models.agents import AgentEvidenceSource, AnswerAgentTrace, Verificatio
 from app.models.common import DisclaimerMixin
 from app.services.conversation_continuation import resolve_conversation_continuation
 from app.services.question_policy import plan_clinical_questions
+from app.services.response_quality_overlay import enhance_response_answer
 
 
 ChatIntent = Literal[
@@ -206,8 +207,19 @@ class ChatResponse(DisclaimerMixin):
 
     @model_validator(mode="after")
     def apply_patient_question_policy(self) -> "ChatResponse":
-        """Enforce patient-surface dialogue and emergency output invariants."""
-        if self.answer is None or not isinstance(self.result, dict):
+        """Enforce patient-surface dialogue, quality and emergency invariants."""
+        if self.answer is None:
+            return self
+
+        self.answer = enhance_response_answer(
+            self.answer,
+            intent=self.intent,
+            status=self.status,
+            result=self.result if isinstance(self.result, dict) else None,
+        )
+        self.reply = self.answer.summary
+
+        if not isinstance(self.result, dict):
             return self
 
         urgency = str(
@@ -249,6 +261,7 @@ class ChatResponse(DisclaimerMixin):
                     "narrative": narrative,
                 }
             )
+            self.reply = summary
             emergency_plan = plan_clinical_questions([], urgency="EMERGENCY")
             self._attach_question_policy_trace(emergency_plan)
             return self
