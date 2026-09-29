@@ -24,6 +24,7 @@ _FILE_NAMES = (
     "drug_interactions.json",
     "allergy_cross_matrix.json",
     "red_flag_protocols.json",
+    "v25_safety_overlay.json",
     "contraindications.json",
     "atc_codes.json",
     "icd10_codes.json",
@@ -61,7 +62,18 @@ class KnowledgeStore:
 
     @property
     def red_flag_patterns(self) -> list[dict[str, Any]]:
-        return self.files.get("red_flag_protocols.json", KnowledgeFile("", "", "", {})).data.get("red_flag_patterns", [])
+        """Return the frozen/base registry plus versioned post-V10 overlays.
+
+        Keeping overlays in separate files makes later safety additions auditable
+        and reversible without rewriting historical benchmark knowledge.
+        """
+        base = self.files.get(
+            "red_flag_protocols.json", KnowledgeFile("", "", "", {})
+        ).data.get("red_flag_patterns", [])
+        overlay = self.files.get(
+            "v25_safety_overlay.json", KnowledgeFile("", "", "", {})
+        ).data.get("red_flag_patterns", [])
+        return [*base, *overlay]
 
     @property
     def urgent_patterns(self) -> list[dict[str, Any]]:
