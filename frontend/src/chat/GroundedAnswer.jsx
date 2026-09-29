@@ -42,6 +42,8 @@ const legacyQuestionPrefixes = [
   'Thông tin cần báo nhân viên y tế nếu có thể:',
 ];
 
+const clinicalIntents = new Set(['triage', 'safety', 'monitoring', 'followup', 'pharmacy']);
+
 function isLegacyQuestionNarrative(block) {
   return legacyQuestionPrefixes.some((prefix) => block?.text?.startsWith(prefix));
 }
@@ -69,7 +71,15 @@ function ClinicalSection({
   );
 }
 
-function statusConfig(urgency, overallRisk) {
+function statusConfig({ urgency, overallRisk, isClinical }) {
+  if (!isClinical) {
+    return {
+      tone: 'workflow',
+      label: 'Yêu cầu đã được xử lý',
+      helper: 'Trạng thái và kết quả thao tác được trình bày bên dưới',
+      icon: CheckCircle2,
+    };
+  }
   if (urgency === 'EMERGENCY') {
     return {
       tone: 'emergency',
@@ -105,7 +115,12 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
 
   const structuredUrgency = result?.urgency || result?.escalation_level;
   const showTechnicalMeta = responseMeta.showTechnicalMeta === true;
-  const status = statusConfig(structuredUrgency, result?.overall_risk);
+  const isClinical = clinicalIntents.has(responseMeta.intent);
+  const status = statusConfig({
+    urgency: structuredUrgency,
+    overallRisk: result?.overall_risk,
+    isClinical,
+  });
   const StatusIcon = status.icon;
 
   const displayQuestions = Array.isArray(answer.display_questions)
@@ -163,7 +178,7 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
         </div>
 
         <div className="clinical-summary-copy">
-          <span className="clinical-kicker">Đánh giá ban đầu</span>
+          <span className="clinical-kicker">{isClinical ? 'Đánh giá ban đầu' : 'Kết quả xử lý'}</span>
           <h2>{answer.title}</h2>
           <p>{answer.summary}</p>
           <small>{status.helper}</small>
@@ -173,7 +188,7 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
       {hasStructuredContent ? (
         <div className="clinical-report-body">
           <ClinicalSection
-            title="Dữ kiện chính"
+            title={isClinical ? 'Dữ kiện chính' : 'Thông tin chính'}
             icon={Activity}
             items={keyPoints}
             tone="neutral"
@@ -187,7 +202,7 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
           />
 
           <ClinicalSection
-            title="Bạn nên làm gì lúc này"
+            title={isClinical ? 'Bạn nên làm gì lúc này' : 'Bước tiếp theo'}
             icon={ListChecks}
             items={nextSteps}
             tone="action"
@@ -204,7 +219,7 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
           />
 
           <ClinicalSection
-            title="Thông tin cần biết thêm"
+            title={isClinical ? 'Thông tin cần biết thêm' : 'Thông tin cần bổ sung'}
             icon={CircleHelp}
             items={displayQuestions}
             tone="question"
@@ -227,7 +242,7 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
         <div className="clinical-limitations">
           <AlertCircle size={15} />
           <div>
-            <strong>Giới hạn đánh giá từ xa</strong>
+            <strong>{isClinical ? 'Giới hạn đánh giá từ xa' : 'Giới hạn xử lý'}</strong>
             {limitations.map((item, index) => <p key={`${item}-${index}`}>{item}</p>)}
           </div>
         </div>
@@ -236,7 +251,7 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
       {hasNarrative && hasStructuredContent && narrativeBlocks.length > 0 && (
         <details className="clinical-detail-panel">
           <summary>
-            <span><Stethoscope size={15} /> Giải thích chi tiết</span>
+            <span><Stethoscope size={15} /> {isClinical ? 'Giải thích chi tiết' : 'Chi tiết xử lý'}</span>
             <ChevronDown size={15} className="detail-chevron" />
           </summary>
           <div className="answer-narrative clinical-detail-content">
