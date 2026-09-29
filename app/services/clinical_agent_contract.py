@@ -68,6 +68,15 @@ def _contextual_reasoning(question: str, urgency: str) -> tuple[dict[str, Any] |
             episode_id="writer-active-episode",
             messages=_episode_messages(question),
         )
+        # The semantic parser intentionally focuses on clinical findings. Keep
+        # the already-resolved user-authored episode narrative as well so a
+        # trigger such as prolonged screen exposure is not lost between turns.
+        episode = episode.model_copy(
+            update={
+                "latest_user_message": question,
+                "active_episode_text": question,
+            }
+        )
         reasoning = build_contextual_reasoning_frame(episode, urgency=urgency)
         return episode.to_agent_payload(), reasoning.to_agent_payload()
     except Exception:
