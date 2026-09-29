@@ -1,19 +1,26 @@
 from app.knowledge.loader import knowledge
 
 
-def test_headache_guidance_receives_v25_mechanisms_and_information_gain_question():
+def test_headache_guidance_receives_v25_mechanisms_and_information_gain_candidate():
     guidance = knowledge.find_symptom_guidance(
         "Tôi đau đầu nhẹ sau khi nhìn màn hình cả ngày."
     )
 
     assert guidance is not None
     assert guidance["topic"] == "headache"
-    assert guidance.get("v25_contextual_reasoning", {}).get("applied") is True
+    trace = guidance.get("v25_contextual_reasoning", {})
+    assert trace.get("applied") is True
+    assert trace.get("next_question_key") == "onset_speed"
+
     hypotheses = guidance.get("clinical_hypotheses") or []
     assert any("mỏi thị giác" in value.lower() or "điều tiết" in value.lower() for value in hypotheses)
+
+    # V25 preserves the complete approved candidate set for audit/evaluation.
+    # The downstream dialogue policy, not the knowledge layer, selects the one
+    # question shown to the patient.
     questions = guidance.get("clarifying_questions") or []
-    assert len(questions) == 1
-    assert "đột ngột" in questions[0].lower()
+    assert len(questions) > 1
+    assert any("đột ngột" in question.lower() for question in questions)
 
 
 def test_multiturn_headache_guidance_uses_latest_turn_for_delta_but_keeps_screen_trigger():
