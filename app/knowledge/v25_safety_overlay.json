@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "version": "25.4.0",
+    "version": "25.4.1",
     "effective_from": "2026-09-29",
     "purpose": "Versioned compositional emergency overlay for multi-turn clinical safety. Patterns require conjunctions of affirmed concepts and never replace the base red-flag registry.",
     "authority_contract": [
@@ -17,7 +17,8 @@
       "patterns_vi": [],
       "patterns_en": [],
       "required_groups_vi": [
-        ["đau bụng dữ dội", "cơn đau rất dữ dội", "đau bụng tăng mạnh"],
+        ["đau bụng", "cơn đau bụng"],
+        ["dữ dội", "rất dữ dội", "đau tăng mạnh", "tăng mạnh"],
         ["bụng cứng", "cứng bụng", "bụng cứng như gỗ"],
         ["choáng muốn ngất", "gần ngất", "ngất", "lơ mơ"]
       ],
@@ -187,15 +188,14 @@
       "patterns_vi": [],
       "patterns_en": [],
       "required_groups_vi": [
-        ["nôn", "tiêu chảy", "không giữ được nước"],
-        ["gần ngất", "ngất", "choáng khi đứng", "choáng nhiều"],
-        ["tim đập rất nhanh", "tim nhanh", "rất khát", "không uống được nước"]
+        ["nôn", "tiêu chảy"],
+        ["gần ngất", "ngất", "choáng khi đứng", "choáng nhiều"]
       ],
       "label_vi": "mất dịch tiêu hóa kèm dấu hiệu giảm thể tích tuần hoàn",
       "esi_level": 2,
       "urgency": "EMERGENCY",
       "specialty": {"code": "EMERGENCY", "label": "Cấp cứu - Nội khoa"},
-      "advice": "Nôn/tiêu chảy kèm gần ngất, tim nhanh hoặc không giữ được nước có thể là mất nước nặng và giảm tuần hoàn. Cần đánh giá cấp cứu ngay."
+      "advice": "Nôn/tiêu chảy kèm gần ngất hoặc ngất có thể là mất nước nặng và giảm tuần hoàn. Cần đánh giá cấp cứu ngay."
     }
   ]
 }
