@@ -1,9 +1,9 @@
 """Patient-facing response enrichment after domain authority has resolved.
 
-This module is presentation-only.  It may improve summary wording and actionable
-next steps from an already-resolved result, but it must never change intent,
-clinical facts, severity, emergency locks, medication decisions, or persisted
-workflow state.
+This module is presentation-only.  It may improve summary wording, candidate
+questions and actionable next steps from an already-resolved result, but it
+must never change intent, clinical facts, severity, emergency locks,
+medication decisions, or persisted workflow state.
 """
 
 from __future__ import annotations
@@ -11,8 +11,36 @@ from __future__ import annotations
 from typing import Any
 
 
+_EMPATHY_MARKERS = (
+    "mình hiểu",
+    "tôi hiểu",
+    "có thể khiến bạn",
+    "có thể làm bạn",
+    "bạn đang lo",
+)
+_UNCERTAINTY_MARKERS = (
+    "chưa đủ",
+    "không thể xác định",
+    "không thể khẳng định",
+    "với thông tin hiện có",
+)
+
+
 def _dedupe(values: list[str]) -> list[str]:
     return list(dict.fromkeys(value.strip() for value in values if value and value.strip()))
+
+
+def _supportive_clinical_summary(summary: str) -> str:
+    """Add empathy and calibrated uncertainty without changing the assessment."""
+    lower = summary.lower()
+    if not any(marker in lower for marker in _EMPATHY_MARKERS):
+        summary = f"Mình hiểu những triệu chứng này có thể khiến bạn lo hoặc khó chịu. {summary}".strip()
+        lower = summary.lower()
+    if not any(marker in lower for marker in _UNCERTAINTY_MARKERS):
+        summary = (
+            f"{summary.rstrip()} Với thông tin hiện có, không thể khẳng định nguyên nhân hoặc chẩn đoán chỉ qua hội thoại này."
+        ).strip()
+    return summary
 
 
 def _monitoring_updates(
@@ -53,7 +81,7 @@ def _monitoring_updates(
         ]
     elif escalation == "CLINIC":
         summary = (
-            "Số đo hiện tại chưa ở mức cấp cứu theo ngưỡng cấu hình nhưng nên được đối chiếu với triệu chứng và các lần đo khác. "
+            "Mình hiểu kết quả bất thường có thể khiến bạn lo. Số đo hiện tại chưa ở mức cấp cứu theo ngưỡng cấu hình nhưng nên được đối chiếu với triệu chứng và các lần đo khác. "
             "Hệ thống không thể xác định nguyên nhân chỉ từ một phép đo."
         )
         next_steps = [
@@ -94,6 +122,7 @@ def enrich_patient_surface(
 
     summary = str(getattr(answer, "summary", "") or "")
     next_steps = list(getattr(answer, "next_steps", []) or [])
+    questions = list(getattr(answer, "questions", []) or [])
 
     if intent == "monitoring":
         summary, next_steps = _monitoring_updates(
@@ -102,6 +131,19 @@ def enrich_patient_surface(
             summary=summary,
             next_steps=next_steps,
         )
+
+    elif intent == "triage" and isinstance(result, dict):
+        urgency = str(result.get("urgency") or "ROUTINE").upper()
+        if urgency != "EMERGENCY":
+            summary = _supportive_clinical_summary(summary)
+        if urgency == "URGENT" and not questions:
+            # One disposition-focused fallback question is permitted only after
+            # the authoritative urgency has already been resolved.  It does not
+            # delay the action above and may reveal deterioration that warrants
+            # re-escalation on the next turn.
+            questions.append(
+                "Trong vài giờ gần đây, triệu chứng của bạn đang ổn định hay tăng nhanh hơn?"
+            )
 
     elif intent == "schedule" and status == "answered":
         next_steps.extend(
@@ -112,6 +154,8 @@ def enrich_patient_surface(
         )
 
     elif intent == "followup":
+        if summary:
+            summary = _supportive_clinical_summary(summary)
         if not next_steps:
             next_steps.extend(
                 [
@@ -121,6 +165,11 @@ def enrich_patient_surface(
             )
 
     elif intent == "safety":
+        # Medication safety answers benefit from the same calibrated tone, but
+        # the actual warning/recommendation still comes exclusively from the
+        # safety service and versioned knowledge.
+        if summary:
+            summary = _supportive_clinical_summary(summary)
         if status == "needs_information":
             next_steps.extend(
                 [
@@ -142,6 +191,15 @@ def enrich_patient_surface(
         )
 
     next_steps = _dedupe(next_steps)
-    if summary == getattr(answer, "summary", "") and next_steps == list(getattr(answer, "next_steps", []) or []):
+    questions = _dedupe(questions)
+    current_steps = list(getattr(answer, "next_steps", []) or [])
+    current_questions = list(getattr(answer, "questions", []) or [])
+    if (
+        summary == getattr(answer, "summary", "")
+        and next_steps == current_steps
+        and questions == current_questions
+    ):
         return answer
-    return answer.model_copy(update={"summary": summary, "next_steps": next_steps})
+    return answer.model_copy(
+        update={"summary": summary, "next_steps": next_steps, "questions": questions}
+    )
