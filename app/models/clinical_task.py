@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 class ClinicalTask(str, Enum):
     ACUTE_SYMPTOM = "acute_symptom"
+    PERIPHERAL_JOINT = "peripheral_joint"
     MEDICATION_SAFETY = "medication_safety"
     LAB_INTERPRETATION = "lab_interpretation"
     EXPOSURE_REACTION = "exposure_reaction"
