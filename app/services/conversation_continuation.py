@@ -189,6 +189,25 @@ def _has_workflow_intent(latest: str) -> bool:
     )
 
 
+def _is_personalized_dose_self_management(latest: str) -> bool:
+    return bool(
+        re.search(r"\blieu(?:\s+[a-z0-9+._-]+){0,5}\s+(?:chinh xac|cu the)\b", latest)
+        or any(
+            marker in latest
+            for marker in (
+                "tu doi lieu",
+                "tu dieu chinh lieu",
+                "tu bo lieu",
+                "bo lieu thuoc",
+                "nua lieu thuoc",
+                "thu nua vien",
+                "uong nua vien xem sao",
+                "dung nua vien xem sao",
+            )
+        )
+    )
+
+
 def _has_direct_medication_safety_intent(latest: str) -> bool:
     """Recognize explicit medication decisions before unrelated episode history.
 
@@ -197,6 +216,8 @@ def _has_direct_medication_safety_intent(latest: str) -> bool:
     mentions of ``thuoc``/``uong`` are not enough to take ownership.
     """
     if any(marker in latest for marker in _SAFETY_DIRECT_MARKERS):
+        return True
+    if _is_personalized_dose_self_management(latest):
         return True
 
     named = {
@@ -318,7 +339,18 @@ def resolve_conversation_continuation(
     history = "\n".join(reversed(prior_users[-4:]))
 
     if _has_direct_medication_safety_intent(latest):
-        return ContinuationResolution("safety", "explicit_medication_safety_decision", 0.99)
+        augmented = None
+        if _is_personalized_dose_self_management(latest):
+            # Reuse the existing direct-refusal policy in chat.py without
+            # rewriting the user's durable message.  The canonical prefix is an
+            # internal routing view only; ChatRequest stores original_latest_content.
+            augmented = f"Liều chính xác. {latest_raw}"
+        return ContinuationResolution(
+            "safety",
+            "explicit_medication_safety_decision",
+            0.99,
+            augmented_latest=augmented,
+        )
 
     if "thuoc chong dong" in latest and any(marker in latest for marker in ("chay mau", "chay mau cam", "bo lieu")):
         return ContinuationResolution("safety", "anticoagulant_safety_context", 0.97)
