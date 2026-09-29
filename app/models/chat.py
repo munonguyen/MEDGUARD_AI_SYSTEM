@@ -7,6 +7,7 @@ from pydantic.json_schema import SkipJsonSchema
 
 from app.models.agents import AgentEvidenceSource, AnswerAgentTrace, VerificationScores
 from app.models.common import DisclaimerMixin
+from app.services.conversation_continuation import resolve_conversation_continuation
 from app.services.question_policy import plan_clinical_questions
 
 
@@ -116,6 +117,11 @@ class ChatRequest(BaseModel):
         "authenticity",
     ] = "auto"
     locale: str = "vi-VN"
+    # Internal-only provenance for a canonicalized continuation.  The routing
+    # text may add an inferred metric label, but durable history must retain the
+    # exact user-authored latest message.
+    original_latest_content: SkipJsonSchema[str | None] = Field(default=None, exclude=True)
+    continuation_reason: SkipJsonSchema[str | None] = Field(default=None, exclude=True)
 
     @field_validator("messages")
     @classmethod
@@ -123,6 +129,26 @@ class ChatRequest(BaseModel):
         if value[-1].role != "user":
             raise ValueError("the latest chat message must be from the user")
         return value
+
+    @model_validator(mode="after")
+    def recover_high_confidence_continuation(self) -> "ChatRequest":
+        if self.intent_hint != "auto" or not self.messages:
+            return self
+        resolution = resolve_conversation_continuation(
+            [(message.role, message.content) for message in self.messages]
+        )
+        if resolution is None:
+            return self
+
+        self.intent_hint = resolution.intent
+        self.continuation_reason = resolution.reason
+        if resolution.augmented_latest:
+            original = self.messages[-1].content
+            self.original_latest_content = original
+            self.messages[-1] = self.messages[-1].model_copy(
+                update={"content": resolution.augmented_latest}
+            )
+        return self
 
 
 class ChatSuggestion(BaseModel):
