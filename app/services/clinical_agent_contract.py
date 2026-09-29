@@ -9,6 +9,7 @@ question. The Writer still owns final patient-facing composition.
 from __future__ import annotations
 
 from dataclasses import dataclass
+import re
 from typing import Any
 
 from app.models.chat import ChatIntent
@@ -29,8 +30,6 @@ def _text(value: Any) -> str:
 
 def _safe_patient_context(context: dict[str, Any] | None) -> dict[str, Any]:
     source = context or {}
-    # Patient identifiers and previous generated answer state must never become
-    # medical evidence for the writer.
     allowed = ("age", "sex", "current_medications", "allergies", "conditions")
     return {key: source.get(key) for key in allowed if source.get(key) not in (None, [], "")}
 
@@ -43,13 +42,6 @@ def _questions(result: dict[str, Any]) -> list[str]:
 
 
 def _episode_messages(question: str) -> list[dict[str, str]]:
-    """Recover user-turn boundaries from the active episode text passed by chat.
-
-    The triage orchestrator already passes the active episode, not merely the
-    latest sentence. It joins recent user turns with newlines and prefixes the
-    latest turn with ``Lượt hiện tại:``. Keeping each line as a separate user
-    turn lets V25 compute deltas without giving the Writer old generated prose.
-    """
     lines = [line.strip() for line in question.splitlines() if line.strip()]
     if not lines:
         lines = [question.strip()]
@@ -62,47 +54,30 @@ def _episode_messages(question: str) -> list[dict[str, str]]:
     return messages or [{"role": "user", "content": question.strip()}]
 
 
-def _contains_any(text: str, markers: tuple[str, ...]) -> bool:
-    norm = normalize_search_text(text)
-    return any(marker in norm for marker in markers)
-
-
 def _peripheral_joint_signal(question: str) -> bool:
-    """Detect a specific peripheral-joint complaint without guessing from 'arm pain'."""
-    return _contains_any(
-        question,
-        (
-            "dau khop tay",
-            "dau cac khop tay",
-            "dau khop ngon tay",
-            "dau cac khop ngon tay",
-            "dau khop co tay",
-            "dau khop ban tay",
-            "sung khop tay",
-            "sung khop ngon tay",
-            "cung khop tay",
-            "cung khop ngon tay",
-            "cung khop buoi sang",
-            "khop tay sung",
-            "khop ngon tay sung",
-            "nhieu khop tay",
-        ),
+    """Detect specific peripheral-joint language independent of word order."""
+    norm = normalize_search_text(question)
+    joint_site = bool(
+        re.search(
+            r"\b(?:cac\s+|nhieu\s+)?khop\s+(?:ngon\s+tay|co\s+tay|ban\s+tay|tay)\b",
+            norm,
+        )
     )
+    symptom = bool(
+        re.search(
+            r"\b(?:dau|nhuc|sung|nong|do|cung|han che cu dong|kho cu dong|kho nam|kho cam)\b",
+            norm,
+        )
+    )
+    return joint_site and symptom
 
 
 def _peripheral_joint_context(
     question: str,
     episode_payload: dict[str, Any] | None,
 ) -> tuple[dict[str, Any] | None, dict[str, Any]]:
-    """Build a diagnosis-neutral hand/peripheral-joint reasoning envelope.
-
-    V27 deliberately keeps this at the reasoning-contract layer: it does not
-    author patient prose and cannot change urgency. Its purpose is to prevent
-    a hand-joint complaint from inheriting spine-only questions such as cauda
-    equina or lower-limb motor deficits.
-    """
+    """Build a diagnosis-neutral hand/peripheral-joint reasoning envelope."""
     norm = normalize_search_text(question)
-
     unknowns: list[dict[str, Any]] = []
 
     def unknown(key: str, question_text: str, impact: str, changes: tuple[str, ...], rationale: str) -> None:
@@ -197,17 +172,8 @@ def _peripheral_joint_context(
         }
     ]
 
-    next_unknown = next(
-        (item for item in unknowns if item["key"] == "fever_systemic_features"),
-        None,
-    )
-    # For a routine, nonspecific joint complaint the highest-yield first
-    # discriminator is the local inflammatory pattern. Fever remains present in
-    # the safety envelope but does not force two patient questions at once.
-    local_unknown = next(
-        (item for item in unknowns if item["key"] == "joint_inflammation_pattern"),
-        None,
-    )
+    next_unknown = next((item for item in unknowns if item["key"] == "fever_systemic_features"), None)
+    local_unknown = next((item for item in unknowns if item["key"] == "joint_inflammation_pattern"), None)
     selected = local_unknown or next_unknown or (unknowns[0] if unknowns else None)
 
     episode = dict(episode_payload or {})
@@ -221,9 +187,7 @@ def _peripheral_joint_context(
         "version": "v27-peripheral-joint",
         "mechanisms": mechanisms,
         "leading_hypothesis_ids": ["peripheral_joint_local_process"],
-        "must_not_miss_unknowns": [
-            item["key"] for item in unknowns if item["impact"] == "critical"
-        ],
+        "must_not_miss_unknowns": [item["key"] for item in unknowns if item["impact"] == "critical"],
         "next_best_question": selected["question"] if selected else None,
         "next_question_key": selected["key"] if selected else None,
         "reasoning_limits": [
@@ -236,15 +200,11 @@ def _peripheral_joint_context(
 
 
 def _contextual_reasoning(question: str, urgency: str) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
-    """Build V25/V27 context fail-softly; safety behavior never depends on it."""
     try:
         episode = build_clinical_episode_model(
             episode_id="writer-active-episode",
             messages=_episode_messages(question),
         )
-        # The semantic parser intentionally focuses on clinical findings. Keep
-        # the already-resolved user-authored episode narrative as well so a
-        # trigger such as prolonged screen exposure is not lost between turns.
         episode = episode.model_copy(
             update={
                 "latest_user_message": question,
@@ -257,18 +217,10 @@ def _contextual_reasoning(question: str, urgency: str) -> tuple[dict[str, Any] |
         reasoning = build_contextual_reasoning_frame(episode, urgency=urgency)
         return episode_payload, reasoning.to_agent_payload()
     except Exception:
-        # The legacy safety contract remains authoritative if contextual
-        # explanation construction cannot complete.
         return None, None
 
 
 def _assessment_state(result: dict[str, Any], urgency: str) -> str:
-    """Separate epistemic certainty from urgency.
-
-    V27 forbids treating an unresolved semantic match as evidence that a case is
-    ROUTINE. Emergency authority remains untouched: safety can still escalate an
-    uncertain case, but uncertainty itself is represented explicitly.
-    """
     trace = result.get("trace") or {}
     details = trace.get("details") if isinstance(trace, dict) else {}
     details = details if isinstance(details, dict) else {}
@@ -281,7 +233,7 @@ def _assessment_state(result: dict[str, Any], urgency: str) -> str:
 
     if urgency == "EMERGENCY":
         return "SAFETY_ESCALATED"
-    if semantic_status == "UNRESOLVED" or source in {"fail_safe", "epistemic_escalation"}:
+    if semantic_status == "UNRESOLVED" or source in {"fail_safe", "epistemic_escalation", "needs_information_contract"}:
         return "INSUFFICIENT_CONTEXT"
     if semantic_status == "PARTIALLY_UNDERSTOOD" or confidence < 0.70:
         return "PARTIALLY_UNDERSTOOD"
@@ -355,8 +307,6 @@ def build_clinical_agent_contract(
                     )
 
         if urgency == "EMERGENCY" or bool(result.get("emergency_flag")):
-            # This is a safety constraint, not a response template. The writer
-            # may explain around it but must preserve the immediate action.
             add(
                 "action",
                 "Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay lập tức; không tự lái xe và không trì hoãn để tiếp tục hỏi trực tuyến.",
@@ -368,9 +318,6 @@ def build_clinical_agent_contract(
                 locked=False,
             )
         else:
-            # Do not turn a low-confidence/unresolved rule fallback into a
-            # positive ROUTINE recommendation. The writer may still give a
-            # bounded next step after asking the one management-changing question.
             if assessment_state == "UNDERSTOOD":
                 advice = _text(result.get("advice"))
                 if advice:
