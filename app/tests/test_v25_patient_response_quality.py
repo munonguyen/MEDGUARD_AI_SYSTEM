@@ -40,10 +40,21 @@ def test_q5_screen_headache_response_explains_mechanism_and_asks_one_high_value_
     assert "không phải chẩn đoán" in summary
     assert "chưa biết" in summary
     assert answer["clinical_hypotheses"]
+
+    # The knowledge/reasoning layer retains the complete approved candidate set;
+    # the dialogue policy is the only layer allowed to reduce patient-facing
+    # questions. For a routine headache, either onset speed or severity/timing
+    # can legitimately win after scoring.
     display_questions = answer.get("display_questions")
     assert display_questions is not None
     assert len(display_questions) == 1
-    assert "đột ngột" in display_questions[0].lower()
+    selected = display_questions[0]
+    assert selected in (answer.get("questions") or [])
+    selected_normalized = selected.lower()
+    assert any(
+        marker in selected_normalized
+        for marker in ("đột ngột", "mức độ", "0 đến 10", "bắt đầu")
+    )
 
 
 def test_q6_followup_response_updates_reasoning_instead_of_repeating_q5():
