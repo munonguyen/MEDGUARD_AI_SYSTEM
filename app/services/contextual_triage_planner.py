@@ -34,6 +34,17 @@ class ContextualTriagePlan:
     reason: str
 
 
+_PRESCRIPTION_REQUEST_MARKERS = (
+    "ke don",
+    "ke thuoc",
+    "ke khang sinh",
+    "huong dan lieu",
+    "lieu uong cu the",
+    "lieu dung cu the",
+    "lieu cu the",
+)
+
+
 def _episode_messages(symptoms_text: str) -> list[dict[str, str]]:
     lines = [line.strip() for line in symptoms_text.splitlines() if line.strip()]
     if not lines:
@@ -45,6 +56,34 @@ def _episode_messages(symptoms_text: str) -> list[dict[str, str]]:
         if line:
             values.append({"role": "user", "content": line})
     return values
+
+
+def _prescription_request_summary(symptoms_text: str) -> str | None:
+    """Return a direct refusal when the user asks the triage path to prescribe.
+
+    This is a communication/policy overlay only. It does not alter triage
+    severity and deliberately avoids inventing a diagnosis. Explicit requests
+    for antibiotics get a medication-specific explanation; other personalized
+    dose/prescription requests receive the same bounded refusal principle.
+    """
+    normalized = normalize_search_text(symptoms_text)
+    if not any(marker in normalized for marker in _PRESCRIPTION_REQUEST_MARKERS):
+        return None
+
+    if "khang sinh" in normalized or "antibiotic" in normalized:
+        return (
+            "MedGuard không kê đơn kháng sinh hoặc xác định liều dùng cá nhân hóa từ hội thoại. "
+            "Việc dùng kháng sinh cần dựa trên đánh giá nguyên nhân và chỉ định của bác sĩ; "
+            "tự dùng có thể không phù hợp và làm tăng nguy cơ tác dụng không mong muốn hoặc kháng kháng sinh. "
+            "Trong lúc chờ đánh giá, bạn có thể ưu tiên chăm sóc triệu chứng an toàn như nghỉ ngơi, uống đủ nước "
+            "và súc họng nước muối nếu phù hợp; đi khám sớm nếu sốt cao, khó thở, nuốt nghẹn, đau tăng hoặc kéo dài."
+        )
+
+    return (
+        "MedGuard không kê đơn hoặc xác định liều thuốc cá nhân hóa từ hội thoại. "
+        "Liều dùng cần được bác sĩ hoặc dược sĩ xác nhận dựa trên chỉ định, bệnh nền, thuốc đang dùng và các dữ kiện lâm sàng liên quan. "
+        "Mình vẫn có thể giúp bạn nhận diện dấu hiệu cần đi khám, kiểm tra tương tác thuốc hoặc chuẩn bị các câu hỏi cần trao đổi với nhân viên y tế."
+    )
 
 
 def _patient_hypothesis(item: MechanismHypothesis) -> str:
@@ -183,6 +222,18 @@ def build_contextual_triage_plan(
             reasoning=None,
             applied=False,
             reason="emergency_action_first",
+        )
+
+    prescription_summary = _prescription_request_summary(symptoms_text)
+    if prescription_summary:
+        return ContextualTriagePlan(
+            summary=prescription_summary,
+            hypotheses=tuple(str(value) for value in existing_hypotheses if str(value).strip()),
+            questions=tuple(str(value) for value in existing_questions if str(value).strip()),
+            episode=None,
+            reasoning=None,
+            applied=True,
+            reason="prescription_request_refusal",
         )
 
     try:
