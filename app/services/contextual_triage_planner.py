@@ -17,6 +17,7 @@ from typing import Any
 from app.models.clinical_episode import ClinicalEpisodeModel
 from app.models.clinical_reasoning import ClinicalReasoningFrame, MechanismHypothesis
 from app.services.clinical_episode_model import build_clinical_episode_model
+from app.services.clinical_text import normalize_search_text
 from app.services.contextual_clinical_reasoner import build_contextual_reasoning_frame
 
 
@@ -56,32 +57,69 @@ def _patient_hypothesis(item: MechanismHypothesis) -> str:
     return f"{base}. Cơ chế có thể góp phần: {mechanism}"
 
 
-def _explanatory_mechanisms(frame: ClinicalReasoningFrame) -> list[MechanismHypothesis]:
-    """Return mechanisms supported enough to alter explanatory prose.
+def _mechanism_has_direct_narrative_support(
+    item: MechanismHypothesis,
+    episode: ClinicalEpisodeModel,
+) -> bool:
+    """Require direct trigger evidence before deterministic prose is replaced.
 
-    A must-not-miss unknown by itself is not a positive explanation. This guard
-    prevents a generic symptom such as abdominal discomfort from losing its
-    mature legacy guidance merely because V25 can name an unanswered red flag.
+    The underlying reasoner intentionally has high recall. The deterministic
+    renderer is stricter: a plausible mechanism can alter patient-facing prose
+    only when its trigger is actually present in the user-authored episode.
+    This prevents, for example, generic prolonged headache from being called a
+    posture problem or nausea alone from being described as fluid loss.
     """
+    text = normalize_search_text(episode.active_episode_text or episode.latest_user_message)
+    if item.hypothesis_id == "visual_load_contribution":
+        return any(marker in text for marker in (
+            "man hinh", "may tinh", "laptop", "dien thoai", "hoc online",
+        ))
+    if item.hypothesis_id == "postural_pericranial_tension":
+        return any(marker in text for marker in (
+            "man hinh", "may tinh", "ngoi", "co vai", "vai gay", "tu the",
+        ))
+    if item.hypothesis_id == "headache_threshold_modifiers":
+        return any(marker in text for marker in (
+            "mat ngu", "thieu ngu", "ngu it", "thuc khuya", "it nuoc",
+            "mat nuoc", "khat", "cang thang", "stress", "ap luc",
+        ))
+    if item.hypothesis_id == "fluid_loss_contribution":
+        return any(marker in text for marker in (
+            "tieu chay", "da non", "bi non", "non ra", "non mua",
+            "khong giu duoc nuoc", "nôn ra", "đã nôn",
+        ))
+    if item.hypothesis_id == "mechanical_postural_load":
+        return any(marker in text for marker in (
+            "ngoi", "may tinh", "van phong", "tu the", "di lai thi",
+            "dung day thi",
+        ))
+    # Other mechanisms are constructed from specific relations/exposures and
+    # already require direct evidence in the reasoner.
+    return True
+
+
+def _explanatory_mechanisms(
+    frame: ClinicalReasoningFrame,
+    episode: ClinicalEpisodeModel,
+) -> list[MechanismHypothesis]:
+    """Return mechanisms supported enough to alter explanatory prose."""
     return [
         item for item in frame.mechanisms
         if item.role in {"leading", "contributor"}
         and bool(item.evidence_for)
+        and _mechanism_has_direct_narrative_support(item, episode)
     ]
 
 
 def _summary_from_frame(
     episode: ClinicalEpisodeModel,
     frame: ClinicalReasoningFrame,
+    explanatory: list[MechanismHypothesis],
     *,
     urgency: str,
     existing_summary: str | None,
 ) -> str | None:
-    if urgency == "EMERGENCY":
-        return existing_summary
-
-    explanatory = _explanatory_mechanisms(frame)
-    if not explanatory:
+    if urgency == "EMERGENCY" or not explanatory:
         return existing_summary
 
     primary = explanatory[0]
@@ -161,7 +199,16 @@ def build_contextual_triage_plan(
                 "latest_user_message": messages[-1]["content"],
             }
         )
-        frame = build_contextual_reasoning_frame(episode, urgency=normalized_urgency)
+        # The current reasoner reads ``latest_user_message`` while extracting
+        # trigger relations. Give it a temporary view of the full active episode
+        # without corrupting the episode model's true latest-turn field.
+        reasoning_episode = episode.model_copy(
+            update={"latest_user_message": symptoms_text}
+        )
+        frame = build_contextual_reasoning_frame(
+            reasoning_episode,
+            urgency=normalized_urgency,
+        )
     except Exception:
         return ContextualTriagePlan(
             summary=existing_summary,
@@ -173,7 +220,7 @@ def build_contextual_triage_plan(
             reason="contextual_reasoning_unavailable",
         )
 
-    explanatory = _explanatory_mechanisms(frame)
+    explanatory = _explanatory_mechanisms(frame, episode)
     if not explanatory:
         # Do not disturb established domain-specific guidance solely because an
         # unanswered red-flag slot exists. That slot remains available to the
@@ -206,6 +253,7 @@ def build_contextual_triage_plan(
     summary = _summary_from_frame(
         episode,
         frame,
+        explanatory,
         urgency=normalized_urgency,
         existing_summary=existing_summary,
     )
@@ -234,6 +282,12 @@ def reasoning_trace_payload(plan: ContextualTriagePlan) -> dict[str, Any]:
         "delta": plan.episode.delta.model_dump(mode="json"),
         "historical_risk": [fact.concept for fact in plan.episode.historical_risk],
         "unknown_decision_relevant": [item.key for item in plan.episode.unknown_decision_relevant],
-        "leading_hypotheses": list(plan.reasoning.leading_hypothesis_ids),
+        "leading_hypotheses": [item.hypothesis_id for item in explanatory_from_plan(plan)],
         "next_question_key": plan.reasoning.next_question_key,
     }
+
+
+def explanatory_from_plan(plan: ContextualTriagePlan) -> list[MechanismHypothesis]:
+    if plan.episode is None or plan.reasoning is None:
+        return []
+    return _explanatory_mechanisms(plan.reasoning, plan.episode)
