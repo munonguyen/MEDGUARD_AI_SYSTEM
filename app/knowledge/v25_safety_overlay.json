@@ -1,0 +1,201 @@
+{
+  "_meta": {
+    "version": "25.4.0",
+    "effective_from": "2026-09-29",
+    "purpose": "Versioned compositional emergency overlay for multi-turn clinical safety. Patterns require conjunctions of affirmed concepts and never replace the base red-flag registry.",
+    "authority_contract": [
+      "Safety Kernel remains the sole emergency authority.",
+      "The overlay only contributes deterministic red-flag evidence.",
+      "Writer and Reviewer cannot downgrade a matched emergency pattern.",
+      "Not-mentioned findings are not treated as negative findings."
+    ]
+  },
+  "red_flag_patterns": [
+    {
+      "id": "V25-RF-ACUTE-ABDOMEN-001",
+      "category": "acute_surgical_abdomen_composite",
+      "patterns_vi": [],
+      "patterns_en": [],
+      "required_groups_vi": [
+        ["đau bụng dữ dội", "cơn đau rất dữ dội", "đau bụng tăng mạnh"],
+        ["bụng cứng", "cứng bụng", "bụng cứng như gỗ"],
+        ["choáng muốn ngất", "gần ngất", "ngất", "lơ mơ"]
+      ],
+      "label_vi": "đau bụng dữ dội kèm bụng cứng và dấu hiệu giảm tưới máu/tiền ngất",
+      "esi_level": 2,
+      "urgency": "EMERGENCY",
+      "specialty": {"code": "EMERGENCY", "label": "Cấp cứu - Ngoại/tiêu hóa"},
+      "advice": "Đau bụng dữ dội kèm bụng cứng và choáng/gần ngất là tổ hợp dấu hiệu cần đánh giá cấp cứu ngay. Gọi 115 hoặc đến khoa Cấp cứu; không tự theo dõi tại nhà."
+    },
+    {
+      "id": "V25-RF-THERMAL-AIRWAY-001",
+      "category": "thermal_inhalation_airway_threat",
+      "patterns_vi": [],
+      "patterns_en": [],
+      "required_groups_vi": [
+        ["hơi nóng phả vào mặt", "bỏng mặt", "khói nóng", "hít khói", "hít hơi nóng"],
+        ["khàn tiếng", "khó thở", "thở rít", "nghẹn cổ"]
+      ],
+      "label_vi": "phơi nhiễm nhiệt/khói vùng mặt kèm dấu hiệu tổn thương đường thở",
+      "esi_level": 2,
+      "urgency": "EMERGENCY",
+      "specialty": {"code": "EMERGENCY", "label": "Cấp cứu - Hô hấp/Bỏng"},
+      "advice": "Khàn tiếng hoặc khó thở sau khi hơi nóng/khói tác động vùng mặt có thể báo hiệu phù nề đường thở tiến triển. Cần đánh giá cấp cứu ngay; không chỉ bôi thuốc bỏng và chờ tại nhà."
+    },
+    {
+      "id": "V25-RF-UNCONTROLLED-BLEEDING-001",
+      "category": "uncontrolled_external_bleeding",
+      "patterns_vi": [],
+      "patterns_en": [],
+      "required_groups_vi": [
+        ["chảy máu", "máu chảy"],
+        ["ép liên tục", "ép gạc", "ép trực tiếp"],
+        ["vẫn chảy nhiều", "không cầm", "thấm ướt gạc", "ướt đẫm gạc"]
+      ],
+      "label_vi": "chảy máu ngoài không kiểm soát dù đã ép trực tiếp liên tục",
+      "esi_level": 2,
+      "urgency": "EMERGENCY",
+      "specialty": {"code": "EMERGENCY", "label": "Cấp cứu - Ngoại khoa"},
+      "advice": "Chảy máu vẫn nhiều dù đã ép trực tiếp liên tục cần được xử trí cấp cứu. Tiếp tục ép trực tiếp bằng gạc/khăn sạch, không liên tục mở ra kiểm tra, và gọi 115 hoặc đến khoa Cấp cứu."
+    },
+    {
+      "id": "V25-RF-LIMB-ISCHEMIA-001",
+      "category": "acute_limb_perfusion_failure",
+      "patterns_vi": [],
+      "patterns_en": [],
+      "required_groups_vi": [
+        ["bàn chân lạnh", "chân lạnh hơn", "ngón chân tím", "bàn chân tím", "chi tím", "tím hơn"],
+        ["khó cử động", "không cử động được", "yếu chân", "tê chân", "mất cảm giác"]
+      ],
+      "label_vi": "chi lạnh/tím kèm rối loạn vận động hoặc cảm giác",
+      "esi_level": 2,
+      "urgency": "EMERGENCY",
+      "specialty": {"code": "VASCULAR", "label": "Mạch máu - Cấp cứu"},
+      "advice": "Chi lạnh hoặc tím kèm yếu, tê hay khó cử động có thể phản ánh giảm tưới máu cấp. Cần đến khoa Cấp cứu ngay để đánh giá mạch và thần kinh của chi."
+    },
+    {
+      "id": "V25-RF-SUDDEN-VISION-LOSS-001",
+      "category": "acute_visual_loss",
+      "patterns_vi": [],
+      "patterns_en": [],
+      "required_groups_vi": [
+        ["thị lực", "mắt trái", "mắt phải", "một mắt"],
+        ["đột ngột", "bỗng", "trong 10 phút", "trong vài phút"],
+        ["mờ hẳn", "mất thị lực", "không nhìn rõ", "màn sương", "màn che"]
+      ],
+      "label_vi": "giảm hoặc mất thị lực cấp tính ở một mắt",
+      "esi_level": 2,
+      "urgency": "EMERGENCY",
+      "specialty": {"code": "OPHTHALMOLOGY", "label": "Mắt - Cấp cứu"},
+      "advice": "Giảm hoặc mất thị lực xuất hiện đột ngột là cấp cứu nhãn khoa/thần kinh. Cần được đánh giá ngay, kể cả khi thị lực có hồi phục một phần."
+    },
+    {
+      "id": "V25-RF-MENINGEAL-AMS-001",
+      "category": "meningeal_infection_with_altered_mental_status",
+      "patterns_vi": [],
+      "patterns_en": [],
+      "required_groups_vi": [
+        ["sốt", "sốt cao"],
+        ["cứng gáy", "cổ cứng", "không cúi được cổ"],
+        ["lơ mơ", "trả lời chậm", "lú lẫn", "khó đánh thức", "thay đổi ý thức", "sợ ánh sáng"]
+      ],
+      "label_vi": "sốt và cứng gáy kèm thay đổi ý thức/triệu chứng màng não",
+      "esi_level": 2,
+      "urgency": "EMERGENCY",
+      "specialty": {"code": "INFECTIOUS_DISEASE", "label": "Truyền nhiễm/Thần kinh - Cấp cứu"},
+      "advice": "Sốt kèm cứng gáy và thay đổi ý thức hoặc sợ ánh sáng cần được đánh giá cấp cứu ngay để loại trừ nhiễm trùng hệ thần kinh trung ương."
+    },
+    {
+      "id": "V25-RF-HEAT-CNS-001",
+      "category": "heat_illness_with_cns_dysfunction",
+      "patterns_vi": [],
+      "patterns_en": [],
+      "required_groups_vi": [
+        ["trời nóng", "nắng gắt", "chạy ngoài trời nóng", "rất nóng", "phòng nóng"],
+        ["lú lẫn", "đi không vững", "trả lời chậm", "lơ mơ", "ngất", "co giật"]
+      ],
+      "label_vi": "bệnh do nóng kèm rối loạn thần kinh trung ương",
+      "esi_level": 1,
+      "urgency": "EMERGENCY",
+      "specialty": {"code": "EMERGENCY", "label": "Hồi sức cấp cứu"},
+      "advice": "Rối loạn ý thức hoặc đi không vững trong bối cảnh phơi nhiễm nóng là dấu hiệu sốc nhiệt cần cấp cứu. Gọi 115, đưa người bệnh ra nơi mát và làm mát trong khi chờ hỗ trợ."
+    },
+    {
+      "id": "V25-RF-CHEMICAL-INHALATION-001",
+      "category": "chemical_inhalation_respiratory_distress",
+      "patterns_vi": [],
+      "patterns_en": [],
+      "required_groups_vi": [
+        ["hít phải hóa chất", "mùi hóa chất", "khí tẩy rửa", "hơi hóa chất", "phòng kín"],
+        ["khó thở", "thở gấp", "tức ngực", "khò khè"]
+      ],
+      "label_vi": "phơi nhiễm hóa chất đường hô hấp kèm khó thở/tức ngực",
+      "esi_level": 2,
+      "urgency": "EMERGENCY",
+      "specialty": {"code": "TOXICOLOGY", "label": "Chống độc/Hô hấp - Cấp cứu"},
+      "advice": "Khó thở hoặc tức ngực sau khi hít hóa chất trong không gian kín cần được đánh giá cấp cứu. Rời khỏi nguồn phơi nhiễm nếu an toàn và gọi 115 hoặc đến khoa Cấp cứu."
+    },
+    {
+      "id": "V25-RF-PREGNANCY-ECTOPIC-001",
+      "category": "pregnancy_hemorrhagic_emergency",
+      "patterns_vi": [],
+      "patterns_en": [],
+      "required_groups_vi": [
+        ["mang thai", "thai 8 tuần", "thai khoảng 8 tuần", "có thai"],
+        ["đau lệch một bên", "đau một bên bụng", "đau bụng dưới một bên"],
+        ["choáng", "gần ngất", "ngất", "đau vai", "ra máu âm đạo"]
+      ],
+      "label_vi": "thai sớm kèm đau bụng một bên và dấu hiệu chảy máu/giảm tưới máu",
+      "esi_level": 2,
+      "urgency": "EMERGENCY",
+      "specialty": {"code": "OBSTETRICS_GYNECOLOGY", "label": "Sản phụ khoa - Cấp cứu"},
+      "advice": "Thai sớm kèm đau bụng lệch một bên và choáng/đau vai hoặc ra máu âm đạo cần được đánh giá cấp cứu ngay để loại trừ chảy máu trong ổ bụng và biến chứng thai kỳ."
+    },
+    {
+      "id": "V25-RF-SEVERE-AIRFLOW-001",
+      "category": "severe_airflow_limitation",
+      "patterns_vi": [],
+      "patterns_en": [],
+      "required_groups_vi": [
+        ["khó thở", "thở rất gấp", "khò khè", "hụt hơi"],
+        ["không nói trọn câu", "khó nói câu dài", "không nói được câu dài", "chỉ nói từng từ", "môi tím"]
+      ],
+      "label_vi": "khó thở nặng ảnh hưởng khả năng nói hoặc kèm tím môi",
+      "esi_level": 1,
+      "urgency": "EMERGENCY",
+      "specialty": {"code": "PULMONOLOGY", "label": "Hô hấp - Cấp cứu"},
+      "advice": "Khó thở đến mức không nói được trọn câu hoặc kèm tím môi là dấu hiệu suy hô hấp nặng. Gọi 115 hoặc đến khoa Cấp cứu ngay."
+    },
+    {
+      "id": "V25-RF-TACHYCARDIA-PRESYNCOPE-001",
+      "category": "tachycardia_with_presyncope",
+      "patterns_vi": [],
+      "patterns_en": [],
+      "required_groups_vi": [
+        ["nhịp tim 145", "nhịp tim 150", "tim đập rất nhanh", "tim đập nhanh"],
+        ["gần ngất", "sắp ngất", "choáng nhiều", "ngất"]
+      ],
+      "label_vi": "nhịp tim nhanh kèm tiền ngất/ngất",
+      "esi_level": 2,
+      "urgency": "EMERGENCY",
+      "specialty": {"code": "CARDIOLOGY", "label": "Tim mạch - Cấp cứu"},
+      "advice": "Nhịp tim nhanh kèm gần ngất hoặc ngất có thể phản ánh rối loạn nhịp hay giảm tưới máu. Cần được đánh giá cấp cứu ngay."
+    },
+    {
+      "id": "V25-RF-DEHYDRATION-COLLAPSE-001",
+      "category": "fluid_loss_with_circulatory_compromise",
+      "patterns_vi": [],
+      "patterns_en": [],
+      "required_groups_vi": [
+        ["nôn", "tiêu chảy", "không giữ được nước"],
+        ["gần ngất", "ngất", "choáng khi đứng", "choáng nhiều"],
+        ["tim đập rất nhanh", "tim nhanh", "rất khát", "không uống được nước"]
+      ],
+      "label_vi": "mất dịch tiêu hóa kèm dấu hiệu giảm thể tích tuần hoàn",
+      "esi_level": 2,
+      "urgency": "EMERGENCY",
+      "specialty": {"code": "EMERGENCY", "label": "Cấp cứu - Nội khoa"},
+      "advice": "Nôn/tiêu chảy kèm gần ngất, tim nhanh hoặc không giữ được nước có thể là mất nước nặng và giảm tuần hoàn. Cần đánh giá cấp cứu ngay."
+    }
+  ]
+}
