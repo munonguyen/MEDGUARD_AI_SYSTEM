@@ -257,17 +257,21 @@ class ChatResponse(DisclaimerMixin):
         self,
         selected_questions: list[str],
     ) -> list[AnswerNarrativeBlock]:
-        """Keep one selected question consistent across every patient surface."""
+        """Keep the patient-facing shortlist consistent with the narrative."""
         if self.answer is None:
             return []
         prompt_label = "Bạn cho mình biết thêm"
-        selected = selected_questions[:1]
+        selected = selected_questions[:2]
         replacement = ""
         if selected:
-            question = selected[0].strip()
-            if question and question[-1] not in "?!":
-                question += "?"
-            replacement = f"{prompt_label}: {question}"
+            normalized_questions: list[str] = []
+            for raw in selected:
+                question = raw.strip()
+                if question and question[-1] not in "?!":
+                    question += "?"
+                if question:
+                    normalized_questions.append(question)
+            replacement = f"{prompt_label}: {' '.join(normalized_questions)}"
 
         updated: list[AnswerNarrativeBlock] = []
         found_question_block = False
@@ -363,11 +367,13 @@ class ChatResponse(DisclaimerMixin):
         if self.intent != "triage":
             return self
 
+        # Keep the complete approved candidate set in ``questions`` for audit,
+        # evaluation and downstream reasoning.  Only ``display_questions`` and
+        # the patient narrative are pruned by the dialogue policy.
         plan = plan_clinical_questions(list(self.answer.questions), urgency=urgency)
-        selected_questions = list(plan.questions)[:1]
+        selected_questions = list(plan.questions)
         self.answer = self.answer.model_copy(
             update={
-                "questions": selected_questions,
                 "display_questions": selected_questions,
                 "narrative": self._narrative_with_selected_questions(selected_questions),
             }
