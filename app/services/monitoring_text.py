@@ -40,8 +40,11 @@ def canonicalize_monitoring_measurement(text: str) -> str | None:
         if 20 <= value <= 300:
             return f"Nhịp tim {value} bpm. {text}"
 
+    # ``sốt`` describes a symptom and must remain owned by triage.  Only
+    # explicitly measurement-oriented phrases such as ``nhiệt độ`` or
+    # ``thân nhiệt`` are canonicalized into the monitoring workflow.
     temperature = re.search(
-        r"\b(?:nhiet do|than nhiet|sot)\b[^0-9\n]{0,45}?((?:3[5-9]|4[0-3])(?:\.\d+)?)"
+        r"\b(?:nhiet do|than nhiet)\b[^0-9\n]{0,45}?((?:3[5-9]|4[0-3])(?:\.\d+)?)"
         r"(?:\s*(?:do\s*c|°c|c))?",
         norm,
     )
