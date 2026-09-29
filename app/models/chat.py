@@ -55,10 +55,6 @@ class GroundedAnswer(BaseModel):
     key_points: list[str] = Field(default_factory=list)
     next_steps: list[str] = Field(default_factory=list)
     safety_notes: list[str] = Field(default_factory=list)
-    # Full clinical candidate set retained for audit, evaluation and backwards
-    # compatibility. Patient surfaces should render display_questions when a
-    # dialogue policy has explicitly produced one. None means "not planned";
-    # [] means "policy intentionally asks nothing" (for example EMERGENCY).
     questions: list[str] = Field(default_factory=list)
     display_questions: list[str] | None = None
     decision_basis: Literal[
@@ -117,9 +113,6 @@ class ChatRequest(BaseModel):
         "authenticity",
     ] = "auto"
     locale: str = "vi-VN"
-    # Internal-only provenance for a canonicalized continuation.  The routing
-    # text may add an inferred metric label, but durable history must retain the
-    # exact user-authored latest message.
     original_latest_content: SkipJsonSchema[str | None] = Field(default=None, exclude=True)
     continuation_reason: SkipJsonSchema[str | None] = Field(default=None, exclude=True)
 
@@ -197,16 +190,23 @@ class ChatResponse(DisclaimerMixin):
         "deterministic_fallback",
     ]] = Field(default="deterministic", exclude=True)
 
+    def _attach_question_policy_trace(self, plan: Any) -> None:
+        if not isinstance(self.result, dict):
+            return
+        trace = self.result.get("trace")
+        if not isinstance(trace, dict):
+            return
+        details = dict(trace.get("details") or {})
+        details["question_policy"] = plan.trace_payload()
+        updated_trace = dict(trace)
+        updated_trace["details"] = details
+        updated_result = dict(self.result)
+        updated_result["trace"] = updated_trace
+        self.result = updated_result
+
     @model_validator(mode="after")
     def apply_patient_question_policy(self) -> "ChatResponse":
-        """Enforce patient-surface dialogue and emergency output invariants.
-
-        Full approved question candidates normally remain in ``answer.questions``
-        for audit/evaluation while ``display_questions`` is bounded for the UI.
-        Emergency is deliberately stricter: no follow-up question may compete
-        with the locked action, and explicit diagnostic uncertainty must survive
-        every deterministic/agent presentation path.
-        """
+        """Enforce patient-surface dialogue and emergency output invariants."""
         if self.answer is None or not isinstance(self.result, dict):
             return self
 
@@ -217,23 +217,24 @@ class ChatResponse(DisclaimerMixin):
         ).upper()
 
         if urgency == "EMERGENCY":
-            uncertainty = "Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này."
+            uncertainty = (
+                "Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; "
+                "không thể khẳng định chẩn đoán từ xa."
+            )
             obsolete_phrase = "thay vì tiếp tục tự theo dõi tại nhà"
 
             summary = self.answer.summary.replace(obsolete_phrase, "ngay")
-            if "không xác định nguyên nhân hoặc chẩn đoán" not in summary.lower():
+            if "không thể khẳng định" not in summary.lower():
                 summary = f"{summary.rstrip()} {uncertainty}".strip()
 
             narrative: list[AnswerNarrativeBlock] = []
             has_uncertainty = False
             for block in self.answer.narrative:
                 text = block.text.replace(obsolete_phrase, "ngay")
-                if "không xác định nguyên nhân hoặc chẩn đoán" in text.lower():
+                if "không thể khẳng định" in text.lower():
                     has_uncertainty = True
                 narrative.append(block.model_copy(update={"text": text}))
             if not has_uncertainty:
-                # Preserve action-first ordering: the first emergency block stays
-                # untouched and diagnostic uncertainty follows immediately after.
                 insert_at = 1 if narrative else 0
                 narrative.insert(
                     insert_at,
@@ -248,6 +249,8 @@ class ChatResponse(DisclaimerMixin):
                     "narrative": narrative,
                 }
             )
+            emergency_plan = plan_clinical_questions([], urgency="EMERGENCY")
+            self._attach_question_policy_trace(emergency_plan)
             return self
 
         if self.intent != "triage":
@@ -255,16 +258,7 @@ class ChatResponse(DisclaimerMixin):
 
         plan = plan_clinical_questions(list(self.answer.questions), urgency=urgency)
         self.answer = self.answer.model_copy(update={"display_questions": plan.questions})
-
-        trace = self.result.get("trace")
-        if isinstance(trace, dict):
-            details = dict(trace.get("details") or {})
-            details["question_policy"] = plan.trace_payload()
-            updated_trace = dict(trace)
-            updated_trace["details"] = details
-            updated_result = dict(self.result)
-            updated_result["trace"] = updated_trace
-            self.result = updated_result
+        self._attach_question_policy_trace(plan)
         return self
 
 
