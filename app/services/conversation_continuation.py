@@ -193,7 +193,7 @@ def _has_direct_medication_safety_intent(latest: str) -> bool:
     """Recognize explicit medication decisions before unrelated episode history.
 
     The matcher intentionally requires either a high-specificity self-management
-    command or a concrete multi-medication compatibility question.  Generic
+    command or a concrete multi-medication compatibility question. Generic
     mentions of ``thuoc``/``uong`` are not enough to take ownership.
     """
     if any(marker in latest for marker in _SAFETY_DIRECT_MARKERS):
@@ -214,6 +214,11 @@ def _has_direct_medication_safety_intent(latest: str) -> bool:
             "dung chung",
             "uong chung",
             "phoi hop",
+        )
+    ) or bool(
+        re.search(
+            r"\b(?:co\s+)?(?:dung|uong)(?:\s+[a-z0-9+._-]+){0,5}\s+duoc\s+khong\b",
+            latest,
         )
     )
     return len(named) >= 2 and compatibility
