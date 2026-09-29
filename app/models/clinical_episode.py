@@ -63,8 +63,10 @@ class ClinicalEpisodeModel(BaseModel):
     latest_user_message: str
     # User-authored active episode text preserves triggers/temporal relations
     # that may be clinically meaningful but are not represented as semantic
-    # events (for example prolonged screen exposure or posture).
-    active_episode_text: str
+    # events (for example prolonged screen exposure or posture). It defaults to
+    # empty for backward compatibility; the agent contract fills it from the
+    # already-resolved active episode before mechanism reasoning.
+    active_episode_text: str = ""
     problem_representation: str
     confirmed_positive: tuple[EpisodeFact, ...] = Field(default_factory=tuple)
     confirmed_negative: tuple[EpisodeFact, ...] = Field(default_factory=tuple)
