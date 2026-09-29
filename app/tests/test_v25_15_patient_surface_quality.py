@@ -15,7 +15,13 @@ def _headers(key: str) -> dict[str, str]:
     }
 
 
-def _chat(question: str, key: str, *, patient_ref: str | None = None):
+def _chat(
+    question: str,
+    key: str,
+    *,
+    patient_ref: str | None = None,
+    intent_hint: str = "auto",
+):
     context = {"patient_ref": patient_ref} if patient_ref else {}
     return client.post(
         "/v1/chat",
@@ -24,6 +30,7 @@ def _chat(question: str, key: str, *, patient_ref: str | None = None):
             "conversation_id": f"conversation-{key}",
             "messages": [{"role": "user", "content": question}],
             "context": context,
+            "intent_hint": intent_hint,
             "locale": "vi-VN",
         },
     )
@@ -49,6 +56,12 @@ def test_natural_temperature_sentence_is_parsed() -> None:
     assert body["status"] == "answered"
     metrics = body["extracted"]["metrics"]
     assert any(item["metric"] == "temperature_c" and item["value"] == 38.1 for item in metrics)
+
+
+def test_fever_symptom_remains_owned_by_triage() -> None:
+    response = _chat("Tôi đang sốt 40 độ.", "v25-15-fever-triage")
+    assert response.status_code == 200
+    assert response.json()["intent"] == "triage"
 
 
 def test_natural_resting_heart_rate_sentence_is_parsed() -> None:
@@ -90,6 +103,7 @@ def test_safety_needs_information_has_safe_next_action() -> None:
     response = _chat(
         "Tôi muốn kiểm tra một thuốc mới có dùng chung được không.",
         "v25-15-safety-needs-info",
+        intent_hint="safety",
     )
     assert response.status_code == 200
     body = response.json()
