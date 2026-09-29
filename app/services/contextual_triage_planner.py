@@ -1,12 +1,12 @@
 """Deterministic V25 response planning for triage fallback paths.
 
 The live Writer receives the same episode/reasoning structures through the
-ClinicalAgentContract.  This module gives deterministic/offline execution the
-same *reasoning shape* so benchmark quality does not depend on model access.
+ClinicalAgentContract. This module gives deterministic/offline execution the
+same reasoning shape so benchmark quality does not depend on model access.
 
 It never changes urgency, ESI, specialty, red flags, safety-net instructions or
 locked emergency actions. It may only improve explanation, hypothesis ordering
-and the one follow-up question shown for non-emergency cases.
+and ranking of follow-up questions for non-emergency cases.
 """
 
 from __future__ import annotations
@@ -24,6 +24,8 @@ from app.services.contextual_clinical_reasoner import build_contextual_reasoning
 class ContextualTriagePlan:
     summary: str | None
     hypotheses: tuple[str, ...]
+    # Keep the full approved candidate set for audit/evaluation. The existing
+    # ChatResponse question policy decides what the patient actually sees.
     questions: tuple[str, ...]
     episode: ClinicalEpisodeModel | None
     reasoning: ClinicalReasoningFrame | None
@@ -54,6 +56,20 @@ def _patient_hypothesis(item: MechanismHypothesis) -> str:
     return f"{base}. Cơ chế có thể góp phần: {mechanism}"
 
 
+def _explanatory_mechanisms(frame: ClinicalReasoningFrame) -> list[MechanismHypothesis]:
+    """Return mechanisms supported enough to alter explanatory prose.
+
+    A must-not-miss unknown by itself is not a positive explanation. This guard
+    prevents a generic symptom such as abdominal discomfort from losing its
+    mature legacy guidance merely because V25 can name an unanswered red flag.
+    """
+    return [
+        item for item in frame.mechanisms
+        if item.role in {"leading", "contributor"}
+        and bool(item.evidence_for)
+    ]
+
+
 def _summary_from_frame(
     episode: ClinicalEpisodeModel,
     frame: ClinicalReasoningFrame,
@@ -64,12 +80,11 @@ def _summary_from_frame(
     if urgency == "EMERGENCY":
         return existing_summary
 
-    leading = [item for item in frame.mechanisms if item.role == "leading"]
-    contributors = [item for item in frame.mechanisms if item.role == "contributor"]
-    if not leading and not contributors:
+    explanatory = _explanatory_mechanisms(frame)
+    if not explanatory:
         return existing_summary
 
-    primary = (leading or contributors)[0]
+    primary = explanatory[0]
     parts: list[str] = []
 
     if episode.user_turns_in_active_episode > 1:
@@ -90,6 +105,24 @@ def _summary_from_frame(
         "Đây là giải thích làm việc dựa trên bệnh cảnh hiện có, không phải chẩn đoán xác định."
     )
     return " ".join(value for value in parts if value)
+
+
+def _merge_questions(
+    preferred: str | None,
+    existing_questions: list[str] | tuple[str, ...],
+) -> tuple[str, ...]:
+    """Preserve every approved candidate and place V25's preferred one first.
+
+    The patient surface remains bounded downstream by ``question_policy``. This
+    preserves backward-compatible audit data while allowing a higher-information
+    V25 candidate to compete for display.
+    """
+    values: list[str] = []
+    for raw in ([preferred] if preferred else []) + list(existing_questions):
+        value = str(raw or "").strip()
+        if value and value not in values:
+            values.append(value)
+    return tuple(values)
 
 
 def build_contextual_triage_plan(
@@ -133,17 +166,30 @@ def build_contextual_triage_plan(
         return ContextualTriagePlan(
             summary=existing_summary,
             hypotheses=tuple(existing_hypotheses),
-            questions=tuple(existing_questions)[:1],
+            questions=tuple(str(value) for value in existing_questions if str(value).strip()),
             episode=None,
             reasoning=None,
             applied=False,
             reason="contextual_reasoning_unavailable",
         )
 
+    explanatory = _explanatory_mechanisms(frame)
+    if not explanatory:
+        # Do not disturb established domain-specific guidance solely because an
+        # unanswered red-flag slot exists. That slot remains available to the
+        # agent contract, while deterministic output stays backward compatible.
+        return ContextualTriagePlan(
+            summary=existing_summary,
+            hypotheses=tuple(str(value) for value in existing_hypotheses if str(value).strip()),
+            questions=tuple(str(value) for value in existing_questions if str(value).strip()),
+            episode=episode,
+            reasoning=frame,
+            applied=False,
+            reason="no_supported_explanatory_mechanism",
+        )
+
     contextual_hypotheses: list[str] = []
-    for item in frame.mechanisms:
-        if item.role == "must_not_miss_pathway":
-            continue
+    for item in explanatory:
         value = _patient_hypothesis(item)
         if value and value not in contextual_hypotheses:
             contextual_hypotheses.append(value)
@@ -156,12 +202,7 @@ def build_contextual_triage_plan(
         if len(contextual_hypotheses) >= 4:
             break
 
-    questions: tuple[str, ...]
-    if frame.next_best_question:
-        questions = (frame.next_best_question,)
-    else:
-        questions = tuple(str(value) for value in existing_questions if str(value).strip())[:1]
-
+    questions = _merge_questions(frame.next_best_question, existing_questions)
     summary = _summary_from_frame(
         episode,
         frame,
@@ -175,8 +216,8 @@ def build_contextual_triage_plan(
         questions=questions,
         episode=episode,
         reasoning=frame,
-        applied=bool(frame.mechanisms or frame.next_best_question),
-        reason="contextual_reasoning_applied" if (frame.mechanisms or frame.next_best_question) else "no_contextual_signal",
+        applied=True,
+        reason="contextual_reasoning_applied",
     )
 
 
