@@ -97,12 +97,7 @@ class KnowledgeStore:
 
     @property
     def symptom_guidance(self) -> list[dict[str, Any]]:
-        """Return response-policy guidance before general symptom guidance.
-
-        Policy guidance is intentionally checked first so explicit workflow
-        requests such as remote prescribing are answered directly instead of
-        being hidden behind a generic symptom template.
-        """
+        """Return response-policy guidance before general symptom guidance."""
         policy = self.files.get(
             "v25_response_policy_overlay.json", KnowledgeFile("", "", "", {})
         ).data.get("symptom_guidance", [])
@@ -154,8 +149,31 @@ class KnowledgeStore:
         contextual["v25_contextual_reasoning"] = reasoning_trace_payload(plan)
         return contextual
 
+    def _find_explicit_response_policy(self, normalized: str) -> dict[str, Any] | None:
+        """Match explicit workflow/policy requests without clinical-negation semantics.
+
+        Requests such as ``hãy kê đơn`` are commands, not symptom assertions.
+        They should therefore use lexical command matching rather than the
+        clinical affirmed-phrase matcher, whose job is to reason about negated
+        symptoms and can intentionally suppress question-like language.
+        """
+        policy = self.files.get(
+            "v25_response_policy_overlay.json", KnowledgeFile("", "", "", {})
+        ).data.get("symptom_guidance", [])
+        for guidance in policy:
+            if any(
+                normalize_search_text(str(keyword)) in normalized
+                for keyword in guidance.get("keywords", [])
+            ):
+                return guidance
+        return None
+
     def find_symptom_guidance(self, symptoms_text: str) -> dict[str, Any] | None:
         normalized = normalize_search_text(symptoms_text)
+
+        explicit_policy = self._find_explicit_response_policy(normalized)
+        if explicit_policy is not None:
+            return self._contextualize_guidance(explicit_policy, symptoms_text)
 
         back_problem = any(
             contains_affirmed_phrase(normalized, phrase)
@@ -175,6 +193,8 @@ class KnowledgeStore:
                     return self._contextualize_guidance(guidance, symptoms_text)
 
         for guidance in self.symptom_guidance:
+            if guidance.get("topic") == "remote_prescribing_request":
+                continue
             if guidance.get("topic") == "lower_limb_pain":
                 direct_problem_phrases = (
                     "dau chan", "nhuc chan", "sung chan", "te chan", "yeu chan",
