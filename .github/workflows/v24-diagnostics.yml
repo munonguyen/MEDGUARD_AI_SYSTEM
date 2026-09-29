@@ -1,0 +1,87 @@
+name: V24 Benchmark Diagnostics
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v24-diagnostics-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  diagnostics:
+    name: V24 200-turn failure diagnostics
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run exact evaluator and preserve report
+        run: python scripts/evaluate_v24_200_turn_conversations.py --no-fail
+
+      - name: Print actionable failure diagnostics
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path("artifacts/v24_200_turn_quality/report.json").read_text(encoding="utf-8"))
+          print("=== V24 SUMMARY ===")
+          for key in ("average_score", "critical_failures", "below_70", "card_state_failures", "card_turns", "p95_latency_ms"):
+              print(f"{key}={report.get(key)}")
+          print("=== CATEGORY SUMMARY ===")
+          print(json.dumps(report.get("category_summary", {}), ensure_ascii=False, indent=2))
+          print("=== CRITICAL FAILURES ===")
+          for conv in report.get("conversations_detail", []):
+              for turn in conv.get("turns", []):
+                  ev = turn.get("evaluation") or {}
+                  if ev.get("critical_failure"):
+                      print(json.dumps({
+                          "scenario_id": conv.get("scenario_id"),
+                          "category": conv.get("category"),
+                          "turn": turn.get("turn"),
+                          "question_number": turn.get("global_question_number"),
+                          "question": turn.get("question"),
+                          "intent": (turn.get("response") or {}).get("intent"),
+                          "urgency": ((turn.get("response") or {}).get("result") or {}).get("urgency"),
+                          "status": (turn.get("response") or {}).get("status"),
+                          "score": ev.get("score"),
+                          "flags": ev.get("flags"),
+                      }, ensure_ascii=False))
+          print("=== CARD FAILURES ===")
+          for conv in report.get("conversations_detail", []):
+              if conv.get("category") != "card_schedule_operations":
+                  continue
+              for turn in conv.get("turns", []):
+                  ev = turn.get("evaluation") or {}
+                  flags = [flag for flag in ev.get("flags", []) if str(flag).startswith("CARD_")]
+                  if flags:
+                      print(json.dumps({
+                          "scenario_id": conv.get("scenario_id"),
+                          "turn": turn.get("turn"),
+                          "question_number": turn.get("global_question_number"),
+                          "question": turn.get("question"),
+                          "flags": flags,
+                          "snapshot": turn.get("card_snapshot"),
+                      }, ensure_ascii=False))
+          PY
+
+      - name: Upload diagnostics
+        uses: actions/upload-artifact@v6
+        with:
+          name: v24-diagnostics-${{ github.sha }}
+          path: artifacts/v24_200_turn_quality/
+          if-no-files-found: error
+          retention-days: 30

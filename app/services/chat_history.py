@@ -25,7 +25,11 @@ class ChatHistoryStore:
 
     def append_exchange(self, tenant_id: str, payload: ChatRequest, response: ChatResponse) -> None:
         now = datetime.now(timezone.utc).isoformat()
-        latest = payload.messages[-1].content.strip()
+        latest = (
+            payload.original_latest_content
+            if payload.original_latest_content is not None
+            else payload.messages[-1].content
+        ).strip()
         title = " ".join(latest.split())[:80] or "Cuộc trò chuyện mới"
         patient_ref = payload.context.patient_ref or response.extracted.get("patient_ref")
         with self._lock, self.database.tenant_context(tenant_id) as session:

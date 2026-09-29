@@ -168,6 +168,18 @@ _ONSET_MARKERS = (
     "lien tuc hay tung con",
 )
 
+# A hyperacute-onset discriminator can change a benign-looking headache or
+# neurologic complaint into an emergency pathway. It is therefore materially
+# higher information than a generic timeline question, but it is only ranked
+# when an upstream approved reasoner has actually offered such a question.
+_HYPERACUTE_ONSET_MARKERS = (
+    "khoi phat dot ngot",
+    "xuat hien dot ngot",
+    "dat muc nang trong vai phut",
+    "dat muc rat dau trong vai phut",
+    "xuat hien tu tu hay khoi phat dot ngot",
+)
+
 _LOCALIZATION_MARKERS = (
     "vi tri nao",
     "o dau",
@@ -260,6 +272,9 @@ def _score_question(
     if _contains_any(normalized, _ONSET_MARKERS):
         score += 4.0
         reasons.append("timeline_information_gain")
+    if _contains_any(normalized, _HYPERACUTE_ONSET_MARKERS):
+        score += 48.0
+        reasons.append("hyperacute_onset_can_change_emergency_disposition")
 
     if mandatory:
         score += 5.0

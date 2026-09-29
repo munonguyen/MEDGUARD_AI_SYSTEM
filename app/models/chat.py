@@ -7,6 +7,7 @@ from pydantic.json_schema import SkipJsonSchema
 
 from app.models.agents import AgentEvidenceSource, AnswerAgentTrace, VerificationScores
 from app.models.common import DisclaimerMixin
+from app.services.conversation_continuation import resolve_conversation_continuation
 from app.services.question_policy import plan_clinical_questions
 
 
@@ -54,10 +55,6 @@ class GroundedAnswer(BaseModel):
     key_points: list[str] = Field(default_factory=list)
     next_steps: list[str] = Field(default_factory=list)
     safety_notes: list[str] = Field(default_factory=list)
-    # Full clinical candidate set retained for audit, evaluation and backwards
-    # compatibility. Patient surfaces should render display_questions when a
-    # dialogue policy has explicitly produced one. None means "not planned";
-    # [] means "policy intentionally asks nothing" (for example EMERGENCY).
     questions: list[str] = Field(default_factory=list)
     display_questions: list[str] | None = None
     decision_basis: Literal[
@@ -116,6 +113,8 @@ class ChatRequest(BaseModel):
         "authenticity",
     ] = "auto"
     locale: str = "vi-VN"
+    original_latest_content: SkipJsonSchema[str | None] = Field(default=None, exclude=True)
+    continuation_reason: SkipJsonSchema[str | None] = Field(default=None, exclude=True)
 
     @field_validator("messages")
     @classmethod
@@ -123,6 +122,26 @@ class ChatRequest(BaseModel):
         if value[-1].role != "user":
             raise ValueError("the latest chat message must be from the user")
         return value
+
+    @model_validator(mode="after")
+    def recover_high_confidence_continuation(self) -> "ChatRequest":
+        if self.intent_hint != "auto" or not self.messages:
+            return self
+        resolution = resolve_conversation_continuation(
+            [(message.role, message.content) for message in self.messages]
+        )
+        if resolution is None:
+            return self
+
+        self.intent_hint = resolution.intent
+        self.continuation_reason = resolution.reason
+        if resolution.augmented_latest:
+            original = self.messages[-1].content
+            self.original_latest_content = original
+            self.messages[-1] = self.messages[-1].model_copy(
+                update={"content": resolution.augmented_latest}
+            )
+        return self
 
 
 class ChatSuggestion(BaseModel):
@@ -171,29 +190,75 @@ class ChatResponse(DisclaimerMixin):
         "deterministic_fallback",
     ]] = Field(default="deterministic", exclude=True)
 
+    def _attach_question_policy_trace(self, plan: Any) -> None:
+        if not isinstance(self.result, dict):
+            return
+        trace = self.result.get("trace")
+        if not isinstance(trace, dict):
+            return
+        details = dict(trace.get("details") or {})
+        details["question_policy"] = plan.trace_payload()
+        updated_trace = dict(trace)
+        updated_trace["details"] = details
+        updated_result = dict(self.result)
+        updated_result["trace"] = updated_trace
+        self.result = updated_result
+
     @model_validator(mode="after")
     def apply_patient_question_policy(self) -> "ChatResponse":
-        """Choose the smallest useful question set for the patient surface.
-
-        The clinical result keeps every approved clarifying-question candidate.
-        Only ``answer.display_questions`` is reduced, so audit/evaluation data is
-        never destroyed and the dialogue policy cannot change clinical decisions.
-        """
-        if self.intent != "triage" or self.answer is None or not isinstance(self.result, dict):
+        """Enforce patient-surface dialogue and emergency output invariants."""
+        if self.answer is None or not isinstance(self.result, dict):
             return self
-        urgency = str(self.result.get("urgency", "ROUTINE"))
+
+        urgency = str(
+            self.result.get("urgency")
+            or self.result.get("escalation_level")
+            or "ROUTINE"
+        ).upper()
+
+        if urgency == "EMERGENCY":
+            uncertainty = (
+                "Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; "
+                "không thể khẳng định chẩn đoán từ xa."
+            )
+            obsolete_phrase = "thay vì tiếp tục tự theo dõi tại nhà"
+
+            summary = self.answer.summary.replace(obsolete_phrase, "ngay")
+            if "không thể khẳng định" not in summary.lower():
+                summary = f"{summary.rstrip()} {uncertainty}".strip()
+
+            narrative: list[AnswerNarrativeBlock] = []
+            has_uncertainty = False
+            for block in self.answer.narrative:
+                text = block.text.replace(obsolete_phrase, "ngay")
+                if "không thể khẳng định" in text.lower():
+                    has_uncertainty = True
+                narrative.append(block.model_copy(update={"text": text}))
+            if not has_uncertainty:
+                insert_at = 1 if narrative else 0
+                narrative.insert(
+                    insert_at,
+                    AnswerNarrativeBlock(kind="paragraph", text=uncertainty),
+                )
+
+            self.answer = self.answer.model_copy(
+                update={
+                    "summary": summary,
+                    "questions": [],
+                    "display_questions": [],
+                    "narrative": narrative,
+                }
+            )
+            emergency_plan = plan_clinical_questions([], urgency="EMERGENCY")
+            self._attach_question_policy_trace(emergency_plan)
+            return self
+
+        if self.intent != "triage":
+            return self
+
         plan = plan_clinical_questions(list(self.answer.questions), urgency=urgency)
         self.answer = self.answer.model_copy(update={"display_questions": plan.questions})
-
-        trace = self.result.get("trace")
-        if isinstance(trace, dict):
-            details = dict(trace.get("details") or {})
-            details["question_policy"] = plan.trace_payload()
-            updated_trace = dict(trace)
-            updated_trace["details"] = details
-            updated_result = dict(self.result)
-            updated_result["trace"] = updated_trace
-            self.result = updated_result
+        self._attach_question_policy_trace(plan)
         return self
 
 

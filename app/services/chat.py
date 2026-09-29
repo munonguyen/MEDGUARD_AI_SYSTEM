@@ -44,6 +44,7 @@ from app.services.product_verification import verify_product_code
 from app.services.queue import prioritize_queue
 from app.services.safety import evaluate_safety
 from app.services.schedules import medication_schedule_store
+from app.services.schedule_chat import execute_schedule_chat_command, is_schedule_chat_command
 from app.services.triage import evaluate_triage
 from app.services.rules import _check_red_flag_patterns, triage_rules
 from app.services.risk_memory import (
@@ -476,6 +477,12 @@ def _requests_blood_pressure_measurement_guidance(normalized_text: str) -> bool:
 def _detect_intent(payload: ChatRequest, normalized_text: str) -> ChatIntent:
     if payload.intent_hint != "auto":
         return payload.intent_hint
+
+    # V25.6: explicit schedule/card workflow language is resolved before
+    # clinical scoring so "uống thuốc" inside a reminder request cannot be
+    # misread as evidence of an acute ingestion.
+    if is_schedule_chat_command(normalized_text):
+        return "schedule"
 
     if "#lichthuoc" in normalized_text:
         return "schedule"
@@ -1374,45 +1381,20 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
         )
 
     if intent == "schedule":
-        medication, scheduled_times, recurrence = _extract_schedule(latest_text)
-        required_fields = []
-        if not patient_ref:
-            required_fields.append("patient_ref")
-        if not medication:
-            required_fields.append("medication_name")
-        if not scheduled_times:
-            required_fields.append("scheduled_at")
-        if required_fields:
-            return _response(
-                payload,
-                ctx,
-                status="needs_information",
-                intent=intent,
-                reply="Hãy cho biết tên thuốc và giờ uống, ví dụ: #lichthuoc BN-001 uống amoxicillin lúc 8h và 20h mỗi ngày.",
-                required_fields=required_fields,
-                extracted={"patient_ref": patient_ref, "medication_name": medication},
-            )
-        schedules = [
-            medication_schedule_store.create(
-                ctx.tenant_id,
-                MedicationScheduleCreate(
-                    patient_ref=patient_ref or "",
-                    medication_name=medication or "",
-                    scheduled_at=scheduled_at,
-                    recurrence=recurrence,
-                    source="chat",
-                ),
-            )
-            for scheduled_at in scheduled_times
-        ]
+        command = execute_schedule_chat_command(
+            text=latest_text,
+            tenant_id=ctx.tenant_id,
+            patient_ref=patient_ref,
+        )
         return _response(
             payload,
             ctx,
-            status="answered",
+            status=command.status,
             intent=intent,
-            reply=f"Đã thêm {len(schedules)} mốc uống {medication} vào lịch của {patient_ref}.",
-            extracted={"patient_ref": patient_ref, "medication_name": medication, "recurrence": recurrence},
-            result={"schedules": [item.model_dump(mode="json") for item in schedules]},
+            reply=command.reply,
+            required_fields=command.required_fields,
+            extracted=command.extracted,
+            result=command.result,
         )
 
     execution_patient_ref = patient_ref or (

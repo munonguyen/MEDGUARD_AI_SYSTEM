@@ -1,8 +1,9 @@
-"""Structured clinical contract for the V12 agent-first response path.
+"""Structured clinical contract for the agent-first response path.
 
 The deterministic stack owns facts, safety floors, red flags and tool results.
-The agent stack owns clinical explanation and patient-facing prose.  This module
-bridges the two without passing legacy deterministic prose to the writer.
+The contextual reasoning layer owns a diagnosis-neutral episode representation,
+bounded mechanism hypotheses, and the single highest-information unanswered
+question. The Writer still owns final patient-facing composition.
 """
 
 from __future__ import annotations
@@ -11,6 +12,8 @@ from dataclasses import dataclass
 from typing import Any
 
 from app.models.chat import ChatIntent
+from app.services.clinical_episode_model import build_clinical_episode_model
+from app.services.contextual_clinical_reasoner import build_contextual_reasoning_frame
 
 
 @dataclass(frozen=True)
@@ -38,6 +41,50 @@ def _questions(result: dict[str, Any]) -> list[str]:
     return [str(value).strip() for value in values if str(value).strip()][:3]
 
 
+def _episode_messages(question: str) -> list[dict[str, str]]:
+    """Recover user-turn boundaries from the active episode text passed by chat.
+
+    The triage orchestrator already passes the active episode, not merely the
+    latest sentence. It joins recent user turns with newlines and prefixes the
+    latest turn with ``Lượt hiện tại:``. Keeping each line as a separate user
+    turn lets V25 compute deltas without giving the Writer old generated prose.
+    """
+    lines = [line.strip() for line in question.splitlines() if line.strip()]
+    if not lines:
+        lines = [question.strip()]
+    messages: list[dict[str, str]] = []
+    for line in lines:
+        if line.lower().startswith("lượt hiện tại:"):
+            line = line.split(":", 1)[1].strip()
+        if line:
+            messages.append({"role": "user", "content": line})
+    return messages or [{"role": "user", "content": question.strip()}]
+
+
+def _contextual_reasoning(question: str, urgency: str) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
+    """Build V25 context fail-softly; safety behavior never depends on it."""
+    try:
+        episode = build_clinical_episode_model(
+            episode_id="writer-active-episode",
+            messages=_episode_messages(question),
+        )
+        # The semantic parser intentionally focuses on clinical findings. Keep
+        # the already-resolved user-authored episode narrative as well so a
+        # trigger such as prolonged screen exposure is not lost between turns.
+        episode = episode.model_copy(
+            update={
+                "latest_user_message": question,
+                "active_episode_text": question,
+            }
+        )
+        reasoning = build_contextual_reasoning_frame(episode, urgency=urgency)
+        return episode.to_agent_payload(), reasoning.to_agent_payload()
+    except Exception:
+        # The legacy safety contract remains authoritative if contextual
+        # explanation construction cannot complete.
+        return None, None
+
+
 def build_clinical_agent_contract(
     *,
     intent: ChatIntent,
@@ -63,7 +110,11 @@ def build_clinical_agent_contract(
         )
 
     urgency = _text(result.get("urgency") or result.get("escalation_level") or "ROUTINE").upper()
+    episode_payload: dict[str, Any] | None = None
+    reasoning_payload: dict[str, Any] | None = None
+
     if intent == "triage":
+        episode_payload, reasoning_payload = _contextual_reasoning(question, urgency)
         add("summary", f"Mức xử trí tối thiểu đã được hệ thống an toàn xác định: {urgency}.")
 
         specialty = result.get("recommended_specialty")
@@ -76,6 +127,17 @@ def build_clinical_agent_contract(
         if isinstance(red_flags, list):
             for flag in red_flags[:6]:
                 add("finding", f"Dấu hiệu đã được xác nhận từ bệnh cảnh hiện tại: {_text(flag)}.")
+
+        if reasoning_payload:
+            for mechanism in reasoning_payload.get("mechanisms", [])[:4]:
+                statement = _text(mechanism.get("patient_safe_statement"))
+                explanation = _text(mechanism.get("mechanism"))
+                if statement and explanation:
+                    add(
+                        "mechanism",
+                        f"{statement} Cơ chế có thể giải thích: {explanation}",
+                        required=False,
+                    )
 
         if urgency == "EMERGENCY" or bool(result.get("emergency_flag")):
             # This is a safety constraint, not a response template. The writer
@@ -95,8 +157,12 @@ def build_clinical_agent_contract(
             if advice:
                 add("action", advice, required=False)
 
-        for value in _questions(result):
-            add("question", value, required=False)
+            next_question = _text((reasoning_payload or {}).get("next_best_question"))
+            if next_question:
+                add("question", next_question, required=False)
+            else:
+                for value in _questions(result):
+                    add("question", value, required=False)
 
     elif intent == "safety":
         risk = _text(result.get("overall_risk") or result.get("risk_level") or result.get("severity"))
@@ -114,11 +180,13 @@ def build_clinical_agent_contract(
                         add("safety", message, required=True, locked=False)
 
     envelope = {
-        "version": "v12-agent-first",
+        "version": "v25-contextual-reasoning",
         "intent": intent,
         "user_question": question,
         "clinical_result": result,
         "patient_context": _safe_patient_context(patient_context),
+        "clinical_episode": episode_payload,
+        "reasoning_frame": reasoning_payload,
         "communication_contract": {
             "compose_original_response": True,
             "legacy_template_prose_is_not_evidence": True,
@@ -130,14 +198,18 @@ def build_clinical_agent_contract(
             "avoid_generic_non_answers": True,
             "question_budget": 0 if urgency == "EMERGENCY" else 1,
             "emergency_action_precedes_explanation": urgency == "EMERGENCY",
+            "unknown_is_not_negative": True,
+            "reason_from_episode_delta_not_only_latest_sentence": True,
+            "preserve_historical_hard_risk_until_explicitly_invalidated": True,
+            "use_reasoning_frame_next_question_when_present": True,
         },
-        # Derived from the supplied human doctor-response dataset as behavioral
-        # principles only. They are not medical facts and never select canned
-        # text by keyword.
         "professional_response_principles": [
             "Address the patient's actual concern before background explanation.",
+            "Explain what in the story supports the working explanation and what remains unknown.",
+            "Describe plausible symptom mechanisms in plain language without turning them into a diagnosis.",
+            "Treat unmentioned findings as unknown, never as negative findings.",
+            "Update the assessment from new facts instead of repeating the previous answer.",
             "If the patient proposes a dangerous action, interrupt and correct it before explaining why.",
-            "Explain the clinical mechanism in everyday language only when the evidence supports it.",
             "Give a specific action plan and a clear threshold for seeking care.",
             "Ask only the single highest-information follow-up question when it can change management.",
             "Do not reuse fixed response templates or infer patient facts from rule antecedents.",
