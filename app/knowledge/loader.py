@@ -25,6 +25,7 @@ _FILE_NAMES = (
     "allergy_cross_matrix.json",
     "red_flag_protocols.json",
     "v25_safety_overlay.json",
+    "v25_urgent_overlay.json",
     "contraindications.json",
     "atc_codes.json",
     "icd10_codes.json",
@@ -77,7 +78,14 @@ class KnowledgeStore:
 
     @property
     def urgent_patterns(self) -> list[dict[str, Any]]:
-        return self.files.get("red_flag_protocols.json", KnowledgeFile("", "", "", {})).data.get("urgent_patterns", [])
+        """Return frozen urgent rules plus the post-V10 V25 urgent overlay."""
+        base = self.files.get(
+            "red_flag_protocols.json", KnowledgeFile("", "", "", {})
+        ).data.get("urgent_patterns", [])
+        overlay = self.files.get(
+            "v25_urgent_overlay.json", KnowledgeFile("", "", "", {})
+        ).data.get("urgent_patterns", [])
+        return [*base, *overlay]
 
     @property
     def routine_administrative_patterns(self) -> list[dict[str, Any]]:
@@ -166,10 +174,6 @@ class KnowledgeStore:
 
         for guidance in self.symptom_guidance:
             if guidance.get("topic") == "lower_limb_pain":
-                # A body-region token and an unrelated pain token must never be
-                # combined into a finding. Example: "đau thắt lưng, không tê
-                # chân" previously became lower-limb pain because both "đau"
-                # and "chân" occurred somewhere in the string.
                 direct_problem_phrases = (
                     "dau chan", "nhuc chan", "sung chan", "te chan", "yeu chan",
                     "dau dui", "nhuc dui", "dau bap chan", "sung bap chan",
@@ -285,11 +289,9 @@ def load_knowledge_store() -> KnowledgeStore:
         path = _KNOWLEDGE_DIR / name
         if path.exists():
             store.files[name] = _load_knowledge_file(path)
-    # Pre-warm memoized reports
     store.version_string()
     store.integrity_report()
     return store
 
 
-# Singleton loaded once at import time.
 knowledge = load_knowledge_store()
