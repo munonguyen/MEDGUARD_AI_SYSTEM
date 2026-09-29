@@ -45,9 +45,10 @@ jobs:
 
           start_marker = '    if intent == "schedule":\n'
           end_marker = '\n    execution_patient_ref ='
-          start = text.find(start_marker)
+          orchestrate_start = text.find("def orchestrate_chat(")
+          start = text.find(start_marker, orchestrate_start)
           end = text.find(end_marker, start)
-          if start < 0 or end < 0:
+          if orchestrate_start < 0 or start < 0 or end < 0:
               raise SystemExit("schedule branch anchors not found")
           replacement = '''    if intent == "schedule":\n        command = execute_schedule_chat_command(\n            text=latest_text,\n            tenant_id=ctx.tenant_id,\n            patient_ref=patient_ref,\n        )\n        return _response(\n            payload,\n            ctx,\n            status=command.status,\n            intent=intent,\n            reply=command.reply,\n            required_fields=command.required_fields,\n            extracted=command.extracted,\n            result=command.result,\n        )\n'''
           text = text[:start] + replacement + text[end:]
