@@ -204,17 +204,79 @@ class ChatResponse(DisclaimerMixin):
         updated_result["trace"] = updated_trace
         self.result = updated_result
 
+    def _default_next_step(self, urgency: str) -> str | None:
+        """Return a bounded action when an otherwise valid answer has none.
+
+        This is a presentation/release invariant, not a clinical reasoner.  It
+        does not infer severity; it uses only the already-resolved intent,
+        status and urgency supplied by upstream domain logic.
+        """
+        if self.intent == "monitoring":
+            if urgency == "EMERGENCY":
+                return (
+                    "Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay; không tự lái xe và "
+                    "không trì hoãn để tiếp tục theo dõi chỉ số tại nhà."
+                )
+            if urgency == "URGENT":
+                return (
+                    "Liên hệ cơ sở y tế để được đánh giá sớm; nếu chỉ số xấu đi hoặc "
+                    "xuất hiện khó thở, đau ngực, lơ mơ hay choáng, hãy đi cấp cứu."
+                )
+            return (
+                "Tiếp tục ghi lại chỉ số đúng đơn vị và đo lại theo hướng dẫn; liên hệ "
+                "cơ sở y tế nếu chỉ số xấu đi hoặc xuất hiện triệu chứng mới."
+            )
+
+        if self.intent == "safety":
+            return (
+                "Không tự bắt đầu, ngừng, đổi liều hoặc phối hợp thuốc dựa chỉ trên hội thoại; "
+                "hãy trao đổi với bác sĩ hoặc dược sĩ khi quyết định dùng thuốc có thể thay đổi."
+            )
+
+        if self.intent == "schedule":
+            return (
+                "Kiểm tra lại tên thuốc và thời gian trên lịch; nếu cần, bạn có thể yêu cầu "
+                "đổi giờ, tạm dừng hoặc hủy lịch."
+            )
+
+        if self.intent == "followup":
+            return (
+                "Nếu chưa có mốc phù hợp, hãy cho biết thời điểm dự kiến hoặc điều kiện cần "
+                "tái khám để hệ thống hỗ trợ điều chỉnh kế hoạch."
+            )
+
+        if self.intent == "pharmacy":
+            return (
+                "Kiểm tra lại thuốc và thông tin cấp phát; nếu có điểm chưa khớp, hãy liên hệ "
+                "dược sĩ trước khi sử dụng."
+            )
+
+        return None
+
     @model_validator(mode="after")
     def apply_patient_question_policy(self) -> "ChatResponse":
-        """Enforce patient-surface dialogue and emergency output invariants."""
-        if self.answer is None or not isinstance(self.result, dict):
+        """Enforce patient-surface dialogue, actionability and emergency invariants."""
+        if self.answer is None:
             return self
 
+        result = self.result if isinstance(self.result, dict) else {}
         urgency = str(
-            self.result.get("urgency")
-            or self.result.get("escalation_level")
+            result.get("urgency")
+            or result.get("escalation_level")
             or "ROUTINE"
         ).upper()
+
+        # V26 output contract: an answered clinical/workflow response should not
+        # end as a passive description when a safe next action can be expressed
+        # from the already-resolved intent/urgency.  Jev can therefore evaluate
+        # a stable structured action field instead of relying on prose heuristics.
+        if not self.answer.next_steps:
+            default_step = self._default_next_step(urgency)
+            if default_step:
+                self.answer = self.answer.model_copy(update={"next_steps": [default_step]})
+
+        if not isinstance(self.result, dict):
+            return self
 
         if urgency == "EMERGENCY":
             uncertainty = (
