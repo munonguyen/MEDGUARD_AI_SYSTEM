@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import pytest
 
+from app.models.clinical_task import ClinicalTask
 from app.services.clinical_agent_contract import build_clinical_agent_contract
 from app.services.clinical_task_router import resolve_clinical_task
-from app.models.clinical_task import ClinicalTask
 
 
 @pytest.mark.parametrize(
@@ -69,6 +69,48 @@ def test_word_order_and_no_accent_variants_preserve_joint_semantics(prompt: str)
     assert contract.envelope["reasoning_frame"]["version"] == "v27-peripheral-joint"
 
 
+# Metamorphic coverage: the same clinical meaning must survive changes in
+# word order, body-site phrasing and symptom wording instead of matching only
+# hand-written benchmark sentences.
+_JOINT_SITES = (
+    "khớp tay",
+    "khớp ngón tay",
+    "các khớp ngón tay",
+    "khớp cổ tay",
+    "khớp bàn tay",
+)
+_JOINT_SYMPTOMS = ("đau", "nhức", "sưng", "cứng")
+_METAMORPHIC_JOINT_PROMPTS = [
+    template.format(site=site, symptom=symptom)
+    for site in _JOINT_SITES
+    for symptom in _JOINT_SYMPTOMS
+    for template in (
+        "Tôi bị {symptom} ở {site}.",
+        "{site} của tôi dạo này {symptom}.",
+        "Mấy hôm nay {site} cứ {symptom}.",
+    )
+]
+
+
+@pytest.mark.parametrize("prompt", _METAMORPHIC_JOINT_PROMPTS)
+def test_metamorphic_joint_phrasing_stays_in_same_domain(prompt: str) -> None:
+    decision = resolve_clinical_task(prompt)
+    assert decision.task == ClinicalTask.PERIPHERAL_JOINT
+
+    contract = build_clinical_agent_contract(
+        intent="triage",
+        question=prompt,
+        clinical_result={
+            "urgency": "ROUTINE",
+            "red_flags": [],
+            "trace": {"details": {"semantic_status": "PARTIALLY_UNDERSTOOD", "confidence": 0.60}},
+        },
+    )
+    assert contract.envelope["clinical_episode"]["chief_domain"] == "peripheral_joint"
+    assert contract.envelope["reasoning_frame"]["version"] == "v27-peripheral-joint"
+    assert "cauda" not in str(contract.envelope["reasoning_frame"]).lower()
+
+
 @pytest.mark.parametrize(
     "prompt",
     [
@@ -102,17 +144,20 @@ def test_ambiguous_language_does_not_create_confident_clinical_claim(prompt: str
 
 
 @pytest.mark.parametrize(
-    ("prompt", "expected_not_joint"),
+    "prompt",
     [
-        ("Tôi đau cổ lan xuống tay và tê ba ngón.", True),
-        ("Tôi đau ngực lan ra tay trái khi leo cầu thang.", True),
-        ("Tôi ngã chống tay, cổ tay biến dạng và rất đau.", True),
-        ("Tôi chỉ mỏi bắp tay sau khi tập gym.", True),
-        ("Tay tôi lạnh vì ngồi điều hòa.", True),
-        ("Tôi tê cả bàn tay nhưng không đau khớp.", True),
+        "Tôi đau cổ lan xuống tay và tê ba ngón.",
+        "Tôi đau ngực lan ra tay trái khi leo cầu thang.",
+        "Tôi ngã chống tay, cổ tay biến dạng và rất đau.",
+        "Tôi chỉ mỏi bắp tay sau khi tập gym.",
+        "Tay tôi lạnh vì ngồi điều hòa.",
+        "Tôi tê cả bàn tay nhưng không đau khớp.",
+        "Tôi đau vai lan xuống cánh tay.",
+        "Tôi bị bỏng ở bàn tay.",
+        "Tôi nổi mẩn ngứa ở mu bàn tay.",
+        "Tôi bị vết cắt ở ngón tay.",
     ],
 )
-def test_near_neighbor_body_site_language_is_not_misrouted(prompt: str, expected_not_joint: bool) -> None:
+def test_near_neighbor_body_site_language_is_not_misrouted(prompt: str) -> None:
     decision = resolve_clinical_task(prompt)
-    if expected_not_joint:
-        assert decision.task != ClinicalTask.PERIPHERAL_JOINT
+    assert decision.task != ClinicalTask.PERIPHERAL_JOINT

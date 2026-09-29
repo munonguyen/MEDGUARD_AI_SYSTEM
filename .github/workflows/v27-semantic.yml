@@ -1,0 +1,61 @@
+name: V27 Semantic Authority Certification
+
+on:
+  pull_request:
+  push:
+    branches:
+      - develop
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v27-semantic-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  semantic-authority:
+    name: V27 ambiguous-input and relevance contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Compile V27 semantic modules
+        run: python -m compileall -q app/services/clinical_agent_contract.py app/services/clinical_task_router.py app/services/answer_agents.py
+      - name: Run V27 semantic adversarial suite
+        run: >-
+          pytest -q
+          app/tests/test_v27_semantic_authority.py
+          app/tests/test_v27_patient_visible_relevance.py
+          app/tests/test_v27_needs_information_agent_first.py
+
+  patient-surface-authority:
+    name: V27 patient-visible runtime authority
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Run headless canonical-response runtime tests
+        run: npm run test:v27
+      - name: Build frontend
+        run: npm run build
