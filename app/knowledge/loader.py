@@ -168,6 +168,37 @@ class KnowledgeStore:
                 return guidance
         return None
 
+    @staticmethod
+    def _guidance_is_route_compatible(guidance: dict[str, Any], normalized: str) -> bool:
+        """Reject a symptom template when its physical route contradicts the turn.
+
+        The word ``hóa chất`` can describe either a skin burn or inhalation.
+        A lexical first-match used to select ``acute_burn`` for phrases such as
+        ``hít mùi hóa chất trong phòng kín`` and leak burn cooling instructions
+        into a respiratory/toxicology episode.  Keep this guard route-based: an
+        explicit skin-burn finding still permits burn guidance.
+        """
+        if str(guidance.get("topic", "")) != "acute_burn":
+            return True
+
+        inhalation_markers = (
+            "hit", "mui hoa chat", "hoi hoa chat", "khoi", "phong kin",
+            "rat hong", "ho sau khi", "duong ho hap",
+        )
+        skin_burn_markers = (
+            "bi bong", "vet bong", "bong da", "bong nuoc", "nuoc soi",
+            "rat da", "da do", "hoa chat do len da", "hoa chat dinh vao da",
+        )
+        has_inhalation_route = any(
+            contains_affirmed_phrase(normalized, marker)
+            for marker in inhalation_markers
+        )
+        has_skin_burn = any(
+            contains_affirmed_phrase(normalized, marker)
+            for marker in skin_burn_markers
+        )
+        return not (has_inhalation_route and not has_skin_burn)
+
     def find_symptom_guidance(self, symptoms_text: str) -> dict[str, Any] | None:
         normalized = normalize_search_text(symptoms_text)
 
@@ -194,6 +225,8 @@ class KnowledgeStore:
 
         for guidance in self.symptom_guidance:
             if guidance.get("topic") == "remote_prescribing_request":
+                continue
+            if not self._guidance_is_route_compatible(guidance, normalized):
                 continue
             if guidance.get("topic") == "lower_limb_pain":
                 direct_problem_phrases = (
