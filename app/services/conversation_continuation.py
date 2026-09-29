@@ -132,6 +132,8 @@ _SAFETY_CONTEXT_MARKERS = (
     "naproxen",
     "paracetamol",
     "acetaminophen",
+    "amoxicillin",
+    "penicillin",
     "metformin",
     "thuoc ngu",
     "thuoc chong dong",
@@ -146,6 +148,7 @@ _SAFETY_CONTINUATION_MARKERS = (
     "warfarin",
     "naproxen",
     "paracetamol",
+    "amoxicillin",
     "metformin",
     "thuoc ngu",
     "thuoc chong dong",
@@ -161,6 +164,24 @@ _SAFETY_CONTINUATION_MARKERS = (
     "doi lieu",
 )
 
+_DIRECT_SAFETY_ACTIONS = (
+    "co dung",
+    "co uong",
+    "dung duoc khong",
+    "uong duoc khong",
+    "dung chung",
+    "uong chung",
+    "thu nua vien",
+    "uong nua vien",
+    "nua lieu",
+    "tu bo lieu",
+    "bo lieu",
+    "doi lieu",
+    "tu gay non",
+    "gay non",
+    "day thuoc ra",
+)
+
 _EYE_COMPLAINT = re.compile(
     r"(?:\bmat\b(?:\s+[a-z0-9]+){0,6}\s+\b(?:do|com|dau|nhuc|mo|sung|ngua|chay nuoc mat)\b"
     r"|\b(?:do|com|dau|nhuc|mo|sung|ngua)\b(?:\s+[a-z0-9]+){0,6}\s+\bmat\b)"
@@ -172,19 +193,56 @@ def _user_texts(messages: list[tuple[str, str]]) -> list[str]:
 
 
 def _has_workflow_intent(latest: str) -> bool:
-    """Protect explicit workflow commands from clinical continuation recovery.
-
-    The user may mention a medicine name inside a card command (for example
-    ``xem lại card lịch uống aspirin``).  That is still a schedule workflow,
-    not a medication-safety continuation.  Workflow ownership therefore has
-    precedence over inferred clinical continuation intent.
-    """
+    """Protect explicit workflow commands from clinical continuation recovery."""
     if any(marker in latest for marker in _WORKFLOW_MARKERS):
         return True
     return bool(
         "card" in latest
         and any(word in latest for word in ("uong", "thuoc", "nhac", "gio", "lich"))
     )
+
+
+def _has_direct_medication_safety_intent(latest: str) -> bool:
+    """Let explicit medication self-management questions own their turn.
+
+    This is an intent/ownership rule only.  It does not decide whether the drug
+    is safe or choose a dose.  Explicit commands such as trying half a tablet,
+    combining medicines or inducing vomiting must reach the medication-safety
+    workflow even when the previous turn belonged to triage.
+    """
+    medication_context = any(marker in latest for marker in _SAFETY_CONTEXT_MARKERS) or any(
+        marker in latest for marker in ("thuoc", "vien", "lieu")
+    )
+    return medication_context and any(marker in latest for marker in _DIRECT_SAFETY_ACTIONS)
+
+
+def _explicit_metric_domain(latest: str) -> str | None:
+    """Recognize a measurement stated explicitly in the current turn.
+
+    Direct measurement ownership must not be inherited from an unrelated prior
+    symptom episode.  Severity remains delegated to monitoring/clinical safety.
+    """
+    if ("duong huyet" in latest or "glucose" in latest) and re.search(
+        r"\b\d{2,4}(?:[.,]\d+)?\s*(?:mg\s*/?\s*dl|mmol\s*/?\s*l)\b", latest
+    ):
+        return "glucose"
+    if ("huyet ap" in latest or "mmhg" in latest) and re.search(
+        r"\b\d{2,3}\s*/\s*\d{2,3}\b", latest
+    ):
+        return "blood_pressure"
+    if ("nhip tim" in latest or "mach" in latest) and re.search(
+        r"\b\d{2,3}(?:[.,]\d+)?\s*(?:lan\s*/?\s*phut|bpm)\b", latest
+    ):
+        return "heart_rate"
+    if ("spo2" in latest or "bao hoa oxy" in latest) and re.search(
+        r"\b\d{2,3}(?:[.,]\d+)?\s*%", latest
+    ):
+        return "spo2"
+    if "nhiet do" in latest and re.search(
+        r"\b(?:3[5-9]|4[0-3])(?:[.,]\d+)?\s*(?:do\s*c|°c|c)\b", latest
+    ):
+        return "temperature"
+    return None
 
 
 def _prior_metric_domain(history: str) -> str | None:
@@ -220,12 +278,6 @@ def _numeric_percentage(text: str) -> float | None:
 
 
 def _spo2_stays_in_acute_episode(*, history: str, latest: str) -> bool:
-    """Keep severe hypoxia follow-ups inside the acute triage episode.
-
-    Threshold authority comes from the versioned monitoring registry rather
-    than being duplicated here.  This function changes only domain ownership:
-    severity remains the responsibility of the existing safety/triage layers.
-    """
     rule = _monitoring_rule("spo2")
     critical_below = rule.get("critical_below") if rule else None
     if not isinstance(critical_below, (int, float)):
@@ -285,18 +337,16 @@ def resolve_conversation_continuation(
     prior_users = [normalize_search_text(value) for value in users[:-1]]
     history = "\n".join(reversed(prior_users[-4:]))
 
-    if any(marker in latest for marker in _SAFETY_DIRECT_MARKERS):
-        return ContinuationResolution("safety", "explicit_medication_self_management", 0.98)
+    if any(marker in latest for marker in _SAFETY_DIRECT_MARKERS) or _has_direct_medication_safety_intent(latest):
+        return ContinuationResolution("safety", "explicit_medication_self_management", 0.99)
 
     if "thuoc chong dong" in latest and any(marker in latest for marker in ("chay mau", "chay mau cam", "bo lieu")):
         return ContinuationResolution("safety", "anticoagulant_safety_context", 0.97)
 
-    metric = _prior_metric_domain(history)
+    direct_metric = _explicit_metric_domain(latest)
+    prior_metric = _prior_metric_domain(history)
+    metric = direct_metric or prior_metric
 
-    # A vital-sign continuation that also reports circulatory compromise is no
-    # longer a pure monitoring task.  Keep the measurement in the text but hand
-    # the turn to triage so the shared clinical-safety/end-organ layers can
-    # reason over the combination rather than a numeric threshold in isolation.
     if metric == "heart_rate" and any(marker in latest for marker in _HIGH_RISK_CIRCULATORY_MARKERS):
         return ContinuationResolution(
             "triage",
@@ -312,12 +362,20 @@ def resolve_conversation_continuation(
             augmented_latest=_canonical_metric(latest, metric),
         )
 
-    if metric:
-        canonical = _canonical_metric(latest, metric)
+    if direct_metric:
+        return ContinuationResolution(
+            "monitoring",
+            f"explicit_{direct_metric}_measurement",
+            0.995,
+            augmented_latest=_canonical_metric(latest, direct_metric),
+        )
+
+    if prior_metric:
+        canonical = _canonical_metric(latest, prior_metric)
         if canonical:
             return ContinuationResolution(
                 "monitoring",
-                f"elliptical_{metric}_measurement",
+                f"elliptical_{prior_metric}_measurement",
                 0.99,
                 augmented_latest=canonical,
             )
