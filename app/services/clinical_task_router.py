@@ -65,6 +65,26 @@ _MEDICATION_MARKERS = (
     "thuoc co dung duoc",
 )
 
+# V27: peripheral-joint complaints are not spine complaints. Keep this list
+# deliberately specific so ambiguous phrases such as "đau tay" still fall
+# through to the general symptom path and can be clarified safely.
+_PERIPHERAL_JOINT_MARKERS = (
+    "dau khop tay",
+    "dau cac khop tay",
+    "dau khop ngon tay",
+    "dau cac khop ngon tay",
+    "dau khop co tay",
+    "dau khop ban tay",
+    "sung khop tay",
+    "sung khop ngon tay",
+    "cung khop tay",
+    "cung khop ngon tay",
+    "cung khop buoi sang",
+    "khop tay sung",
+    "khop ngon tay sung",
+    "nhieu khop tay",
+)
+
 _MONITORING_MARKERS = ("spo2", "huyet ap", "nhip tim", "nhiet do", "duong huyet")
 _FOLLOWUP_MARKERS = ("tai kham", "lich kham", "follow up", "follow-up", "lich hen")
 
@@ -124,6 +144,14 @@ def resolve_clinical_task(text: str) -> ClinicalTaskDecision:
             confidence=0.92,
             reasons=["medication_safety_request"],
             domain="medication",
+        )
+
+    if any(_contains_marker(norm, marker) for marker in _PERIPHERAL_JOINT_MARKERS):
+        return ClinicalTaskDecision(
+            task=ClinicalTask.PERIPHERAL_JOINT,
+            confidence=0.94,
+            reasons=["peripheral_joint_language_detected"],
+            domain="peripheral_joint",
         )
 
     if any(_contains_marker(norm, marker) for marker in _MONITORING_MARKERS) and bool(
