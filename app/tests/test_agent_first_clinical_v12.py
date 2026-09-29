@@ -89,8 +89,10 @@ def test_emergency_contract_locks_action_but_does_not_supply_full_template():
     assert contract.envelope["communication_contract"]["question_budget"] == 0
 
 
-def test_generate_response_sends_clinical_envelope_not_fallback_prose_to_writer():
-    # Claims produced for this routine payload are summary_1, finding_2, question_3.
+def test_generate_response_sends_structured_clinical_context_not_fallback_prose_to_writer():
+    # The agent graph owns a stable V14 transport envelope. Clinical reasoning
+    # generations (V25+) travel inside that envelope rather than changing its
+    # transport version on every reasoning upgrade.
     draft = AgentDraft.model_validate(
         {
             "question_analysis": {
@@ -165,7 +167,11 @@ def test_generate_response_sends_clinical_envelope_not_fallback_prose_to_writer(
 
     assert result.agent_trace.status == "rejected"
     payload = research.calls[0]["payload"]
-    assert payload["clinical_envelope"]["version"] == "v12-agent-first"
+    envelope = payload["clinical_envelope"]
+    assert envelope["version"] == "v14-structured-agent-input"
+    assert envelope["clinical_episode"]["version"] == "v25.1"
+    assert envelope["reasoning_frame"]["version"] == "v25.2"
+    assert envelope["communication_contract"]["legacy_template_prose_is_not_evidence"] is True
     dumped = json.dumps(payload, ensure_ascii=False)
     assert fallback.summary not in dumped
     assert fallback.title not in dumped

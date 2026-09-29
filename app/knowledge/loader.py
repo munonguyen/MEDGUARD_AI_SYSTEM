@@ -24,6 +24,7 @@ _FILE_NAMES = (
     "drug_interactions.json",
     "allergy_cross_matrix.json",
     "red_flag_protocols.json",
+    "v25_safety_overlay.json",
     "contraindications.json",
     "atc_codes.json",
     "icd10_codes.json",
@@ -61,7 +62,18 @@ class KnowledgeStore:
 
     @property
     def red_flag_patterns(self) -> list[dict[str, Any]]:
-        return self.files.get("red_flag_protocols.json", KnowledgeFile("", "", "", {})).data.get("red_flag_patterns", [])
+        """Return the frozen/base registry plus versioned post-V10 overlays.
+
+        Keeping overlays in separate files makes later safety additions auditable
+        and reversible without rewriting historical benchmark knowledge.
+        """
+        base = self.files.get(
+            "red_flag_protocols.json", KnowledgeFile("", "", "", {})
+        ).data.get("red_flag_patterns", [])
+        overlay = self.files.get(
+            "v25_safety_overlay.json", KnowledgeFile("", "", "", {})
+        ).data.get("red_flag_patterns", [])
+        return [*base, *overlay]
 
     @property
     def urgent_patterns(self) -> list[dict[str, Any]]:
@@ -89,6 +101,49 @@ class KnowledgeStore:
             "medication_incident_protocols.json", KnowledgeFile("", "", "", {})
         ).data.get("reported_ingestion_protocols", [])
 
+    def _contextualize_guidance(self, guidance: dict[str, Any], symptoms_text: str) -> dict[str, Any]:
+        """Overlay V25 explanation/question planning without mutating knowledge.
+
+        The knowledge file still decides whether a symptom topic matched. V25
+        only improves the explanatory hypotheses and follow-up question after a
+        match exists. The import is intentionally local so the immutable
+        knowledge snapshot can load before the clinical reasoning modules.
+        """
+        try:
+            from app.services.contextual_triage_planner import (
+                build_contextual_triage_plan,
+                reasoning_trace_payload,
+            )
+
+            plan = build_contextual_triage_plan(
+                symptoms_text=symptoms_text,
+                urgency="ROUTINE",
+                existing_summary=(
+                    str(guidance.get("summary")) if guidance.get("summary") else None
+                ),
+                existing_hypotheses=[
+                    str(value) for value in guidance.get("clinical_hypotheses", [])
+                ],
+                existing_questions=[
+                    str(value) for value in guidance.get("clarifying_questions", [])
+                ],
+            )
+        except Exception:
+            return guidance
+
+        if not plan.applied:
+            return guidance
+
+        contextual = dict(guidance)
+        if plan.summary:
+            contextual["summary"] = plan.summary
+        if plan.hypotheses:
+            contextual["clinical_hypotheses"] = list(plan.hypotheses)
+        if plan.questions:
+            contextual["clarifying_questions"] = list(plan.questions)
+        contextual["v25_contextual_reasoning"] = reasoning_trace_payload(plan)
+        return contextual
+
     def find_symptom_guidance(self, symptoms_text: str) -> dict[str, Any] | None:
         normalized = normalize_search_text(symptoms_text)
 
@@ -107,7 +162,7 @@ class KnowledgeStore:
         if back_problem:
             for guidance in self.symptom_guidance:
                 if guidance.get("topic") == "back_pain":
-                    return guidance
+                    return self._contextualize_guidance(guidance, symptoms_text)
 
         for guidance in self.symptom_guidance:
             if guidance.get("topic") == "lower_limb_pain":
@@ -141,13 +196,13 @@ class KnowledgeStore:
                         for match in pattern.finditer(normalized)
                     )
                 if has_affirmed_problem:
-                    return guidance
+                    return self._contextualize_guidance(guidance, symptoms_text)
 
             if any(
                 contains_affirmed_phrase(normalized, normalize_search_text(str(keyword)))
                 for keyword in guidance.get("keywords", [])
             ):
-                return guidance
+                return self._contextualize_guidance(guidance, symptoms_text)
         return None
 
     @property

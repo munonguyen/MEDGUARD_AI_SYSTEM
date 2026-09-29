@@ -24,6 +24,10 @@ def _tailor_guidance(
     summary = str(guidance.get("summary")) if guidance.get("summary") else None
     questions = [str(value) for value in guidance.get("clarifying_questions", [])]
     topic = str(guidance.get("topic", ""))
+    v25_trace = guidance.get("v25_contextual_reasoning")
+    v25_has_leading_mechanism = bool(
+        isinstance(v25_trace, dict) and v25_trace.get("leading_hypotheses")
+    )
     if topic == "lower_limb_pain":
         norm = symptoms_text.lower()
         if summary and any(
@@ -55,6 +59,12 @@ def _tailor_guidance(
             ]
         return summary, questions
     if topic == "headache":
+        # V25 has already constructed a diagnosis-neutral mechanism explanation
+        # and selected one management-changing question. Do not overwrite that
+        # with the older fixed screen/sleep prose. This happens *after* triage
+        # severity resolution and therefore cannot change clinical authority.
+        if v25_has_leading_mechanism:
+            return summary, questions
         norm = symptoms_text.lower()
         if any(w in norm for w in ("học", "hoc", "làm việc", "lam viec", "máy tính", "may tinh", "màn hình", "man hinh", "đọc sách", "doc sach", "thi cử", "thi cu", "căng thẳng", "cang thang", "áp lực", "ap luc", "deadline")):
             summary = (
@@ -75,6 +85,8 @@ def _tailor_guidance(
             )
         return summary, questions
     if topic == "back_pain":
+        if v25_has_leading_mechanism:
+            return summary, questions
         norm = symptoms_text.lower()
         if any(w in norm for w in ("học", "hoc", "ngồi", "ngoi", "làm việc", "lam viec", "khỏi luôn", "khoi luon", "ngay lập tức", "ngay lap tuc")):
             summary = (
@@ -456,6 +468,11 @@ def evaluate_triage(
                 "semantic_status": resolved.semantic_status.value if hasattr(resolved.semantic_status, "value") else str(resolved.semantic_status),
                 "symptom_guidance": guidance.get("topic") if has_guidance and guidance else None,
                 "guidance_actions_applied": bool(use_guidance_actions),
+                "v25_contextual_reasoning": (
+                    guidance.get("v25_contextual_reasoning")
+                    if has_guidance and isinstance(guidance, dict)
+                    else None
+                ),
                 "knowledge_integrity": knowledge.integrity_report(),
             },
         ),

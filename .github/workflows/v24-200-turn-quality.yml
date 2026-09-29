@@ -1,0 +1,101 @@
+name: V24 200-turn conversation quality
+
+on:
+  pull_request:
+    branches: [develop]
+    paths:
+      - "scripts/evaluate_v24_200_turn_conversations.py"
+      - "scripts/refine_v24_200_turn_report.py"
+      - "app/**"
+      - "datasets/**"
+      - ".github/workflows/v24-200-turn-quality.yml"
+  workflow_dispatch:
+
+jobs:
+  evaluate-200-turns:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Compile V24 evaluators
+        run: |
+          python -m py_compile scripts/evaluate_v24_200_turn_conversations.py
+          python -m py_compile scripts/refine_v24_200_turn_report.py
+
+      - name: Run 200-turn multi-context benchmark
+        id: benchmark
+        continue-on-error: true
+        run: python scripts/evaluate_v24_200_turn_conversations.py
+
+      - name: Refine scoring audit without changing observed Q/A
+        if: always()
+        run: |
+          test -f artifacts/v24_200_turn_quality/report.json
+          python scripts/refine_v24_200_turn_report.py
+
+      - name: Print refined report summary
+        if: always()
+        run: |
+          test -f artifacts/v24_200_turn_quality/report_refined.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r = json.loads(Path('artifacts/v24_200_turn_quality/report_refined.json').read_text(encoding='utf-8'))
+          print(
+              f"questions={r['questions']} average={r['average_score']}/100 "
+              f"hard_critical={r['hard_emergency_failures']} "
+              f"severity_mismatches={r['severity_mismatches']} "
+              f"below70={r['below_70']} "
+              f"card_state_failures={r['card_state_failures']}/{r['card_turns']} "
+              f"intent_match={r['objective_rates']['expected_intent_match_rate']}% "
+              f"p95={r['p95_latency_ms']:.1f}ms"
+          )
+          for category, values in r['category_summary'].items():
+              print(category, values)
+          print('card_operations', r['card_operation_summary'])
+          PY
+
+      - name: Upload 200-question Markdown and JSON reports
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: medguard-v24-200-question-quality-report-${{ github.sha }}
+          path: artifacts/v24_200_turn_quality/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Enforce V24 engineering gate after preserving report
+        if: always()
+        run: |
+          test -f artifacts/v24_200_turn_quality/report_refined.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r = json.loads(Path('artifacts/v24_200_turn_quality/report_refined.json').read_text(encoding='utf-8'))
+          ok = (
+              r['average_score'] >= 80.0
+              and r['hard_emergency_failures'] == 0
+              and r['below_70'] <= 20
+              and r['card_state_failures'] == 0
+              and r['p95_latency_ms'] <= 10000
+          )
+          if not ok:
+              raise SystemExit(
+                  "V24 gate failed: "
+                  f"average={r['average_score']} hard_critical={r['hard_emergency_failures']} "
+                  f"severity_mismatches={r['severity_mismatches']} below70={r['below_70']} "
+                  f"card_failures={r['card_state_failures']} p95={r['p95_latency_ms']}"
+              )
+          print('V24 engineering gate=PASS')
+          PY
