@@ -118,7 +118,7 @@ jobs:
           retention-days: 30
 
   frontend:
-    name: Frontend build
+    name: Frontend build and V27 response-authority tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:
@@ -137,6 +137,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Run UI and V27 authority tests
+        run: npm run test:ui
 
       - name: Build production workspace
         run: npm run build
