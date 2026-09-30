@@ -21,11 +21,13 @@ if [[ -z "${GEMINI_API_KEY}" ]]; then
   exit 1
 fi
 
+PYTHON_BIN="${PYTHON:-$(command -v python3 || command -v python || echo "python")}"
+
 random_secret() {
   if command -v openssl >/dev/null 2>&1; then
     openssl rand -hex 32
   else
-    python - <<'PY'
+    "${PYTHON_BIN}" - <<'PY'
 import secrets
 print(secrets.token_hex(32))
 PY
@@ -49,7 +51,7 @@ GEMINI_API_KEY=${GEMINI_API_KEY}
 OPENAI_API_KEY=
 EOF
 
-python - "${APP_TEMPLATE}" "${APP_ENV}" "${LITELLM_MASTER_KEY}" <<'PY'
+"${PYTHON_BIN}" - "${APP_TEMPLATE}" "${APP_ENV}" "${LITELLM_MASTER_KEY}" <<'PY'
 from pathlib import Path
 import sys
 

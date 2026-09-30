@@ -329,15 +329,17 @@ class Settings:
             raise ValueError("MEDGUARD_RESEARCH_AGENT_PROVIDER must be litellm")
         if self.verifier_agent_provider != "litellm":
             raise ValueError("MEDGUARD_VERIFIER_AGENT_PROVIDER must be litellm")
+        max_agent_timeout = 30 if self.environment in {"development", "staging"} else 4
+        max_total_timeout = 60 if self.environment in {"development", "staging"} else 8
         if self.agent_timeout_seconds < 1:
             raise ValueError("MEDGUARD_AGENT_TIMEOUT_SECONDS must be at least 1")
-        if self.agent_timeout_seconds > 4:
+        if self.agent_timeout_seconds > max_agent_timeout:
             raise ValueError(
-                "MEDGUARD_AGENT_TIMEOUT_SECONDS must be at most 4 to preserve the 10-second chat SLO"
+                f"MEDGUARD_AGENT_TIMEOUT_SECONDS must be at most {max_agent_timeout} to preserve the chat SLO"
             )
-        if not 1 <= self.agent_total_timeout_seconds <= 8:
+        if not 1 <= self.agent_total_timeout_seconds <= max_total_timeout:
             raise ValueError(
-                "MEDGUARD_AGENT_TOTAL_TIMEOUT_SECONDS must be between 1 and 8 for the 10-second chat SLO"
+                f"MEDGUARD_AGENT_TOTAL_TIMEOUT_SECONDS must be between 1 and {max_total_timeout} for the chat SLO"
             )
         if self.agent_max_iterations not in {0, 1}:
             raise ValueError(

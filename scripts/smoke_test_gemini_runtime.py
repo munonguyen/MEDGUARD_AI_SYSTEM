@@ -4,8 +4,10 @@ import argparse
 import json
 import os
 import sys
+import time
 import urllib.error
 import urllib.request
+import uuid
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -71,7 +73,7 @@ def check_direct_gemini() -> list[CheckResult]:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
         payload = {
             "contents": [{"parts": [{"text": "Reply with exactly OK."}]}],
-            "generationConfig": {"maxOutputTokens": 16, "temperature": 0},
+            "generationConfig": {"maxOutputTokens": 128, "temperature": 0},
         }
         try:
             status, data = _request_json(
@@ -81,6 +83,15 @@ def check_direct_gemini() -> list[CheckResult]:
                 payload=payload,
                 timeout=45,
             )
+            if status == 429:
+                time.sleep(10)
+                status, data = _request_json(
+                    url,
+                    method="POST",
+                    headers={"x-goog-api-key": key},
+                    payload=payload,
+                    timeout=45,
+                )
             text = ""
             candidates = data.get("candidates") or []
             if candidates:
@@ -115,7 +126,7 @@ def check_gateway() -> list[CheckResult]:
                     "model": alias,
                     "messages": [{"role": "user", "content": "Reply with exactly OK."}],
                     "temperature": 0,
-                    "max_tokens": 16,
+                    "max_tokens": 128,
                 },
                 timeout=60,
             )
@@ -149,10 +160,16 @@ def check_medguard() -> list[CheckResult]:
         "locale": "vi-VN",
     }
     try:
+        headers = {
+            "X-Tenant-ID": tenant,
+            "X-API-Key": api_key,
+            "Idempotency-Key": f"smoke-gemini-{uuid.uuid4().hex[:8]}",
+            "X-Consent-Token": "consent-smoke-test",
+        }
         status, data = _request_json(
             f"{base}/v1/chat",
             method="POST",
-            headers={"X-Tenant-ID": tenant, "X-API-Key": api_key},
+            headers=headers,
             payload=payload,
             timeout=90,
         )

@@ -166,6 +166,7 @@ class KnowledgeRetriever:
                     section="drug_interaction",
                     content=content,
                     source_reference="Dược thư Quốc gia Việt Nam / Quyết định 5948/QĐ-BYT",
+                    source_url="https://dav.gov.vn",
                     severity=item.get("severity"),
                 )
             )
@@ -191,6 +192,7 @@ class KnowledgeRetriever:
                     section="contraindication",
                     content=content,
                     source_reference="Dược thư Quốc gia Việt Nam / WHO Model Formulary",
+                    source_url="https://dav.gov.vn",
                     severity=ci.get("severity"),
                 )
             )
@@ -216,6 +218,7 @@ class KnowledgeRetriever:
                     section="allergy_cross_reactivity",
                     content=content,
                     source_reference="Dược thư Quốc gia Việt Nam / WHO ATC Cross-reactivity",
+                    source_url="https://dav.gov.vn",
                     severity=ag.get("severity_if_confirmed"),
                 )
             )
@@ -240,6 +243,7 @@ class KnowledgeRetriever:
                     section="triage_emergency",
                     content=content,
                     source_reference="Hướng dẫn phân loại cấp cứu Bộ Y tế / Manchester Triage System",
+                    source_url="https://kcb.vn/tai-lieu-chuyen-mon",
                     severity=rf.get("urgency"),
                 )
             )
@@ -269,6 +273,7 @@ class KnowledgeRetriever:
                     section="symptom_guidance",
                     content=content,
                     source_reference="NICE Guidelines / Hướng dẫn chẩn đoán BYT",
+                    source_url="https://kcb.vn/tai-lieu-chuyen-mon",
                 )
             )
 
@@ -459,6 +464,7 @@ class KnowledgeRetriever:
                 source_reference=self._chunks[i].source_reference,
                 score=round(scores[i], 3),
                 severity=self._chunks[i].severity,
+                source_url=self._chunks[i].source_url,
             )
             for i in ranked_indices
         ]
