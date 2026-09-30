@@ -103,6 +103,48 @@ def _reassurance_from_reasoning(
     )
 
 
+def _reassurance_from_observed_mechanical_pattern(
+    *,
+    question: str,
+    urgency: str,
+    assessment_state: str,
+    result: dict[str, Any],
+) -> ReassurancePolicy:
+    """Provide a narrow, evidence-bounded fallback when the episode router has
+    not yet produced a mechanism frame but the user has explicitly described a
+    reproducible post-exertional musculoskeletal pattern.
+
+    This is deliberately gated by the Safety Kernel: ROUTINE only, understood
+    context only, and no red flags. It never downgrades urgency and never says a
+    cardiopulmonary cause is excluded.
+    """
+
+    if urgency != "ROUTINE" or assessment_state != "UNDERSTOOD":
+        return ReassurancePolicy(allowed=False)
+    red_flags = result.get("red_flags") or []
+    if isinstance(red_flags, list) and any(_text(item) for item in red_flags):
+        return ReassurancePolicy(allowed=False)
+
+    norm = normalize_search_text(question)
+    post_load = bool(re.search(r"\b(?:sau tap|tap gym|tap nguc|nang ta|day nguc|van dong manh)\b", norm))
+    reproducible = bool(re.search(r"\b(?:an vao.*dau|dau khi an|so vao.*dau|xoay nguoi.*dau|co co.*dau)\b", norm))
+    chest_area = bool(re.search(r"\b(?:nguc|co nguc|thanh nguc)\b", norm))
+    if not (post_load and reproducible and chest_area):
+        return ReassurancePolicy(allowed=False)
+
+    return ReassurancePolicy(
+        allowed=True,
+        strength="cautious",
+        basis=(
+            "Triệu chứng xuất hiện sau vận động/tập cơ ngực.",
+            "Đau tăng khi ấn trực tiếp vào vùng khó chịu.",
+        ),
+        limitations=(
+            "Đặc điểm cơ học làm đau cơ/thành ngực hợp lý hơn nhưng không tự loại trừ nguyên nhân tim hoặc phổi nếu xuất hiện dấu hiệu cảnh báo.",
+        ),
+    )
+
+
 def build_response_policy(
     *,
     intent: str,
@@ -203,6 +245,14 @@ def build_response_policy(
         result=result,
         reasoning_payload=reasoning_payload,
     )
+    if not reassurance.allowed:
+        reassurance = _reassurance_from_observed_mechanical_pattern(
+            question=question,
+            urgency=urgency,
+            assessment_state=assessment_state,
+            result=result,
+        )
+
     return ClinicalResponsePolicy(
         communication_goal=(
             CommunicationGoal.REASSURE_AND_GUIDE
@@ -211,7 +261,7 @@ def build_response_policy(
         ),
         response_depth=ResponseDepth.D3_CLINICAL_GUIDANCE,
         explanation_required=True,
-        mechanism_required=bool(_reasoning_mechanisms(reasoning_payload)),
+        mechanism_required=bool(_reasoning_mechanisms(reasoning_payload)) or reassurance.allowed,
         reassurance=reassurance,
         action_first=False,
         question_budget=1,
