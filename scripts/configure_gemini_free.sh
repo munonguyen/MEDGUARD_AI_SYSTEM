@@ -12,26 +12,20 @@ if [[ ! -f "${APP_TEMPLATE}" ]]; then
 fi
 
 PYTHON_BIN="${PYTHON:-$(command -v python3 || command -v python || echo "python")}"
-DEFAULT_KEY_B64="QVEuQWI4Uk42SzdZaXFFekoxUklRcmpsNG1hOEctU0dBZ3JlYnBucWFyWW9ZVVg5aU82b1E="
 
+# Provider credentials are runtime-only. Never embed, encode, or default a real key
+# in tracked source files. For non-interactive automation, export GEMINI_API_KEY
+# before running this script. Interactive local runs may enter it securely here.
 if [[ -z "${GEMINI_API_KEY:-}" ]]; then
-  if [[ "${1:-}" == "--default" ]] || [[ ! -t 0 ]]; then
-    GEMINI_API_KEY="$("${PYTHON_BIN}" -c "import base64; print(base64.b64decode('${DEFAULT_KEY_B64}').decode())")"
-  else
-    echo "============================================================"
-    echo "  MEDGUARD GEMINI RUNTIME CONFIGURATION"
-    echo "============================================================"
-    echo "Nhập Gemini API Key (nhấn [ENTER] để dùng key cấu hình sẵn):"
-    read -r -s INPUT_KEY || true
-    echo
-    if [[ -z "${INPUT_KEY:-}" ]]; then
-      GEMINI_API_KEY="$("${PYTHON_BIN}" -c "import base64; print(base64.b64decode('${DEFAULT_KEY_B64}').decode())")"
-      echo "-> Đang sử dụng key cấu hình sẵn của hệ thống."
-    else
-      GEMINI_API_KEY="${INPUT_KEY}"
-      echo "-> Đã nhận API key mới."
-    fi
+  if [[ ! -t 0 ]]; then
+    echo "GEMINI_API_KEY is required in the environment for non-interactive setup." >&2
+    exit 1
   fi
+  echo "============================================================"
+  echo "  MEDGUARD GEMINI RUNTIME CONFIGURATION"
+  echo "============================================================"
+  read -r -s -p "Gemini API key: " GEMINI_API_KEY
+  echo
 fi
 
 if [[ -z "${GEMINI_API_KEY}" ]]; then
@@ -50,6 +44,8 @@ PY
   fi
 }
 
+# Reuse local infrastructure secrets when reconfiguring, but never read a
+# provider key back into tracked source or print it.
 if [[ -f "${GATEWAY_ENV}" ]]; then
   EXISTING_MASTER_KEY="$(grep '^LITELLM_MASTER_KEY=' "${GATEWAY_ENV}" | cut -d= -f2- || true)"
   EXISTING_DB_PW="$(grep '^LITELLM_DB_PASSWORD=' "${GATEWAY_ENV}" | cut -d= -f2- || true)"
@@ -91,10 +87,10 @@ PY
 
 chmod 600 "${GATEWAY_ENV}" "${APP_ENV}"
 
-echo "Configured local Gemini free runtime files:"
+echo "Configured local Gemini runtime files:"
 echo "  ${APP_ENV}"
 echo "  ${GATEWAY_ENV}"
-echo "No API key was committed or printed."
+echo "Provider credentials remain local and were not printed or committed."
 echo
 echo "Next:"
 echo "  cd infrastructure/litellm && docker compose up -d"
