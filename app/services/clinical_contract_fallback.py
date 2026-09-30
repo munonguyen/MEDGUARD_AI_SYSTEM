@@ -2,8 +2,9 @@
 
 This module is intentionally non-generative. It never invents a diagnosis or
 new treatment claim. It only reshapes facts, reasoning, actions and questions
-already present in ClinicalAgentContract so provider failures do not fall back
-to the legacy one-size-fits-all triage template.
+already present in ClinicalAgentContract and the deterministic Safety Kernel
+answer so provider failures do not fall back to the legacy one-size-fits-all
+triage template.
 """
 
 from __future__ import annotations
@@ -42,6 +43,13 @@ def _claims(contract: ClinicalAgentContract, category: str) -> list[str]:
     return values
 
 
+def _append_unique(target: list[str], values: list[str]) -> None:
+    for value in values:
+        text = _text(value)
+        if text and text not in target:
+            target.append(text)
+
+
 def _join_sentences(parts: list[str]) -> str:
     values: list[str] = []
     for raw in parts:
@@ -58,7 +66,13 @@ def compose_contract_fallback(
     answer: GroundedAnswer,
     contract: ClinicalAgentContract,
 ) -> GroundedAnswer:
-    """Return a context-aware deterministic fallback for clinical agent failure."""
+    """Return a context-aware deterministic fallback for clinical agent failure.
+
+    Safety is monotonic here: V27.1 may improve explanation/title/ordering, but it
+    must never remove an action or safety note already emitted by the underlying
+    deterministic domain service. This is critical when a provider error happens
+    after Safety Kernel/domain rules have already resolved an emergency action.
+    """
 
     envelope = contract.envelope
     policy = envelope.get("response_policy") if isinstance(envelope.get("response_policy"), dict) else {}
@@ -85,6 +99,12 @@ def compose_contract_fallback(
     questions = _claims(contract, "question")
     findings = _claims(contract, "finding")
 
+    # Safety-monotonic merge: domain/Safety Kernel actions remain authoritative.
+    # The response-policy layer may add context, but never delete these fields.
+    _append_unique(actions, [str(value) for value in answer.next_steps])
+    _append_unique(safety_notes, [str(value) for value in answer.safety_notes])
+    _append_unique(findings, [str(value) for value in answer.key_points])
+
     for value in _strings(result.get("self_care"), limit=4):
         if value not in actions:
             actions.append(value)
@@ -96,12 +116,19 @@ def compose_contract_fallback(
         next_question = _text(explanation.get("next_best_question"))
         if next_question:
             questions.append(next_question)
+    if not questions and question_budget > 0:
+        _append_unique(questions, [str(value) for value in answer.questions])
     questions = questions[:question_budget]
 
     if urgency == "EMERGENCY":
         title = "Bạn cần được đánh giá cấp cứu ngay"
-        emergency_action = actions[0] if actions else (
-            "Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay lập tức; không tự lái xe."
+        emergency_action = next(
+            (
+                value
+                for value in actions
+                if any(marker in value.lower() for marker in ("115", "cấp cứu", "cap cuu"))
+            ),
+            actions[0] if actions else "Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay lập tức; không tự lái xe.",
         )
         summary_parts = [emergency_action]
         if what_it_may_mean:
@@ -116,10 +143,10 @@ def compose_contract_fallback(
             update={
                 "title": title,
                 "summary": _join_sentences(summary_parts),
-                "key_points": list(dict.fromkeys([*findings, *why]))[:5],
+                "key_points": list(dict.fromkeys([*findings, *why]))[:6],
                 "clinical_hypotheses": [],
-                "next_steps": list(dict.fromkeys(actions))[:5],
-                "safety_notes": list(dict.fromkeys(safety_notes))[:4],
+                "next_steps": list(dict.fromkeys(actions))[:6],
+                "safety_notes": list(dict.fromkeys(safety_notes))[:5],
                 "questions": [],
                 "display_questions": [],
             }
@@ -155,9 +182,17 @@ def compose_contract_fallback(
         summary_claims = _claims(contract, "summary")
         summary_parts.extend(summary_claims)
     if not summary_parts:
-        summary_parts.append("Thông tin hiện có chưa đủ để đưa ra nhận định chắc chắn")
+        # Preserve an existing domain summary before resorting to a generic
+        # uncertainty sentence. This is especially important for medication and
+        # exposure branches whose deterministic result already carries the key
+        # safety explanation.
+        existing_summary = _text(answer.summary)
+        if existing_summary:
+            summary_parts.append(existing_summary)
+        else:
+            summary_parts.append("Thông tin hiện có chưa đủ để đưa ra nhận định chắc chắn")
 
-    key_points = list(dict.fromkeys([*why, *findings, *reassurance_basis]))[:5]
+    key_points = list(dict.fromkeys([*why, *findings, *reassurance_basis]))[:6]
     limitations = list(answer.limitations)
     if uncertainty and uncertainty not in limitations:
         limitations.insert(0, uncertainty)
@@ -168,8 +203,8 @@ def compose_contract_fallback(
             "summary": _join_sentences(summary_parts),
             "key_points": key_points,
             "clinical_hypotheses": [],
-            "next_steps": list(dict.fromkeys(actions))[:5],
-            "safety_notes": list(dict.fromkeys(safety_notes))[:4],
+            "next_steps": list(dict.fromkeys(actions))[:6],
+            "safety_notes": list(dict.fromkeys(safety_notes))[:5],
             "questions": questions,
             "display_questions": questions,
             "limitations": limitations[:3],
