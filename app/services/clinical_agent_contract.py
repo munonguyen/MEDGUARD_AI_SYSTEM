@@ -3,7 +3,9 @@
 The deterministic stack owns facts, safety floors, red flags and tool results.
 The contextual reasoning layer owns a diagnosis-neutral episode representation,
 bounded mechanism hypotheses, and the single highest-information unanswered
-question. The Writer still owns final patient-facing composition.
+question. V27.1 adds a response-policy layer that controls communication depth,
+evidence-bounded reassurance and proportionality before the Writer composes the
+single patient-facing response.
 """
 
 from __future__ import annotations
@@ -16,6 +18,7 @@ from app.models.chat import ChatIntent
 from app.services.clinical_episode_model import build_clinical_episode_model
 from app.services.clinical_text import normalize_search_text
 from app.services.contextual_clinical_reasoner import build_contextual_reasoning_frame
+from app.services.response_policy.engine import build_response_policy
 
 
 @dataclass(frozen=True)
@@ -240,6 +243,57 @@ def _assessment_state(result: dict[str, Any], urgency: str) -> str:
     return "UNDERSTOOD"
 
 
+def _leading_mechanism(reasoning_payload: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not isinstance(reasoning_payload, dict):
+        return None
+    mechanisms = reasoning_payload.get("mechanisms") or []
+    values = [item for item in mechanisms if isinstance(item, dict)]
+    for item in values:
+        if _text(item.get("role")) == "leading":
+            return item
+    return values[0] if values else None
+
+
+def _explanation_frame(
+    episode_payload: dict[str, Any] | None,
+    reasoning_payload: dict[str, Any] | None,
+) -> dict[str, Any]:
+    leading = _leading_mechanism(reasoning_payload)
+    if not leading:
+        return {
+            "what_it_may_mean": None,
+            "why": [],
+            "mechanism": None,
+            "what_would_change_the_assessment": [],
+            "uncertainty": None,
+            "next_best_question": _text((reasoning_payload or {}).get("next_best_question")) or None,
+        }
+
+    change_triggers: list[str] = []
+    if isinstance(episode_payload, dict):
+        for item in episode_payload.get("unknown_decision_relevant") or []:
+            if not isinstance(item, dict):
+                continue
+            question = _text(item.get("question"))
+            if question:
+                change_triggers.append(question)
+
+    limits = [
+        _text(value)
+        for value in (reasoning_payload or {}).get("reasoning_limits", [])
+        if _text(value)
+    ]
+    evidence_for = leading.get("evidence_for") or []
+    return {
+        "what_it_may_mean": _text(leading.get("patient_safe_statement")) or _text(leading.get("label")) or None,
+        "why": [_text(value) for value in evidence_for if _text(value)][:4],
+        "mechanism": _text(leading.get("mechanism")) or None,
+        "what_would_change_the_assessment": change_triggers[:4],
+        "uncertainty": limits[0] if limits else None,
+        "next_best_question": _text((reasoning_payload or {}).get("next_best_question")) or None,
+    }
+
+
 def build_clinical_agent_contract(
     *,
     intent: ChatIntent,
@@ -271,19 +325,17 @@ def build_clinical_agent_contract(
 
     if intent == "triage":
         episode_payload, reasoning_payload = _contextual_reasoning(question, urgency)
-        if assessment_state == "INSUFFICIENT_CONTEXT":
-            add(
-                "summary",
-                "Hệ thống chưa có đủ dữ kiện để coi mức ROUTINE là một kết luận lâm sàng; cần làm rõ bệnh cảnh trước khi đưa ra nhận định chắc hơn.",
-            )
-        elif assessment_state == "PARTIALLY_UNDERSTOOD":
-            add(
-                "summary",
-                "Bệnh cảnh mới được hiểu một phần; mức xử trí hiện tại phải được diễn đạt kèm giới hạn dữ kiện và câu hỏi làm rõ quan trọng nhất.",
-            )
-        else:
-            add("summary", f"Mức xử trí tối thiểu đã được hệ thống an toàn xác định: {urgency}.")
 
+    response_policy = build_response_policy(
+        intent=intent,
+        question=question,
+        urgency=urgency,
+        assessment_state=assessment_state,
+        result=result,
+        reasoning_payload=reasoning_payload,
+    )
+
+    if intent == "triage":
         specialty = result.get("recommended_specialty")
         if isinstance(specialty, dict) and assessment_state not in {"INSUFFICIENT_CONTEXT"}:
             label = _text(specialty.get("label"))
@@ -293,17 +345,21 @@ def build_clinical_agent_contract(
         red_flags = result.get("red_flags") or []
         if isinstance(red_flags, list):
             for flag in red_flags[:6]:
-                add("finding", f"Dấu hiệu đã được xác nhận từ bệnh cảnh hiện tại: {_text(flag)}.")
+                text = _text(flag)
+                if text:
+                    add("finding", f"Dấu hiệu đã được xác nhận từ bệnh cảnh hiện tại: {text}.")
 
         if reasoning_payload:
             for mechanism in reasoning_payload.get("mechanisms", [])[:4]:
+                if not isinstance(mechanism, dict):
+                    continue
                 statement = _text(mechanism.get("patient_safe_statement"))
                 explanation = _text(mechanism.get("mechanism"))
                 if statement and explanation:
                     add(
                         "mechanism",
                         f"{statement} Cơ chế có thể giải thích: {explanation}",
-                        required=False,
+                        required=response_policy.mechanism_required,
                     )
 
         if urgency == "EMERGENCY" or bool(result.get("emergency_flag")):
@@ -324,11 +380,12 @@ def build_clinical_agent_contract(
                     add("action", advice, required=False)
 
             next_question = _text((reasoning_payload or {}).get("next_best_question"))
-            if next_question:
-                add("question", next_question, required=False)
-            else:
-                for value in _questions(result):
-                    add("question", value, required=False)
+            question_required = assessment_state in {"INSUFFICIENT_CONTEXT", "PARTIALLY_UNDERSTOOD"}
+            if next_question and response_policy.question_budget > 0:
+                add("question", next_question, required=question_required)
+            elif response_policy.question_budget > 0:
+                for value in _questions(result)[: response_policy.question_budget]:
+                    add("question", value, required=question_required)
 
     elif intent == "safety":
         risk = _text(result.get("overall_risk") or result.get("risk_level") or result.get("severity"))
@@ -345,8 +402,9 @@ def build_clinical_agent_contract(
                     if message:
                         add("safety", message, required=True, locked=False)
 
+    policy_payload = response_policy.to_payload()
     envelope = {
-        "version": "v27-semantic-authority",
+        "version": "v27.1-adaptive-response-policy",
         "intent": intent,
         "user_question": question,
         "clinical_result": result,
@@ -354,6 +412,13 @@ def build_clinical_agent_contract(
         "patient_context": _safe_patient_context(patient_context),
         "clinical_episode": episode_payload,
         "reasoning_frame": reasoning_payload,
+        "response_policy": policy_payload,
+        "explanation_frame": _explanation_frame(episode_payload, reasoning_payload),
+        "safety_constraints": {
+            "urgency_floor": urgency,
+            "cannot_be_lowered_by_writer": True,
+            "emergency_action_first": response_policy.action_first,
+        },
         "communication_contract": {
             "compose_original_response": True,
             "legacy_template_prose_is_not_evidence": True,
@@ -365,8 +430,17 @@ def build_clinical_agent_contract(
             "never_present_unresolved_as_routine_fact": True,
             "give_concrete_next_action": True,
             "avoid_generic_non_answers": True,
-            "question_budget": 0 if urgency == "EMERGENCY" else 1,
-            "emergency_action_precedes_explanation": urgency == "EMERGENCY",
+            "generic_triage_summary_is_not_patient_explanation": True,
+            "require_because_therefore_explanation_when_supported": response_policy.explanation_required,
+            "reassurance_must_be_evidence_bounded": True,
+            "communication_goal": response_policy.communication_goal.value,
+            "response_depth": response_policy.response_depth.value,
+            "required_sections": list(response_policy.required_sections),
+            "mechanism_required": response_policy.mechanism_required,
+            "reassurance": response_policy.reassurance.to_payload(),
+            "target_length": response_policy.target_length.to_payload(),
+            "question_budget": response_policy.question_budget,
+            "emergency_action_precedes_explanation": response_policy.action_first,
             "unknown_is_not_negative": True,
             "reason_from_episode_delta_not_only_latest_sentence": True,
             "preserve_historical_hard_risk_until_explicitly_invalidated": True,
@@ -377,12 +451,14 @@ def build_clinical_agent_contract(
             "Address the patient's actual concern before background explanation.",
             "Explain what in the story supports the working explanation and what remains unknown.",
             "Describe plausible symptom mechanisms in plain language without turning them into a diagnosis.",
+            "Use reassurance only when response_policy.reassurance.allowed is true and explicitly state its limitations.",
+            "Match response length and explanation depth to response_policy instead of using a one-size-fits-all answer.",
             "Treat unmentioned findings as unknown, never as negative findings.",
             "Do not convert an unresolved semantic match into a reassuring ROUTINE conclusion.",
             "Update the assessment from new facts instead of repeating the previous answer.",
             "If the patient proposes a dangerous action, interrupt and correct it before explaining why.",
             "Give a specific action plan and a clear threshold for seeking care.",
-            "Ask only the single highest-information follow-up question when it can change management.",
+            "Ask only the allowed number of high-information follow-up questions.",
             "Do not reuse fixed response templates or infer patient facts from rule antecedents.",
         ],
     }
