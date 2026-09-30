@@ -1,7 +1,18 @@
-# MedGuard V27.1 high-quality free development profile.
+# MedGuard V27.1 stable free development profile.
 #
-# Writer:   Gemini 3.8 Flash
-# Reviewer: Gemini 3.5 Flash-Lite
+# Mandatory patient-visible path:
+#   Writer   -> Gemini 3.5 Flash-Lite
+#   Reviewer -> Gemini 3.5 Flash-Lite
+#
+# Why not Gemini 3.8 Flash here?
+# The free-tier 3.8 quota is too small to serve as the mandatory Writer path for
+# repeated development/benchmark traffic. A quota-exhausted Writer forces the
+# whole response into deterministic fallback, which is worse than using the
+# lower-cost stable model with MedGuard's strong clinical contract + Jev gates.
+#
+# NOTE: Writer and Reviewer remain separate calls and separate roles, but this
+# FREE profile does not provide model-family independence. Use the quality/paid
+# profile when independent model judgment is required.
 #
 # DEVELOPMENT/STAGING ONLY. Free-tier prompts may be used by Google to improve
 # its products; use de-identified test data only. Deterministic MedGuard safety
@@ -14,7 +25,7 @@
 model_list:
   - model_name: medguard-answer
     litellm_params:
-      model: gemini/gemini-3.8-flash
+      model: gemini/gemini-3.5-flash-lite
       api_key: os.environ/GEMINI_API_KEY
       timeout: 60
     model_info:
@@ -36,7 +47,7 @@ model_list:
 
   - model_name: medguard-clinical-answer
     litellm_params:
-      model: gemini/gemini-3.8-flash
+      model: gemini/gemini-3.5-flash-lite
       api_key: os.environ/GEMINI_API_KEY
       timeout: 60
     model_info:
@@ -58,7 +69,7 @@ model_list:
 
   - model_name: medguard-pharma-answer
     litellm_params:
-      model: gemini/gemini-3.8-flash
+      model: gemini/gemini-3.5-flash-lite
       api_key: os.environ/GEMINI_API_KEY
       timeout: 60
     model_info:
