@@ -163,7 +163,7 @@ def main() -> int:
     parser.add_argument("--timeout", type=int, default=45)
     parser.add_argument(
         "--writer-model",
-        default=os.getenv("MEDGUARD_STABILITY_WRITER_MODEL", "gemini-3.5-flash-lite"),
+        default=os.getenv("MEDGUARD_STABILITY_WRITER_MODEL", "gemini-3.5-flash"),
         help="Direct API model used by the mandatory Writer path.",
     )
     parser.add_argument(
