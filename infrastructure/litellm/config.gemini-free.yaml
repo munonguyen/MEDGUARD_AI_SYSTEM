@@ -1,99 +1,76 @@
-# MedGuard high-quality free development profile.
+# Legacy quota-limited development profile retained for backward-compatible
+# architecture tests and local MedGemma reviewer experiments.
 #
-# Writer:   Gemini 3.8 Flash        -> strongest current stable Flash model.
-# Reviewer: Gemini 3.5 Flash-Lite   -> fast, lower-latency independent pass.
-#
-# Both models are available on the Gemini Developer API free tier subject to
-# Google's current project quotas. Free-tier prompts may be used by Google to
-# improve its products, so this profile is DEVELOPMENT/STAGING ONLY and must be
-# used only with de-identified test data. Deterministic MedGuard safety gates
-# remain authoritative.
-#
-# We deliberately do NOT require hosted Google Search in this free profile.
-# Clinical grounding comes from MedGuard's bounded KB/RAG/runtime evidence so
-# an exhausted search quota cannot silently force every response to fallback.
-
+# V27.1 runtime does NOT use this file. See config.gemini-v27-free.yaml.
 model_list:
-  # ==========================================================
-  # 1. General Writer / Reviewer
-  # ==========================================================
   - model_name: medguard-answer
     litellm_params:
-      model: gemini/gemini-3.8-flash
+      model: gemini/gemini-2.5-flash
       api_key: os.environ/GEMINI_API_KEY
-      timeout: 60
+      timeout: 45
     model_info:
       mode: chat
-      role: patient_response_writer
-      supports_web_search: false
+      supports_web_search: true
       supported_environments: [development, staging]
 
   - model_name: medguard-verifier
     litellm_params:
-      model: gemini/gemini-3.5-flash-lite
-      api_key: os.environ/GEMINI_API_KEY
-      timeout: 60
+      model: ollama_chat/medgemma1.5:4b
+      api_base: http://host.docker.internal:11434
+      timeout: 180
+      num_ctx: 8192
     model_info:
       mode: chat
-      role: non_authoring_reviewer
       supports_web_search: false
       supported_environments: [development, staging]
 
-  # ==========================================================
-  # 2. Clinical Writer / Reviewer
-  # ==========================================================
   - model_name: medguard-clinical-answer
     litellm_params:
-      model: gemini/gemini-3.8-flash
+      model: gemini/gemini-2.5-flash
       api_key: os.environ/GEMINI_API_KEY
-      timeout: 60
+      timeout: 45
     model_info:
       mode: chat
-      role: clinical_patient_response_writer
-      supports_web_search: false
+      supports_web_search: true
       supported_environments: [development, staging]
 
   - model_name: medguard-clinical-verifier
     litellm_params:
-      model: gemini/gemini-3.5-flash-lite
-      api_key: os.environ/GEMINI_API_KEY
-      timeout: 60
+      model: ollama_chat/medgemma1.5:4b
+      api_base: http://host.docker.internal:11434
+      timeout: 180
+      num_ctx: 8192
     model_info:
       mode: chat
-      role: clinical_non_authoring_reviewer
       supports_web_search: false
       supported_environments: [development, staging]
 
-  # ==========================================================
-  # 3. Pharmacy / Medication Safety Writer / Reviewer
-  # ==========================================================
   - model_name: medguard-pharma-answer
     litellm_params:
-      model: gemini/gemini-3.8-flash
+      model: gemini/gemini-2.5-flash
       api_key: os.environ/GEMINI_API_KEY
-      timeout: 60
+      timeout: 45
     model_info:
       mode: chat
-      role: medication_patient_response_writer
-      supports_web_search: false
+      supports_web_search: true
       supported_environments: [development, staging]
 
   - model_name: medguard-pharma-verifier
     litellm_params:
-      model: gemini/gemini-3.5-flash-lite
-      api_key: os.environ/GEMINI_API_KEY
-      timeout: 60
+      model: ollama_chat/medgemma1.5:4b
+      api_base: http://host.docker.internal:11434
+      timeout: 180
+      num_ctx: 8192
     model_info:
       mode: chat
-      role: medication_non_authoring_reviewer
       supports_web_search: false
       supported_environments: [development, staging]
 
 litellm_settings:
   drop_params: true
   telemetry: false
-  request_timeout: 60
-  num_retries: 1
+  request_timeout: 180
+  num_retries: 0
   allowed_fails: 2
   cooldown_time: 30
   success_callback: [prometheus]
@@ -115,24 +92,18 @@ litellm_settings:
       - medguard-pharma-answer
       - medguard-pharma-verifier
     budget_duration: 30d
-    # Conservative guardrails for free-tier development usage. Google's actual
-    # quota remains the final authority and may vary by project/model.
-    rpm_limit: 8
-    tpm_limit: 80000
+    rpm_limit: 10
+    tpm_limit: 100000
     max_parallel_requests: 1
 
 router_settings:
   routing_strategy: simple-shuffle
   enable_pre_call_checks: true
-  num_retries: 1
-  timeout: 60
+  num_retries: 0
+  timeout: 180
   redis_host: os.environ/REDIS_HOST
   redis_port: os.environ/REDIS_PORT
   redis_password: os.environ/REDIS_PASSWORD
-  fallbacks:
-    - medguard-clinical-answer: ["medguard-clinical-verifier"]
-    - medguard-answer: ["medguard-verifier"]
-    - medguard-pharma-answer: ["medguard-pharma-verifier"]
 
 general_settings:
   master_key: os.environ/LITELLM_MASTER_KEY
