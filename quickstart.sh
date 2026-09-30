@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "${ROOT_DIR}"
@@ -11,11 +11,13 @@ echo
 
 PYTHON_BIN="$(command -v python3 || command -v python || echo "python")"
 
-# 1. Setup local environment & API keys (auto-embedded default key)
+# 1. Setup local environment & API keys. Provider keys are never embedded in
+# tracked source; export GEMINI_API_KEY for unattended runs, or enter it when
+# prompted during an interactive setup.
 if [[ ! -f "${ROOT_DIR}/.env" ]] || [[ ! -f "${ROOT_DIR}/infrastructure/litellm/.env" ]]; then
-    echo "[1/4] Chưa tìm thấy file cấu hình cục bộ. Đang tự động thiết lập..."
+    echo "[1/4] Chưa tìm thấy file cấu hình cục bộ. Đang thiết lập..."
     chmod +x "${ROOT_DIR}/scripts/configure_gemini_free.sh"
-    "${ROOT_DIR}/scripts/configure_gemini_free.sh" --default
+    "${ROOT_DIR}/scripts/configure_gemini_free.sh"
     echo "  ✅ Đã khởi tạo .env và infrastructure/litellm/.env thành công."
 else
     echo "[1/4] File cấu hình .env đã sẵn sàng."
@@ -27,15 +29,21 @@ echo "[2/4] Kiểm tra và khởi động LiteLLM Gateway..."
 if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
     (cd "${ROOT_DIR}/infrastructure/litellm" && docker compose up -d)
     echo "  ⏳ Đang chờ LiteLLM Gateway sẵn sàng trên port 4000..."
-    for i in {1..30}; do
+    gateway_ready=false
+    for _ in {1..30}; do
         if curl -s -f http://127.0.0.1:4000/health/liveliness >/dev/null 2>&1; then
+            gateway_ready=true
             echo "  ✅ LiteLLM Gateway đã hoạt động trên http://127.0.0.1:4000"
             break
         fi
         sleep 1
     done
+    if [[ "${gateway_ready}" != "true" ]]; then
+        echo "  ❌ LiteLLM Gateway chưa sẵn sàng sau 30 giây." >&2
+        exit 1
+    fi
 else
-    echo "  ⚠️ Docker chưa chạy hoặc không tìm thấy Docker. Nếu bạn chạy gateway ở máy khác, vui lòng kiểm tra URL trong .env."
+    echo "  ⚠️ Docker chưa chạy hoặc không tìm thấy Docker. Nếu bạn chạy gateway ở máy khác, kiểm tra URL trong .env."
 fi
 echo
 
@@ -45,7 +53,7 @@ if [[ -f "${ROOT_DIR}/.venv/bin/python" ]]; then
     VENV_PYTHON="${ROOT_DIR}/.venv/bin/python"
     echo "  ✅ Sử dụng môi trường ảo: .venv"
 else
-    echo "  ⚠️ Chưa có .venv. Đang tạo .venv và cài đặt dependencies tối thiểu..."
+    echo "  ⚠️ Chưa có .venv. Đang tạo .venv và cài dependencies..."
     "${PYTHON_BIN}" -m venv "${ROOT_DIR}/.venv"
     VENV_PYTHON="${ROOT_DIR}/.venv/bin/python"
     "${VENV_PYTHON}" -m pip install --upgrade pip
@@ -57,14 +65,12 @@ fi
 echo
 
 # 4. Instructions / Execution
-echo "[4/4] Hệ thống đã sẵn sàng!"
+echo "[4/4] Hệ thống đã sẵn sàng cho smoke test."
 echo "============================================================"
-echo "CÁC LỆNH KHỞI CHẠY TIẾP THEO:"
-echo "------------------------------------------------------------"
 echo "1. Chạy Backend MedGuard Server:"
 echo "   ${ROOT_DIR}/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload"
 echo
-echo "2. Chạy Frontend (Giao diện bác sĩ / bệnh nhân):"
+echo "2. Chạy Frontend:"
 echo "   cd frontend && npm install && npm run dev"
 echo
 echo "3. Kiểm tra kết nối Model Gemini:"
@@ -73,6 +79,6 @@ echo "============================================================"
 
 if [[ "${1:-}" == "--run" ]]; then
     echo
-    echo "🚀 Đang tự động khởi chạy Backend MedGuard trên http://127.0.0.1:8000..."
+    echo "🚀 Đang khởi chạy Backend MedGuard trên http://127.0.0.1:8000..."
     exec "${VENV_PYTHON}" -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 fi
