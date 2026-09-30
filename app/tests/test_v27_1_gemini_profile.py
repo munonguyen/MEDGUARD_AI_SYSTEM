@@ -6,14 +6,19 @@ from pathlib import Path
 ROOT_DIR = Path(__file__).resolve().parents[2]
 
 
-def test_v27_free_profile_uses_current_gemini_writer_and_reviewer() -> None:
+def test_v27_free_profile_uses_quota_stable_gemini_aliases() -> None:
     config = (ROOT_DIR / "infrastructure/litellm/config.gemini-v27-free.yaml").read_text(
         encoding="utf-8"
     )
 
+    # The FREE development profile intentionally keeps all six role aliases on
+    # Flash-Lite because the free-tier project exhausted the daily quota for the
+    # stronger Flash variants during repeated stability certification. Role
+    # separation is contractual even when model-family independence is not
+    # available in this quota-limited profile.
     assert config.count("model_name:") == 6
-    assert config.count("model: gemini/gemini-3.8-flash") == 3
-    assert config.count("model: gemini/gemini-3.5-flash-lite") == 3
+    assert config.count("model: gemini/gemini-3.5-flash-lite") == 6
+    assert "model: gemini/gemini-3.8-flash" not in config
     assert "ollama_chat/" not in config
     assert "openai/" not in config
 
