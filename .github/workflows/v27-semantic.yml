@@ -59,3 +59,32 @@ jobs:
         run: npm run test:v27
       - name: Build frontend
         run: npm run build
+
+  gemini-live-stability:
+    name: Gemini live provider stability
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Detect configured Gemini secret
+        id: gemini-secret
+        shell: bash
+        run: |
+          if [[ -n "${GEMINI_API_KEY}" ]]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Run repeated Gemini Writer and Reviewer stability test
+        if: steps.gemini-secret.outputs.available == 'true'
+        run: python scripts/test_gemini_stability.py --direct --iterations 5
+      - name: Report missing live-test secret
+        if: steps.gemini-secret.outputs.available != 'true'
+        run: echo "GEMINI_API_KEY Actions secret is not configured; live provider test skipped."
