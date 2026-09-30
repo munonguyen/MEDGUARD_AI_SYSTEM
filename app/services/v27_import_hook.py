@@ -23,30 +23,60 @@ _TARGETS = {_ANSWER_TARGET, _CONTRACT_TARGET}
 _MARKER = "_medguard_v27_runtime_import_hook"
 
 
-def _install_episode_builder_compat(module: ModuleType) -> None:
-    """Adapt the legacy positional contract call to the V25 keyword-only API.
+def _payload(value: Any) -> dict[str, Any]:
+    """Serialize both Pydantic V25 models and V27 payload objects safely."""
+    if value is None:
+        return {}
+    to_agent_payload = getattr(value, "to_agent_payload", None)
+    if callable(to_agent_payload):
+        payload = to_agent_payload()
+        return dict(payload) if isinstance(payload, dict) else {}
+    to_payload = getattr(value, "to_payload", None)
+    if callable(to_payload):
+        payload = to_payload()
+        return dict(payload) if isinstance(payload, dict) else {}
+    model_dump = getattr(value, "model_dump", None)
+    if callable(model_dump):
+        payload = model_dump(mode="json")
+        return dict(payload) if isinstance(payload, dict) else {}
+    return dict(value) if isinstance(value, dict) else {}
 
-    ``build_clinical_episode_model`` is keyword-only and requires an episode id.
-    V27.1's contract adapter historically passed just the messages positionally.
-    Keep that call site backward compatible without changing the underlying V25
-    episode builder or its public contract.
-    """
+
+def _install_episode_builder_compat(module: ModuleType) -> None:
+    """Bridge V27.1 contract calls to the current V25 episode/reasoning APIs."""
 
     original = getattr(module, "build_clinical_episode_model", None)
-    if original is None or getattr(original, "_v27_keyword_compat", False):
+    if original is None:
         return
 
-    @wraps(original)
-    def compatible(*args: Any, **kwargs: Any):
-        if args:
-            if len(args) != 1 or "messages" in kwargs:
-                raise TypeError("clinical episode compatibility adapter accepts one positional messages argument")
-            kwargs["messages"] = args[0]
-        kwargs.setdefault("episode_id", "v27-contract-active-episode")
-        return original(**kwargs)
+    if not getattr(original, "_v27_keyword_compat", False):
+        @wraps(original)
+        def compatible(*args: Any, **kwargs: Any):
+            if args:
+                if len(args) != 1 or "messages" in kwargs:
+                    raise TypeError(
+                        "clinical episode compatibility adapter accepts one positional messages argument"
+                    )
+                kwargs["messages"] = args[0]
+            kwargs.setdefault("episode_id", "v27-contract-active-episode")
+            return original(**kwargs)
 
-    compatible._v27_keyword_compat = True  # type: ignore[attr-defined]
-    module.build_clinical_episode_model = compatible
+        compatible._v27_keyword_compat = True  # type: ignore[attr-defined]
+        module.build_clinical_episode_model = compatible
+
+    # V25 ClinicalEpisodeModel/ClinicalReasoningFrame expose to_agent_payload(),
+    # while the initial V27.1 contract called to_payload(). Replace only the
+    # internal adapter after module load so the public V25 classes stay intact.
+    if not getattr(module, "_v27_contextual_reasoning_compat", False):
+        def contextual_reasoning(question: str, urgency: str):
+            if module._peripheral_joint_signal(question):
+                return module._peripheral_joint_context(question)
+            episode = module.build_clinical_episode_model(module._episode_messages(question))
+            reasoning = module.build_contextual_reasoning_frame(episode, urgency=urgency)
+            return _payload(episode), _payload(reasoning)
+
+        module._contextual_reasoning = contextual_reasoning
+        module._v27_contextual_reasoning_compat = True
 
 
 class _PostLoadLoader(importlib.abc.Loader):
