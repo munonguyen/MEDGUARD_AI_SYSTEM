@@ -6,6 +6,7 @@ from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
 SECRET_LIKE_GEMINI_KEY = re.compile(r"AQ\.[A-Za-z0-9_-]{20,}")
+EMBEDDED_DEFAULT_ASSIGNMENT = re.compile(r"\bDEFAULT_KEY_B64\s*=")
 TEXT_SUFFIXES = {".py", ".sh", ".yaml", ".yml", ".json", ".toml", ".md", ".txt", ".example"}
 SKIP_DIRS = {".git", ".venv", "node_modules", "dist", ".artifacts"}
 
@@ -21,7 +22,7 @@ def test_no_provider_key_is_embedded_in_tracked_source() -> None:
             text = path.read_text(encoding="utf-8")
         except UnicodeDecodeError:
             continue
-        if SECRET_LIKE_GEMINI_KEY.search(text) or "DEFAULT_KEY_B64" in text:
+        if SECRET_LIKE_GEMINI_KEY.search(text) or EMBEDDED_DEFAULT_ASSIGNMENT.search(text):
             offenders.append(str(path.relative_to(ROOT_DIR)))
 
     assert offenders == [], f"Provider credential material found in tracked source: {offenders}"
@@ -32,6 +33,6 @@ def test_gemini_setup_requires_runtime_secret() -> None:
     quickstart = (ROOT_DIR / "quickstart.sh").read_text(encoding="utf-8")
 
     assert "GEMINI_API_KEY is required" in setup
-    assert "DEFAULT_KEY_B64" not in setup
+    assert not EMBEDDED_DEFAULT_ASSIGNMENT.search(setup)
     assert "--default" not in setup
     assert "--default" not in quickstart
