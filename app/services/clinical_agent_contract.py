@@ -335,6 +335,17 @@ def build_clinical_agent_contract(
         reasoning_payload=reasoning_payload,
     )
 
+    if intent == "triage" and assessment_state == "INSUFFICIENT_CONTEXT":
+        add(
+            "summary",
+            "Hiện chưa có đủ dữ kiện để xác định nguyên nhân hoặc coi mức ROUTINE là một kết luận lâm sàng.",
+        )
+    elif intent == "triage" and assessment_state == "PARTIALLY_UNDERSTOOD":
+        add(
+            "summary",
+            "Hiện bệnh cảnh mới được hiểu một phần; cần giữ rõ giới hạn dữ kiện trước khi đưa ra nhận định chắc hơn.",
+        )
+
     if intent == "triage":
         specialty = result.get("recommended_specialty")
         if isinstance(specialty, dict) and assessment_state not in {"INSUFFICIENT_CONTEXT"}:
@@ -404,7 +415,8 @@ def build_clinical_agent_contract(
 
     policy_payload = response_policy.to_payload()
     envelope = {
-        "version": "v27.1-adaptive-response-policy",
+        "version": "v27-semantic-authority",
+        "response_policy_version": "v27.1-adaptive-response-policy",
         "intent": intent,
         "user_question": question,
         "clinical_result": result,
