@@ -338,7 +338,7 @@ def build_clinical_agent_contract(
     if intent == "triage" and assessment_state == "INSUFFICIENT_CONTEXT":
         add(
             "summary",
-            "Hiện chưa có đủ dữ kiện để xác định nguyên nhân hoặc coi mức ROUTINE là một kết luận lâm sàng.",
+            "Hiện chưa có đủ dữ kiện để hiểu rõ bệnh cảnh hoặc đưa ra nhận định lâm sàng chắc chắn.",
         )
     elif intent == "triage" and assessment_state == "PARTIALLY_UNDERSTOOD":
         add(
