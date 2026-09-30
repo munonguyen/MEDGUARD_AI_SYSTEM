@@ -139,9 +139,6 @@ def _run_series(name: str, fn, *, iterations: int, max_p95_s: float) -> bool:
     median = statistics.median(latencies) if latencies else float("inf")
     p95 = _p95(latencies)
 
-    # Stability requires all logical requests to succeed after bounded retry.
-    # Retries are reported because a 100% final rate can still hide provider
-    # throttling or transient outages.
     ok = success_rate == 1.0 and p95 <= max_p95_s
     marker = "PASS" if ok else "FAIL"
     print(
@@ -163,7 +160,7 @@ def main() -> int:
     parser.add_argument("--timeout", type=int, default=45)
     parser.add_argument(
         "--writer-model",
-        default=os.getenv("MEDGUARD_STABILITY_WRITER_MODEL", "gemini-3.5-flash"),
+        default=os.getenv("MEDGUARD_STABILITY_WRITER_MODEL", "gemini-3.5-flash-lite"),
         help="Direct API model used by the mandatory Writer path.",
     )
     parser.add_argument(
