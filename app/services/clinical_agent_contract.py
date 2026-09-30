@@ -1,4 +1,4 @@
-"""Structured clinical contract for the agent-first response path.
+"""Build the bounded clinical contract consumed by MedGuard Writer/Reviewer.
 
 The deterministic stack owns facts, safety floors, red flags and tool results.
 The contextual reasoning layer owns a diagnosis-neutral episode representation,
@@ -11,7 +11,6 @@ single patient-facing response.
 from __future__ import annotations
 
 from dataclasses import dataclass
-import re
 from typing import Any
 
 from app.models.chat import ChatIntent
@@ -31,214 +30,156 @@ def _text(value: Any) -> str:
     return str(value).strip() if value is not None else ""
 
 
-def _safe_patient_context(context: dict[str, Any] | None) -> dict[str, Any]:
-    source = context or {}
-    allowed = ("age", "sex", "current_medications", "allergies", "conditions")
-    return {key: source.get(key) for key in allowed if source.get(key) not in (None, [], "")}
+def _safe_patient_context(patient_context: dict[str, Any] | None) -> dict[str, Any]:
+    context = dict(patient_context or {})
+    for key in (
+        "patient_ref",
+        "patient_id",
+        "name",
+        "full_name",
+        "email",
+        "phone",
+        "address",
+        "last_result",
+    ):
+        context.pop(key, None)
+    return context
 
 
 def _questions(result: dict[str, Any]) -> list[str]:
-    values = result.get("clarifying_questions") or result.get("guidance_questions") or []
-    if not isinstance(values, list):
+    raw = result.get("clarifying_questions") or result.get("questions") or []
+    if not isinstance(raw, list):
         return []
-    return [str(value).strip() for value in values if str(value).strip()][:3]
+    values: list[str] = []
+    for item in raw:
+        value = _text(item)
+        if value and value not in values:
+            values.append(value)
+    return values
 
 
 def _episode_messages(question: str) -> list[dict[str, str]]:
-    lines = [line.strip() for line in question.splitlines() if line.strip()]
-    if not lines:
-        lines = [question.strip()]
-    messages: list[dict[str, str]] = []
-    for line in lines:
-        if line.lower().startswith("lượt hiện tại:"):
-            line = line.split(":", 1)[1].strip()
-        if line:
-            messages.append({"role": "user", "content": line})
-    return messages or [{"role": "user", "content": question.strip()}]
+    values: list[dict[str, str]] = []
+    for raw in question.splitlines():
+        text = raw.strip()
+        if not text:
+            continue
+        if text.lower().startswith("lượt hiện tại:"):
+            text = text.split(":", 1)[1].strip()
+        if text:
+            values.append({"role": "user", "content": text})
+    if not values and question.strip():
+        values.append({"role": "user", "content": question.strip()})
+    return values
 
 
 def _peripheral_joint_signal(question: str) -> bool:
-    """Detect specific peripheral-joint language independent of word order."""
     norm = normalize_search_text(question)
-    joint_site = bool(
-        re.search(
-            r"\b(?:cac\s+|nhieu\s+)?khop\s+(?:ngon\s+tay|co\s+tay|ban\s+tay|tay)\b",
-            norm,
-        )
+    joint_terms = (
+        "khop tay",
+        "khop ngon",
+        "khop ngon tay",
+        "khop co tay",
+        "khop goi",
+        "khop co chan",
+        "nhieu khop",
+        "cac khop",
+        "dau khop",
+        "sung khop",
+        "cung khop",
     )
-    symptom = bool(
-        re.search(
-            r"\b(?:dau|nhuc|sung|nong|do|cung|han che cu dong|kho cu dong|kho nam|kho cam)\b",
-            norm,
-        )
-    )
-    return joint_site and symptom
+    return any(term in norm for term in joint_terms)
 
 
-def _peripheral_joint_context(
-    question: str,
-    episode_payload: dict[str, Any] | None,
-) -> tuple[dict[str, Any] | None, dict[str, Any]]:
-    """Build a diagnosis-neutral hand/peripheral-joint reasoning envelope."""
-    norm = normalize_search_text(question)
-    unknowns: list[dict[str, Any]] = []
-
-    def unknown(key: str, question_text: str, impact: str, changes: tuple[str, ...], rationale: str) -> None:
-        unknowns.append(
+def _peripheral_joint_context(question: str) -> tuple[dict[str, Any], dict[str, Any]]:
+    episode = {
+        "version": "v27-peripheral-joint",
+        "active_episode": question,
+        "body_domain": "peripheral_joint",
+        "known": [
             {
-                "key": key,
-                "question": question_text,
-                "impact": impact,
-                "changes": list(changes),
-                "rationale": rationale,
+                "fact": "peripheral_joint_symptom",
+                "evidence": question,
             }
-        )
-
-    inflammatory_known = any(
-        marker in norm
-        for marker in (
-            "sung",
-            "nong",
-            "do khop",
-            "khop do",
-            "khong sung",
-            "khong nong",
-            "khong do",
-            "cung khop",
-            "cung buoi sang",
-        )
-    )
-    if not inflammatory_known:
-        unknown(
-            "joint_inflammation_pattern",
-            "Các khớp có bị sưng/nóng/đỏ hoặc cứng rõ vào buổi sáng không?",
-            "high",
-            ("inflammatory_pathway", "urgency", "evaluation_priority"),
-            "Sưng nóng đỏ hoặc cứng khớp buổi sáng giúp phân biệt quá tải cơ học với một quá trình viêm quanh/ở khớp và có thể thay đổi mức đánh giá.",
-        )
-
-    if not any(marker in norm for marker in ("sot", "khong sot", "lanh run", "khong lanh run")):
-        unknown(
-            "fever_systemic_features",
-            "Bạn có sốt hoặc rét run kèm khớp sưng đau tăng nhanh không?",
-            "critical",
-            ("urgent_infection_evaluation",),
-            "Sốt kèm một khớp sưng nóng đau tăng nhanh là dữ kiện an toàn quan trọng và có thể cần đánh giá sớm.",
-        )
-
-    if not any(
-        marker in norm
-        for marker in (
-            "chan thuong",
-            "nga",
-            "va dap",
-            "mang vac",
-            "lap lai",
-            "go phim",
-            "tap gym",
-            "khong chan thuong",
-        )
-    ):
-        unknown(
-            "trauma_or_repetitive_load",
-            "Trước khi đau có chấn thương, mang vác, tập luyện hoặc vận động tay lặp đi lặp lại nhiều hơn bình thường không?",
-            "medium",
-            ("mechanical_overuse_pathway",),
-            "Chấn thương hoặc tải lặp lại có thể làm thay đổi cơ chế hợp lý nhất và cách tự chăm sóc ban đầu.",
-        )
-
-    if not any(marker in norm for marker in ("te tay", "te ngon", "yeu tay", "yeu ngon", "khong te", "khong yeu")):
-        unknown(
-            "hand_neurologic_features",
-            "Bạn có tê, yếu bàn tay/ngón tay hoặc cầm nắm đồ vật khó hơn bình thường không?",
-            "high",
-            ("neurologic_evaluation",),
-            "Tê hoặc yếu thật sự gợi ý cần xem thêm đường thần kinh, không nên quy toàn bộ triệu chứng cho riêng khớp.",
-        )
-
-    mechanisms: list[dict[str, Any]] = [
-        {
-            "hypothesis_id": "peripheral_joint_local_process",
-            "label": "Đau có vẻ xuất phát từ khớp ngoại biên ở tay hơn là cột sống",
-            "role": "leading",
-            "support_level": "plausible",
-            "mechanism": (
-                "Đau khu trú ở các khớp bàn/ngón/cổ tay có thể liên quan tải cơ học của khớp và mô quanh khớp hoặc một quá trình viêm tại khớp; "
-                "cần các dấu hiệu tại chỗ và diễn tiến để phân biệt tốt hơn."
-            ),
-            "evidence_for": [question],
-            "evidence_against": [],
-            "unresolved": [item["key"] for item in unknowns],
-            "patient_safe_statement": (
-                "Vị trí triệu chứng hiện phù hợp với một vấn đề ở khớp/mô quanh khớp của tay hơn là bệnh cảnh đau cột sống, nhưng hiện chưa đủ dữ kiện để xác định nguyên nhân."
-            ),
-        }
-    ]
-
-    next_unknown = next((item for item in unknowns if item["key"] == "fever_systemic_features"), None)
-    local_unknown = next((item for item in unknowns if item["key"] == "joint_inflammation_pattern"), None)
-    selected = local_unknown or next_unknown or (unknowns[0] if unknowns else None)
-
-    episode = dict(episode_payload or {})
-    episode["chief_domain"] = "peripheral_joint"
-    episode["unknown_decision_relevant"] = unknowns
-    episode["problem_representation"] = (
-        "Bệnh cảnh khớp ngoại biên ở tay đang được làm rõ; chưa đủ dữ kiện để kết luận cơ chế viêm, cơ học, chấn thương hay thần kinh."
-    )
-
+        ],
+        "unknown_decision_relevant": [
+            {
+                "fact": "joint_inflammatory_features",
+                "question": "Các khớp có sưng, nóng, đỏ hoặc cứng khớp buổi sáng kéo dài không?",
+                "impact": "high",
+                "changes": ["inflammatory_vs_mechanical", "urgency"],
+            },
+            {
+                "fact": "systemic_features",
+                "question": "Bạn có sốt, rét run hoặc cảm giác mệt lả bất thường không?",
+                "impact": "high",
+                "changes": ["infection_risk", "urgency"],
+            },
+            {
+                "fact": "trauma_or_overuse",
+                "question": "Đau xuất hiện sau chấn thương, tập luyện hoặc vận động lặp lại không?",
+                "impact": "medium",
+                "changes": ["mechanical_explanation"],
+            },
+            {
+                "fact": "neurovascular_deficit",
+                "question": "Bạn có tê, yếu bàn tay hoặc ngón tay đổi màu/lạnh bất thường không?",
+                "impact": "high",
+                "changes": ["neurovascular_urgency"],
+            },
+        ],
+    }
     reasoning = {
         "version": "v27-peripheral-joint",
-        "mechanisms": mechanisms,
-        "leading_hypothesis_ids": ["peripheral_joint_local_process"],
-        "must_not_miss_unknowns": [item["key"] for item in unknowns if item["impact"] == "critical"],
-        "next_best_question": selected["question"] if selected else None,
-        "next_question_key": selected["key"] if selected else None,
-        "reasoning_limits": [
-            "Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.",
-            "Không được chuyển bệnh cảnh khớp tay sang reasoning cột sống chỉ vì cùng thuộc cơ-xương-khớp.",
-            "Dữ kiện chưa được người dùng cung cấp phải giữ ở trạng thái unknown.",
+        "mechanisms": [
+            {
+                "hypothesis_id": "peripheral_joint_nonspecific",
+                "label": "Đau khớp ngoại vi chưa xác định nguyên nhân",
+                "role": "leading",
+                "confidence": "uncertain",
+                "mechanism": (
+                    "Đau ở các khớp tay có thể đến từ mô quanh khớp, quá tải cơ học hoặc viêm; "
+                    "cần thêm dấu hiệu tại khớp và triệu chứng toàn thân để phân biệt."
+                ),
+                "patient_safe_statement": (
+                    "Đau ở các khớp tay có nhiều nhóm nguyên nhân khác nhau và hiện chưa đủ dữ kiện để chọn một nguyên nhân cụ thể."
+                ),
+                "evidence_for": [question],
+                "evidence_against": [],
+            }
         ],
+        "reasoning_limits": [
+            "Chưa có thông tin về sưng/nóng/đỏ, cứng khớp buổi sáng, sốt, chấn thương hoặc triệu chứng thần kinh-mạch máu."
+        ],
+        "next_best_question": "Các khớp có sưng, nóng, đỏ hoặc cứng khớp buổi sáng kéo dài không?",
     }
     return episode, reasoning
 
 
 def _contextual_reasoning(question: str, urgency: str) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
-    try:
-        episode = build_clinical_episode_model(
-            episode_id="writer-active-episode",
-            messages=_episode_messages(question),
-        )
-        episode = episode.model_copy(
-            update={
-                "latest_user_message": question,
-                "active_episode_text": question,
-            }
-        )
-        episode_payload = episode.to_agent_payload()
-        if _peripheral_joint_signal(question):
-            return _peripheral_joint_context(question, episode_payload)
-        reasoning = build_contextual_reasoning_frame(episode, urgency=urgency)
-        return episode_payload, reasoning.to_agent_payload()
-    except Exception:
-        return None, None
+    if _peripheral_joint_signal(question):
+        return _peripheral_joint_context(question)
+    episode = build_clinical_episode_model(_episode_messages(question))
+    reasoning = build_contextual_reasoning_frame(episode, urgency=urgency)
+    return episode.to_payload(), reasoning.to_payload()
 
 
 def _assessment_state(result: dict[str, Any], urgency: str) -> str:
-    trace = result.get("trace") or {}
-    details = trace.get("details") if isinstance(trace, dict) else {}
-    details = details if isinstance(details, dict) else {}
-    semantic_status = _text(details.get("semantic_status")).upper()
-    source = _text(details.get("resolution_source")).lower()
-    try:
-        confidence = float(details.get("confidence", 1.0))
-    except (TypeError, ValueError):
-        confidence = 1.0
-
-    if urgency == "EMERGENCY":
+    if urgency == "EMERGENCY" or bool(result.get("emergency_flag")):
         return "SAFETY_ESCALATED"
-    if semantic_status == "UNRESOLVED" or source in {"fail_safe", "epistemic_escalation", "needs_information_contract"}:
+    if urgency in {"UNRESOLVED", "UNKNOWN", "UNCERTAIN", ""}:
         return "INSUFFICIENT_CONTEXT"
-    if semantic_status == "PARTIALLY_UNDERSTOOD" or confidence < 0.70:
+    matched = result.get("matched")
+    confidence = result.get("confidence")
+    if matched is False:
+        return "INSUFFICIENT_CONTEXT"
+    try:
+        confidence_value = float(confidence) if confidence is not None else None
+    except (TypeError, ValueError):
+        confidence_value = None
+    if confidence_value is not None and confidence_value <= 0:
+        return "INSUFFICIENT_CONTEXT"
+    if confidence_value is not None and confidence_value < 0.70:
         return "PARTIALLY_UNDERSTOOD"
     return "UNDERSTOOD"
 
@@ -381,7 +322,7 @@ def build_clinical_agent_contract(
             )
             add(
                 "safety",
-                "Không được hạ mức xử trí cấp cứu chỉ vì triệu chứng tạm thời giảm hoặc người bệnh muốn ở nhà theo dõi.",
+                "Không được hạ mức xử trí cấp cứu chỉ vì triệu chứng tạm thời giảm hoặc vì người bệnh muốn trì hoãn việc được đánh giá trực tiếp.",
                 locked=False,
             )
         else:
