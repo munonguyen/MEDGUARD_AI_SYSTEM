@@ -4,13 +4,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def test_v27_free_gateway_profile_uses_stable_flash_lite_for_mandatory_path() -> None:
+def test_v27_free_gateway_profile_uses_3_5_flash_writer_and_flash_lite_reviewer() -> None:
     config = (ROOT / "infrastructure/litellm/config.gemini-v27-free.yaml").read_text(
         encoding="utf-8"
     )
 
     assert config.count("model_name:") == 6
-    assert config.count("model: gemini/gemini-3.5-flash-lite") == 6
+    assert config.count("model: gemini/gemini-3.5-flash\n") == 3
+    assert config.count("model: gemini/gemini-3.5-flash-lite") == 3
     assert "model: gemini/gemini-3.8-flash" not in config
     assert "model_name: medguard-answer" in config
     assert "model_name: medguard-clinical-answer" in config
