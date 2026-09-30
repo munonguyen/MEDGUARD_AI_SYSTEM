@@ -11,17 +11,33 @@ if [[ ! -f "${APP_TEMPLATE}" ]]; then
   exit 1
 fi
 
+PYTHON_BIN="${PYTHON:-$(command -v python3 || command -v python || echo "python")}"
+DEFAULT_KEY_B64="QVEuQWI4Uk42SzdZaXFFekoxUklRcmpsNG1hOEctU0dBZ3JlYnBucWFyWW9ZVVg5aU82b1E="
+
 if [[ -z "${GEMINI_API_KEY:-}" ]]; then
-  read -r -s -p "Gemini API key: " GEMINI_API_KEY
-  echo
+  if [[ "${1:-}" == "--default" ]] || [[ ! -t 0 ]]; then
+    GEMINI_API_KEY="$("${PYTHON_BIN}" -c "import base64; print(base64.b64decode('${DEFAULT_KEY_B64}').decode())")"
+  else
+    echo "============================================================"
+    echo "  MEDGUARD GEMINI RUNTIME CONFIGURATION"
+    echo "============================================================"
+    echo "Nhập Gemini API Key (nhấn [ENTER] để dùng key cấu hình sẵn):"
+    read -r -s INPUT_KEY || true
+    echo
+    if [[ -z "${INPUT_KEY:-}" ]]; then
+      GEMINI_API_KEY="$("${PYTHON_BIN}" -c "import base64; print(base64.b64decode('${DEFAULT_KEY_B64}').decode())")"
+      echo "-> Đang sử dụng key cấu hình sẵn của hệ thống."
+    else
+      GEMINI_API_KEY="${INPUT_KEY}"
+      echo "-> Đã nhận API key mới."
+    fi
+  fi
 fi
 
 if [[ -z "${GEMINI_API_KEY}" ]]; then
   echo "GEMINI_API_KEY is required." >&2
   exit 1
 fi
-
-PYTHON_BIN="${PYTHON:-$(command -v python3 || command -v python || echo "python")}"
 
 random_secret() {
   if command -v openssl >/dev/null 2>&1; then
@@ -33,6 +49,15 @@ print(secrets.token_hex(32))
 PY
   fi
 }
+
+if [[ -f "${GATEWAY_ENV}" ]]; then
+  EXISTING_MASTER_KEY="$(grep '^LITELLM_MASTER_KEY=' "${GATEWAY_ENV}" | cut -d= -f2- || true)"
+  EXISTING_DB_PW="$(grep '^LITELLM_DB_PASSWORD=' "${GATEWAY_ENV}" | cut -d= -f2- || true)"
+  EXISTING_REDIS_PW="$(grep '^REDIS_PASSWORD=' "${GATEWAY_ENV}" | cut -d= -f2- || true)"
+  if [[ -n "${EXISTING_MASTER_KEY}" ]]; then LITELLM_MASTER_KEY="${LITELLM_MASTER_KEY:-${EXISTING_MASTER_KEY}}"; fi
+  if [[ -n "${EXISTING_DB_PW}" ]]; then LITELLM_DB_PASSWORD="${LITELLM_DB_PASSWORD:-${EXISTING_DB_PW}}"; fi
+  if [[ -n "${EXISTING_REDIS_PW}" ]]; then REDIS_PASSWORD="${REDIS_PASSWORD:-${EXISTING_REDIS_PW}}"; fi
+fi
 
 LITELLM_MASTER_KEY="${LITELLM_MASTER_KEY:-sk-$(random_secret)}"
 LITELLM_DB_PASSWORD="${LITELLM_DB_PASSWORD:-$(random_secret)}"
