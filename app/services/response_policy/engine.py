@@ -17,6 +17,16 @@ def _text(value: Any) -> str:
     return str(value).strip() if value is not None else ""
 
 
+def _simple_direct_question(question: str) -> bool:
+    norm = normalize_search_text(question)
+    return bool(
+        re.search(
+            r"\b(?:bao nhieu|may do|nguong|bao lau|co phai la sot|chi so nao)\b",
+            norm,
+        )
+    ) and len(norm.split()) <= 18
+
+
 def _knowledge_only(question: str) -> bool:
     norm = normalize_search_text(question)
     self_report = bool(
@@ -27,22 +37,14 @@ def _knowledge_only(question: str) -> bool:
     )
     if self_report:
         return False
+    if _simple_direct_question(question):
+        return True
     return bool(
         re.search(
             r"\b(?:la gi|nghia la gi|tai sao|co che|khac nhau|trieu chung cua|dau hieu cua|benh .* la gi)\b",
             norm,
         )
     )
-
-
-def _simple_direct_question(question: str) -> bool:
-    norm = normalize_search_text(question)
-    return bool(
-        re.search(
-            r"\b(?:bao nhieu|may do|nguong|bao lau|co phai la sot|chi so nao)\b",
-            norm,
-        )
-    ) and len(norm.split()) <= 18
 
 
 def _reasoning_mechanisms(reasoning_payload: dict[str, Any] | None) -> list[dict[str, Any]]:
