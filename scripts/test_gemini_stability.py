@@ -14,10 +14,6 @@ from typing import Any
 
 
 TRANSIENT_HTTP = {408, 429, 500, 502, 503, 504}
-MODELS = (
-    ("writer", "gemini-3.8-flash"),
-    ("reviewer", "gemini-3.5-flash-lite"),
-)
 ALIASES = (
     ("writer", "medguard-clinical-answer"),
     ("reviewer", "medguard-clinical-verifier"),
@@ -165,6 +161,16 @@ def main() -> int:
     parser.add_argument("--gateway", action="store_true")
     parser.add_argument("--all", action="store_true")
     parser.add_argument("--timeout", type=int, default=45)
+    parser.add_argument(
+        "--writer-model",
+        default=os.getenv("MEDGUARD_STABILITY_WRITER_MODEL", "gemini-3.5-flash-lite"),
+        help="Direct API model used by the mandatory Writer path.",
+    )
+    parser.add_argument(
+        "--reviewer-model",
+        default=os.getenv("MEDGUARD_STABILITY_REVIEWER_MODEL", "gemini-3.5-flash-lite"),
+        help="Direct API model used by the non-authoring Reviewer path.",
+    )
     args = parser.parse_args()
 
     if args.iterations < 3:
@@ -176,6 +182,10 @@ def main() -> int:
     _load_env_file(root / "infrastructure" / "litellm" / ".env")
     _load_env_file(root / ".env")
 
+    models = (
+        ("writer", args.writer_model),
+        ("reviewer", args.reviewer_model),
+    )
     overall = True
 
     if args.all or args.direct:
@@ -184,7 +194,7 @@ def main() -> int:
             print("[FAIL] direct Gemini: GEMINI_API_KEY is not configured")
             overall = False
         else:
-            for role, model in MODELS:
+            for role, model in models:
                 overall &= _run_series(
                     f"direct {role} {model}",
                     lambda model=model: _direct_once(model, key, args.timeout),
