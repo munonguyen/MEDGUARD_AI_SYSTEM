@@ -67,7 +67,7 @@ LITELLM_ENVIRONMENT=development
 LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY}
 LITELLM_DB_PASSWORD=${LITELLM_DB_PASSWORD}
 REDIS_PASSWORD=${REDIS_PASSWORD}
-LITELLM_CONFIG_FILE=./config.gemini-free.yaml
+LITELLM_CONFIG_FILE=./config.gemini-v27-free.yaml
 GEMINI_API_KEY=${GEMINI_API_KEY}
 OPENAI_API_KEY=
 EOF
@@ -87,7 +87,7 @@ PY
 
 chmod 600 "${GATEWAY_ENV}" "${APP_ENV}"
 
-echo "Configured local Gemini runtime files:"
+echo "Configured local Gemini V27.1 runtime files:"
 echo "  ${APP_ENV}"
 echo "  ${GATEWAY_ENV}"
 echo "Provider credentials remain local and were not printed or committed."
