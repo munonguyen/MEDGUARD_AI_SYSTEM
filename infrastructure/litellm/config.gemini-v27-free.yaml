@@ -1,17 +1,19 @@
 # MedGuard V27.1 stable free development profile.
 #
 # Mandatory patient-visible path:
-#   Writer   -> Gemini 3.5 Flash
+#   Writer   -> Gemini 3.5 Flash-Lite
 #   Reviewer -> Gemini 3.5 Flash-Lite
 #
-# Why not Gemini 3.8 Flash here?
-# The observed free-tier 3.8 quota is too small to serve as the mandatory Writer
-# path for repeated development/benchmark traffic. A quota-exhausted Writer
-# forces the whole response into deterministic fallback.
+# Why not Gemini 3.8 Flash / Gemini 3.5 Flash here?
+# Repeated live tests on the actual free-tier project hit a 20 requests/day
+# GenerateRequestsPerDayPerProjectPerModel-FreeTier ceiling for both models.
+# A quota-exhausted mandatory Writer forces the entire patient-visible path into
+# deterministic fallback, so the default FREE profile prioritizes reliability.
 #
-# Gemini 3.5 Flash remains free-tier eligible, supports tunable thinking, and is
-# stronger than Flash-Lite for patient-facing composition. Flash-Lite remains the
-# cheaper high-throughput non-authoring Reviewer.
+# Writer and Reviewer remain separate calls with separate contracts/roles, but
+# this FREE profile does not provide model-family independence. Use
+# config.gemini-v27-quality.yaml with quota-backed billing when independent model
+# judgment and stronger Writer reasoning are required.
 #
 # DEVELOPMENT/STAGING ONLY. Free-tier prompts may be used by Google to improve
 # its products; use de-identified test data only. Deterministic MedGuard safety
@@ -24,7 +26,7 @@
 model_list:
   - model_name: medguard-answer
     litellm_params:
-      model: gemini/gemini-3.5-flash
+      model: gemini/gemini-3.5-flash-lite
       api_key: os.environ/GEMINI_API_KEY
       timeout: 60
     model_info:
@@ -46,7 +48,7 @@ model_list:
 
   - model_name: medguard-clinical-answer
     litellm_params:
-      model: gemini/gemini-3.5-flash
+      model: gemini/gemini-3.5-flash-lite
       api_key: os.environ/GEMINI_API_KEY
       timeout: 60
     model_info:
@@ -68,7 +70,7 @@ model_list:
 
   - model_name: medguard-pharma-answer
     litellm_params:
-      model: gemini/gemini-3.5-flash
+      model: gemini/gemini-3.5-flash-lite
       api_key: os.environ/GEMINI_API_KEY
       timeout: 60
     model_info:
