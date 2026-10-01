@@ -62,10 +62,45 @@ def _join_sentences(parts: list[str]) -> str:
     return " ".join(values)
 
 
+def _format_medications(values: Any) -> str:
+    if not isinstance(values, list):
+        return ""
+    names = [str(value).replace("_", " ").strip() for value in values if str(value).strip()]
+    names = list(dict.fromkeys(names))
+    if not names:
+        return ""
+    if len(names) == 1:
+        return names[0]
+    return ", ".join(names[:-1]) + " và " + names[-1]
+
+
+def _safe_risk_sentence(value: Any) -> str:
+    """Translate internal risk enums into bounded patient-facing language."""
+    risk = _text(value).upper()
+    return {
+        "HIGH": "Có cảnh báo an toàn thuốc cần được ưu tiên xử lý trước khi dùng thêm hoặc phối hợp thuốc",
+        "MODERATE": "Có yếu tố tương tác hoặc chưa chắc chắn cần được kiểm tra trước khi phối hợp thuốc",
+        "LOW": "Chưa phát hiện cảnh báo mức cao trong phạm vi dữ liệu đã kiểm tra; điều này không khẳng định phối hợp thuốc là an toàn",
+    }.get(risk, "")
+
+
+def _first_warning_detail(result: dict[str, Any]) -> str:
+    warnings = result.get("warnings")
+    if not isinstance(warnings, list):
+        return ""
+    for warning in warnings:
+        if not isinstance(warning, dict):
+            continue
+        detail = _text(warning.get("detail") or warning.get("message") or warning.get("text"))
+        if detail:
+            return detail
+    return ""
+
+
 def _current_turn_acknowledgement(envelope: dict[str, Any]) -> str:
     """Return a bounded current-turn sentence for multi-turn continuity.
 
-    This is not free-form summarisation.  It quotes only the current-turn text
+    This is not free-form summarisation. It quotes only the current-turn text
     already supplied by the user, capped to one short sentence, so deterministic
     fallback visibly responds to what changed instead of repeating the previous
     turn verbatim.
@@ -116,6 +151,7 @@ def compose_contract_fallback(
     explanation = envelope.get("explanation_frame") if isinstance(envelope.get("explanation_frame"), dict) else {}
     result = envelope.get("clinical_result") if isinstance(envelope.get("clinical_result"), dict) else {}
     safety = envelope.get("safety_constraints") if isinstance(envelope.get("safety_constraints"), dict) else {}
+    intent = _text(envelope.get("intent"))
 
     urgency = _text(safety.get("urgency_floor") or result.get("urgency") or "ROUTINE").upper()
     goal = _text(policy.get("communication_goal"))
@@ -187,6 +223,53 @@ def compose_contract_fallback(
                 "safety_notes": list(dict.fromkeys(safety_notes))[:5],
                 "questions": [],
                 "display_questions": [],
+            }
+        )
+
+    # Medication safety has no triage reasoning frame, so falling back to the
+    # contract's generic summary claim used to expose internal HIGH/MODERATE/LOW
+    # enums and erase the medicines already known from conversation memory.
+    # Compose directly from the same bounded safety result instead.
+    if intent == "safety":
+        current_meds = _format_medications(result.get("conversation_current_medications"))
+        proposed_meds = _format_medications(result.get("conversation_proposed_medications"))
+        medication_context = ""
+        if current_meds and proposed_meds:
+            medication_context = f"Bạn đang dùng {current_meds} và đang cân nhắc {proposed_meds}"
+        elif proposed_meds:
+            medication_context = f"Thuốc đang được cân nhắc là {proposed_meds}"
+        elif current_meds:
+            medication_context = f"Các thuốc đang dùng được ghi nhận gồm {current_meds}"
+
+        risk_sentence = _safe_risk_sentence(
+            result.get("overall_risk") or result.get("risk_level") or result.get("severity")
+        )
+        warning_detail = _first_warning_detail(result)
+        summary_parts = [value for value in (medication_context, risk_sentence, warning_detail) if value]
+        if not summary_parts:
+            existing = _text(answer.summary)
+            if existing:
+                summary_parts.append(existing)
+            else:
+                summary_parts.append("Cần kiểm tra thêm dữ kiện thuốc trước khi xác nhận cách phối hợp an toàn")
+
+        risk = _text(result.get("overall_risk") or result.get("risk_level") or result.get("severity")).upper()
+        title = {
+            "HIGH": "Có cảnh báo an toàn thuốc cần ưu tiên xử lý",
+            "MODERATE": "Cần kiểm tra trước khi phối hợp thuốc",
+            "LOW": "Kết quả kiểm tra an toàn thuốc",
+        }.get(risk, "Kết quả kiểm tra an toàn thuốc")
+        limitations = list(answer.limitations)
+        return answer.model_copy(
+            update={
+                "title": title,
+                "summary": _join_sentences(summary_parts[:3]),
+                "clinical_hypotheses": [],
+                "next_steps": list(dict.fromkeys(actions))[:6],
+                "safety_notes": list(dict.fromkeys(safety_notes))[:5],
+                "questions": questions,
+                "display_questions": questions,
+                "limitations": limitations[:3],
             }
         )
 
