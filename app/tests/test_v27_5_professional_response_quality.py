@@ -103,6 +103,34 @@ def test_v27_5_merges_provenance_from_duplicate_blocks() -> None:
     assert polished.narrative[0].emphasis == ["đau cơ thành ngực", "sau vận động"]
 
 
+def test_v27_5_duplicate_merge_keeps_strongest_warning_kind() -> None:
+    answer = _answer(
+        narrative=[
+            AnswerNarrativeBlock(
+                kind="paragraph",
+                text="Nếu đau tăng rõ hoặc xuất hiện khó thở, bạn cần được đánh giá y tế sớm.",
+                source_ids=["claim-1"],
+            ),
+            AnswerNarrativeBlock(
+                kind="caution",
+                text="Nếu đau tăng rõ hoặc xuất hiện khó thở, bạn cần được đánh giá y tế sớm!",
+                source_ids=["safety-1"],
+            ),
+            AnswerNarrativeBlock(
+                kind="urgent",
+                text="Nếu đau tăng rõ hoặc xuất hiện khó thở, bạn cần được đánh giá y tế sớm.",
+                source_ids=["safety-2"],
+            ),
+        ]
+    )
+
+    polished = apply_professional_response_quality(answer, urgency="URGENT", intent="triage")
+
+    assert len(polished.narrative) == 1
+    assert polished.narrative[0].kind == "urgent"
+    assert polished.narrative[0].source_ids == ["claim-1", "safety-1", "safety-2"]
+
+
 def test_v27_5_emergency_is_completely_untouched() -> None:
     answer = _answer(
         title="Bạn cần được đánh giá cấp cứu ngay",
