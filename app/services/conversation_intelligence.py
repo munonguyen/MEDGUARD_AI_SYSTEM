@@ -142,29 +142,40 @@ def _scoped_triage_history(chat_module: ModuleType, payload: Any, latest_text: s
     return selection.text, True, bool(switched or selection.switched_episode)
 
 
+def _all_medication_mentions(chat_module: ModuleType, normalized: str) -> list[tuple[int, str]]:
+    """Return every known medication mention, including repeated ingredients.
+
+    The base parser intentionally returns one occurrence per known alias. For
+    conversation role classification we additionally need both mentions in a
+    duplicate-ingredient sentence, so expand the same bounded medication lexicon
+    without introducing any new medicine recognition source.
+    """
+    mapping = getattr(chat_module, "_MEDICATIONS", None)
+    mentions: list[tuple[int, str]] = []
+    if isinstance(mapping, dict):
+        for alias, canonical in sorted(mapping.items(), key=lambda item: -len(str(item[0]))):
+            token = str(alias).strip()
+            if not token:
+                continue
+            for match in re.finditer(rf"(?<![a-z0-9]){re.escape(token)}(?![a-z0-9])", normalized):
+                mentions.append((match.start(), str(canonical)))
+    if not mentions:
+        try:
+            mentions = [(int(position), str(name)) for position, name in chat_module._medication_occurrences(normalized)]
+        except Exception:
+            mentions = []
+    return sorted(set(mentions), key=lambda item: (item[0], item[1]))
+
+
 def _classify_medications(chat_module: ModuleType, text: str) -> tuple[list[str], list[str]]:
     normalized = normalize_search_text(text)
-    try:
-        occurrences = list(chat_module._medication_occurrences(normalized))
-    except Exception:
-        occurrences = []
-    if not occurrences:
-        return [], []
-
-    ordered: list[tuple[int, str]] = []
-    for position, name in occurrences:
-        try:
-            ordered.append((int(position), str(name)))
-        except (TypeError, ValueError):
-            continue
-    ordered.sort(key=lambda item: item[0])
+    ordered = _all_medication_mentions(chat_module, normalized)
     if not ordered:
         return [], []
 
-    # Classify each medicine by the closest role marker that appears before it.
-    # This preserves multiple chronic medicines in turns such as
-    # "đang dùng warfarin và aspirin, có thể uống thêm ibuprofen không?" and
-    # also works when the proposed medicine is mentioned before current therapy.
+    # Classify each medicine mention by the closest role marker that appears
+    # before it. This preserves multiple chronic medicines and also distinguishes
+    # repeated active ingredients on both sides of a duplicate-ingredient query.
     role_events: list[tuple[int, str]] = []
     for role, markers in (
         ("current", _CURRENT_MEDICATION_MARKERS),
@@ -203,8 +214,8 @@ def _classify_medications(chat_module: ModuleType, text: str) -> tuple[list[str]
         elif has_proposed or any(marker in normalized for marker in _MEDICATION_SAFETY_MARKERS):
             proposed.extend(name for name in unresolved if name not in proposed)
 
-    # Keep the previous conservative fallback for unusual grammars in which role
-    # markers exist but none can be associated positionally with a medication.
+    # Keep a conservative fallback for unusual grammars in which markers exist
+    # but no mention could be associated positionally with either role.
     if has_current and has_proposed and not current and not proposed:
         names = list(dict.fromkeys(name for _, name in ordered))
         if len(names) >= 2:
