@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 
 from app.services.medication_conversation_policy import (
+    _contextual_dose_reply,
     _contextual_missing_reply,
     _is_personalized_dose_request,
 )
@@ -17,6 +18,7 @@ def test_personalized_dose_variants_are_recognized() -> None:
     variants = (
         "Nếu chỉ uống nửa liều thuốc ngủ thì có an toàn hơn không?",
         "Bạn cho tôi liều ibuprofen cụ thể để dùng xen kẽ nhé.",
+        "Bạn tính giúp tôi liều paracetamol chính xác tiếp theo được không?",
         "Tôi có nên tự bỏ liều thuốc chống đông tối nay không?",
         "Tôi đang dùng metformin, có cần tự đổi liều không?",
     )
@@ -62,3 +64,21 @@ def test_contextual_missing_replies_follow_latest_turn_and_do_not_collapse() -> 
     assert "gấp đôi" in ingestion
     assert "chống đông" in anticoagulant
     assert "rượu" in sedative
+
+
+def test_personalized_dose_boundary_is_grounded_and_turn_specific() -> None:
+    original = (
+        "MedGuard không kê hoặc tính liều thuốc cá nhân hóa từ hội thoại. "
+        "Liều dùng cần được bác sĩ hoặc dược sĩ xác nhận."
+    )
+    half_dose = _contextual_dose_reply(
+        _payload("Nếu chỉ uống nửa liều thuốc ngủ thì có an toàn hơn không?"),
+        original,
+    )
+    skip_dose = _contextual_dose_reply(
+        _payload("Tôi có nên tự bỏ liều thuốc chống đông tối nay không?"),
+        original,
+    )
+    assert half_dose != skip_dose
+    assert "nửa liều" in half_dose
+    assert "bỏ liều" in skip_dose
