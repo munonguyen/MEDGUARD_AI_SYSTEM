@@ -97,6 +97,33 @@ def _first_warning_detail(result: dict[str, Any]) -> str:
     return ""
 
 
+def _bounded_latest_turn(envelope: dict[str, Any]) -> str:
+    """Return only the user's latest supplied text, bounded and non-inferential."""
+    result = envelope.get("clinical_result")
+    latest = _text(result.get("conversation_turn")) if isinstance(result, dict) else ""
+    if not latest:
+        latest = _text(envelope.get("user_question"))
+    marker = "lượt hiện tại:"
+    lowered = latest.lower()
+    if marker in lowered:
+        latest = latest[lowered.rfind(marker) + len(marker):].strip()
+    else:
+        lines = [value.strip() for value in latest.splitlines() if value.strip()]
+        latest = lines[-1] if lines else latest
+    latest = re.sub(r"\s+", " ", latest).strip().rstrip("?.! ")
+    if len(latest) > 180:
+        latest = latest[:177].rstrip() + "..."
+    return latest
+
+
+def _turn_grounding_sentence(envelope: dict[str, Any]) -> str:
+    latest = _bounded_latest_turn(envelope)
+    if not latest:
+        return ""
+    latest = re.sub(r"^(?:tôi|mình)\b", "Bạn", latest, flags=re.I)
+    return f"Dữ kiện chính ở lượt này: {latest}"
+
+
 def _current_turn_acknowledgement(envelope: dict[str, Any]) -> str:
     """Return a bounded current-turn sentence for multi-turn continuity.
 
@@ -300,6 +327,16 @@ def compose_contract_fallback(
         summary_parts.extend(reassurance_limits)
     elif uncertainty:
         summary_parts.append(uncertainty)
+
+    # If no bounded mechanism is available, ground the generic statement in the
+    # actual current-turn text. This is factual reuse of user input, not a new
+    # hypothesis, and prevents unrelated complaints from collapsing to one
+    # identical template while preserving the same uncertainty boundary.
+    if not summary_parts and intent == "triage":
+        grounding = _turn_grounding_sentence(envelope)
+        if grounding:
+            summary_parts.append(grounding)
+        summary_parts.extend(_claims(contract, "summary")[:1])
 
     if not summary_parts:
         summary_claims = _claims(contract, "summary")
