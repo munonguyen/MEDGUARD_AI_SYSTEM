@@ -197,8 +197,8 @@ def _sanitize_answer(answer: Any) -> Any:
             "title": _clean_machine_language(getattr(answer, "title", "")),
             "summary": _clean_machine_language(getattr(answer, "summary", "")),
             "key_points": _clean_key_points(getattr(answer, "key_points", None), limit=5),
-            "next_steps": _clean_list(getattr(answer, "next_steps", None), limit=6),
-            "safety_notes": _clean_list(getattr(answer, "safety_notes", None), limit=5),
+            "next_steps": _clean_list(getattr(answer, "next_steps", None)),
+            "safety_notes": _clean_list(getattr(answer, "safety_notes", None)),
             # ``questions`` is the complete approved audit/reasoning pool. The
             # ChatResponse dialogue-policy validator alone controls the smaller
             # patient-visible ``display_questions`` set.

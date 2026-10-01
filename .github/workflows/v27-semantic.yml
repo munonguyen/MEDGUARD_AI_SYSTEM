@@ -64,6 +64,9 @@ jobs:
     name: Gemini live provider readiness
     runs-on: ubuntu-latest
     timeout-minutes: 8
+    concurrency:
+      group: gemini-live-stability-${{ github.repository }}
+      cancel-in-progress: false
     env:
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
     steps:
@@ -88,7 +91,7 @@ jobs:
           python scripts/test_gemini_stability.py
           --direct
           --iterations 5
-          --allow-external-degraded
+          --min-interval-seconds 12
           --report artifacts/provider_readiness/gemini.json
       - name: Fail closed when live-test secret is missing
         if: steps.gemini-secret.outputs.available != 'true'

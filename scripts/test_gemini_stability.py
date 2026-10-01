@@ -8,6 +8,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from email.utils import parsedate_to_datetime
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
@@ -86,6 +87,40 @@ def _safe_error(exc: Exception) -> str:
     return f"{type(exc).__name__}: {exc}"
 
 
+def _retry_delay(exc: Exception, retries: int) -> float:
+    """Respect provider cooldowns without printing response bodies or secrets."""
+    fallback = min(2**retries, 5)
+    if not isinstance(exc, urllib.error.HTTPError):
+        return fallback
+    raw = exc.headers.get("Retry-After") if exc.headers else None
+    if not raw:
+        return fallback
+    try:
+        seconds = float(raw)
+    except ValueError:
+        try:
+            seconds = parsedate_to_datetime(raw).timestamp() - time.time()
+        except (ValueError, TypeError, OverflowError):
+            return fallback
+    return max(fallback, min(seconds, 60.0))
+
+
+class RequestPacer:
+    """Share a minimum call interval across Writer, Reviewer and retries."""
+
+    def __init__(self, interval_s: float):
+        self.interval_s = interval_s
+        self.last_start: float | None = None
+
+    def wait(self) -> None:
+        now = time.monotonic()
+        if self.last_start is not None:
+            delay = self.interval_s - (now - self.last_start)
+            if delay > 0:
+                time.sleep(delay)
+        self.last_start = time.monotonic()
+
+
 def _with_retry(call, *, max_retries: int = 2) -> Attempt:
     start = time.perf_counter()
     retries = 0
@@ -104,7 +139,7 @@ def _with_retry(call, *, max_retries: int = 2) -> Attempt:
                     http_status=code,
                 )
             retries += 1
-            time.sleep(min(2**retries, 5))
+            time.sleep(_retry_delay(exc, retries))
 
 
 def _direct_once(model: str, key: str, timeout: int) -> str:
@@ -123,7 +158,7 @@ def _direct_once(model: str, key: str, timeout: int) -> str:
     if candidates:
         parts = candidates[0].get("content", {}).get("parts", [])
         text = " ".join(str(part.get("text", "")) for part in parts).strip()
-    if status != 200 or not text:
+    if status != 200 or text != "STABLE_OK":
         raise RuntimeError(f"empty/non-200 response: {status}")
     return f"HTTP {status}; nonempty=true"
 
@@ -142,7 +177,7 @@ def _gateway_once(alias: str, token: str, base: str, timeout: int) -> str:
     )
     choices = data.get("choices") or []
     text = choices[0].get("message", {}).get("content", "") if choices else ""
-    if status != 200 or not str(text).strip():
+    if status != 200 or str(text).strip() != "STABLE_OK":
         raise RuntimeError(f"empty/non-200 response: {status}")
     return f"HTTP {status}; nonempty=true"
 
@@ -239,6 +274,7 @@ def main() -> int:
     parser.add_argument("--gateway", action="store_true")
     parser.add_argument("--all", action="store_true")
     parser.add_argument("--timeout", type=int, default=45)
+    parser.add_argument("--min-interval-seconds", type=float, default=0)
     parser.add_argument("--report", type=Path, default=None)
     parser.add_argument(
         "--allow-external-degraded",
@@ -260,6 +296,8 @@ def main() -> int:
     )
     args = parser.parse_args()
 
+    if not 0 <= args.min_interval_seconds <= 60:
+        parser.error("--min-interval-seconds must be between 0 and 60")
     if args.iterations < 3:
         parser.error("--iterations must be at least 3")
     if not any((args.direct, args.gateway, args.all)):
@@ -273,6 +311,12 @@ def main() -> int:
         ("writer", args.writer_model),
         ("reviewer", args.reviewer_model),
     )
+    pacer = RequestPacer(args.min_interval_seconds)
+
+    def paced(call):
+        pacer.wait()
+        return call()
+
     results: list[SeriesResult] = []
     configured = True
 
@@ -286,7 +330,7 @@ def main() -> int:
                 results.append(
                     _run_series(
                         f"direct {role} {model}",
-                        lambda model=model: _direct_once(model, key, args.timeout),
+                        lambda model=model: paced(lambda: _direct_once(model, key, args.timeout)),
                         iterations=args.iterations,
                         max_p95_s=30.0,
                     )
@@ -303,7 +347,7 @@ def main() -> int:
                 results.append(
                     _run_series(
                         f"gateway {role} {alias}",
-                        lambda alias=alias: _gateway_once(alias, token, base, args.timeout),
+                        lambda alias=alias: paced(lambda: _gateway_once(alias, token, base, args.timeout)),
                         iterations=args.iterations,
                         max_p95_s=35.0,
                     )
