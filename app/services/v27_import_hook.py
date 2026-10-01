@@ -40,12 +40,14 @@ def _install_answering_patch(module: ModuleType) -> None:
 def _install_chat_patch(module: ModuleType) -> None:
     from app.services.conversation_intelligence import install_chat_conversation_intelligence
     from app.services.medication_conversation_policy import install_medication_conversation_policy
+    from app.services.workflow_conversation_policy import install_workflow_conversation_policy
 
     # Conversation intelligence owns context scoping/result enrichment first.
-    # The medication policy then wraps that response path narrowly so missing-
-    # information prompts remain contextual without bypassing Writer/Reviewer.
+    # Medication and deterministic workflow policies then wrap that path narrowly
+    # so no adapter bypasses Writer/Reviewer or the Safety Kernel authority.
     install_chat_conversation_intelligence(module)
     install_medication_conversation_policy(module)
+    install_workflow_conversation_policy(module)
 
 
 class _PostLoadLoader(importlib.abc.Loader):
