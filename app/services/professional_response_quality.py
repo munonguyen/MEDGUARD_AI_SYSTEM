@@ -1,11 +1,11 @@
 """V27.5 patient-surface quality hardening.
 
-This module is deliberately presentation-only.  Clinical authority remains in
+This module is deliberately presentation-only. Clinical authority remains in
 Safety Kernel/domain services; Writer remains the sole author of generated
 patient prose and Reviewer/Jev remains a non-authoring quality judge.
 
 The pass removes repeated presentation artifacts without introducing, deleting
-or re-interpreting clinical facts.  Emergency responses are returned unchanged
+or re-interpreting clinical facts. Emergency responses are returned unchanged
 because repetition is preferable to weakening an emergency/hard-stop message.
 """
 
@@ -41,21 +41,26 @@ def _sentences(text: str) -> list[str]:
     return [part.strip() for part in parts if part.strip()]
 
 
-def _is_near_duplicate(candidate: str, previous: Iterable[str]) -> bool:
+def _duplicate_index(candidate: str, previous: Iterable[str]) -> int | None:
+    """Return the first exact/very-near duplicate index, if any."""
     candidate_norm = _norm(candidate)
     if not candidate_norm:
-        return True
-    for item in previous:
+        return 0
+    for index, item in enumerate(previous):
         item_norm = _norm(item)
         if not item_norm:
             continue
         if candidate_norm == item_norm:
-            return True
+            return index
         if min(len(candidate_norm), len(item_norm)) < _MIN_COMPARE_CHARS:
             continue
         if SequenceMatcher(None, candidate_norm, item_norm).ratio() >= _NEAR_DUPLICATE_RATIO:
-            return True
-    return False
+            return index
+    return None
+
+
+def _is_near_duplicate(candidate: str, previous: Iterable[str]) -> bool:
+    return _duplicate_index(candidate, previous) is not None
 
 
 def _dedupe_sentences(text: str) -> str:
@@ -68,12 +73,12 @@ def _dedupe_sentences(text: str) -> str:
 
 
 def _dedupe_narrative(blocks: list[AnswerNarrativeBlock]) -> list[AnswerNarrativeBlock]:
-    """De-duplicate repeated prose while preserving clinical block semantics.
+    """De-duplicate prose while preserving clinical presentation provenance.
 
-    A block is removed only when the complete remaining text is already present
-    with very high similarity.  We never merge blocks with different text, and
-    we retain source ids.  Emphasis values that disappeared with a duplicate
-    sentence are removed to keep the presentation contract internally valid.
+    If a complete block repeats an existing block, its source ids are merged
+    into the retained block rather than discarded. This keeps source/citation
+    provenance intact while presenting the prose once. Emphasis is retained
+    only when it still occurs in the retained text.
     """
     kept_blocks: list[AnswerNarrativeBlock] = []
     kept_texts: list[str] = []
@@ -82,8 +87,26 @@ def _dedupe_narrative(blocks: list[AnswerNarrativeBlock]) -> list[AnswerNarrativ
         text = _dedupe_sentences(block.text)
         if not text:
             continue
-        if _is_near_duplicate(text, kept_texts):
+
+        duplicate_at = _duplicate_index(text, kept_texts)
+        if duplicate_at is not None and duplicate_at < len(kept_blocks):
+            retained = kept_blocks[duplicate_at]
+            merged_sources = list(dict.fromkeys([*retained.source_ids, *block.source_ids]))
+            merged_emphasis = list(
+                dict.fromkeys(
+                    value
+                    for value in [*retained.emphasis, *block.emphasis]
+                    if value and value in retained.text
+                )
+            )
+            kept_blocks[duplicate_at] = retained.model_copy(
+                update={
+                    "source_ids": merged_sources,
+                    "emphasis": merged_emphasis,
+                }
+            )
             continue
+
         emphasis = [value for value in block.emphasis if value and value in text]
         kept_blocks.append(
             block.model_copy(
@@ -114,7 +137,7 @@ def apply_professional_response_quality(
     * Only duplicate sentences/blocks already present are removed.
 
     ``intent`` is accepted explicitly so callers cannot accidentally apply this
-    pass without carrying the resolved clinical context.  It is intentionally
+    pass without carrying the resolved clinical context. It is intentionally
     not used to infer content.
     """
     del intent  # context is required by contract, not used for clinical inference
@@ -136,7 +159,7 @@ def apply_professional_response_quality(
 def narrative_repetition_ratio(answer: GroundedAnswer) -> float:
     """Return a deterministic diagnostic ratio for CI/unit tests.
 
-    This is an observability helper, not a clinical gate.  A value of 0 means no
+    This is an observability helper, not a clinical gate. A value of 0 means no
     exact/near duplicate narrative block remains after normalization.
     """
     texts = [block.text for block in answer.narrative if _norm(block.text)]
