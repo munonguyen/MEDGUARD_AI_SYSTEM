@@ -1,4 +1,5 @@
 from app.models.chat import AnswerNarrativeBlock, GroundedAnswer
+from app.services.professional_response_gate import evaluate_professional_response
 from app.services.professional_response_quality import (
     apply_professional_response_quality,
     narrative_repetition_ratio,
@@ -123,3 +124,30 @@ def test_v27_5_near_duplicate_blocks_are_removed_conservatively() -> None:
     assert len(polished.narrative) == 2
     assert "khó thở" in polished.narrative[-1].text
     assert narrative_repetition_ratio(polished) == 0.0
+
+
+def test_v27_5_jev_requests_revision_for_repetitive_non_emergency_prose() -> None:
+    assessment = evaluate_professional_response(
+        narrative_blocks=[
+            "Dựa trên thông tin hiện có, kiểu đau này thường phù hợp với căng cơ. Bạn nên nghỉ vận động nặng và theo dõi diễn biến.",
+            "Dựa trên thông tin hiện có, kiểu đau này thường phù hợp với căng cơ. Bạn nên nghỉ vận động nặng và theo dõi diễn biến.",
+        ],
+        urgency="ROUTINE",
+    )
+
+    assert not assessment.passed
+    assert assessment.decision == "revise"
+    assert assessment.professionalism < 1.0
+    assert "excessive_repetition" in assessment.reasons
+
+
+def test_v27_5_jev_does_not_reject_emergency_for_repeated_hard_stop_alone() -> None:
+    assessment = evaluate_professional_response(
+        narrative_blocks=[
+            "Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay. Không thể khẳng định nguyên nhân từ xa.",
+            "Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay.",
+        ],
+        urgency="EMERGENCY",
+    )
+
+    assert "excessive_repetition" not in assessment.reasons
