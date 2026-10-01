@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from uuid import UUID
+
 import sqlite3
 from contextlib import contextmanager
 from datetime import datetime, timezone
@@ -178,6 +180,7 @@ class SqliteTenantEngine:
             self._connection.execute("PRAGMA synchronous = NORMAL")
             self._connection.execute("PRAGMA mmap_size = 268435456")
         self._connection.executescript(_SQLITE_SCHEMA)
+        self._connection.executescript((Path(__file__).parent / "browser_schema.sql").read_text())
         idempotency_columns = {
             row[1]
             for row in self._connection.execute("PRAGMA table_info(idempotency_records)")
@@ -262,7 +265,10 @@ class PostgresTenantSession:
         cursor = self._connection.execute(postgres_query, params)
         if cursor.description is None:
             return []
-        return [dict(row) for row in cursor.fetchall()]
+        # SQLite repositories expose identifiers as strings; psycopg decodes
+        # PostgreSQL UUID columns as UUID objects. Keep one repository contract.
+        return [{key: str(value) if isinstance(value, UUID) else value for key, value in row.items()}
+                for row in cursor.fetchall()]
 
 
 class PostgresTenantEngine:

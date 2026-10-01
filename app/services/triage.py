@@ -122,7 +122,7 @@ def _tailor_guidance(
         return summary, questions
     if topic == "ankle_sprain":
         summary = (
-            "Tình trạng lật sơ mi hoặc trẹo cổ chân sau vận động hay bước hụt thường do căng giãn hoặc rách dây chằng quanh khớp. "
+            "Tình trạng lật hoặc trẹo cổ chân sau vận động hay bước hụt thường do căng giãn hoặc rách dây chằng quanh khớp. "
             "Hiện tại chưa thấy dấu hiệu nguy kịch, bạn hãy dừng ngay việc đi lại, không dồn lực lên chân và áp dụng biện pháp chườm lạnh kết hợp kê cao chân; tuyệt đối không xoa dầu nóng."
         )
         return summary, questions

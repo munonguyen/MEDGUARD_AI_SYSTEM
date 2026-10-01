@@ -44,6 +44,7 @@ def verify_tenant_api_key(
         request_id=context.request_id,
         tenant_id=context.tenant_id,
         idempotency_key=normalized_key,
+        role=context.role,
     )
 
 
@@ -52,6 +53,15 @@ def verify_tenant_credentials(
     x_api_key: str | None = Header(default=None, alias="X-API-Key"),
     x_tenant_id: str | None = Header(default=None, alias="X-Tenant-Id"),
 ) -> RequestContext:
+    from app.services.browser_auth import COOKIE, authenticate, fail
+    if COOKIE in request.cookies:
+        account = authenticate(request)
+        # Patient accounts cannot reach privileged operational tools, even by injecting headers.
+        path = request.url.path
+        if path.startswith(("/v1/audit", "/v1/queue", "/v1/pharmacy", "/v1/result-delivery", "/v1/fhir")) or re.fullmatch(r"/v1/jobs/[^/]+/(process|review)", path):
+            fail("patient_role_required", 403)
+        return RequestContext(request_id=getattr(request.state, "request_id", "") or make_request_id(account["account_id"]),
+                              tenant_id=account["tenant_id"], idempotency_key="", role="patient")
     if not x_api_key or not x_tenant_id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

@@ -55,6 +55,7 @@ class GroundedAnswer(BaseModel):
     key_points: list[str] = Field(default_factory=list)
     next_steps: list[str] = Field(default_factory=list)
     safety_notes: list[str] = Field(default_factory=list)
+    optional_advice: list[str] = Field(default_factory=list, max_length=2)
     questions: list[str] = Field(default_factory=list)
     display_questions: list[str] | None = None
     decision_basis: Literal[

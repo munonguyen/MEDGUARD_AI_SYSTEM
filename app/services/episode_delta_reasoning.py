@@ -121,16 +121,16 @@ def _warning_mechanism(message: str, features: tuple[str, ...], urgency: str) ->
     high_risk_cluster = any(value in features for value in ("radiation", "autonomic_features"))
     if high_risk_cluster or urgency == "EMERGENCY":
         statement = (
-            "Các dấu hiệu mới ở lượt hiện tại làm nguyên nhân tim–phổi nguy hiểm trở thành hướng cần ưu tiên đánh giá; "
-            "đặc điểm đau cơ/thành ngực ở lượt trước không đủ để giải thích an toàn cho toàn bộ diễn tiến mới."
+            "Các dấu hiệu được cung cấp cần ưu tiên đánh giá nguyên nhân tim–phổi nguy hiểm; "
+            "chưa thể xác định nguyên nhân chỉ từ cuộc trò chuyện."
         )
         mechanism = (
             "Khi tim hoặc phổi không đáp ứng đủ nhu cầu oxy, người bệnh có thể xuất hiện đau hoặc nặng ngực, khó thở "
             "và phản ứng thần kinh tự chủ như vã mồ hôi, buồn nôn hoặc choáng. Những dấu hiệu này không tự xác nhận một "
             "chẩn đoán cụ thể nhưng đủ quan trọng để ưu tiên đánh giá cấp cứu."
         )
-        label = "Dấu hiệu mới làm tăng ưu tiên cho bệnh cảnh tim–phổi nguy hiểm"
-    else:
+        label = "Dấu hiệu cảnh báo cần ưu tiên đánh giá tim–phổi"
+    elif "exertional_relation" in features:
         statement = (
             "Việc nặng/đau ngực hoặc khó thở xuất hiện rõ khi gắng sức làm ngưỡng cảnh giác tim–phổi cao hơn so với "
             "một cơn đau chỉ liên quan ấn hoặc vận động cơ."
@@ -140,6 +140,17 @@ def _warning_mechanism(message: str, features: tuple[str, ...], urgency: str) ->
             "khả năng tim–phổi không đáp ứng đủ nhu cầu đó thay vì quy toàn bộ triệu chứng cho cơ thành ngực."
         )
         label = "Triệu chứng theo gắng sức làm tăng ưu tiên đánh giá tim–phổi"
+
+    else:
+        statement = (
+            "Nặng/đau ngực đi kèm khó thở cần được đánh giá trực tiếp để xem xét nguyên nhân tim–phổi; "
+            "chưa thể xác định nguyên nhân chỉ từ cuộc trò chuyện."
+        )
+        mechanism = (
+            "Triệu chứng ở ngực và khó thở có thể liên quan đến nhiều nguyên nhân. Chỉ từ tin nhắn hiện tại "
+            "chưa thể phân biệt an toàn nguyên nhân ở tim, phổi hay thành ngực."
+        )
+        label = "Triệu chứng ở ngực kèm khó thở cần đánh giá tim–phổi"
 
     return MechanismHypothesis(
         hypothesis_id="episode_delta_cardiorespiratory_warning",
@@ -165,8 +176,8 @@ def _historical_emergency_mechanism(evidence_text: str) -> MechanismHypothesis:
         ),
         evidence_for=(evidence_text,) if evidence_text.strip() else (),
         patient_safe_statement=(
-            "Việc bạn thấy đỡ sau khi nghỉ không xóa các dấu hiệu cảnh báo tim–phổi đã xuất hiện trước đó; vì vậy không "
-            "nên dùng sự cải thiện tạm thời để hạ mức cấp cứu."
+            "Các dấu hiệu cảnh báo tim–phổi đã nêu vẫn cần được đánh giá cấp cứu. Kể cả nếu triệu chứng tạm thời "
+            "giảm sau khi nghỉ, điều đó không xóa các dấu hiệu cảnh báo và không đủ để hạ mức cấp cứu."
         ),
     )
 

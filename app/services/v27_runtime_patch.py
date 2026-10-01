@@ -22,6 +22,7 @@ from app.services.fallback_response_refinement import refine_contract_fallback
 from app.services.patient_response_surface import canonical_patient_response_text
 from app.services.professional_response_quality import apply_professional_response_quality
 from app.services.v27_2_answering_patch import _sanitize_answer
+from app.services.optional_advice import attach_optional_advice
 
 
 def _resolved_urgency(clinical_payload: dict[str, Any]) -> str:
@@ -120,7 +121,7 @@ def install_v27_runtime_fallback() -> None:
         # Final presentation boundary: hygiene first, then a conservative
         # de-duplication pass. V27.5 leaves EMERGENCY output untouched and never
         # mutates structured claims/actions/safety notes/questions.
-        sanitized = _sanitize_answer(resolved)
+        sanitized = attach_optional_advice(_sanitize_answer(resolved), clinical_payload, _resolved_urgency(clinical_payload))
         return apply_professional_response_quality(
             sanitized,
             urgency=_resolved_urgency(clinical_payload),

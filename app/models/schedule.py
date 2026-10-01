@@ -37,11 +37,21 @@ class MedicationSchedule(BaseModel):
 
 
 class MedicationScheduleUpdate(BaseModel):
-    medication_name: str | None = Field(default=None, max_length=255)
+    medication_name: str | None = Field(default=None, min_length=1, max_length=255)
     dosage_text: str | None = Field(default=None, max_length=255)
     scheduled_at: datetime | None = None
     recurrence: Literal["once", "daily"] | None = None
     status: Literal["active", "cancelled"] | None = None
+
+    @field_validator("medication_name")
+    @classmethod
+    def name_must_not_be_blank(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        value = value.strip()
+        if not value:
+            raise ValueError("value must not be blank")
+        return value
 
 
 class MedicationScheduleList(BaseModel):

@@ -18,7 +18,7 @@ from app.services.audit import AuditEvent, audit_store
 
 
 ESCALATION_ORDER = ("NONE", "SELF_CARE", "CLINIC", "URGENT", "EMERGENCY")
-RULE_VERSION = "monitoring-rules@1.0.0"
+RULE_VERSION = "monitoring-rules@1.1.0+v28.1.0"
 
 
 def _escalate(current: str, candidate: str) -> str:

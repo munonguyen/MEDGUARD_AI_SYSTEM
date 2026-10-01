@@ -54,3 +54,7 @@ post_step3_uncertainty_stress_baseline.json
 replay_*_report.json
 oof_predictions.json
 
+
+var/
+deploy/tls/
+deploy/.env

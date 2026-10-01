@@ -45,11 +45,8 @@ import { QrScanner } from './chat/QrScanner';
 import { SchedulePanel } from './chat/SchedulePanel';
 import { GroundedAnswer } from './chat/GroundedAnswer';
 import { SystemModule } from './modules/SystemModule';
-import { SchedulePage } from './schedule/SchedulePage';
 import { MedicationPage } from './schedule/MedicationPage';
 import { SettingsModal } from './settings/SettingsModal';
-
-const tenantDefaults = { 'tenant-demo': 'demo-key', 'tenant-alt': 'alt-key' };
 
 const tools = [
   { id: 'auto', label: 'Tự nhận diện', icon: Sparkles, group: 'Trợ lý' },
@@ -57,13 +54,9 @@ const tools = [
   { id: 'safety', label: 'An toàn thuốc', icon: ShieldCheck, group: 'Lâm sàng' },
   { id: 'monitoring', label: 'Đọc chỉ số', icon: Activity, group: 'Lâm sàng' },
   { id: 'followup', label: 'Kế hoạch tái khám', icon: CalendarClock, group: 'Điều phối' },
-  { id: 'pharmacy', label: 'Cấp phát thuốc', icon: Store, group: 'Điều phối' },
-  { id: 'queue', label: 'Hàng đợi tiếp nhận', icon: ListOrdered, group: 'Điều phối' },
   { id: 'ocr', label: 'Đọc đơn thuốc', icon: FileScan, group: 'Hình ảnh' },
   { id: 'schedule', label: 'Đặt lịch uống thuốc', icon: AlarmClock, group: 'Hình ảnh' },
   { id: 'authenticity', label: 'Xác thực QR', icon: QrCode, group: 'Hình ảnh' },
-  { id: 'fhir', label: 'Xuất FHIR', icon: Braces, group: 'Liên thông' },
-  { id: 'delivery', label: 'Chuyển tiếp kết quả', icon: Webhook, group: 'Liên thông' },
 ];
 
 const starterPrompts = [
@@ -75,15 +68,6 @@ const starterPrompts = [
 
 function Brand() {
   return <div className="brand"><img src="/static/brand-mark.svg" alt="" /><div><strong>MedGuard AI</strong><span>Clinical assistant</span></div></div>;
-}
-
-function Credentials({ tenantId, setTenantId, apiKey, setApiKey, consentToken, setConsentToken, close }) {
-  return <div className="credentials-popover">
-    <div className="popover-heading"><strong>Kết nối API</strong><button type="button" className="icon-button" onClick={close} title="Đóng" aria-label="Đóng"><X size={16} /></button></div>
-    <Field label="Tenant"><SelectInput value={tenantId} onChange={(event) => { const tenant = event.target.value; setTenantId(tenant); setApiKey(tenantDefaults[tenant] || ''); }}><option value="tenant-demo">tenant-demo</option><option value="tenant-alt">tenant-alt</option></SelectInput></Field>
-    <Field label="API key"><TextInput type="password" autoComplete="off" value={apiKey} onChange={(event) => setApiKey(event.target.value)} /></Field>
-    <Field label="Consent token"><TextInput type="password" autoComplete="off" value={consentToken} onChange={(event) => setConsentToken(event.target.value)} /></Field>
-  </div>;
 }
 
 const emptyProfile = {
@@ -98,14 +82,6 @@ const emptyProfile = {
 
 function parseList(value) {
   return value.split(',').map((item) => item.trim()).filter((item) => item && !['không', 'khong', 'none'].includes(item.toLowerCase()));
-}
-
-function loadProfile(tenantId) {
-  try {
-    return { ...emptyProfile, ...JSON.parse(localStorage.getItem(`medguard.profile.${tenantId}`) || '{}') };
-  } catch {
-    return { ...emptyProfile };
-  }
 }
 
 function ProfileEditor({ context, onSave, onClear, close }) {
@@ -146,7 +122,7 @@ function Sidebar({ open, close, collapse, conversations, activeId, onSelect, onN
         {conversations.length ? conversations.map((item) => <div className={`history-row ${activeId === item.conversation_id && activeView === 'chat' ? 'active' : ''}`} key={item.conversation_id}><button type="button" onClick={() => { onSelect(item.conversation_id); close(); }}><MessageSquare size={15} /><span>{item.title}</span></button><button className="history-delete" type="button" title="Xóa cuộc trò chuyện" aria-label={`Xóa ${item.title}`} onClick={() => onDelete(item.conversation_id)}><Trash2 size={14} /></button></div>) : <p className="history-empty">Chưa có cuộc trò chuyện</p>}
       </nav></div>
       <div className="sidebar-actions">
-        <button type="button" className={`nav-link-btn ${activeView === 'schedule' ? 'active' : ''}`} onClick={() => { onSchedulePage(); close(); }}><CalendarClock size={17} /><span>Lịch khám</span></button>
+
         <button type="button" className={`nav-link-btn ${activeView === 'medication' ? 'active' : ''}`} onClick={() => { onMedicationPage(); close(); }}><CalendarDays size={17} /><span>Lịch uống thuốc</span></button>
         <button type="button" className="nav-link-btn" onClick={() => { onSettings(); close(); }}><Settings size={17} /><span>Cài đặt</span></button>
       </div>
@@ -182,6 +158,7 @@ function Conversation({ entries, busy, onNotify }) {
   const [hasNewMessages, setHasNewMessages] = useState(false);
   const isAtBottomRef = useRef(true);
   const prevEntriesLengthRef = useRef(entries.length);
+  useEffect(() => () => { if ('speechSynthesis' in window) window.speechSynthesis.cancel(); }, []);
 
   // Dynamic clinical loading phases
   const [loadingPhase, setLoadingPhase] = useState(0);
@@ -495,7 +472,7 @@ function Composer({ value, setValue, onSend, busy, selectedTool, setSelectedTool
       <div className="composer-tools">
         <div className="composer-left">
           <button className="icon-button" type="button" title="Đính kèm ảnh đơn thuốc hoặc kết quả khám" aria-label="Đính kèm ảnh" onClick={() => fileRef.current?.click()}><Paperclip size={19} /></button>
-          <input ref={fileRef} className="visually-hidden" type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => { const file = event.target.files?.[0]; if (file) setAttachment({ file, url: URL.createObjectURL(file) }); event.target.value = ''; }} />
+          <input ref={fileRef} className="visually-hidden" aria-label="Chọn ảnh đính kèm" type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => { const file = event.target.files?.[0]; if (file) setAttachment({ file, url: URL.createObjectURL(file) }); event.target.value = ''; }} />
           <button className="icon-button" type="button" title="Quét QR sản phẩm" aria-label="Quét QR" onClick={onQr}><QrCode size={19} /></button>
           <div className="tool-anchor" ref={toolAnchorRef}><button className="mode-button" type="button" aria-haspopup="menu" aria-expanded={toolsOpen} onClick={() => setToolsOpen(!toolsOpen)}><ToolIcon size={16} /><span>{tool.label}</span><ChevronDown size={14} /></button><ToolMenu open={toolsOpen} selected={selectedTool} onSelect={(id) => { setSelectedTool(id); setToolsOpen(false); }} /></div>
         </div>
@@ -520,16 +497,14 @@ function clinicalContext(context) {
   };
 }
 
-export default function App() {
-  const [tenantId, setTenantId] = useState('tenant-demo');
-  const [apiKey, setApiKey] = useState('demo-key');
-  const [consentToken, setConsentToken] = useState('consent-valid-ui');
+export default function App({ session, onLogout, onSession }) {
+  const tenantId = session.account.tenant_id;
   const [conversationId, setConversationId] = useState(() => crypto.randomUUID());
   const [conversationTitle, setConversationTitle] = useState('Cuộc trò chuyện mới');
   const [conversations, setConversations] = useState([]);
   const [entries, setEntries] = useState([]);
   const [message, setMessage] = useState('');
-  const [context, setContext] = useState(() => newContext(loadProfile('tenant-demo')));
+  const [context, setContext] = useState(() => newContext(session.account.profile));
   const [selectedTool, setSelectedTool] = useState('auto');
   const [attachment, setAttachment] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -552,7 +527,8 @@ export default function App() {
   const [historySearch, setHistorySearch] = useState('');
   const [toast, setToast] = useState(null);
   const toastTimerRef = useRef(null);
-  const api = useMemo(() => createApiClient({ tenantId, apiKey, consentToken }), [tenantId, apiKey, consentToken]);
+  const conversationGenerationRef = useRef(0);
+  const api = useMemo(() => createApiClient({ csrfToken: session.csrf_token }), [session.csrf_token]);
   const hasPendingGatewayReview = entries.some(
     (entry) => entry.role === 'assistant' && entry.verification_status === 'shadow_pending',
   );
@@ -569,7 +545,8 @@ export default function App() {
         await api.request(`/v1/chat/conversations/${encodeURIComponent(item.conversation_id)}`, { method: 'DELETE' });
       }
     } catch {
-      // Fallback local cleanup
+      notify('Chưa xóa được lịch sử. Vui lòng thử lại.');
+      return;
     }
     startNew();
     setConversations([]);
@@ -609,7 +586,7 @@ export default function App() {
 
   useEffect(() => {
     let mounted = true;
-    Promise.allSettled([api.request('/v1/health/readiness'), api.request('/v1/chat/conversations')]).then(([health, history]) => {
+    Promise.allSettled([api.request('/v1/health'), api.request('/v1/chat/conversations')]).then(([health, history]) => {
       if (!mounted) return;
       setReadiness(health.status === 'fulfilled' ? health.value : null);
       setConversations(history.status === 'fulfilled' ? history.value.conversations || [] : []);
@@ -621,7 +598,7 @@ export default function App() {
     setConversationId(crypto.randomUUID());
     setConversationTitle('Cuộc trò chuyện mới');
     setEntries([]);
-    setContext(newContext(loadProfile(tenantId)));
+    setContext(newContext(session.account.profile));
   }, [tenantId]);
 
   useEffect(() => {
@@ -681,7 +658,7 @@ export default function App() {
       }
       if (event.type === 'pointerdown') {
         if (!event.target.closest('.profile-anchor')) setPatientOpen(false);
-        if (!event.target.closest('.credentials-anchor')) setCredentialsOpen(false);
+        if (!event.target.closest('.account-menu')) setCredentialsOpen(false);
       }
     };
     document.addEventListener('keydown', dismiss);
@@ -694,6 +671,8 @@ export default function App() {
   }, []);
 
   const startNew = () => {
+    conversationGenerationRef.current += 1;
+    setBusy(false);
     setConversationId(crypto.randomUUID());
     setConversationTitle('Cuộc trò chuyện mới');
     setEntries([]);
@@ -704,26 +683,22 @@ export default function App() {
     setView('chat');
   };
 
-  const saveProfile = (profile) => {
+  const saveProfile = async (profile) => {
     try {
-      localStorage.setItem(`medguard.profile.${tenantId}`, JSON.stringify(profile));
-    } catch {
-      // The profile still applies to the current tab when browser storage is unavailable.
-    }
-    setContext((current) => ({ ...current, ...profile }));
-    setPatientOpen(false);
-    notify('Đã lưu Profile');
+      const data = await api.request('/v1/auth/profile', { method: 'PUT', body: profile });
+      setContext((current) => ({ ...newContext(data.profile), last_result: current.last_result }));
+      setPatientOpen(false);
+      notify('Đã lưu hồ sơ vào tài khoản');
+      return true;
+    } catch (error) { notify(error.message); return false; }
   };
-
-  const clearProfile = () => {
+  const clearProfile = () => saveProfile(emptyProfile);
+  const updateConsent = async () => {
     try {
-      localStorage.removeItem(`medguard.profile.${tenantId}`);
-    } catch {
-      // Keep the clear action functional for the current tab.
-    }
-    setContext(newContext());
-    setPatientOpen(false);
-    notify('Đã xóa Profile');
+      const data = await api.request('/v1/auth/consent', { method: 'PUT', body: { consent: !session.account.consent } });
+      onSession({ ...session, account: { ...session.account, consent: data.consent } });
+      notify(data.consent ? 'Đã đồng ý xử lý thông tin sức khỏe' : 'Đã rút lại đồng ý. Dữ liệu đã lưu vẫn có thể xem và xóa.');
+    } catch (error) { notify(error.message); }
   };
 
   const selectConversation = async (id) => {
@@ -753,6 +728,7 @@ export default function App() {
   };
 
   const sendText = async (overrideText, overrideIntent) => {
+    const generation = conversationGenerationRef.current;
     const text = (overrideText ?? message).trim();
     const currentAttachment = attachment;
     if ((!text && !currentAttachment) || busy) return;
@@ -784,6 +760,7 @@ export default function App() {
         formData.append('conversation_id', conversationId);
         formData.append('message', shownText);
         const data = await api.request('/v1/prescription/extract', { method: 'POST', formData });
+        if (generation !== conversationGenerationRef.current) return;
         const { answer: ocrAnswer, ...ocrResult } = data;
         responseEntry = { role: 'assistant', text: ocrAnswer?.summary || 'Đã tiếp nhận ảnh đơn thuốc. Kết quả nhận diện cần dược sĩ hoặc bác sĩ xác nhận trước khi tạo lịch thuốc.', intent: 'ocr', status: 'answered', result: ocrResult, answer: ocrAnswer };
       } else {
@@ -794,6 +771,7 @@ export default function App() {
           body: { conversation_id: conversationId, messages, context: clinicalContext(context), intent_hint: effectiveIntent, locale: 'vi-VN' },
           timeoutMs: 9500,
         });
+        if (generation !== conversationGenerationRef.current) return;
         responseEntry = { role: 'assistant', requestId: data.request_id, text: data.reply, intent: data.intent, status: data.status, result: data.result, answer: data.answer, suggestions: data.suggestions, answer_origin: data.answer_origin, verification_status: data.verification_status, knowledge_approval: data.knowledge_approval };
         if (data.extracted?.patient_ref) setContext((current) => ({ ...current, patient_ref: data.extracted.patient_ref }));
         if (data.result) setContext((current) => ({ ...current, last_result: data.result }));
@@ -805,57 +783,37 @@ export default function App() {
     } finally {
       const remaining = 350 - (performance.now() - processingStartedAt);
       if (remaining > 0) await new Promise((resolve) => window.setTimeout(resolve, remaining));
-      if (responseEntry) setEntries((current) => [...current, responseEntry]);
-      setBusy(false);
+      if (generation === conversationGenerationRef.current) {
+        if (responseEntry) setEntries((current) => [...current, responseEntry]);
+        setBusy(false);
+      }
     }
   };
 
   const filteredConversations = conversations.filter((item) => item.title.toLowerCase().includes(historySearch.toLowerCase()));
   return <div className={`app-shell chat-shell ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
-    <Sidebar open={sidebarOpen} close={() => setSidebarOpen(false)} collapse={() => { setSidebarCollapsed(true); setSidebarOpen(false); }} conversations={filteredConversations} activeId={conversationId} onSelect={selectConversation} onNew={startNew} onDelete={deleteConversation} onSchedule={() => setView('medication')} onSchedulePage={() => setView('schedule')} onMedicationPage={() => setView('medication')} onSettings={() => { setSettingsInitialTab('general'); setSettingsOpen(true); }} onSystem={() => setView('system')} activeView={view} search={historySearch} setSearch={setHistorySearch} />
+    <Sidebar open={sidebarOpen} close={() => setSidebarOpen(false)} collapse={() => { setSidebarCollapsed(true); setSidebarOpen(false); }} conversations={filteredConversations} activeId={conversationId} onSelect={selectConversation} onNew={startNew} onDelete={deleteConversation} onSchedule={() => setView('medication')} onSchedulePage={() => notify('Chưa có cơ sở y tế liên kết để đặt lịch khám.')} onMedicationPage={() => setView('medication')} onSettings={() => { setSettingsInitialTab('general'); setSettingsOpen(true); }} onSystem={() => setView('system')} activeView={view} search={historySearch} setSearch={setHistorySearch} />
     <main className="main-shell chat-main">
+      {!session.account.consent && <div className="consent-banner" role="status">Để tư vấn sức khỏe và lưu hồ sơ, cần sự đồng ý của bạn. <button type="button" onClick={updateConsent}>Tôi đồng ý</button></div>}
       <header className="topbar chat-topbar">
         <div className="topbar-title"><button className="icon-button menu-button" type="button" onClick={() => { setSidebarCollapsed(false); setSidebarOpen(true); }} title={sidebarCollapsed ? 'Mở thanh bên' : 'Mở menu'} aria-label={sidebarCollapsed ? 'Mở thanh bên' : 'Mở menu'}>{sidebarCollapsed ? <PanelLeftOpen size={20} /> : <Menu size={20} />}</button><div><h1>{view === 'system' ? 'System & audit' : view === 'schedule' ? 'Lịch khám' : view === 'medication' ? 'Lịch uống thuốc' : conversationTitle}</h1><span>{view === 'system' ? 'Trạng thái vận hành' : view === 'schedule' ? 'Thời khóa biểu ca khám bác sĩ' : view === 'medication' ? 'Thời khóa biểu nhắc thuốc cá nhân' : context.patient_ref || 'Có thể nhắn ngay không cần Profile'}</span></div></div>
         <div className="topbar-actions">
-          <button className={`view-toggle-btn ${view === "schedule" ? "active" : ""}`} type="button" onClick={() => setView(view === "schedule" ? "chat" : "schedule")} title={view === 'schedule' ? 'Về phòng Chat' : 'Xem Lịch khám'}><CalendarClock size={16} /><span>{view === 'schedule' ? 'Trò chuyện' : 'Lịch khám'}</span></button>
+
           <button className={`view-toggle-btn ${view === "medication" ? "active" : ""}`} type="button" onClick={() => setView(view === "medication" ? "chat" : "medication")} title={view === 'medication' ? 'Về phòng Chat' : 'Xem Lịch uống thuốc'}><Pill size={16} /><span>{view === 'medication' ? 'Trò chuyện' : 'Lịch uống thuốc'}</span></button>
           {view === 'chat' && <div className="profile-anchor"><button className={`patient-button ${context.patient_ref || context.display_name ? 'selected' : ''}`} type="button" aria-label="Mở Profile cá nhân" onClick={() => setPatientOpen(!patientOpen)}><span>{context.display_name ? context.display_name.trim().slice(0, 2).toUpperCase() : context.patient_ref ? context.patient_ref.slice(0, 2) : <UserRound size={15} />}</span><div><strong>{context.display_name || 'Profile cá nhân'}</strong><small>{context.patient_ref || 'Không bắt buộc'}</small></div><ChevronDown size={15} /></button>{patientOpen && <ProfileEditor context={context} onSave={saveProfile} onClear={clearProfile} close={() => setPatientOpen(false)} />}</div>}
           <button className="icon-button topbar-settings-btn" type="button" title="Cài đặt hệ thống" aria-label="Cài đặt" onClick={() => { setSettingsInitialTab('general'); setSettingsOpen(true); }}><Settings size={18} /></button>
-          <button className="readiness-button" type="button" title="Trạng thái hệ thống" onClick={() => { setSettingsInitialTab('system'); setSettingsOpen(true); }}><span className={`health-dot ${readiness?.production_ready ? 'ready' : (readiness?.environment === 'development' ? 'dev-ready' : '')}`} />{readiness?.production_ready ? 'Ready' : (readiness?.environment === 'development' ? 'Online (Dev)' : (readiness?.status || 'offline'))}</button>
-          <div className="credentials-anchor"><button className="tenant-button" type="button" title="Cấu hình kết nối" aria-label="Cấu hình kết nối" onClick={() => setCredentialsOpen(!credentialsOpen)}><span>{tenantId.slice(0, 1).toUpperCase()}</span><div><strong>{tenantId}</strong><small>{readiness?.environment || 'Environment'}</small></div><Settings2 size={16} /></button>{credentialsOpen && <Credentials tenantId={tenantId} setTenantId={setTenantId} apiKey={apiKey} setApiKey={setApiKey} consentToken={consentToken} setConsentToken={setConsentToken} close={() => setCredentialsOpen(false)} />}</div>
+          <div className="account-menu"><button className="patient-button" type="button" aria-expanded={credentialsOpen} onClick={() => setCredentialsOpen(!credentialsOpen)}><UserRound size={17} /><span>{session.account.display_name}</span><ChevronDown size={14} /></button>{credentialsOpen && <div className="account-dropdown"><strong>{session.account.display_name}</strong><small>{session.account.email}</small><button type="button" onClick={updateConsent}>{session.account.consent ? 'Rút lại đồng ý xử lý sức khỏe' : 'Đồng ý xử lý sức khỏe'}</button><button type="button" onClick={onLogout}>Đăng xuất</button></div>}</div>
         </div>
       </header>
       {view === 'system' ? (
         <div className="system-workspace"><SystemModule api={api} tenantId={tenantId} /></div>
-      ) : view === 'schedule' ? (
-        <div className="schedule-workspace">
-          <SchedulePage
-            api={api}
-            onBackToChat={() => setView('chat')}
-            onOpenMedicationPage={() => setView('medication')}
-            onConsultPatient={(shift) => {
-              setView('chat');
-              setContext((current) => ({
-                ...current,
-                patient_ref: shift.patientRef,
-                display_name: shift.patientName,
-                age: shift.age,
-                sex: shift.sex === 'Nam' ? 'male' : 'female',
-                conditions: [shift.department, shift.purpose],
-                current_medications: shift.currentMeds || [],
-              }));
-              setMessage(`Tư vấn ca khám của bệnh nhân ${shift.patientName} (${shift.patientRef}), lý do: ${shift.purpose}.`);
-              requestAnimationFrame(() => document.querySelector('[aria-label="Tin nhắn"]')?.focus());
-            }}
-          />
-        </div>
       ) : view === 'medication' ? (
         <div className="schedule-workspace">
           <MedicationPage
             api={api}
             patientRef={context.patient_ref}
             onBackToChat={() => setView('chat')}
-            onOpenSchedulePage={() => setView('schedule')}
+            onOpenSchedulePage={() => notify('Chưa có cơ sở y tế liên kết để đặt lịch khám.')}
             onConsultMedicine={(med) => {
               setView('chat');
               setMessage(`Tư vấn thông tin và lưu ý dùng thuốc ${med.name || med.medicine_name} (${med.strength || med.dosage || ''}), dùng vào: ${med.timing || med.slot || 'trong ngày'}.`);
@@ -882,7 +840,7 @@ export default function App() {
       )}
     </main>
     <QrScanner open={qrOpen} onClose={() => setQrOpen(false)} onDetected={(raw) => { setQrOpen(false); sendText(`Kiểm tra QR hàng giả: ${raw}`, 'authenticity'); }} />
-    <SchedulePanel open={scheduleOpen} onClose={() => setScheduleOpen(false)} api={api} patientRef={context.patient_ref} onOpenSchedulePage={() => setView('schedule')} onNotify={notify} />
+    <SchedulePanel open={scheduleOpen} onClose={() => setScheduleOpen(false)} api={api} patientRef={context.patient_ref} onOpenSchedulePage={() => notify('Chưa có cơ sở y tế liên kết để đặt lịch khám.')} onNotify={notify} />
     <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} initialTab={settingsInitialTab} context={context} onSaveProfile={saveProfile} onClearProfile={clearProfile} api={api} tenantId={tenantId} onClearAllChat={clearAllConversations} onExportData={exportClinicalData} onNotify={notify} />
     {toast && <div className="ui-toast" role="status"><Check size={16} /><span>{toast}</span></div>}
   </div>;

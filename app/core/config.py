@@ -73,6 +73,8 @@ def _allowed_tenants() -> tuple[str, ...]:
 def _api_keys_by_tenant() -> dict[str, str]:
     value = getenv("MEDGUARD_API_KEYS_JSON")
     if not value:
+        if getenv("MEDGUARD_ENVIRONMENT", "development").lower() == "production":
+            return {}
         return {"tenant-demo": "demo-key", "tenant-alt": "alt-key"}
     parsed = json.loads(value)
     if not isinstance(parsed, dict) or not parsed:
@@ -86,7 +88,7 @@ def _api_keys_by_tenant() -> dict[str, str]:
 @dataclass(frozen=True)
 class Settings:
     service_name: str = "medguard-ai"
-    environment: str = field(default_factory=lambda: getenv("MEDGUARD_ENVIRONMENT", "development"))
+    environment: str = field(default_factory=lambda: getenv("MEDGUARD_ENVIRONMENT", "development").lower())
     api_version: str = "v1"
     request_timeout_seconds: int = 10
     idempotency_ttl_seconds: int = 24 * 60 * 60
@@ -119,7 +121,7 @@ class Settings:
 
     # Database & RLS
     database_url: str | None = field(default_factory=lambda: getenv("MEDGUARD_DATABASE_URL"))
-    sqlite_path: str = field(default_factory=lambda: getenv("MEDGUARD_SQLITE_PATH", ":memory:"))
+    sqlite_path: str = field(default_factory=lambda: getenv("MEDGUARD_SQLITE_PATH", ":memory:" if _is_test_runtime() else "var/medguard.sqlite3"))
     db_pool_size: int = field(default_factory=lambda: _env_int("MEDGUARD_DB_POOL_SIZE", 10))
     db_max_overflow: int = field(default_factory=lambda: _env_int("MEDGUARD_DB_MAX_OVERFLOW", 20))
     db_connect_timeout_seconds: int = field(
@@ -283,6 +285,10 @@ class Settings:
     def __post_init__(self) -> None:
         if self.environment.lower() not in {"development", "test", "production"}:
             raise ValueError("MEDGUARD_ENVIRONMENT must be development, test, or production")
+        if self.environment.lower() == "production" and any(
+            key in {"demo-key", "alt-key"} or len(key) < 32 for key in self.api_keys_by_tenant.values()
+        ):
+            raise ValueError("Production API keys must be explicitly configured and contain at least 32 characters; demo keys are forbidden")
         if self.db_pool_size < 1:
             raise ValueError("MEDGUARD_DB_POOL_SIZE must be at least 1")
         if self.db_max_overflow < 0:

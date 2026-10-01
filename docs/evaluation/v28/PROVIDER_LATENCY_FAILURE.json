@@ -1,0 +1,31 @@
+{
+  "gate": "GEMINI_PROVIDER_READINESS",
+  "configured": true,
+  "status": "fail_application",
+  "application_certification_passed": false,
+  "provider_fully_ready": false,
+  "series": [
+    {
+      "name": "direct writer gemini-3.5-flash-lite",
+      "status": "pass",
+      "success_count": 5,
+      "iterations": 5,
+      "retry_count": 0,
+      "median_s": 12.7395,
+      "p95_s": 23.4571,
+      "failures": [],
+      "failure_http_statuses": []
+    },
+    {
+      "name": "direct reviewer gemini-3.5-flash-lite",
+      "status": "fail_application",
+      "success_count": 5,
+      "iterations": 5,
+      "retry_count": 2,
+      "median_s": 11.3252,
+      "p95_s": 40.1583,
+      "failures": [],
+      "failure_http_statuses": []
+    }
+  ]
+}

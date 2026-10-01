@@ -31,6 +31,8 @@ _FILE_NAMES = (
     "atc_codes.json",
     "icd10_codes.json",
     "monitoring_rules.json",
+    "v28_monitoring_overlay.json",
+    "v28_response_guidance.json",
     "product_registry.json",
     "medication_incident_protocols.json",
 )
@@ -104,7 +106,8 @@ class KnowledgeStore:
         base = self.files.get(
             "red_flag_protocols.json", KnowledgeFile("", "", "", {})
         ).data.get("symptom_guidance", [])
-        return [*policy, *base]
+        extra = self.files.get("v28_response_guidance.json", KnowledgeFile("", "", "", {})).data.get("symptom_guidance", [])
+        return [*policy, *extra, *base]
 
     @property
     def reported_ingestion_protocols(self) -> list[dict[str, Any]]:
@@ -278,7 +281,12 @@ class KnowledgeStore:
 
     @property
     def monitoring_rules(self) -> list[dict[str, Any]]:
-        return self.files.get("monitoring_rules.json", KnowledgeFile("", "", "", {})).data.get("rules", [])
+        base = self.files.get("monitoring_rules.json", KnowledgeFile("", "", "", {})).data.get("rules", [])
+        overlay = self.files.get("v28_monitoring_overlay.json", KnowledgeFile("", "", "", {})).data.get("rules", [])
+        merged = {rule["metric"]: dict(rule) for rule in base}
+        for rule in overlay:
+            merged[rule["metric"]] = {**merged.get(rule["metric"], {}), **rule}
+        return list(merged.values())
 
     @property
     def monitoring_minimum_points(self) -> int:
