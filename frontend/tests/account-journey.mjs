@@ -48,6 +48,8 @@ async function ask(question,name,{fresh=true,expected}={}) {
   report.cases.push({name,question,visible,request:sent,reply:payload.reply,urgency,intent:payload.intent,verification_status:payload.verification_status,optional_advice:payload.answer?.optional_advice||[],latency_ms:Date.now()-start,clinical_payload:payload.result});
   if(expected) assert.equal(urgency,expected,`${name}: ${urgency}`);
   assert(visible.length>40,`${name} empty response`);
+  if(name==='emergency') assert(!visible.includes('đặc điểm đau cơ/thành ngực ở lượt trước'),'Invented prior chest-wall symptoms');
+  if(name==='unsafe-delay') assert(!visible.includes('Việc bạn thấy đỡ sau khi nghỉ'),'Invented symptom improvement');
   if(['URGENT','EMERGENCY'].includes(urgency)) assert(!payload.answer?.optional_advice?.length);
   if(['emergency','routine'].includes(name)) await page.screenshot({path:new URL(`${name}-desktop.png`,artifacts).pathname,fullPage:true,animations:'disabled'});
 }
@@ -90,6 +92,15 @@ try {
   await page.getByRole('button',{name:'Mở Profile cá nhân',exact:true}).click();
   assert.equal(await page.getByLabel('Tuổi',{exact:true}).inputValue(),'35','Profile lost after reload');
   await page.getByRole('button',{name:'Đóng',exact:true}).click();
+  const historyLoaded=page.waitForResponse((response)=>response.url().includes('/v1/chat/conversations/')&&response.request().method()==='GET');
+  await page.locator('.history-row').first().locator('button').first().click();
+  const storedResponse=await historyLoaded;
+  assert.equal(storedResponse.status(),200,'Stored conversation failed to load');
+  const storedHistory=await storedResponse.json();
+  assert.equal(typeof storedHistory.conversation.created_at,'string');
+  assert(storedHistory.messages.length>=2,'Stored messages missing');
+  assert(storedHistory.messages.every((message)=>typeof message.created_at==='string'));
+  await page.locator('.chat-user').first().waitFor();
   await page.locator('.account-menu > button').click();await page.getByRole('button',{name:'Đăng xuất',exact:true}).click();
   await page.getByRole('heading',{name:'Chào mừng trở lại'}).waitFor();await login();
   await page.waitForFunction((expected)=>document.querySelectorAll('.history-row').length===expected,count);

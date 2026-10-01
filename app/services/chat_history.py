@@ -19,6 +19,14 @@ from app.models.chat import (
 from app.services.patient_response_surface import canonical_patient_response_text
 
 
+def _history_timestamps(row: dict) -> dict:
+    """Keep the API's ISO string contract for PostgreSQL datetime rows too."""
+    return {
+        key: value.isoformat() if key in {"created_at", "updated_at"} and isinstance(value, datetime) else value
+        for key, value in row.items()
+    }
+
+
 class ChatHistoryStore:
     def __init__(self, database: DatabaseManager = db_manager) -> None:
         self.database = database
@@ -101,7 +109,7 @@ class ChatHistoryStore:
                 """,
                 (tenant_id, limit),
             )
-        return [ConversationSummary.model_validate(row) for row in rows]
+        return [ConversationSummary.model_validate(_history_timestamps(row)) for row in rows]
 
     def get(self, tenant_id: str, conversation_id: str) -> ConversationHistoryResponse | None:
         with self._lock, self.database.tenant_context(tenant_id) as session:
@@ -136,9 +144,9 @@ class ChatHistoryStore:
             raw_answer = row.pop("answer_json")
             row["result"] = raw_result if isinstance(raw_result, dict) else json.loads(raw_result) if raw_result else None
             row["answer"] = raw_answer if isinstance(raw_answer, dict) else json.loads(raw_answer) if raw_answer else None
-            messages.append(StoredChatMessage.model_validate(row))
+            messages.append(StoredChatMessage.model_validate(_history_timestamps(row)))
         return ConversationHistoryResponse(
-            conversation=ConversationSummary.model_validate(conversations[0]),
+            conversation=ConversationSummary.model_validate(_history_timestamps(conversations[0])),
             messages=messages,
         )
 

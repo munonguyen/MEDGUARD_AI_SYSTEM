@@ -42,6 +42,9 @@ Hai chế độ được thử: `disabled` để kiểm tra đường trả lờ
 6. Khóa demo và hồ sơ sức khỏe trong localStorage. Thay bằng cookie HttpOnly, phiên phía máy chủ và profile riêng; loại dữ liệu chăm sóc khỏi bộ đệm huấn luyện mặc định.
 7. Nhãn đính kèm/tương phản và banner hành động nằm dưới phần giải thích. Thêm nhãn, cải thiện tương phản, đưa hành động cấp cứu lên đầu. Gợi ý tự chăm sóc tùy chọn chỉ lấy từ nội dung có sẵn, không thêm thuốc/liều và không xuất hiện khi khẩn/cấp cứu.
 8. Phản hồi đang chạy có thể cập nhật cuộc trò chuyện mới. Thêm kiểm tra thế hệ cuộc trò chuyện trước khi cập nhật kết quả và trạng thái bận.
+9. Kiểm thử HTTPS/PostgreSQL phát hiện đăng ký thiếu namespace trong bảng tenant do so sánh sai tên dialect, khiến chat lỗi 500. Sửa tên dialect và bổ sung hai tài khoản thật để thử cô lập lịch sử, đoán ID và chèn header.
+10. Đọc nguyên văn phát hiện giải thích đau ngực đầu tiên tự nhắc “đau cơ ở lượt trước”, và câu hỏi trì hoãn bị diễn giải thành đã thấy đỡ sau nghỉ. Sửa nguồn giải thích sang dữ kiện hiện có và mệnh đề điều kiện; giữ mức cấp cứu. Thêm kiểm thử hợp đồng và kiểm tra ngay trên văn bản UI. Các lượt trước sửa vẫn được lưu làm bằng chứng phát hiện lỗi, không coi chúng là đầu ra cuối.
+11. PostgreSQL trả timestamp dạng datetime, còn API lịch sử yêu cầu chuỗi ISO; lịch sử từng bị lỗi dù chat trả 200. Chuẩn hóa timestamp ở biên đọc lịch sử và bổ sung thao tác mở lại hội thoại đã lưu trên UI thật.
 
 Các overlay mới được đánh dấu **pending clinical review**. Nguồn công khai không tự biến chúng thành tri thức được phê duyệt cho sản xuất.
 

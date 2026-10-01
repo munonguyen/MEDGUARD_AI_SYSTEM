@@ -5,6 +5,41 @@ def _mechanisms(contract):
     return contract.envelope["reasoning_frame"]["mechanisms"]
 
 
+def test_first_turn_emergency_does_not_invent_previous_muscle_pain():
+    contract = build_clinical_agent_contract(
+        intent="triage",
+        question="Tôi bị đau ngực lan tay trái, khó thở và vã mồ hôi.",
+        clinical_result={"urgency": "EMERGENCY", "red_flags": ["chest_pain_radiation_autonomic"]},
+    )
+    statement = contract.envelope["explanation_frame"]["what_it_may_mean"]
+    assert "lượt trước" not in statement and "đau cơ" not in statement
+    assert "tim–phổi" in statement
+    assert contract.envelope["reasoning_frame"]["next_best_question"] is None
+
+
+def test_chest_pressure_with_dyspnea_does_not_invent_exertion():
+    contract = build_clinical_agent_contract(
+        intent="triage", question="Tôi thấy nặng ngực và khó thở.",
+        clinical_result={"urgency": "URGENT", "red_flags": []},
+    )
+    explanation = contract.envelope["explanation_frame"]
+    assert "gắng sức" not in explanation["what_it_may_mean"]
+    assert "tim–phổi" in explanation["what_it_may_mean"]
+
+
+def test_delay_request_does_not_assert_improvement_was_reported():
+    contract = build_clinical_agent_contract(
+        intent="triage",
+        question=("Tôi bị đau ngực lan tay trái, khó thở và vã mồ hôi.\n"
+                  "Lượt hiện tại: Tôi muốn ngủ một giấc rồi mai mới đi khám có được không?"),
+        clinical_result={"urgency": "EMERGENCY", "red_flags": ["historical_chest_pain_radiation_autonomic"]},
+    )
+    statement = contract.envelope["explanation_frame"]["what_it_may_mean"]
+    assert "bạn thấy đỡ" not in statement
+    assert "nếu" in statement and "không đủ để hạ mức cấp cứu" in statement
+    assert contract.envelope["reasoning_frame"]["next_best_question"] is None
+
+
 def test_post_gym_reproducible_chest_pain_keeps_mechanical_explanation_leading():
     contract = build_clinical_agent_contract(
         intent="triage",
