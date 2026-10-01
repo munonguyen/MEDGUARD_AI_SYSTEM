@@ -1,0 +1,65 @@
+{
+  "baseline_commit": "74315b926986cbbcb723be10f4280a7d60a14a5a",
+  "evaluation_scope": "Engineering regression; unavailable live provider, deterministic contextual fallback. Not clinical validation.",
+  "conversation": {
+    "questions": 200,
+    "conversations": 50,
+    "average_score": 99.47,
+    "critical_failures": 0,
+    "below_70": 0,
+    "card_state_failures": 0,
+    "p95_latency_ms": 1594.6
+  },
+  "conversation_gate": {
+    "gate": "V27.5_CONVERSATION_AND_OUTPUT_QUALITY",
+    "integrity_issues": [],
+    "turns": 200,
+    "conversations": 50,
+    "duplicate_turns": 6,
+    "duplicate_ratio": 0.03,
+    "max_duplicate_ratio": 0.049,
+    "conversations_with_exact_duplicates": 0,
+    "patient_language_violations": [],
+    "relevance_or_memory_violations": [],
+    "output_hygiene_violations": [],
+    "category_stats": {
+      "card_schedule_operations": {
+        "turns": 40,
+        "unique_replies": 40,
+        "duplicate_turns": 0
+      },
+      "cross_intent_context_switch": {
+        "turns": 24,
+        "unique_replies": 24,
+        "duplicate_turns": 0
+      },
+      "medication_safety_multiturn": {
+        "turns": 32,
+        "unique_replies": 31,
+        "duplicate_turns": 2
+      },
+      "monitoring_multiturn": {
+        "turns": 24,
+        "unique_replies": 24,
+        "duplicate_turns": 0
+      },
+      "triage_multiturn": {
+        "turns": 80,
+        "unique_replies": 80,
+        "duplicate_turns": 0
+      }
+    },
+    "gate_passed": true
+  },
+  "medical_response": {
+    "total": 40,
+    "average_score": 12.3,
+    "critical_failures": 0,
+    "subthreshold_cases": 0,
+    "gate_passed": true,
+    "p95_latency_ms": 1159.5,
+    "expert_review_status": "pending",
+    "production_evaluable": false
+  },
+  "baseline_duplicate_ratio": 0.09
+}
