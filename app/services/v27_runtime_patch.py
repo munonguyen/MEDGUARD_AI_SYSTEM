@@ -17,9 +17,10 @@ from __future__ import annotations
 from functools import wraps
 from typing import Any
 
-from app.models.chat import ChatIntent, GroundedAnswer
+from app.models.chat import ChatIntent, ChatResponse, GroundedAnswer
 from app.services.clinical_agent_contract import build_clinical_agent_contract
 from app.services.clinical_contract_fallback import compose_contract_fallback
+from app.services.patient_response_surface import canonical_patient_response_text
 from app.services.professional_response_quality import apply_professional_response_quality
 from app.services.v27_2_answering_patch import _sanitize_answer
 
@@ -34,15 +35,45 @@ def _resolved_urgency(clinical_payload: dict[str, Any]) -> str:
     ).upper()
 
 
+def _install_canonical_reply_surface() -> None:
+    """Make ``reply`` match the verified narrative without changing the API schema.
+
+    The frontend already treats verified Writer narrative as the canonical
+    patient-visible surface.  Keeping ``reply`` as the old summary caused the
+    next client turn to send back a different assistant message than the patient
+    had actually seen.  This adapter preserves the string field for backwards
+    compatibility while synchronizing its value only for verified responses.
+    """
+    if getattr(ChatResponse, "_v27_canonical_reply_installed", False):
+        return
+
+    original_init = ChatResponse.__init__
+
+    @wraps(original_init)
+    def init_with_canonical_reply(self: ChatResponse, *args: Any, **kwargs: Any) -> None:
+        original_init(self, *args, **kwargs)
+        self.reply = canonical_patient_response_text(
+            answer=self.answer,
+            verification_status=self.verification_status,
+            fallback_text=self.reply,
+        )
+
+    ChatResponse.__init__ = init_with_canonical_reply  # type: ignore[method-assign]
+    ChatResponse._v27_canonical_reply_installed = True
+
+
 def install_v27_runtime_fallback() -> None:
-    """Patch ``AnswerAgentPipeline.generate_response`` exactly once.
+    """Install narrow V27 runtime adapters exactly once.
 
     The adapter intentionally keeps the mature execution graph intact. It only
-    injects the contract-aware fallback and enforces patient-visible quality at
-    the final boundary. Safety authority remains upstream and immutable here.
+    injects the contract-aware fallback, aligns the compatibility reply with the
+    already-verified patient surface, and enforces patient-visible quality at the
+    final boundary. Safety authority remains upstream and immutable here.
     """
 
     from app.services.answer_agents import AnswerAgentPipeline
+
+    _install_canonical_reply_surface()
 
     if getattr(AnswerAgentPipeline, "_v27_contract_fallback_installed", False):
         return
@@ -88,7 +119,7 @@ def install_v27_runtime_fallback() -> None:
         )
 
         # Final presentation boundary: hygiene first, then a conservative
-        # de-duplication pass.  V27.5 leaves EMERGENCY output untouched and never
+        # de-duplication pass. V27.5 leaves EMERGENCY output untouched and never
         # mutates structured claims/actions/safety notes/questions.
         sanitized = _sanitize_answer(resolved)
         return apply_professional_response_quality(
