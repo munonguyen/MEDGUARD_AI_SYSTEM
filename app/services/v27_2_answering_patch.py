@@ -1,9 +1,10 @@
-"""V27.2 patient-language composers for deterministic domain answers.
+"""V27.3 patient-language composers for deterministic domain answers.
 
-The domain services continue to own risk and actions.  This module only converts
-machine-oriented labels (HIGH/NONE/insufficient_data/ESI) into concise language
-that a patient can understand.  It must never truncate the complete clinical
-question candidate set or replace a domain-specific emergency/hard-stop action.
+The domain services continue to own risk and actions. This module only converts
+machine-oriented labels into concise patient-facing language and applies a
+bounded output-hygiene pass to structured answer fields. It must never change
+triage severity, truncate a domain-specific emergency/hard-stop action, or make
+Jev/Reviewer an answer author.
 """
 
 from __future__ import annotations
@@ -23,6 +24,11 @@ _INTERNAL_LIMITATION_MARKERS = (
     "nguồn tri thức đang chờ",
     "cơ chế được mô tả là giả thuyết làm việc",
 )
+_DUPLICATE_FINDING_PREFIXES = (
+    "dấu hiệu đã được xác nhận từ bệnh cảnh hiện tại:",
+    "dấu hiệu được nhận diện:",
+)
+_MAX_KEY_POINT_LENGTH = 320
 
 
 def _clean_machine_language(text: str) -> str:
@@ -37,6 +43,8 @@ def _clean_machine_language(text: str) -> str:
         value = value.replace(source, target)
     value = re.sub(r"\bMức chuyển tuyến hiện tại:\s*NONE\b[;,.]?", "", value, flags=re.I)
     value = re.sub(r"\bESI\s*[1-5]\b", "", value, flags=re.I)
+    value = re.sub(r"([.!?])\1+", r"\1", value)
+    value = re.sub(r"\s+([,.;:!?])", r"\1", value)
     return re.sub(r"\s{2,}", " ", value).strip(" ;")
 
 
@@ -134,12 +142,50 @@ def _clean_list(values: Any, *, limit: int | None = None) -> list[str]:
     return unique if limit is None else unique[:limit]
 
 
+def _key_point_signature(value: str) -> str:
+    normalized = _clean_machine_language(value).strip().lower().rstrip(".?! ")
+    for prefix in _DUPLICATE_FINDING_PREFIXES:
+        if normalized.startswith(prefix):
+            normalized = normalized[len(prefix):].strip()
+            break
+    return re.sub(r"\s+", " ", normalized)
+
+
+def _clean_key_points(values: Any, *, limit: int = 5) -> list[str]:
+    """Keep key points concise, single-item and free of transcript leakage.
+
+    Historical conversation text is useful to the reasoning layer but should not
+    be copied into a structured patient-facing bullet. Multi-line values are a
+    strong signal that a concatenated episode transcript has leaked into a
+    legacy key point, so they are removed rather than flattened.
+    """
+    if not isinstance(values, (list, tuple)):
+        return []
+
+    cleaned: list[str] = []
+    seen: set[str] = set()
+    for raw in values:
+        original = str(raw or "").strip()
+        if not original or original.startswith(_INTERNAL_KEY_PREFIXES):
+            continue
+        nonempty_lines = [line.strip() for line in original.splitlines() if line.strip()]
+        if len(nonempty_lines) > 1:
+            continue
+
+        value = _clean_machine_language(original)
+        if not value or len(value) > _MAX_KEY_POINT_LENGTH:
+            continue
+        signature = _key_point_signature(value)
+        if not signature or signature in seen:
+            continue
+        seen.add(signature)
+        cleaned.append(value)
+        if len(cleaned) >= limit:
+            break
+    return cleaned
+
+
 def _sanitize_answer(answer: Any) -> Any:
-    key_points = [
-        _clean_machine_language(str(value))
-        for value in list(getattr(answer, "key_points", None) or ())
-        if str(value).strip() and not str(value).startswith(_INTERNAL_KEY_PREFIXES)
-    ]
     limitations = [
         _clean_machine_language(str(value))
         for value in list(getattr(answer, "limitations", None) or ())
@@ -150,10 +196,10 @@ def _sanitize_answer(answer: Any) -> Any:
         update={
             "title": _clean_machine_language(getattr(answer, "title", "")),
             "summary": _clean_machine_language(getattr(answer, "summary", "")),
-            "key_points": list(dict.fromkeys(value for value in key_points if value))[:5],
+            "key_points": _clean_key_points(getattr(answer, "key_points", None), limit=5),
             "next_steps": _clean_list(getattr(answer, "next_steps", None), limit=6),
             "safety_notes": _clean_list(getattr(answer, "safety_notes", None), limit=5),
-            # ``questions`` is the complete approved audit/reasoning pool.  The
+            # ``questions`` is the complete approved audit/reasoning pool. The
             # ChatResponse dialogue-policy validator alone controls the smaller
             # patient-visible ``display_questions`` set.
             "questions": _clean_list(getattr(answer, "questions", None)),
@@ -215,7 +261,12 @@ def install_v27_2_answering_patch(answering_module: ModuleType) -> None:
         return _sanitize_answer(answer.model_copy(update={"title": title, "summary": summary}))
 
     def _with_narrative(answer: Any, intent: Any):
-        return original_with_narrative(_sanitize_answer(answer), intent)
+        # Sanitize both before and after narrative composition. The pre-pass
+        # prevents legacy transcript leakage from entering the Writer payload;
+        # the post-pass keeps verified Writer output subject to the same
+        # patient-visible structural hygiene without changing its clinical facts.
+        composed = original_with_narrative(_sanitize_answer(answer), intent)
+        return _sanitize_answer(composed)
 
     answering_module._safety_answer = _safety_answer
     answering_module._monitoring_answer = _monitoring_answer
