@@ -1,11 +1,11 @@
 """V27.2 multi-domain episode-delta reasoning.
 
-Chest-pain delta handling exists in ``episode_delta_reasoning``.  This module
+Chest-pain delta handling exists in ``episode_delta_reasoning``. This module
 extends the same invariant to neurologic headache/stroke patterns and spinal
 neurologic warning patterns: a newly introduced red flag must become the leading
 explanation and an earlier benign mechanism may remain only as a contributor.
 
-This is explanation prioritisation only.  Safety Kernel owns urgency.
+This is explanation prioritisation only. Safety Kernel owns urgency.
 """
 
 from __future__ import annotations
@@ -19,6 +19,12 @@ from app.services.clinical_text import normalize_search_text
 
 
 _MARKER = "_v27_2_multi_domain_priority_installed"
+_HEADACHE_MECHANISM_IDS = {
+    "visual_load_contribution",
+    "postural_pericranial_tension",
+    "headache_threshold_modifiers",
+    "secondary_headache_safety_pathway",
+}
 
 
 def _current_turn(episode: Any) -> str:
@@ -192,6 +198,28 @@ def _replace_leading(frame: Any, warning: MechanismHypothesis, *, emergency: boo
     return frame.model_copy(update=changes)
 
 
+def _drop_headache_only_mechanisms(frame: Any) -> Any:
+    """Prevent dizziness/eye complaints from inheriting headache-only prose."""
+    mechanisms = tuple(
+        mechanism
+        for mechanism in tuple(getattr(frame, "mechanisms", ()) or ())
+        if getattr(mechanism, "hypothesis_id", "") not in _HEADACHE_MECHANISM_IDS
+    )
+    leading = tuple(
+        mechanism.hypothesis_id
+        for mechanism in mechanisms
+        if getattr(mechanism, "role", "") == "leading"
+    )
+    if mechanisms == tuple(getattr(frame, "mechanisms", ()) or ()):
+        return frame
+    return frame.model_copy(
+        update={
+            "mechanisms": mechanisms,
+            "leading_hypothesis_ids": leading,
+        }
+    )
+
+
 def _reprioritize(frame: Any, episode: Any, urgency: str) -> Any:
     domain = str(getattr(episode, "chief_domain", "") or "")
     urgency_value = str(urgency or "ROUTINE").upper()
@@ -199,6 +227,13 @@ def _reprioritize(frame: Any, episode: Any, urgency: str) -> Any:
     full = _episode_text(episode)
 
     if domain == "neurovestibular":
+        # The base V25 reasoner historically routed every neurovestibular
+        # complaint through headache mechanisms. Dizziness, presyncope or eye
+        # discomfort must not receive screen-strain/headache safety prose unless
+        # headache is actually part of the active episode.
+        if "dau dau" not in normalize_search_text(full):
+            frame = _drop_headache_only_mechanisms(frame)
+
         current_features = _neuro_features(current)
         full_features = _neuro_features(full)
         if current_features:
