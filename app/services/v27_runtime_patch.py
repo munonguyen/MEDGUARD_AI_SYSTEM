@@ -1,12 +1,14 @@
-"""V27.1 runtime integration for contract-aware deterministic fallback.
+"""V27 runtime integration for contract-aware deterministic fallback.
 
 The primary agent pipeline remains unchanged: Writer is still the sole author of
 verified patient-facing prose and Reviewer remains non-authoring. This adapter
-only replaces the *input fallback answer* with a deterministic composition built
-from the same ClinicalAgentContract before the existing pipeline executes.
+replaces the input fallback answer with a deterministic composition built from
+the same ClinicalAgentContract before the existing pipeline executes.
 
-That means provider/configuration/circuit/timeout/rejection failures degrade to a
-context-aware answer instead of the legacy ROUTINE/URGENT/EMERGENCY template.
+V27.3 additionally applies a presentation-only sanitizer to the final returned
+GroundedAnswer. It may remove transcript echoes, semantic duplicates and
+punctuation artifacts, but it cannot change urgency, domain actions or clinical
+claims.
 """
 
 from __future__ import annotations
@@ -20,13 +22,7 @@ from app.services.clinical_contract_fallback import compose_contract_fallback
 
 
 def install_v27_runtime_fallback() -> None:
-    """Patch ``AnswerAgentPipeline.generate_response`` exactly once.
-
-    Kept as a small adapter so V27.1 can be validated without duplicating or
-    forking the mature agent execution graph. A later cleanup can move these
-    three deterministic lines directly into ``generate_response`` once V27.1 is
-    merged into the main clinical pipeline.
-    """
+    """Patch ``AnswerAgentPipeline.generate_response`` exactly once."""
 
     from app.services.answer_agents import AnswerAgentPipeline
 
@@ -58,7 +54,7 @@ def install_v27_runtime_fallback() -> None:
         )
         contextual_fallback = compose_contract_fallback(fallback_answer, contract)
 
-        return original(
+        final_answer = original(
             self,
             fallback_answer=contextual_fallback,
             clinical_payload=clinical_payload,
@@ -70,6 +66,14 @@ def install_v27_runtime_fallback() -> None:
             locale=locale,
             patient_context=context,
         )
+
+        # Contract fallback and Writer can both enrich structured fields after
+        # answering.py has already run. Reapply the same presentation-only
+        # hygiene at the final boundary so transcript echoes cannot leak into
+        # patient-visible key points. Safety actions/urgency are untouched.
+        from app.services.v27_2_answering_patch import _sanitize_answer
+
+        return _sanitize_answer(final_answer)
 
     AnswerAgentPipeline.generate_response = generate_response_with_contract_fallback
     AnswerAgentPipeline._v27_contract_fallback_installed = True
