@@ -123,11 +123,21 @@ def _turn_grounding_sentence(envelope: dict[str, Any]) -> str:
     inference; the quoted span remains explicitly attributed to the patient.
     """
     latest = _bounded_latest_turn(envelope)
-    # Repeating a proposed treatment or delay can look like endorsed advice.
-    # Questions stay in the reasoning contract, not in an attributed fact lead.
-    if "?" in latest or re.search(r"\b(?:được không|đúng không|có nên|có thể|chờ|đợi)\b", latest, re.I):
-        return ""
-    return f"Bạn cho biết: «{latest.rstrip('.! ')}»" if latest else ""
+    # Keep declarative symptom/medication clauses only. Questions, conditional
+    # scenarios and proposed delay/treatment are never echoed as patient facts.
+    clauses = re.split(r";|[!?]|\.(?!\d)|,(?!\d)", latest)
+    safe: list[str] = []
+    blocked = r"\b(?:được không|đúng không|có nên|có thể|chờ|đợi|vậy|liệu|nên|làm gì|tôi nghĩ|chắc|chỉ do|ở nhà theo dõi)\b"
+    for clause in clauses:
+        value = clause.strip()
+        if not value or re.match(r"^nếu\b", value, re.I) or re.search(blocked, value, re.I):
+            continue
+        # An unpunctuated question ending in 'không' is not a declaration.
+        if re.search(r"\bkhông$", value, re.I):
+            continue
+        safe.append(value)
+    return f"Bạn cho biết: «{', '.join(safe)}»" if safe else ""
+
 
 
 def compose_contract_fallback(
@@ -151,7 +161,7 @@ def compose_contract_fallback(
     urgency = _text(safety.get("urgency_floor") or result.get("urgency") or "ROUTINE").upper()
     goal = _text(policy.get("communication_goal"))
     question_budget = int(policy.get("question_budget") or 0)
-    current_turn = "" if urgency == "EMERGENCY" else _turn_grounding_sentence(envelope)
+    current_turn = _turn_grounding_sentence(envelope)
 
     what_it_may_mean = _text(explanation.get("what_it_may_mean"))
     mechanism = _text(explanation.get("mechanism"))

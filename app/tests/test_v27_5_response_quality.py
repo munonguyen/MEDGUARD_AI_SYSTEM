@@ -1,6 +1,6 @@
 from app.models.chat import GroundedAnswer
 from app.services.clinical_agent_contract import build_clinical_agent_contract
-from app.services.clinical_contract_fallback import compose_contract_fallback
+from app.services.clinical_contract_fallback import compose_contract_fallback, _turn_grounding_sentence
 from app.services.patient_visible_response import select_patient_visible_surface
 from app.services.v27_2_answering_patch import _sanitize_answer
 from scripts.eval_v27_2_conversation_quality import evaluate
@@ -64,3 +64,16 @@ def test_quality_gate_requires_nonempty_reply_for_every_question(tmp_path):
     report = evaluate(path)
     assert report["gate_passed"] is False
     assert {"issue": "empty_reply", "question_no": 200} in report["integrity_issues"]
+
+
+def test_grounding_preserves_measurements_without_echoing_unsafe_proposals():
+    value = _turn_grounding_sentence({
+        "user_question": "Con tôi sốt 39,5°C. Tôi có nên đợi đến sáng không?",
+    })
+    assert "39,5°C" in value
+    assert "đợi đến sáng" not in value
+    medication = _turn_grounding_sentence({
+        "user_question": "Tôi đang uống warfarin. Tôi có thể uống ibuprofen khi đau đầu không?",
+    })
+    assert "warfarin" in medication
+    assert "uống ibuprofen" not in medication
