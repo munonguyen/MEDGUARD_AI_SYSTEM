@@ -80,6 +80,29 @@ def test_v27_5_preserves_source_ids_and_filters_stale_emphasis() -> None:
     assert polished.narrative[0].source_ids == ["claim-1", "source-2"]
 
 
+def test_v27_5_merges_provenance_from_duplicate_blocks() -> None:
+    answer = _answer(
+        narrative=[
+            AnswerNarrativeBlock(
+                text="Kiểu đau hiện tại phù hợp hơn với đau cơ thành ngực sau vận động.",
+                emphasis=["đau cơ thành ngực"],
+                source_ids=["claim-1"],
+            ),
+            AnswerNarrativeBlock(
+                text="Kiểu đau hiện tại phù hợp hơn với đau cơ thành ngực sau vận động!",
+                emphasis=["sau vận động"],
+                source_ids=["source-2", "claim-1"],
+            ),
+        ]
+    )
+
+    polished = apply_professional_response_quality(answer, urgency="ROUTINE", intent="triage")
+
+    assert len(polished.narrative) == 1
+    assert polished.narrative[0].source_ids == ["claim-1", "source-2"]
+    assert polished.narrative[0].emphasis == ["đau cơ thành ngực", "sau vận động"]
+
+
 def test_v27_5_emergency_is_completely_untouched() -> None:
     answer = _answer(
         title="Bạn cần được đánh giá cấp cứu ngay",
