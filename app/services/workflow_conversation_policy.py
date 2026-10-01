@@ -17,6 +17,8 @@ import re
 from types import ModuleType
 from typing import Any
 
+from app.core.config import settings
+
 
 _MARKER = "_medguard_v27_2_workflow_conversation_policy"
 
@@ -109,6 +111,19 @@ def install_workflow_conversation_policy(chat_module: ModuleType) -> None:
         return
 
     def _response(payload: Any, ctx: Any, **kwargs: Any):
+        # This is the outermost V27.2 response wrapper, so it must preserve the
+        # V14 single-path invariant itself rather than relying only on an inner
+        # wrapper. No schedule/follow-up branch may disable Writer/Reviewer when
+        # gateway coverage is configured for all public responses.
+        effective_allow_agent = bool(kwargs.get("allow_agent", True))
+        if (
+            settings.agent_coverage_scope == "all"
+            and settings.agent_mode in {"shadow", "enforced"}
+            and (settings.agent_sync_enabled or settings.agent_background_enabled)
+        ):
+            effective_allow_agent = True
+        kwargs["allow_agent"] = effective_allow_agent
+
         intent = str(kwargs.get("intent") or "")
         result = kwargs.get("result")
         reply = str(kwargs.get("reply") or "")
