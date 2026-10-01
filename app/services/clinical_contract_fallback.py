@@ -1,14 +1,14 @@
-"""Deterministic V27.1 fallback composed from the same clinical contract as Writer.
+"""Deterministic V27.2 fallback composed from the same clinical contract as Writer.
 
 This module is intentionally non-generative. It never invents a diagnosis or
 new treatment claim. It only reshapes facts, reasoning, actions and questions
 already present in ClinicalAgentContract and the deterministic Safety Kernel
-answer so provider failures do not fall back to the legacy one-size-fits-all
-triage template.
+answer so provider failures do not fall back to a one-size-fits-all template.
 """
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from app.models.chat import GroundedAnswer
@@ -62,16 +62,53 @@ def _join_sentences(parts: list[str]) -> str:
     return " ".join(values)
 
 
+def _current_turn_acknowledgement(envelope: dict[str, Any]) -> str:
+    """Return a bounded current-turn sentence for multi-turn continuity.
+
+    This is not free-form summarisation.  It quotes only the current-turn text
+    already supplied by the user, capped to one short sentence, so deterministic
+    fallback visibly responds to what changed instead of repeating the previous
+    turn verbatim.
+    """
+    episode = envelope.get("clinical_episode")
+    if not isinstance(episode, dict):
+        return ""
+    try:
+        turns = int(episode.get("user_turns_in_active_episode") or 1)
+    except Exception:
+        turns = 1
+    if turns <= 1:
+        return ""
+
+    latest = _text(episode.get("latest_user_message"))
+    if not latest:
+        return ""
+    marker = "lượt hiện tại:"
+    lowered = latest.lower()
+    if marker in lowered:
+        latest = latest[lowered.rfind(marker) + len(marker):].strip()
+    else:
+        lines = [value.strip() for value in latest.splitlines() if value.strip()]
+        latest = lines[-1] if lines else latest
+    latest = re.sub(r"\s+", " ", latest).strip()
+    if not latest or len(latest) > 220:
+        latest = latest[:217].rstrip() + "..."
+    latest = re.sub(r"^(?:tôi|mình)\b", "Bạn", latest, flags=re.I)
+    latest = latest.rstrip("?.! ")
+    if not latest:
+        return ""
+    return f"Điểm mới ở lượt này: {latest}"
+
+
 def compose_contract_fallback(
     answer: GroundedAnswer,
     contract: ClinicalAgentContract,
 ) -> GroundedAnswer:
     """Return a context-aware deterministic fallback for clinical agent failure.
 
-    Safety is monotonic here: V27.1 may improve explanation/title/ordering, but it
-    must never remove an action or safety note already emitted by the underlying
-    deterministic domain service. This is critical when a provider error happens
-    after Safety Kernel/domain rules have already resolved an emergency action.
+    Safety is monotonic: the response-policy layer may improve explanation,
+    ordering and readability, but it must never remove a Safety Kernel/domain
+    action already emitted before the provider call failed.
     """
 
     envelope = contract.envelope
@@ -83,6 +120,7 @@ def compose_contract_fallback(
     urgency = _text(safety.get("urgency_floor") or result.get("urgency") or "ROUTINE").upper()
     goal = _text(policy.get("communication_goal"))
     question_budget = int(policy.get("question_budget") or 0)
+    current_turn = _current_turn_acknowledgement(envelope)
 
     what_it_may_mean = _text(explanation.get("what_it_may_mean"))
     mechanism = _text(explanation.get("mechanism"))
@@ -99,8 +137,6 @@ def compose_contract_fallback(
     questions = _claims(contract, "question")
     findings = _claims(contract, "finding")
 
-    # Safety-monotonic merge: domain/Safety Kernel actions remain authoritative.
-    # The response-policy layer may add context, but never delete these fields.
     _append_unique(actions, [str(value) for value in answer.next_steps])
     _append_unique(safety_notes, [str(value) for value in answer.safety_notes])
     _append_unique(findings, [str(value) for value in answer.key_points])
@@ -131,6 +167,8 @@ def compose_contract_fallback(
             actions[0] if actions else "Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay lập tức; không tự lái xe.",
         )
         summary_parts = [emergency_action]
+        if current_turn:
+            summary_parts.append(current_turn)
         if what_it_may_mean:
             summary_parts.append(what_it_may_mean)
         elif findings:
@@ -164,6 +202,8 @@ def compose_contract_fallback(
         title = "Giải thích triệu chứng hiện tại"
 
     summary_parts: list[str] = []
+    if current_turn:
+        summary_parts.append(current_turn)
     if what_it_may_mean:
         summary_parts.append(what_it_may_mean)
     if mechanism:
@@ -182,10 +222,6 @@ def compose_contract_fallback(
         summary_claims = _claims(contract, "summary")
         summary_parts.extend(summary_claims)
     if not summary_parts:
-        # Preserve an existing domain summary before resorting to a generic
-        # uncertainty sentence. This is especially important for medication and
-        # exposure branches whose deterministic result already carries the key
-        # safety explanation.
         existing_summary = _text(answer.summary)
         if existing_summary:
             summary_parts.append(existing_summary)
