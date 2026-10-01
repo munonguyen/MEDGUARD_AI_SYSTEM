@@ -114,7 +114,7 @@ _CRISIS_HOTLINE_RESPONSE = (
     "🆘 **MedGuard AI nhận thấy bạn đang trải qua thời điểm rất khó khăn.**\n\n"
     "Bạn không đơn độc, và luôn có người sẵn sàng lắng nghe và hỗ trợ bạn.\n\n"
     "**Hãy liên hệ ngay:**\n"
-    "• 📞 **Đường dây nóng Ngày Mai**: 096 306 1414 (24/7)\n"
+    "• 📞 **Đường dây nóng Ngày Mai**: 096 306 1414 (13:00–20:30, thứ Tư đến Chủ nhật; không phải cấp cứu 24/7)\n"
     "• 🚑 **Cấp cứu**: 115\n"
     "• 👶 **Tổng đài Quốc gia Bảo vệ Trẻ em**: 111\n\n"
     "MedGuard AI là hệ thống hỗ trợ y tế và không thể thay thế sự tư vấn "
@@ -156,8 +156,11 @@ def _check_crisis(normalized: str, raw_text: str = "") -> OODResult | None:
             reply=_CRISIS_HOTLINE_RESPONSE,
             hotline="096 306 1414 | 115 | 111",
         )
+    # Accent folding must not turn a sprained neck/ankle (trẹo cổ) into hanging (treo cổ).
+    crisis_normalized = normalize_search_text(re.sub(r"\btrẹo\s+cổ\b", "chấn thương cổ", raw_text, flags=re.I)) if raw_text else normalized
+    crisis_normalized = re.sub(r"\btreo\s+co\s+chan\b", "chan thuong khop chan", crisis_normalized)
     for pattern in _CRISIS_SELF_HARM_PATTERNS:
-        if pattern.search(normalized):
+        if pattern.search(crisis_normalized):
             return OODResult(
                 verdict="crisis_self_harm",
                 reply=_CRISIS_HOTLINE_RESPONSE,

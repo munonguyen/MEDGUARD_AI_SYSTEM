@@ -86,7 +86,7 @@ def _api_keys_by_tenant() -> dict[str, str]:
 @dataclass(frozen=True)
 class Settings:
     service_name: str = "medguard-ai"
-    environment: str = field(default_factory=lambda: getenv("MEDGUARD_ENVIRONMENT", "development"))
+    environment: str = field(default_factory=lambda: getenv("MEDGUARD_ENVIRONMENT", "development").lower())
     api_version: str = "v1"
     request_timeout_seconds: int = 10
     idempotency_ttl_seconds: int = 24 * 60 * 60
@@ -119,7 +119,7 @@ class Settings:
 
     # Database & RLS
     database_url: str | None = field(default_factory=lambda: getenv("MEDGUARD_DATABASE_URL"))
-    sqlite_path: str = field(default_factory=lambda: getenv("MEDGUARD_SQLITE_PATH", ":memory:"))
+    sqlite_path: str = field(default_factory=lambda: getenv("MEDGUARD_SQLITE_PATH", ":memory:" if _is_test_runtime() else "var/medguard.sqlite3"))
     db_pool_size: int = field(default_factory=lambda: _env_int("MEDGUARD_DB_POOL_SIZE", 10))
     db_max_overflow: int = field(default_factory=lambda: _env_int("MEDGUARD_DB_MAX_OVERFLOW", 20))
     db_connect_timeout_seconds: int = field(

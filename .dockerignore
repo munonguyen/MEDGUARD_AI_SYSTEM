@@ -1,0 +1,12 @@
+.git
+.env
+.env.*
+!.env.example
+frontend/node_modules
+artifacts
+.artifacts
+**/__pycache__
+**/*.db
+**/*.sqlite*
+.pytest_cache
+deploy/tls

@@ -1,0 +1,85 @@
+name: Platform and patient UI quality
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: platform-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  platform:
+    name: HTTPS, PostgreSQL, two replicas, patient browser and failover
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      BROWSER_ALLOWED_ORIGINS: https://localhost:8443
+      BROWSER_REGISTRATION_ENABLED: 'true'
+      MEDGUARD_PLATFORM_DIAGNOSTICS: 'true'
+      MEDGUARD_AGENT_MODE: disabled
+      MEDGUARD_UI_URL: https://localhost:8443
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Create isolated CI credentials and short-lived local TLS certificate
+        run: |
+          python - <<'PY'
+          import os, secrets
+          with open(os.environ['GITHUB_ENV'], 'a') as output:
+              for key in ['POSTGRES_ADMIN_PASSWORD','MEDGUARD_DB_PASSWORD','MEDGUARD_REDIS_PASSWORD','MEDGUARD_SECRET_MASTER_KEY','MEDGUARD_DELIVERY_HMAC_SECRET']:
+                  value = secrets.token_urlsafe(36)
+                  print('::add-mask::' + value)
+                  output.write(key + '=' + value + '\n')
+          PY
+          mkdir -p deploy/tls
+          openssl req -x509 -newkey rsa:2048 -nodes -days 1 -keyout deploy/tls/privkey.pem -out deploy/tls/fullchain.pem -subj '/CN=localhost' -addext 'subjectAltName=DNS:localhost'
+      - name: Start production transport and shared persistence
+        run: docker compose -f deploy/compose.platform.yml up -d --build --wait --wait-timeout 180
+      - name: Validate Nginx configuration
+        run: docker compose -f deploy/compose.platform.yml exec -T nginx nginx -t
+      - name: Shared sessions, transport and load balancing
+        run: |
+          python -m pip install httpx==0.28.1
+          python scripts/test_platform_transport.py before
+      - name: Browser user journey and accessibility on HTTPS platform
+        run: |
+          npm --prefix frontend ci
+          npm --prefix frontend run test:accounts
+      - name: Restart one replica and stop the other
+        run: |
+          docker compose -f deploy/compose.platform.yml restart app1
+          docker compose -f deploy/compose.platform.yml stop app2
+          python - <<'PY'
+          import time, httpx
+          for attempt in range(30):
+              try:
+                  response = httpx.get('https://localhost:8443/v1/health',verify=False,timeout=3)
+                  if response.status_code == 200 and response.headers.get('x-medguard-instance') == 'app1':
+                      break
+              except httpx.HTTPError:
+                  pass
+              time.sleep(1)
+          else:
+              raise SystemExit('surviving replica unavailable')
+          PY
+          python scripts/test_platform_transport.py after
+      - name: Upload synthetic UI evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: patient-ui-platform-evidence-${{ github.sha }}
+          path: artifacts/v28-ui/
+          if-no-files-found: warn
+      - name: Inspect failed containers
+        if: failure()
+        run: docker compose -f deploy/compose.platform.yml logs --tail=100
+      - name: Stop CI stack
+        if: always()
+        run: docker compose -f deploy/compose.platform.yml down -v

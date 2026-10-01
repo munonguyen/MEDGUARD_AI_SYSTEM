@@ -55,7 +55,8 @@ function ClinicalSection({ title, icon: Icon, items, tone = 'neutral', ordered =
   );
 }
 
-function statusConfig({ urgency, overallRisk, isClinical }) {
+function statusConfig({ urgency, overallRisk, isClinical, insufficientInformation }) {
+  if (insufficientInformation) return { tone: 'routine', label: 'Chưa đủ thông tin để đánh giá', helper: 'Cần làm rõ dữ kiện trước khi đưa ra hướng chăm sóc', icon: CircleHelp };
   if (!isClinical) {
     return {
       tone: 'workflow',
@@ -109,9 +110,11 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
     urgency: structuredUrgency,
     overallRisk: result?.overall_risk,
     isClinical,
+    insufficientInformation: answer.evidence_state === 'partial_input' && !structuredUrgency,
   });
   const StatusIcon = status.icon;
 
+  const optionalAdvice = answer.optional_advice?.length ? <aside className="optional-advice" aria-label="Gợi ý tham khảo"><strong>Gợi ý thêm, nếu phù hợp với bạn</strong><ul>{answer.optional_advice.map((text) => <li key={text}>{text}</li>)}</ul><small>Không bắt buộc. Các hướng dẫn an toàn ở trên vẫn cần được ưu tiên.</small></aside> : null;
   if (responseSurface.canonicalVerifiedResponse) {
     return (
       <div className="grounded-answer modern-clinical-layout canonical-patient-response">
@@ -147,6 +150,7 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
             />
           ))}
         </div>
+        {optionalAdvice}
       </div>
     );
   }
@@ -158,7 +162,7 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
     .filter((item) => !String(item).toLowerCase().startsWith('lưu ý:'))
     .slice(0, 4);
   const keyPoints = (answer.key_points || []).slice(0, 5);
-  const nextSteps = (answer.next_steps || []);
+  const nextSteps = (answer.next_steps || []).filter((text) => !(answer.optional_advice || []).includes(text));
   const safetyNotes = (answer.safety_notes || []);
   const limitations = (answer.limitations || []).slice(0, 2);
   const hasStructuredContent = Boolean(
@@ -187,13 +191,14 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
         </div>
       )}
 
+      {status.tone === 'emergency' && nextSteps.length > 0 && <div className="urgent-first-action" role="alert"><ShieldAlert size={20} /><div><strong>Ưu tiên ngay lúc này</strong><p>{nextSteps[0]}</p></div></div>}
       <section className={`clinical-summary-card status-${status.tone}`}>
         <div className="clinical-status-row">
           <span className={`clinical-status-badge ${status.tone}`}>
             <StatusIcon size={15} />
             <strong>{status.label}</strong>
           </span>
-          {answer.evidence_state && (
+          {showTechnicalMeta && answer.evidence_state && (
             <span className={`clinical-evidence-chip ${answer.evidence_state}`}>
               {evidenceLabels[answer.evidence_state] || answer.evidence_state}
             </span>
@@ -225,7 +230,7 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
           <ClinicalSection
             title={isClinical ? 'Bạn nên làm gì lúc này' : 'Bước tiếp theo'}
             icon={ListChecks}
-            items={nextSteps}
+            items={status.tone === 'emergency' ? nextSteps.slice(1) : nextSteps}
             tone="action"
             ordered
             className="clinical-section-wide"
@@ -266,6 +271,7 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
           </div>
         </div>
       )}
+      {optionalAdvice}
     </div>
   );
 }

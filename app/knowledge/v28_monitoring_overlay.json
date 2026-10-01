@@ -1,0 +1,23 @@
+{
+  "_meta": {
+    "version": "28.1.0",
+    "approval_status": "pending_review",
+    "purpose": "Conservative low-glucose escalation discovered during patient UI testing; requires clinical review before production release.",
+    "approved_by": "pending_clinical_review",
+    "source_references": [
+      "https://www.cdc.gov/diabetes/about/low-blood-sugar-hypoglycemia.html",
+      "https://www.cdc.gov/diabetes/treatment/treatment-low-blood-sugar-hypoglycemia.html"
+    ]
+  },
+  "rules": [
+    {
+      "metric": "glucose_mg_dl",
+      "critical_below": 54.0,
+      "critical_escalation": "EMERGENCY",
+      "warning_below": 70.0,
+      "warning_escalation": "URGENT",
+      "detail_critical": "Đường huyết dưới 54 mg/dL là mức hạ đường huyết nguy hiểm, cần được hỗ trợ xử trí ngay; không chờ thêm nhiều lần đo để phân tích xu hướng.",
+      "detail_warning": "Đường huyết dưới 70 mg/dL cần xử trí ngay theo kế hoạch hạ đường huyết đã được nhân viên y tế hướng dẫn và được đánh giá nếu không cải thiện; không chờ thêm nhiều lần đo."
+    }
+  ]
+}

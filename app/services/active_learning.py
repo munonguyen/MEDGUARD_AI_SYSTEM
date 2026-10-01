@@ -12,6 +12,8 @@ from hashlib import sha256
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
+from os import getenv
+from app.core.config import settings
 from threading import RLock
 from typing import Any
 from uuid import uuid4
@@ -138,6 +140,8 @@ class ActiveLearningStore:
             metadata=metadata or {},
         )
 
+        if settings.environment == "production" and getenv("MEDGUARD_ACTIVE_LEARNING_ENABLED", "false").lower() != "true":
+            return case
         with self._lock:
             self._ensure_storage_exists()
             try:

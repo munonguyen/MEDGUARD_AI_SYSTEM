@@ -178,6 +178,7 @@ class SqliteTenantEngine:
             self._connection.execute("PRAGMA synchronous = NORMAL")
             self._connection.execute("PRAGMA mmap_size = 268435456")
         self._connection.executescript(_SQLITE_SCHEMA)
+        self._connection.executescript((Path(__file__).parent / "browser_schema.sql").read_text())
         idempotency_columns = {
             row[1]
             for row in self._connection.execute("PRAGMA table_info(idempotency_records)")

@@ -1,0 +1,92 @@
+x-app: &app
+  build:
+    context: ..
+  restart: unless-stopped
+  read_only: true
+  tmpfs:
+    - /tmp:size=64m,mode=1777
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  environment: &environment
+    MEDGUARD_ENVIRONMENT: production
+    MEDGUARD_DATABASE_URL: postgresql://medguard:${MEDGUARD_DB_PASSWORD:?Use a URL-safe password}@postgres:5432/medguard
+    MEDGUARD_REDIS_URL: redis://:${MEDGUARD_REDIS_PASSWORD:?Set a URL-safe password}@redis:6379/0
+    MEDGUARD_SECRET_MASTER_KEY: ${MEDGUARD_SECRET_MASTER_KEY:?Set a secret master key}
+    MEDGUARD_DELIVERY_HMAC_SECRET: ${MEDGUARD_DELIVERY_HMAC_SECRET:?Set a delivery secret}
+    BROWSER_ALLOWED_ORIGINS: ${BROWSER_ALLOWED_ORIGINS:-https://localhost:8443}
+    BROWSER_REGISTRATION_ENABLED: ${BROWSER_REGISTRATION_ENABLED:-false}
+    MEDGUARD_ENFORCE_CONSENT: 'true'
+    MEDGUARD_AGENT_MODE: ${MEDGUARD_AGENT_MODE:-disabled}
+  depends_on:
+    postgres: {condition: service_healthy}
+    redis: {condition: service_healthy}
+  healthcheck:
+    test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8000/v1/health', timeout=3)"]
+    interval: 10s
+    timeout: 5s
+    retries: 6
+  networks: [private, model_egress]
+services:
+  app1:
+    <<: *app
+    environment:
+      <<: *environment
+      MEDGUARD_INSTANCE_ID: app1
+      MEDGUARD_PLATFORM_DIAGNOSTICS: ${MEDGUARD_PLATFORM_DIAGNOSTICS:-false}
+  app2:
+    <<: *app
+    environment:
+      <<: *environment
+      MEDGUARD_INSTANCE_ID: app2
+      MEDGUARD_PLATFORM_DIAGNOSTICS: ${MEDGUARD_PLATFORM_DIAGNOSTICS:-false}
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: medguard
+      POSTGRES_USER: platform_admin
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:?Set an admin password}
+      MEDGUARD_DB_PASSWORD: ${MEDGUARD_DB_PASSWORD:?Set app database password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init.sh:/docker-entrypoint-initdb.d/01-platform.sh:ro
+      - ../app/core/rls_schema.sql:/schema/rls_schema.sql:ro
+      - ../app/core/browser_schema.sql:/schema/browser_schema.sql:ro
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U platform_admin -d medguard']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [private]
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${MEDGUARD_REDIS_PASSWORD:?Set Redis password}
+    command: [sh, -c, 'exec redis-server --appendonly yes --requirepass "$$REDIS_PASSWORD"']
+    volumes: [redis_data:/data]
+    healthcheck:
+      test: [CMD-SHELL, 'REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli ping | grep -q PONG']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [private]
+  nginx:
+    image: nginx:1.28-alpine
+    restart: unless-stopped
+    ports: ['8080:8080', '8443:8443']
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/proxy-medguard.conf:/etc/nginx/proxy-medguard.conf:ro
+      - ./tls:/etc/nginx/tls:ro
+    depends_on:
+      app1: {condition: service_healthy}
+      app2: {condition: service_healthy}
+    networks: [private, edge]
+networks:
+  private: {internal: true}
+  edge: {}
+  model_egress: {}
+volumes:
+  postgres_data: {}
+  redis_data: {}

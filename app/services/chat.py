@@ -826,7 +826,6 @@ def _extract_monitoring(text: str) -> list[MonitoringPoint]:
         ("spo2", r"\bspo2\s*[:=]?\s*(\d{1,3}(?:\.\d+)?)", "%"),
         ("heart_rate", r"(?:nhip tim|mach)\s*[:=]?\s*(\d{2,3}(?:\.\d+)?)", "bpm"),
         ("temperature_c", r"(?:nhiet do|sot)\s*[:=]?\s*(\d{2}(?:\.\d+)?)", "C"),
-        ("glucose_mg_dl", r"(?:duong huyet|glucose)\s*[:=]?\s*(\d{2,4}(?:\.\d+)?)", "mg/dl"),
         ("pain_score", r"(?:muc dau|dau)\s*[:=]?\s*(\d{1,2}(?:\.\d+)?)\s*/\s*10", "/10"),
     )
     for metric, pattern, unit in patterns:
@@ -839,6 +838,14 @@ def _extract_monitoring(text: str) -> list[MonitoringPoint]:
                 points.append(MonitoringPoint(metric=metric, value=val, unit=unit, recorded_at=recorded_at))
             except Exception:
                 pass
+    glucose = re.search(r"(?:duong huyet|glucose)\s*(?:la)?\s*[:=]?\s*(\d{1,4}(?:\.\d+)?)\s*(mg\s*/\s*dl|mmol\s*/\s*l)\b", normalized)
+    if glucose:
+        value = float(glucose.group(1))
+        unit = re.sub(r"\s+", "", glucose.group(2))
+        # Unit conversion only for explicitly supplied units; never guess from magnitude.
+        if unit == "mmol/l":
+            value *= 18.0
+        points.append(MonitoringPoint(metric="glucose_mg_dl", value=value, unit="mg/dl", recorded_at=recorded_at))
     pressure = re.search(r"(?:huyet ap|ha)\b[^\d\n]{0,25}?(\d{2,3})\s*/\s*(\d{2,3})", normalized)
     if not pressure:
         pressure = re.search(r"\b(\d{2,3})\s*/\s*(\d{2,3})\s*mmhg\b", normalized)
@@ -979,6 +986,17 @@ def _response(
         required_fields=fields,
         result=serialized,
     )
+    clinical_result = serialized or {}
+    if clinical_result.get("mental_health_crisis"):
+        answer = answer.model_copy(update={
+            "title": "Bạn cần được hỗ trợ an toàn ngay lúc này",
+            "summary": clinical_result["advice"] + " Tôi rất tiếc vì bạn đang trải qua thời điểm khó khăn. Đường dây Ngày Mai 096 306 1414 hỗ trợ 13:00–20:30 từ thứ Tư đến Chủ nhật; không thay thế cấp cứu.",
+            "clinical_hypotheses": [], "key_points": [], "questions": [],
+            "next_steps": [clinical_result["advice"], "Nhờ người hỗ trợ đưa thuốc, vật sắc nhọn hoặc vật có thể gây hại ra khỏi tầm với nếu có thể làm an toàn."],
+            "safety_notes": ["Đường dây Ngày Mai 096 306 1414 hoạt động 13:00–20:30 từ thứ Tư đến Chủ nhật; đây không phải dịch vụ cấp cứu 24/7. Không chờ đường dây này nếu đang có nguy hiểm."],
+            "limitations": ["AI không thể theo dõi trực tiếp sự an toàn của bạn hoặc gọi cấp cứu thay bạn."],
+            "narrative": [],
+        })
     agent_status: str | None = None
     agent_submitted = False
     clinical_task_name = (
@@ -1045,6 +1063,9 @@ def _response(
             locale=payload.locale,
             patient_context=agent_patient_context,
         )
+    from app.services.optional_advice import attach_optional_advice
+    clinical_result = result or {}
+    answer = attach_optional_advice(answer, clinical_result, str(clinical_result.get("urgency") or clinical_result.get("escalation_level") or "UNKNOWN"))
     internal_agent_trace = answer.agent_trace
     if internal_agent_trace:
         agent_status = internal_agent_trace.status
@@ -1136,6 +1157,13 @@ def _response(
     return response
 
 
+def _capture_non_patient_case(ctx: RequestContext, **kwargs):
+    # Care consent does not authorize reuse of patient conversations for model training.
+    if ctx.role == "patient":
+        return None
+    return active_learning_store.capture_case(**kwargs)
+
+
 def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
     latest_text = payload.messages[-1].content
     normalized = _normalize(latest_text)
@@ -1160,12 +1188,12 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
                     payload,
                     ctx,
                     status="answered",
-                    intent="general",
+                    intent="triage",
                     reply=ood_result.reply,
-                    extracted={
-                        "ood_verdict": ood_result.verdict,
-                        "ood_hotline": ood_result.hotline,
-                    },
+                    extracted={"ood_verdict": ood_result.verdict, "ood_hotline": ood_result.hotline},
+                    result={"urgency": "EMERGENCY", "emergency_flag": True, "mental_health_crisis": True,
+                            "advice": "Gọi 115 hoặc đến khoa Cấp cứu ngay nếu bạn có thể tự làm hại mình. Nhờ người bạn tin tưởng đến ở cùng; không ở một mình và không chờ phản hồi AI.",
+                            "trace": {"rule_version": "crisis-support@28.1.0"}},
                     agent_question=f"Deterministic guardrail verdict: {ood_result.verdict}",
                 )
         elif ood_result.verdict.startswith("crisis") and not pre_ood_safety_floor.is_emergency:
@@ -1320,6 +1348,9 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
         or dual_crisis.emergency_triage_required
     ):
         intent = "triage"
+    if ctx.role == "patient" and intent in {"pharmacy", "queue", "fhir", "delivery"}:
+        from app.services.browser_auth import fail
+        fail("patient_role_required", 403)
     patient_ref = _patient_ref(payload, latest_text)
 
     if intent == "authenticity":
@@ -1358,7 +1389,7 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
             ),
             required_fields=["request_detail"],
         )
-        active_learning_store.capture_case(
+        _capture_non_patient_case(ctx,
             request_id=ctx.request_id,
             tenant_id=ctx.tenant_id,
             conversation_id=payload.conversation_id,
@@ -1492,7 +1523,7 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
             allow_agent=True,
         )
         if not result.guidance_summary and resp.answer:
-            active_learning_store.capture_case(
+            _capture_non_patient_case(ctx,
                 request_id=ctx.request_id,
                 tenant_id=ctx.tenant_id,
                 conversation_id=payload.conversation_id,

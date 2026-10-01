@@ -1,0 +1,12 @@
+{
+  "synthetic": true,
+  "independent_clinical_validation": false,
+  "official_healthbench_run": false,
+  "mode": "enforced_gateway_unconfigured",
+  "turns": 13,
+  "page_errors": [],
+  "accessibility_violations": 0,
+  "median_ui_ms": 1096,
+  "p95_ui_ms": 1361,
+  "comparison_superiority_established": false
+}

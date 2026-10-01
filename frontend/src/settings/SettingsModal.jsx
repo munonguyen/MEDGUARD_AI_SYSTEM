@@ -114,7 +114,7 @@ export function SettingsModal({
     });
   };
 
-  const handleSaveProfile = (e) => {
+  const handleSaveProfile = async (e) => {
     e.preventDefault();
     const parseList = (str) =>
       str
@@ -122,7 +122,7 @@ export function SettingsModal({
         .map((s) => s.trim())
         .filter((s) => s && !['không', 'khong', 'none'].includes(s.toLowerCase()));
 
-    onSaveProfile?.({
+    const saved = await onSaveProfile?.({
       display_name: profileDraft.display_name.trim(),
       patient_ref: profileDraft.patient_ref.trim().toUpperCase(),
       age: profileDraft.age === '' ? null : Number(profileDraft.age),
@@ -131,6 +131,7 @@ export function SettingsModal({
       allergies: parseList(profileDraft.allergies),
       conditions: parseList(profileDraft.conditions),
     });
+    if (saved === false) return;
     setSaveToast(true);
     onNotify?.('Đã lưu thông tin hồ sơ sức khỏe');
     setTimeout(() => setSaveToast(false), 2000);
@@ -198,17 +199,6 @@ export function SettingsModal({
             >
               <Shield size={17} />
               <span>Dữ liệu & Quyền riêng tư</span>
-            </button>
-            <div className="settings-nav-divider" />
-            <button
-              type="button"
-              className={`settings-nav-item ${activeTab === 'system' ? 'active' : ''}`}
-              onClick={() => setActiveTab('system')}
-              role="button"
-              name="System & audit"
-            >
-              <Workflow size={17} />
-              <span>System & audit</span>
             </button>
           </nav>
 

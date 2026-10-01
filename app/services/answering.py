@@ -10,7 +10,7 @@ from app.models.chat import AnswerNarrativeBlock, ChatEvidenceSource, ChatIntent
 
 
 _KNOWLEDGE_BY_INTENT: dict[ChatIntent, tuple[str, ...]] = {
-    "triage": ("red_flag_protocols.json",),
+    "triage": ("red_flag_protocols.json", "v28_response_guidance.json"),
     "safety": (
         "drug_interactions.json",
         "allergy_cross_matrix.json",
@@ -18,7 +18,7 @@ _KNOWLEDGE_BY_INTENT: dict[ChatIntent, tuple[str, ...]] = {
         "atc_codes.json",
         "medication_incident_protocols.json",
     ),
-    "monitoring": ("monitoring_rules.json",),
+    "monitoring": ("monitoring_rules.json", "v28_monitoring_overlay.json"),
     "authenticity": ("product_registry.json",),
 }
 
@@ -565,7 +565,14 @@ def _monitoring_answer(result: dict[str, Any], sources: list[ChatEvidenceSource]
         title=titles.get(escalation, "Kết quả theo dõi chỉ số"),
         summary=f"Hệ thống đã đối chiếu chỉ số với ngưỡng cấu hình. Mức chuyển tuyến hiện tại: {escalation}; xu hướng: {result.get('trend', 'chưa xác định')}.",
         key_points=key_points,
-        next_steps=["Cung cấp các giá trị đo lặp lại cùng thời điểm và đơn vị để đánh giá xu hướng chính xác hơn."] if result.get("trend") == "insufficient_data" else [],
+        next_steps=(
+            ["Nhờ người bên cạnh hỗ trợ ngay và gọi 115 hoặc đến khoa Cấp cứu; không tự lái xe, không chờ đo thêm để phân tích xu hướng."]
+            if escalation == "EMERGENCY" else
+            [str(alert.get("detail")) for alert in alerts if alert.get("basis") == "threshold"]
+            if escalation == "URGENT" else
+            ["Cung cấp các giá trị đo lặp lại cùng thời điểm và đơn vị để đánh giá xu hướng chính xác hơn."] if result.get("trend") == "insufficient_data" else []
+        ),
+        safety_notes=["Nếu lơ mơ, co giật hoặc không nuốt an toàn, không cho ăn uống; cần cấp cứu ngay."] if escalation == "EMERGENCY" else [],
         decision_basis="versioned_rules",
         evidence_state="direct_rule_match" if any(alert.get("basis") == "threshold" for alert in alerts) else "bounded_result",
         rule_version=_trace_rule_version(result),

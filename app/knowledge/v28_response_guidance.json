@@ -1,0 +1,24 @@
+{
+  "_meta": {
+    "version": "28.1.0",
+    "approved_by": "pending_clinical_review",
+    "purpose": "Bounded supportive advice; does not assign diagnoses or lower urgency.",
+    "source_references": ["https://www.cdc.gov/common-cold/treatment/index.html"]
+  },
+  "symptom_guidance": [{
+    "topic": "upper_respiratory_symptoms",
+    "keywords": ["hắt hơi", "sổ mũi", "đau họng nhẹ"],
+    "summary": "Hắt hơi, sổ mũi hoặc đau họng nhẹ có thể gặp khi đường hô hấp trên bị kích thích, dị ứng hoặc nhiễm virus. Chưa đủ dữ kiện để xác định nguyên nhân. Nếu hiện chưa có dấu hiệu cảnh báo, có thể chăm sóc hỗ trợ và theo dõi diễn biến.",
+    "clinical_hypotheses": [],
+    "self_care": [
+      "Nghỉ ngơi thêm và giảm hoạt động gắng sức khi đang mệt.",
+      "Uống nước đều trong ngày theo nhu cầu nếu bạn không được nhân viên y tế yêu cầu hạn chế dịch."
+    ],
+    "safety_net": [
+      "Nếu khó thở, đau ngực, lơ mơ hoặc không uống được nước, cần được đánh giá khẩn cấp; không chờ tiếp tục trò chuyện.",
+      "Liên hệ nhân viên y tế nếu triệu chứng kéo dài, tăng lên, tái phát sau khi đã đỡ hoặc bệnh nền xấu đi. Nếu mang thai, suy giảm miễn dịch hoặc có nguy cơ bệnh nặng, nên liên hệ sớm ngay cả khi triệu chứng nhẹ."
+    ],
+    "clarifying_questions": ["Bạn bao nhiêu tuổi và có mang thai hoặc bệnh nền ảnh hưởng miễn dịch, tim hay phổi không?"],
+    "advice": "Theo dõi diễn biến và khả năng ăn uống, sinh hoạt. Không tự bắt đầu kháng sinh chỉ dựa vào các triệu chứng này."
+  }]
+}

@@ -299,6 +299,10 @@ def compose_contract_fallback(
         summary_parts.append(what_it_may_mean)
     if mechanism:
         summary_parts.append(mechanism)
+    if intent == "triage" and urgency == "ROUTINE" and not what_it_may_mean:
+        # Exact summaries explicitly admitted to the contract can explain routine
+        # symptoms when the reasoning frame has no bounded mechanism.
+        _append_unique(summary_parts, _claims(contract, "summary"))
 
     if reassurance_allowed:
         if reassurance_basis:

@@ -15,6 +15,7 @@ import re
 from typing import Any
 
 from app.models.chat import ChatIntent
+from app.knowledge.loader import knowledge
 from app.services.clinical_episode_model import build_clinical_episode_model
 from app.services.clinical_text import normalize_search_text
 from app.services.contextual_clinical_reasoner import build_contextual_reasoning_frame
@@ -378,6 +379,13 @@ def build_clinical_agent_contract(
         )
 
     if intent == "triage":
+        # Admit the exact versioned respiratory explanation; never infer a diagnosis
+        # or down-triage from this communication-only overlay.
+        bounded_summary = _text(result.get("guidance_summary"))
+        overlay = knowledge.files.get("v28_response_guidance.json")
+        known_summaries = {_text(item.get("summary")) for item in (overlay.data.get("symptom_guidance", []) if overlay else [])}
+        if urgency == "ROUTINE" and bounded_summary and bounded_summary in known_summaries:
+            add("summary", bounded_summary, required=False)
         specialty = result.get("recommended_specialty")
         if isinstance(specialty, dict) and assessment_state not in {"INSUFFICIENT_CONTEXT"}:
             label = _text(specialty.get("label"))

@@ -1,4 +1,5 @@
 from pathlib import Path
+from os import getenv
 import re
 from uuid import uuid4
 from time import perf_counter
@@ -10,6 +11,7 @@ from starlette.concurrency import run_in_threadpool
 from starlette.staticfiles import StaticFiles
 
 from app.api.routes import router
+from app.api.browser_auth import router as auth_router
 from app.core.config import settings
 from app.core.observability import metrics
 from app.core.rate_limit import RateLimitDecision, rate_limiter
@@ -100,6 +102,7 @@ def create_app() -> FastAPI:
         return FileResponse(str(index_path))
 
     app.include_router(router, prefix=f"/{settings.api_version}")
+    app.include_router(auth_router, prefix=f"/{settings.api_version}")
 
     @app.get("/metrics")
     def prometheus_metrics() -> PlainTextResponse:
@@ -171,6 +174,8 @@ def create_app() -> FastAPI:
             response = await call_next(request)
             duration = perf_counter() - start
             response.headers["X-Request-Id"] = req_id
+            if getenv("MEDGUARD_PLATFORM_DIAGNOSTICS", "false").lower() == "true":
+                response.headers["X-MedGuard-Instance"] = getenv("MEDGUARD_INSTANCE_ID", "unknown")
             if decision is not None:
                 _rate_limit_headers(response, decision)
             _security_headers(response, path=path)

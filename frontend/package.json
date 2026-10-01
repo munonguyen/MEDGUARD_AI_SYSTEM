@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test:v27": "node tests/v27-response-authority.mjs",
-    "test:ui": "npm run test:v27 && node tests/ui-smoke.mjs"
+    "test:ui": "npm run test:v27 && node tests/ui-smoke.mjs",
+    "test:accounts": "node tests/account-journey.mjs"
   },
   "dependencies": {
     "@zxing/browser": "0.2.1",
@@ -17,6 +18,8 @@
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@sparticuz/chromium": "153.0.0",
     "@vitejs/plugin-react": "6.1.1",
     "playwright-core": "1.63.0",
     "vite": "8.2.2"
