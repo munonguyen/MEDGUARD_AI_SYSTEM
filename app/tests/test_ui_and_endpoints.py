@@ -1,3 +1,4 @@
+import base64
 """Tests for Clinical Web UI Dashboard and Job Workflow Endpoints."""
 
 import pytest
@@ -47,9 +48,7 @@ def test_dashboard_and_static_assets_serving():
 def test_prescription_job_processing_fails_closed_without_ocr_backend():
     # Upload a prescription to get a job_id
     png_bytes = (
-        b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR"
-        b"\x00\x00\x00\x01\x00\x00\x00\x01"
-        b"\x08\x06\x00\x00\x00"
+        base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4////fwAJ+wP9KobjigAAAABJRU5ErkJggg==")
     )
     upload_res = client.post(
         "/v1/prescription/extract",

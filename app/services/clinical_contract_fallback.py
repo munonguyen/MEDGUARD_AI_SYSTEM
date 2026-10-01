@@ -110,56 +110,24 @@ def _bounded_latest_turn(envelope: dict[str, Any]) -> str:
     else:
         lines = [value.strip() for value in latest.splitlines() if value.strip()]
         latest = lines[-1] if lines else latest
-    latest = re.sub(r"\s+", " ", latest).strip().rstrip("?.! ")
+    latest = re.sub(r"\s+", " ", latest).strip()
     if len(latest) > 180:
         latest = latest[:177].rstrip() + "..."
     return latest
 
 
 def _turn_grounding_sentence(envelope: dict[str, Any]) -> str:
-    latest = _bounded_latest_turn(envelope)
-    if not latest:
-        return ""
-    latest = re.sub(r"^(?:tôi|mình)\b", "Bạn", latest, flags=re.I)
-    return f"Dữ kiện chính ở lượt này: {latest}"
+    """Quote the current report without turning a question into a clinical fact.
 
-
-def _current_turn_acknowledgement(envelope: dict[str, Any]) -> str:
-    """Return a bounded current-turn sentence for multi-turn continuity.
-
-    This is not free-form summarisation. It quotes only the current-turn text
-    already supplied by the user, capped to one short sentence, so deterministic
-    fallback visibly responds to what changed instead of repeating the previous
-    turn verbatim.
+    Grounding is shared by first and follow-up turns. It is not a new medical
+    inference; the quoted span remains explicitly attributed to the patient.
     """
-    episode = envelope.get("clinical_episode")
-    if not isinstance(episode, dict):
+    latest = _bounded_latest_turn(envelope)
+    # Repeating a proposed treatment or delay can look like endorsed advice.
+    # Questions stay in the reasoning contract, not in an attributed fact lead.
+    if "?" in latest or re.search(r"\b(?:được không|đúng không|có nên|có thể|chờ|đợi)\b", latest, re.I):
         return ""
-    try:
-        turns = int(episode.get("user_turns_in_active_episode") or 1)
-    except Exception:
-        turns = 1
-    if turns <= 1:
-        return ""
-
-    latest = _text(episode.get("latest_user_message"))
-    if not latest:
-        return ""
-    marker = "lượt hiện tại:"
-    lowered = latest.lower()
-    if marker in lowered:
-        latest = latest[lowered.rfind(marker) + len(marker):].strip()
-    else:
-        lines = [value.strip() for value in latest.splitlines() if value.strip()]
-        latest = lines[-1] if lines else latest
-    latest = re.sub(r"\s+", " ", latest).strip()
-    if not latest or len(latest) > 220:
-        latest = latest[:217].rstrip() + "..."
-    latest = re.sub(r"^(?:tôi|mình)\b", "Bạn", latest, flags=re.I)
-    latest = latest.rstrip("?.! ")
-    if not latest:
-        return ""
-    return f"Điểm mới ở lượt này: {latest}"
+    return f"Bạn cho biết: «{latest.rstrip('.! ')}»" if latest else ""
 
 
 def compose_contract_fallback(
@@ -183,7 +151,7 @@ def compose_contract_fallback(
     urgency = _text(safety.get("urgency_floor") or result.get("urgency") or "ROUTINE").upper()
     goal = _text(policy.get("communication_goal"))
     question_budget = int(policy.get("question_budget") or 0)
-    current_turn = _current_turn_acknowledgement(envelope)
+    current_turn = "" if urgency == "EMERGENCY" else _turn_grounding_sentence(envelope)
 
     what_it_may_mean = _text(explanation.get("what_it_may_mean"))
     mechanism = _text(explanation.get("mechanism"))
@@ -246,8 +214,8 @@ def compose_contract_fallback(
                 "summary": _join_sentences(summary_parts),
                 "key_points": list(dict.fromkeys([*findings, *why]))[:6],
                 "clinical_hypotheses": [],
-                "next_steps": list(dict.fromkeys(actions))[:6],
-                "safety_notes": list(dict.fromkeys(safety_notes))[:5],
+                "next_steps": list(dict.fromkeys(actions)),
+                "safety_notes": list(dict.fromkeys(safety_notes)),
                 "questions": [],
                 "display_questions": [],
             }
@@ -272,7 +240,10 @@ def compose_contract_fallback(
             result.get("overall_risk") or result.get("risk_level") or result.get("severity")
         )
         warning_detail = _first_warning_detail(result)
-        summary_parts = [value for value in (medication_context, risk_sentence, warning_detail) if value]
+        summary_parts = [value for value in (current_turn, medication_context, risk_sentence, warning_detail) if value]
+        # A drug hard-stop must be actionable even when only the summary is read.
+        if actions:
+            summary_parts.append(actions[0])
         if not summary_parts:
             existing = _text(answer.summary)
             if existing:
@@ -290,10 +261,10 @@ def compose_contract_fallback(
         return answer.model_copy(
             update={
                 "title": title,
-                "summary": _join_sentences(summary_parts[:3]),
+                "summary": _join_sentences(summary_parts),
                 "clinical_hypotheses": [],
-                "next_steps": list(dict.fromkeys(actions))[:6],
-                "safety_notes": list(dict.fromkeys(safety_notes))[:5],
+                "next_steps": list(dict.fromkeys(actions)),
+                "safety_notes": list(dict.fromkeys(safety_notes)),
                 "questions": questions,
                 "display_questions": questions,
                 "limitations": limitations[:3],
@@ -359,8 +330,8 @@ def compose_contract_fallback(
             "summary": _join_sentences(summary_parts),
             "key_points": key_points,
             "clinical_hypotheses": [],
-            "next_steps": list(dict.fromkeys(actions))[:6],
-            "safety_notes": list(dict.fromkeys(safety_notes))[:5],
+            "next_steps": list(dict.fromkeys(actions)),
+            "safety_notes": list(dict.fromkeys(safety_notes)),
             "questions": questions,
             "display_questions": questions,
             "limitations": limitations[:3],

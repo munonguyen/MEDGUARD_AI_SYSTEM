@@ -158,8 +158,8 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
     .filter((item) => !String(item).toLowerCase().startsWith('lưu ý:'))
     .slice(0, 4);
   const keyPoints = (answer.key_points || []).slice(0, 5);
-  const nextSteps = (answer.next_steps || []).slice(0, 5);
-  const safetyNotes = (answer.safety_notes || []).slice(0, 4);
+  const nextSteps = (answer.next_steps || []);
+  const safetyNotes = (answer.safety_notes || []);
   const limitations = (answer.limitations || []).slice(0, 2);
   const hasStructuredContent = Boolean(
     keyPoints.length

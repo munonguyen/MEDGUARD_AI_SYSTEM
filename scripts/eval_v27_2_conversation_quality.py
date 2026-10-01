@@ -238,10 +238,18 @@ def _output_hygiene_violations(
     return list(dict.fromkeys(issues))
 
 
-def evaluate(path: Path, *, max_duplicate_ratio: float = 0.15) -> dict[str, Any]:
+def evaluate(path: Path, *, max_duplicate_ratio: float = 0.049) -> dict[str, Any]:
     rows = _parse(path)
     if not rows:
         raise ValueError("conversation report contains no parsed turns")
+
+    integrity_issues: list[dict[str, Any]] = []
+    question_numbers = [row["question_no"] for row in rows]
+    if sorted(question_numbers) != list(range(1, 201)):
+        integrity_issues.append({"issue": "expected_200_unique_questions", "parsed_turns": len(rows)})
+    for row in rows:
+        if not str(row.get("reply") or "").strip():
+            integrity_issues.append({"issue": "empty_reply", "question_no": row["question_no"]})
 
     reply_counts = Counter(_norm(row["reply"]) for row in rows)
     duplicate_turns = sum(count for count in reply_counts.values() if count > 1)
@@ -285,13 +293,15 @@ def evaluate(path: Path, *, max_duplicate_ratio: float = 0.15) -> dict[str, Any]
         }
 
     gate_passed = (
-        duplicate_ratio <= max_duplicate_ratio
+        not integrity_issues
+        and duplicate_ratio <= max_duplicate_ratio
         and not machine
         and not relevance
         and not hygiene
     )
     return {
-        "gate": "V27.3_CONVERSATION_AND_OUTPUT_QUALITY",
+        "gate": "V27.5_CONVERSATION_AND_OUTPUT_QUALITY",
+        "integrity_issues": integrity_issues,
         "turns": len(rows),
         "conversations": len(by_conversation),
         "duplicate_turns": duplicate_turns,
@@ -310,7 +320,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", type=Path, default=DEFAULT_REPORT)
     parser.add_argument("--output", type=Path, default=DEFAULT_JSON)
-    parser.add_argument("--max-duplicate-ratio", type=float, default=0.15)
+    parser.add_argument("--max-duplicate-ratio", type=float, default=0.049)
     args = parser.parse_args()
 
     report = evaluate(args.input, max_duplicate_ratio=args.max_duplicate_ratio)
