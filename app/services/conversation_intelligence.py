@@ -155,9 +155,17 @@ def _classify_medications(chat_module: ModuleType, text: str) -> tuple[list[str]
     proposed: list[str] = []
     has_current = any(marker in normalized for marker in _CURRENT_MEDICATION_MARKERS)
     has_proposed = any(marker in normalized for marker in _PROPOSED_MEDICATION_MARKERS)
-    if has_current and has_proposed and len(meds) >= 2:
-        current.append(meds[0])
-        proposed.extend(meds[1:])
+    if has_current and has_proposed:
+        if len(meds) >= 2:
+            current.append(meds[0])
+            proposed.extend(meds[1:])
+        else:
+            # A single active ingredient can legitimately occur on both sides
+            # of the question (for example a current paracetamol product plus
+            # another product that also contains paracetamol). Preserve both
+            # roles so follow-up turns retain duplicate-ingredient context.
+            current.extend(meds)
+            proposed.extend(meds)
     elif has_current:
         current.extend(meds)
     elif has_proposed or any(marker in normalized for marker in _MEDICATION_SAFETY_MARKERS):
@@ -187,6 +195,13 @@ def _augment_safety_context(chat_module: ModuleType, payload: Any, normalized_te
     for med in [*remembered_current, *latest_current]:
         if med not in current:
             current.append(med)
+    # The base extractor intentionally recognizes only a narrow grammar. V27.2
+    # classifies additional safe follow-up forms such as "chưa uống X" and
+    # "dùng thêm X"; those current-turn facts must be merged rather than only
+    # remembered for a later turn.
+    for med in latest_proposed:
+        if med not in proposed:
+            proposed.append(med)
     if not proposed and remembered_proposed:
         normalized_latest = normalize_search_text(latest_text)
         continuation = (
