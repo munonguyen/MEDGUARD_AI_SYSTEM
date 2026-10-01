@@ -21,6 +21,7 @@ from app.models.chat import AnswerNarrativeBlock, GroundedAnswer
 
 _MIN_COMPARE_CHARS = 28
 _NEAR_DUPLICATE_RATIO = 0.94
+_KIND_PRIORITY = {"paragraph": 0, "caution": 1, "urgent": 2}
 
 
 def _norm(value: str) -> str:
@@ -63,6 +64,10 @@ def _is_near_duplicate(candidate: str, previous: Iterable[str]) -> bool:
     return _duplicate_index(candidate, previous) is not None
 
 
+def _strongest_kind(first: str, second: str) -> str:
+    return first if _KIND_PRIORITY.get(first, 0) >= _KIND_PRIORITY.get(second, 0) else second
+
+
 def _dedupe_sentences(text: str) -> str:
     """Remove only exact/very-near repeated sentences, preserving first order."""
     kept: list[str] = []
@@ -78,7 +83,9 @@ def _dedupe_narrative(blocks: list[AnswerNarrativeBlock]) -> list[AnswerNarrativ
     If a complete block repeats an existing block, its source ids are merged
     into the retained block rather than discarded. This keeps source/citation
     provenance intact while presenting the prose once. Emphasis is retained
-    only when it still occurs in the retained text.
+    only when it still occurs in the retained text. If duplicate blocks carry
+    different presentation kinds, the strongest warning kind is retained so a
+    cleanup pass can never downgrade ``urgent``/``caution`` to ``paragraph``.
     """
     kept_blocks: list[AnswerNarrativeBlock] = []
     kept_texts: list[str] = []
@@ -101,6 +108,7 @@ def _dedupe_narrative(blocks: list[AnswerNarrativeBlock]) -> list[AnswerNarrativ
             )
             kept_blocks[duplicate_at] = retained.model_copy(
                 update={
+                    "kind": _strongest_kind(retained.kind, block.kind),
                     "source_ids": merged_sources,
                     "emphasis": merged_emphasis,
                 }
