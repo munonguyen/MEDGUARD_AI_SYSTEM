@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""V27.3 hard gate for conversation quality and patient-output hygiene.
+"""V27.5 hard gate for conversation quality and patient-output hygiene.
 
 The legacy V24 benchmark remains frozen for longitudinal comparability. This
 companion gate covers dimensions that the old score does not: current-turn
@@ -21,6 +21,7 @@ import unicodedata
 DEFAULT_REPORT = Path("artifacts/v24_200_turn_quality/REPORT_200_QUESTIONS_ANSWERS.md")
 DEFAULT_JSON = Path("artifacts/v27_2_conversation_quality/report.json")
 _MAX_KEY_POINT_LENGTH = 320
+_DEFAULT_MAX_DUPLICATE_RATIO = 0.05
 
 
 def _norm(value: str) -> str:
