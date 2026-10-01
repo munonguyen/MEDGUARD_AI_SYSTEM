@@ -75,7 +75,7 @@ def register(body: Registration, request: Request):
             (account_id, body.email, password_hash, body.display_name.strip(), namespace, now if body.consent else None, now))
         if not rows:
             fail('account_unavailable', 400)
-        if db.dialect == 'postgres':
+        if db.dialect == 'postgresql':
             db.execute('INSERT INTO tenants(tenant_id, name) VALUES (?, ?)', (namespace, 'Patient account'))
     # Registration does not silently establish a session; explicit login rotates tokens.
     return {'created': True}

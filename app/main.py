@@ -243,7 +243,7 @@ def create_app() -> FastAPI:
                 "error_code": "internal_error",
                 "message": "Internal server error.",
                 "request_id": getattr(request.state, "request_id", "req_unknown"),
-                "details": {"exception": exc.__class__.__name__},
+                "details": {} if settings.environment == "production" else {"exception": exc.__class__.__name__},
             },
         )
 

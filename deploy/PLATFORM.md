@@ -29,6 +29,8 @@ The initial PostgreSQL bootstrap runs only when the database volume is empty. Ex
 
 `MEDGUARD_PLATFORM_DIAGNOSTICS=true` adds an instance identifier for isolated failover tests; leave it false for public deployments. `/metrics`, API documentation, readiness details and circuit diagnostics are blocked at the public edge. Collect these through a controlled internal operations path.
 
+Public access logs include only method, path, status and latency; Uvicorn access logs and Nginx request-bearing error logs are disabled. PostgreSQL does not log failing SQL statements or bound parameters. Use structured, redacted operational metrics for diagnosis; review every additional log sink before enabling it.
+
 The sample stack intentionally defaults to `MEDGUARD_AGENT_MODE=disabled` for reproducible platform testing. This is not evidence that an external Writer/Reviewer works. Configure and separately validate the actual model gateway, clinical knowledge approval, object storage, OCR workers, consent/retention policy and release-evidence manifest before clinical use.
 
 Not yet implemented: verified-email onboarding, password recovery, MFA/SSO, infrastructure-managed encryption at rest, off-host backups, a second edge node, PostgreSQL/Redis failover, and production load/SLO evidence. Two API replicas do not remove Nginx or database single points of failure. The private-network transport assumption must be reviewed for your environment; use upstream TLS/mTLS when internal networks are not trusted. Image tags are version-family pinned; production should pin approved digests and run vulnerability scans.
