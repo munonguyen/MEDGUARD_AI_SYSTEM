@@ -21,6 +21,9 @@ _ANSWERING_TARGET = "app.services.answering"
 _CHAT_TARGET = "app.services.chat"
 _SEMANTIC_RELATION_TARGET = "app.services.semantic_relation_extractor"
 _CLINICAL_FACT_TARGET = "app.services.clinical_fact_parser"
+_RISK_MEMORY_TARGET = "app.services.risk_memory"
+_TRIAGE_TARGET = "app.services.triage"
+_THREAT_GRAPH_TARGET = "app.services.clinical_threat_graph"
 _TARGETS = {
     _ANSWER_TARGET,
     _REASONER_TARGET,
@@ -28,6 +31,9 @@ _TARGETS = {
     _CHAT_TARGET,
     _SEMANTIC_RELATION_TARGET,
     _CLINICAL_FACT_TARGET,
+    _RISK_MEMORY_TARGET,
+    _TRIAGE_TARGET,
+    _THREAT_GRAPH_TARGET,
 }
 _MARKER = "_medguard_v27_runtime_import_hook"
 
@@ -75,6 +81,24 @@ def _install_clinical_fact_patch(module: ModuleType) -> None:
     install_clinical_fact_grounding(module)
 
 
+def _install_risk_memory_patch(module: ModuleType) -> None:
+    from app.services.context_metadata_hardening import install_risk_memory_metadata_hardening
+
+    install_risk_memory_metadata_hardening(module)
+
+
+def _install_triage_metadata_patch(module: ModuleType) -> None:
+    from app.services.context_metadata_hardening import install_triage_guidance_metadata_hardening
+
+    install_triage_guidance_metadata_hardening(module)
+
+
+def _install_threat_text_patch(module: ModuleType) -> None:
+    from app.services.threat_text_hardening import install_threat_text_hardening
+
+    install_threat_text_hardening(module)
+
+
 class _PostLoadLoader(importlib.abc.Loader):
     def __init__(self, wrapped: Any, fullname: str) -> None:
         self.wrapped = wrapped
@@ -91,6 +115,15 @@ class _PostLoadLoader(importlib.abc.Loader):
             return
         if self.fullname == _CLINICAL_FACT_TARGET:
             _install_clinical_fact_patch(module)
+            return
+        if self.fullname == _RISK_MEMORY_TARGET:
+            _install_risk_memory_patch(module)
+            return
+        if self.fullname == _THREAT_GRAPH_TARGET:
+            _install_threat_text_patch(module)
+            return
+        if self.fullname == _TRIAGE_TARGET:
+            _install_triage_metadata_patch(module)
             return
         if self.fullname == _REASONER_TARGET:
             _install_reasoner_priority(module)
@@ -128,6 +161,18 @@ def install_v27_answer_agent_hook() -> None:
     fact_parser = sys.modules.get(_CLINICAL_FACT_TARGET)
     if fact_parser is not None and hasattr(fact_parser, "parse_semantic_clinical_facts"):
         _install_clinical_fact_patch(fact_parser)
+
+    risk_memory = sys.modules.get(_RISK_MEMORY_TARGET)
+    if risk_memory is not None and hasattr(risk_memory, "infer_episode_domain"):
+        _install_risk_memory_patch(risk_memory)
+
+    threat_graph = sys.modules.get(_THREAT_GRAPH_TARGET)
+    if threat_graph is not None and hasattr(threat_graph, "_eval_toxic_exposure"):
+        _install_threat_text_patch(threat_graph)
+
+    triage = sys.modules.get(_TRIAGE_TARGET)
+    if triage is not None and hasattr(triage, "evaluate_triage"):
+        _install_triage_metadata_patch(triage)
 
     reasoner = sys.modules.get(_REASONER_TARGET)
     if reasoner is not None and hasattr(reasoner, "build_contextual_reasoning_frame"):
