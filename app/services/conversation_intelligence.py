@@ -1,17 +1,8 @@
 """V27.2 bounded conversation intelligence for multi-turn clinical chat.
 
-This module deliberately does *not* add another free-form LLM agent.  It is a
-small deterministic control layer around the existing router so that:
-
-* the latest user goal wins over stale history;
-* triage history is scoped to the active symptom episode;
-* medication facts survive across turns without dragging unrelated symptoms;
-* domain results carry the current-turn context needed by patient-facing
-  composers.
-
-Safety Kernel decisions are never downgraded here.  The layer can isolate stale
-context or add remembered facts, but it cannot lower urgency, remove red flags,
-or author a diagnosis.
+Deterministic control layer around the existing router. It scopes history,
+remembers medication facts and enriches structured results without lowering
+Safety Kernel decisions or adding an unrestricted response author.
 """
 
 from __future__ import annotations
@@ -20,6 +11,7 @@ import re
 from types import ModuleType
 from typing import Any
 
+from app.core.config import settings
 from app.services.clinical_text import normalize_search_text
 from app.services.risk_memory import infer_episode_domain, is_explicit_correction
 
@@ -27,100 +19,36 @@ from app.services.risk_memory import infer_episode_domain, is_explicit_correctio
 _MARKER = "_medguard_v27_2_conversation_intelligence"
 
 _ACUTE_SYMPTOM_MARKERS = (
-    "dau nguc",
-    "tuc nguc",
-    "nang nguc",
-    "kho tho",
-    "hut hoi",
-    "meo mieng",
-    "noi ngong",
-    "yeu tay",
-    "yeu chan",
-    "yeu liet",
-    "ngat",
-    "co giat",
-    "dau dau du doi",
-    "dau bung",
-    "dau bung du doi",
-    "buon non",
-    "non",
-    "chay mau",
-    "sot",
-    "sot cao",
-    "lu du",
-    "lo mo",
-    "lanh run",
-    "on lanh",
-    "co cung",
-    "te",
-    "sung",
-    "phat ban",
+    "dau nguc", "tuc nguc", "nang nguc", "kho tho", "hut hoi", "meo mieng", "noi ngong",
+    "yeu tay", "yeu chan", "yeu liet", "ngat", "co giat", "dau dau du doi", "dau bung",
+    "dau bung du doi", "buon non", "non", "chay mau", "sot", "sot cao", "lu du", "lo mo",
+    "lanh run", "on lanh", "co cung", "te", "sung", "phat ban",
 )
 
 _CONTINUATION_MARKERS = (
-    "cam giac no",
-    "con dau",
-    "van con",
-    "van bi",
-    "do hon",
-    "bot hon",
-    "nang hon",
-    "dau tang",
-    "buon non",
-    "nong rat",
-    "o chua",
-    "khi doi",
-    "sau an",
-    "luc doi",
-    "them nua",
+    "cam giac no", "con dau", "van con", "van bi", "do hon", "bot hon", "bot mot chut",
+    "nang hon", "dau tang", "buon non", "nong rat", "o chua", "khi doi", "sau an", "luc doi",
+    "them nua", "sung moi", "co hong", "nghen hong", "hong van", "van kho chiu",
 )
 
 _MEDICATION_SAFETY_MARKERS = (
-    "uong duoc khong",
-    "dung duoc khong",
-    "co uong duoc",
-    "co dung duoc",
-    "uong chung",
-    "uong cung",
-    "uong kem",
-    "dung chung",
-    "dung kem",
-    "uong them",
-    "dung them",
-    "tuong tac",
-    "an toan thuoc",
-    "tac dung phu",
-    "qua lieu",
-    "chua uong",
-    "chua dung",
+    "uong duoc khong", "dung duoc khong", "co uong duoc", "co dung duoc", "uong chung", "uong cung",
+    "uong kem", "dung chung", "dung kem", "uong them", "dung them", "tuong tac", "an toan thuoc",
+    "tac dung phu", "qua lieu", "chua uong", "chua dung",
 )
 
 _CURRENT_MEDICATION_MARKERS = (
-    "dang dung",
-    "dang uong",
-    "hien dung",
-    "thuoc hien tai",
-    "uong moi ngay",
-    "dung moi ngay",
-    "con dang uong",
-    "con dang dung",
+    "dang dung", "dang uong", "hien dung", "thuoc hien tai", "uong moi ngay", "dung moi ngay",
+    "con dang uong", "con dang dung",
 )
 
 _PROPOSED_MEDICATION_MARKERS = (
-    "co dung",
-    "co uong",
-    "uong them",
-    "dung them",
-    "muon dung",
-    "muon uong",
-    "can nhac",
-    "du dinh",
+    "co dung", "co uong", "uong them", "dung them", "muon dung", "muon uong", "can nhac", "du dinh",
 )
 
 
 def _latest_user_text(payload: Any) -> str:
-    messages = getattr(payload, "messages", ()) or ()
-    for message in reversed(messages):
+    for message in reversed(getattr(payload, "messages", ()) or ()):
         if getattr(message, "role", None) == "user":
             value = str(getattr(message, "content", "") or "").strip()
             if value:
@@ -129,40 +57,26 @@ def _latest_user_text(payload: Any) -> str:
 
 
 def _prior_user_texts(payload: Any) -> list[str]:
-    messages = getattr(payload, "messages", ()) or ()
     result: list[str] = []
-    for message in messages[:-1]:
-        if getattr(message, "role", None) != "user":
-            continue
-        value = str(getattr(message, "content", "") or "").strip()
-        if value:
-            result.append(value)
+    for message in (getattr(payload, "messages", ()) or ())[:-1]:
+        if getattr(message, "role", None) == "user":
+            value = str(getattr(message, "content", "") or "").strip()
+            if value:
+                result.append(value)
     return result
 
 
 def _has_acute_symptom(text: str) -> bool:
     normalized = normalize_search_text(text)
-    if infer_episode_domain(text) is not None:
-        return True
-    return any(marker in normalized for marker in _ACUTE_SYMPTOM_MARKERS)
+    return infer_episode_domain(text) is not None or any(marker in normalized for marker in _ACUTE_SYMPTOM_MARKERS)
 
 
 def _looks_like_monitoring_turn(chat_module: ModuleType, text: str) -> bool:
-    """True for a measurement-focused turn, never for symptom + measurement.
-
-    A numeric vital sign is supporting evidence inside triage when the same turn
-    contains a complaint (fever, pain, lethargy, nausea, neurologic deficit,
-    etc.).  Only measurement-only turns are routed to monitoring.  This keeps
-    "BP 150/95" isolated from an old headache while preserving triage for
-    "fever 39.5 + lethargy" and "abdominal pain + temperature 37.8".
-    """
     try:
         points = list(chat_module._extract_monitoring(text))
     except Exception:
         points = []
-    if not points:
-        return False
-    return not _has_acute_symptom(text)
+    return bool(points) and not _has_acute_symptom(text)
 
 
 def _looks_like_medication_turn(chat_module: ModuleType, text: str) -> bool:
@@ -171,9 +85,9 @@ def _looks_like_medication_turn(chat_module: ModuleType, text: str) -> bool:
         occurrences = list(chat_module._medication_occurrences(normalized))
     except Exception:
         occurrences = []
-    if not occurrences:
-        return False
-    return any(marker in normalized for marker in _MEDICATION_SAFETY_MARKERS + _CURRENT_MEDICATION_MARKERS)
+    return bool(occurrences) and any(
+        marker in normalized for marker in _MEDICATION_SAFETY_MARKERS + _CURRENT_MEDICATION_MARKERS
+    )
 
 
 def _conversation_scope(chat_module: ModuleType, text: str) -> str:
@@ -185,25 +99,16 @@ def _conversation_scope(chat_module: ModuleType, text: str) -> str:
     if _looks_like_medication_turn(chat_module, text):
         return "medication_safety"
     domain = infer_episode_domain(text)
-    if domain:
-        return f"triage:{domain}"
-    return "continuation"
+    return f"triage:{domain}" if domain else "continuation"
 
 
 def _scoped_triage_history(chat_module: ModuleType, payload: Any, latest_text: str) -> tuple[str, bool, bool]:
-    """Build triage context from the active complaint only.
-
-    Explicit continuation language has precedence over a weak lexical domain
-    guess.  This avoids false switches such as Vietnamese ``đau có ...`` being
-    mistaken for the marker ``đau cổ`` after normalization.
-    """
     if is_explicit_correction(latest_text):
         return latest_text, False, False
 
     normalized_latest = normalize_search_text(latest_text)
     previous = _prior_user_texts(payload)
-    is_continuation = any(marker in normalized_latest for marker in _CONTINUATION_MARKERS)
-    if is_continuation and previous:
+    if previous and any(marker in normalized_latest for marker in _CONTINUATION_MARKERS):
         return chat_module._v27_2_original_triage_episode_text(payload, latest_text)
 
     latest_domain = infer_episode_domain(latest_text)
@@ -231,7 +136,6 @@ def _scoped_triage_history(chat_module: ModuleType, payload: Any, latest_text: s
     relevant.reverse()
     if not relevant:
         return latest_text, False, switched
-
     candidate = "\n".join([*relevant, f"Lượt hiện tại: {latest_text}"])
     selection = chat_module.select_active_episode_text(candidate)
     return selection.text, True, bool(switched or selection.switched_episode)
@@ -251,7 +155,6 @@ def _classify_medications(chat_module: ModuleType, text: str) -> tuple[list[str]
     proposed: list[str] = []
     has_current = any(marker in normalized for marker in _CURRENT_MEDICATION_MARKERS)
     has_proposed = any(marker in normalized for marker in _PROPOSED_MEDICATION_MARKERS)
-
     if has_current and has_proposed and len(meds) >= 2:
         current.append(meds[0])
         proposed.extend(meds[1:])
@@ -276,16 +179,14 @@ def _collect_medication_memory(chat_module: ModuleType, payload: Any) -> tuple[l
 
 
 def _augment_safety_context(chat_module: ModuleType, payload: Any, normalized_text: str):
-    original = chat_module._v27_2_original_extract_safety
-    current, proposed, allergens, conditions = original(payload, normalized_text)
+    current, proposed, allergens, conditions = chat_module._v27_2_original_extract_safety(payload, normalized_text)
     remembered_current, remembered_proposed = _collect_medication_memory(chat_module, payload)
-
     latest_text = _latest_user_text(payload)
     latest_current, latest_proposed = _classify_medications(chat_module, latest_text)
+
     for med in [*remembered_current, *latest_current]:
         if med not in current:
             current.append(med)
-
     if not proposed and remembered_proposed:
         normalized_latest = normalize_search_text(latest_text)
         continuation = (
@@ -297,12 +198,9 @@ def _augment_safety_context(chat_module: ModuleType, payload: Any, normalized_te
         )
         if continuation:
             proposed.extend(remembered_proposed)
-
     return (
-        list(dict.fromkeys(current)),
-        list(dict.fromkeys(proposed)),
-        list(dict.fromkeys(allergens)),
-        list(dict.fromkeys(conditions)),
+        list(dict.fromkeys(current)), list(dict.fromkeys(proposed)),
+        list(dict.fromkeys(allergens)), list(dict.fromkeys(conditions)),
     )
 
 
@@ -318,6 +216,9 @@ def _enrich_result(chat_module: ModuleType, payload: Any, intent: str, result: A
 
     latest = _latest_user_text(payload)
     data["conversation_turn"] = latest
+    data["conversation_turn_index"] = sum(
+        1 for message in (getattr(payload, "messages", ()) or ()) if getattr(message, "role", None) == "user"
+    )
     data["conversation_scope"] = _conversation_scope(chat_module, latest)
 
     if intent == "monitoring":
@@ -332,20 +233,14 @@ def _enrich_result(chat_module: ModuleType, payload: Any, intent: str, result: A
     if intent == "safety":
         remembered_current, remembered_proposed = _collect_medication_memory(chat_module, payload)
         latest_current, latest_proposed = _classify_medications(chat_module, latest)
-        data["conversation_current_medications"] = list(
-            dict.fromkeys([*remembered_current, *latest_current])
-        )
-        data["conversation_proposed_medications"] = list(
-            dict.fromkeys(latest_proposed or remembered_proposed)
-        )
-
+        data["conversation_current_medications"] = list(dict.fromkeys([*remembered_current, *latest_current]))
+        data["conversation_proposed_medications"] = list(dict.fromkeys(latest_proposed or remembered_proposed))
     return data
 
 
 def install_chat_conversation_intelligence(chat_module: ModuleType) -> None:
     if getattr(chat_module, _MARKER, False):
         return
-
     original_detect = getattr(chat_module, "_detect_intent", None)
     original_episode = getattr(chat_module, "_triage_episode_text", None)
     original_safety = getattr(chat_module, "_extract_safety", None)
@@ -375,9 +270,18 @@ def install_chat_conversation_intelligence(chat_module: ModuleType) -> None:
         return _augment_safety_context(chat_module, payload, normalized_text)
 
     def _response(payload: Any, ctx: Any, **kwargs: Any):
-        # The wrapped implementation still owns the single-path policy and its
-        # effective_allow_agent enforcement; this adapter only enriches result
-        # context before delegating to that authoritative response path.
+        # Preserve the V14 single-path invariant in this wrapper itself. In
+        # coverage_scope=all, no branch may disable Writer/Reviewer by passing
+        # allow_agent=False; the original response function rechecks this too.
+        effective_allow_agent = bool(kwargs.get("allow_agent", True))
+        if (
+            settings.agent_coverage_scope == "all"
+            and settings.agent_mode in {"shadow", "enforced"}
+            and (settings.agent_sync_enabled or settings.agent_background_enabled)
+        ):
+            effective_allow_agent = True
+        kwargs["allow_agent"] = effective_allow_agent
+
         intent = str(kwargs.get("intent") or "general")
         kwargs["result"] = _enrich_result(chat_module, payload, intent, kwargs.get("result"))
         return original_response(payload, ctx, **kwargs)
