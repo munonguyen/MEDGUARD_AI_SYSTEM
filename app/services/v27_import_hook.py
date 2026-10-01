@@ -39,8 +39,13 @@ def _install_answering_patch(module: ModuleType) -> None:
 
 def _install_chat_patch(module: ModuleType) -> None:
     from app.services.conversation_intelligence import install_chat_conversation_intelligence
+    from app.services.medication_conversation_policy import install_medication_conversation_policy
 
+    # Conversation intelligence owns context scoping/result enrichment first.
+    # The medication policy then wraps that response path narrowly so missing-
+    # information prompts remain contextual without bypassing Writer/Reviewer.
     install_chat_conversation_intelligence(module)
+    install_medication_conversation_policy(module)
 
 
 class _PostLoadLoader(importlib.abc.Loader):
