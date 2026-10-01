@@ -4,8 +4,8 @@ This module does not evaluate drug interactions and does not author treatment.
 It closes two conversation-quality gaps around the existing Safety Kernel:
 
 * broader recognition of requests for personalised dose changes; and
-* context-aware missing-information prompts that acknowledge the latest turn
-  instead of repeating one generic sentence across unrelated medication cases.
+* context-aware missing-information/unsupported prompts that acknowledge the
+  latest turn instead of repeating one generic sentence across unrelated cases.
 
 All actual medication-risk decisions remain owned by the existing safety
 service and its versioned knowledge tables.
@@ -24,6 +24,7 @@ _MARKER = "_medguard_v27_2_medication_conversation_policy"
 _GENERIC_MISSING_MEDICATION_REPLY = (
     "Tôi cần tên thuốc đang cân nhắc hoặc thuốc muốn phối hợp để kiểm tra."
 )
+_PERSONALIZED_DOSE_REPLY_PREFIX = "MedGuard không kê hoặc tính liều thuốc cá nhân hóa từ hội thoại."
 
 
 def _latest_user_text(payload: Any) -> str:
@@ -53,6 +54,11 @@ def _bounded_turn(text: str, *, limit: int = 180) -> str:
     return value
 
 
+def _turn_grounding(payload: Any) -> str:
+    latest = _bounded_turn(_latest_user_text(payload))
+    return f"Dữ kiện mới ở lượt này: {latest}. " if latest else ""
+
+
 def _is_personalized_dose_request(normalized: str) -> bool:
     """Recognize common Vietnamese dose-changing language conservatively."""
     return bool(
@@ -62,8 +68,8 @@ def _is_personalized_dose_request(normalized: str) -> bool:
         or "nua lieu" in normalized
         or "dung xen ke" in normalized
         or "uong xen ke" in normalized
-        or re.search(r"\blieu\s+[a-z0-9._+-]+\s+cu the\b", normalized)
-        or re.search(r"\blieu\s+cu the\b", normalized)
+        or re.search(r"\blieu\s+[a-z0-9._+-]+\s+(?:cu the|chinh xac)\b", normalized)
+        or re.search(r"\blieu\s+(?:cu the|chinh xac)\b", normalized)
         or re.search(r"\b(?:tang|giam|doi|bo)\s+lieu\b", normalized)
     )
 
@@ -72,8 +78,7 @@ def _contextual_missing_reply(payload: Any) -> str:
     latest = _latest_user_text(payload)
     normalized = normalize_search_text(latest)
     history = normalize_search_text(_prior_user_text(payload))
-    latest_bounded = _bounded_turn(latest)
-    grounding = f"Dữ kiện mới ở lượt này: {latest_bounded}. " if latest_bounded else ""
+    grounding = _turn_grounding(payload)
 
     ingestion_context = any(
         marker in normalized or marker in history
@@ -138,6 +143,21 @@ def _contextual_missing_reply(payload: Any) -> str:
     )
 
 
+def _contextual_dose_reply(payload: Any, original_reply: str) -> str:
+    """Ground the existing non-prescriptive dose boundary in the active turn."""
+    grounding = _turn_grounding(payload)
+    normalized = normalize_search_text(_latest_user_text(payload))
+    if "bo lieu" in normalized or "tu bo lieu" in normalized:
+        boundary = "Yêu cầu này liên quan việc tự bỏ hoặc thay đổi liều đang dùng. "
+    elif "nua lieu" in normalized:
+        boundary = "Giảm xuống nửa liều vẫn là một thay đổi liều cá nhân hóa. "
+    elif "xen ke" in normalized:
+        boundary = "Dùng xen kẽ hai thuốc vẫn cần một kế hoạch liều được xác nhận cho từng thuốc. "
+    else:
+        boundary = "Yêu cầu này cần quyết định liều cá nhân hóa. "
+    return f"{grounding}{boundary}{original_reply.strip()}"
+
+
 def install_medication_conversation_policy(chat_module: ModuleType) -> None:
     if getattr(chat_module, _MARKER, False):
         return
@@ -161,6 +181,12 @@ def install_medication_conversation_policy(chat_module: ModuleType) -> None:
             and reply.strip() == _GENERIC_MISSING_MEDICATION_REPLY
         ):
             kwargs["reply"] = _contextual_missing_reply(payload)
+        elif (
+            intent == "safety"
+            and status == "unsupported"
+            and reply.strip().startswith(_PERSONALIZED_DOSE_REPLY_PREFIX)
+        ):
+            kwargs["reply"] = _contextual_dose_reply(payload, reply)
         return original_response(payload, ctx, **kwargs)
 
     chat_module._requests_personalized_dose = _requests_personalized_dose
