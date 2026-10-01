@@ -78,7 +78,7 @@ jobs:
           fi
 
   conversation-quality-v24:
-    name: V24 200-turn + V27.2 conversation quality
+    name: V24 200-turn + V27.5 conversation quality
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -94,13 +94,13 @@ jobs:
       - name: Run frozen V24 evaluator and always preserve diagnostics
         continue-on-error: true
         run: python scripts/evaluate_v24_200_turn_conversations.py
-      - name: Run V27.2 conversation-intelligence hard gate
+      - name: Run V27.5 conversation-intelligence hard gate
         if: always()
         run: |
           python scripts/eval_v27_2_conversation_quality.py \
             --input artifacts/v24_200_turn_quality/REPORT_200_QUESTIONS_ANSWERS.md \
             --output artifacts/v27_2_conversation_quality/report.json \
-            --max-duplicate-ratio 0.15
+            --max-duplicate-ratio 0.05
       - name: Enforce frozen V24 safety regression
         if: always()
         run: |
@@ -125,7 +125,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: v27-2-conversation-quality-${{ github.sha }}
+          name: v27-5-conversation-quality-${{ github.sha }}
           path: |
             artifacts/v24_200_turn_quality/report.json
             artifacts/v24_200_turn_quality/REPORT_200_QUESTIONS_ANSWERS.md
