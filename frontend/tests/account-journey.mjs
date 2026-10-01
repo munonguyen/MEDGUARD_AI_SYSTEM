@@ -179,10 +179,11 @@ try {
   await page.screenshot({path:new URL('chat-mobile.png',artifacts).pathname,fullPage:true,animations:'disabled'});
   assert.equal(await page.evaluate(()=>Object.keys(localStorage).filter((key)=>key.startsWith('medguard.profile.')).length),0);
   assert.equal(await page.evaluate(()=>document.cookie.includes('medguard_session')),false,'Session exposed to JavaScript');
-  assert.equal(errors.length,0,errors.join('\n'));assert.equal(serverErrors.length,0,JSON.stringify(serverErrors));report.passed=true;
+  assert.equal(errors.length,0,errors.join('\n'));assert.equal(serverErrors.length,0,JSON.stringify(serverErrors));
+  const violations=report.accessibility.flatMap((scan)=>scan.violations);
+  assert.equal(violations.length,0,JSON.stringify(violations,null,2));
+  report.passed=true;
 } finally {
   report.page_errors=errors;report.server_errors=serverErrors;await writeFile(new URL('user-journey.json',artifacts),JSON.stringify(report,null,2));await browser.close();
 }
-const serious=report.accessibility.flatMap((r)=>r.violations).filter((v)=>['serious','critical'].includes(v.impact));
-assert.equal(serious.length,0,JSON.stringify(serious,null,2));
-console.log(`UI journey passed: ${report.cases.length} clinical scenarios; zero serious/critical accessibility violations.`);
+console.log(`UI journey passed: ${report.cases.length} clinical scenarios; zero automated accessibility violations across tested screens.`);

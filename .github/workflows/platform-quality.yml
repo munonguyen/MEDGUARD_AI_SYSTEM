@@ -52,6 +52,11 @@ jobs:
         run: |
           npm --prefix frontend ci
           npm --prefix frontend run test:accounts
+      - name: Writer and Reviewer unavailable fallback on HTTPS
+        run: |
+          cp artifacts/v28-ui/user-journey.json artifacts/v28-ui/user-journey-disabled.json
+          MEDGUARD_AGENT_MODE=enforced docker compose -f deploy/compose.platform.yml up -d --wait --wait-timeout 180 app1 app2
+          MEDGUARD_AGENT_MODE=enforced npm --prefix frontend run test:accounts
       - name: Restart one replica and stop the other
         run: |
           docker compose -f deploy/compose.platform.yml restart app1
