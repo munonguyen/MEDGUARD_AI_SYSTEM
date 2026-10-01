@@ -1,12 +1,14 @@
-"""V27.1 runtime integration for contract-aware deterministic fallback.
+"""V27.3 runtime integration for contract-aware fallback and output hygiene.
 
 The primary agent pipeline remains unchanged: Writer is still the sole author of
 verified patient-facing prose and Reviewer remains non-authoring. This adapter
-only replaces the *input fallback answer* with a deterministic composition built
-from the same ClinicalAgentContract before the existing pipeline executes.
+builds the deterministic contextual fallback from the same ClinicalAgentContract,
+then applies a presentation-only hygiene pass at the final runtime boundary.
 
-That means provider/configuration/circuit/timeout/rejection failures degrade to a
-context-aware answer instead of the legacy ROUTINE/URGENT/EMERGENCY template.
+The hygiene pass may remove duplicated/transcript-shaped presentation artifacts,
+internal machine labels, or repeated punctuation. It must never change the
+Safety Kernel urgency floor, remove an emergency/hard-stop action, or introduce
+new clinical content.
 """
 
 from __future__ import annotations
@@ -17,15 +19,15 @@ from typing import Any
 from app.models.chat import ChatIntent, GroundedAnswer
 from app.services.clinical_agent_contract import build_clinical_agent_contract
 from app.services.clinical_contract_fallback import compose_contract_fallback
+from app.services.v27_2_answering_patch import _sanitize_answer
 
 
 def install_v27_runtime_fallback() -> None:
     """Patch ``AnswerAgentPipeline.generate_response`` exactly once.
 
-    Kept as a small adapter so V27.1 can be validated without duplicating or
-    forking the mature agent execution graph. A later cleanup can move these
-    three deterministic lines directly into ``generate_response`` once V27.1 is
-    merged into the main clinical pipeline.
+    The adapter intentionally keeps the mature execution graph intact. It only
+    injects the contract-aware fallback and enforces the same patient-output
+    hygiene on both fallback and final verified/fallback results.
     """
 
     from app.services.answer_agents import AnswerAgentPipeline
@@ -56,9 +58,11 @@ def install_v27_runtime_fallback() -> None:
             clinical_result=clinical_payload,
             patient_context=context,
         )
-        contextual_fallback = compose_contract_fallback(fallback_answer, contract)
+        contextual_fallback = _sanitize_answer(
+            compose_contract_fallback(fallback_answer, contract)
+        )
 
-        return original(
+        resolved = original(
             self,
             fallback_answer=contextual_fallback,
             clinical_payload=clinical_payload,
@@ -70,6 +74,11 @@ def install_v27_runtime_fallback() -> None:
             locale=locale,
             patient_context=context,
         )
+
+        # Final presentation boundary: preserve all clinical authority decisions
+        # while removing structural artifacts that can be introduced by either a
+        # deterministic fallback or a verified Writer response.
+        return _sanitize_answer(resolved)
 
     AnswerAgentPipeline.generate_response = generate_response_with_contract_fallback
     AnswerAgentPipeline._v27_contract_fallback_installed = True
