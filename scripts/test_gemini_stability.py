@@ -10,10 +10,11 @@ import urllib.error
 import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 
 TRANSIENT_HTTP = {408, 429, 500, 502, 503, 504}
+EXTERNAL_DEGRADED_HTTP = {429, 500, 502, 503, 504}
 ALIASES = (
     ("writer", "medguard-clinical-answer"),
     ("reviewer", "medguard-clinical-verifier"),
@@ -26,6 +27,24 @@ class Attempt:
     latency_s: float
     retries: int
     detail: str
+    http_status: int | None = None
+
+
+@dataclass(frozen=True)
+class SeriesResult:
+    name: str
+    status: Literal["pass", "degraded_external", "fail_application"]
+    success_count: int
+    iterations: int
+    retry_count: int
+    median_s: float
+    p95_s: float
+    failures: tuple[str, ...]
+    failure_http_statuses: tuple[int | None, ...]
+
+    @property
+    def application_ok(self) -> bool:
+        return self.status != "fail_application"
 
 
 def _load_env_file(path: Path) -> None:
@@ -77,7 +96,13 @@ def _with_retry(call, *, max_retries: int = 2) -> Attempt:
         except Exception as exc:
             code = _error_code(exc)
             if retries >= max_retries or (code is not None and code not in TRANSIENT_HTTP):
-                return Attempt(False, time.perf_counter() - start, retries, _safe_error(exc))
+                return Attempt(
+                    False,
+                    time.perf_counter() - start,
+                    retries,
+                    _safe_error(exc),
+                    http_status=code,
+                )
             retries += 1
             time.sleep(min(2**retries, 5))
 
@@ -130,17 +155,28 @@ def _p95(values: list[float]) -> float:
     return ordered[index]
 
 
-def _run_series(name: str, fn, *, iterations: int, max_p95_s: float) -> bool:
+def _run_series(name: str, fn, *, iterations: int, max_p95_s: float) -> SeriesResult:
     attempts = [_with_retry(fn) for _ in range(iterations)]
     successes = [item for item in attempts if item.ok]
+    failures = [item for item in attempts if not item.ok]
     latencies = [item.latency_s for item in successes]
     success_rate = len(successes) / iterations
     retry_count = sum(item.retries for item in attempts)
     median = statistics.median(latencies) if latencies else float("inf")
     p95 = _p95(latencies)
 
-    ok = success_rate == 1.0 and p95 <= max_p95_s
-    marker = "PASS" if ok else "FAIL"
+    if success_rate == 1.0 and p95 <= max_p95_s:
+        status: Literal["pass", "degraded_external", "fail_application"] = "pass"
+    elif failures and all(item.http_status in EXTERNAL_DEGRADED_HTTP for item in failures):
+        status = "degraded_external"
+    else:
+        status = "fail_application"
+
+    marker = {
+        "pass": "PASS",
+        "degraded_external": "DEGRADED_EXTERNAL",
+        "fail_application": "FAIL_APPLICATION",
+    }[status]
     print(
         f"[{marker}] {name}: success={len(successes)}/{iterations} "
         f"rate={success_rate:.0%} retries={retry_count} median={median:.2f}s p95={p95:.2f}s"
@@ -148,7 +184,52 @@ def _run_series(name: str, fn, *, iterations: int, max_p95_s: float) -> bool:
     for index, item in enumerate(attempts, 1):
         if not item.ok:
             print(f"  attempt {index}: {item.detail}")
-    return ok
+
+    return SeriesResult(
+        name=name,
+        status=status,
+        success_count=len(successes),
+        iterations=iterations,
+        retry_count=retry_count,
+        median_s=median,
+        p95_s=p95,
+        failures=tuple(item.detail for item in failures),
+        failure_http_statuses=tuple(item.http_status for item in failures),
+    )
+
+
+def _write_report(path: Path | None, results: list[SeriesResult], *, configured: bool) -> None:
+    if path is None:
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    overall = "pass"
+    if any(item.status == "fail_application" for item in results) or not configured:
+        overall = "fail_application"
+    elif any(item.status == "degraded_external" for item in results):
+        overall = "degraded_external"
+    payload = {
+        "gate": "GEMINI_PROVIDER_READINESS",
+        "configured": configured,
+        "status": overall,
+        "application_certification_passed": configured
+        and not any(item.status == "fail_application" for item in results),
+        "provider_fully_ready": configured and all(item.status == "pass" for item in results),
+        "series": [
+            {
+                "name": item.name,
+                "status": item.status,
+                "success_count": item.success_count,
+                "iterations": item.iterations,
+                "retry_count": item.retry_count,
+                "median_s": None if item.median_s == float("inf") else round(item.median_s, 4),
+                "p95_s": None if item.p95_s == float("inf") else round(item.p95_s, 4),
+                "failures": list(item.failures),
+                "failure_http_statuses": list(item.failure_http_statuses),
+            }
+            for item in results
+        ],
+    }
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def main() -> int:
@@ -158,6 +239,15 @@ def main() -> int:
     parser.add_argument("--gateway", action="store_true")
     parser.add_argument("--all", action="store_true")
     parser.add_argument("--timeout", type=int, default=45)
+    parser.add_argument("--report", type=Path, default=None)
+    parser.add_argument(
+        "--allow-external-degraded",
+        action="store_true",
+        help=(
+            "Exit successfully for provider-side quota/5xx degradation while still emitting a "
+            "DEGRADED_EXTERNAL result. Application/protocol failures continue to fail."
+        ),
+    )
     parser.add_argument(
         "--writer-model",
         default=os.getenv("MEDGUARD_STABILITY_WRITER_MODEL", "gemini-3.5-flash-lite"),
@@ -183,38 +273,53 @@ def main() -> int:
         ("writer", args.writer_model),
         ("reviewer", args.reviewer_model),
     )
-    overall = True
+    results: list[SeriesResult] = []
+    configured = True
 
     if args.all or args.direct:
         key = os.getenv("GEMINI_API_KEY", "").strip()
         if not key:
-            print("[FAIL] direct Gemini: GEMINI_API_KEY is not configured")
-            overall = False
+            print("[FAIL_APPLICATION] direct Gemini: GEMINI_API_KEY is not configured")
+            configured = False
         else:
             for role, model in models:
-                overall &= _run_series(
-                    f"direct {role} {model}",
-                    lambda model=model: _direct_once(model, key, args.timeout),
-                    iterations=args.iterations,
-                    max_p95_s=30.0,
+                results.append(
+                    _run_series(
+                        f"direct {role} {model}",
+                        lambda model=model: _direct_once(model, key, args.timeout),
+                        iterations=args.iterations,
+                        max_p95_s=30.0,
+                    )
                 )
 
     if args.all or args.gateway:
         token = os.getenv("MEDGUARD_LLM_GATEWAY_API_KEY", "").strip()
         base = os.getenv("MEDGUARD_LLM_GATEWAY_URL", "http://127.0.0.1:4000/v1")
         if not token:
-            print("[FAIL] LiteLLM gateway: MEDGUARD_LLM_GATEWAY_API_KEY is not configured")
-            overall = False
+            print("[FAIL_APPLICATION] LiteLLM gateway: MEDGUARD_LLM_GATEWAY_API_KEY is not configured")
+            configured = False
         else:
             for role, alias in ALIASES:
-                overall &= _run_series(
-                    f"gateway {role} {alias}",
-                    lambda alias=alias: _gateway_once(alias, token, base, args.timeout),
-                    iterations=args.iterations,
-                    max_p95_s=35.0,
+                results.append(
+                    _run_series(
+                        f"gateway {role} {alias}",
+                        lambda alias=alias: _gateway_once(alias, token, base, args.timeout),
+                        iterations=args.iterations,
+                        max_p95_s=35.0,
+                    )
                 )
 
-    return 0 if overall else 1
+    _write_report(args.report, results, configured=configured)
+
+    application_failure = (not configured) or any(
+        result.status == "fail_application" for result in results
+    )
+    external_degraded = any(result.status == "degraded_external" for result in results)
+    if application_failure:
+        return 1
+    if external_degraded and not args.allow_external_degraded:
+        return 2
+    return 0
 
 
 if __name__ == "__main__":
