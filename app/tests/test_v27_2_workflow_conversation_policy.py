@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from app.services.workflow_conversation_policy import _followup_reply, _schedule_reply
+from app.services.workflow_conversation_policy import _clock_time, _followup_reply, _schedule_reply
 
 
 def _payload(text: str):
@@ -23,6 +23,25 @@ def test_schedule_confirmation_repeats_actual_created_time() -> None:
         result,
     )
     assert "08:00" in reply
+
+
+def test_utc_schedule_is_rendered_in_patient_vietnam_timezone() -> None:
+    assert _clock_time("2026-10-02T01:00:00Z") == "08:00"
+    reply = _schedule_reply(
+        "Card lịch thuốc đang có 1 mốc hoạt động.",
+        {
+            "action": "view",
+            "schedules": [
+                {
+                    "medication_name": "aspirin",
+                    "scheduled_at": "2026-10-02T01:00:00+00:00",
+                    "status": "active",
+                }
+            ],
+        },
+    )
+    assert "08:00" in reply
+    assert "01:00" not in reply
 
 
 def test_different_schedule_times_produce_different_patient_replies() -> None:
