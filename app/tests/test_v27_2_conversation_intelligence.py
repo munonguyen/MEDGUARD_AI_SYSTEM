@@ -52,6 +52,15 @@ def test_multiple_current_medicines_keep_their_roles_when_candidate_is_added() -
     assert reversed_proposed == ["ibuprofen"]
 
 
+def test_duplicate_ingredient_is_retained_in_both_medication_roles() -> None:
+    current, proposed = _classify_medications(
+        chat,
+        "Tôi đang uống paracetamol, có thể dùng thêm thuốc cảm cũng chứa paracetamol không?",
+    )
+    assert current == ["paracetamol"]
+    assert proposed == ["paracetamol"]
+
+
 def test_monitoring_answer_uses_plain_language_not_internal_codes() -> None:
     answer = answering.build_grounded_answer(
         intent="monitoring",
