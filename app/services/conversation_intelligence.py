@@ -40,8 +40,39 @@ _ACUTE_SYMPTOM_MARKERS = (
     "ngat",
     "co giat",
     "dau dau du doi",
+    "dau bung",
     "dau bung du doi",
+    "buon non",
+    "non",
     "chay mau",
+    "sot",
+    "sot cao",
+    "lu du",
+    "lo mo",
+    "lanh run",
+    "on lanh",
+    "co cung",
+    "te",
+    "sung",
+    "phat ban",
+)
+
+_CONTINUATION_MARKERS = (
+    "cam giac no",
+    "con dau",
+    "van con",
+    "van bi",
+    "do hon",
+    "bot hon",
+    "nang hon",
+    "dau tang",
+    "buon non",
+    "nong rat",
+    "o chua",
+    "khi doi",
+    "sau an",
+    "luc doi",
+    "them nua",
 )
 
 _MEDICATION_SAFETY_MARKERS = (
@@ -111,21 +142,27 @@ def _prior_user_texts(payload: Any) -> list[str]:
 
 def _has_acute_symptom(text: str) -> bool:
     normalized = normalize_search_text(text)
+    if infer_episode_domain(text) is not None:
+        return True
     return any(marker in normalized for marker in _ACUTE_SYMPTOM_MARKERS)
 
 
 def _looks_like_monitoring_turn(chat_module: ModuleType, text: str) -> bool:
-    """True for a measurement-focused turn, not a symptom+measurement crisis."""
-    normalized = normalize_search_text(text)
+    """True for a measurement-focused turn, never for symptom + measurement.
+
+    A numeric vital sign is supporting evidence inside triage when the same turn
+    contains a complaint (fever, pain, lethargy, nausea, neurologic deficit,
+    etc.).  Only measurement-only turns are routed to monitoring.  This keeps
+    "BP 150/95" isolated from an old headache while preserving triage for
+    "fever 39.5 + lethargy" and "abdominal pain + temperature 37.8".
+    """
     try:
         points = list(chat_module._extract_monitoring(text))
     except Exception:
         points = []
     if not points:
         return False
-    # A value accompanied by acute symptom language belongs to clinical triage;
-    # a value by itself belongs to monitoring and must not inherit stale triage.
-    return not _has_acute_symptom(normalized)
+    return not _has_acute_symptom(text)
 
 
 def _looks_like_medication_turn(chat_module: ModuleType, text: str) -> bool:
@@ -156,33 +193,31 @@ def _conversation_scope(chat_module: ModuleType, text: str) -> str:
 def _scoped_triage_history(chat_module: ModuleType, payload: Any, latest_text: str) -> tuple[str, bool, bool]:
     """Build triage context from the active complaint only.
 
-    The previous implementation appended the last three user turns even when the
-    conversation had moved through medication safety or monitoring.  This
-    function walks backwards until it reaches a different explicit complaint.
+    Explicit continuation language has precedence over a weak lexical domain
+    guess.  This avoids false switches such as Vietnamese ``đau có ...`` being
+    mistaken for the marker ``đau cổ`` after normalization.
     """
     if is_explicit_correction(latest_text):
         return latest_text, False, False
 
-    latest_domain = infer_episode_domain(latest_text)
-    if not latest_domain:
-        # Continuation messages such as "đỡ hơn rồi" need the base selector's
-        # risk-memory semantics because the complaint may be implicit.
+    normalized_latest = normalize_search_text(latest_text)
+    previous = _prior_user_texts(payload)
+    is_continuation = any(marker in normalized_latest for marker in _CONTINUATION_MARKERS)
+    if is_continuation and previous:
         return chat_module._v27_2_original_triage_episode_text(payload, latest_text)
 
-    previous = _prior_user_texts(payload)
+    latest_domain = infer_episode_domain(latest_text)
+    if not latest_domain:
+        return chat_module._v27_2_original_triage_episode_text(payload, latest_text)
+
     relevant: list[str] = []
     switched = False
-
     for value in reversed(previous):
         scope = _conversation_scope(chat_module, value)
         if scope in {"monitoring", "medication_safety", "schedule"}:
-            # Non-triage tasks are transparent boundaries: skip them rather than
-            # feeding them into the clinical episode.
             continue
         domain = infer_episode_domain(value)
         if domain is None:
-            # A short continuation can belong to the active episode only after a
-            # same-domain anchor has already been found.
             if relevant:
                 relevant.append(value)
             continue
@@ -228,13 +263,6 @@ def _classify_medications(chat_module: ModuleType, text: str) -> tuple[list[str]
 
 
 def _collect_medication_memory(chat_module: ModuleType, payload: Any) -> tuple[list[str], list[str]]:
-    """Return remembered current and pending/proposed medicines.
-
-    Current medicines are longitudinal patient context.  A pending medicine is
-    retained only from the most recent medication-safety turn so a later
-    follow-up such as "nếu tôi chưa uống ibuprofen" does not ask for the name
-    again.
-    """
     current: list[str] = []
     latest_proposed: list[str] = []
     for value in _prior_user_texts(payload):
@@ -254,15 +282,10 @@ def _augment_safety_context(chat_module: ModuleType, payload: Any, normalized_te
 
     latest_text = _latest_user_text(payload)
     latest_current, latest_proposed = _classify_medications(chat_module, latest_text)
-
-    # Longitudinal current medicines survive task switches.
     for med in [*remembered_current, *latest_current]:
         if med not in current:
             current.append(med)
 
-    # If the latest turn establishes a new "currently taking" medicine but does
-    # not replace the pending candidate, preserve the candidate from the prior
-    # safety turn.  This covers warfarin -> ibuprofen -> aspirin follow-ups.
     if not proposed and remembered_proposed:
         normalized_latest = normalize_search_text(latest_text)
         continuation = (
@@ -284,11 +307,6 @@ def _augment_safety_context(chat_module: ModuleType, payload: Any, normalized_te
 
 
 def _enrich_result(chat_module: ModuleType, payload: Any, intent: str, result: Any) -> Any:
-    """Attach presentation-only context to the structured result.
-
-    These fields are ignored by Safety Kernel logic and exist solely so the
-    response composer can describe *this* turn rather than a generic template.
-    """
     if result is None:
         return result
     if hasattr(result, "model_dump"):
@@ -305,11 +323,7 @@ def _enrich_result(chat_module: ModuleType, payload: Any, intent: str, result: A
     if intent == "monitoring":
         try:
             data["patient_measurements"] = [
-                {
-                    "metric": point.metric,
-                    "value": point.value,
-                    "unit": point.unit,
-                }
+                {"metric": point.metric, "value": point.value, "unit": point.unit}
                 for point in chat_module._extract_monitoring(latest)
             ]
         except Exception:
@@ -348,10 +362,10 @@ def install_chat_conversation_intelligence(chat_module: ModuleType) -> None:
         if getattr(payload, "intent_hint", "auto") != "auto":
             return original_detect(payload, normalized_text)
         latest = _latest_user_text(payload)
-        if _looks_like_monitoring_turn(chat_module, latest):
-            return "monitoring"
         if _looks_like_medication_turn(chat_module, latest):
             return "safety"
+        if _looks_like_monitoring_turn(chat_module, latest):
+            return "monitoring"
         return original_detect(payload, normalized_text)
 
     def _triage_episode_text(payload: Any, latest_text: str):
@@ -361,6 +375,9 @@ def install_chat_conversation_intelligence(chat_module: ModuleType) -> None:
         return _augment_safety_context(chat_module, payload, normalized_text)
 
     def _response(payload: Any, ctx: Any, **kwargs: Any):
+        # The wrapped implementation still owns the single-path policy and its
+        # effective_allow_agent enforcement; this adapter only enriches result
+        # context before delegating to that authoritative response path.
         intent = str(kwargs.get("intent") or "general")
         kwargs["result"] = _enrich_result(chat_module, payload, intent, kwargs.get("result"))
         return original_response(payload, ctx, **kwargs)
