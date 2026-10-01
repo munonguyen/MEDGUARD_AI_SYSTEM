@@ -16,6 +16,7 @@ from app.models.chat import (
     GroundedAnswer,
     StoredChatMessage,
 )
+from app.services.patient_response_surface import canonical_patient_response_text
 
 
 class ChatHistoryStore:
@@ -32,6 +33,11 @@ class ChatHistoryStore:
         ).strip()
         title = " ".join(latest.split())[:80] or "Cuộc trò chuyện mới"
         patient_ref = payload.context.patient_ref or response.extracted.get("patient_ref")
+        assistant_content = canonical_patient_response_text(
+            answer=response.answer,
+            verification_status=response.verification_status,
+            fallback_text=response.reply,
+        )
         with self._lock, self.database.tenant_context(tenant_id) as session:
             session.execute(
                 """
@@ -66,7 +72,7 @@ class ChatHistoryStore:
                     response.request_id,
                     tenant_id,
                     payload.conversation_id,
-                    response.reply,
+                    assistant_content,
                     response.intent,
                     response.status,
                     json.dumps(response.result, ensure_ascii=False) if response.result is not None else None,
@@ -172,16 +178,38 @@ class ChatHistoryStore:
         verification_status: str,
         answer_origin: str,
     ) -> None:
-        """Atomically promote a verified background answer in chat history."""
+        """Atomically promote a verified background answer in chat history.
+
+        When the background gateway promotes an answer to ``verified``, content
+        is promoted to the same canonical narrative the frontend displays.  The
+        previous content is retained as the fallback for non-verified states.
+        """
         with self._lock, self.database.tenant_context(tenant_id) as session:
+            existing = session.execute(
+                """
+                SELECT content
+                FROM chat_messages
+                WHERE tenant_id = ? AND conversation_id = ? AND request_id = ?
+                  AND role = 'assistant'
+                LIMIT 1
+                """,
+                (tenant_id, conversation_id, request_id),
+            )
+            fallback_text = str(existing[0].get("content") or "") if existing else ""
+            assistant_content = canonical_patient_response_text(
+                answer=answer,
+                verification_status=verification_status,
+                fallback_text=fallback_text,
+            )
             session.execute(
                 """
                 UPDATE chat_messages
-                SET answer_json = ?, verification_status = ?, answer_origin = ?
+                SET content = ?, answer_json = ?, verification_status = ?, answer_origin = ?
                 WHERE tenant_id = ? AND conversation_id = ? AND request_id = ?
                   AND role = 'assistant'
                 """,
                 (
+                    assistant_content,
                     json.dumps(answer.model_dump(mode="json"), ensure_ascii=False),
                     verification_status,
                     answer_origin,
