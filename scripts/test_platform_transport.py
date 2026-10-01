@@ -28,6 +28,9 @@ def register(client):
 def main(phase):
     with httpx.Client(base_url=BASE, verify=False, timeout=20) as client:
         if phase == 'before':
+            for key in ['demo-key','alt-key']:
+                response = client.get('/v1/audit/events',headers={'X-Tenant-Id':'tenant-demo' if key=='demo-key' else 'tenant-alt','X-API-Key':key})
+                assert response.status_code in {401,403}, 'Production accepted a development API key'
             session = register(client)
             headers = ORIGIN | {'X-CSRF-Token':session['csrf_token']}
             response = client.put('/v1/auth/profile',headers=headers,json={'age':44,'conditions':['Synthetic platform fixture']})

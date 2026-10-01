@@ -46,6 +46,7 @@ Hai chế độ được thử: `disabled` để kiểm tra đường trả lờ
 10. Đọc nguyên văn phát hiện giải thích đau ngực đầu tiên tự nhắc “đau cơ ở lượt trước”, và câu hỏi trì hoãn bị diễn giải thành đã thấy đỡ sau nghỉ. Sửa nguồn giải thích sang dữ kiện hiện có và mệnh đề điều kiện; giữ mức cấp cứu. Thêm kiểm thử hợp đồng và kiểm tra ngay trên văn bản UI. Các lượt trước sửa vẫn được lưu làm bằng chứng phát hiện lỗi, không coi chúng là đầu ra cuối.
 11. PostgreSQL trả timestamp dạng datetime, còn API lịch sử yêu cầu chuỗi ISO; lịch sử từng bị lỗi dù chat trả 200. Chuẩn hóa timestamp ở biên đọc lịch sử và bổ sung thao tác mở lại hội thoại đã lưu trên UI thật.
 12. Trang lịch thuốc cũ chứa thuốc/liều/tên bác sĩ mẫu và dữ liệu sức khỏe chung trong localStorage. Thay bằng lịch phía máy chủ theo tài khoản, trạng thái trống thật, không tự tạo liều, giờ nhập được lưu đúng UTC+7, thêm/sửa/xóa với xác nhận và lỗi hiển thị. Bỏ lịch khám mẫu khỏi bundle công khai. Trang ghi rõ chưa gửi thông báo khi đóng ứng dụng; không hứa chức năng nhắc nền chưa được triển khai. Tạo/sửa lịch cũng cần consent của tài khoản.
+13. Khóa API demo vẫn được khởi tạo mặc định trong production. Đóng tích hợp API-key khi không có cấu hình rõ ràng; từ chối khóa demo/khóa ngắn, bổ sung kiểm tra client không đăng nhập không vào được audit bằng khóa demo. Nút chuyển sang lịch thuốc bị axe phát hiện tương phản thấp; sửa màu rồi kiểm tra lại thay vì bỏ qua lỗi.
 
 Các overlay mới được đánh dấu **pending clinical review**. Nguồn công khai không tự biến chúng thành tri thức được phê duyệt cho sản xuất.
 

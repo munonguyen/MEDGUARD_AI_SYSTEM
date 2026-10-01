@@ -38,6 +38,21 @@ def csrf(session):
     return ORIGIN | {'X-CSRF-Token': session['csrf_token'], 'Idempotency-Key': uuid4().hex}
 
 
+def test_production_never_bootstraps_development_api_keys(monkeypatch):
+    from app.core.config import Settings
+    import json
+    monkeypatch.setenv('MEDGUARD_ENVIRONMENT','production')
+    monkeypatch.delenv('MEDGUARD_API_KEYS_JSON',raising=False)
+    assert Settings().api_keys_by_tenant == {}
+    for value in ['demo-key','alt-key','short-fixture']:
+        monkeypatch.setenv('MEDGUARD_API_KEYS_JSON',json.dumps({'tenant-demo':value}))
+        with pytest.raises(ValueError,match='Production API keys'):
+            Settings()
+    fixture='SYNTHETIC-ONLY-'+('X'*48)
+    monkeypatch.setenv('MEDGUARD_API_KEYS_JSON',json.dumps({'tenant-demo':fixture}))
+    assert Settings().api_keys_by_tenant == {'tenant-demo':fixture}
+
+
 def test_cookie_hash_csrf_rotation_and_revocation(clients):
     a, b, db = clients
     session, email = register_login(a)

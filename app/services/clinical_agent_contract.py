@@ -397,7 +397,7 @@ def build_clinical_agent_contract(
             for flag in red_flags[:6]:
                 text = _text(flag)
                 if text:
-                    add("finding", f"Dấu hiệu đã được xác nhận từ bệnh cảnh hiện tại: {text}.")
+                    add("finding", f"Cảnh báo cần xem xét từ dữ kiện hiện tại: {text}.")
 
         if reasoning_payload:
             for mechanism in reasoning_payload.get("mechanisms", [])[:4]:

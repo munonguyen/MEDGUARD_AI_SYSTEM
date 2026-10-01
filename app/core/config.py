@@ -73,6 +73,8 @@ def _allowed_tenants() -> tuple[str, ...]:
 def _api_keys_by_tenant() -> dict[str, str]:
     value = getenv("MEDGUARD_API_KEYS_JSON")
     if not value:
+        if getenv("MEDGUARD_ENVIRONMENT", "development").lower() == "production":
+            return {}
         return {"tenant-demo": "demo-key", "tenant-alt": "alt-key"}
     parsed = json.loads(value)
     if not isinstance(parsed, dict) or not parsed:
@@ -283,6 +285,10 @@ class Settings:
     def __post_init__(self) -> None:
         if self.environment.lower() not in {"development", "test", "production"}:
             raise ValueError("MEDGUARD_ENVIRONMENT must be development, test, or production")
+        if self.environment.lower() == "production" and any(
+            key in {"demo-key", "alt-key"} or len(key) < 32 for key in self.api_keys_by_tenant.values()
+        ):
+            raise ValueError("Production API keys must be explicitly configured and contain at least 32 characters; demo keys are forbidden")
         if self.db_pool_size < 1:
             raise ValueError("MEDGUARD_DB_POOL_SIZE must be at least 1")
         if self.db_max_overflow < 0:
