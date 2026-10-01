@@ -214,13 +214,15 @@ def _contextual_dose_reply(payload: Any, original_reply: str) -> str:
     else:
         boundary = "Yêu cầu này cần quyết định liều cá nhân hóa. "
 
-    # Make the refusal explicit in patient language. The underlying chat branch
-    # historically said "không kê hoặc tính liều", which is semantically safe
-    # but can read as an indirect refusal. Preserve the same boundary while
-    # stating unambiguously that MedGuard does not prescribe from chat.
+    # Preserve the historical safety-contract phrase while also making the
+    # refusal to prescribe explicit to patients. Existing regression/evaluation
+    # contracts depend on "không kê hoặc tính liều thuốc cá nhân hóa".
     patient_reply = original_reply.strip().replace(
-        "MedGuard không kê hoặc tính liều",
-        "MedGuard không kê đơn hoặc tính liều",
+        _PERSONALIZED_DOSE_REPLY_PREFIX,
+        (
+            "MedGuard không kê đơn từ hội thoại; hệ thống cũng không kê hoặc tính liều "
+            "thuốc cá nhân hóa."
+        ),
         1,
     )
     return f"{grounding}{boundary}{patient_reply}"
