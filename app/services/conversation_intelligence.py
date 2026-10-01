@@ -160,10 +160,8 @@ def _classify_medications(chat_module: ModuleType, text: str) -> tuple[list[str]
             current.append(meds[0])
             proposed.extend(meds[1:])
         else:
-            # A single active ingredient can legitimately occur on both sides
-            # of the question (for example a current paracetamol product plus
-            # another product that also contains paracetamol). Preserve both
-            # roles so follow-up turns retain duplicate-ingredient context.
+            # One active ingredient may occur on both sides of a duplicate-
+            # ingredient question (for example paracetamol in two products).
             current.extend(meds)
             proposed.extend(meds)
     elif has_current:
@@ -195,10 +193,8 @@ def _augment_safety_context(chat_module: ModuleType, payload: Any, normalized_te
     for med in [*remembered_current, *latest_current]:
         if med not in current:
             current.append(med)
-    # The base extractor intentionally recognizes only a narrow grammar. V27.2
-    # classifies additional safe follow-up forms such as "chưa uống X" and
-    # "dùng thêm X"; those current-turn facts must be merged rather than only
-    # remembered for a later turn.
+    # Merge current-turn classification as well as historical memory. The base
+    # parser intentionally accepts a narrower grammar than conversation turns.
     for med in latest_proposed:
         if med not in proposed:
             proposed.append(med)
@@ -217,6 +213,33 @@ def _augment_safety_context(chat_module: ModuleType, payload: Any, normalized_te
         list(dict.fromkeys(current)), list(dict.fromkeys(proposed)),
         list(dict.fromkeys(allergens)), list(dict.fromkeys(conditions)),
     )
+
+
+def _natural_monitoring_alias_text(text: str) -> str:
+    """Convert natural Vietnamese measurement sentences to parser aliases.
+
+    The mature monitoring parser intentionally uses strict token/value forms.
+    V27.2 accepts common patient phrasing while still bounding the distance from
+    a metric label to its numeric value, then delegates validation/ranges back to
+    that existing parser rather than creating a second threshold engine.
+    """
+    normalized = normalize_search_text(text).replace(",", ".")
+    aliases: list[str] = []
+    patterns = (
+        ("spo2", r"\bspo2\b[^\d\n]{0,40}?(\d{1,3}(?:\.\d+)?)", "%"),
+        ("nhip tim", r"\b(?:nhip tim|mach)\b[^\d\n]{0,40}?(\d{2,3}(?:\.\d+)?)", ""),
+        ("nhiet do", r"\b(?:nhiet do|sot)\b[^\d\n]{0,40}?(\d{2}(?:\.\d+)?)", ""),
+        ("duong huyet", r"\b(?:duong huyet|glucose)\b[^\d\n]{0,40}?(\d{2,4}(?:\.\d+)?)", ""),
+        ("muc dau", r"\b(?:muc dau|dau)\b[^\d\n]{0,40}?(\d{1,2}(?:\.\d+)?)\s*/\s*10", "/10"),
+    )
+    for label, pattern, suffix in patterns:
+        match = re.search(pattern, normalized)
+        if match:
+            aliases.append(f"{label} {match.group(1)}{suffix}")
+    pressure = re.search(r"\b(?:huyet ap|ha)\b[^\d\n]{0,40}?(\d{2,3})\s*/\s*(\d{2,3})", normalized)
+    if pressure:
+        aliases.append(f"huyet ap {pressure.group(1)}/{pressure.group(2)}")
+    return " ".join(aliases)
 
 
 def _enrich_result(chat_module: ModuleType, payload: Any, intent: str, result: Any) -> Any:
@@ -259,14 +282,32 @@ def install_chat_conversation_intelligence(chat_module: ModuleType) -> None:
     original_detect = getattr(chat_module, "_detect_intent", None)
     original_episode = getattr(chat_module, "_triage_episode_text", None)
     original_safety = getattr(chat_module, "_extract_safety", None)
+    original_monitoring = getattr(chat_module, "_extract_monitoring", None)
     original_response = getattr(chat_module, "_response", None)
-    if not all((original_detect, original_episode, original_safety, original_response)):
+    if not all((original_detect, original_episode, original_safety, original_monitoring, original_response)):
         return
 
     chat_module._v27_2_original_detect_intent = original_detect
     chat_module._v27_2_original_triage_episode_text = original_episode
     chat_module._v27_2_original_extract_safety = original_safety
+    chat_module._v27_2_original_extract_monitoring = original_monitoring
     chat_module._v27_2_original_response = original_response
+
+    def _extract_monitoring(text: str):
+        points = list(original_monitoring(text))
+        alias_text = _natural_monitoring_alias_text(text)
+        if alias_text:
+            seen = {(point.metric, float(point.value)) for point in points}
+            for point in original_monitoring(alias_text):
+                key = (point.metric, float(point.value))
+                if key not in seen:
+                    points.append(point)
+                    seen.add(key)
+        return points
+
+    # Install measurement parsing before intent classification so a natural
+    # sentence such as "SpO2 của tôi lúc nghỉ là 95%" is routed to monitoring.
+    chat_module._extract_monitoring = _extract_monitoring
 
     def _detect_intent(payload: Any, normalized_text: str):
         if getattr(payload, "intent_hint", "auto") != "auto":
