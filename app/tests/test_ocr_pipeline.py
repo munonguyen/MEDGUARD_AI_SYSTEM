@@ -1,5 +1,7 @@
 """Safety and orchestration tests for the prescription OCR boundary."""
 
+import base64
+
 import pytest
 
 from app.services.ocr.detector import TextBox, text_detector
@@ -12,9 +14,7 @@ from app.workers.ocr_worker import run_vision_pipeline
 
 
 VALID_PNG = (
-    b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR"
-    b"\x00\x00\x00\x01\x00\x00\x00\x01"
-    b"\x08\x06\x00\x00\x00"
+    base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4////fwAJ+wP9KobjigAAAABJRU5ErkJggg==")
 )
 
 

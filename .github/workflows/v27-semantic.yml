@@ -59,3 +59,51 @@ jobs:
         run: npm run test:v27
       - name: Build frontend
         run: npm run build
+
+  gemini-live-stability:
+    name: Gemini live provider readiness
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    concurrency:
+      group: gemini-live-stability-${{ github.repository }}
+      cancel-in-progress: false
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Detect configured Gemini secret
+        id: gemini-secret
+        shell: bash
+        run: |
+          if [[ -n "${GEMINI_API_KEY}" ]]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Probe repeated Gemini Writer and Reviewer readiness
+        if: steps.gemini-secret.outputs.available == 'true'
+        run: >-
+          python scripts/test_gemini_stability.py
+          --direct
+          --iterations 5
+          --min-interval-seconds 12
+          --report artifacts/provider_readiness/gemini.json
+      - name: Fail closed when live-test secret is missing
+        if: steps.gemini-secret.outputs.available != 'true'
+        shell: bash
+        run: |
+          echo "GEMINI_API_KEY Actions secret is not configured; provider readiness cannot be assessed." >&2
+          exit 1
+      - name: Publish provider-readiness diagnostic
+        if: always() && steps.gemini-secret.outputs.available == 'true'
+        uses: actions/upload-artifact@v6
+        with:
+          name: v27-gemini-provider-readiness-${{ github.sha }}
+          path: artifacts/provider_readiness/gemini.json
+          if-no-files-found: warn
+          retention-days: 30

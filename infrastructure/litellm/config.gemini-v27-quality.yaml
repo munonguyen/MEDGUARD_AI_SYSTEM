@@ -1,0 +1,124 @@
+# MedGuard V27.1 quality profile for environments with sufficient Gemini quota.
+#
+# Writer:   Gemini 3.8 Flash
+# Reviewer: Gemini 3.5 Flash-Lite
+#
+# This profile preserves model-family separation between author and reviewer,
+# but SHOULD NOT be used as the default free-tier profile because Gemini 3.8
+# Flash may have a very small daily request quota on free projects.
+#
+# DEVELOPMENT/STAGING by default. Use de-identified data unless your provider
+# agreement and deployment controls explicitly permit otherwise.
+
+model_list:
+  - model_name: medguard-answer
+    litellm_params:
+      model: gemini/gemini-3.8-flash
+      api_key: os.environ/GEMINI_API_KEY
+      timeout: 60
+    model_info:
+      mode: chat
+      role: patient_response_writer
+      supports_web_search: false
+      supported_environments: [development, staging]
+
+  - model_name: medguard-verifier
+    litellm_params:
+      model: gemini/gemini-3.5-flash-lite
+      api_key: os.environ/GEMINI_API_KEY
+      timeout: 60
+    model_info:
+      mode: chat
+      role: non_authoring_reviewer
+      supports_web_search: false
+      supported_environments: [development, staging]
+
+  - model_name: medguard-clinical-answer
+    litellm_params:
+      model: gemini/gemini-3.8-flash
+      api_key: os.environ/GEMINI_API_KEY
+      timeout: 60
+    model_info:
+      mode: chat
+      role: clinical_patient_response_writer
+      supports_web_search: false
+      supported_environments: [development, staging]
+
+  - model_name: medguard-clinical-verifier
+    litellm_params:
+      model: gemini/gemini-3.5-flash-lite
+      api_key: os.environ/GEMINI_API_KEY
+      timeout: 60
+    model_info:
+      mode: chat
+      role: clinical_non_authoring_reviewer
+      supports_web_search: false
+      supported_environments: [development, staging]
+
+  - model_name: medguard-pharma-answer
+    litellm_params:
+      model: gemini/gemini-3.8-flash
+      api_key: os.environ/GEMINI_API_KEY
+      timeout: 60
+    model_info:
+      mode: chat
+      role: medication_patient_response_writer
+      supports_web_search: false
+      supported_environments: [development, staging]
+
+  - model_name: medguard-pharma-verifier
+    litellm_params:
+      model: gemini/gemini-3.5-flash-lite
+      api_key: os.environ/GEMINI_API_KEY
+      timeout: 60
+    model_info:
+      mode: chat
+      role: medication_non_authoring_reviewer
+      supports_web_search: false
+      supported_environments: [development, staging]
+
+litellm_settings:
+  drop_params: true
+  telemetry: false
+  request_timeout: 60
+  num_retries: 1
+  allowed_fails: 2
+  cooldown_time: 30
+  success_callback: [prometheus]
+  failure_callback: [prometheus]
+  cache: true
+  cache_params:
+    type: redis
+    host: os.environ/REDIS_HOST
+    port: os.environ/REDIS_PORT
+    password: os.environ/REDIS_PASSWORD
+    mode: default_off
+    ttl: 300
+  default_key_generate_params:
+    models:
+      - medguard-answer
+      - medguard-verifier
+      - medguard-clinical-answer
+      - medguard-clinical-verifier
+      - medguard-pharma-answer
+      - medguard-pharma-verifier
+    budget_duration: 30d
+    rpm_limit: 8
+    tpm_limit: 80000
+    max_parallel_requests: 1
+
+router_settings:
+  routing_strategy: simple-shuffle
+  enable_pre_call_checks: true
+  num_retries: 1
+  timeout: 60
+  redis_host: os.environ/REDIS_HOST
+  redis_port: os.environ/REDIS_PORT
+  redis_password: os.environ/REDIS_PASSWORD
+
+# Reviewer aliases never act as Writer fallbacks.
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  database_url: os.environ/DATABASE_URL
+  store_model_in_db: false
+  background_health_checks: false

@@ -86,8 +86,8 @@ def _deterministic_fallback_text(answer: Mapping[str, Any]) -> str:
     for list_key, limit in (
         ("key_points", 5),
         ("clinical_hypotheses", 4),
-        ("next_steps", 5),
-        ("safety_notes", 4),
+        ("next_steps", None),
+        ("safety_notes", None),
         ("display_questions", 2),
         ("limitations", 2),
     ):

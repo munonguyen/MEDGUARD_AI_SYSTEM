@@ -1,12 +1,7 @@
-# Quota-limited free development profile:
-# - Gemini 2.5 Flash supports Google Search grounding on the free API tier
-#   (subject to Google's current per-project daily quota).
-# - MedGemma 1.5 4B runs locally in Ollama as the medical reviewer.  The Q4
-#   build is sized for this project's 8 GB M1 development Mac.
+# Legacy quota-limited development profile retained for backward-compatible
+# architecture tests and local MedGemma reviewer experiments.
 #
-# This is not a ChatGPT judge. Free-tier Gemini inputs may be used by Google to
-# improve its products, so use this profile only with deidentified test/shadow
-# data. Keep deterministic MedGuard safety gates authoritative.
+# V27.1 runtime does NOT use this file. See config.gemini-v27-free.yaml.
 model_list:
   - model_name: medguard-answer
     litellm_params:

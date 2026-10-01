@@ -1,15 +1,18 @@
 """Deterministic non-authoring patient-response release gate.
 
-V26 formalizes this layer as the Jev output-quality arbiter.  Jev does not
+V26 formalizes this layer as the Jev output-quality arbiter. Jev does not
 compose patient prose, diagnose, infer a new severity, or override deterministic
-clinical authority.  It receives an already resolved response and can only
+clinical authority. It receives an already resolved response and can only
 APPROVE it or request REVISION from the Writer/Reviewer loop.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+from difflib import SequenceMatcher
+import re
 from typing import Iterable, Literal
+import unicodedata
 
 
 _GENERIC_OPENINGS = (
@@ -82,12 +85,15 @@ _UNCERTAINTY_MARKERS = (
     "dựa trên thông tin hiện có",
     "cần thêm thông tin",
     "không thay thế chẩn đoán",
-    # Probabilistic pattern language is also calibrated uncertainty.  It is
+    # Probabilistic pattern language is also calibrated uncertainty. It is
     # intentionally narrower than generic words such as "có thể" so Jev does
     # not reward vague hedging that adds no clinical information.
     "thường phù hợp với",
     "phù hợp hơn là",
 )
+
+_REPETITION_SIMILARITY = 0.95
+_REPETITION_MIN_CHARS = 28
 
 
 @dataclass(frozen=True)
@@ -105,6 +111,59 @@ class ProfessionalResponseAssessment:
     decision: Literal["approve", "revise"] = "approve"
 
 
+def _normalize_repetition_text(value: str) -> str:
+    decomposed = unicodedata.normalize("NFD", str(value or "").strip().lower())
+    normalized = "".join(
+        character
+        for character in decomposed
+        if unicodedata.category(character) != "Mn"
+    ).replace("đ", "d")
+    normalized = re.sub(r"[^a-z0-9%]+", " ", normalized)
+    return re.sub(r"\s+", " ", normalized).strip()
+
+
+def _near_duplicate(value: str, previous: Iterable[str]) -> bool:
+    normalized = _normalize_repetition_text(value)
+    if not normalized:
+        return False
+    for prior in previous:
+        prior_normalized = _normalize_repetition_text(prior)
+        if not prior_normalized:
+            continue
+        if normalized == prior_normalized:
+            return True
+        if min(len(normalized), len(prior_normalized)) < _REPETITION_MIN_CHARS:
+            continue
+        if SequenceMatcher(None, normalized, prior_normalized).ratio() >= _REPETITION_SIMILARITY:
+            return True
+    return False
+
+
+def _has_excessive_repetition(blocks: list[str]) -> bool:
+    """Detect duplicate prose only; never infer clinical meaning.
+
+    The check intentionally targets obvious presentation repetition: repeated
+    sentences inside one block or an entire block that is effectively repeated.
+    It does not compare different clinical claims using token overlap because
+    clinically distinct statements can share vocabulary.
+    """
+    seen_blocks: list[str] = []
+    for block in blocks:
+        if _near_duplicate(block, seen_blocks):
+            return True
+        seen_blocks.append(block)
+
+        seen_sentences: list[str] = []
+        for sentence in re.split(r"(?<=[.!?])\s+", block):
+            sentence = sentence.strip()
+            if not sentence:
+                continue
+            if _near_duplicate(sentence, seen_sentences):
+                return True
+            seen_sentences.append(sentence)
+    return False
+
+
 def evaluate_professional_response(
     *,
     narrative_blocks: Iterable[str],
@@ -113,9 +172,9 @@ def evaluate_professional_response(
 ) -> ProfessionalResponseAssessment:
     """Score an already-authored response without authoring or changing severity.
 
-    The function is intentionally deterministic.  Its only release decisions are
+    The function is intentionally deterministic. Its only release decisions are
     ``approve`` and ``revise``; revision is performed by the Writer under the
-    existing bounded loop.  Clinical urgency is read-only input.
+    existing bounded loop. Clinical urgency is read-only input.
     """
     blocks = [str(block).strip() for block in narrative_blocks if str(block).strip()]
     text = "\n".join(blocks)
@@ -155,7 +214,7 @@ def evaluate_professional_response(
     question_count = text.count("?")
     question_policy = 1.0
     if resolved_urgency == "EMERGENCY":
-        # Emergency action must be in the first patient-facing block.  Jev may
+        # Emergency action must be in the first patient-facing block. Jev may
         # reject ordering, but it never invents the action or changes urgency.
         if not any(marker in first for marker in _EMERGENCY_ACTION_MARKERS):
             safety = 0.0
@@ -177,6 +236,13 @@ def evaluate_professional_response(
     if any(term in normalized for term in _INTERNAL_JARGON):
         professionalism = 0.0
         reasons.append("internal_jargon_leak")
+
+    # V27.5: obvious repetition is a Writer revision issue, not something Jev
+    # rewrites itself. Emergency wording is exempt because repeating a hard-stop
+    # action is preferable to accidentally weakening it.
+    if resolved_urgency != "EMERGENCY" and _has_excessive_repetition(blocks):
+        professionalism = min(professionalism, 0.5)
+        reasons.append("excessive_repetition")
 
     calibrated_uncertainty = 1.0
     if clinical_response and not any(marker in normalized for marker in _UNCERTAINTY_MARKERS):

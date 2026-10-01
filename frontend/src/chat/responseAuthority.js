@@ -18,3 +18,16 @@ export function selectPatientResponseSurface({ answer, verificationStatus }) {
     canonicalVerifiedResponse,
   };
 }
+
+export function canonicalPatientResponseText({ answer, verificationStatus, fallbackText = '' }) {
+  const surface = selectPatientResponseSurface({ answer, verificationStatus });
+  if (surface.canonicalVerifiedResponse) {
+    const text = surface.narrativeBlocks
+      .map((block) => String(block?.text || '').trim())
+      .filter(Boolean)
+      .join('\n\n')
+      .trim();
+    if (text) return text;
+  }
+  return String(fallbackText || '').trim();
+}

@@ -78,7 +78,7 @@ jobs:
           fi
 
   conversation-quality-v24:
-    name: V24 200-turn conversation benchmark
+    name: V24 200-turn + V27.5 conversation quality
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -91,16 +91,45 @@ jobs:
           cache: pip
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
-      - name: Run frozen V24 200-turn evaluator
+      - name: Run frozen V24 evaluator and always preserve diagnostics
+        continue-on-error: true
         run: python scripts/evaluate_v24_200_turn_conversations.py
-      - name: Upload V24 benchmark reports
+      - name: Run V27.5 conversation-intelligence hard gate
+        if: always()
+        run: |
+          python scripts/eval_v27_2_conversation_quality.py \
+            --input artifacts/v24_200_turn_quality/REPORT_200_QUESTIONS_ANSWERS.md \
+            --output artifacts/v27_2_conversation_quality/report.json \
+            --max-duplicate-ratio 0.049
+      - name: Enforce frozen V24 safety regression
+        if: always()
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          path = Path("artifacts/v24_200_turn_quality/report.json")
+          if not path.exists():
+              raise SystemExit("missing frozen V24 report")
+          report = json.loads(path.read_text(encoding="utf-8"))
+          critical = int(report.get("critical_failures") or 0)
+          below70 = int(report.get("below70") or report.get("below_70") or 0)
+          print(
+              "frozen_v24 "
+              f"average={report.get('average_score')} "
+              f"critical_failures={critical} below70={below70}"
+          )
+          if critical or below70:
+              raise SystemExit("frozen V24 safety regression must remain zero-critical")
+          PY
+      - name: Upload conversation benchmark reports
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: v24-200-turn-quality-${{ github.sha }}
+          name: v27-5-conversation-quality-${{ github.sha }}
           path: |
             artifacts/v24_200_turn_quality/report.json
             artifacts/v24_200_turn_quality/REPORT_200_QUESTIONS_ANSWERS.md
+            artifacts/v27_2_conversation_quality/report.json
           if-no-files-found: warn
           retention-days: 30
 
@@ -132,6 +161,7 @@ jobs:
     needs:
       - backend
       - response-quality
+      - conversation-quality-v24
       - frontend
     runs-on: ubuntu-latest
     timeout-minutes: 15

@@ -16,6 +16,15 @@ class ModelProviderError(RuntimeError):
     pass
 
 
+def _sanitize_json_schema(node: Any) -> Any:
+    """Strip schema constraints (such as maxItems) unsupported by certain gateway/Gemini providers."""
+    if isinstance(node, dict):
+        return {k: _sanitize_json_schema(v) for k, v in node.items() if k != "maxItems"}
+    if isinstance(node, list):
+        return [_sanitize_json_schema(item) for item in node]
+    return node
+
+
 @dataclass(frozen=True)
 class ProviderResult:
     data: BaseModel
@@ -298,7 +307,7 @@ class LiteLLMResponsesProvider(OpenAIResponsesProvider):
                     "type": "json_schema",
                     "name": schema_name,
                     "strict": True,
-                    "schema": response_model.model_json_schema(),
+                    "schema": _sanitize_json_schema(response_model.model_json_schema()),
                 },
                 "verbosity": "low",
             },
@@ -397,7 +406,7 @@ class LiteLLMResponsesProvider(OpenAIResponsesProvider):
                 "json_schema": {
                     "name": schema_name,
                     "strict": True,
-                    "schema": response_model.model_json_schema(),
+                    "schema": _sanitize_json_schema(response_model.model_json_schema()),
                 },
             },
         }
@@ -557,7 +566,7 @@ class GeminiGroundedProvider:
             "response_format": {
                 "type": "text",
                 "mime_type": "application/json",
-                "schema": response_model.model_json_schema(),
+                "schema": _sanitize_json_schema(response_model.model_json_schema()),
             },
         }
         start = perf_counter()
