@@ -87,6 +87,8 @@ def test_personalized_dose_boundary_is_grounded_and_turn_specific() -> None:
     assert half_dose != skip_dose
     assert "nửa liều" in half_dose
     assert "bỏ liều" in skip_dose
+    assert "không kê đơn" in half_dose
+    assert "không kê hoặc tính liều thuốc cá nhân hóa" in half_dose
 
 
 def test_hypertension_incident_requires_actual_ingestion_event() -> None:
