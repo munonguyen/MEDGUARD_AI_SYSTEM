@@ -43,7 +43,8 @@ _CURRENT_MEDICATION_MARKERS = (
 )
 
 _PROPOSED_MEDICATION_MARKERS = (
-    "co dung", "co uong", "uong them", "dung them", "muon dung", "muon uong", "can nhac", "du dinh",
+    "co dung", "co uong", "co the dung", "co the uong", "uong them", "dung them", "muon dung",
+    "muon uong", "can nhac", "du dinh",
 )
 
 
@@ -144,31 +145,76 @@ def _scoped_triage_history(chat_module: ModuleType, payload: Any, latest_text: s
 def _classify_medications(chat_module: ModuleType, text: str) -> tuple[list[str], list[str]]:
     normalized = normalize_search_text(text)
     try:
-        meds = [name for _, name in chat_module._medication_occurrences(normalized)]
+        occurrences = list(chat_module._medication_occurrences(normalized))
     except Exception:
-        meds = []
-    meds = list(dict.fromkeys(meds))
-    if not meds:
+        occurrences = []
+    if not occurrences:
         return [], []
+
+    ordered: list[tuple[int, str]] = []
+    for position, name in occurrences:
+        try:
+            ordered.append((int(position), str(name)))
+        except (TypeError, ValueError):
+            continue
+    ordered.sort(key=lambda item: item[0])
+    if not ordered:
+        return [], []
+
+    # Classify each medicine by the closest role marker that appears before it.
+    # This preserves multiple chronic medicines in turns such as
+    # "đang dùng warfarin và aspirin, có thể uống thêm ibuprofen không?" and
+    # also works when the proposed medicine is mentioned before current therapy.
+    role_events: list[tuple[int, str]] = []
+    for role, markers in (
+        ("current", _CURRENT_MEDICATION_MARKERS),
+        ("proposed", _PROPOSED_MEDICATION_MARKERS),
+    ):
+        for marker in markers:
+            for match in re.finditer(re.escape(marker), normalized):
+                role_events.append((match.start(), role))
+    role_events.sort(key=lambda item: item[0])
 
     current: list[str] = []
     proposed: list[str] = []
+    unresolved: list[str] = []
+    for position, name in ordered:
+        role = None
+        for marker_position, marker_role in role_events:
+            if marker_position > position:
+                break
+            role = marker_role
+        if role == "current":
+            current.append(name)
+        elif role == "proposed":
+            proposed.append(name)
+        else:
+            unresolved.append(name)
+
+    current = list(dict.fromkeys(current))
+    proposed = list(dict.fromkeys(proposed))
+    unresolved = list(dict.fromkeys(unresolved))
     has_current = any(marker in normalized for marker in _CURRENT_MEDICATION_MARKERS)
     has_proposed = any(marker in normalized for marker in _PROPOSED_MEDICATION_MARKERS)
-    if has_current and has_proposed:
-        if len(meds) >= 2:
-            current.append(meds[0])
-            proposed.extend(meds[1:])
+
+    if unresolved:
+        if has_current and not has_proposed:
+            current.extend(name for name in unresolved if name not in current)
+        elif has_proposed or any(marker in normalized for marker in _MEDICATION_SAFETY_MARKERS):
+            proposed.extend(name for name in unresolved if name not in proposed)
+
+    # Keep the previous conservative fallback for unusual grammars in which role
+    # markers exist but none can be associated positionally with a medication.
+    if has_current and has_proposed and not current and not proposed:
+        names = list(dict.fromkeys(name for _, name in ordered))
+        if len(names) >= 2:
+            current.append(names[0])
+            proposed.extend(names[1:])
         else:
-            # One active ingredient may occur on both sides of a duplicate-
-            # ingredient question (for example paracetamol in two products).
-            current.extend(meds)
-            proposed.extend(meds)
-    elif has_current:
-        current.extend(meds)
-    elif has_proposed or any(marker in normalized for marker in _MEDICATION_SAFETY_MARKERS):
-        proposed.extend(meds)
-    return current, proposed
+            current.extend(names)
+            proposed.extend(names)
+
+    return list(dict.fromkeys(current)), list(dict.fromkeys(proposed))
 
 
 def _collect_medication_memory(chat_module: ModuleType, payload: Any) -> tuple[list[str], list[str]]:
