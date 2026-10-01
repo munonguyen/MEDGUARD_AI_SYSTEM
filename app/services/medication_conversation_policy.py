@@ -1,14 +1,15 @@
 """V27.2 medication conversation policy.
 
 This module does not evaluate drug interactions and does not author treatment.
-It closes two conversation-quality gaps around the existing Safety Kernel:
+It closes conversation-quality gaps around the existing Safety Kernel:
 
-* broader recognition of requests for personalised dose changes; and
-* context-aware missing-information/unsupported prompts that acknowledge the
-  latest turn instead of repeating one generic sentence across unrelated cases.
+* broader recognition of requests for personalised dose changes;
+* context-aware missing-information/unsupported prompts; and
+* a narrow guard against legacy medication-incident protocols firing from a
+  medicine-class mention alone without an actual ingestion/missed-dose event.
 
-All actual medication-risk decisions remain owned by the existing safety
-service and its versioned knowledge tables.
+All medication-risk decisions remain owned by the existing safety service and
+its versioned knowledge tables.
 """
 
 from __future__ import annotations
@@ -72,6 +73,63 @@ def _is_personalized_dose_request(normalized: str) -> bool:
         or re.search(r"\blieu\s+(?:cu the|chinh xac)\b", normalized)
         or re.search(r"\b(?:tang|giam|doi|bo)\s+lieu\b", normalized)
     )
+
+
+def _incident_is_supported_by_current_turn(normalized_text: str, result: Any) -> bool:
+    """Reject legacy incident matches that have no event evidence in the turn.
+
+    Older incident routing deliberately made a few protocols always satisfy the
+    quantity side of the match. That is unsafe for conversation use because a
+    phrase such as ``đang dùng thuốc huyết áp`` can then be misrepresented as
+    ``uống nhầm gấp đôi liều``. V27.2 preserves those protocols, but requires an
+    explicit event marker before allowing the incident result through.
+    """
+    if not isinstance(result, dict):
+        return True
+    trace = result.get("trace")
+    trace = trace if isinstance(trace, dict) else {}
+    version = str(trace.get("rule_version") or "")
+    normalized = normalize_search_text(normalized_text)
+
+    if version.startswith("MED-INC-HYPERTENSION-001"):
+        return any(
+            marker in normalized
+            for marker in (
+                "uong nham",
+                "gap doi lieu",
+                "uong gap doi",
+                "qua lieu",
+                "uong 2 vien",
+            )
+        )
+
+    if version.startswith("MED-INC-INSULIN-001"):
+        return any(
+            marker in normalized
+            for marker in (
+                "quen insulin",
+                "quen tiem",
+                "tiem gap doi",
+                "bu lieu",
+                "tiem bu",
+            )
+        )
+
+    if version.startswith("MED-INC-LITHIUM-001"):
+        # Mentioning chronic lithium use alone is not an acute ingestion event.
+        # Preserve the approved protocol when the dehydration/toxicity context
+        # encoded by that protocol is actually present.
+        return any(
+            marker in normalized
+            for marker in (
+                "tieu chay",
+                "mat nuoc",
+                "non",
+                "non mua",
+            )
+        )
+
+    return True
 
 
 def _contextual_missing_reply(payload: Any) -> str:
@@ -163,13 +221,20 @@ def install_medication_conversation_policy(chat_module: ModuleType) -> None:
         return
 
     original_dose = getattr(chat_module, "_requests_personalized_dose", None)
+    original_ingestion = getattr(chat_module, "_reported_medication_ingestion", None)
     original_response = getattr(chat_module, "_response", None)
-    if original_dose is None or original_response is None:
+    if original_dose is None or original_ingestion is None or original_response is None:
         return
 
     def _requests_personalized_dose(normalized_text: str) -> bool:
         normalized = normalize_search_text(normalized_text)
         return bool(original_dose(normalized_text) or _is_personalized_dose_request(normalized))
+
+    def _reported_medication_ingestion(normalized_text: str):
+        result = original_ingestion(normalized_text)
+        if result is None:
+            return None
+        return result if _incident_is_supported_by_current_turn(normalized_text, result) else None
 
     def _response(payload: Any, ctx: Any, **kwargs: Any):
         intent = str(kwargs.get("intent") or "")
@@ -190,5 +255,6 @@ def install_medication_conversation_policy(chat_module: ModuleType) -> None:
         return original_response(payload, ctx, **kwargs)
 
     chat_module._requests_personalized_dose = _requests_personalized_dose
+    chat_module._reported_medication_ingestion = _reported_medication_ingestion
     chat_module._response = _response
     setattr(chat_module, _MARKER, True)
