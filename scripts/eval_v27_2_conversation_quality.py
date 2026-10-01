@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""V27.2 hard gate for multi-turn conversation quality.
+"""V27.2/V27.3 hard gate for multi-turn conversation quality.
 
-The legacy benchmark is intentionally frozen for longitudinal comparability.
-This companion gate checks dimensions that the old 100/100 score did not cover:
-current-turn relevance, context isolation, medication recall, patient-language
-cleanliness and anti-template diversity.
+The legacy V24 benchmark remains frozen for longitudinal comparability. This
+companion gate checks dimensions the old score does not cover: current-turn
+relevance, context isolation, medication recall, patient-language cleanliness,
+false clinical context, false emergency from explicit negation/hypotheticals,
+structured-output hygiene and anti-template diversity.
 """
 
 from __future__ import annotations
@@ -23,12 +24,7 @@ DEFAULT_JSON = Path("artifacts/v27_2_conversation_quality/report.json")
 
 
 def _norm(value: str) -> str:
-    """Normalize benchmark text for Vietnamese-aware semantic checks.
-
-    The hard gate rules intentionally use accent-free tokens so they also work
-    for mobile/ASR inputs. Keep this helper dependency-free because the gate is
-    a release artifact and must remain runnable even if application imports fail.
-    """
+    """Normalize benchmark text for Vietnamese-aware semantic checks."""
     decomposed = unicodedata.normalize("NFD", str(value or "").strip().lower())
     normalized = "".join(
         character for character in decomposed if unicodedata.category(character) != "Mn"
@@ -84,6 +80,7 @@ def _machine_language_violations(row: dict[str, Any]) -> list[str]:
 def _relevance_violations(row: dict[str, Any]) -> list[str]:
     q = _norm(row["question"])
     r = _norm(row["reply"])
+    title = _norm(row.get("title", ""))
     issues: list[str] = []
 
     if "huyet ap" in q:
@@ -134,7 +131,143 @@ def _relevance_violations(row: dict[str, Any]) -> list[str]:
         if not any(value in r for value in ("khong con phu hop", "than kinh", "khong nen quy")):
             issues.append("stale_mechanical_spine_hypothesis")
 
+    # V27.3: anaphylaxis/airway episodes must never inherit the chest-wall
+    # anchoring explanation merely because a rash spread onto the chest.
+    allergy_airway = any(value in q for value in ("sung moi", "co hong", "nghen", "kho tho")) and any(
+        value in title for value in ("di ung", "phan ung", "phan ve")
+    )
+    if allergy_airway and any(
+        value in r
+        for value in (
+            "dau co/thanh nguc",
+            "dau co thanh nguc",
+            "dau co/thanh nguc o luot truoc",
+            "dau hieu canh bao tim-phoi da xuat hien truoc do",
+        )
+    ):
+        issues.append("allergy_inherited_chest_mechanism")
+
+    # Chemical inhalation may cause chest tightness/dyspnea, but that does not
+    # imply an earlier mechanical chest-wall story.
+    chemical_episode = any(value in title for value in ("hoa chat", "phoi nhiem"))
+    if chemical_episode and any(
+        value in r
+        for value in (
+            "dau co/thanh nguc",
+            "dau co thanh nguc",
+            "dac diem dau co",
+            "luot truoc khong du de giai thich",
+        )
+    ):
+        issues.append("chemical_inhalation_inherited_chest_mechanism")
+
+    # Respiratory inability to speak a long sentence is not aphasia/focal
+    # neurology. The emergency action may remain correct; the explanation must
+    # stay respiratory.
+    respiratory_speech = (
+        any(value in q for value in ("kho noi cau dai", "khong noi tron cau", "noi cau dai"))
+        and any(value in q for value in ("hut hoi", "kho tho", "tho gap"))
+    )
+    if respiratory_speech and any(
+        value in r
+        for value in (
+            "dau hieu than kinh",
+            "dau dau khoi phat",
+            "yeu liet",
+            "bien co than kinh",
+            "moi mat hoac cang co",
+        )
+    ):
+        issues.append("respiratory_speech_misread_as_neurologic")
+
+    # Explicit absence of weakness must not be rewritten as newly present motor
+    # deficit or used to create a false emergency.
+    negated_weakness = bool(
+        re.search(r"\b(?:khong|chua|chang)(?: co| bi| thay)?(?: te| te ran){0,2} (?:yeu|liet) (?:chan|tay)\b", q)
+    )
+    if negated_weakness and any(
+        value in r
+        for value in (
+            "yeu chan moi xuat hien",
+            "dau hieu khiem khuyet than kinh khu tru cap tinh",
+            "goi 115",
+            "khoa cap cuu",
+        )
+    ):
+        issues.append("negated_weakness_promoted_to_emergency")
+
+    # A user who explicitly says the medicine has not been taken may ask what
+    # to do *if* symptoms worsen. That hypothetical must not be reported as an
+    # overdose that already happened.
+    no_ingestion_hypothetical = (
+        any(value in q for value in ("chua uong", "chua dung", "khong uong", "khong dung"))
+        and "neu" in q
+        and "thuoc" in q
+    )
+    if no_ingestion_hypothetical:
+        if any(value in r for value in ("ngo doc cap", "qua lieu", "da uong qua lieu")):
+            issues.append("no_ingestion_reported_as_overdose")
+        if r.startswith("goi 115") and not any(
+            current in q
+            for current in (
+                "dang lo mo",
+                "dang ngat",
+                "bat tinh",
+                "kho tho",
+                "co giat",
+                "khong danh thuc duoc",
+            )
+        ):
+            issues.append("hypothetical_worsening_promoted_to_current_emergency")
+
     return issues
+
+
+def _looks_like_transcript_blob(value: str) -> bool:
+    lines = [re.sub(r"\s+", " ", line).strip().lower() for line in str(value).splitlines() if line.strip()]
+    if len(lines) < 3:
+        return False
+    repeated = len(lines) >= 4 and len(set(line.rstrip("?.! ") for line in lines)) * 2 <= len(lines)
+    oversized = len(value) > 420 and len(lines) >= 3
+    return repeated or oversized
+
+
+def _structured_output_violations(markdown_path: Path) -> list[dict[str, Any]]:
+    """Inspect the companion frozen JSON when present for UI-field hygiene."""
+    json_path = markdown_path.with_name("report.json")
+    if not json_path.exists():
+        return []
+    try:
+        payload = json.loads(json_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return [{"question_no": None, "issues": ["invalid_companion_v24_json"]}]
+
+    violations: list[dict[str, Any]] = []
+    for conversation in payload.get("conversations_detail", []):
+        for turn in conversation.get("turns", []):
+            answer = turn.get("answer") if isinstance(turn.get("answer"), dict) else {}
+            issues: list[str] = []
+            for point in answer.get("key_points", []) or []:
+                if _looks_like_transcript_blob(str(point)):
+                    issues.append("transcript_blob_in_key_points")
+                    break
+            visible_fields: list[str] = [
+                str(answer.get("title") or ""),
+                str(answer.get("summary") or ""),
+                *[str(value) for value in (answer.get("key_points") or [])],
+                *[str(value) for value in (answer.get("next_steps") or [])],
+                *[str(value) for value in (answer.get("safety_notes") or [])],
+            ]
+            if any(re.search(r"[)\]]\.\.", value) for value in visible_fields):
+                issues.append("double_terminal_punctuation")
+            if issues:
+                violations.append(
+                    {
+                        "question_no": turn.get("global_question_number"),
+                        "issues": list(dict.fromkeys(issues)),
+                    }
+                )
+    return violations
 
 
 def evaluate(path: Path, *, max_duplicate_ratio: float = 0.15) -> dict[str, Any]:
@@ -165,6 +298,8 @@ def evaluate(path: Path, *, max_duplicate_ratio: float = 0.15) -> dict[str, Any]
         if relevance_issues:
             relevance.append({"question_no": row["question_no"], "issues": relevance_issues})
 
+    structured = _structured_output_violations(path)
+
     category_stats: dict[str, dict[str, Any]] = {}
     for category in sorted({row["category"] for row in rows}):
         subset = [row for row in rows if row["category"] == category]
@@ -179,9 +314,10 @@ def evaluate(path: Path, *, max_duplicate_ratio: float = 0.15) -> dict[str, Any]
         duplicate_ratio <= max_duplicate_ratio
         and not machine
         and not relevance
+        and not structured
     )
     return {
-        "gate": "V27.2_CONVERSATION_INTELLIGENCE",
+        "gate": "V27.3_OUTPUT_QUALITY_HARDENING",
         "turns": len(rows),
         "conversations": len(by_conversation),
         "duplicate_turns": duplicate_turns,
@@ -190,6 +326,7 @@ def evaluate(path: Path, *, max_duplicate_ratio: float = 0.15) -> dict[str, Any]
         "conversations_with_exact_duplicates": conversations_with_duplicates,
         "patient_language_violations": machine,
         "relevance_or_memory_violations": relevance,
+        "structured_output_violations": structured,
         "category_stats": category_stats,
         "gate_passed": gate_passed,
     }
