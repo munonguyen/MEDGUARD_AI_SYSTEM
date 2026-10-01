@@ -3,13 +3,11 @@
 The primary agent pipeline remains unchanged: Writer is still the sole author of
 verified patient-facing prose and Reviewer remains non-authoring. This adapter
 builds the deterministic contextual fallback from the same ClinicalAgentContract,
-then applies presentation-only hygiene and professional-quality passes at the
-final runtime boundary.
+then applies bounded current-concern refinement and presentation-only quality
+passes at the final runtime boundary.
 
-These passes may remove duplicated/transcript-shaped presentation artifacts,
-internal machine labels, repeated punctuation, or repeated prose. They must
-never change the Safety Kernel urgency floor, remove an emergency/hard-stop
-action, or introduce new clinical content.
+These passes must never change the Safety Kernel urgency floor, remove an
+emergency/hard-stop action, or introduce new clinical content.
 """
 
 from __future__ import annotations
@@ -20,6 +18,7 @@ from typing import Any
 from app.models.chat import ChatIntent, ChatResponse, GroundedAnswer
 from app.services.clinical_agent_contract import build_clinical_agent_contract
 from app.services.clinical_contract_fallback import compose_contract_fallback
+from app.services.fallback_response_refinement import refine_contract_fallback
 from app.services.patient_response_surface import canonical_patient_response_text
 from app.services.professional_response_quality import apply_professional_response_quality
 from app.services.v27_2_answering_patch import _sanitize_answer
@@ -39,9 +38,9 @@ def _install_canonical_reply_surface() -> None:
     """Make ``reply`` match the verified narrative without changing the API schema.
 
     The frontend already treats verified Writer narrative as the canonical
-    patient-visible surface.  Keeping ``reply`` as the old summary caused the
+    patient-visible surface. Keeping ``reply`` as the old summary caused the
     next client turn to send back a different assistant message than the patient
-    had actually seen.  This adapter preserves the string field for backwards
+    had actually seen. This adapter preserves the string field for backwards
     compatibility while synchronizing its value only for verified responses.
     """
     if getattr(ChatResponse, "_v27_canonical_reply_installed", False):
@@ -101,9 +100,9 @@ def install_v27_runtime_fallback() -> None:
             clinical_result=clinical_payload,
             patient_context=context,
         )
-        contextual_fallback = _sanitize_answer(
-            compose_contract_fallback(fallback_answer, contract)
-        )
+        contextual_fallback = compose_contract_fallback(fallback_answer, contract)
+        contextual_fallback = refine_contract_fallback(contextual_fallback, contract)
+        contextual_fallback = _sanitize_answer(contextual_fallback)
 
         resolved = original(
             self,
