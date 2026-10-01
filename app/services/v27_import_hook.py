@@ -1,4 +1,4 @@
-"""Deferred V27/V27.2 runtime hooks.
+"""Deferred V27/V27.2/V27.3 runtime hooks.
 
 ``app.models.chat`` imports service helpers while Python is still loading the
 ``app.services`` package. Importing the heavier clinical modules directly from
@@ -19,16 +19,29 @@ _ANSWER_TARGET = "app.services.answer_agents"
 _REASONER_TARGET = "app.services.contextual_clinical_reasoner"
 _ANSWERING_TARGET = "app.services.answering"
 _CHAT_TARGET = "app.services.chat"
-_TARGETS = {_ANSWER_TARGET, _REASONER_TARGET, _ANSWERING_TARGET, _CHAT_TARGET}
+_SEMANTIC_RELATION_TARGET = "app.services.semantic_relation_extractor"
+_CLINICAL_FACT_TARGET = "app.services.clinical_fact_parser"
+_TARGETS = {
+    _ANSWER_TARGET,
+    _REASONER_TARGET,
+    _ANSWERING_TARGET,
+    _CHAT_TARGET,
+    _SEMANTIC_RELATION_TARGET,
+    _CLINICAL_FACT_TARGET,
+}
 _MARKER = "_medguard_v27_runtime_import_hook"
 
 
 def _install_reasoner_priority(module: ModuleType) -> None:
     from app.services.episode_delta_reasoning import install_episode_delta_reasoning
     from app.services.multi_domain_episode_reasoning import install_multi_domain_episode_reasoning
+    from app.services.output_quality_hardening import install_output_quality_hardening
 
     install_episode_delta_reasoning(module)
     install_multi_domain_episode_reasoning(module)
+    # Install last: this adapter removes only unsupported explanation mechanisms
+    # emitted by the preceding domain-specific adapters; it never lowers urgency.
+    install_output_quality_hardening(module)
 
 
 def _install_answering_patch(module: ModuleType) -> None:
@@ -50,6 +63,18 @@ def _install_chat_patch(module: ModuleType) -> None:
     install_workflow_conversation_policy(module)
 
 
+def _install_semantic_relation_patch(module: ModuleType) -> None:
+    from app.services.semantic_grounding_hardening import install_semantic_relation_grounding
+
+    install_semantic_relation_grounding(module)
+
+
+def _install_clinical_fact_patch(module: ModuleType) -> None:
+    from app.services.semantic_grounding_hardening import install_clinical_fact_grounding
+
+    install_clinical_fact_grounding(module)
+
+
 class _PostLoadLoader(importlib.abc.Loader):
     def __init__(self, wrapped: Any, fullname: str) -> None:
         self.wrapped = wrapped
@@ -61,6 +86,12 @@ class _PostLoadLoader(importlib.abc.Loader):
 
     def exec_module(self, module: ModuleType) -> None:
         self.wrapped.exec_module(module)
+        if self.fullname == _SEMANTIC_RELATION_TARGET:
+            _install_semantic_relation_patch(module)
+            return
+        if self.fullname == _CLINICAL_FACT_TARGET:
+            _install_clinical_fact_patch(module)
+            return
         if self.fullname == _REASONER_TARGET:
             _install_reasoner_priority(module)
             return
@@ -90,6 +121,14 @@ class _V27RuntimeFinder(importlib.abc.MetaPathFinder):
 
 
 def install_v27_answer_agent_hook() -> None:
+    relation = sys.modules.get(_SEMANTIC_RELATION_TARGET)
+    if relation is not None and hasattr(relation, "extract_semantic_relations"):
+        _install_semantic_relation_patch(relation)
+
+    fact_parser = sys.modules.get(_CLINICAL_FACT_TARGET)
+    if fact_parser is not None and hasattr(fact_parser, "parse_semantic_clinical_facts"):
+        _install_clinical_fact_patch(fact_parser)
+
     reasoner = sys.modules.get(_REASONER_TARGET)
     if reasoner is not None and hasattr(reasoner, "build_contextual_reasoning_frame"):
         _install_reasoner_priority(reasoner)
