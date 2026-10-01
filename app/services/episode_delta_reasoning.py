@@ -191,12 +191,15 @@ def _reprioritize_frame(frame: Any, episode: Any, urgency: str) -> Any:
             mechanism = mechanism.model_copy(update={"role": "contributor"})
         updated.append(mechanism)
 
-    return frame.model_copy(
-        update={
-            "mechanisms": tuple(updated),
-            "leading_hypothesis_ids": (warning.hypothesis_id,),
-        }
-    )
+    update: dict[str, Any] = {
+        "mechanisms": tuple(updated),
+        "leading_hypothesis_ids": (warning.hypothesis_id,),
+    }
+    if urgency_value == "EMERGENCY":
+        update["next_best_question"] = None
+        update["next_question_key"] = None
+
+    return frame.model_copy(update=update)
 
 
 def install_episode_delta_reasoning(reasoner_module: ModuleType) -> None:
