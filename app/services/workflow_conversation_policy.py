@@ -16,11 +16,13 @@ from datetime import datetime
 import re
 from types import ModuleType
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from app.core.config import settings
 
 
 _MARKER = "_medguard_v27_2_workflow_conversation_policy"
+_PATIENT_ZONE = ZoneInfo("Asia/Ho_Chi_Minh")
 
 
 def _latest_user_text(payload: Any) -> str:
@@ -43,11 +45,21 @@ def _as_dict(value: Any) -> dict[str, Any]:
 
 
 def _clock_time(value: Any) -> str | None:
+    """Render an ISO schedule timestamp using the patient-facing Vietnam clock.
+
+    Schedule commands are created in Asia/Ho_Chi_Minh, while schedules created
+    through the API may arrive as UTC or another timezone-aware timestamp. The
+    frontend already renders schedules in Asia/Ho_Chi_Minh, so chat must use the
+    same clock instead of exposing the raw storage offset. Naive timestamps keep
+    their literal clock value because no safe timezone conversion is possible.
+    """
     raw = str(value or "").strip()
     if not raw:
         return None
     try:
         parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+        if parsed.tzinfo is not None:
+            parsed = parsed.astimezone(_PATIENT_ZONE)
         return f"{parsed.hour:02d}:{parsed.minute:02d}"
     except ValueError:
         match = re.search(r"(?:T|\s)([0-2]\d:[0-5]\d)", raw)
@@ -80,7 +92,7 @@ def _schedule_reply(original_reply: str, result: Any) -> str:
         return original_reply
     if all(value in original_reply for value in times):
         return original_reply
-    label = "Mốc giờ đang hoạt động" if len(times) > 1 else "Mốc giờ đang hoạt động"
+    label = "Mốc giờ đang hoạt động"
     return f"{original_reply.strip()} {label}: {', '.join(times)}."
 
 
