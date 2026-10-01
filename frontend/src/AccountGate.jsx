@@ -15,7 +15,7 @@ export default function AccountGate() {
   useEffect(() => {
     let active = true;
     // Remove legacy tenant-shared health profiles from browser storage.
-    try { Object.keys(localStorage).filter((key) => key.startsWith('medguard.profile.')).forEach((key) => localStorage.removeItem(key)); } catch { /* Private browsing */ }
+    try { Object.keys(localStorage).filter((key) => key.startsWith('medguard.profile.') || ['medguard.user_meds.data','medguard.med_taken_records','medguard.schedules.taken'].includes(key)).forEach((key) => localStorage.removeItem(key)); } catch { /* Private browsing */ }
     Promise.allSettled([createApiClient().request('/v1/auth/me'), createApiClient().request('/v1/auth/config')]).then(([me, config]) => {
       if (!active) return;
       if (me.status === 'fulfilled') setSession(me.value);

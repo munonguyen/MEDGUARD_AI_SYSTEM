@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from uuid import UUID
+
 import sqlite3
 from contextlib import contextmanager
 from datetime import datetime, timezone
@@ -263,7 +265,10 @@ class PostgresTenantSession:
         cursor = self._connection.execute(postgres_query, params)
         if cursor.description is None:
             return []
-        return [dict(row) for row in cursor.fetchall()]
+        # SQLite repositories expose identifiers as strings; psycopg decodes
+        # PostgreSQL UUID columns as UUID objects. Keep one repository contract.
+        return [{key: str(value) if isinstance(value, UUID) else value for key, value in row.items()}
+                for row in cursor.fetchall()]
 
 
 class PostgresTenantEngine:

@@ -45,7 +45,6 @@ import { QrScanner } from './chat/QrScanner';
 import { SchedulePanel } from './chat/SchedulePanel';
 import { GroundedAnswer } from './chat/GroundedAnswer';
 import { SystemModule } from './modules/SystemModule';
-import { SchedulePage } from './schedule/SchedulePage';
 import { MedicationPage } from './schedule/MedicationPage';
 import { SettingsModal } from './settings/SettingsModal';
 
@@ -793,7 +792,7 @@ export default function App({ session, onLogout, onSession }) {
 
   const filteredConversations = conversations.filter((item) => item.title.toLowerCase().includes(historySearch.toLowerCase()));
   return <div className={`app-shell chat-shell ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
-    <Sidebar open={sidebarOpen} close={() => setSidebarOpen(false)} collapse={() => { setSidebarCollapsed(true); setSidebarOpen(false); }} conversations={filteredConversations} activeId={conversationId} onSelect={selectConversation} onNew={startNew} onDelete={deleteConversation} onSchedule={() => setView('medication')} onSchedulePage={() => setView('schedule')} onMedicationPage={() => setView('medication')} onSettings={() => { setSettingsInitialTab('general'); setSettingsOpen(true); }} onSystem={() => setView('system')} activeView={view} search={historySearch} setSearch={setHistorySearch} />
+    <Sidebar open={sidebarOpen} close={() => setSidebarOpen(false)} collapse={() => { setSidebarCollapsed(true); setSidebarOpen(false); }} conversations={filteredConversations} activeId={conversationId} onSelect={selectConversation} onNew={startNew} onDelete={deleteConversation} onSchedule={() => setView('medication')} onSchedulePage={() => notify('Chưa có cơ sở y tế liên kết để đặt lịch khám.')} onMedicationPage={() => setView('medication')} onSettings={() => { setSettingsInitialTab('general'); setSettingsOpen(true); }} onSystem={() => setView('system')} activeView={view} search={historySearch} setSearch={setHistorySearch} />
     <main className="main-shell chat-main">
       {!session.account.consent && <div className="consent-banner" role="status">Để tư vấn sức khỏe và lưu hồ sơ, cần sự đồng ý của bạn. <button type="button" onClick={updateConsent}>Tôi đồng ý</button></div>}
       <header className="topbar chat-topbar">
@@ -808,28 +807,6 @@ export default function App({ session, onLogout, onSession }) {
       </header>
       {view === 'system' ? (
         <div className="system-workspace"><SystemModule api={api} tenantId={tenantId} /></div>
-      ) : view === 'schedule' ? (
-        <div className="schedule-workspace">
-          <SchedulePage
-            api={api}
-            onBackToChat={() => setView('chat')}
-            onOpenMedicationPage={() => setView('medication')}
-            onConsultPatient={(shift) => {
-              setView('chat');
-              setContext((current) => ({
-                ...current,
-                patient_ref: shift.patientRef,
-                display_name: shift.patientName,
-                age: shift.age,
-                sex: shift.sex === 'Nam' ? 'male' : 'female',
-                conditions: [shift.department, shift.purpose],
-                current_medications: shift.currentMeds || [],
-              }));
-              setMessage(`Tư vấn ca khám của bệnh nhân ${shift.patientName} (${shift.patientRef}), lý do: ${shift.purpose}.`);
-              requestAnimationFrame(() => document.querySelector('[aria-label="Tin nhắn"]')?.focus());
-            }}
-          />
-        </div>
       ) : view === 'medication' ? (
         <div className="schedule-workspace">
           <MedicationPage

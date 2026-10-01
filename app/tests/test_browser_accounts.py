@@ -84,6 +84,7 @@ def test_consent_is_server_side_and_session_expiry(clients):
     a, b, db = clients
     session, _ = register_login(a, consent=False)
     assert a.put('/v1/auth/profile', headers=csrf(session), json={'age': 30}).status_code == 403
+    assert a.post('/v1/medication-schedules', headers=csrf(session), json={'patient_ref':'Synthetic','medication_name':'Synthetic fixture','scheduled_at':'2026-10-03T08:00:00+07:00'}).status_code == 403
     response = a.post('/v1/chat', headers=csrf(session) | {'X-Consent-Token':'consent-valid'}, json={'conversation_id': uuid4().hex, 'messages':[{'role':'user','content':'Tôi đau đầu'}]})
     assert response.status_code == 403
     assert a.put('/v1/auth/consent', headers=csrf(session), json={'consent':True}).status_code == 200

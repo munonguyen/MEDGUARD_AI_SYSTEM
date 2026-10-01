@@ -191,6 +191,7 @@ def medication_schedules(
 def create_medication_schedule(
     payload: MedicationScheduleCreate,
     ctx: RequestContext = Depends(verify_tenant_credentials),
+    consent_token: str = Depends(verify_patient_consent),
 ) -> MedicationSchedule:
     return medication_schedule_store.create(ctx.tenant_id, payload)
 
@@ -200,6 +201,7 @@ def update_medication_schedule(
     schedule_id: str,
     payload: MedicationScheduleUpdate,
     ctx: RequestContext = Depends(verify_tenant_credentials),
+    consent_token: str = Depends(verify_patient_consent),
 ) -> MedicationSchedule:
     updated = medication_schedule_store.update(ctx.tenant_id, schedule_id, payload)
     if not updated:
