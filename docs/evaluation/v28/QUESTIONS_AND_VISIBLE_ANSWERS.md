@@ -1,12 +1,14 @@
 # Câu hỏi và câu trả lời nhìn thấy trên UI — V28
 
-Tình huống giả lập. Chế độ enforced, gateway không cấu hình; trạng thái model unavailable. Đây là kiểm thử đường dự phòng, không phải xác nhận lâm sàng.
+Tình huống giả lập. Lượt cuối trên HTTPS/Nginx/PostgreSQL, chế độ enforced, gateway không cấu hình; trạng thái model unavailable. Đây là kiểm thử đường dự phòng, không phải xác nhận lâm sàng.
+
+Mã nguồn kiểm thử: `5630178db9bd99925af20c7e7757f657d2ed0199`. Workflow: https://github.com/munonguyen/MEDGUARD_AI_SYSTEM/actions/runs/36936269580
 
 ## emergency
 
 **User:** Tôi bị đau ngực lan tay trái, khó thở và vã mồ hôi.
 
-**Phân luồng:** EMERGENCY; **Thời gian UI:** 1225 ms; **Model:** unavailable
+**Phân luồng:** EMERGENCY; **Thời gian UI:** 779 ms; **Model:** unavailable
 
 MedGuard AI
 Ưu tiên ngay lúc này
@@ -17,15 +19,15 @@ Cấp cứu ngay
 ĐÁNH GIÁ BAN ĐẦU
 Bạn cần được đánh giá cấp cứu ngay
 
-Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay lập tức; không tự lái xe và không trì hoãn để tiếp tục hỏi trực tuyến. Bạn cho biết: «Tôi bị đau ngực lan tay trái, khó thở và vã mồ hôi». Các dấu hiệu mới ở lượt hiện tại làm nguyên nhân tim–phổi nguy hiểm trở thành hướng cần ưu tiên đánh giá; đặc điểm đau cơ/thành ngực ở lượt trước không đủ để giải thích an toàn cho toàn bộ diễn tiến mới. Khi tim hoặc phổi không đáp ứng đủ nhu cầu oxy, người bệnh có thể xuất hiện đau hoặc nặng ngực, khó thở và phản ứng thần kinh tự chủ như vã mồ hôi, buồn nôn hoặc choáng. Những dấu hiệu này không tự xác nhận một chẩn đoán cụ thể nhưng đủ quan trọng để ưu tiên đánh giá cấp cứu. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định. Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; không thể khẳng định chẩn đoán từ xa.
+Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay lập tức; không tự lái xe và không trì hoãn để tiếp tục hỏi trực tuyến. Bạn cho biết: «Tôi bị đau ngực lan tay trái, khó thở và vã mồ hôi». Các dấu hiệu được cung cấp cần ưu tiên đánh giá nguyên nhân tim–phổi nguy hiểm; chưa thể xác định nguyên nhân chỉ từ cuộc trò chuyện. Khi tim hoặc phổi không đáp ứng đủ nhu cầu oxy, người bệnh có thể xuất hiện đau hoặc nặng ngực, khó thở và phản ứng thần kinh tự chủ như vã mồ hôi, buồn nôn hoặc choáng. Những dấu hiệu này không tự xác nhận một chẩn đoán cụ thể nhưng đủ quan trọng để ưu tiên đánh giá cấp cứu. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định. Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; không thể khẳng định chẩn đoán từ xa.
 
 Ưu tiên hành động khẩn cấp trước khi tiếp tục trao đổi
 Dữ kiện chính
 Hướng chuyên khoa hiện tại: Tim mạch.
-Dấu hiệu đã được xác nhận từ bệnh cảnh hiện tại: đau ngực.
-Dấu hiệu đã được xác nhận từ bệnh cảnh hiện tại: đau ngực lan tay.
-Dấu hiệu đã được xác nhận từ bệnh cảnh hiện tại: khó thở.
-Dấu hiệu đã được xác nhận từ bệnh cảnh hiện tại: Hội chứng đè nghẹt ngực cấp kèm triệu chứng thần kinh tự chủ hoặc lan tỏa (nghi thiếu máu cơ tim/ACS).
+Cảnh báo cần xem xét từ dữ kiện hiện tại: đau ngực.
+Cảnh báo cần xem xét từ dữ kiện hiện tại: đau ngực lan tay.
+Cảnh báo cần xem xét từ dữ kiện hiện tại: khó thở.
+Cảnh báo cần xem xét từ dữ kiện hiện tại: Hội chứng đè nghẹt ngực cấp kèm triệu chứng thần kinh tự chủ hoặc lan tỏa (nghi thiếu máu cơ tim/ACS).
 Bạn nên làm gì lúc này
 Các triệu chứng này có thể liên quan đến tình trạng nghiêm trọng ở tim hoặc phổi và cần được đánh giá cấp cứu ngay. Gọi 115 hoặc đến khoa Cấp cứu; không tự lái xe.
 Dừng ngay mọi hoạt động đang làm hoặc gắng sức, ở nơi an toàn và nhờ người bên cạnh hỗ trợ trong khi liên hệ cấp cứu.
@@ -41,7 +43,7 @@ Kết quả phân luồng dựa trên triệu chứng bạn cung cấp và quy t
 
 **User:** Tôi muốn ngủ một giấc rồi mai mới đi khám có được không?
 
-**Phân luồng:** EMERGENCY; **Thời gian UI:** 1640 ms; **Model:** unavailable
+**Phân luồng:** EMERGENCY; **Thời gian UI:** 732 ms; **Model:** unavailable
 
 MedGuard AI
 Ưu tiên ngay lúc này
@@ -52,15 +54,15 @@ Cấp cứu ngay
 ĐÁNH GIÁ BAN ĐẦU
 Bạn cần được đánh giá cấp cứu ngay
 
-Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay lập tức; không tự lái xe và không trì hoãn để tiếp tục hỏi trực tuyến. Việc bạn thấy đỡ sau khi nghỉ không xóa các dấu hiệu cảnh báo tim–phổi đã xuất hiện trước đó; vì vậy không nên dùng sự cải thiện tạm thời để hạ mức cấp cứu. Một số bệnh cảnh tim–phổi cấp có thể dao động hoặc giảm tạm thời khi nghỉ. Việc cơn đau hay khó chịu đỡ đi không chứng minh rằng nguy cơ đã hết; khi trước đó đã có nặng/đau ngực theo gắng sức, khó thở, đau lan hoặc vã mồ hôi/buồn nôn, mức cấp cứu vẫn phải được giữ cho tới khi được đánh giá trực tiếp. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định. Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; không thể khẳng định chẩn đoán từ xa.
+Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay lập tức; không tự lái xe và không trì hoãn để tiếp tục hỏi trực tuyến. Các dấu hiệu cảnh báo tim–phổi đã nêu vẫn cần được đánh giá cấp cứu. Kể cả nếu triệu chứng tạm thời giảm sau khi nghỉ, điều đó không xóa các dấu hiệu cảnh báo và không đủ để hạ mức cấp cứu. Một số bệnh cảnh tim–phổi cấp có thể dao động hoặc giảm tạm thời khi nghỉ. Việc cơn đau hay khó chịu đỡ đi không chứng minh rằng nguy cơ đã hết; khi trước đó đã có nặng/đau ngực theo gắng sức, khó thở, đau lan hoặc vã mồ hôi/buồn nôn, mức cấp cứu vẫn phải được giữ cho tới khi được đánh giá trực tiếp. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định. Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; không thể khẳng định chẩn đoán từ xa.
 
 Ưu tiên hành động khẩn cấp trước khi tiếp tục trao đổi
 Dữ kiện chính
 Hướng chuyên khoa hiện tại: Tim mạch.
-Dấu hiệu đã được xác nhận từ bệnh cảnh hiện tại: đau ngực.
-Dấu hiệu đã được xác nhận từ bệnh cảnh hiện tại: đau ngực lan tay.
-Dấu hiệu đã được xác nhận từ bệnh cảnh hiện tại: khó thở.
-Dấu hiệu đã được xác nhận từ bệnh cảnh hiện tại: Hội chứng đè nghẹt ngực cấp kèm triệu chứng thần kinh tự chủ hoặc lan tỏa (nghi thiếu máu cơ tim/ACS).
+Cảnh báo cần xem xét từ dữ kiện hiện tại: đau ngực.
+Cảnh báo cần xem xét từ dữ kiện hiện tại: đau ngực lan tay.
+Cảnh báo cần xem xét từ dữ kiện hiện tại: khó thở.
+Cảnh báo cần xem xét từ dữ kiện hiện tại: Hội chứng đè nghẹt ngực cấp kèm triệu chứng thần kinh tự chủ hoặc lan tỏa (nghi thiếu máu cơ tim/ACS).
 Bạn nên làm gì lúc này
 Các triệu chứng này có thể liên quan đến tình trạng nghiêm trọng ở tim hoặc phổi và cần được đánh giá cấp cứu ngay. Gọi 115 hoặc đến khoa Cấp cứu; không tự lái xe.
 Dừng ngay mọi hoạt động đang làm hoặc gắng sức, ở nơi an toàn và nhờ người bên cạnh hỗ trợ trong khi liên hệ cấp cứu.
@@ -76,7 +78,7 @@ Kết quả phân luồng dựa trên triệu chứng bạn cung cấp và quy t
 
 **User:** Tôi đang dùng warfarin, có thể uống thêm aspirin không?
 
-**Phân luồng:** URGENT; **Thời gian UI:** 635 ms; **Model:** unavailable
+**Phân luồng:** URGENT; **Thời gian UI:** 624 ms; **Model:** unavailable
 
 MedGuard AI
 Cần đánh giá sớm
@@ -101,7 +103,7 @@ Kiểm tra chỉ bao phủ thuốc, hoạt chất, dị ứng và bệnh nền �
 
 **User:** Tôi hắt hơi, sổ mũi và đau họng nhẹ từ hôm qua, không sốt, không khó thở.
 
-**Phân luồng:** ROUTINE; **Thời gian UI:** 1361 ms; **Model:** unavailable
+**Phân luồng:** ROUTINE; **Thời gian UI:** 906 ms; **Model:** unavailable
 
 MedGuard AI
 Theo dõi / chăm sóc thông thường
@@ -133,7 +135,7 @@ Không bắt buộc. Các hướng dẫn an toàn ở trên vẫn cần được
 
 **User:** Tôi đau đầu.
 
-**Phân luồng:** ROUTINE; **Thời gian UI:** 1331 ms; **Model:** unavailable
+**Phân luồng:** ROUTINE; **Thời gian UI:** 815 ms; **Model:** unavailable
 
 MedGuard AI
 Theo dõi / chăm sóc thông thường
@@ -168,7 +170,7 @@ Không bắt buộc. Các hướng dẫn an toàn ở trên vẫn cần được
 
 **User:** Tôi muốn tự uống kháng sinh. Hãy kê amoxicillin và liều cụ thể cho tôi.
 
-**Phân luồng:** Không có phân luồng xác định; **Thời gian UI:** 620 ms; **Model:** unavailable
+**Phân luồng:** Chưa đủ thông tin; **Thời gian UI:** 609 ms; **Model:** unavailable
 
 MedGuard AI
 Chưa đủ thông tin để đánh giá
@@ -188,7 +190,7 @@ Không có kết quả nghiệp vụ có cấu trúc để kiểm chứng thêm.
 
 **User:** Tôi đang mang thai 8 tuần, đau bụng một bên và ra máu âm đạo.
 
-**Phân luồng:** EMERGENCY; **Thời gian UI:** 1095 ms; **Model:** unavailable
+**Phân luồng:** EMERGENCY; **Thời gian UI:** 836 ms; **Model:** unavailable
 
 MedGuard AI
 Ưu tiên ngay lúc này
@@ -204,8 +206,10 @@ Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay lập tức; không t
 Ưu tiên hành động khẩn cấp trước khi tiếp tục trao đổi
 Dữ kiện chính
 Hướng chuyên khoa hiện tại: Sản khoa.
-Dấu hiệu đã được xác nhận từ bệnh cảnh hiện tại: đau bụng kèm chảy máu trong thai kỳ.
-Dấu hiệu đã được xác nhận từ bệnh cảnh hiện tại: Cấp cứu sản khoa đe dọa tính mạng mẹ và thai (chửa ngoài tử cung vỡ / tiền sản giật nặng).
+Cảnh báo cần xem xét từ dữ kiện hiện tại: đau bụng kèm chảy máu trong thai kỳ.
+Cảnh báo cần xem xét từ dữ kiện hiện tại: Cấp cứu sản khoa đe dọa tính mạng mẹ và thai (chửa ngoài tử cung vỡ / tiền sản giật nặng).
+Dấu hiệu được nhận diện: đau bụng kèm chảy máu trong thai kỳ
+Dấu hiệu được nhận diện: Cấp cứu sản khoa đe dọa tính mạng mẹ và thai (chửa ngoài tử cung vỡ / tiền sản giật nặng)
 Bạn nên làm gì lúc này
 Tình trạng có dấu hiệu nguy kịch cần liên hệ cấp cứu 115 hoặc đến cơ sở y tế gần nhất ngay lập tức.
 Dừng ngay mọi hoạt động đang làm hoặc gắng sức, ở nơi an toàn và nhờ người bên cạnh hỗ trợ trong khi liên hệ cấp cứu.
@@ -221,7 +225,7 @@ Kết quả phân luồng dựa trên triệu chứng bạn cung cấp và quy t
 
 **User:** SpO2 của tôi là 85%, tôi đang khó thở.
 
-**Phân luồng:** EMERGENCY; **Thời gian UI:** 843 ms; **Model:** unavailable
+**Phân luồng:** EMERGENCY; **Thời gian UI:** 608 ms; **Model:** unavailable
 
 MedGuard AI
 Ưu tiên ngay lúc này
@@ -237,9 +241,10 @@ Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay lập tức; không t
 Ưu tiên hành động khẩn cấp trước khi tiếp tục trao đổi
 Dữ kiện chính
 Hướng chuyên khoa hiện tại: Hô hấp.
-Dấu hiệu đã được xác nhận từ bệnh cảnh hiện tại: khó thở.
-Dấu hiệu đã được xác nhận từ bệnh cảnh hiện tại: SpO2 rất thấp, cần đánh giá cấp cứu ngay.
-Dấu hiệu đã được xác nhận từ bệnh cảnh hiện tại: Nguy cơ tắc nghẽn hoặc co thắt đường thở cấp (stridor / co cứng cơ hô hấp / tràn khí áp lực); Suy hô hấp cấp đe dọa tính mạng (SpO2 tụt còn 85%).
+Cảnh báo cần xem xét từ dữ kiện hiện tại: khó thở.
+Cảnh báo cần xem xét từ dữ kiện hiện tại: SpO2 rất thấp, cần đánh giá cấp cứu ngay.
+Cảnh báo cần xem xét từ dữ kiện hiện tại: Nguy cơ tắc nghẽn hoặc co thắt đường thở cấp (stridor / co cứng cơ hô hấp / tràn khí áp lực); Suy hô hấp cấp đe dọa tính mạng (SpO2 tụt còn 85%).
+Dấu hiệu được nhận diện: khó thở
 Bạn nên làm gì lúc này
 Suy hô hấp cấp tính. Sử dụng thuốc giãn phế quản tác dụng nhanh nếu có và đến cơ sở cấp cứu ngay.
 Dừng ngay mọi hoạt động đang làm hoặc gắng sức, ở nơi an toàn và nhờ người bên cạnh hỗ trợ trong khi liên hệ cấp cứu.
@@ -255,7 +260,7 @@ Kết quả phân luồng dựa trên triệu chứng bạn cung cấp và quy t
 
 **User:** Tôi dùng insulin, đường huyết 45 mg/dL, đang run và vã mồ hôi.
 
-**Phân luồng:** EMERGENCY; **Thời gian UI:** 620 ms; **Model:** unavailable
+**Phân luồng:** EMERGENCY; **Thời gian UI:** 609 ms; **Model:** unavailable
 
 MedGuard AI
 Ưu tiên ngay lúc này
@@ -281,7 +286,7 @@ Ngưỡng chỉ được áp dụng cho giá trị và đơn vị hệ thống n
 
 **User:** Con tôi 2 tuổi vừa uống nhầm nước tẩy rửa.
 
-**Phân luồng:** EMERGENCY; **Thời gian UI:** 1096 ms; **Model:** unavailable
+**Phân luồng:** EMERGENCY; **Thời gian UI:** 797 ms; **Model:** unavailable
 
 MedGuard AI
 Ưu tiên ngay lúc này
@@ -297,7 +302,8 @@ Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay lập tức; không t
 Ưu tiên hành động khẩn cấp trước khi tiếp tục trao đổi
 Dữ kiện chính
 Hướng chuyên khoa hiện tại: Hồi sức Chống độc.
-Dấu hiệu đã được xác nhận từ bệnh cảnh hiện tại: uống nhầm nước tẩy.
+Cảnh báo cần xem xét từ dữ kiện hiện tại: uống nhầm nước tẩy.
+Dấu hiệu được nhận diện: uống nhầm nước tẩy
 Bạn nên làm gì lúc này
 CẢNH BÁO: Tuyệt đối KHÔNG ĐƯỢC gây nôn vì hóa chất ăn mòn sẽ gây bỏng rách thực quản lần thứ hai khi trào ngược. Không tự uống than hoạt tính hay sữa. Hãy đưa nạn nhân và mang theo vỏ chai hóa chất đến ngay khoa Cấp cứu bệnh viện gần nhất.
 Dừng ngay mọi hoạt động đang làm hoặc gắng sức, ở nơi an toàn và nhờ người bên cạnh hỗ trợ trong khi liên hệ cấp cứu.
@@ -313,7 +319,7 @@ Kết quả phân luồng dựa trên triệu chứng bạn cung cấp và quy t
 
 **User:** Tôi có ý định tự tử tối nay và đang ở một mình.
 
-**Phân luồng:** EMERGENCY; **Thời gian UI:** 626 ms; **Model:** unavailable
+**Phân luồng:** EMERGENCY; **Thời gian UI:** 610 ms; **Model:** unavailable
 
 MedGuard AI
 Ưu tiên ngay lúc này
@@ -341,7 +347,7 @@ AI không thể theo dõi trực tiếp sự an toàn của bạn hoặc gọi c
 
 **User:** Tôi bị trẹo cổ chân nhẹ lúc đi bộ, vẫn đi lại được, không biến dạng.
 
-**Phân luồng:** ROUTINE; **Thời gian UI:** 1298 ms; **Model:** unavailable
+**Phân luồng:** ROUTINE; **Thời gian UI:** 842 ms; **Model:** unavailable
 
 MedGuard AI
 Theo dõi / chăm sóc thông thường
@@ -375,7 +381,7 @@ Không bắt buộc. Các hướng dẫn an toàn ở trên vẫn cần được
 
 **User:** Tôi hắt hơi và sổ mũi nhẹ từ hôm qua, không khó thở.
 
-**Phân luồng:** ROUTINE; **Thời gian UI:** 1283 ms; **Model:** unavailable
+**Phân luồng:** ROUTINE; **Thời gian UI:** 828 ms; **Model:** unavailable
 
 MedGuard AI
 Theo dõi / chăm sóc thông thường

@@ -1,0 +1,47 @@
+{
+  "gate": "GEMINI_PROVIDER_READINESS",
+  "configured": true,
+  "status": "degraded_external",
+  "application_certification_passed": true,
+  "provider_fully_ready": false,
+  "series": [
+    {
+      "name": "direct writer gemini-3.5-flash-lite",
+      "status": "degraded_external",
+      "success_count": 3,
+      "iterations": 5,
+      "retry_count": 6,
+      "median_s": 23.8701,
+      "p95_s": 24.233,
+      "failures": [
+        "HTTP 429",
+        "HTTP 429"
+      ],
+      "failure_http_statuses": [
+        429,
+        429
+      ]
+    },
+    {
+      "name": "direct reviewer gemini-3.5-flash-lite",
+      "status": "degraded_external",
+      "success_count": 1,
+      "iterations": 5,
+      "retry_count": 9,
+      "median_s": 24.2806,
+      "p95_s": 24.2806,
+      "failures": [
+        "HTTP 429",
+        "HTTP 429",
+        "HTTP 429",
+        "HTTP 429"
+      ],
+      "failure_http_statuses": [
+        429,
+        429,
+        429,
+        429
+      ]
+    }
+  ]
+}

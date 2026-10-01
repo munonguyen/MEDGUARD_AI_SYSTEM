@@ -2,11 +2,48 @@
   "synthetic": true,
   "independent_clinical_validation": false,
   "official_healthbench_run": false,
-  "mode": "enforced_gateway_unconfigured",
-  "turns": 13,
-  "page_errors": [],
-  "accessibility_violations": 0,
-  "median_ui_ms": 1096,
-  "p95_ui_ms": 1361,
-  "comparison_superiority_established": false
+  "comparison_superiority_established": false,
+  "tested_source_sha": "5630178db9bd99925af20c7e7757f657d2ed0199",
+  "platform_workflow_run": 36936269580,
+  "artifact_sha256": "870215a1ac81a0f4dd5194f629acda5771613b67fa3defacd947e1be27e7d780",
+  "modes": [
+    {
+      "mode": "disabled",
+      "passed": true,
+      "turns": 13,
+      "account_isolation": true,
+      "medication_crud": true,
+      "medical_browser_storage": [],
+      "page_errors": [],
+      "server_errors": [],
+      "accessibility_screens": 7,
+      "accessibility_violations": 0,
+      "median_ui_ms": 733,
+      "p95_nearest_rank_ui_ms": 960
+    },
+    {
+      "mode": "enforced",
+      "passed": true,
+      "turns": 13,
+      "account_isolation": true,
+      "medication_crud": true,
+      "medical_browser_storage": [],
+      "page_errors": [],
+      "server_errors": [],
+      "accessibility_screens": 7,
+      "accessibility_violations": 0,
+      "median_ui_ms": 779,
+      "p95_nearest_rank_ui_ms": 906
+    }
+  ],
+  "integration_status": "draft_pull_request",
+  "production_release_eligible": false,
+  "provider_status": "degraded_external_HTTP_429",
+  "provider_probe_workflow_run": 36936269532,
+  "release_blockers": [
+    "provider_readiness_not_passed",
+    "independent_clinical_review_pending",
+    "live_gateway_clinical_UI_not_validated",
+    "production_security_and_HA_requirements_pending"
+  ]
 }

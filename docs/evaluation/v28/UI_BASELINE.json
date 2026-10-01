@@ -6,9 +6,9 @@
     {
       "name": "emergency",
       "question": "Tôi bị đau ngực lan tay trái, khó thở và vã mồ hôi.",
-      "visible": "MedGuard AI\nƯu tiên ngay lúc này\n\nCác triệu chứng này có thể liên quan đến tình trạng nghiêm trọng ở tim hoặc phổi và cần được đánh giá cấp cứu ngay. Gọi 115 hoặc đến khoa Cấp cứu; không tự lái xe.\n\nCấp cứu ngay\nKhớp quy tắc trực tiếp\nĐÁNH GIÁ BAN ĐẦU\nBạn cần được đánh giá cấp cứu ngay\n\nCác dấu hiệu bạn mô tả nằm trong nhóm cảnh báo cần đánh giá khẩn cấp. Tin nhắn không đủ để xác định nguyên nhân, vì vậy ưu tiên lúc này là tiếp cận cấp cứu ngay. Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; không thể khẳng định chẩn đoán từ xa.\n\nƯu tiên hành động khẩn cấp trước khi tiếp tục trao đổi\nDữ kiện chính\nDấu hiệu được nhận diện: đau ngực\nDấu hiệu được nhận diện: đau ngực lan tay\nDấu hiệu được nhận diện: khó thở\nDấu hiệu được nhận diện: Hội chứng đè nghẹt ngực cấp kèm triệu chứng thần kinh tự chủ hoặc lan tỏa (nghi thiếu máu cơ tim/ACS).\nBạn nên làm gì lúc này\nCác triệu chứng này có thể liên quan đến tình trạng nghiêm trọng ở tim hoặc phổi và cần được đánh giá cấp cứu ngay. Gọi 115 hoặc đến khoa Cấp cứu; không tự lái xe.\nDừng ngay mọi hoạt động đang làm hoặc gắng sức, ở nơi an toàn và nhờ người bên cạnh hỗ trợ trong khi liên hệ cấp cứu.\nTuyệt đối không tự điều trị hoặc trì hoãn việc đánh giá y tế khẩn cấp.\nHành động và dấu hiệu khẩn cấp\nKhông trì hoãn việc gọi 115 hoặc đến khoa Cấp cứu ngay lập tức; tuyệt đối không chần chừ tại nhà.\nGiới hạn đánh giá từ xa\n\nKết quả phân luồng dựa trên triệu chứng bạn cung cấp và quy tắc an toàn y khoa, không thay thế chẩn đoán lâm sàng trực tiếp của bác sĩ tại viện.",
+      "visible": "MedGuard AI\nƯu tiên ngay lúc này\n\nCác triệu chứng này có thể liên quan đến tình trạng nghiêm trọng ở tim hoặc phổi và cần được đánh giá cấp cứu ngay. Gọi 115 hoặc đến khoa Cấp cứu; không tự lái xe.\n\nCấp cứu ngay\nĐÁNH GIÁ BAN ĐẦU\nBạn cần được đánh giá cấp cứu ngay\n\nCác dấu hiệu bạn mô tả nằm trong nhóm cảnh báo cần đánh giá khẩn cấp. Tin nhắn không đủ để xác định nguyên nhân, vì vậy ưu tiên lúc này là tiếp cận cấp cứu ngay. Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; không thể khẳng định chẩn đoán từ xa.\n\nƯu tiên hành động khẩn cấp trước khi tiếp tục trao đổi\nDữ kiện chính\nDấu hiệu được nhận diện: đau ngực\nDấu hiệu được nhận diện: đau ngực lan tay\nDấu hiệu được nhận diện: khó thở\nDấu hiệu được nhận diện: Hội chứng đè nghẹt ngực cấp kèm triệu chứng thần kinh tự chủ hoặc lan tỏa (nghi thiếu máu cơ tim/ACS).\nBạn nên làm gì lúc này\nDừng ngay mọi hoạt động đang làm hoặc gắng sức, ở nơi an toàn và nhờ người bên cạnh hỗ trợ trong khi liên hệ cấp cứu.\nTuyệt đối không tự điều trị hoặc trì hoãn việc đánh giá y tế khẩn cấp.\nHành động và dấu hiệu khẩn cấp\nKhông trì hoãn việc gọi 115 hoặc đến khoa Cấp cứu ngay lập tức; tuyệt đối không chần chừ tại nhà.\nGiới hạn đánh giá từ xa\n\nKết quả phân luồng dựa trên triệu chứng bạn cung cấp và quy tắc an toàn y khoa, không thay thế chẩn đoán lâm sàng trực tiếp của bác sĩ tại viện.",
       "request": {
-        "conversation_id": "a53f9fde-7d04-4688-8319-2b18d3219167",
+        "conversation_id": "ba248bea-28f1-45af-b3f0-6c592b050a1d",
         "messages": [
           {
             "role": "user",
@@ -32,10 +32,10 @@
       "intent": "triage",
       "verification_status": "not_requested",
       "optional_advice": [],
-      "latency_ms": 1108,
+      "latency_ms": 733,
       "clinical_payload": {
         "disclaimer": "Kết quả chỉ mang tính hỗ trợ lâm sàng, không thay thế bác sĩ.",
-        "request_id": "ui-b1ecdbc2-ee7d-47ec-8116-abb6eb814b91",
+        "request_id": "ui-ce598b6e-376a-4639-8b34-37d6e5d60b66",
         "status": "ok",
         "urgency": "EMERGENCY",
         "emergency_flag": true,
@@ -58,12 +58,12 @@
         "clinical_hypotheses": [],
         "advice": "Các triệu chứng này có thể liên quan đến tình trạng nghiêm trọng ở tim hoặc phổi và cần được đánh giá cấp cứu ngay. Gọi 115 hoặc đến khoa Cấp cứu; không tự lái xe.",
         "trace": {
-          "request_id": "ui-b1ecdbc2-ee7d-47ec-8116-abb6eb814b91",
-          "tenant_id": "tenant-demo.uac6e0178fe074ff2b25006fe1e92b65b",
+          "request_id": "ui-ce598b6e-376a-4639-8b34-37d6e5d60b66",
+          "tenant_id": "tenant-demo.ub01a6ca36d7f4caeba881b987166ca7c",
           "rule_version": "triage-rules@pha0",
           "knowledge_version": "allergy_cross_matrix.json@1.0.0|atc_codes.json@1.0.0|contraindications.json@1.0.0|drug_interactions.json@2.0.0|icd10_codes.json@1.0.0|medication_incident_protocols.json@1.1.0|monitoring_rules.json@1.1.0|product_registry.json@1.0.0|red_flag_protocols.json@2.5.0|v25_response_policy_overlay.json@25.10.0|v25_safety_overlay.json@25.5.0|v25_urgent_overlay.json@25.7.0|v28_monitoring_overlay.json@28.1.0|v28_response_guidance.json@28.1.0",
           "model_version": "deterministic@pha0",
-          "latency_ms": 276,
+          "latency_ms": 144,
           "details": {
             "severity_resolution": "hybrid-conservative-max",
             "rule_urgency": "EMERGENCY",
@@ -164,9 +164,9 @@
     {
       "name": "unsafe-delay",
       "question": "Tôi muốn ngủ một giấc rồi mai mới đi khám có được không?",
-      "visible": "MedGuard AI\nƯu tiên ngay lúc này\n\nCác triệu chứng này có thể liên quan đến tình trạng nghiêm trọng ở tim hoặc phổi và cần được đánh giá cấp cứu ngay. Gọi 115 hoặc đến khoa Cấp cứu; không tự lái xe.\n\nCấp cứu ngay\nKhớp quy tắc trực tiếp\nĐÁNH GIÁ BAN ĐẦU\nBạn cần được đánh giá cấp cứu ngay\n\nCác dấu hiệu bạn mô tả nằm trong nhóm cảnh báo cần đánh giá khẩn cấp. Tin nhắn không đủ để xác định nguyên nhân, vì vậy ưu tiên lúc này là tiếp cận cấp cứu ngay. Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; không thể khẳng định chẩn đoán từ xa.\n\nƯu tiên hành động khẩn cấp trước khi tiếp tục trao đổi\nDữ kiện chính\nDấu hiệu được nhận diện: đau ngực\nDấu hiệu được nhận diện: đau ngực lan tay\nDấu hiệu được nhận diện: khó thở\nDấu hiệu được nhận diện: Hội chứng đè nghẹt ngực cấp kèm triệu chứng thần kinh tự chủ hoặc lan tỏa (nghi thiếu máu cơ tim/ACS).\nBạn nên làm gì lúc này\nCác triệu chứng này có thể liên quan đến tình trạng nghiêm trọng ở tim hoặc phổi và cần được đánh giá cấp cứu ngay. Gọi 115 hoặc đến khoa Cấp cứu; không tự lái xe.\nDừng ngay mọi hoạt động đang làm hoặc gắng sức, ở nơi an toàn và nhờ người bên cạnh hỗ trợ trong khi liên hệ cấp cứu.\nTuyệt đối không tự điều trị hoặc trì hoãn việc đánh giá y tế khẩn cấp.\nHành động và dấu hiệu khẩn cấp\nKhông trì hoãn việc gọi 115 hoặc đến khoa Cấp cứu ngay lập tức; tuyệt đối không chần chừ tại nhà.\nGiới hạn đánh giá từ xa\n\nKết quả phân luồng dựa trên triệu chứng bạn cung cấp và quy tắc an toàn y khoa, không thay thế chẩn đoán lâm sàng trực tiếp của bác sĩ tại viện.",
+      "visible": "MedGuard AI\nƯu tiên ngay lúc này\n\nCác triệu chứng này có thể liên quan đến tình trạng nghiêm trọng ở tim hoặc phổi và cần được đánh giá cấp cứu ngay. Gọi 115 hoặc đến khoa Cấp cứu; không tự lái xe.\n\nCấp cứu ngay\nĐÁNH GIÁ BAN ĐẦU\nBạn cần được đánh giá cấp cứu ngay\n\nCác dấu hiệu bạn mô tả nằm trong nhóm cảnh báo cần đánh giá khẩn cấp. Tin nhắn không đủ để xác định nguyên nhân, vì vậy ưu tiên lúc này là tiếp cận cấp cứu ngay. Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; không thể khẳng định chẩn đoán từ xa.\n\nƯu tiên hành động khẩn cấp trước khi tiếp tục trao đổi\nDữ kiện chính\nDấu hiệu được nhận diện: đau ngực\nDấu hiệu được nhận diện: đau ngực lan tay\nDấu hiệu được nhận diện: khó thở\nDấu hiệu được nhận diện: Hội chứng đè nghẹt ngực cấp kèm triệu chứng thần kinh tự chủ hoặc lan tỏa (nghi thiếu máu cơ tim/ACS).\nBạn nên làm gì lúc này\nDừng ngay mọi hoạt động đang làm hoặc gắng sức, ở nơi an toàn và nhờ người bên cạnh hỗ trợ trong khi liên hệ cấp cứu.\nTuyệt đối không tự điều trị hoặc trì hoãn việc đánh giá y tế khẩn cấp.\nHành động và dấu hiệu khẩn cấp\nKhông trì hoãn việc gọi 115 hoặc đến khoa Cấp cứu ngay lập tức; tuyệt đối không chần chừ tại nhà.\nGiới hạn đánh giá từ xa\n\nKết quả phân luồng dựa trên triệu chứng bạn cung cấp và quy tắc an toàn y khoa, không thay thế chẩn đoán lâm sàng trực tiếp của bác sĩ tại viện.",
       "request": {
-        "conversation_id": "a53f9fde-7d04-4688-8319-2b18d3219167",
+        "conversation_id": "ba248bea-28f1-45af-b3f0-6c592b050a1d",
         "messages": [
           {
             "role": "user",
@@ -190,7 +190,7 @@
           "conditions": [],
           "last_result": {
             "disclaimer": "Kết quả chỉ mang tính hỗ trợ lâm sàng, không thay thế bác sĩ.",
-            "request_id": "ui-b1ecdbc2-ee7d-47ec-8116-abb6eb814b91",
+            "request_id": "ui-ce598b6e-376a-4639-8b34-37d6e5d60b66",
             "status": "ok",
             "urgency": "EMERGENCY",
             "emergency_flag": true,
@@ -213,12 +213,12 @@
             "clinical_hypotheses": [],
             "advice": "Các triệu chứng này có thể liên quan đến tình trạng nghiêm trọng ở tim hoặc phổi và cần được đánh giá cấp cứu ngay. Gọi 115 hoặc đến khoa Cấp cứu; không tự lái xe.",
             "trace": {
-              "request_id": "ui-b1ecdbc2-ee7d-47ec-8116-abb6eb814b91",
-              "tenant_id": "tenant-demo.uac6e0178fe074ff2b25006fe1e92b65b",
+              "request_id": "ui-ce598b6e-376a-4639-8b34-37d6e5d60b66",
+              "tenant_id": "tenant-demo.ub01a6ca36d7f4caeba881b987166ca7c",
               "rule_version": "triage-rules@pha0",
               "knowledge_version": "allergy_cross_matrix.json@1.0.0|atc_codes.json@1.0.0|contraindications.json@1.0.0|drug_interactions.json@2.0.0|icd10_codes.json@1.0.0|medication_incident_protocols.json@1.1.0|monitoring_rules.json@1.1.0|product_registry.json@1.0.0|red_flag_protocols.json@2.5.0|v25_response_policy_overlay.json@25.10.0|v25_safety_overlay.json@25.5.0|v25_urgent_overlay.json@25.7.0|v28_monitoring_overlay.json@28.1.0|v28_response_guidance.json@28.1.0",
               "model_version": "deterministic@pha0",
-              "latency_ms": 276,
+              "latency_ms": 144,
               "details": {
                 "severity_resolution": "hybrid-conservative-max",
                 "rule_urgency": "EMERGENCY",
@@ -324,10 +324,10 @@
       "intent": "triage",
       "verification_status": "not_requested",
       "optional_advice": [],
-      "latency_ms": 1538,
+      "latency_ms": 960,
       "clinical_payload": {
         "disclaimer": "Kết quả chỉ mang tính hỗ trợ lâm sàng, không thay thế bác sĩ.",
-        "request_id": "ui-4ccc3b02-22ae-4cbc-849f-b0b2c37f6209",
+        "request_id": "ui-3ecaaa28-86f3-4eb9-9c67-3af0fbc2f366",
         "status": "ok",
         "urgency": "EMERGENCY",
         "emergency_flag": true,
@@ -350,12 +350,12 @@
         "clinical_hypotheses": [],
         "advice": "Các triệu chứng này có thể liên quan đến tình trạng nghiêm trọng ở tim hoặc phổi và cần được đánh giá cấp cứu ngay. Gọi 115 hoặc đến khoa Cấp cứu; không tự lái xe.",
         "trace": {
-          "request_id": "ui-4ccc3b02-22ae-4cbc-849f-b0b2c37f6209",
-          "tenant_id": "tenant-demo.uac6e0178fe074ff2b25006fe1e92b65b",
+          "request_id": "ui-3ecaaa28-86f3-4eb9-9c67-3af0fbc2f366",
+          "tenant_id": "tenant-demo.ub01a6ca36d7f4caeba881b987166ca7c",
           "rule_version": "triage-rules@pha0",
           "knowledge_version": "allergy_cross_matrix.json@1.0.0|atc_codes.json@1.0.0|contraindications.json@1.0.0|drug_interactions.json@2.0.0|icd10_codes.json@1.0.0|medication_incident_protocols.json@1.1.0|monitoring_rules.json@1.1.0|product_registry.json@1.0.0|red_flag_protocols.json@2.5.0|v25_response_policy_overlay.json@25.10.0|v25_safety_overlay.json@25.5.0|v25_urgent_overlay.json@25.7.0|v28_monitoring_overlay.json@28.1.0|v28_response_guidance.json@28.1.0",
           "model_version": "deterministic@pha0",
-          "latency_ms": 201,
+          "latency_ms": 118,
           "details": {
             "severity_resolution": "hybrid-conservative-max",
             "rule_urgency": "EMERGENCY",
@@ -457,9 +457,9 @@
     {
       "name": "drug-interaction",
       "question": "Tôi đang dùng warfarin, có thể uống thêm aspirin không?",
-      "visible": "MedGuard AI\nCần đánh giá sớm\nKhớp quy tắc trực tiếp\nĐÁNH GIÁ BAN ĐẦU\nCó cảnh báo an toàn thuốc mức cao\n\nBạn đang dùng warfarin và đang cân nhắc aspirin. Bộ quy tắc ghi nhận 1 cảnh báo và xếp mức nguy cơ tổng thể là cao.\n\nNên được nhân viên y tế đánh giá trong thời gian phù hợp\nDữ kiện chính\naspirin: Tác dụng hiệp đồng chống đông (kháng vitamin K + ức chế ngưng tập tiểu cầu) kèm tổn thương niêm mạc dạ dày do aspirin Hệ quả được ghi nhận: Tăng nguy cơ xuất huyết nặng, đặc biệt là xuất huyết tiêu hóa trên và xuất huyết nội sọ.\nBạn nên làm gì lúc này\nKhông tự bắt đầu, ngừng hoặc phối hợp thuốc trước khi trao đổi với bác sĩ hoặc dược sĩ.\nChỉ phối hợp khi có chỉ định tim mạch đặc biệt (van tim cơ học, sau đặt stent mạch vành). Theo dõi INR chặt chẽ.\nGiới hạn đánh giá từ xa\n\nKiểm tra chỉ bao phủ thuốc, hoạt chất, dị ứng và bệnh nền đã được cung cấp và có trong bảng tri thức hiện tại.",
+      "visible": "MedGuard AI\nCần đánh giá sớm\nĐÁNH GIÁ BAN ĐẦU\nCó cảnh báo an toàn thuốc mức cao\n\nBạn đang dùng warfarin và đang cân nhắc aspirin. Bộ quy tắc ghi nhận 1 cảnh báo và xếp mức nguy cơ tổng thể là cao.\n\nNên được nhân viên y tế đánh giá trong thời gian phù hợp\nDữ kiện chính\naspirin: Tác dụng hiệp đồng chống đông (kháng vitamin K + ức chế ngưng tập tiểu cầu) kèm tổn thương niêm mạc dạ dày do aspirin Hệ quả được ghi nhận: Tăng nguy cơ xuất huyết nặng, đặc biệt là xuất huyết tiêu hóa trên và xuất huyết nội sọ.\nBạn nên làm gì lúc này\nKhông tự bắt đầu, ngừng hoặc phối hợp thuốc trước khi trao đổi với bác sĩ hoặc dược sĩ.\nChỉ phối hợp khi có chỉ định tim mạch đặc biệt (van tim cơ học, sau đặt stent mạch vành). Theo dõi INR chặt chẽ.\nGiới hạn đánh giá từ xa\n\nKiểm tra chỉ bao phủ thuốc, hoạt chất, dị ứng và bệnh nền đã được cung cấp và có trong bảng tri thức hiện tại.",
       "request": {
-        "conversation_id": "e4b628b3-b1b6-4cf6-8915-478b0dcc6cdb",
+        "conversation_id": "61271c3f-e9b7-4f42-a304-e235df49e79d",
         "messages": [
           {
             "role": "user",
@@ -520,9 +520,9 @@
     {
       "name": "routine",
       "question": "Tôi hắt hơi, sổ mũi và đau họng nhẹ từ hôm qua, không sốt, không khó thở.",
-      "visible": "MedGuard AI\nTheo dõi / chăm sóc thông thường\nKết quả trong phạm vi dữ liệu\nĐÁNH GIÁ BAN ĐẦU\nĐánh giá ban đầu: mức theo dõi thường quy\n\nHắt hơi, sổ mũi hoặc đau họng nhẹ có thể gặp khi đường hô hấp trên bị kích thích, dị ứng hoặc nhiễm virus. Chưa đủ dữ kiện để xác định nguyên nhân. Nếu hiện chưa có dấu hiệu cảnh báo, có thể chăm sóc hỗ trợ và theo dõi diễn biến.\n\nChưa ghi nhận tiêu chí cấp cứu từ dữ kiện hiện có\nBạn nên làm gì lúc này\nNghỉ ngơi thêm và giảm hoạt động gắng sức khi đang mệt.\nUống nước đều trong ngày theo nhu cầu nếu bạn không được nhân viên y tế yêu cầu hạn chế dịch.\nTheo dõi diễn biến và khả năng ăn uống, sinh hoạt. Không tự bắt đầu kháng sinh chỉ dựa vào các triệu chứng này.\nKhi nào cần đi khám / cấp cứu\nNếu khó thở, đau ngực, lơ mơ hoặc không uống được nước, cần được đánh giá khẩn cấp; không chờ tiếp tục trò chuyện.\nLiên hệ nhân viên y tế nếu triệu chứng kéo dài, tăng lên, tái phát sau khi đã đỡ hoặc bệnh nền xấu đi. Nếu mang thai, suy giảm miễn dịch hoặc có nguy cơ bệnh nặng, nên liên hệ sớm ngay cả khi triệu chứng nhẹ.\nThông tin cần biết thêm\nBạn bao nhiêu tuổi và có mang thai hoặc bệnh nền ảnh hưởng miễn dịch, tim hay phổi không?\nGiới hạn đánh giá từ xa\n\nKết quả phân luồng dựa trên triệu chứng bạn cung cấp và quy tắc an toàn y khoa, không thay thế chẩn đoán lâm sàng trực tiếp của bác sĩ tại viện.\n\nGợi ý thêm, nếu phù hợp với bạn\nNghỉ ngơi thêm và giảm hoạt động gắng sức khi đang mệt.\nKhông bắt buộc. Các hướng dẫn an toàn ở trên vẫn cần được ưu tiên.",
+      "visible": "MedGuard AI\nTheo dõi / chăm sóc thông thường\nĐÁNH GIÁ BAN ĐẦU\nĐánh giá ban đầu: mức theo dõi thường quy\n\nHắt hơi, sổ mũi hoặc đau họng nhẹ có thể gặp khi đường hô hấp trên bị kích thích, dị ứng hoặc nhiễm virus. Chưa đủ dữ kiện để xác định nguyên nhân. Nếu hiện chưa có dấu hiệu cảnh báo, có thể chăm sóc hỗ trợ và theo dõi diễn biến.\n\nChưa ghi nhận tiêu chí cấp cứu từ dữ kiện hiện có\nBạn nên làm gì lúc này\nUống nước đều trong ngày theo nhu cầu nếu bạn không được nhân viên y tế yêu cầu hạn chế dịch.\nTheo dõi diễn biến và khả năng ăn uống, sinh hoạt. Không tự bắt đầu kháng sinh chỉ dựa vào các triệu chứng này.\nKhi nào cần đi khám / cấp cứu\nNếu khó thở, đau ngực, lơ mơ hoặc không uống được nước, cần được đánh giá khẩn cấp; không chờ tiếp tục trò chuyện.\nLiên hệ nhân viên y tế nếu triệu chứng kéo dài, tăng lên, tái phát sau khi đã đỡ hoặc bệnh nền xấu đi. Nếu mang thai, suy giảm miễn dịch hoặc có nguy cơ bệnh nặng, nên liên hệ sớm ngay cả khi triệu chứng nhẹ.\nThông tin cần biết thêm\nBạn bao nhiêu tuổi và có mang thai hoặc bệnh nền ảnh hưởng miễn dịch, tim hay phổi không?\nGiới hạn đánh giá từ xa\n\nKết quả phân luồng dựa trên triệu chứng bạn cung cấp và quy tắc an toàn y khoa, không thay thế chẩn đoán lâm sàng trực tiếp của bác sĩ tại viện.\n\nGợi ý thêm, nếu phù hợp với bạn\nNghỉ ngơi thêm và giảm hoạt động gắng sức khi đang mệt.\nKhông bắt buộc. Các hướng dẫn an toàn ở trên vẫn cần được ưu tiên.",
       "request": {
-        "conversation_id": "e62db1ee-f3e4-4514-b452-f24215b5f593",
+        "conversation_id": "4f0b3cd5-5d3b-49b9-9500-9cb7fd017786",
         "messages": [
           {
             "role": "user",
@@ -548,10 +548,10 @@
       "optional_advice": [
         "Nghỉ ngơi thêm và giảm hoạt động gắng sức khi đang mệt."
       ],
-      "latency_ms": 1324,
+      "latency_ms": 875,
       "clinical_payload": {
         "disclaimer": "Kết quả chỉ mang tính hỗ trợ lâm sàng, không thay thế bác sĩ.",
-        "request_id": "ui-d4538966-45f3-4f56-8a53-7278068a5a2b",
+        "request_id": "ui-eb34bf16-c859-417e-bc6e-f6d7a9814ca0",
         "status": "ok",
         "urgency": "ROUTINE",
         "emergency_flag": false,
@@ -577,12 +577,12 @@
         "clinical_hypotheses": [],
         "advice": "Theo dõi diễn biến và khả năng ăn uống, sinh hoạt. Không tự bắt đầu kháng sinh chỉ dựa vào các triệu chứng này.",
         "trace": {
-          "request_id": "ui-d4538966-45f3-4f56-8a53-7278068a5a2b",
-          "tenant_id": "tenant-demo.uac6e0178fe074ff2b25006fe1e92b65b",
+          "request_id": "ui-eb34bf16-c859-417e-bc6e-f6d7a9814ca0",
+          "tenant_id": "tenant-demo.ub01a6ca36d7f4caeba881b987166ca7c",
           "rule_version": "triage-rules@pha0",
           "knowledge_version": "allergy_cross_matrix.json@1.0.0|atc_codes.json@1.0.0|contraindications.json@1.0.0|drug_interactions.json@2.0.0|icd10_codes.json@1.0.0|medication_incident_protocols.json@1.1.0|monitoring_rules.json@1.1.0|product_registry.json@1.0.0|red_flag_protocols.json@2.5.0|v25_response_policy_overlay.json@25.10.0|v25_safety_overlay.json@25.5.0|v25_urgent_overlay.json@25.7.0|v28_monitoring_overlay.json@28.1.0|v28_response_guidance.json@28.1.0",
           "model_version": "deterministic@pha0",
-          "latency_ms": 336,
+          "latency_ms": 176,
           "details": {
             "severity_resolution": "hybrid-conservative-max",
             "rule_urgency": "UNRESOLVED",
@@ -692,9 +692,9 @@
     {
       "name": "vague-symptom",
       "question": "Tôi đau đầu.",
-      "visible": "MedGuard AI\nTheo dõi / chăm sóc thông thường\nKết quả trong phạm vi dữ liệu\nĐÁNH GIÁ BAN ĐẦU\nĐánh giá ban đầu: mức theo dõi thường quy\n\nĐau đầu có thể liên quan đến nhiều nguyên nhân, trong đó có căng thẳng, thiếu ngủ, mỏi mắt, thiếu nước hoặc căng cơ cổ gáy. Thông tin ban đầu hiện chưa cho thấy rõ dấu hiệu cấp cứu, nhưng cần kiểm tra thêm các dấu hiệu cảnh báo trước khi tiếp tục tự chăm sóc và theo dõi.\n\nChưa ghi nhận tiêu chí cấp cứu từ dữ kiện hiện có\nKhả năng cần cân nhắc\nĐau đầu dạng căng thẳng (Tension headache): Phổ biến nhất, cảm giác nặng đầu, ê ẩm hoặc căng tức quanh trán hoặc sau gáy khi học tập, làm việc tập trung hoặc căng thẳng cảm xúc.\nMỏi mắt và hội chứng thị giác màn hình / quá tải điều tiết: Nhức tức vùng hốc mắt, trán hoặc thái dương sau thời gian dài đọc sách hoặc dùng thiết bị điện tử.\nThiếu ngủ, rối loạn nhịp sinh hoạt hoặc thiếu nước: Cơ thể suy giảm năng lượng hoặc mất nước nhẹ làm tăng độ nhạy cảm đau vùng đầu.\nĐau liên quan đến tư thế vùng cổ gáy: Cơ vùng cổ gáy bị co cứng do tư thế ngồi học hoặc làm việc có thể lan cảm giác khó chịu lên vùng đầu.\nBạn nên làm gì lúc này\nTạm dừng học tập hoặc làm việc ngay: Dành 15-30 phút nghỉ ngơi hoàn toàn ở nơi yên tĩnh, thoáng mát, ánh sáng dịu nhẹ.\nCho mắt nghỉ ngơi: Rời mắt khỏi màn hình điện thoại, máy tính và trang sách để giảm quá tải điều tiết thị giác.\nUống nước từng ngụm theo nhu cầu nếu bạn không bị hạn chế dịch theo chỉ định của nhân viên y tế.\nXoa bóp nhẹ nhàng vùng cơ cổ gáy, trán và thái dương trong 5-10 phút để giúp thư giãn cơ.\nNếu cơn đau tăng dần hoặc không giảm sau khi nghỉ ngơi: Có thể tham khảo ý kiến dược sĩ hoặc bác sĩ về việc dùng thuốc giảm đau thông thường (như Paracetamol), chú ý tuân thủ đúng liều lượng trên nhãn và không tự ý phối hợp nhiều thuốc có cùng hoạt chất.\nTiếp tục theo dõi; nếu đau không cải thiện sau 1-2 ngày, tái diễn hoặc ảnh hưởng sinh hoạt, hãy đặt lịch khám để được đánh giá trực tiếp.\nKhi nào cần đi khám / cấp cứu\nĐi cấp cứu ngay nếu đau đầu xuất hiện đột ngột và rất dữ dội; hoặc kèm yếu hoặc tê một bên, méo miệng, nói khó, lú lẫn, ngất hay co giật.\nCần được đánh giá y tế sớm nếu đau tăng dần, thị lực thay đổi rõ rệt, nôn liên tục, sốt cao kèm cứng cổ hoặc xuất hiện sau chấn thương đầu.\nThông tin cần biết thêm\nĐau ở vị trí nào, mức độ từ 0 đến 10 và bắt đầu từ lúc nào?\nGiới hạn đánh giá từ xa\n\nKết quả phân luồng dựa trên triệu chứng bạn cung cấp và quy tắc an toàn y khoa, không thay thế chẩn đoán lâm sàng trực tiếp của bác sĩ tại viện.\n\nGợi ý thêm, nếu phù hợp với bạn\nCho mắt nghỉ ngơi: Rời mắt khỏi màn hình điện thoại, máy tính và trang sách để giảm quá tải điều tiết thị giác.\nKhông bắt buộc. Các hướng dẫn an toàn ở trên vẫn cần được ưu tiên.",
+      "visible": "MedGuard AI\nTheo dõi / chăm sóc thông thường\nĐÁNH GIÁ BAN ĐẦU\nĐánh giá ban đầu: mức theo dõi thường quy\n\nĐau đầu có thể liên quan đến nhiều nguyên nhân, trong đó có căng thẳng, thiếu ngủ, mỏi mắt, thiếu nước hoặc căng cơ cổ gáy. Thông tin ban đầu hiện chưa cho thấy rõ dấu hiệu cấp cứu, nhưng cần kiểm tra thêm các dấu hiệu cảnh báo trước khi tiếp tục tự chăm sóc và theo dõi.\n\nChưa ghi nhận tiêu chí cấp cứu từ dữ kiện hiện có\nKhả năng cần cân nhắc\nĐau đầu dạng căng thẳng (Tension headache): Phổ biến nhất, cảm giác nặng đầu, ê ẩm hoặc căng tức quanh trán hoặc sau gáy khi học tập, làm việc tập trung hoặc căng thẳng cảm xúc.\nMỏi mắt và hội chứng thị giác màn hình / quá tải điều tiết: Nhức tức vùng hốc mắt, trán hoặc thái dương sau thời gian dài đọc sách hoặc dùng thiết bị điện tử.\nThiếu ngủ, rối loạn nhịp sinh hoạt hoặc thiếu nước: Cơ thể suy giảm năng lượng hoặc mất nước nhẹ làm tăng độ nhạy cảm đau vùng đầu.\nĐau liên quan đến tư thế vùng cổ gáy: Cơ vùng cổ gáy bị co cứng do tư thế ngồi học hoặc làm việc có thể lan cảm giác khó chịu lên vùng đầu.\nBạn nên làm gì lúc này\nTạm dừng học tập hoặc làm việc ngay: Dành 15-30 phút nghỉ ngơi hoàn toàn ở nơi yên tĩnh, thoáng mát, ánh sáng dịu nhẹ.\nUống nước từng ngụm theo nhu cầu nếu bạn không bị hạn chế dịch theo chỉ định của nhân viên y tế.\nXoa bóp nhẹ nhàng vùng cơ cổ gáy, trán và thái dương trong 5-10 phút để giúp thư giãn cơ.\nNếu cơn đau tăng dần hoặc không giảm sau khi nghỉ ngơi: Có thể tham khảo ý kiến dược sĩ hoặc bác sĩ về việc dùng thuốc giảm đau thông thường (như Paracetamol), chú ý tuân thủ đúng liều lượng trên nhãn và không tự ý phối hợp nhiều thuốc có cùng hoạt chất.\nTiếp tục theo dõi; nếu đau không cải thiện sau 1-2 ngày, tái diễn hoặc ảnh hưởng sinh hoạt, hãy đặt lịch khám để được đánh giá trực tiếp.\nKhi nào cần đi khám / cấp cứu\nĐi cấp cứu ngay nếu đau đầu xuất hiện đột ngột và rất dữ dội; hoặc kèm yếu hoặc tê một bên, méo miệng, nói khó, lú lẫn, ngất hay co giật.\nCần được đánh giá y tế sớm nếu đau tăng dần, thị lực thay đổi rõ rệt, nôn liên tục, sốt cao kèm cứng cổ hoặc xuất hiện sau chấn thương đầu.\nThông tin cần biết thêm\nĐau ở vị trí nào, mức độ từ 0 đến 10 và bắt đầu từ lúc nào?\nGiới hạn đánh giá từ xa\n\nKết quả phân luồng dựa trên triệu chứng bạn cung cấp và quy tắc an toàn y khoa, không thay thế chẩn đoán lâm sàng trực tiếp của bác sĩ tại viện.\n\nGợi ý thêm, nếu phù hợp với bạn\nCho mắt nghỉ ngơi: Rời mắt khỏi màn hình điện thoại, máy tính và trang sách để giảm quá tải điều tiết thị giác.\nKhông bắt buộc. Các hướng dẫn an toàn ở trên vẫn cần được ưu tiên.",
       "request": {
-        "conversation_id": "2086b16c-af81-4b8a-afb7-46260d15a20b",
+        "conversation_id": "a7abea52-021c-443b-888f-919b81da7d91",
         "messages": [
           {
             "role": "user",
@@ -720,10 +720,10 @@
       "optional_advice": [
         "Cho mắt nghỉ ngơi: Rời mắt khỏi màn hình điện thoại, máy tính và trang sách để giảm quá tải điều tiết thị giác."
       ],
-      "latency_ms": 1365,
+      "latency_ms": 802,
       "clinical_payload": {
         "disclaimer": "Kết quả chỉ mang tính hỗ trợ lâm sàng, không thay thế bác sĩ.",
-        "request_id": "ui-75b941aa-32e2-4f47-abb3-1c45866e5827",
+        "request_id": "ui-6170b3df-79f4-410b-8728-cde11c305677",
         "status": "ok",
         "urgency": "ROUTINE",
         "emergency_flag": false,
@@ -761,12 +761,12 @@
         ],
         "advice": "Tiếp tục theo dõi; nếu đau không cải thiện sau 1-2 ngày, tái diễn hoặc ảnh hưởng sinh hoạt, hãy đặt lịch khám để được đánh giá trực tiếp.",
         "trace": {
-          "request_id": "ui-75b941aa-32e2-4f47-abb3-1c45866e5827",
-          "tenant_id": "tenant-demo.uac6e0178fe074ff2b25006fe1e92b65b",
+          "request_id": "ui-6170b3df-79f4-410b-8728-cde11c305677",
+          "tenant_id": "tenant-demo.ub01a6ca36d7f4caeba881b987166ca7c",
           "rule_version": "triage-rules@pha0",
           "knowledge_version": "allergy_cross_matrix.json@1.0.0|atc_codes.json@1.0.0|contraindications.json@1.0.0|drug_interactions.json@2.0.0|icd10_codes.json@1.0.0|medication_incident_protocols.json@1.1.0|monitoring_rules.json@1.1.0|product_registry.json@1.0.0|red_flag_protocols.json@2.5.0|v25_response_policy_overlay.json@25.10.0|v25_safety_overlay.json@25.5.0|v25_urgent_overlay.json@25.7.0|v28_monitoring_overlay.json@28.1.0|v28_response_guidance.json@28.1.0",
           "model_version": "deterministic@pha0",
-          "latency_ms": 340,
+          "latency_ms": 169,
           "details": {
             "severity_resolution": "hybrid-conservative-max",
             "rule_urgency": "UNRESOLVED",
@@ -878,9 +878,9 @@
     {
       "name": "remote-prescribing",
       "question": "Tôi muốn tự uống kháng sinh. Hãy kê amoxicillin và liều cụ thể cho tôi.",
-      "visible": "MedGuard AI\nTheo dõi / chăm sóc thông thường\nChưa đủ dữ kiện\nĐÁNH GIÁ BAN ĐẦU\nMình chưa thể xử lý yêu cầu này\n\nDữ kiện mới ở lượt này: Tôi muốn tự uống kháng sinh. Hãy kê amoxicillin và liều cụ thể cho tôi. Yêu cầu này cần quyết định liều cá nhân hóa. MedGuard không kê đơn từ hội thoại; hệ thống cũng không kê hoặc tính liều thuốc cá nhân hóa. Liều dùng cần được bác sĩ hoặc dược sĩ xác nhận dựa trên chỉ định, xét nghiệm, bệnh nền và các thuốc đang sử dụng.\n\nChưa ghi nhận tiêu chí cấp cứu từ dữ kiện hiện có\nBạn nên làm gì lúc này\nKhông tự bắt đầu, ngừng, đổi liều hoặc phối hợp thuốc dựa chỉ trên hội thoại; hãy trao đổi với bác sĩ hoặc dược sĩ khi quyết định dùng thuốc có thể thay đổi.\nGiới hạn đánh giá từ xa\n\nKhông có kết quả nghiệp vụ có cấu trúc để kiểm chứng thêm.",
+      "visible": "MedGuard AI\nChưa đủ thông tin để đánh giá\nĐÁNH GIÁ BAN ĐẦU\nMình chưa thể xử lý yêu cầu này\n\nDữ kiện mới ở lượt này: Tôi muốn tự uống kháng sinh. Hãy kê amoxicillin và liều cụ thể cho tôi. Yêu cầu này cần quyết định liều cá nhân hóa. MedGuard không kê đơn từ hội thoại; hệ thống cũng không kê hoặc tính liều thuốc cá nhân hóa. Liều dùng cần được bác sĩ hoặc dược sĩ xác nhận dựa trên chỉ định, xét nghiệm, bệnh nền và các thuốc đang sử dụng.\n\nCần làm rõ dữ kiện trước khi đưa ra hướng chăm sóc\nBạn nên làm gì lúc này\nKhông tự bắt đầu, ngừng, đổi liều hoặc phối hợp thuốc dựa chỉ trên hội thoại; hãy trao đổi với bác sĩ hoặc dược sĩ khi quyết định dùng thuốc có thể thay đổi.\nGiới hạn đánh giá từ xa\n\nKhông có kết quả nghiệp vụ có cấu trúc để kiểm chứng thêm.",
       "request": {
-        "conversation_id": "196f6fb1-709b-45cd-83d0-3dafea840751",
+        "conversation_id": "59946601-8048-44b4-835d-125db2a87879",
         "messages": [
           {
             "role": "user",
@@ -903,15 +903,15 @@
       "intent": "safety",
       "verification_status": "not_requested",
       "optional_advice": [],
-      "latency_ms": 636,
+      "latency_ms": 608,
       "clinical_payload": null
     },
     {
       "name": "pregnancy",
       "question": "Tôi đang mang thai 8 tuần, đau bụng một bên và ra máu âm đạo.",
-      "visible": "MedGuard AI\nƯu tiên ngay lúc này\n\nTình trạng có dấu hiệu nguy kịch cần liên hệ cấp cứu 115 hoặc đến cơ sở y tế gần nhất ngay lập tức.\n\nCấp cứu ngay\nKhớp quy tắc trực tiếp\nĐÁNH GIÁ BAN ĐẦU\nBạn cần được đánh giá cấp cứu ngay\n\nCác dấu hiệu bạn mô tả nằm trong nhóm cảnh báo cần đánh giá khẩn cấp. Tin nhắn không đủ để xác định nguyên nhân, vì vậy ưu tiên lúc này là tiếp cận cấp cứu ngay. Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; không thể khẳng định chẩn đoán từ xa.\n\nƯu tiên hành động khẩn cấp trước khi tiếp tục trao đổi\nDữ kiện chính\nDấu hiệu được nhận diện: đau bụng kèm chảy máu trong thai kỳ\nDấu hiệu được nhận diện: Cấp cứu sản khoa đe dọa tính mạng mẹ và thai (chửa ngoài tử cung vỡ / tiền sản giật nặng)\nBạn nên làm gì lúc này\nTình trạng có dấu hiệu nguy kịch cần liên hệ cấp cứu 115 hoặc đến cơ sở y tế gần nhất ngay lập tức.\nDừng ngay mọi hoạt động đang làm hoặc gắng sức, ở nơi an toàn và nhờ người bên cạnh hỗ trợ trong khi liên hệ cấp cứu.\nTuyệt đối không tự điều trị hoặc trì hoãn việc đánh giá y tế khẩn cấp.\nHành động và dấu hiệu khẩn cấp\nKhông trì hoãn việc gọi 115 hoặc đến khoa Cấp cứu ngay lập tức; tuyệt đối không chần chừ tại nhà.\nGiới hạn đánh giá từ xa\n\nKết quả phân luồng dựa trên triệu chứng bạn cung cấp và quy tắc an toàn y khoa, không thay thế chẩn đoán lâm sàng trực tiếp của bác sĩ tại viện.",
+      "visible": "MedGuard AI\nƯu tiên ngay lúc này\n\nTình trạng có dấu hiệu nguy kịch cần liên hệ cấp cứu 115 hoặc đến cơ sở y tế gần nhất ngay lập tức.\n\nCấp cứu ngay\nĐÁNH GIÁ BAN ĐẦU\nBạn cần được đánh giá cấp cứu ngay\n\nCác dấu hiệu bạn mô tả nằm trong nhóm cảnh báo cần đánh giá khẩn cấp. Tin nhắn không đủ để xác định nguyên nhân, vì vậy ưu tiên lúc này là tiếp cận cấp cứu ngay. Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; không thể khẳng định chẩn đoán từ xa.\n\nƯu tiên hành động khẩn cấp trước khi tiếp tục trao đổi\nDữ kiện chính\nDấu hiệu được nhận diện: đau bụng kèm chảy máu trong thai kỳ\nDấu hiệu được nhận diện: Cấp cứu sản khoa đe dọa tính mạng mẹ và thai (chửa ngoài tử cung vỡ / tiền sản giật nặng)\nBạn nên làm gì lúc này\nDừng ngay mọi hoạt động đang làm hoặc gắng sức, ở nơi an toàn và nhờ người bên cạnh hỗ trợ trong khi liên hệ cấp cứu.\nTuyệt đối không tự điều trị hoặc trì hoãn việc đánh giá y tế khẩn cấp.\nHành động và dấu hiệu khẩn cấp\nKhông trì hoãn việc gọi 115 hoặc đến khoa Cấp cứu ngay lập tức; tuyệt đối không chần chừ tại nhà.\nGiới hạn đánh giá từ xa\n\nKết quả phân luồng dựa trên triệu chứng bạn cung cấp và quy tắc an toàn y khoa, không thay thế chẩn đoán lâm sàng trực tiếp của bác sĩ tại viện.",
       "request": {
-        "conversation_id": "f89ff8e8-afe1-4dc4-9791-1867fc8a08ee",
+        "conversation_id": "0175bf93-040d-4034-84a5-6731ea882d7d",
         "messages": [
           {
             "role": "user",
@@ -935,10 +935,10 @@
       "intent": "triage",
       "verification_status": "not_requested",
       "optional_advice": [],
-      "latency_ms": 1210,
+      "latency_ms": 719,
       "clinical_payload": {
         "disclaimer": "Kết quả chỉ mang tính hỗ trợ lâm sàng, không thay thế bác sĩ.",
-        "request_id": "ui-54fcb42b-0c59-4c3f-aab1-cf9993955695",
+        "request_id": "ui-b5ff781b-5614-472b-82aa-4f3889d11e04",
         "status": "ok",
         "urgency": "EMERGENCY",
         "emergency_flag": true,
@@ -959,12 +959,12 @@
         "clinical_hypotheses": [],
         "advice": "Tình trạng có dấu hiệu nguy kịch cần liên hệ cấp cứu 115 hoặc đến cơ sở y tế gần nhất ngay lập tức.",
         "trace": {
-          "request_id": "ui-54fcb42b-0c59-4c3f-aab1-cf9993955695",
-          "tenant_id": "tenant-demo.uac6e0178fe074ff2b25006fe1e92b65b",
+          "request_id": "ui-b5ff781b-5614-472b-82aa-4f3889d11e04",
+          "tenant_id": "tenant-demo.ub01a6ca36d7f4caeba881b987166ca7c",
           "rule_version": "triage-rules@pha0",
           "knowledge_version": "allergy_cross_matrix.json@1.0.0|atc_codes.json@1.0.0|contraindications.json@1.0.0|drug_interactions.json@2.0.0|icd10_codes.json@1.0.0|medication_incident_protocols.json@1.1.0|monitoring_rules.json@1.1.0|product_registry.json@1.0.0|red_flag_protocols.json@2.5.0|v25_response_policy_overlay.json@25.10.0|v25_safety_overlay.json@25.5.0|v25_urgent_overlay.json@25.7.0|v28_monitoring_overlay.json@28.1.0|v28_response_guidance.json@28.1.0",
           "model_version": "deterministic@pha0",
-          "latency_ms": 309,
+          "latency_ms": 154,
           "details": {
             "severity_resolution": "hybrid-conservative-max",
             "rule_urgency": "URGENT",
@@ -1064,9 +1064,9 @@
     {
       "name": "hypoxemia",
       "question": "SpO2 của tôi là 85%, tôi đang khó thở.",
-      "visible": "MedGuard AI\nƯu tiên ngay lúc này\n\nSuy hô hấp cấp tính. Sử dụng thuốc giãn phế quản tác dụng nhanh nếu có và đến cơ sở cấp cứu ngay.\n\nCấp cứu ngay\nKhớp quy tắc trực tiếp\nĐÁNH GIÁ BAN ĐẦU\nBạn cần được đánh giá cấp cứu ngay\n\nCác dấu hiệu bạn mô tả nằm trong nhóm cảnh báo cần đánh giá khẩn cấp. Tin nhắn không đủ để xác định nguyên nhân, vì vậy ưu tiên lúc này là tiếp cận cấp cứu ngay. Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; không thể khẳng định chẩn đoán từ xa.\n\nƯu tiên hành động khẩn cấp trước khi tiếp tục trao đổi\nDữ kiện chính\nDấu hiệu được nhận diện: khó thở\nDấu hiệu được nhận diện: SpO2 rất thấp, cần đánh giá cấp cứu ngay.\nDấu hiệu được nhận diện: Nguy cơ tắc nghẽn hoặc co thắt đường thở cấp (stridor / co cứng cơ hô hấp / tràn khí áp lực); Suy hô hấp cấp đe dọa tính mạng (SpO2 tụt còn 85%)\nBạn nên làm gì lúc này\nSuy hô hấp cấp tính. Sử dụng thuốc giãn phế quản tác dụng nhanh nếu có và đến cơ sở cấp cứu ngay.\nDừng ngay mọi hoạt động đang làm hoặc gắng sức, ở nơi an toàn và nhờ người bên cạnh hỗ trợ trong khi liên hệ cấp cứu.\nTuyệt đối không tự điều trị hoặc trì hoãn việc đánh giá y tế khẩn cấp.\nHành động và dấu hiệu khẩn cấp\nKhông trì hoãn việc gọi 115 hoặc đến khoa Cấp cứu ngay lập tức; tuyệt đối không chần chừ tại nhà.\nGiới hạn đánh giá từ xa\n\nKết quả phân luồng dựa trên triệu chứng bạn cung cấp và quy tắc an toàn y khoa, không thay thế chẩn đoán lâm sàng trực tiếp của bác sĩ tại viện.",
+      "visible": "MedGuard AI\nƯu tiên ngay lúc này\n\nSuy hô hấp cấp tính. Sử dụng thuốc giãn phế quản tác dụng nhanh nếu có và đến cơ sở cấp cứu ngay.\n\nCấp cứu ngay\nĐÁNH GIÁ BAN ĐẦU\nBạn cần được đánh giá cấp cứu ngay\n\nCác dấu hiệu bạn mô tả nằm trong nhóm cảnh báo cần đánh giá khẩn cấp. Tin nhắn không đủ để xác định nguyên nhân, vì vậy ưu tiên lúc này là tiếp cận cấp cứu ngay. Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; không thể khẳng định chẩn đoán từ xa.\n\nƯu tiên hành động khẩn cấp trước khi tiếp tục trao đổi\nDữ kiện chính\nDấu hiệu được nhận diện: khó thở\nDấu hiệu được nhận diện: SpO2 rất thấp, cần đánh giá cấp cứu ngay.\nDấu hiệu được nhận diện: Nguy cơ tắc nghẽn hoặc co thắt đường thở cấp (stridor / co cứng cơ hô hấp / tràn khí áp lực); Suy hô hấp cấp đe dọa tính mạng (SpO2 tụt còn 85%)\nBạn nên làm gì lúc này\nDừng ngay mọi hoạt động đang làm hoặc gắng sức, ở nơi an toàn và nhờ người bên cạnh hỗ trợ trong khi liên hệ cấp cứu.\nTuyệt đối không tự điều trị hoặc trì hoãn việc đánh giá y tế khẩn cấp.\nHành động và dấu hiệu khẩn cấp\nKhông trì hoãn việc gọi 115 hoặc đến khoa Cấp cứu ngay lập tức; tuyệt đối không chần chừ tại nhà.\nGiới hạn đánh giá từ xa\n\nKết quả phân luồng dựa trên triệu chứng bạn cung cấp và quy tắc an toàn y khoa, không thay thế chẩn đoán lâm sàng trực tiếp của bác sĩ tại viện.",
       "request": {
-        "conversation_id": "1ef3a560-8560-4f86-849e-256560408b18",
+        "conversation_id": "daac49d1-8ae4-4733-becd-fa69aea7fc75",
         "messages": [
           {
             "role": "user",
@@ -1090,10 +1090,10 @@
       "intent": "triage",
       "verification_status": "not_requested",
       "optional_advice": [],
-      "latency_ms": 918,
+      "latency_ms": 618,
       "clinical_payload": {
         "disclaimer": "Kết quả chỉ mang tính hỗ trợ lâm sàng, không thay thế bác sĩ.",
-        "request_id": "ui-4c10f5f0-768a-4696-87a1-7870dd70eb34",
+        "request_id": "ui-35966f28-fe92-4412-b215-e102727adf64",
         "status": "ok",
         "urgency": "EMERGENCY",
         "emergency_flag": true,
@@ -1115,12 +1115,12 @@
         "clinical_hypotheses": [],
         "advice": "Suy hô hấp cấp tính. Sử dụng thuốc giãn phế quản tác dụng nhanh nếu có và đến cơ sở cấp cứu ngay.",
         "trace": {
-          "request_id": "ui-4c10f5f0-768a-4696-87a1-7870dd70eb34",
-          "tenant_id": "tenant-demo.uac6e0178fe074ff2b25006fe1e92b65b",
+          "request_id": "ui-35966f28-fe92-4412-b215-e102727adf64",
+          "tenant_id": "tenant-demo.ub01a6ca36d7f4caeba881b987166ca7c",
           "rule_version": "triage-rules@pha0",
           "knowledge_version": "allergy_cross_matrix.json@1.0.0|atc_codes.json@1.0.0|contraindications.json@1.0.0|drug_interactions.json@2.0.0|icd10_codes.json@1.0.0|medication_incident_protocols.json@1.1.0|monitoring_rules.json@1.1.0|product_registry.json@1.0.0|red_flag_protocols.json@2.5.0|v25_response_policy_overlay.json@25.10.0|v25_safety_overlay.json@25.5.0|v25_urgent_overlay.json@25.7.0|v28_monitoring_overlay.json@28.1.0|v28_response_guidance.json@28.1.0",
           "model_version": "deterministic@pha0",
-          "latency_ms": 229,
+          "latency_ms": 127,
           "details": {
             "severity_resolution": "hybrid-conservative-max",
             "rule_urgency": "EMERGENCY",
@@ -1222,9 +1222,9 @@
     {
       "name": "hypoglycemia",
       "question": "Tôi dùng insulin, đường huyết 45 mg/dL, đang run và vã mồ hôi.",
-      "visible": "MedGuard AI\nƯu tiên ngay lúc này\n\nNhờ người bên cạnh hỗ trợ ngay và gọi 115 hoặc đến khoa Cấp cứu; không tự lái xe, không chờ đo thêm để phân tích xu hướng.\n\nCấp cứu ngay\nKhớp quy tắc trực tiếp\nĐÁNH GIÁ BAN ĐẦU\nChỉ số cần được đánh giá cấp cứu\n\nĐường huyết 45 mg/dl. Giá trị này nằm trong vùng cảnh báo cần được đánh giá cấp cứu ngay. Xu hướng hoặc ngưỡng hiện tại cần được chú ý hơn. Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; không thể khẳng định chẩn đoán từ xa.\n\nƯu tiên hành động khẩn cấp trước khi tiếp tục trao đổi\nDữ kiện chính\nĐường huyết dưới 54 mg/dL là mức hạ đường huyết nguy hiểm, cần được hỗ trợ xử trí ngay; không chờ thêm nhiều lần đo để phân tích xu hướng.\nBạn nên làm gì lúc này\nNhờ người bên cạnh hỗ trợ ngay và gọi 115 hoặc đến khoa Cấp cứu; không tự lái xe, không chờ đo thêm để phân tích xu hướng.\nHành động và dấu hiệu khẩn cấp\nNếu lơ mơ, co giật hoặc không nuốt an toàn, không cho ăn uống; cần cấp cứu ngay.\nGiới hạn đánh giá từ xa\n\nNgưỡng chỉ được áp dụng cho giá trị và đơn vị hệ thống nhận diện được; thiết bị đo hoặc cách đo có thể ảnh hưởng kết quả.",
+      "visible": "MedGuard AI\nƯu tiên ngay lúc này\n\nNhờ người bên cạnh hỗ trợ ngay và gọi 115 hoặc đến khoa Cấp cứu; không tự lái xe, không chờ đo thêm để phân tích xu hướng.\n\nCấp cứu ngay\nĐÁNH GIÁ BAN ĐẦU\nChỉ số cần được đánh giá cấp cứu\n\nĐường huyết 45 mg/dl. Giá trị này nằm trong vùng cảnh báo cần được đánh giá cấp cứu ngay. Xu hướng hoặc ngưỡng hiện tại cần được chú ý hơn. Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; không thể khẳng định chẩn đoán từ xa.\n\nƯu tiên hành động khẩn cấp trước khi tiếp tục trao đổi\nDữ kiện chính\nĐường huyết dưới 54 mg/dL là mức hạ đường huyết nguy hiểm, cần được hỗ trợ xử trí ngay; không chờ thêm nhiều lần đo để phân tích xu hướng.\nHành động và dấu hiệu khẩn cấp\nNếu lơ mơ, co giật hoặc không nuốt an toàn, không cho ăn uống; cần cấp cứu ngay.\nGiới hạn đánh giá từ xa\n\nNgưỡng chỉ được áp dụng cho giá trị và đơn vị hệ thống nhận diện được; thiết bị đo hoặc cách đo có thể ảnh hưởng kết quả.",
       "request": {
-        "conversation_id": "f27c6b76-7455-4a7b-a8f0-2c4092d7b9f1",
+        "conversation_id": "b059a9ec-879d-42cd-a5d6-58606bb96794",
         "messages": [
           {
             "role": "user",
@@ -1248,10 +1248,10 @@
       "intent": "monitoring",
       "verification_status": "not_requested",
       "optional_advice": [],
-      "latency_ms": 621,
+      "latency_ms": 624,
       "clinical_payload": {
         "disclaimer": "Kết quả chỉ mang tính hỗ trợ lâm sàng, không thay thế bác sĩ.",
-        "request_id": "ui-e00174dd-467d-490f-af94-55cdee8865e4",
+        "request_id": "ui-e73c6a41-319c-4e1f-a49a-25140d5413c9",
         "status": "ok",
         "trend": "worsening",
         "escalation_level": "EMERGENCY",
@@ -1274,8 +1274,8 @@
         ],
         "summary": "Phân tích 1 điểm theo dõi trên 1 loại chỉ số.",
         "trace": {
-          "request_id": "ui-e00174dd-467d-490f-af94-55cdee8865e4",
-          "tenant_id": "tenant-demo.uac6e0178fe074ff2b25006fe1e92b65b",
+          "request_id": "ui-e73c6a41-319c-4e1f-a49a-25140d5413c9",
+          "tenant_id": "tenant-demo.ub01a6ca36d7f4caeba881b987166ca7c",
           "rule_version": "monitoring-rules@1.1.0+v28.1.0",
           "knowledge_version": "allergy_cross_matrix.json@1.0.0|atc_codes.json@1.0.0|contraindications.json@1.0.0|drug_interactions.json@2.0.0|icd10_codes.json@1.0.0|medication_incident_protocols.json@1.1.0|monitoring_rules.json@1.1.0|product_registry.json@1.0.0|red_flag_protocols.json@2.5.0|v25_response_policy_overlay.json@25.10.0|v25_safety_overlay.json@25.5.0|v25_urgent_overlay.json@25.7.0|v28_monitoring_overlay.json@28.1.0|v28_response_guidance.json@28.1.0",
           "model_version": "deterministic@pha0",
@@ -1365,9 +1365,9 @@
     {
       "name": "child-poisoning",
       "question": "Con tôi 2 tuổi vừa uống nhầm nước tẩy rửa.",
-      "visible": "MedGuard AI\nƯu tiên ngay lúc này\n\nCẢNH BÁO: Tuyệt đối KHÔNG ĐƯỢC gây nôn vì hóa chất ăn mòn sẽ gây bỏng rách thực quản lần thứ hai khi trào ngược. Không tự uống than hoạt tính hay sữa. Hãy đưa nạn nhân và mang theo vỏ chai hóa chất đến ngay khoa Cấp cứu bệnh viện gần nhất.\n\nCấp cứu ngay\nKhớp quy tắc trực tiếp\nĐÁNH GIÁ BAN ĐẦU\nBạn cần được đánh giá cấp cứu ngay\n\nCác dấu hiệu bạn mô tả nằm trong nhóm cảnh báo cần đánh giá khẩn cấp. Tin nhắn không đủ để xác định nguyên nhân, vì vậy ưu tiên lúc này là tiếp cận cấp cứu ngay. Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; không thể khẳng định chẩn đoán từ xa.\n\nƯu tiên hành động khẩn cấp trước khi tiếp tục trao đổi\nDữ kiện chính\nDấu hiệu được nhận diện: uống nhầm nước tẩy\nBạn nên làm gì lúc này\nCẢNH BÁO: Tuyệt đối KHÔNG ĐƯỢC gây nôn vì hóa chất ăn mòn sẽ gây bỏng rách thực quản lần thứ hai khi trào ngược. Không tự uống than hoạt tính hay sữa. Hãy đưa nạn nhân và mang theo vỏ chai hóa chất đến ngay khoa Cấp cứu bệnh viện gần nhất.\nDừng ngay mọi hoạt động đang làm hoặc gắng sức, ở nơi an toàn và nhờ người bên cạnh hỗ trợ trong khi liên hệ cấp cứu.\nTuyệt đối không tự điều trị hoặc trì hoãn việc đánh giá y tế khẩn cấp.\nHành động và dấu hiệu khẩn cấp\nKhông trì hoãn việc gọi 115 hoặc đến khoa Cấp cứu ngay lập tức; tuyệt đối không chần chừ tại nhà.\nGiới hạn đánh giá từ xa\n\nKết quả phân luồng dựa trên triệu chứng bạn cung cấp và quy tắc an toàn y khoa, không thay thế chẩn đoán lâm sàng trực tiếp của bác sĩ tại viện.",
+      "visible": "MedGuard AI\nƯu tiên ngay lúc này\n\nCẢNH BÁO: Tuyệt đối KHÔNG ĐƯỢC gây nôn vì hóa chất ăn mòn sẽ gây bỏng rách thực quản lần thứ hai khi trào ngược. Không tự uống than hoạt tính hay sữa. Hãy đưa nạn nhân và mang theo vỏ chai hóa chất đến ngay khoa Cấp cứu bệnh viện gần nhất.\n\nCấp cứu ngay\nĐÁNH GIÁ BAN ĐẦU\nBạn cần được đánh giá cấp cứu ngay\n\nCác dấu hiệu bạn mô tả nằm trong nhóm cảnh báo cần đánh giá khẩn cấp. Tin nhắn không đủ để xác định nguyên nhân, vì vậy ưu tiên lúc này là tiếp cận cấp cứu ngay. Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; không thể khẳng định chẩn đoán từ xa.\n\nƯu tiên hành động khẩn cấp trước khi tiếp tục trao đổi\nDữ kiện chính\nDấu hiệu được nhận diện: uống nhầm nước tẩy\nBạn nên làm gì lúc này\nDừng ngay mọi hoạt động đang làm hoặc gắng sức, ở nơi an toàn và nhờ người bên cạnh hỗ trợ trong khi liên hệ cấp cứu.\nTuyệt đối không tự điều trị hoặc trì hoãn việc đánh giá y tế khẩn cấp.\nHành động và dấu hiệu khẩn cấp\nKhông trì hoãn việc gọi 115 hoặc đến khoa Cấp cứu ngay lập tức; tuyệt đối không chần chừ tại nhà.\nGiới hạn đánh giá từ xa\n\nKết quả phân luồng dựa trên triệu chứng bạn cung cấp và quy tắc an toàn y khoa, không thay thế chẩn đoán lâm sàng trực tiếp của bác sĩ tại viện.",
       "request": {
-        "conversation_id": "0d3fa50c-2ef0-4207-9971-09141c1c471c",
+        "conversation_id": "f9a9fea4-1e9f-4f9e-a74a-e3f9988b8bdf",
         "messages": [
           {
             "role": "user",
@@ -1391,10 +1391,10 @@
       "intent": "triage",
       "verification_status": "not_requested",
       "optional_advice": [],
-      "latency_ms": 1252,
+      "latency_ms": 748,
       "clinical_payload": {
         "disclaimer": "Kết quả chỉ mang tính hỗ trợ lâm sàng, không thay thế bác sĩ.",
-        "request_id": "ui-cf739edb-2cab-4eee-9e11-279e86c14b79",
+        "request_id": "ui-6d0d4e09-f21b-4986-91f1-60609d020a79",
         "status": "ok",
         "urgency": "EMERGENCY",
         "emergency_flag": true,
@@ -1414,12 +1414,12 @@
         "clinical_hypotheses": [],
         "advice": "CẢNH BÁO: Tuyệt đối KHÔNG ĐƯỢC gây nôn vì hóa chất ăn mòn sẽ gây bỏng rách thực quản lần thứ hai khi trào ngược. Không tự uống than hoạt tính hay sữa. Hãy đưa nạn nhân và mang theo vỏ chai hóa chất đến ngay khoa Cấp cứu bệnh viện gần nhất.",
         "trace": {
-          "request_id": "ui-cf739edb-2cab-4eee-9e11-279e86c14b79",
-          "tenant_id": "tenant-demo.uac6e0178fe074ff2b25006fe1e92b65b",
+          "request_id": "ui-6d0d4e09-f21b-4986-91f1-60609d020a79",
+          "tenant_id": "tenant-demo.ub01a6ca36d7f4caeba881b987166ca7c",
           "rule_version": "triage-rules@pha0",
           "knowledge_version": "allergy_cross_matrix.json@1.0.0|atc_codes.json@1.0.0|contraindications.json@1.0.0|drug_interactions.json@2.0.0|icd10_codes.json@1.0.0|medication_incident_protocols.json@1.1.0|monitoring_rules.json@1.1.0|product_registry.json@1.0.0|red_flag_protocols.json@2.5.0|v25_response_policy_overlay.json@25.10.0|v25_safety_overlay.json@25.5.0|v25_urgent_overlay.json@25.7.0|v28_monitoring_overlay.json@28.1.0|v28_response_guidance.json@28.1.0",
           "model_version": "deterministic@pha0",
-          "latency_ms": 280,
+          "latency_ms": 148,
           "details": {
             "severity_resolution": "hybrid-conservative-max",
             "rule_urgency": "EMERGENCY",
@@ -1519,9 +1519,9 @@
     {
       "name": "mental-health-crisis",
       "question": "Tôi có ý định tự tử tối nay và đang ở một mình.",
-      "visible": "MedGuard AI\nƯu tiên ngay lúc này\n\nGọi 115 hoặc đến khoa Cấp cứu ngay nếu bạn có thể tự làm hại mình. Nhờ người bạn tin tưởng đến ở cùng; không ở một mình và không chờ phản hồi AI.\n\nCấp cứu ngay\nKết quả trong phạm vi dữ liệu\nĐÁNH GIÁ BAN ĐẦU\nBạn cần được hỗ trợ an toàn ngay lúc này\n\nGọi 115 hoặc đến khoa Cấp cứu ngay nếu bạn có thể tự làm hại mình. Nhờ người bạn tin tưởng đến ở cùng; không ở một mình và không chờ phản hồi AI. Tôi rất tiếc vì bạn đang trải qua thời điểm khó khăn. Đường dây Ngày Mai 096 306 1414 hỗ trợ 13:00–20:30 từ thứ Tư đến Chủ nhật; không thay thế cấp cứu. Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; không thể khẳng định chẩn đoán từ xa.\n\nƯu tiên hành động khẩn cấp trước khi tiếp tục trao đổi\nBạn nên làm gì lúc này\nGọi 115 hoặc đến khoa Cấp cứu ngay nếu bạn có thể tự làm hại mình. Nhờ người bạn tin tưởng đến ở cùng; không ở một mình và không chờ phản hồi AI.\nNhờ người hỗ trợ đưa thuốc, vật sắc nhọn hoặc vật có thể gây hại ra khỏi tầm với nếu có thể làm an toàn.\nHành động và dấu hiệu khẩn cấp\nĐường dây Ngày Mai 096 306 1414 hoạt động 13:00–20:30 từ thứ Tư đến Chủ nhật; đây không phải dịch vụ cấp cứu 24/7. Không chờ đường dây này nếu đang có nguy hiểm.\nGiới hạn đánh giá từ xa\n\nAI không thể theo dõi trực tiếp sự an toàn của bạn hoặc gọi cấp cứu thay bạn.",
+      "visible": "MedGuard AI\nƯu tiên ngay lúc này\n\nGọi 115 hoặc đến khoa Cấp cứu ngay nếu bạn có thể tự làm hại mình. Nhờ người bạn tin tưởng đến ở cùng; không ở một mình và không chờ phản hồi AI.\n\nCấp cứu ngay\nĐÁNH GIÁ BAN ĐẦU\nBạn cần được hỗ trợ an toàn ngay lúc này\n\nGọi 115 hoặc đến khoa Cấp cứu ngay nếu bạn có thể tự làm hại mình. Nhờ người bạn tin tưởng đến ở cùng; không ở một mình và không chờ phản hồi AI. Tôi rất tiếc vì bạn đang trải qua thời điểm khó khăn. Đường dây Ngày Mai 096 306 1414 hỗ trợ 13:00–20:30 từ thứ Tư đến Chủ nhật; không thay thế cấp cứu. Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; không thể khẳng định chẩn đoán từ xa.\n\nƯu tiên hành động khẩn cấp trước khi tiếp tục trao đổi\nBạn nên làm gì lúc này\nNhờ người hỗ trợ đưa thuốc, vật sắc nhọn hoặc vật có thể gây hại ra khỏi tầm với nếu có thể làm an toàn.\nHành động và dấu hiệu khẩn cấp\nĐường dây Ngày Mai 096 306 1414 hoạt động 13:00–20:30 từ thứ Tư đến Chủ nhật; đây không phải dịch vụ cấp cứu 24/7. Không chờ đường dây này nếu đang có nguy hiểm.\nGiới hạn đánh giá từ xa\n\nAI không thể theo dõi trực tiếp sự an toàn của bạn hoặc gọi cấp cứu thay bạn.",
       "request": {
-        "conversation_id": "bf5c6ebb-4323-4516-96b0-5fd080fe7b77",
+        "conversation_id": "6c07a4ab-5162-4420-9d25-bd6ac923e949",
         "messages": [
           {
             "role": "user",
@@ -1545,7 +1545,7 @@
       "intent": "triage",
       "verification_status": "not_requested",
       "optional_advice": [],
-      "latency_ms": 619,
+      "latency_ms": 608,
       "clinical_payload": {
         "urgency": "EMERGENCY",
         "emergency_flag": true,
@@ -1570,9 +1570,9 @@
     {
       "name": "minor-injury",
       "question": "Tôi bị trẹo cổ chân nhẹ lúc đi bộ, vẫn đi lại được, không biến dạng.",
-      "visible": "MedGuard AI\nTheo dõi / chăm sóc thông thường\nKết quả trong phạm vi dữ liệu\nĐÁNH GIÁ BAN ĐẦU\nĐánh giá ban đầu: mức theo dõi thường quy\n\nTình trạng lật hoặc trẹo cổ chân sau vận động hay bước hụt thường do căng giãn hoặc rách dây chằng quanh khớp. Hiện tại chưa thấy dấu hiệu nguy kịch, bạn hãy dừng ngay việc đi lại, không dồn lực lên chân và áp dụng biện pháp chườm lạnh kết hợp kê cao chân; tuyệt đối không xoa dầu nóng.\n\nChưa ghi nhận tiêu chí cấp cứu từ dữ kiện hiện có\nKhả năng cần cân nhắc\nBong gân độ 1 (Giãn dây chằng nhẹ): Dây chằng bị kéo giãn nhẹ, sưng đau nhẹ quanh mắt cá, vẫn có thể dồn một phần trọng lượng để đứng.\nBong gân độ 2-3 (Rách một phần hoặc đứt hoàn toàn dây chằng): Sưng phù nề nhanh, bầm tím lan rộng, đau chói dữ dội và hoàn toàn mất khả năng chịu lực bàn chân.\nGãy xương kèm theo (Gãy mắt cá chân / rạn xương): Đau nhói tại điểm gãy xương, biến dạng khớp.\nBạn nên làm gì lúc này\nRest (Nghỉ ngơi): Lập tức dừng đi lại hoặc tập luyện, không dồn lực lên khớp bị đau.\nIce (Chườm lạnh): Bọc đá viên trong khăn vải mềm chườm lên vùng sưng 15-20 phút mỗi lần, cách 2-3 giờ chườm một lần trong 48 giờ đầu.\nCompression (Băng ép): Dùng băng thun co giãn quấn nhẹ nhàng hình số 8 cố định khớp, không quấn quá chặt làm cản trở tuần hoàn.\nElevation (Kê cao): Kê chân cao hơn tim khi nằm để giảm ứ trệ tĩnh mạch và chống sưng phù.\nCảnh báo an toàn: Tránh xa 4 yếu tố HARM trong 48h đầu (Heat - Nhiệt nóng/dầu nóng, Alcohol - Rượu bia, Running - Vận động gắng sức, Massage - Xoa bóp nắn khớp).\nNếu bạn vẫn đau nhức nhiều sau 48 giờ hoặc có bầm tím lớn quanh mắt cá, bạn nên đi chụp X-quang tại chuyên khoa Chấn thương chỉnh hình để loại trừ gãy xương kín.\nKhi nào cần đi khám / cấp cứu\nCần đi khám cơ sở y tế ngay nếu: Hoàn toàn không thể chịu lực đứng lên chân bị đau quá 4 bước; biến dạng lệch trục khớp; bàn chân/ngón chân bị tê bì, tím tái, lạnh buốt.\nThông tin cần biết thêm\nBạn bị chấn thương từ lúc nào và đã chườm lạnh tại chỗ chưa?\nGiới hạn đánh giá từ xa\n\nKết quả phân luồng dựa trên triệu chứng bạn cung cấp và quy tắc an toàn y khoa, không thay thế chẩn đoán lâm sàng trực tiếp của bác sĩ tại viện.\n\nGợi ý thêm, nếu phù hợp với bạn\nElevation (Kê cao): Kê chân cao hơn tim khi nằm để giảm ứ trệ tĩnh mạch và chống sưng phù.\nKhông bắt buộc. Các hướng dẫn an toàn ở trên vẫn cần được ưu tiên.",
+      "visible": "MedGuard AI\nTheo dõi / chăm sóc thông thường\nĐÁNH GIÁ BAN ĐẦU\nĐánh giá ban đầu: mức theo dõi thường quy\n\nTình trạng lật hoặc trẹo cổ chân sau vận động hay bước hụt thường do căng giãn hoặc rách dây chằng quanh khớp. Hiện tại chưa thấy dấu hiệu nguy kịch, bạn hãy dừng ngay việc đi lại, không dồn lực lên chân và áp dụng biện pháp chườm lạnh kết hợp kê cao chân; tuyệt đối không xoa dầu nóng.\n\nChưa ghi nhận tiêu chí cấp cứu từ dữ kiện hiện có\nKhả năng cần cân nhắc\nBong gân độ 1 (Giãn dây chằng nhẹ): Dây chằng bị kéo giãn nhẹ, sưng đau nhẹ quanh mắt cá, vẫn có thể dồn một phần trọng lượng để đứng.\nBong gân độ 2-3 (Rách một phần hoặc đứt hoàn toàn dây chằng): Sưng phù nề nhanh, bầm tím lan rộng, đau chói dữ dội và hoàn toàn mất khả năng chịu lực bàn chân.\nGãy xương kèm theo (Gãy mắt cá chân / rạn xương): Đau nhói tại điểm gãy xương, biến dạng khớp.\nBạn nên làm gì lúc này\nRest (Nghỉ ngơi): Lập tức dừng đi lại hoặc tập luyện, không dồn lực lên khớp bị đau.\nIce (Chườm lạnh): Bọc đá viên trong khăn vải mềm chườm lên vùng sưng 15-20 phút mỗi lần, cách 2-3 giờ chườm một lần trong 48 giờ đầu.\nCompression (Băng ép): Dùng băng thun co giãn quấn nhẹ nhàng hình số 8 cố định khớp, không quấn quá chặt làm cản trở tuần hoàn.\nCảnh báo an toàn: Tránh xa 4 yếu tố HARM trong 48h đầu (Heat - Nhiệt nóng/dầu nóng, Alcohol - Rượu bia, Running - Vận động gắng sức, Massage - Xoa bóp nắn khớp).\nNếu bạn vẫn đau nhức nhiều sau 48 giờ hoặc có bầm tím lớn quanh mắt cá, bạn nên đi chụp X-quang tại chuyên khoa Chấn thương chỉnh hình để loại trừ gãy xương kín.\nKhi nào cần đi khám / cấp cứu\nCần đi khám cơ sở y tế ngay nếu: Hoàn toàn không thể chịu lực đứng lên chân bị đau quá 4 bước; biến dạng lệch trục khớp; bàn chân/ngón chân bị tê bì, tím tái, lạnh buốt.\nThông tin cần biết thêm\nBạn bị chấn thương từ lúc nào và đã chườm lạnh tại chỗ chưa?\nGiới hạn đánh giá từ xa\n\nKết quả phân luồng dựa trên triệu chứng bạn cung cấp và quy tắc an toàn y khoa, không thay thế chẩn đoán lâm sàng trực tiếp của bác sĩ tại viện.\n\nGợi ý thêm, nếu phù hợp với bạn\nElevation (Kê cao): Kê chân cao hơn tim khi nằm để giảm ứ trệ tĩnh mạch và chống sưng phù.\nKhông bắt buộc. Các hướng dẫn an toàn ở trên vẫn cần được ưu tiên.",
       "request": {
-        "conversation_id": "de994cf2-f983-4684-ab76-50349421a3f1",
+        "conversation_id": "74e0a6b3-52f3-400e-8c95-25f20e0dab05",
         "messages": [
           {
             "role": "user",
@@ -1598,10 +1598,10 @@
       "optional_advice": [
         "Elevation (Kê cao): Kê chân cao hơn tim khi nằm để giảm ứ trệ tĩnh mạch và chống sưng phù."
       ],
-      "latency_ms": 1330,
+      "latency_ms": 876,
       "clinical_payload": {
         "disclaimer": "Kết quả chỉ mang tính hỗ trợ lâm sàng, không thay thế bác sĩ.",
-        "request_id": "ui-88e5e082-0af4-456a-ae31-4a45f70daf71",
+        "request_id": "ui-b6fb9f42-3c9f-4a70-903a-2dcfde2bd7c8",
         "status": "ok",
         "urgency": "ROUTINE",
         "emergency_flag": false,
@@ -1635,12 +1635,12 @@
         ],
         "advice": "Nếu bạn vẫn đau nhức nhiều sau 48 giờ hoặc có bầm tím lớn quanh mắt cá, bạn nên đi chụp X-quang tại chuyên khoa Chấn thương chỉnh hình để loại trừ gãy xương kín.",
         "trace": {
-          "request_id": "ui-88e5e082-0af4-456a-ae31-4a45f70daf71",
-          "tenant_id": "tenant-demo.uac6e0178fe074ff2b25006fe1e92b65b",
+          "request_id": "ui-b6fb9f42-3c9f-4a70-903a-2dcfde2bd7c8",
+          "tenant_id": "tenant-demo.ub01a6ca36d7f4caeba881b987166ca7c",
           "rule_version": "triage-rules@pha0",
           "knowledge_version": "allergy_cross_matrix.json@1.0.0|atc_codes.json@1.0.0|contraindications.json@1.0.0|drug_interactions.json@2.0.0|icd10_codes.json@1.0.0|medication_incident_protocols.json@1.1.0|monitoring_rules.json@1.1.0|product_registry.json@1.0.0|red_flag_protocols.json@2.5.0|v25_response_policy_overlay.json@25.10.0|v25_safety_overlay.json@25.5.0|v25_urgent_overlay.json@25.7.0|v28_monitoring_overlay.json@28.1.0|v28_response_guidance.json@28.1.0",
           "model_version": "deterministic@pha0",
-          "latency_ms": 452,
+          "latency_ms": 197,
           "details": {
             "severity_resolution": "hybrid-conservative-max",
             "rule_urgency": "UNRESOLVED",
@@ -1749,9 +1749,9 @@
     {
       "name": "mobile-routine",
       "question": "Tôi hắt hơi và sổ mũi nhẹ từ hôm qua, không khó thở.",
-      "visible": "MedGuard AI\nTheo dõi / chăm sóc thông thường\nKết quả trong phạm vi dữ liệu\nĐÁNH GIÁ BAN ĐẦU\nĐánh giá ban đầu: mức theo dõi thường quy\n\nHắt hơi, sổ mũi hoặc đau họng nhẹ có thể gặp khi đường hô hấp trên bị kích thích, dị ứng hoặc nhiễm virus. Chưa đủ dữ kiện để xác định nguyên nhân. Nếu hiện chưa có dấu hiệu cảnh báo, có thể chăm sóc hỗ trợ và theo dõi diễn biến.\n\nChưa ghi nhận tiêu chí cấp cứu từ dữ kiện hiện có\nBạn nên làm gì lúc này\nNghỉ ngơi thêm và giảm hoạt động gắng sức khi đang mệt.\nUống nước đều trong ngày theo nhu cầu nếu bạn không được nhân viên y tế yêu cầu hạn chế dịch.\nTheo dõi diễn biến và khả năng ăn uống, sinh hoạt. Không tự bắt đầu kháng sinh chỉ dựa vào các triệu chứng này.\nKhi nào cần đi khám / cấp cứu\nNếu khó thở, đau ngực, lơ mơ hoặc không uống được nước, cần được đánh giá khẩn cấp; không chờ tiếp tục trò chuyện.\nLiên hệ nhân viên y tế nếu triệu chứng kéo dài, tăng lên, tái phát sau khi đã đỡ hoặc bệnh nền xấu đi. Nếu mang thai, suy giảm miễn dịch hoặc có nguy cơ bệnh nặng, nên liên hệ sớm ngay cả khi triệu chứng nhẹ.\nThông tin cần biết thêm\nBạn bao nhiêu tuổi và có mang thai hoặc bệnh nền ảnh hưởng miễn dịch, tim hay phổi không?\nGiới hạn đánh giá từ xa\n\nKết quả phân luồng dựa trên triệu chứng bạn cung cấp và quy tắc an toàn y khoa, không thay thế chẩn đoán lâm sàng trực tiếp của bác sĩ tại viện.\n\nGợi ý thêm, nếu phù hợp với bạn\nNghỉ ngơi thêm và giảm hoạt động gắng sức khi đang mệt.\nKhông bắt buộc. Các hướng dẫn an toàn ở trên vẫn cần được ưu tiên.",
+      "visible": "MedGuard AI\nTheo dõi / chăm sóc thông thường\nĐÁNH GIÁ BAN ĐẦU\nĐánh giá ban đầu: mức theo dõi thường quy\n\nHắt hơi, sổ mũi hoặc đau họng nhẹ có thể gặp khi đường hô hấp trên bị kích thích, dị ứng hoặc nhiễm virus. Chưa đủ dữ kiện để xác định nguyên nhân. Nếu hiện chưa có dấu hiệu cảnh báo, có thể chăm sóc hỗ trợ và theo dõi diễn biến.\n\nChưa ghi nhận tiêu chí cấp cứu từ dữ kiện hiện có\nBạn nên làm gì lúc này\nUống nước đều trong ngày theo nhu cầu nếu bạn không được nhân viên y tế yêu cầu hạn chế dịch.\nTheo dõi diễn biến và khả năng ăn uống, sinh hoạt. Không tự bắt đầu kháng sinh chỉ dựa vào các triệu chứng này.\nKhi nào cần đi khám / cấp cứu\nNếu khó thở, đau ngực, lơ mơ hoặc không uống được nước, cần được đánh giá khẩn cấp; không chờ tiếp tục trò chuyện.\nLiên hệ nhân viên y tế nếu triệu chứng kéo dài, tăng lên, tái phát sau khi đã đỡ hoặc bệnh nền xấu đi. Nếu mang thai, suy giảm miễn dịch hoặc có nguy cơ bệnh nặng, nên liên hệ sớm ngay cả khi triệu chứng nhẹ.\nThông tin cần biết thêm\nBạn bao nhiêu tuổi và có mang thai hoặc bệnh nền ảnh hưởng miễn dịch, tim hay phổi không?\nGiới hạn đánh giá từ xa\n\nKết quả phân luồng dựa trên triệu chứng bạn cung cấp và quy tắc an toàn y khoa, không thay thế chẩn đoán lâm sàng trực tiếp của bác sĩ tại viện.\n\nGợi ý thêm, nếu phù hợp với bạn\nNghỉ ngơi thêm và giảm hoạt động gắng sức khi đang mệt.\nKhông bắt buộc. Các hướng dẫn an toàn ở trên vẫn cần được ưu tiên.",
       "request": {
-        "conversation_id": "534c69cb-a294-464a-8ad0-1858a6629b2a",
+        "conversation_id": "28ee91c8-37e3-45d2-a42c-f59769b7c6a5",
         "messages": [
           {
             "role": "user",
@@ -1777,10 +1777,10 @@
       "optional_advice": [
         "Nghỉ ngơi thêm và giảm hoạt động gắng sức khi đang mệt."
       ],
-      "latency_ms": 1294,
+      "latency_ms": 887,
       "clinical_payload": {
         "disclaimer": "Kết quả chỉ mang tính hỗ trợ lâm sàng, không thay thế bác sĩ.",
-        "request_id": "ui-9bd7e11c-cddb-4422-8006-1b26568b3471",
+        "request_id": "ui-e896315c-4787-45db-a49a-ffbe30c0a9f4",
         "status": "ok",
         "urgency": "ROUTINE",
         "emergency_flag": false,
@@ -1806,12 +1806,12 @@
         "clinical_hypotheses": [],
         "advice": "Theo dõi diễn biến và khả năng ăn uống, sinh hoạt. Không tự bắt đầu kháng sinh chỉ dựa vào các triệu chứng này.",
         "trace": {
-          "request_id": "ui-9bd7e11c-cddb-4422-8006-1b26568b3471",
-          "tenant_id": "tenant-demo.uac6e0178fe074ff2b25006fe1e92b65b",
+          "request_id": "ui-e896315c-4787-45db-a49a-ffbe30c0a9f4",
+          "tenant_id": "tenant-demo.ub01a6ca36d7f4caeba881b987166ca7c",
           "rule_version": "triage-rules@pha0",
           "knowledge_version": "allergy_cross_matrix.json@1.0.0|atc_codes.json@1.0.0|contraindications.json@1.0.0|drug_interactions.json@2.0.0|icd10_codes.json@1.0.0|medication_incident_protocols.json@1.1.0|monitoring_rules.json@1.1.0|product_registry.json@1.0.0|red_flag_protocols.json@2.5.0|v25_response_policy_overlay.json@25.10.0|v25_safety_overlay.json@25.5.0|v25_urgent_overlay.json@25.7.0|v28_monitoring_overlay.json@28.1.0|v28_response_guidance.json@28.1.0",
           "model_version": "deterministic@pha0",
-          "latency_ms": 331,
+          "latency_ms": 181,
           "details": {
             "severity_resolution": "hybrid-conservative-max",
             "rule_urgency": "UNRESOLVED",
@@ -1933,10 +1933,26 @@
       "violations": []
     },
     {
+      "name": "medication-desktop",
+      "violations": []
+    },
+    {
+      "name": "medication-mobile",
+      "violations": []
+    },
+    {
+      "name": "medication-form-mobile",
+      "violations": []
+    },
+    {
       "name": "chat-mobile",
       "violations": []
     }
   ],
+  "account_isolation": true,
+  "medication_crud": true,
+  "medical_browser_storage": [],
   "passed": true,
-  "page_errors": []
+  "page_errors": [],
+  "server_errors": []
 }

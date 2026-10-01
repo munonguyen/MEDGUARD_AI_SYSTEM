@@ -10,7 +10,28 @@ Dùng Chromium/Playwright, thực sự đăng ký và đăng nhập qua form, l�
 
 Hai chế độ được thử: `disabled` để kiểm tra đường trả lời xác định; `enforced` với gateway chủ động không được cấu hình để kiểm tra đường dự phòng thật khi Writer/Reviewer không khả dụng. Những lượt `enforced` này có trạng thái `unavailable`, không phải câu trả lời đã được model hoặc bác sĩ xác nhận. Thời gian đáp ứng đo trên môi trường kiểm thử không đại diện cho mạng người dùng hoặc gateway thật.
 
-`UI_BASELINE.json` lưu lượt đường xác định. `UI_ENFORCED_FALLBACK.json` và các ảnh trong thư mục này lưu lượt đường dự phòng. `QUESTIONS_AND_VISIBLE_ANSWERS.md` ghi nguyên văn câu hỏi và câu trả lời người dùng nhìn thấy. Workflow `Platform and patient UI quality` bổ sung kiểm thử HTTPS, PostgreSQL, Nginx, hai replica, tải nhỏ và failover trên runner có Docker.
+`UI_BASELINE.json` và `UI_ENFORCED_FALLBACK.json` lưu hai lượt cuối trên HTTPS/Nginx/PostgreSQL, mỗi lượt 13 câu hỏi. Các ảnh và `QUESTIONS_AND_VISIBLE_ANSWERS.md` là nội dung cuối ở chế độ enforced với gateway không cấu hình. `UI_INITIAL_REVIEW.json` giữ lượt ban đầu để đối chiếu lỗi đã tìm thấy; không dùng nó làm bằng chứng cho đầu ra cuối. Workflow `Platform and patient UI quality` đã chạy thực tế trên Docker, gồm hai replica, tải nhỏ, restart/failover và thu hồi phiên.
+
+## Kết quả xác nhận ở bản cuối
+
+Mã nguồn đã kiểm tra UI: `5630178db9bd99925af20c7e7757f657d2ed0199`; [workflow HTTPS](https://github.com/munonguyen/MEDGUARD_AI_SYSTEM/actions/runs/36936269580). Artifact gốc có SHA-256 `870215a1ac81a0f4dd5194f629acda5771613b67fa3defacd947e1be27e7d780`. Báo cáo này và ảnh không thay đổi mã ứng dụng đã được kiểm tra.
+
+| Phép kiểm | Kết quả | Giới hạn |
+|---|---|---|
+| Backend hồi quy | 901 tests qua | Không chứng minh không còn mọi lỗi |
+| Medical Response Quality nội bộ | 40 ca, 12,3/14; không lỗi nghiêm trọng hoặc ca dưới ngưỡng | Ca giả lập; chưa được đánh giá lâm sàng độc lập |
+| Hội thoại nội bộ | 200 lượt/50 hội thoại, 99,36/100; 0 lỗi nghiêm trọng, tỷ lệ lặp 3% | Không so ngang với điểm của sản phẩm khác |
+| UI qua HTTPS | 13 câu hỏi mỗi chế độ, 26 lượt tổng; không lỗi JavaScript hoặc HTTP 5xx | Gateway được cố ý để không cấu hình; không phải model trả lời đã kiểm chứng |
+| Khả năng tiếp cận | 7 màn hình mỗi chế độ, 0 lỗi axe trong phạm vi quét | Chưa kiểm tra toàn bộ WCAG hoặc trình đọc màn hình thực |
+| Hồ sơ/lịch sử/lịch thuốc | Lưu/reload/login lại, mở hội thoại, tạo/sửa/xóa lịch; đúng múi giờ UTC+7 | Lịch chưa gửi thông báo nền |
+| Cô lập tài khoản | Hai tài khoản thật; không đọc/sửa lịch sử/lịch thuốc của nhau kể cả đoán ID/chèn header | Chưa là penetration test độc lập |
+| Transport/persistence | Nginx hợp lệ; Secure cookie, CSRF; cả hai replica nhận phiên; restart/stop vẫn giữ phiên; logout thu hồi | PostgreSQL/Redis/Nginx vẫn là điểm đơn |
+
+Median UI là 733 ms (disabled) và 779 ms (enforced fallback); p95 theo nearest rank ở mẫu 13 ca lần lượt 960 ms và 906 ms. Đây là môi trường runner, không dùng làm SLO sản xuất hoặc latency gateway thật.
+
+Một probe Gemini ở lượt trước thất bại ngưỡng readiness: Writer 5/5, Reviewer 5/5 nhưng Reviewer retry 2 lần và p95 chu kỳ thử 40,16 giây, vượt ngưỡng 30 giây. `PROVIDER_LATENCY_FAILURE.json` giữ bằng chứng; latency này gồm pacing/retry của script. Không sửa ngưỡng để làm gate xanh. Một lần probe sau thành công cũng không xóa rủi ro biến động hoặc chứng minh chất lượng y khoa. Cần theo dõi độ trễ/lỗi dài hạn, budget timeout và đường dự phòng trong cấu hình gateway thật.
+
+**Chặn phát hành hiện tại:** [probe tiếp theo](https://github.com/munonguyen/MEDGUARD_AI_SYSTEM/actions/runs/36936269532) ghi HTTP 429: Writer thành công 3/5, Reviewer 1/5, trạng thái `degraded_external`, `provider_fully_ready=false`. `PROVIDER_QUOTA_FAILURE.json` lưu kết quả thật. HTTP 429 cho biết giới hạn/quota phía nhà cung cấp; không đủ dữ kiện để kết luận là hạn mức theo ngày hay theo phút. Không retry vô hạn, không đổi ngưỡng để bỏ qua và không merge/phát hành như một bản đã hoàn chỉnh. PR #40 được giữ draft. Mã ứng dụng qua các gate nội bộ và cả hai hành trình UI; điều đó không xóa gate provider hoặc yêu cầu thẩm định lâm sàng.
 
 ## Câu hỏi, phản hồi và cảm nhận
 
@@ -44,7 +65,7 @@ Hai chế độ được thử: `disabled` để kiểm tra đường trả lờ
 8. Phản hồi đang chạy có thể cập nhật cuộc trò chuyện mới. Thêm kiểm tra thế hệ cuộc trò chuyện trước khi cập nhật kết quả và trạng thái bận.
 9. Kiểm thử HTTPS/PostgreSQL phát hiện đăng ký thiếu namespace trong bảng tenant do so sánh sai tên dialect, khiến chat lỗi 500. Sửa tên dialect và bổ sung hai tài khoản thật để thử cô lập lịch sử, đoán ID và chèn header.
 10. Đọc nguyên văn phát hiện giải thích đau ngực đầu tiên tự nhắc “đau cơ ở lượt trước”, và câu hỏi trì hoãn bị diễn giải thành đã thấy đỡ sau nghỉ. Sửa nguồn giải thích sang dữ kiện hiện có và mệnh đề điều kiện; giữ mức cấp cứu. Thêm kiểm thử hợp đồng và kiểm tra ngay trên văn bản UI. Các lượt trước sửa vẫn được lưu làm bằng chứng phát hiện lỗi, không coi chúng là đầu ra cuối.
-11. PostgreSQL trả timestamp dạng datetime, còn API lịch sử yêu cầu chuỗi ISO; lịch sử từng bị lỗi dù chat trả 200. Chuẩn hóa timestamp ở biên đọc lịch sử và bổ sung thao tác mở lại hội thoại đã lưu trên UI thật.
+11. PostgreSQL trả timestamp dạng datetime và ID dạng UUID, còn API lịch sử yêu cầu chuỗi ISO/ID chuỗi; lịch sử từng bị lỗi dù chat trả 200. Chuẩn hóa timestamp ở biên đọc lịch sử và UUID ở adapter PostgreSQL và bổ sung thao tác mở lại hội thoại đã lưu trên UI thật.
 12. Trang lịch thuốc cũ chứa thuốc/liều/tên bác sĩ mẫu và dữ liệu sức khỏe chung trong localStorage. Thay bằng lịch phía máy chủ theo tài khoản, trạng thái trống thật, không tự tạo liều, giờ nhập được lưu đúng UTC+7, thêm/sửa/xóa với xác nhận và lỗi hiển thị. Bỏ lịch khám mẫu khỏi bundle công khai. Trang ghi rõ chưa gửi thông báo khi đóng ứng dụng; không hứa chức năng nhắc nền chưa được triển khai. Tạo/sửa lịch cũng cần consent của tài khoản.
 13. Khóa API demo vẫn được khởi tạo mặc định trong production. Đóng tích hợp API-key khi không có cấu hình rõ ràng; từ chối khóa demo/khóa ngắn, bổ sung kiểm tra client không đăng nhập không vào được audit bằng khóa demo. Nút chuyển sang lịch thuốc bị axe phát hiện tương phản thấp; sửa màu rồi kiểm tra lại thay vì bỏ qua lỗi.
 
@@ -80,7 +101,7 @@ Nguồn đối chiếu: [Ada: quy trình đánh giá](https://ada.com/help/how-d
 - Chưa kiểm định đầu ra Writer/Reviewer qua gateway thật trong lượt UI này. Cần chạy lại cùng các ca qua cấu hình thực tế, đánh giá các câu trả lời bị Reviewer từ chối và so sánh mù với đường dự phòng.
 - Phần trả lời dự phòng còn dài, có câu hỏi chưa tối ưu hoặc thông tin rộng hơn nhu cầu. Ưu tiên 1 câu hỏi làm rõ, một giải thích ngắn và hành động phù hợp; chỉ đưa giả thuyết khi đủ dữ kiện, giữ toàn bộ cảnh báo bắt buộc.
 - Bằng chứng “hơn đối thủ” còn thiếu. Chốt tập ca, tiêu chí an toàn không bù trừ, tiêu chí hiểu/khả năng làm theo, thu kết quả thực của đối thủ hợp lệ rồi nhờ bác sĩ đánh giá mù.
-- Tài khoản chưa có email verification, khôi phục mật khẩu, MFA/SSO. Storage cần mã hóa do hạ tầng quản lý, retention/deletion và diễn tập phục hồi.
+- Tài khoản chưa có email verification, khôi phục mật khẩu, MFA/SSO. Thiết bị dùng chung cần đăng xuất; cookie HttpOnly không tự loại bỏ mọi rủi ro XSS hoặc phiên bị chiếm. Storage cần mã hóa do hạ tầng quản lý, retention/deletion và diễn tập phục hồi.
 - Hai API replica chưa loại bỏ single point of failure của Nginx/PostgreSQL/Redis. Cần kiến trúc HA và diễn tập sự cố thật; kiểm thử tải nhỏ không chứng minh capacity production.
 - OCR, object storage, queue workers và các nghiệp vụ y tế cần kiểm tra end-to-end riêng trước khi hứa rằng toàn bộ hệ thống đã hoàn chỉnh.
 
