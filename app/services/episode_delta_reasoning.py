@@ -7,9 +7,10 @@ patient explanation after the latest turn adds higher-risk cardiorespiratory
 features.
 
 This adapter is deliberately narrow: it does not change Safety Kernel urgency,
-create a diagnosis, or remove prior evidence. It only fills the bounded chest
-explanation gap and re-ranks explanation hypotheses when the latest turn adds
-more decision-relevant cardiorespiratory features.
+create a diagnosis, or remove prior evidence. It fills the bounded chest
+explanation gap, re-ranks explanations when new warning features appear, and
+keeps a prior emergency explanation leading when symptoms only improve
+transiently without a factual retraction of the warning features.
 """
 
 from __future__ import annotations
@@ -57,7 +58,7 @@ def _mechanical_chest_pattern(text: str) -> bool:
     norm = normalize_search_text(text)
     post_load = bool(re.search(r"\b(?:sau tap|tap gym|tap nguc|nang ta|day nguc|van dong manh)\b", norm))
     reproducible = bool(re.search(r"\b(?:an vao.*dau|dau khi an|so vao.*dau|xoay nguoi.*dau|co co.*dau)\b", norm))
-    return _chest_context(norm) and (post_load or reproducible) and reproducible
+    return _chest_context(norm) and post_load and reproducible
 
 
 def _latest_risk_features(message: str) -> tuple[str, ...]:
@@ -86,6 +87,15 @@ def _latest_risk_features(message: str) -> tuple[str, ...]:
     if autonomic:
         features.append("autonomic_features")
     return tuple(features)
+
+
+def _meaningful_risk(features: tuple[str, ...]) -> bool:
+    return (
+        "exertional_relation" in features
+        or "radiation" in features
+        or "autonomic_features" in features
+        or ("chest_pressure" in features and "dyspnea" in features)
+    )
 
 
 def _mechanical_mechanism(message: str) -> MechanismHypothesis:
@@ -142,6 +152,25 @@ def _warning_mechanism(message: str, features: tuple[str, ...], urgency: str) ->
     )
 
 
+def _historical_emergency_mechanism(evidence_text: str) -> MechanismHypothesis:
+    return MechanismHypothesis(
+        hypothesis_id="historical_cardiorespiratory_emergency",
+        label="Dấu hiệu cảnh báo tim–phổi trước đó vẫn có giá trị dù triệu chứng tạm giảm",
+        role="leading",
+        support_level="supported",
+        mechanism=(
+            "Một số bệnh cảnh tim–phổi cấp có thể dao động hoặc giảm tạm thời khi nghỉ. Việc cơn đau hay khó chịu đỡ đi "
+            "không chứng minh rằng nguy cơ đã hết; khi trước đó đã có nặng/đau ngực theo gắng sức, khó thở, đau lan hoặc "
+            "vã mồ hôi/buồn nôn, mức cấp cứu vẫn phải được giữ cho tới khi được đánh giá trực tiếp."
+        ),
+        evidence_for=(evidence_text,) if evidence_text.strip() else (),
+        patient_safe_statement=(
+            "Việc bạn thấy đỡ sau khi nghỉ không xóa các dấu hiệu cảnh báo tim–phổi đã xuất hiện trước đó; vì vậy không "
+            "nên dùng sự cải thiện tạm thời để hạ mức cấp cứu."
+        ),
+    )
+
+
 def _with_mechanical_baseline(frame: Any, episode: Any) -> Any:
     mechanisms = list(tuple(getattr(frame, "mechanisms", ()) or ()))
     if mechanisms:
@@ -164,6 +193,25 @@ def _with_mechanical_baseline(frame: Any, episode: Any) -> Any:
     )
 
 
+def _promote_mechanism(frame: Any, mechanism: MechanismHypothesis, *, emergency: bool) -> Any:
+    updated: list[MechanismHypothesis] = [mechanism]
+    for existing in tuple(getattr(frame, "mechanisms", ()) or ()):
+        if existing.hypothesis_id == mechanism.hypothesis_id:
+            continue
+        if existing.role == "leading":
+            existing = existing.model_copy(update={"role": "contributor"})
+        updated.append(existing)
+
+    update: dict[str, Any] = {
+        "mechanisms": tuple(updated),
+        "leading_hypothesis_ids": (mechanism.hypothesis_id,),
+    }
+    if emergency:
+        update["next_best_question"] = None
+        update["next_question_key"] = None
+    return frame.model_copy(update=update)
+
+
 def _reprioritize_frame(frame: Any, episode: Any, urgency: str) -> Any:
     frame = _with_mechanical_baseline(frame, episode)
     current = _current_turn_text(episode)
@@ -171,35 +219,22 @@ def _reprioritize_frame(frame: Any, episode: Any, urgency: str) -> Any:
     if not _chest_context(full_text):
         return frame
 
-    features = _latest_risk_features(current)
     urgency_value = str(urgency or "ROUTINE").upper()
-    meaningful_risk = (
-        "exertional_relation" in features
-        or "radiation" in features
-        or "autonomic_features" in features
-        or ("chest_pressure" in features and "dyspnea" in features)
-    )
-    if not meaningful_risk:
-        return frame
+    current_features = _latest_risk_features(current)
+    if _meaningful_risk(current_features):
+        warning = _warning_mechanism(current, current_features, urgency_value)
+        return _promote_mechanism(frame, warning, emergency=urgency_value == "EMERGENCY")
 
-    warning = _warning_mechanism(current, features, urgency_value)
-    updated: list[MechanismHypothesis] = [warning]
-    for mechanism in tuple(getattr(frame, "mechanisms", ()) or ()):
-        if mechanism.hypothesis_id == warning.hypothesis_id:
-            continue
-        if mechanism.role == "leading":
-            mechanism = mechanism.model_copy(update={"role": "contributor"})
-        updated.append(mechanism)
+    # Risk memory is explanation memory too. If Safety Kernel still holds an
+    # emergency floor and the active episode explicitly contains the warning
+    # features that created it, a later report of temporary improvement must not
+    # make an earlier benign chest-wall hypothesis leading again.
+    episode_features = _latest_risk_features(full_text)
+    if urgency_value == "EMERGENCY" and _meaningful_risk(episode_features):
+        historical = _historical_emergency_mechanism(full_text)
+        return _promote_mechanism(frame, historical, emergency=True)
 
-    update: dict[str, Any] = {
-        "mechanisms": tuple(updated),
-        "leading_hypothesis_ids": (warning.hypothesis_id,),
-    }
-    if urgency_value == "EMERGENCY":
-        update["next_best_question"] = None
-        update["next_question_key"] = None
-
-    return frame.model_copy(update=update)
+    return frame
 
 
 def install_episode_delta_reasoning(reasoner_module: ModuleType) -> None:
