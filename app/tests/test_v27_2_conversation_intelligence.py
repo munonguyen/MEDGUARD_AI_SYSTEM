@@ -2,6 +2,7 @@ from app.models.chat import ChatMessage, ChatRequest
 from app.services import answering
 from app.services import chat
 from app.services.clinical_agent_contract import build_clinical_agent_contract
+from app.services.conversation_intelligence import _classify_medications
 
 
 def _request(*messages: str) -> ChatRequest:
@@ -33,6 +34,22 @@ def test_medication_memory_carries_pending_candidate_across_followup_turn() -> N
     assert "warfarin" in current
     assert "aspirin" in current
     assert "ibuprofen" in proposed
+
+
+def test_multiple_current_medicines_keep_their_roles_when_candidate_is_added() -> None:
+    current, proposed = _classify_medications(
+        chat,
+        "Tôi đang dùng warfarin và aspirin mỗi ngày, có thể uống thêm ibuprofen không?",
+    )
+    assert current == ["warfarin", "aspirin"]
+    assert proposed == ["ibuprofen"]
+
+    reversed_current, reversed_proposed = _classify_medications(
+        chat,
+        "Tôi có thể uống ibuprofen nếu đang dùng warfarin và aspirin mỗi ngày không?",
+    )
+    assert reversed_current == ["warfarin", "aspirin"]
+    assert reversed_proposed == ["ibuprofen"]
 
 
 def test_monitoring_answer_uses_plain_language_not_internal_codes() -> None:
