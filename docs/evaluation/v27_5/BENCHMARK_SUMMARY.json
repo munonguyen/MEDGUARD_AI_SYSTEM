@@ -8,7 +8,7 @@
     "critical_failures": 0,
     "below_70": 0,
     "card_state_failures": 0,
-    "p95_latency_ms": 1594.6
+    "p95_latency_ms": 1675.0
   },
   "conversation_gate": {
     "gate": "V27.5_CONVERSATION_AND_OUTPUT_QUALITY",
@@ -61,5 +61,7 @@
     "expert_review_status": "pending",
     "production_evaluable": false
   },
-  "baseline_duplicate_ratio": 0.09
+  "baseline_duplicate_ratio": 0.09,
+  "backend_tests_passed": 878,
+  "integration_base": "501eed3a631b1f7e83475d846b2cdd0140c497bd"
 }

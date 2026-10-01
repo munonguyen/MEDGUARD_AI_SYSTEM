@@ -2,7 +2,7 @@
 
 **Câu hỏi:** Tôi hơi tức cơ ngực sau buổi tập gym tối qua, ấn vào thì đau hơn.
 
-**Câu trả lời:** Bạn cho biết: «Tôi hơi tức cơ ngực sau buổi tập gym tối qua, ấn vào thì đau hơn». Đặc điểm sau tập và đau tăng khi ấn làm nguyên nhân từ cơ/thành ngực hợp lý hơn, nhưng riêng dấu hiệu ấn đau không đủ để loại trừ nguyên nhân tim hoặc phổi nếu xuất hiện triệu chứng cảnh báo khác. Đau xuất hiện sau vận động cơ và tăng khi ấn trực tiếp phù hợp hơn với kích thích hoặc quá tải cơ–xương thành ngực, vì mô cơ và mô quanh xương sườn có thể đau rõ hơn khi bị ấn hoặc co kéo. Những đặc điểm hiện có làm khả năng tình trạng nguy hiểm thấp hơn so với khi có các dấu hiệu cảnh báo. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
+**Câu trả lời:** Bạn hơi tức cơ ngực sau buổi tập gym tối qua, ấn vào thì đau hơn. Bạn cho biết: «Tôi hơi tức cơ ngực sau buổi tập gym tối qua, ấn vào thì đau hơn». Đặc điểm sau tập và đau tăng khi ấn làm nguyên nhân từ cơ/thành ngực hợp lý hơn, nhưng riêng dấu hiệu ấn đau không đủ để loại trừ nguyên nhân tim hoặc phổi nếu xuất hiện triệu chứng cảnh báo khác. Đau xuất hiện sau vận động cơ và tăng khi ấn trực tiếp phù hợp hơn với kích thích hoặc quá tải cơ–xương thành ngực, vì mô cơ và mô quanh xương sườn có thể đau rõ hơn khi bị ấn hoặc co kéo. Những đặc điểm hiện có làm khả năng tình trạng nguy hiểm thấp hơn so với khi có các dấu hiệu cảnh báo. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
 
 ## Câu 2
 
@@ -26,13 +26,13 @@
 
 **Câu hỏi:** Tôi đau đầu nhẹ sau khi nhìn màn hình cả ngày.
 
-**Câu trả lời:** Bạn cho biết: «Tôi đau đầu nhẹ sau khi nhìn màn hình cả ngày». Việc đau xuất hiện sau thời gian nhìn màn hình làm mỏi thị giác trở thành một khả năng hợp lý, nhưng mối liên hệ thời gian này chưa đủ để khẳng định đó là nguyên nhân duy nhất. Nhìn gần và tập trung vào màn hình trong thời gian dài làm hệ điều tiết và hội tụ của mắt hoạt động liên tục; sự mỏi thị giác này có thể góp phần tạo cảm giác nặng hoặc đau vùng trán/quanh mắt. Những đặc điểm hiện có làm khả năng tình trạng nguy hiểm thấp hơn so với khi có các dấu hiệu cảnh báo. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
+**Câu trả lời:** Bạn đau đầu nhẹ sau khi nhìn màn hình cả ngày. Bạn cho biết: «Tôi đau đầu nhẹ sau khi nhìn màn hình cả ngày». Việc đau xuất hiện sau thời gian nhìn màn hình làm mỏi thị giác trở thành một khả năng hợp lý, nhưng mối liên hệ thời gian này chưa đủ để khẳng định đó là nguyên nhân duy nhất. Nhìn gần và tập trung vào màn hình trong thời gian dài làm hệ điều tiết và hội tụ của mắt hoạt động liên tục; sự mỏi thị giác này có thể góp phần tạo cảm giác nặng hoặc đau vùng trán/quanh mắt. Những đặc điểm hiện có làm khả năng tình trạng nguy hiểm thấp hơn so với khi có các dấu hiệu cảnh báo. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
 
 ## Câu 6
 
 **Câu hỏi:** Đau chủ yếu vùng trán, không sốt, nghỉ một lúc thì giảm.
 
-**Câu trả lời:** Bạn cho biết: «Đau chủ yếu vùng trán, không sốt, nghỉ một lúc thì giảm». Việc đau xuất hiện sau thời gian nhìn màn hình làm mỏi thị giác trở thành một khả năng hợp lý, nhưng mối liên hệ thời gian này chưa đủ để khẳng định đó là nguyên nhân duy nhất. Nhìn gần và tập trung vào màn hình trong thời gian dài làm hệ điều tiết và hội tụ của mắt hoạt động liên tục; sự mỏi thị giác này có thể góp phần tạo cảm giác nặng hoặc đau vùng trán/quanh mắt. Những đặc điểm hiện có làm khả năng tình trạng nguy hiểm thấp hơn so với khi có các dấu hiệu cảnh báo. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
+**Câu trả lời:** Bạn đau đầu nhẹ sau khi nhìn màn hình cả ngày. Đau chủ yếu vùng trán, không sốt, nghỉ một lúc thì giảm. Bạn cho biết: «Đau chủ yếu vùng trán, không sốt, nghỉ một lúc thì giảm». Việc đau xuất hiện sau thời gian nhìn màn hình làm mỏi thị giác trở thành một khả năng hợp lý, nhưng mối liên hệ thời gian này chưa đủ để khẳng định đó là nguyên nhân duy nhất. Nhìn gần và tập trung vào màn hình trong thời gian dài làm hệ điều tiết và hội tụ của mắt hoạt động liên tục; sự mỏi thị giác này có thể góp phần tạo cảm giác nặng hoặc đau vùng trán/quanh mắt. Những đặc điểm hiện có làm khả năng tình trạng nguy hiểm thấp hơn so với khi có các dấu hiệu cảnh báo. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
 
 ## Câu 7
 
@@ -50,13 +50,13 @@
 
 **Câu hỏi:** Tôi mỏi lưng sau khi ngồi máy tính khoảng 9 tiếng.
 
-**Câu trả lời:** Bạn cho biết: «Tôi mỏi lưng sau khi ngồi máy tính khoảng 9 tiếng». Đặc điểm liên quan tư thế làm cơ chế cơ học hợp lý hơn, nhưng yếu chân, tê tăng hoặc rối loạn tiểu tiện sẽ làm thay đổi hoàn toàn mức xử trí. Giữ một tư thế lâu làm cơ cạnh cột sống và mô mềm chịu tải liên tục; thay đổi tư thế hoặc vận động nhẹ có thể giảm tải nếu cơ chế chủ yếu là cơ học. Những đặc điểm hiện có làm khả năng tình trạng nguy hiểm thấp hơn so với khi có các dấu hiệu cảnh báo. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
+**Câu trả lời:** Bạn mỏi lưng sau khi ngồi máy tính khoảng 9 tiếng. Bạn cho biết: «Tôi mỏi lưng sau khi ngồi máy tính khoảng 9 tiếng». Đặc điểm liên quan tư thế làm cơ chế cơ học hợp lý hơn, nhưng yếu chân, tê tăng hoặc rối loạn tiểu tiện sẽ làm thay đổi hoàn toàn mức xử trí. Giữ một tư thế lâu làm cơ cạnh cột sống và mô mềm chịu tải liên tục; thay đổi tư thế hoặc vận động nhẹ có thể giảm tải nếu cơ chế chủ yếu là cơ học. Những đặc điểm hiện có làm khả năng tình trạng nguy hiểm thấp hơn so với khi có các dấu hiệu cảnh báo. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
 
 ## Câu 10
 
 **Câu hỏi:** Đứng dậy đi lại thì dễ chịu hơn, không sốt và không bị ngã.
 
-**Câu trả lời:** Bạn cho biết: «Đứng dậy đi lại thì dễ chịu hơn, không sốt và không bị ngã». Đặc điểm liên quan tư thế làm cơ chế cơ học hợp lý hơn, nhưng yếu chân, tê tăng hoặc rối loạn tiểu tiện sẽ làm thay đổi hoàn toàn mức xử trí. Giữ một tư thế lâu làm cơ cạnh cột sống và mô mềm chịu tải liên tục; thay đổi tư thế hoặc vận động nhẹ có thể giảm tải nếu cơ chế chủ yếu là cơ học. Những đặc điểm hiện có làm khả năng tình trạng nguy hiểm thấp hơn so với khi có các dấu hiệu cảnh báo. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
+**Câu trả lời:** Bạn mỏi lưng sau khi ngồi máy tính khoảng 9 tiếng. Đứng dậy đi lại thì dễ chịu hơn, không sốt và không bị ngã. Bạn cho biết: «Đứng dậy đi lại thì dễ chịu hơn, không sốt và không bị ngã». Đặc điểm liên quan tư thế làm cơ chế cơ học hợp lý hơn, nhưng yếu chân, tê tăng hoặc rối loạn tiểu tiện sẽ làm thay đổi hoàn toàn mức xử trí. Giữ một tư thế lâu làm cơ cạnh cột sống và mô mềm chịu tải liên tục; thay đổi tư thế hoặc vận động nhẹ có thể giảm tải nếu cơ chế chủ yếu là cơ học. Những đặc điểm hiện có làm khả năng tình trạng nguy hiểm thấp hơn so với khi có các dấu hiệu cảnh báo. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
 
 ## Câu 11
 
@@ -74,13 +74,13 @@
 
 **Câu hỏi:** Sau khi uống thuốc mới tôi nổi vài mảng mề đay ở cánh tay.
 
-**Câu trả lời:** Bạn cho biết: «Sau khi uống thuốc mới tôi nổi vài mảng mề đay ở cánh tay».
+**Câu trả lời:** mề đay/phát ban xuất hiện sau thuốc mới. Bạn cho biết: «Sau khi uống thuốc mới tôi nổi vài mảng mề đay ở cánh tay».
 
 ## Câu 14
 
 **Câu hỏi:** Ban đang lan thêm lên ngực nhưng tôi vẫn thở bình thường.
 
-**Câu trả lời:** Bạn cho biết: «Ban đang lan thêm lên ngực nhưng tôi vẫn thở bình thường».
+**Câu trả lời:** mề đay/phát ban xuất hiện sau thuốc mới. Bạn cho biết: «Ban đang lan thêm lên ngực nhưng tôi vẫn thở bình thường».
 
 ## Câu 15
 
@@ -104,7 +104,7 @@
 
 **Câu hỏi:** Đau chuyển xuống bụng dưới bên phải và tôi hơi sốt.
 
-**Câu trả lời:** Bạn cho biết: «Đau chuyển xuống bụng dưới bên phải và tôi hơi sốt».
+**Câu trả lời:** đau khu trú/chuyển xuống bụng dưới phải kèm sốt. Bạn cho biết: «Đau chuyển xuống bụng dưới bên phải và tôi hơi sốt».
 
 ## Câu 19
 
@@ -122,13 +122,13 @@
 
 **Câu hỏi:** Tôi ho, đau họng và sốt 38 độ từ hôm qua.
 
-**Câu trả lời:** Bạn cho biết: «Tôi ho, đau họng và sốt 38 độ từ hôm qua».
+**Câu trả lời:** tổn thương chức năng cần đánh giá chuyên khoa trong ngày. Bạn cho biết: «Tôi ho, đau họng và sốt 38 độ từ hôm qua».
 
 ## Câu 22
 
 **Câu hỏi:** Hôm nay tôi thở nhanh hơn khi đi cầu thang.
 
-**Câu trả lời:** Bạn cho biết: «Hôm nay tôi thở nhanh hơn khi đi cầu thang».
+**Câu trả lời:** tổn thương chức năng cần đánh giá chuyên khoa trong ngày. Bạn cho biết: «Hôm nay tôi thở nhanh hơn khi đi cầu thang».
 
 ## Câu 23
 
@@ -152,7 +152,7 @@
 
 **Câu hỏi:** Sau đó tay phải có cảm giác vụng hơn bình thường.
 
-**Câu trả lời:** Bạn cho biết: «Sau đó tay phải có cảm giác vụng hơn bình thường».
+**Câu trả lời:** thay đổi vận động khu trú mới ở một tay. Bạn cho biết: «Sau đó tay phải có cảm giác vụng hơn bình thường».
 
 ## Câu 27
 
@@ -194,7 +194,7 @@
 
 **Câu hỏi:** Tôi mất ngủ mấy hôm nay và hơi đau đầu.
 
-**Câu trả lời:** Bạn cho biết: «Tôi mất ngủ mấy hôm nay và hơi đau đầu». Những yếu tố sinh hoạt này có thể làm cơn đau dễ xuất hiện hơn nhưng không thay thế việc sàng lọc dấu hiệu cảnh báo. Thiếu ngủ, mất nước hoặc căng thẳng có thể làm hệ thần kinh nhạy hơn với kích thích và làm cơn đau đầu dễ xuất hiện hơn. Những đặc điểm hiện có làm khả năng tình trạng nguy hiểm thấp hơn so với khi có các dấu hiệu cảnh báo. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
+**Câu trả lời:** thiếu ngủ/mất ngủ được người dùng mô tả. Bạn cho biết: «Tôi mất ngủ mấy hôm nay và hơi đau đầu». Những yếu tố sinh hoạt này có thể làm cơn đau dễ xuất hiện hơn nhưng không thay thế việc sàng lọc dấu hiệu cảnh báo. Thiếu ngủ, mất nước hoặc căng thẳng có thể làm hệ thần kinh nhạy hơn với kích thích và làm cơn đau đầu dễ xuất hiện hơn. Những đặc điểm hiện có làm khả năng tình trạng nguy hiểm thấp hơn so với khi có các dấu hiệu cảnh báo. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
 
 ## Câu 34
 
@@ -248,7 +248,7 @@
 
 **Câu hỏi:** Tôi đã rửa và ép gạc nhưng vẫn rỉ máu.
 
-**Câu trả lời:** Bạn cho biết: «Tôi đã rửa và ép gạc nhưng vẫn rỉ máu».
+**Câu trả lời:** chảy máu còn tiếp diễn sau ép trực tiếp. Bạn cho biết: «Tôi đã rửa và ép gạc nhưng vẫn rỉ máu».
 
 ## Câu 43
 
@@ -278,7 +278,7 @@
 
 **Câu hỏi:** Bàn chân bên đó bắt đầu tê và lạnh hơn chân còn lại.
 
-**Câu trả lời:** Bạn cho biết: «Bàn chân bên đó bắt đầu tê và lạnh hơn chân còn lại».
+**Câu trả lời:** chi tê kèm lạnh hơn bên đối diện. Bạn cho biết: «Bàn chân bên đó bắt đầu tê và lạnh hơn chân còn lại».
 
 ## Câu 48
 
@@ -296,7 +296,7 @@
 
 **Câu hỏi:** Tôi bắt đầu đau mắt nhiều hơn và sợ ánh sáng.
 
-**Câu trả lời:** Bạn cho biết: «Tôi bắt đầu đau mắt nhiều hơn và sợ ánh sáng». Hiện chưa có đủ dữ kiện để coi các nguyên nhân nguy hiểm là đã được loại trừ chỉ vì chúng chưa được nhắc tới. Một số đặc điểm như khởi phát đột ngột, thiếu sót thần kinh, sốt/cứng gáy, chấn thương hoặc giảm thị lực có thể thay đổi hoàn toàn mức xử trí; hiện các dữ kiện này chưa được xác nhận đầy đủ. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
+**Câu trả lời:** đau mắt kèm sợ ánh sáng. Bạn cho biết: «Tôi bắt đầu đau mắt nhiều hơn và sợ ánh sáng». Hiện chưa có đủ dữ kiện để coi các nguyên nhân nguy hiểm là đã được loại trừ chỉ vì chúng chưa được nhắc tới. Một số đặc điểm như khởi phát đột ngột, thiếu sót thần kinh, sốt/cứng gáy, chấn thương hoặc giảm thị lực có thể thay đổi hoàn toàn mức xử trí; hiện các dữ kiện này chưa được xác nhận đầy đủ. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
 
 ## Câu 51
 
@@ -314,19 +314,19 @@
 
 **Câu hỏi:** Tôi bị tiêu chảy 4 lần từ tối qua.
 
-**Câu trả lời:** Bạn cho biết: «Tôi bị tiêu chảy 4 lần từ tối qua». Nếu nôn/tiêu chảy tiếp tục, dấu hiệu mất nước trở thành yếu tố quan trọng để quyết định cần đánh giá trực tiếp hay không. Nôn hoặc tiêu chảy làm mất nước và điện giải; khi đủ nhiều có thể làm giảm thể tích tuần hoàn và gây khát, tim nhanh hoặc choáng khi đứng. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
+**Câu trả lời:** Bạn bị tiêu chảy 4 lần từ tối qua. Bạn cho biết: «Tôi bị tiêu chảy 4 lần từ tối qua». Nếu nôn/tiêu chảy tiếp tục, dấu hiệu mất nước trở thành yếu tố quan trọng để quyết định cần đánh giá trực tiếp hay không. Nôn hoặc tiêu chảy làm mất nước và điện giải; khi đủ nhiều có thể làm giảm thể tích tuần hoàn và gây khát, tim nhanh hoặc choáng khi đứng. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
 
 ## Câu 54
 
 **Câu hỏi:** Sáng nay tôi nôn thêm hai lần nhưng vẫn uống được từng ngụm nước.
 
-**Câu trả lời:** Bạn cho biết: «Sáng nay tôi nôn thêm hai lần nhưng vẫn uống được từng ngụm nước». Nếu nôn/tiêu chảy tiếp tục, dấu hiệu mất nước trở thành yếu tố quan trọng để quyết định cần đánh giá trực tiếp hay không. Nôn hoặc tiêu chảy làm mất nước và điện giải; khi đủ nhiều có thể làm giảm thể tích tuần hoàn và gây khát, tim nhanh hoặc choáng khi đứng. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
+**Câu trả lời:** Bạn bị tiêu chảy 4 lần từ tối qua. Sáng nay tôi nôn thêm hai lần nhưng vẫn uống được từng ngụm nước. Bạn cho biết: «Sáng nay tôi nôn thêm hai lần nhưng vẫn uống được từng ngụm nước». Nếu nôn/tiêu chảy tiếp tục, dấu hiệu mất nước trở thành yếu tố quan trọng để quyết định cần đánh giá trực tiếp hay không. Nôn hoặc tiêu chảy làm mất nước và điện giải; khi đủ nhiều có thể làm giảm thể tích tuần hoàn và gây khát, tim nhanh hoặc choáng khi đứng. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
 
 ## Câu 55
 
 **Câu hỏi:** Giờ tôi không giữ được nước, rất khát và đứng lên thì choáng.
 
-**Câu trả lời:** Bạn cho biết: «Giờ tôi không giữ được nước, rất khát và đứng lên thì choáng». Nếu nôn/tiêu chảy tiếp tục, dấu hiệu mất nước trở thành yếu tố quan trọng để quyết định cần đánh giá trực tiếp hay không. Nôn hoặc tiêu chảy làm mất nước và điện giải; khi đủ nhiều có thể làm giảm thể tích tuần hoàn và gây khát, tim nhanh hoặc choáng khi đứng. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
+**Câu trả lời:** Bạn bị tiêu chảy 4 lần từ tối qua. Sáng nay tôi nôn thêm hai lần nhưng vẫn uống được từng ngụm nước. Giờ tôi không giữ được nước, rất khát và đứng lên thì choáng. Bạn cho biết: «Giờ tôi không giữ được nước, rất khát và đứng lên thì choáng». Nếu nôn/tiêu chảy tiếp tục, dấu hiệu mất nước trở thành yếu tố quan trọng để quyết định cần đánh giá trực tiếp hay không. Nôn hoặc tiêu chảy làm mất nước và điện giải; khi đủ nhiều có thể làm giảm thể tích tuần hoàn và gây khát, tim nhanh hoặc choáng khi đứng. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
 
 ## Câu 56
 
@@ -338,13 +338,13 @@
 
 **Câu hỏi:** Tôi sốt 38.5 và đau đầu từ tối qua.
 
-**Câu trả lời:** Bạn cho biết: «Tôi sốt 38, 5 và đau đầu từ tối qua». Hiện chưa có đủ dữ kiện để coi các nguyên nhân nguy hiểm là đã được loại trừ chỉ vì chúng chưa được nhắc tới. Một số đặc điểm như khởi phát đột ngột, thiếu sót thần kinh, sốt/cứng gáy, chấn thương hoặc giảm thị lực có thể thay đổi hoàn toàn mức xử trí; hiện các dữ kiện này chưa được xác nhận đầy đủ. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
+**Câu trả lời:** Sốt cao cần theo dõi và đánh giá thêm. Bạn cho biết: «Tôi sốt 38.5 và đau đầu từ tối qua». Hiện chưa có đủ dữ kiện để coi các nguyên nhân nguy hiểm là đã được loại trừ chỉ vì chúng chưa được nhắc tới. Một số đặc điểm như khởi phát đột ngột, thiếu sót thần kinh, sốt/cứng gáy, chấn thương hoặc giảm thị lực có thể thay đổi hoàn toàn mức xử trí; hiện các dữ kiện này chưa được xác nhận đầy đủ. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
 
 ## Câu 58
 
 **Câu hỏi:** Sáng nay đau đầu tăng và cổ bắt đầu cứng.
 
-**Câu trả lời:** Bạn cho biết: «Sáng nay đau đầu tăng và cổ bắt đầu cứng». Hiện chưa có đủ dữ kiện để coi các nguyên nhân nguy hiểm là đã được loại trừ chỉ vì chúng chưa được nhắc tới. Một số đặc điểm như khởi phát đột ngột, thiếu sót thần kinh, sốt/cứng gáy, chấn thương hoặc giảm thị lực có thể thay đổi hoàn toàn mức xử trí; hiện các dữ kiện này chưa được xác nhận đầy đủ. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
+**Câu trả lời:** Sốt cao cần theo dõi và đánh giá thêm. Bạn cho biết: «Sáng nay đau đầu tăng và cổ bắt đầu cứng». Hiện chưa có đủ dữ kiện để coi các nguyên nhân nguy hiểm là đã được loại trừ chỉ vì chúng chưa được nhắc tới. Một số đặc điểm như khởi phát đột ngột, thiếu sót thần kinh, sốt/cứng gáy, chấn thương hoặc giảm thị lực có thể thay đổi hoàn toàn mức xử trí; hiện các dữ kiện này chưa được xác nhận đầy đủ. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
 
 ## Câu 59
 
@@ -362,13 +362,13 @@
 
 **Câu hỏi:** Tôi vừa hít phải mùi hóa chất tẩy rửa trong phòng kín.
 
-**Câu trả lời:** Bạn cho biết: «Tôi vừa hít phải mùi hóa chất tẩy rửa trong phòng kín».
+**Câu trả lời:** hít hóa chất tẩy rửa trong không gian kín. Bạn cho biết: «Tôi vừa hít phải mùi hóa chất tẩy rửa trong phòng kín».
 
 ## Câu 62
 
 **Câu hỏi:** Tôi đã ra ngoài trời nhưng vẫn ho và rát họng.
 
-**Câu trả lời:** Bạn cho biết: «Tôi đã ra ngoài trời nhưng vẫn ho và rát họng».
+**Câu trả lời:** hít hóa chất tẩy rửa trong không gian kín. Bạn cho biết: «Tôi đã ra ngoài trời nhưng vẫn ho và rát họng».
 
 ## Câu 63
 
@@ -392,7 +392,7 @@
 
 **Câu hỏi:** Tôi đau đầu, buồn nôn và chuột rút nhiều.
 
-**Câu trả lời:** Bạn cho biết: «Tôi đau đầu, buồn nôn và chuột rút nhiều». Những yếu tố sinh hoạt này có thể làm cơn đau dễ xuất hiện hơn nhưng không thay thế việc sàng lọc dấu hiệu cảnh báo. Thiếu ngủ, mất nước hoặc căng thẳng có thể làm hệ thần kinh nhạy hơn với kích thích và làm cơn đau đầu dễ xuất hiện hơn. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
+**Câu trả lời:** dấu hiệu uống ít nước/mất nước được người dùng mô tả. Bạn cho biết: «Tôi đau đầu, buồn nôn và chuột rút nhiều». Những yếu tố sinh hoạt này có thể làm cơn đau dễ xuất hiện hơn nhưng không thay thế việc sàng lọc dấu hiệu cảnh báo. Thiếu ngủ, mất nước hoặc căng thẳng có thể làm hệ thần kinh nhạy hơn với kích thích và làm cơn đau đầu dễ xuất hiện hơn. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
 
 ## Câu 67
 
@@ -410,13 +410,13 @@
 
 **Câu hỏi:** Tôi đang mang thai khoảng 8 tuần và hơi đau bụng dưới.
 
-**Câu trả lời:** Bạn cho biết: «Tôi đang mang thai khoảng 8 tuần và hơi đau bụng dưới».
+**Câu trả lời:** thai sớm kèm đau bụng dưới. Bạn cho biết: «Tôi đang mang thai khoảng 8 tuần và hơi đau bụng dưới».
 
 ## Câu 70
 
 **Câu hỏi:** Bây giờ có ra một ít máu âm đạo.
 
-**Câu trả lời:** Bạn cho biết: «Bây giờ có ra một ít máu âm đạo».
+**Câu trả lời:** thai sớm kèm đau bụng dưới. Bạn cho biết: «Bây giờ có ra một ít máu âm đạo».
 
 ## Câu 71
 
@@ -458,7 +458,7 @@
 
 **Câu hỏi:** Tôi hơi đau lưng do ngồi lâu, đi lại thì giảm.
 
-**Câu trả lời:** Bạn cho biết: «Tôi hơi đau lưng do ngồi lâu, đi lại thì giảm». Đặc điểm liên quan tư thế làm cơ chế cơ học hợp lý hơn, nhưng yếu chân, tê tăng hoặc rối loạn tiểu tiện sẽ làm thay đổi hoàn toàn mức xử trí. Giữ một tư thế lâu làm cơ cạnh cột sống và mô mềm chịu tải liên tục; thay đổi tư thế hoặc vận động nhẹ có thể giảm tải nếu cơ chế chủ yếu là cơ học. Những đặc điểm hiện có làm khả năng tình trạng nguy hiểm thấp hơn so với khi có các dấu hiệu cảnh báo. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
+**Câu trả lời:** Bạn hơi đau lưng do ngồi lâu, đi lại thì giảm. Bạn cho biết: «Tôi hơi đau lưng do ngồi lâu, đi lại thì giảm». Đặc điểm liên quan tư thế làm cơ chế cơ học hợp lý hơn, nhưng yếu chân, tê tăng hoặc rối loạn tiểu tiện sẽ làm thay đổi hoàn toàn mức xử trí. Giữ một tư thế lâu làm cơ cạnh cột sống và mô mềm chịu tải liên tục; thay đổi tư thế hoặc vận động nhẹ có thể giảm tải nếu cơ chế chủ yếu là cơ học. Những đặc điểm hiện có làm khả năng tình trạng nguy hiểm thấp hơn so với khi có các dấu hiệu cảnh báo. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
 
 ## Câu 78
 
@@ -512,7 +512,7 @@
 
 **Câu hỏi:** Lần dị ứng trước tôi nổi mề đay toàn thân sau khi uống.
 
-**Câu trả lời:** Bạn cho biết: «Lần dị ứng trước tôi nổi mề đay toàn thân sau khi uống».
+**Câu trả lời:** tổn thương chức năng cần đánh giá chuyên khoa trong ngày. Bạn cho biết: «Lần dị ứng trước tôi nổi mề đay toàn thân sau khi uống».
 
 ## Câu 87
 
@@ -1058,7 +1058,7 @@
 
 **Câu hỏi:** Tôi hơi đau đầu sau khi làm việc máy tính.
 
-**Câu trả lời:** Bạn cho biết: «Tôi hơi đau đầu sau khi làm việc máy tính». Việc đau xuất hiện sau thời gian nhìn màn hình làm mỏi thị giác trở thành một khả năng hợp lý, nhưng mối liên hệ thời gian này chưa đủ để khẳng định đó là nguyên nhân duy nhất. Nhìn gần và tập trung vào màn hình trong thời gian dài làm hệ điều tiết và hội tụ của mắt hoạt động liên tục; sự mỏi thị giác này có thể góp phần tạo cảm giác nặng hoặc đau vùng trán/quanh mắt. Những đặc điểm hiện có làm khả năng tình trạng nguy hiểm thấp hơn so với khi có các dấu hiệu cảnh báo. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
+**Câu trả lời:** Bạn hơi đau đầu sau khi làm việc máy tính. Bạn cho biết: «Tôi hơi đau đầu sau khi làm việc máy tính». Việc đau xuất hiện sau thời gian nhìn màn hình làm mỏi thị giác trở thành một khả năng hợp lý, nhưng mối liên hệ thời gian này chưa đủ để khẳng định đó là nguyên nhân duy nhất. Nhìn gần và tập trung vào màn hình trong thời gian dài làm hệ điều tiết và hội tụ của mắt hoạt động liên tục; sự mỏi thị giác này có thể góp phần tạo cảm giác nặng hoặc đau vùng trán/quanh mắt. Những đặc điểm hiện có làm khả năng tình trạng nguy hiểm thấp hơn so với khi có các dấu hiệu cảnh báo. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
 
 ## Câu 178
 
@@ -1154,7 +1154,7 @@
 
 **Câu hỏi:** Tôi đau lưng sau khi ngồi lâu, đi lại thì giảm.
 
-**Câu trả lời:** Bạn cho biết: «Tôi đau lưng sau khi ngồi lâu, đi lại thì giảm». Đặc điểm liên quan tư thế làm cơ chế cơ học hợp lý hơn, nhưng yếu chân, tê tăng hoặc rối loạn tiểu tiện sẽ làm thay đổi hoàn toàn mức xử trí. Giữ một tư thế lâu làm cơ cạnh cột sống và mô mềm chịu tải liên tục; thay đổi tư thế hoặc vận động nhẹ có thể giảm tải nếu cơ chế chủ yếu là cơ học. Những đặc điểm hiện có làm khả năng tình trạng nguy hiểm thấp hơn so với khi có các dấu hiệu cảnh báo. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
+**Câu trả lời:** Bạn đau lưng sau khi ngồi lâu, đi lại thì giảm. Bạn cho biết: «Tôi đau lưng sau khi ngồi lâu, đi lại thì giảm». Đặc điểm liên quan tư thế làm cơ chế cơ học hợp lý hơn, nhưng yếu chân, tê tăng hoặc rối loạn tiểu tiện sẽ làm thay đổi hoàn toàn mức xử trí. Giữ một tư thế lâu làm cơ cạnh cột sống và mô mềm chịu tải liên tục; thay đổi tư thế hoặc vận động nhẹ có thể giảm tải nếu cơ chế chủ yếu là cơ học. Những đặc điểm hiện có làm khả năng tình trạng nguy hiểm thấp hơn so với khi có các dấu hiệu cảnh báo. Cơ chế được mô tả là giả thuyết làm việc, không phải chẩn đoán xác định.
 
 ## Câu 194
 
