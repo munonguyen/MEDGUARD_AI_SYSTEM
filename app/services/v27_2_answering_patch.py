@@ -121,15 +121,27 @@ def _plain_trend(value: Any) -> str:
     }.get(trend, "")
 
 
+def _clean_list(values: Any, *, limit: int) -> list[str]:
+    """Normalize nullable Pydantic list fields without ever raising in fallback."""
+    if not isinstance(values, (list, tuple)):
+        return []
+    cleaned = [
+        _clean_machine_language(str(value))
+        for value in values
+        if str(value).strip()
+    ]
+    return list(dict.fromkeys(value for value in cleaned if value))[:limit]
+
+
 def _sanitize_answer(answer: Any) -> Any:
     key_points = [
         _clean_machine_language(str(value))
-        for value in list(getattr(answer, "key_points", ()) or ())
+        for value in list(getattr(answer, "key_points", None) or ())
         if str(value).strip() and not str(value).startswith(_INTERNAL_KEY_PREFIXES)
     ]
     limitations = [
         _clean_machine_language(str(value))
-        for value in list(getattr(answer, "limitations", ()) or ())
+        for value in list(getattr(answer, "limitations", None) or ())
         if str(value).strip()
         and not any(marker in str(value).lower() for marker in _INTERNAL_LIMITATION_MARKERS)
     ]
@@ -138,10 +150,10 @@ def _sanitize_answer(answer: Any) -> Any:
             "title": _clean_machine_language(getattr(answer, "title", "")),
             "summary": _clean_machine_language(getattr(answer, "summary", "")),
             "key_points": list(dict.fromkeys(value for value in key_points if value))[:5],
-            "next_steps": list(dict.fromkeys(_clean_machine_language(str(v)) for v in getattr(answer, "next_steps", ()) if str(v).strip()))[:5],
-            "safety_notes": list(dict.fromkeys(_clean_machine_language(str(v)) for v in getattr(answer, "safety_notes", ()) if str(v).strip()))[:4],
-            "questions": list(dict.fromkeys(_clean_machine_language(str(v)) for v in getattr(answer, "questions", ()) if str(v).strip()))[:1],
-            "display_questions": list(dict.fromkeys(_clean_machine_language(str(v)) for v in getattr(answer, "display_questions", ()) if str(v).strip()))[:1],
+            "next_steps": _clean_list(getattr(answer, "next_steps", None), limit=5),
+            "safety_notes": _clean_list(getattr(answer, "safety_notes", None), limit=4),
+            "questions": _clean_list(getattr(answer, "questions", None), limit=1),
+            "display_questions": _clean_list(getattr(answer, "display_questions", None), limit=1),
             "limitations": list(dict.fromkeys(value for value in limitations if value))[:2],
         }
     )
@@ -209,8 +221,6 @@ def install_v27_2_answering_patch(answering_module: ModuleType) -> None:
         return _sanitize_answer(answer.model_copy(update={"title": title, "summary": summary}))
 
     def _with_narrative(answer: Any, intent: Any):
-        # Sanitize before composing narrative so internal machine labels cannot
-        # leak into either deterministic fields or patient-visible blocks.
         return original_with_narrative(_sanitize_answer(answer), intent)
 
     answering_module._safety_answer = _safety_answer
