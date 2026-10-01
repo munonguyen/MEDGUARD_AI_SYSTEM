@@ -26,10 +26,10 @@ class RiskState:
 _CORRECTION_MARKERS: tuple[str, ...] = (
     "nhap nham", "go nham", "nhin nham", "do nham", "do lai thi", "kiem tra lai thi",
     "nham cua nguoi khac", "nham nguoi", "hoi cho nguoi khac", "khong phai toi", "dinh chinh",
-    "toi dinh chinh", "nham sang", "nham lan", "nham vo thuoc", "nhin lai vo thuoc",
-    "khong phai bi", "khong phai uong", "khong phai toi tieu ra mau", "khong phai tieu ra mau",
-    "khong phai dau nguc", "khong phai uong 10 vien", "khong phai uong ca vi", "chi uong 1 vien",
-    "rot ra san chu khong phai", "nham so do",
+    "toi dinh chinh", "nham sang", "nham lan", "nham vo thuoc", "nhin lai vo thuoc", "khong phai bi",
+    "khong phai uong", "khong phai toi tieu ra mau", "khong phai tieu ra mau", "khong phai dau nguc",
+    "khong phai uong 10 vien", "khong phai uong ca vi", "chi uong 1 vien", "rot ra san chu khong phai",
+    "nham so do",
 )
 
 _SYMPTOM_IMPROVEMENT_MARKERS: tuple[str, ...] = (
@@ -74,10 +74,10 @@ _EPISODE_DOMAIN_MARKERS: dict[str, tuple[str, ...]] = {
     ),
     "musculoskeletal_spine": (
         "dau lung", "moi lung", "that lung",
-        # Avoid diacritic-stripped homographs: "môi có" normalizes to
-        # ``moi co`` and "đâu có" to ``dau co``.  The old generic markers could
-        # therefore turn allergic lip swelling or ordinary negation into a neck
-        # complaint.  Require explicit neck/shoulder context instead.
+        # Diacritic stripping makes "môi có" == "moi co" and "đâu có" ==
+        # "dau co".  Those generic markers caused allergic lip swelling and
+        # ordinary negation to look like neck complaints. Require explicit
+        # neck/shoulder context instead.
         "dau co vai", "dau co gay", "moi co vai", "moi co gay", "co vai gay",
         "dau vai", "vai gay", "dau bap chan", "dau chan", "te chan", "lan xuong chan", "lan xuong mong", "yeu chan",
     ),
@@ -86,7 +86,8 @@ _EPISODE_DOMAIN_MARKERS: dict[str, tuple[str, ...]] = {
 
 _EPISODE_CONTINUATION_MARKERS: tuple[str, ...] = (
     "van ", "van con", "van bi", "ngoai ra", "them nua", "kem theo", "cung luc", "va gio",
-    "trieu chung nay", "con dau nay", "luc nay", "tu luc do",
+    "trieu chung nay", "con dau nay", "luc nay", "tu luc do", "sung moi", "co hong", "nghen hong",
+    "bot mot chut",
 )
 
 
@@ -107,58 +108,93 @@ def infer_episode_domain(text: str) -> str | None:
 
 
 def is_explicit_correction(text: str) -> bool:
-    normalized = normalize_search_text(text)
-    return any(marker in normalized for marker in _CORRECTION_MARKERS)
+    """Detect a substantive factual correction, never mere symptom relief."""
+    norm = normalize_search_text(text)
+    if any(avoid in norm for avoid in _AVOIDANCE_MARKERS):
+        return False
+    if bool(re.search(r"\b(?:khong muon|dung nhac|so bi|ngai)\s+(?:dau|di vien|cap cuu|nhap vien)\b", norm)):
+        return False
+    if any(marker in norm for marker in _SYMPTOM_IMPROVEMENT_MARKERS) or bool(
+        re.search(r"\b(?:khong|het|do|bot|khong con)\s+(?:dau|met|kho tho|tuc nguc|dau nguc|kho chiu)\s*(?:nua|roi|hon)?\b", norm)
+    ):
+        return False
+
+    bare_retraction_phrases = (
+        "a toi noi nham", "toi noi nham", "noi nham", "noi nham thoi", "nham roi", "toi noi lon", "noi lon", "nham",
+    )
+    if norm.strip() in bare_retraction_phrases:
+        return False
+
+    has_correction_marker = any(marker in norm for marker in _CORRECTION_MARKERS) or bool(
+        re.search(r"\b(?:xin loi|nham|dinh chinh)\b.{0,40}\b(?:khong phai|nhap nham|do lai|nhin lai|chua tung)\b", norm)
+    )
+    if not has_correction_marker:
+        return False
+
+    has_replacement = any(bool(re.search(pat, norm)) for pat in _REPLACEMENT_FACT_PATTERNS)
+    if not has_replacement:
+        has_replacement = any(
+            k in norm
+            for k in (
+                "nguoi khac", "nguoi nha", "hoi ho", "vo thuoc", "do lai", "chi uong 1",
+                "chi bi moi", "tap ta", "chua tung bi", "chua tung",
+            )
+        )
+    return has_replacement
 
 
 def is_symptom_improvement(text: str) -> bool:
-    normalized = normalize_search_text(text)
-    return any(marker in normalized for marker in _SYMPTOM_IMPROVEMENT_MARKERS)
+    norm = normalize_search_text(text)
+    return any(marker in norm for marker in _SYMPTOM_IMPROVEMENT_MARKERS) or bool(
+        re.search(r"\b(?:khong|het|do|bot|khong con)\s+(?:dau|met|kho tho|tuc nguc|dau nguc|kho chiu)\s*(?:nua|roi|hon)?\b", norm)
+    )
 
 
-def is_avoidance_request(text: str) -> bool:
-    normalized = normalize_search_text(text)
-    return any(marker in normalized for marker in _AVOIDANCE_MARKERS)
-
-
-def has_substantive_replacement_fact(text: str) -> bool:
-    normalized = normalize_search_text(text)
-    return any(re.search(pattern, normalized) for pattern in _REPLACEMENT_FACT_PATTERNS)
-
-
-def should_start_new_episode(previous_text: str, latest_text: str) -> bool:
-    if is_explicit_correction(latest_text) and has_substantive_replacement_fact(latest_text):
-        return True
-    latest = normalize_search_text(latest_text)
-    if any(marker in latest for marker in _EPISODE_CONTINUATION_MARKERS):
-        return False
-    previous_domain = infer_episode_domain(previous_text)
-    latest_domain = infer_episode_domain(latest_text)
-    return bool(previous_domain and latest_domain and previous_domain != latest_domain)
-
-
-def update_risk_state(
+def merge_risk(
     previous: RiskState | None,
     *,
     current_urgency: str,
-    red_flags: list[str] | None = None,
-    reasons: list[str] | None = None,
-    latest_text: str = "",
+    current_red_flags: list[str] | None = None,
+    current_reasons: list[str] | None = None,
+    is_correction: bool = False,
 ) -> RiskState:
-    prior = previous or RiskState()
-    correction = is_explicit_correction(latest_text) and has_substantive_replacement_fact(latest_text)
-    if correction:
+    """Merge current turn risk into cumulative episode state conservatively."""
+    previous = previous or RiskState()
+    if is_correction:
         return RiskState(
             highest_urgency=current_urgency,
-            red_flags=list(red_flags or []),
-            reasons=list(reasons or []),
-            turn_count=prior.turn_count + 1,
+            red_flags=current_red_flags or [],
+            reasons=list(dict.fromkeys((current_reasons or []) + ["explicit_user_correction_applied"])),
+            turn_count=previous.turn_count + 1,
             correction_applied=True,
         )
+
+    highest = highest_urgency(previous.highest_urgency, current_urgency)
+    merged_flags = list(dict.fromkeys(previous.red_flags + (current_red_flags or [])))
+    merged_reasons = list(dict.fromkeys(previous.reasons + (current_reasons or [])))
     return RiskState(
-        highest_urgency=highest_urgency(prior.highest_urgency, current_urgency),
-        red_flags=list(dict.fromkeys([*prior.red_flags, *(red_flags or [])])),
-        reasons=list(dict.fromkeys([*prior.reasons, *(reasons or [])])),
-        turn_count=prior.turn_count + 1,
-        correction_applied=False,
+        highest_urgency=highest,
+        red_flags=merged_flags,
+        reasons=merged_reasons,
+        turn_count=previous.turn_count + 1,
+        correction_applied=previous.correction_applied,
     )
+
+
+def should_start_new_episode(latest_text: str, previous_text: str | None = None) -> bool:
+    """Determine whether the latest user turn starts an unrelated episode."""
+    norm = normalize_search_text(latest_text)
+    explicit_markers = (
+        "yeu cau moi", "trieu chung moi", "van de moi", "khong lien quan", "van de khac", "chuyen khac",
+        "hoi ve nguoi khac", "nguoi khac", "da khoi han", "chuyen hom truoc da khoi", "benh truoc da khoi",
+        "chuyen cu da xong",
+    )
+    if any(marker in norm for marker in explicit_markers):
+        return True
+    if not previous_text:
+        return False
+    if any(marker in norm for marker in _EPISODE_CONTINUATION_MARKERS):
+        return False
+    previous_domain = infer_episode_domain(previous_text)
+    current_domain = infer_episode_domain(latest_text)
+    return bool(previous_domain and current_domain and previous_domain != current_domain)
