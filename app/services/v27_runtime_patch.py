@@ -1,14 +1,15 @@
-"""V27.3 runtime integration for contract-aware fallback and output hygiene.
+"""V27.5 runtime integration for contract-aware fallback and output quality.
 
 The primary agent pipeline remains unchanged: Writer is still the sole author of
 verified patient-facing prose and Reviewer remains non-authoring. This adapter
 builds the deterministic contextual fallback from the same ClinicalAgentContract,
-then applies a presentation-only hygiene pass at the final runtime boundary.
+then applies presentation-only hygiene and professional-quality passes at the
+final runtime boundary.
 
-The hygiene pass may remove duplicated/transcript-shaped presentation artifacts,
-internal machine labels, or repeated punctuation. It must never change the
-Safety Kernel urgency floor, remove an emergency/hard-stop action, or introduce
-new clinical content.
+These passes may remove duplicated/transcript-shaped presentation artifacts,
+internal machine labels, repeated punctuation, or repeated prose. They must
+never change the Safety Kernel urgency floor, remove an emergency/hard-stop
+action, or introduce new clinical content.
 """
 
 from __future__ import annotations
@@ -19,15 +20,26 @@ from typing import Any
 from app.models.chat import ChatIntent, GroundedAnswer
 from app.services.clinical_agent_contract import build_clinical_agent_contract
 from app.services.clinical_contract_fallback import compose_contract_fallback
+from app.services.professional_response_quality import apply_professional_response_quality
 from app.services.v27_2_answering_patch import _sanitize_answer
+
+
+def _resolved_urgency(clinical_payload: dict[str, Any]) -> str:
+    if bool(clinical_payload.get("emergency_flag")):
+        return "EMERGENCY"
+    return str(
+        clinical_payload.get("urgency")
+        or clinical_payload.get("escalation_level")
+        or "ROUTINE"
+    ).upper()
 
 
 def install_v27_runtime_fallback() -> None:
     """Patch ``AnswerAgentPipeline.generate_response`` exactly once.
 
     The adapter intentionally keeps the mature execution graph intact. It only
-    injects the contract-aware fallback and enforces the same patient-output
-    hygiene on both fallback and final verified/fallback results.
+    injects the contract-aware fallback and enforces patient-visible quality at
+    the final boundary. Safety authority remains upstream and immutable here.
     """
 
     from app.services.answer_agents import AnswerAgentPipeline
@@ -75,10 +87,15 @@ def install_v27_runtime_fallback() -> None:
             patient_context=context,
         )
 
-        # Final presentation boundary: preserve all clinical authority decisions
-        # while removing structural artifacts that can be introduced by either a
-        # deterministic fallback or a verified Writer response.
-        return _sanitize_answer(resolved)
+        # Final presentation boundary: hygiene first, then a conservative
+        # de-duplication pass.  V27.5 leaves EMERGENCY output untouched and never
+        # mutates structured claims/actions/safety notes/questions.
+        sanitized = _sanitize_answer(resolved)
+        return apply_professional_response_quality(
+            sanitized,
+            urgency=_resolved_urgency(clinical_payload),
+            intent=str(intent),
+        )
 
     AnswerAgentPipeline.generate_response = generate_response_with_contract_fallback
     AnswerAgentPipeline._v27_contract_fallback_installed = True
