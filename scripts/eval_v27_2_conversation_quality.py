@@ -15,6 +15,7 @@ import json
 from pathlib import Path
 import re
 from typing import Any
+import unicodedata
 
 
 DEFAULT_REPORT = Path("artifacts/v24_200_turn_quality/REPORT_200_QUESTIONS_ANSWERS.md")
@@ -22,7 +23,17 @@ DEFAULT_JSON = Path("artifacts/v27_2_conversation_quality/report.json")
 
 
 def _norm(value: str) -> str:
-    return re.sub(r"\s+", " ", value.strip().lower())
+    """Normalize benchmark text for Vietnamese-aware semantic checks.
+
+    The hard gate rules intentionally use accent-free tokens so they also work
+    for mobile/ASR inputs. Keep this helper dependency-free because the gate is
+    a release artifact and must remain runnable even if application imports fail.
+    """
+    decomposed = unicodedata.normalize("NFD", str(value or "").strip().lower())
+    normalized = "".join(
+        character for character in decomposed if unicodedata.category(character) != "Mn"
+    ).replace("đ", "d")
+    return re.sub(r"\s+", " ", normalized).strip()
 
 
 def _parse(path: Path) -> list[dict[str, Any]]:
