@@ -2,7 +2,8 @@
 
 The domain services continue to own risk and actions.  This module only converts
 machine-oriented labels (HIGH/NONE/insufficient_data/ESI) into concise language
-that a patient can understand and limits repeated boilerplate.
+that a patient can understand.  It must never truncate the complete clinical
+question candidate set or replace a domain-specific emergency/hard-stop action.
 """
 
 from __future__ import annotations
@@ -121,8 +122,7 @@ def _plain_trend(value: Any) -> str:
     }.get(trend, "")
 
 
-def _clean_list(values: Any, *, limit: int) -> list[str]:
-    """Normalize nullable Pydantic list fields without ever raising in fallback."""
+def _clean_list(values: Any, *, limit: int | None = None) -> list[str]:
     if not isinstance(values, (list, tuple)):
         return []
     cleaned = [
@@ -130,7 +130,8 @@ def _clean_list(values: Any, *, limit: int) -> list[str]:
         for value in values
         if str(value).strip()
     ]
-    return list(dict.fromkeys(value for value in cleaned if value))[:limit]
+    unique = list(dict.fromkeys(value for value in cleaned if value))
+    return unique if limit is None else unique[:limit]
 
 
 def _sanitize_answer(answer: Any) -> Any:
@@ -150,10 +151,13 @@ def _sanitize_answer(answer: Any) -> Any:
             "title": _clean_machine_language(getattr(answer, "title", "")),
             "summary": _clean_machine_language(getattr(answer, "summary", "")),
             "key_points": list(dict.fromkeys(value for value in key_points if value))[:5],
-            "next_steps": _clean_list(getattr(answer, "next_steps", None), limit=5),
-            "safety_notes": _clean_list(getattr(answer, "safety_notes", None), limit=4),
-            "questions": _clean_list(getattr(answer, "questions", None), limit=1),
-            "display_questions": _clean_list(getattr(answer, "display_questions", None), limit=1),
+            "next_steps": _clean_list(getattr(answer, "next_steps", None), limit=6),
+            "safety_notes": _clean_list(getattr(answer, "safety_notes", None), limit=5),
+            # ``questions`` is the complete approved audit/reasoning pool.  The
+            # ChatResponse dialogue-policy validator alone controls the smaller
+            # patient-visible ``display_questions`` set.
+            "questions": _clean_list(getattr(answer, "questions", None)),
+            "display_questions": _clean_list(getattr(answer, "display_questions", None), limit=2),
             "limitations": list(dict.fromkeys(value for value in limitations if value))[:2],
         }
     )
@@ -171,43 +175,25 @@ def install_v27_2_answering_patch(answering_module: ModuleType) -> None:
 
     def _safety_answer(result: dict[str, Any], sources: list[Any]):
         answer = original_safety(result, sources)
+        # Preserve domain-specific hard-stop/emergency wording and action order.
+        # V27.2 only adds remembered context when it is not already visible.
         current = _format_medication_list(result.get("conversation_current_medications"))
         proposed = _format_medication_list(result.get("conversation_proposed_medications"))
-        risk = str(result.get("overall_risk", "LOW")).upper()
-        warnings = result.get("warnings") if isinstance(result.get("warnings"), list) else []
-
+        lead = ""
         if current and proposed:
             lead = f"Bạn đang dùng {current} và đang cân nhắc {proposed}."
         elif proposed:
             lead = f"Thuốc bạn đang cân nhắc là {proposed}."
         elif current:
             lead = f"Các thuốc đang dùng được ghi nhận gồm {current}."
-        else:
-            lead = ""
 
-        if risk == "HIGH":
-            interpretation = "Có cảnh báo an toàn thuốc đáng kể; không nên tự phối hợp hoặc bắt đầu thuốc mới trước khi bác sĩ/dược sĩ xác nhận."
-        elif risk == "MODERATE":
-            interpretation = "Có điểm cần kiểm tra trước khi dùng phối hợp; nên xác nhận với bác sĩ hoặc dược sĩ."
-        elif warnings:
-            interpretation = "Có cảnh báo cần lưu ý trong tình huống thuốc bạn mô tả."
-        else:
-            interpretation = "Chưa tìm thấy cảnh báo trong phạm vi dữ liệu đã kiểm tra, nhưng điều này không chứng minh phối hợp thuốc chắc chắn an toàn."
+        summary = str(answer.summary or "").strip()
+        if lead:
+            med_tokens = [value for value in (current, proposed) if value]
+            if not all(token.lower() in summary.lower() for token in med_tokens):
+                summary = f"{lead} {summary}".strip()
 
-        title = {
-            "HIGH": "Có cảnh báo an toàn thuốc quan trọng",
-            "MODERATE": "Cần kiểm tra trước khi dùng phối hợp",
-            "LOW": "Chưa thấy cảnh báo trong phạm vi đã kiểm tra",
-        }.get(risk, answer.title)
-
-        return _sanitize_answer(
-            answer.model_copy(
-                update={
-                    "title": title,
-                    "summary": " ".join(value for value in (lead, interpretation) if value),
-                }
-            )
-        )
+        return _sanitize_answer(answer.model_copy(update={"summary": summary}))
 
     def _monitoring_answer(result: dict[str, Any], sources: list[Any]):
         answer = original_monitoring(result, sources)
@@ -217,7 +203,15 @@ def install_v27_2_answering_patch(answering_module: ModuleType) -> None:
         measurement = _measurement_summary(result)
         title, escalation_text = _plain_escalation(str(result.get("escalation_level", "NONE")))
         trend_text = _plain_trend(result.get("trend"))
-        summary = " ".join(value for value in (measurement + "." if measurement else "", escalation_text, trend_text) if value).strip()
+        summary = " ".join(
+            value
+            for value in (
+                measurement + "." if measurement else "",
+                escalation_text,
+                trend_text,
+            )
+            if value
+        ).strip()
         return _sanitize_answer(answer.model_copy(update={"title": title, "summary": summary}))
 
     def _with_narrative(answer: Any, intent: Any):
