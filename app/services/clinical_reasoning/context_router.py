@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 import re
-from typing import Any
 
 from app.services.clinical_text import normalize_search_text
 from app.services.clinical_reasoning.domains.allergy_respiratory import AllergyRespiratoryReasoner
@@ -27,15 +26,15 @@ class ClinicalContextResult:
     severity: dict[str, str] = field(default_factory=dict)
     positive_findings: dict[str, bool] = field(default_factory=dict)
     negative_findings: dict[str, bool] = field(default_factory=dict)
+    hypothetical_findings: dict[str, bool] = field(default_factory=dict)
     risk_features: list[str] = field(default_factory=list)
     is_hypothetical: bool = False
     domain_assessment: DomainAssessment | None = None
 
 
 class ClinicalContextRouter:
-    """Clinical Context Router transforming conversational input into structured medical evidence."""
+    """Transform conversational input into structured, scope-aware clinical evidence."""
 
-    # Patterns normalized without diacritics
     TERMS = {
         "chest_pain": ("dau nguc", "tuc nguc", "nang nguc", "ep nguc"),
         "headache": ("dau dau", "nhuc dau"),
@@ -54,6 +53,11 @@ class ClinicalContextRouter:
         "incontinence": ("tieu khong tu chu", "bi tieu", "mat kiem soat tieu tien"),
     }
 
+    _HYPOTHETICAL_START = re.compile(r"\b(?:neu nhu|neu|gia su|truong hop|lo may)\b")
+    _HYPOTHETICAL_QUESTION = re.compile(
+        r"\b(?:neu|neu nhu|truong hop|gia su|lo may)\b.*?\b(?:thi phai lam gi|thi xu tri the nao|nen lam gi|can lam gi|lam gi)\b"
+    )
+
     def __init__(self) -> None:
         self.negation_engine = NegationEngine()
         self.headache_reasoner = HeadacheReasoner()
@@ -67,32 +71,35 @@ class ClinicalContextRouter:
         norm = normalize_search_text(text)
         result = ClinicalContextResult()
 
-        # Detect hypothetical / safety-net questions
-        result.is_hypothetical = bool(
-            re.search(
-                r"\b(?:neu|neu nhu|truong hop|gia su|lo may)\b.*?\b(?:thi phai lam gi|thi xu tri the nao|nen lam gi|can lam gi|lam gi)\b",
-                norm,
-            )
-        )
+        result.is_hypothetical = bool(self._HYPOTHETICAL_QUESTION.search(norm))
+        conditional_match = self._HYPOTHETICAL_START.search(norm) if result.is_hypothetical else None
+        conditional_start = conditional_match.start() if conditional_match else -1
 
-        # Extract positive and negative findings with scope-aware NegationEngine
+        # Extract findings with both negation and hypothetical-scope awareness.
+        # A symptom mentioned only inside "Nếu ... thì làm gì?" is a contingency,
+        # not a present finding.
         for key, patterns in self.TERMS.items():
-            found_pattern = None
-            for p in patterns:
-                if re.search(rf"\b{re.escape(p)}\b", norm):
-                    found_pattern = p
+            matched = None
+            matched_pattern = None
+            for pattern in patterns:
+                candidate = re.search(rf"\b{re.escape(pattern)}\b", norm)
+                if candidate:
+                    matched = candidate
+                    matched_pattern = pattern
                     break
-
-            if not found_pattern:
+            if not matched or not matched_pattern:
                 continue
 
-            is_negated = self.negation_engine.detect(norm, found_pattern)
-            if is_negated:
+            if conditional_start >= 0 and matched.start() > conditional_start:
+                result.hypothetical_findings[key] = True
+                continue
+
+            if self.negation_engine.detect(norm, matched_pattern):
                 result.negative_findings[key] = True
             else:
                 result.positive_findings[key] = True
 
-        # Extract triggers
+        # Extract triggers from current (non-hypothetical) narrative.
         if result.positive_findings.get("exercise"):
             result.triggers.append("exercise_related")
         if any(w in norm for w in ("thuc khuya", "thieu ngu", "mat ngu")):
@@ -107,24 +114,20 @@ class ClinicalContextRouter:
             result.triggers.append("chemical_exposure")
 
         for key in result.positive_findings:
-            if key not in {"exercise"}:
+            if key != "exercise":
                 result.symptoms.append(key)
 
-        # Severity indicators
         if any(word in norm for word in ("du doi", "rat dau", "chua tung bi", "du doi nhat")):
             result.severity["level"] = "high"
         elif any(word in norm for word in ("nhe", "am i", "hoi")):
             result.severity["level"] = "mild"
 
-        # Domain-specific evaluation
         assessment = self._evaluate_domain(text, norm, result)
         result.domain_assessment = assessment
 
-        # Combine red flags from domain assessment
         flags = list(assessment.red_flags if assessment else [])
-
-        # Additional multi-finding safety combinations
         positive = result.positive_findings
+
         if positive.get("chest_pain") and any(
             positive.get(x) for x in ("shortness_of_breath", "sweating", "radiation")
         ):
@@ -143,36 +146,48 @@ class ClinicalContextRouter:
         return result
 
     def _evaluate_domain(self, text: str, norm: str, result: ClinicalContextResult) -> DomainAssessment:
-        # Check metabolic/glucose first if readings or hypo signs present
+        # Pure contingency questions must not be converted into current disease
+        # findings. They receive safety-net guidance only.
+        if result.is_hypothetical and result.hypothetical_findings and not result.positive_findings:
+            return DomainAssessment(
+                risk_level="ROUTINE",
+                subtype="contingency_safety_guidance",
+                rationale=(
+                    "Các dấu hiệu trong câu hỏi đang được nêu dưới dạng giả định/dự phòng, không phải triệu chứng hiện tại đã được xác nhận."
+                ),
+                suggested_action=(
+                    "Nếu các dấu hiệu giả định thực sự xuất hiện, hãy làm theo ngưỡng xử trí tương ứng; với khó thở, sưng môi/lưỡi, nghẹn họng, ngất hoặc đau ngực nặng thì cần gọi cấp cứu."
+                ),
+                red_flags=[],
+            )
+
         if any(w in norm for w in ("duong huyet", "glucose", "mg/dl", "mg dl")):
             return self.metabolic_reasoner.evaluate(text, result)
 
-        # Check allergy/respiratory
-        if any(w in norm for w in ("me day", "phat ban", "sung moi", "sung mat", "ong dot", "di ung", "hoa chat")):
+        current_allergy_signal = any(
+            result.positive_findings.get(key)
+            for key in ("rash", "angioedema", "throat_tightness", "shortness_of_breath")
+        )
+        if current_allergy_signal or any(w in norm for w in ("ong dot", "di ung", "hoa chat")):
             return self.allergy_reasoner.evaluate(text, result)
 
-        # Check chest symptoms (exclude rash on chest)
         is_skin_rash = any(w in norm for w in ("ban lan", "me day", "phat ban")) and "nguc" in norm
         if result.positive_findings.get("chest_pain") and not is_skin_rash:
             return self.chest_reasoner.evaluate(text, result)
 
-        # Check headache
         if result.positive_findings.get("headache"):
             return self.headache_reasoner.evaluate(text, result)
 
-        # Check back pain
         if result.positive_findings.get("back_pain"):
             return self.back_reasoner.evaluate(text, result)
 
-        # Check muscle pain
         if result.positive_findings.get("muscle_pain"):
             return self.muscle_reasoner.evaluate(text, result)
 
-        # Default fallback assessment
         return DomainAssessment(
             risk_level="ROUTINE",
             subtype="general_clinical_query",
-            rationale="Yêu cầu tư vấn sức khỏe thông thường, chưa ghi nhận dấu hiệu nguy cơ cao.",
+            rationale="Yêu cầu tư vấn sức khỏe thông thường, chưa ghi nhận dấu hiệu nguy cơ cao từ dữ kiện hiện có.",
             suggested_action="Theo dõi diễn tiến và đi khám nếu các triệu chứng kéo dài hoặc tăng nặng.",
             red_flags=[],
         )
