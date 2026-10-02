@@ -86,7 +86,9 @@ try {
   await desktop.getByRole('heading', { name: 'Bạn cần được đánh giá cấp cứu ngay', exact: true }).waitFor();
   await desktop.getByText('MedGuard đang xử lý', { exact: true }).waitFor({ state: 'hidden' });
   const emergencyAnswer = desktop.locator('.chat-assistant:not(.pending):visible').last();
-  await emergencyAnswer.locator('.answer-narrative .urgent:visible').waitFor();
+  await emergencyAnswer.locator('.clinical-summary-card.status-emergency').waitFor();
+  await emergencyAnswer.getByText('Cấp cứu ngay', { exact: true }).waitFor();
+  await emergencyAnswer.getByText('Hành động và dấu hiệu khẩn cấp', { exact: true }).waitFor();
   if (await desktop.getByText(/Cơ sở trả lời|Chi tiết dữ liệu nghiệp vụ/).count()) {
     throw new Error('Internal answer details must not be visible in chat');
   }
