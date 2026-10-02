@@ -57,7 +57,7 @@ class MedicationSafetyPipeline:
         alcohol_present = bool(re.search(r"\b(?:uong ruou|uong bia|co con|nhau)\b", norm))
         sedative_present = bool(
             re.search(
-                r"\b(?:thuoc ngu|thuoc an than|benzodiazepine|diazepam|lorazepam|alprazolam|zolpidem|sedative)\b",
+                r"\b(?:thuoc ngu|thuoc an than|thuoc gay buon ngu|thuoc giup ngu|buon ngu|benzodiazepine|diazepam|lorazepam|alprazolam|zolpidem|sedative)\b",
                 combined,
             )
         )
@@ -67,8 +67,8 @@ class MedicationSafetyPipeline:
                 warning_notes=["alcohol_sedative_cns_depression"],
                 contraindications_detected=["alcohol_sedative_coadministration"],
                 guidance=(
-                    "Không dùng thêm thuốc ngủ hoặc thuốc an thần khi đã uống rượu bia. Sự phối hợp này có thể làm tăng ức chế thần kinh trung ương, "
-                    "gây buồn ngủ sâu và suy hô hấp. Nếu đã phối hợp và xuất hiện khó đánh thức, thở chậm hoặc lú lẫn, cần gọi cấp cứu."
+                    "Không được uống thuốc ngủ sau khi đã uống rượu bia. Không dùng thêm thuốc ngủ hoặc thuốc an thần khi đã uống rượu bia vì sự phối hợp này có thể làm tăng ức chế thần kinh trung ương, gây buồn ngủ sâu và suy hô hấp. "
+                    "Nếu đã phối hợp và xuất hiện khó đánh thức, thở chậm hoặc lú lẫn, cần gọi cấp cứu."
                 ),
             )
 
@@ -85,10 +85,10 @@ class MedicationSafetyPipeline:
             return MedicationSafetyResult(
                 allowed=False,
                 warning_notes=["penicillin_class_allergy"],
-                contraindications_detected=["penicillin_amoxicillin_allergy_conflict"],
+                contraindications_detected=["penicillin_amoxicillin_cross_reactivity"],
                 guidance=(
-                    "Không tự dùng tiếp hoặc dùng thử amoxicillin/augmentin khi có tiền sử dị ứng penicillin cho đến khi được bác sĩ hoặc dược sĩ đánh giá. "
-                    "Nếu hiện có sưng môi/lưỡi, nghẹn họng, khó thở, choáng hoặc nổi mề đay lan nhanh, cần xử trí cấp cứu."
+                    "Amoxicillin thuộc nhóm penicillin; khi có tiền sử dị ứng penicillin, tuyệt đối không được tự ý dùng thử hay uống nửa viên để kiểm tra phản ứng. "
+                    "Không tự dùng tiếp amoxicillin/augmentin cho đến khi được bác sĩ hoặc dược sĩ đánh giá. Nếu hiện có sưng môi/lưỡi, nghẹn họng, khó thở, choáng hoặc nổi mề đay lan nhanh, cần xử trí cấp cứu."
                 ),
             )
 
@@ -110,8 +110,8 @@ class MedicationSafetyPipeline:
                 warning_notes=["anticoagulant_do_not_change_without_prescriber"],
                 contraindications_detected=["unauthorized_anticoagulant_cessation"],
                 guidance=(
-                    "Không tự ý bỏ liều, giảm liều hoặc ngừng thuốc chống đông/kháng kết tập tiểu cầu. Nếu có chảy máu kéo dài, phân đen, nôn ra máu, tiểu máu, "
-                    "choáng hoặc ngất, cần được đánh giá y tế khẩn cấp; việc điều chỉnh thuốc phải do bác sĩ quyết định."
+                    "Bạn không nên tự ý bỏ hoặc ngừng thuốc chống đông vì việc thay đổi đột ngột có thể làm tăng nguy cơ huyết khối ở một số bệnh cảnh. "
+                    "Nếu có chảy máu kéo dài, phân đen, nôn ra máu, tiểu máu, choáng hoặc ngất, cần được đánh giá y tế khẩn cấp; việc điều chỉnh thuốc phải do bác sĩ quyết định."
                 ),
             )
         if anticoagulant_user and nsaid_requested:
@@ -180,6 +180,7 @@ class MedicationSafetyPipeline:
                 warning_notes=["non_pharmacological_first_line"],
                 contraindications_detected=[],
                 guidance=(
+                    "MedGuard cung cấp thông tin y tế tham khảo, không tự động kê đơn hay chỉ định liều dùng thuốc cá nhân hóa. "
                     "Ưu tiên xử trí theo nguyên nhân và các biện pháp không dùng thuốc khi phù hợp. Nếu cần thuốc không kê đơn, phải kiểm tra tuổi, dị ứng, bệnh gan/thận/dạ dày, thai kỳ và các thuốc đang dùng trước khi lựa chọn hoạt chất hoặc liều."
                 ),
             )
