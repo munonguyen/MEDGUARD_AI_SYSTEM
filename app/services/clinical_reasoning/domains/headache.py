@@ -26,12 +26,23 @@ class HeadacheReasoner:
         red_flags: list[str] = []
 
         # 1. Thunderclap / sudden severe headache.
-        sudden_severe = bool(
+        # Novelty alone (for example "trước giờ chưa từng bị như vậy") is not a
+        # thunderclap feature. Require sudden/maximal onset or explicit very
+        # severe intensity together with headache language.
+        has_headache = any(w in norm for w in ("dau dau", "nhuc dau", "con dau dau"))
+        sudden_onset = bool(
             re.search(
-                r"\b(?:dot ngot|set danh|du doi nhat|chua tung bi|rat du doi)\b",
+                r"\b(?:dot ngot|set danh|nhu set danh|bung phat|dau nhu bua bo)\b",
                 norm,
             )
-        ) and any(w in norm for w in ("dau dau", "dau", "con dau"))
+        )
+        maximal_or_extreme = bool(
+            re.search(
+                r"\b(?:du doi nhat|rat du doi|dau dau du doi|dau dau rat nhieu|dau du doi)\b",
+                norm,
+            )
+        )
+        sudden_severe = has_headache and (sudden_onset or maximal_or_extreme)
 
         # 2. Focal neurological deficit.
         focal_neuro = bool(
