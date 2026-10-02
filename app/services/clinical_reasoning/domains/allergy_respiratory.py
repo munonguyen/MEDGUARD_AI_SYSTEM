@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import re
 from typing import Any
 
@@ -11,16 +10,27 @@ from app.services.clinical_reasoning.domains.headache import DomainAssessment
 
 
 class AllergyRespiratoryReasoner:
-    """Evaluates allergic reactions, toxic inhalations and respiratory distress."""
+    """Evaluate allergic reactions, inhalation injuries and airway compromise.
+
+    Present-vs-hypothetical symptom status is taken from the structured context
+    whenever available so contingency questions do not become false active
+    emergencies merely because they contain words such as "sưng môi" or
+    "khó thở".
+    """
 
     def evaluate(self, text: str, clinical_context: Any) -> DomainAssessment:
         norm = normalize_search_text(text)
+        positive = getattr(clinical_context, "positive_findings", {}) or {}
         red_flags: list[str] = []
 
-        # 1. Anaphylaxis / Angioedema red flags
-        angioedema = bool(re.search(r"\b(?:sung moi|sung luoi|sung mat|sung hong|phu moi|phu mat)\b", norm))
-        airway_tightness = bool(re.search(r"\b(?:nghen co hong|nghet hong|kho tho|tho rit|tho gap|moi hoi tim)\b", norm))
-        allergy_context = bool(re.search(r"\b(?:uong thuoc|sau khi uong|me day|phat ban|ong dot|di ung)\b", norm))
+        angioedema = bool(positive.get("angioedema"))
+        airway_tightness = bool(
+            positive.get("throat_tightness") or positive.get("shortness_of_breath")
+        )
+        rash_present = bool(positive.get("rash"))
+        allergy_context = bool(
+            re.search(r"\b(?:uong thuoc|sau khi uong|ong dot|di ung)\b", norm)
+        ) or rash_present
 
         if (angioedema or airway_tightness) and (allergy_context or angioedema):
             if angioedema:
@@ -32,40 +42,48 @@ class AllergyRespiratoryReasoner:
                 risk_level="EMERGENCY",
                 subtype="anaphylaxis_airway_emergency",
                 rationale=(
-                    "Dị ứng tiến triển nhanh kèm sưng nề vùng môi/lưỡi/mặt hoặc có cảm giác nghẹn họng, khó thở "
-                    "là biểu hiện của phản ứng phản vệ cấp tính (anaphylaxis) có nguy cơ tắc nghẽn đường thở đe dọa tính mạng."
+                    "Dị ứng đang diễn ra kèm sưng môi/lưỡi/mặt hoặc nghẹn họng, khó thở là dấu hiệu cảnh báo phản vệ/phù đường thở cần xử trí khẩn cấp."
                 ),
-                suggested_action="Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay lập tức để được tiêm bắp Adrenaline và can thiệp hồi sức.",
+                suggested_action=(
+                    "Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay lập tức. Nếu người bệnh đã được bác sĩ kê bút adrenaline tự tiêm cho phản vệ trước đây, sử dụng theo kế hoạch cấp cứu cá nhân đã được hướng dẫn; không trì hoãn việc gọi cấp cứu."
+                ),
                 red_flags=red_flags,
             )
 
-        # 2. Toxic chemical inhalation
-        chemical_inhalation = bool(re.search(r"\b(?:hoa chat|tay rua|mui clo|khi doc|phong kin)\b", norm))
-        inhalation_symptoms = bool(re.search(r"\b(?:kho tho|tuc nguc|ho nhieu|rat hong|chong mat)\b", norm))
+        # Toxic chemical inhalation must rely on a current respiratory finding,
+        # not merely a hypothetical phrase embedded in the question.
+        chemical_inhalation = bool(
+            re.search(r"\b(?:hoa chat|tay rua|mui clo|khi doc|phong kin)\b", norm)
+        )
+        inhalation_symptoms = bool(
+            positive.get("shortness_of_breath")
+            or positive.get("chest_pain")
+            or positive.get("dizziness")
+            or re.search(r"\b(?:ho nhieu|rat hong)\b", norm)
+        )
 
         if chemical_inhalation and inhalation_symptoms:
             return DomainAssessment(
                 risk_level="EMERGENCY",
                 subtype="toxic_inhalation_respiratory_injury",
                 rationale=(
-                    "Hít phải hơi/khí hóa chất tẩy rửa trong không gian kín dẫn đến khó thở hoặc kích ứng đường hô hấp "
-                    "có nguy cơ gây viêm đường thở cấp tính hoặc phù phổi nhiễm độc hóa chất."
+                    "Hít phải hơi/khí hóa chất trong không gian kín kèm khó thở, tức ngực, chóng mặt hoặc kích ứng hô hấp rõ có thể là tổn thương hô hấp cấp do hóa chất."
                 ),
-                suggested_action="Di chuyển ngay ra nơi thoáng khí trong lành và gọi 115 hoặc đến cơ sở y tế cấp cứu ngay.",
+                suggested_action=(
+                    "Rời khỏi nguồn phơi nhiễm và ra nơi thoáng khí nếu có thể làm vậy an toàn; gọi 115 hoặc đến cơ sở cấp cứu nếu còn khó thở, tức ngực, chóng mặt nhiều hoặc triệu chứng tăng."
+                ),
                 red_flags=["toxic_inhalation_dyspnea"],
             )
 
-        # 3. Simple localized cutaneous allergy
-        if allergy_context or "me day" in norm or "phat ban" in norm:
+        if allergy_context or rash_present:
             return DomainAssessment(
                 risk_level="ROUTINE",
                 subtype="localized_cutaneous_allergy",
                 rationale=(
-                    "Phản ứng mày đay hoặc phát ban ngoài da đơn thuần, hiện tại không có dấu hiệu phù mặt môi hay khó thở."
+                    "Hiện dữ kiện phù hợp hơn với phản ứng da khu trú/mày đay và chưa có dấu hiệu đường thở đang xảy ra trong các finding hiện tại."
                 ),
                 suggested_action=(
-                    "Ngừng tiếp xúc ngay với dị nguyên nghi ngờ (thuốc mới, thức ăn lạ). "
-                    "Nếu xuất hiện sưng môi, nghẹn họng, chóng mặt hoặc khó thở thì phải gọi cấp cứu ngay lập tức."
+                    "Ngừng tiếp xúc với tác nhân nghi ngờ nếu an toàn. Nếu thực sự xuất hiện sưng môi/lưỡi, nghẹn họng, khó thở, choáng hoặc ngất thì gọi cấp cứu ngay."
                 ),
                 red_flags=[],
             )
@@ -73,7 +91,7 @@ class AllergyRespiratoryReasoner:
         return DomainAssessment(
             risk_level="ROUTINE",
             subtype="mild_respiratory_symptom",
-            rationale="Triệu chứng hô hấp nhẹ không kèm co kéo lồng ngực, tím tái hay khó thở khi nghỉ.",
-            suggested_action="Nghỉ ngơi, theo dõi sát nhịp thở và đi khám nếu tình trạng khó thở gia tăng.",
+            rationale="Chưa ghi nhận trong structured findings các dấu hiệu đường thở nguy kịch đang xảy ra.",
+            suggested_action="Theo dõi sát; đi khám nếu triệu chứng hô hấp tăng, kéo dài hoặc ảnh hưởng hoạt động thường ngày.",
             red_flags=[],
         )
