@@ -34,6 +34,7 @@ def enrich_patient_context(
         "severity": result.severity,
         "positive_findings": result.positive_findings,
         "negative_findings": result.negative_findings,
+        "hypothetical_findings": result.hypothetical_findings,
         "risk_features": result.risk_features,
         "is_hypothetical": result.is_hypothetical,
         "domain_assessment": (
@@ -60,6 +61,7 @@ def enrich_patient_context(
         "source": "v28.1_clinical_context_router",
         "diagnosis_generated": False,
         "severity_override_allowed": False,
+        "hypothetical_findings_are_not_current": True,
     }
 
     return context
