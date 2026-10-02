@@ -164,13 +164,7 @@ class KnowledgeStore:
 
     @staticmethod
     def _guidance_is_route_compatible(guidance: dict[str, Any], normalized: str) -> bool:
-        """Reject symptom templates whose physical mechanism contradicts the turn.
-
-        Two high-cost contamination classes are guarded here:
-        - chemical inhalation must not receive skin-burn cooling instructions;
-        - animal bites must not receive knife/paper-cut wording merely because
-          both presentations contain a bleeding wound.
-        """
+        """Reject symptom templates whose physical mechanism contradicts the turn."""
         topic = str(guidance.get("topic", ""))
 
         if topic == "open_wound_cut":
@@ -205,8 +199,28 @@ class KnowledgeStore:
         )
         return not (has_inhalation_route and not has_skin_burn)
 
+    @staticmethod
+    def _is_animal_bite(normalized: str) -> bool:
+        return any(
+            contains_affirmed_phrase(normalized, marker)
+            for marker in (
+                "cho can", "meo can", "dong vat can", "suc vat can",
+                "khi can", "doi can", "chuot can",
+            )
+        )
+
     def find_symptom_guidance(self, symptoms_text: str) -> dict[str, Any] | None:
         normalized = normalize_search_text(symptoms_text)
+
+        # Animal-bite episodes are governed by dedicated urgent rabies/tetanus
+        # rules. Until a dedicated animal-bite symptom template exists, returning
+        # no generic guidance is safer than contaminating the response with burn,
+        # knife-cut or other wound-mechanism instructions/questions.
+        if self._is_animal_bite(normalized):
+            for guidance in self.symptom_guidance:
+                if guidance.get("topic") in {"animal_bite", "rabies_exposure"}:
+                    return self._contextualize_guidance(guidance, symptoms_text)
+            return None
 
         explicit_policy = self._find_explicit_response_policy(normalized)
         if explicit_policy is not None:
