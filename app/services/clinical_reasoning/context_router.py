@@ -1,13 +1,18 @@
-"""Clinical context router for MedGuard AI V28.1.
+"""Clinical context router for MedGuard AI V28.2.
 
-Replaces naive keyword-only urgency decisions with structured evidence:
-symptom + context + severity + duration + associated findings + negative findings -> calibrated risk.
+Transforms conversational input into structured evidence:
+symptom + context + severity + associated findings + negative findings -> risk.
+
+V28.2 makes evidence mention-aware: the latest current mention wins when a
+finding changes state inside one utterance, while hypothetical mentions remain
+separate from current findings.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 import re
+from typing import Iterable
 
 from app.services.clinical_text import normalize_search_text
 from app.services.clinical_reasoning.domains.allergy_respiratory import AllergyRespiratoryReasoner
@@ -67,6 +72,37 @@ class ClinicalContextRouter:
         self.allergy_reasoner = AllergyRespiratoryReasoner()
         self.metabolic_reasoner = MetabolicReasoner()
 
+    def _mentions(
+        self,
+        norm: str,
+        patterns: Iterable[str],
+        conditional_start: int = -1,
+    ) -> tuple[list[tuple[int, bool]], bool]:
+        """Return current mentions ``(position, negated)`` and hypothetical flag."""
+        current: list[tuple[int, bool]] = []
+        hypothetical = False
+        for pattern in patterns:
+            for match in re.finditer(rf"\b{re.escape(pattern)}\b", norm):
+                if conditional_start >= 0 and match.start() > conditional_start:
+                    hypothetical = True
+                    continue
+                current.append(
+                    (match.start(), self.negation_engine.is_negated_at(norm, match.start()))
+                )
+        return current, hypothetical
+
+    def _latest_current_affirmed(
+        self,
+        norm: str,
+        patterns: Iterable[str],
+        conditional_start: int = -1,
+    ) -> bool:
+        current, _ = self._mentions(norm, patterns, conditional_start)
+        if not current:
+            return False
+        _, negated = max(current, key=lambda item: item[0])
+        return not negated
+
     def parse(self, text: str) -> ClinicalContextResult:
         norm = normalize_search_text(text)
         result = ClinicalContextResult()
@@ -75,55 +111,66 @@ class ClinicalContextRouter:
         conditional_match = self._HYPOTHETICAL_START.search(norm) if result.is_hypothetical else None
         conditional_start = conditional_match.start() if conditional_match else -1
 
-        # Extract findings with both negation and hypothetical-scope awareness.
-        # A symptom mentioned only inside "Nếu ... thì làm gì?" is a contingency,
-        # not a present finding.
+        # Extract every mention and use the latest *current* mention as the state.
+        # This correctly handles transitions such as:
+        # "lúc đầu không khó thở nhưng giờ khó thở" -> current positive.
         for key, patterns in self.TERMS.items():
-            matched = None
-            matched_pattern = None
-            for pattern in patterns:
-                candidate = re.search(rf"\b{re.escape(pattern)}\b", norm)
-                if candidate:
-                    matched = candidate
-                    matched_pattern = pattern
-                    break
-            if not matched or not matched_pattern:
-                continue
-
-            if conditional_start >= 0 and matched.start() > conditional_start:
+            current, hypothetical = self._mentions(norm, patterns, conditional_start)
+            if hypothetical:
                 result.hypothetical_findings[key] = True
+            if not current:
                 continue
-
-            if self.negation_engine.detect(norm, matched_pattern):
+            _, negated = max(current, key=lambda item: item[0])
+            if negated:
                 result.negative_findings[key] = True
             else:
                 result.positive_findings[key] = True
 
-        # Extract triggers from current (non-hypothetical) narrative.
+        # Triggers must also be current and affirmed. Keyword presence alone is
+        # insufficient ("không tập gym", "không uống thuốc", etc.).
         if result.positive_findings.get("exercise"):
             result.triggers.append("exercise_related")
-        if any(w in norm for w in ("thuc khuya", "thieu ngu", "mat ngu")):
+        if self._latest_current_affirmed(
+            norm, ("thuc khuya", "thieu ngu", "mat ngu"), conditional_start
+        ):
             result.triggers.append("sleep_deprivation")
-        if any(w in norm for w in ("ngoi lau", "ngoi may tinh", "ngoi ca ngay")):
+        if self._latest_current_affirmed(
+            norm, ("ngoi lau", "ngoi may tinh", "ngoi ca ngay"), conditional_start
+        ):
             result.triggers.append("prolonged_sitting")
-        if any(w in norm for w in ("uong ruou", "uong bia", "nhau")):
+        if self._latest_current_affirmed(
+            norm, ("uong ruou", "uong bia", "nhau"), conditional_start
+        ):
             result.triggers.append("alcohol_intake")
-        if any(w in norm for w in ("uong thuoc", "sau khi uong")):
+        if self._latest_current_affirmed(
+            norm, ("uong thuoc", "sau khi uong"), conditional_start
+        ):
             result.triggers.append("medication_ingestion")
-        if any(w in norm for w in ("hoa chat", "tay rua", "phong kin")):
+        if self._latest_current_affirmed(
+            norm, ("hoa chat", "tay rua", "phong kin"), conditional_start
+        ):
             result.triggers.append("chemical_exposure")
 
         for key in result.positive_findings:
             if key != "exercise":
                 result.symptoms.append(key)
 
-        # Severity must be supported by intensity wording. "Chưa từng bị như
-        # vậy" means novelty, not severity, and must never create a thunderclap
-        # signal by itself.
-        if any(word in norm for word in ("du doi", "rat dau", "du doi nhat", "rat du doi")):
-            result.severity["level"] = "high"
-        elif any(word in norm for word in ("nhe", "am i", "hoi")):
-            result.severity["level"] = "mild"
+        # Severity is based on the latest affirmed intensity description rather
+        # than raw keyword presence. "Không đau dữ dội, chỉ hơi đau" -> mild.
+        intensity_mentions: list[tuple[int, str]] = []
+        for label, patterns in (
+            ("high", ("du doi nhat", "rat du doi", "du doi", "rat dau")),
+            ("mild", ("nhe", "am i", "hoi")),
+        ):
+            for pattern in patterns:
+                for match in re.finditer(rf"\b{re.escape(pattern)}\b", norm):
+                    if conditional_start >= 0 and match.start() > conditional_start:
+                        continue
+                    if not self.negation_engine.is_negated_at(norm, match.start()):
+                        intensity_mentions.append((match.start(), label))
+        if intensity_mentions:
+            _, level = max(intensity_mentions, key=lambda item: item[0])
+            result.severity["level"] = level
 
         assessment = self._evaluate_domain(text, norm, result)
         result.domain_assessment = assessment
@@ -149,8 +196,7 @@ class ClinicalContextRouter:
         return result
 
     def _evaluate_domain(self, text: str, norm: str, result: ClinicalContextResult) -> DomainAssessment:
-        # Pure contingency questions must not be converted into current disease
-        # findings. They receive safety-net guidance only.
+        # Pure contingency questions must not be converted into current disease findings.
         if result.is_hypothetical and result.hypothetical_findings and not result.positive_findings:
             return DomainAssessment(
                 risk_level="ROUTINE",
@@ -167,11 +213,6 @@ class ClinicalContextRouter:
         if any(w in norm for w in ("duong huyet", "glucose", "mg/dl", "mg dl")):
             return self.metabolic_reasoner.evaluate(text, result)
 
-        # Route chest pain before isolated dyspnea. Previously shortness of
-        # breath alone was treated as an allergy signal, so "đau ngực + khó thở
-        # + vã mồ hôi" incorrectly entered the allergy reasoner and became
-        # ROUTINE. True allergy context (rash/angioedema/throat swelling or an
-        # explicit allergy/exposure trigger) still retains priority.
         explicit_allergy_context = any(
             result.positive_findings.get(key)
             for key in ("rash", "angioedema", "throat_tightness")
@@ -183,8 +224,6 @@ class ClinicalContextRouter:
         if result.positive_findings.get("chest_pain") and not is_skin_rash:
             return self.chest_reasoner.evaluate(text, result)
 
-        # Dyspnea without chest pain can still belong to the allergy/respiratory
-        # reasoner, but it no longer masks a chest-pain red-flag cluster.
         if result.positive_findings.get("shortness_of_breath"):
             return self.allergy_reasoner.evaluate(text, result)
 
@@ -200,7 +239,7 @@ class ClinicalContextRouter:
         return DomainAssessment(
             risk_level="ROUTINE",
             subtype="general_clinical_query",
-            rationale="Yêu cầu tư vấn sức khỏe thông thường, chưa ghi nhận dấu hiệu nguy cơ cao từ dữ kiện hiện có.",
+            rationale="Yêu cầu tư vấn sức khỏe thông thường; dữ kiện hiện tại chưa ghi nhận dấu hiệu nguy cơ cao, nhưng các dấu hiệu chưa được hỏi tới vẫn là chưa biết.",
             suggested_action="Theo dõi diễn tiến và đi khám nếu các triệu chứng kéo dài hoặc tăng nặng.",
             red_flags=[],
         )
