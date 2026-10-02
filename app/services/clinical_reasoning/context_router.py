@@ -117,7 +117,10 @@ class ClinicalContextRouter:
             if key != "exercise":
                 result.symptoms.append(key)
 
-        if any(word in norm for word in ("du doi", "rat dau", "chua tung bi", "du doi nhat")):
+        # Severity must be supported by intensity wording. "Chưa từng bị như
+        # vậy" means novelty, not severity, and must never create a thunderclap
+        # signal by itself.
+        if any(word in norm for word in ("du doi", "rat dau", "du doi nhat", "rat du doi")):
             result.severity["level"] = "high"
         elif any(word in norm for word in ("nhe", "am i", "hoi")):
             result.severity["level"] = "mild"
@@ -164,16 +167,26 @@ class ClinicalContextRouter:
         if any(w in norm for w in ("duong huyet", "glucose", "mg/dl", "mg dl")):
             return self.metabolic_reasoner.evaluate(text, result)
 
-        current_allergy_signal = any(
+        # Route chest pain before isolated dyspnea. Previously shortness of
+        # breath alone was treated as an allergy signal, so "đau ngực + khó thở
+        # + vã mồ hôi" incorrectly entered the allergy reasoner and became
+        # ROUTINE. True allergy context (rash/angioedema/throat swelling or an
+        # explicit allergy/exposure trigger) still retains priority.
+        explicit_allergy_context = any(
             result.positive_findings.get(key)
-            for key in ("rash", "angioedema", "throat_tightness", "shortness_of_breath")
-        )
-        if current_allergy_signal or any(w in norm for w in ("ong dot", "di ung", "hoa chat")):
+            for key in ("rash", "angioedema", "throat_tightness")
+        ) or any(w in norm for w in ("ong dot", "di ung", "hoa chat"))
+        if explicit_allergy_context:
             return self.allergy_reasoner.evaluate(text, result)
 
         is_skin_rash = any(w in norm for w in ("ban lan", "me day", "phat ban")) and "nguc" in norm
         if result.positive_findings.get("chest_pain") and not is_skin_rash:
             return self.chest_reasoner.evaluate(text, result)
+
+        # Dyspnea without chest pain can still belong to the allergy/respiratory
+        # reasoner, but it no longer masks a chest-pain red-flag cluster.
+        if result.positive_findings.get("shortness_of_breath"):
+            return self.allergy_reasoner.evaluate(text, result)
 
         if result.positive_findings.get("headache"):
             return self.headache_reasoner.evaluate(text, result)
