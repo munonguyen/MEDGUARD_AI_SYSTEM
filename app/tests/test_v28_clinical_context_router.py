@@ -23,6 +23,20 @@ def test_headache_thunderclap_is_emergency(router):
     assert result.domain_assessment.risk_level == "EMERGENCY"
 
 
+def test_severe_headache_after_head_trauma_is_urgent(router):
+    result = router.parse("Tôi đau đầu dữ dội sau khi va đập đầu")
+    assert result.positive_findings["headache"] is True
+    assert result.domain_assessment.risk_level == "URGENT"
+    assert result.domain_assessment.subtype == "headache_needs_prompt_assessment"
+    assert "recent_head_trauma" in result.domain_assessment.red_flags
+
+
+def test_head_trauma_with_loss_of_consciousness_is_emergency(router):
+    result = router.parse("Tôi đau đầu sau khi va đập đầu, vừa ngất và nôn liên tục")
+    assert result.domain_assessment.risk_level == "EMERGENCY"
+    assert "head_trauma_with_neurological_warning" in result.domain_assessment.red_flags
+
+
 # --- Muscle pain domain tests ---
 def test_muscle_pain_after_gym_is_routine_doms(router):
     result = router.parse("Tôi đau cơ sau khi tập gym")
@@ -47,6 +61,14 @@ def test_exercise_chest_pain_without_red_flags(router):
     assert result.domain_assessment.risk_level == "ROUTINE"
     assert result.domain_assessment.subtype == "musculoskeletal_chest_wall"
     assert result.risk_features == []
+
+
+def test_exertional_chest_pressure_is_not_downgraded_to_muscle_pain(router):
+    result = router.parse("Tôi thấy nặng ngực khi đi bộ nhanh")
+    assert result.positive_findings["chest_pain"] is True
+    assert result.domain_assessment.risk_level == "URGENT"
+    assert result.domain_assessment.subtype == "exertional_chest_pain_needs_prompt_assessment"
+    assert "exertional_chest_pain" in result.risk_features
 
 
 def test_chest_pain_with_red_flags(router):
@@ -85,6 +107,26 @@ def test_allergy_rash_with_lip_swelling_and_dyspnea_is_anaphylaxis_emergency(rou
     assert result.domain_assessment.risk_level == "EMERGENCY"
     assert result.domain_assessment.subtype == "anaphylaxis_airway_emergency"
     assert "cardiac_warning_pattern" not in result.risk_features
+
+
+def test_pure_hypothetical_airway_question_is_not_current_emergency(router):
+    result = router.parse("Nếu bắt đầu sưng môi hoặc khó thở thì tôi phải làm gì?")
+    assert result.is_hypothetical is True
+    assert result.positive_findings == {}
+    assert result.hypothetical_findings["angioedema"] is True
+    assert result.hypothetical_findings["shortness_of_breath"] is True
+    assert result.domain_assessment.risk_level == "ROUTINE"
+    assert result.domain_assessment.subtype == "contingency_safety_guidance"
+
+
+def test_current_rash_plus_hypothetical_airway_signs_stays_currently_non_emergency(router):
+    result = router.parse("Tôi đang nổi mề đay, nếu sưng môi hoặc khó thở thì tôi phải làm gì?")
+    assert result.positive_findings["rash"] is True
+    assert "angioedema" not in result.positive_findings
+    assert result.hypothetical_findings["angioedema"] is True
+    assert result.hypothetical_findings["shortness_of_breath"] is True
+    assert result.domain_assessment.risk_level == "ROUTINE"
+    assert result.domain_assessment.subtype == "localized_cutaneous_allergy"
 
 
 # --- Metabolic / Glucose tests ---
