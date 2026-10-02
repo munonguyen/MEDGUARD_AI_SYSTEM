@@ -6,16 +6,17 @@ from app.models.clinical_task import ClinicalTask, ClinicalTaskDecision
 from app.services.clinical_text import normalize_search_text
 
 
-_LAB_MARKERS = (
+# Strong laboratory-result markers can identify the work type directly. Generic
+# words such as "xét nghiệm" are handled separately because "có nên đi xét
+# nghiệm không?" is a care-planning question, not a request to interpret a lab.
+_STRONG_LAB_MARKERS = (
     "hbsag",
     "anti-hbs",
     "anti hbs",
     "anti-hbc",
     "anti hbc",
-    "xet nghiem",
     "ket qua xet nghiem",
     "chi so xet nghiem",
-    "xet nghiem mau",
     "men gan",
     "ast",
     "alt",
@@ -25,6 +26,23 @@ _LAB_MARKERS = (
     "cholesterol",
     "triglycerid",
     "triglyceride",
+)
+_GENERIC_LAB_MARKERS = ("xet nghiem", "xet nghiem mau")
+_LAB_RESULT_CUES = (
+    "ket qua",
+    "chi so",
+    "cao",
+    "thap",
+    "tang",
+    "giam",
+    "am tinh",
+    "duong tinh",
+    "binh thuong",
+    "bat thuong",
+    "mmol/l",
+    "mg/dl",
+    "u/l",
+    "ui/l",
 )
 
 _EXPOSURE_MARKERS = (
@@ -63,6 +81,7 @@ _MEDICATION_MARKERS = (
     "dung chung",
     "di ung thuoc",
     "thuoc co dung duoc",
+    "thuoc ngu",
 )
 
 _MONITORING_MARKERS = ("spo2", "huyet ap", "nhip tim", "nhiet do", "duong huyet")
@@ -70,18 +89,32 @@ _FOLLOWUP_MARKERS = ("tai kham", "lich kham", "follow up", "follow-up", "lich he
 
 
 def _contains_marker(norm: str, marker: str) -> bool:
-    """Match task markers as lexical units, never arbitrary substrings.
-
-    Short laboratory abbreviations such as ``AST`` and ``ALT`` previously
-    matched inside medication names (for example ``atorvastatin``), causing an
-    explicit schedule command to be routed into LAB_INTERPRETATION before the
-    workflow intent router could run.  Word-boundary matching preserves true
-    lab signals while eliminating that class of cross-domain collision.
-    """
+    """Match task markers as lexical units, never arbitrary substrings."""
     return re.search(
         rf"(?<![a-z0-9]){re.escape(marker)}(?![a-z0-9])",
         norm,
     ) is not None
+
+
+def _has_laboratory_result_language(norm: str) -> tuple[bool, list[str]]:
+    strong_hits = [marker for marker in _STRONG_LAB_MARKERS if _contains_marker(norm, marker)]
+    qualitative_result = bool(
+        re.search(r"\b[a-z][a-z0-9-]{1,20}\s*(?:am tinh|duong tinh|\(-\)|\(\+\))", norm)
+    )
+    generic_lab = any(_contains_marker(norm, marker) for marker in _GENERIC_LAB_MARKERS)
+    result_cue = any(_contains_marker(norm, marker) for marker in _LAB_RESULT_CUES) or bool(
+        re.search(r"\b\d+(?:[.,]\d+)?\s*(?:mmol/l|mg/dl|u/l|ui/l|g/l|%)\b", norm)
+    )
+
+    # Named analytes/tests are strong enough on their own, while generic
+    # "xét nghiệm" requires evidence that a result actually exists.
+    is_result_interpretation = bool(strong_hits or qualitative_result or (generic_lab and result_cue))
+    reasons = []
+    if strong_hits:
+        reasons.append("named_laboratory_marker_detected")
+    if qualitative_result or (generic_lab and result_cue):
+        reasons.append("laboratory_result_language_detected")
+    return is_result_interpretation, reasons
 
 
 def resolve_clinical_task(text: str) -> ClinicalTaskDecision:
@@ -92,17 +125,12 @@ def resolve_clinical_task(text: str) -> ClinicalTaskDecision:
     """
     norm = normalize_search_text(text)
 
-    lab_hits = [marker for marker in _LAB_MARKERS if _contains_marker(norm, marker)]
-    # Qualitative +/- result syntax is a strong lab signal even when a test name
-    # is uncommon and absent from the small marker vocabulary.
-    qualitative_result = bool(
-        re.search(r"\b[a-z][a-z0-9-]{1,20}\s*(?:am tinh|duong tinh|\(-\)|\(\+\))", norm)
-    )
-    if lab_hits or qualitative_result:
+    is_lab_result, lab_reasons = _has_laboratory_result_language(norm)
+    if is_lab_result:
         return ClinicalTaskDecision(
             task=ClinicalTask.LAB_INTERPRETATION,
-            confidence=0.98 if lab_hits else 0.88,
-            reasons=["laboratory_result_language_detected"],
+            confidence=0.96,
+            reasons=lab_reasons or ["laboratory_result_language_detected"],
             domain="laboratory",
         )
 
@@ -118,10 +146,12 @@ def resolve_clinical_task(text: str) -> ClinicalTaskDecision:
             domain="dermatology_exposure",
         )
 
-    if any(_contains_marker(norm, marker) for marker in _MEDICATION_MARKERS):
+    if any(_contains_marker(norm, marker) for marker in _MEDICATION_MARKERS) or bool(
+        re.search(r"\bco nen\s+(?:dung|uong|tu mua)\b.{0,60}\bthuoc\b", norm)
+    ):
         return ClinicalTaskDecision(
             task=ClinicalTask.MEDICATION_SAFETY,
-            confidence=0.92,
+            confidence=0.94,
             reasons=["medication_safety_request"],
             domain="medication",
         )
@@ -144,8 +174,21 @@ def resolve_clinical_task(text: str) -> ClinicalTaskDecision:
             domain="followup",
         )
 
-    # Broad symptom language belongs to acute symptom reasoning. The clinical
-    # intent router can still refine the operational intent after this layer.
+    # Chronic-disease education is distinct from acute triage when the user is
+    # asking about long-term control rather than reporting a new red flag.
+    if any(_contains_marker(norm, marker) for marker in ("tang huyet ap", "cao huyet ap")) and any(
+        marker in norm for marker in ("chua khoi", "khoi hoan toan", "kiem soat", "song chung")
+    ):
+        return ClinicalTaskDecision(
+            task=ClinicalTask.CHRONIC_CONDITION,
+            confidence=0.90,
+            reasons=["chronic_condition_education_request"],
+            domain="chronic_condition",
+        )
+
+    # Broad symptom language belongs to symptom reasoning. Generic requests
+    # asking *whether* tests may be needed stay here instead of becoming lab
+    # interpretation when there is no result to interpret.
     if any(
         _contains_marker(norm, marker)
         for marker in (
@@ -164,11 +207,15 @@ def resolve_clinical_task(text: str) -> ClinicalTaskDecision:
             "chay mau",
             "co giat",
             "ngat",
+            "met moi",
+            "met",
+            "suy nhuoc",
+            "mat ngu",
         )
     ):
         return ClinicalTaskDecision(
             task=ClinicalTask.ACUTE_SYMPTOM,
-            confidence=0.78,
+            confidence=0.80,
             reasons=["symptom_language_detected"],
             domain="clinical_symptom",
         )
