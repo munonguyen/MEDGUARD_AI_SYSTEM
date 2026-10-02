@@ -213,17 +213,24 @@ class ClinicalContextRouter:
         if any(w in norm for w in ("duong huyet", "glucose", "mg/dl", "mg dl")):
             return self.metabolic_reasoner.evaluate(text, result)
 
+        # Route allergy/toxic exposure only from affirmed structured evidence or
+        # affirmed triggers. Negated raw words such as "không dị ứng" or
+        # "không tiếp xúc hóa chất" cannot hijack a chest-pain presentation.
         explicit_allergy_context = any(
             result.positive_findings.get(key)
             for key in ("rash", "angioedema", "throat_tightness")
-        ) or any(w in norm for w in ("ong dot", "di ung", "hoa chat"))
+        ) or any(
+            trigger in result.triggers
+            for trigger in ("medication_ingestion", "chemical_exposure")
+        )
         if explicit_allergy_context:
             return self.allergy_reasoner.evaluate(text, result)
 
-        is_skin_rash = any(w in norm for w in ("ban lan", "me day", "phat ban")) and "nguc" in norm
-        if result.positive_findings.get("chest_pain") and not is_skin_rash:
+        if result.positive_findings.get("chest_pain"):
             return self.chest_reasoner.evaluate(text, result)
 
+        # Dyspnea without chest pain can still belong to the respiratory reasoner.
+        # The reasoner itself verifies whether allergy/chemical exposure is affirmed.
         if result.positive_findings.get("shortness_of_breath"):
             return self.allergy_reasoner.evaluate(text, result)
 
