@@ -26,6 +26,7 @@ from app.services.circuit import CircuitBreaker, model_circuit
 from app.services.knowledge_retriever import knowledge_retriever, resolve_domain
 from app.services.jury_evaluator import MedicalSafetyGate, QAGEvaluator
 from app.services.clinical_agent_contract import build_clinical_agent_contract
+from app.services.clinical_reasoning import enrich_patient_context
 from app.services.llm_control_plane import (
     AgentRequestPolicy,
     SingleFlightCoordinator,
@@ -625,6 +626,7 @@ class AnswerAgentPipeline:
         domain = resolve_domain(intent, question)
         claims = claims_override if claims_override is not None else _claims(answer, intent)
         tool_result = tool_result_override if tool_result_override is not None else answer.model_dump(mode="json", exclude={"agent_trace"})
+        enriched_patient_context = enrich_patient_context(patient_context, question)
         state = MedicalAgentState(
             request_id=request_id,
             tenant_id=tenant_id,
@@ -632,7 +634,7 @@ class AnswerAgentPipeline:
             locale=locale,
             intent=intent,
             question=question,
-            patient_context=patient_context,
+            patient_context=enriched_patient_context,
             policy=policy,
             claims=claims,
             tool_result=tool_result,

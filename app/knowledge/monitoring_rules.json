@@ -92,7 +92,15 @@
     {
       "metric": "glucose_mg_dl",
       "trend_policy": "range_dependent",
-      "trend_min_delta": 10.0
+      "trend_min_delta": 10.0,
+      "critical_below": 54.0,
+      "warning_below": 70.0,
+      "warning_above": 180.0,
+      "critical_above": 300.0,
+      "critical_escalation": "EMERGENCY",
+      "warning_escalation": "URGENT",
+      "detail_critical": "Đường huyết hạ mức nguy hiểm (< 54 mg/dL), nguy cơ suy giảm ý thức hoặc hôn mê hạ đường huyết.",
+      "detail_warning": "Đường huyết thấp (< 70 mg/dL), cần áp dụng quy tắc 15 (bổ sung 15g đường nhanh) và đo lại sau 15 phút."
     }
   ]
 }
