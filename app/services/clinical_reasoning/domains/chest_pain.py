@@ -7,6 +7,7 @@ from typing import Any
 
 from app.services.clinical_text import normalize_search_text
 from app.services.clinical_reasoning.domains.headache import DomainAssessment
+from app.services.clinical_reasoning.negation_engine import NegationEngine
 
 
 class ChestPainReasoner:
@@ -17,35 +18,56 @@ class ChestPainReasoner:
     pain reproducible by palpation can support a chest-wall pattern, whereas
     pressure/heaviness brought on by walking/running/stairs needs prompt
     clinical assessment even if classic emergency accompaniments are absent.
+
+    V28.2 safety rule: red-flag words are never treated as present merely
+    because their text occurs in the utterance. Structured positive/negative
+    findings and local negation scope take precedence.
     """
+
+    def __init__(self) -> None:
+        self.negation_engine = NegationEngine()
+
+    def _affirmed_regex(self, norm: str, pattern: str) -> bool:
+        """Return True only when a regex match is present and not locally negated."""
+        for match in re.finditer(pattern, norm):
+            phrase = match.group(0).strip()
+            if phrase and not self.negation_engine.detect(norm, phrase):
+                return True
+        return False
 
     def evaluate(self, text: str, clinical_context: Any) -> DomainAssessment:
         norm = normalize_search_text(text)
+        positive = getattr(clinical_context, "positive_findings", {}) or {}
+        negative = getattr(clinical_context, "negative_findings", {}) or {}
         red_flags: list[str] = []
 
         # 0. Check if chest is just a rash/skin location.
         is_skin_only = bool(
             re.search(r"\b(?:ban lan|me day|noi man|phat ban|vet dot).*(?:nguc|thanh nguc)\b", norm)
         )
-        if is_skin_only and not any(w in norm for w in ("tuc nguc", "nang nguc", "dau nguc", "kho tho")):
+        if is_skin_only and not positive.get("chest_pain") and not positive.get("shortness_of_breath"):
             return DomainAssessment(
                 risk_level="ROUTINE",
                 subtype="dermatological_chest_involvement",
-                rationale="Biểu hiện phát ban hoặc tổn thương ngoài da vùng ngực, không có dấu hiệu đau tức ngực sâu.",
+                rationale="Biểu hiện được mô tả chủ yếu ở da vùng ngực; chưa có đau tức ngực sâu hoặc khó thở được xác nhận trong structured findings.",
                 suggested_action="Theo dõi diễn tiến ban da và tránh gãi xước.",
                 red_flags=[],
             )
 
-        # 1. Cardiac / cardiopulmonary red-flag cluster.
-        has_pressure = bool(
-            re.search(r"\b(?:tuc nguc|nang nguc|de ep|ep nguc|bop nghet|dau nguc)\b", norm)
+        # 1. Cardiac / cardiopulmonary red-flag cluster. Prefer structured
+        # findings so "không khó thở" cannot become positive evidence.
+        has_pressure = bool(positive.get("chest_pain"))
+        if not positive and not negative:
+            has_pressure = self._affirmed_regex(
+                norm, r"\b(?:tuc nguc|nang nguc|de ep|ep nguc|bop nghet|dau nguc)\b"
+            )
+
+        has_dyspnea = bool(positive.get("shortness_of_breath"))
+        has_sweating = bool(positive.get("sweating"))
+        has_radiation = bool(positive.get("radiation"))
+        has_syncope = self._affirmed_regex(
+            norm, r"\b(?:choang|gan ngat|ngat xiu|xay sam|xay xam)\b"
         )
-        has_dyspnea = bool(re.search(r"\b(?:kho tho|hut hoi|tho gap)\b", norm))
-        has_sweating = bool(re.search(r"\b(?:va mo hoi|toat mo hoi|mo hoi lanh)\b", norm))
-        has_radiation = bool(
-            re.search(r"\b(?:lan.*tay trai|lan.*canh tay|lan.*ham|lan.*lung|lan.*vai)\b", norm)
-        )
-        has_syncope = bool(re.search(r"\b(?:choang|gan ngat|ngat xiu|xay sam)\b", norm))
 
         cardiac_cluster = has_pressure and (
             has_dyspnea or has_sweating or has_radiation or has_syncope
@@ -73,20 +95,16 @@ class ChestPainReasoner:
             )
 
         # 2. Separate exertional ischemic warning from strength-training chest-wall soreness.
-        exertional_pattern = bool(
-            re.search(
-                r"\b(?:khi di bo(?: nhanh)?|khi chay(?: bo)?|khi leo cau thang|khi gang suc|khi van dong|dang van dong|di bo nhanh thi|chay thi)\b",
-                norm,
-            )
+        exertional_pattern = self._affirmed_regex(
+            norm,
+            r"\b(?:khi di bo(?: nhanh)?|khi chay(?: bo)?|khi leo cau thang|khi gang suc|khi van dong|dang van dong|di bo nhanh thi|chay thi)\b",
         )
-        palpation_pain = bool(
-            re.search(
-                r"\b(?:an vao.*dau|dau hon khi an|dau tang khi an|dau khi an|an.*nguc.*dau|co co.*dau)\b",
-                norm,
-            )
+        palpation_pain = self._affirmed_regex(
+            norm,
+            r"\b(?:an vao.*dau|dau hon khi an|dau tang khi an|dau khi an|an.*nguc.*dau|co co.*dau)\b",
         )
-        strength_training_trigger = bool(
-            re.search(r"\b(?:chong day|tap gym|nang ta|tap nguc|tap ta)\b", norm)
+        strength_training_trigger = self._affirmed_regex(
+            norm, r"\b(?:chong day|tap gym|nang ta|tap nguc|tap ta)\b"
         )
 
         if has_pressure and exertional_pattern and not palpation_pain:
