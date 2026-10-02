@@ -25,10 +25,11 @@ class HeadacheReasoner:
         norm = normalize_search_text(text)
         red_flags: list[str] = []
 
-        # 1. Thunderclap / sudden severe headache.
-        # Novelty alone (for example "trước giờ chưa từng bị như vậy") is not a
-        # thunderclap feature. Require sudden/maximal onset or explicit very
-        # severe intensity together with headache language.
+        # 1. Thunderclap / worst-ever headache.
+        # Ordinary high intensity ("đau đầu dữ dội", "rất đau") is important
+        # but is not equivalent to thunderclap. Emergency classification here
+        # requires either hyperacute onset language or a true maximal/worst-ever
+        # formulation. Novelty alone ("chưa từng bị như vậy") is also not enough.
         has_headache = any(w in norm for w in ("dau dau", "nhuc dau", "con dau dau"))
         sudden_onset = bool(
             re.search(
@@ -36,13 +37,13 @@ class HeadacheReasoner:
                 norm,
             )
         )
-        maximal_or_extreme = bool(
+        worst_ever = bool(
             re.search(
-                r"\b(?:du doi nhat|rat du doi|dau dau du doi|dau dau rat nhieu|dau du doi)\b",
+                r"\b(?:du doi nhat|dau nhat tu truoc toi gio|dau dau nang nhat tu truoc toi gio|con dau dau nang nhat)\b",
                 norm,
             )
         )
-        sudden_severe = has_headache and (sudden_onset or maximal_or_extreme)
+        thunderclap_or_worst = has_headache and (sudden_onset or worst_ever)
 
         # 2. Focal neurological deficit.
         focal_neuro = bool(
@@ -71,7 +72,7 @@ class HeadacheReasoner:
             )
         )
 
-        if sudden_severe:
+        if thunderclap_or_worst:
             red_flags.append("thunderclap_headache")
         if focal_neuro:
             red_flags.append("focal_neurological_deficit")
@@ -85,7 +86,7 @@ class HeadacheReasoner:
                 risk_level="EMERGENCY",
                 subtype="neurological_emergency",
                 rationale=(
-                    "Đau đầu khởi phát đột ngột rất dữ dội, dấu hiệu thần kinh khu trú, sốt kèm cứng cổ/lú lẫn, "
+                    "Đau đầu khởi phát đột ngột hoặc ở mức nặng nhất từng trải qua, dấu hiệu thần kinh khu trú, sốt kèm cứng cổ/lú lẫn, "
                     "hoặc chấn thương đầu kèm mất ý thức, nôn lặp lại hay co giật là các dấu hiệu cần đánh giá cấp cứu."
                 ),
                 suggested_action="Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay lập tức; không tự lái xe.",
@@ -96,7 +97,10 @@ class HeadacheReasoner:
         # features still deserves prompt assessment rather than being silently
         # downgraded to routine self-care.
         severe_non_thunderclap = bool(
-            re.search(r"\b(?:dau dau du doi|dau dau rat nhieu|dau dau nang|dau du doi)\b", norm)
+            re.search(
+                r"\b(?:rat du doi|dau dau du doi|dau dau rat nhieu|dau dau nang|dau du doi|dau rat nhieu)\b",
+                norm,
+            )
         )
         if head_trauma or severe_non_thunderclap:
             urgent_flags = []
