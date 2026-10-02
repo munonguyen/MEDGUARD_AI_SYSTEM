@@ -26,7 +26,7 @@ from app.services.circuit import CircuitBreaker, model_circuit
 from app.services.knowledge_retriever import knowledge_retriever, resolve_domain
 from app.services.jury_evaluator import MedicalSafetyGate, QAGEvaluator
 from app.services.clinical_agent_contract import build_clinical_agent_contract
-from app.services.clinical_reasoning import enrich_patient_context
+from app.services.clinical_reasoning import enrich_patient_context, review_response_quality
 from app.services.llm_control_plane import (
     AgentRequestPolicy,
     SingleFlightCoordinator,
@@ -50,7 +50,8 @@ PROFESSIONAL CLINICAL COMMUNICATION RULES:
 7. FOLLOW-UP: ask at most one high-information question when it could materially change triage, disposition or the leading clinical interpretation. Do not re-ask facts already present in the envelope.
 8. EXPLANATION: explain mechanisms in plain Vietnamese only when supported by supplied claims/evidence. Use a calm, confident professional tone without false certainty.
 9. ORIGINAL COMPOSITION: do not copy fixed templates from memory or reconstruct legacy deterministic prose. The professional_response_principles are communication behavior, not medical evidence.
-10. Produce normally 2-4 concise narrative blocks and no more than 260 words unless locked emergency content requires more. Each patient-specific medical claim must cite a supplied claim_id/source_id. All locked claims must appear verbatim. Return structured output only."""
+10. V28 CONTEXT: treat explicit negative findings as absent for the current turn, never promote them to positive red flags, and obey medication_safety.allowed=false as a hard prohibition against the contraindicated action.
+11. Produce normally 2-4 concise narrative blocks and no more than 260 words unless locked emergency content requires more. Each patient-specific medical claim must cite a supplied claim_id/source_id. All locked claims must appear verbatim. Return structured output only."""
 
 
 _CLINICAL_VERIFIER_INSTRUCTIONS = """You are MedGuard's independent Clinical Quality Judge.
@@ -64,9 +65,10 @@ JUDGE RULES:
 5. UNCERTAINTY CALIBRATION: reject definitive diagnosis when only a pattern/possibility is supported; also reject meaningless boilerplate uncertainty.
 6. QUESTION QUALITY: reject repeated/low-information questions; emergency responses must not block action with follow-up questions.
 7. COMMUNICATION QUALITY: prefer calm, natural, doctor-like Vietnamese; reject internal system wording, triage implementation jargon and template leakage.
-8. SOURCE ENTAILMENT: every cited source must directly support its associated claim; a trusted domain alone is not evidence.
-9. INDEPENDENT SCORING: approval requires no unsupported claims/source issues/missing locked claims and grounding >= 0.90, safety >= 0.95, completeness >= 0.85, citation coverage >= 0.90.
-10. When rejected, return concrete revision issues only. Do not rewrite the answer yourself. Return structured output only."""
+8. V28 CONSISTENCY: compare the draft with clinical_context positive_findings, negative_findings, domain_assessment and medication_safety. Reject any draft that converts a negated finding into a present symptom, invents a red flag, ignores a hard medication contraindication, or describes a hypothetical warning sign as currently present.
+9. SOURCE ENTAILMENT: every cited source must directly support its associated claim; a trusted domain alone is not evidence.
+10. INDEPENDENT SCORING: approval requires no unsupported claims/source issues/missing locked claims and grounding >= 0.90, safety >= 0.95, completeness >= 0.85, citation coverage >= 0.90.
+11. When rejected, return concrete revision issues only. Do not rewrite the answer yourself. Return structured output only."""
 
 
 
@@ -626,7 +628,11 @@ class AnswerAgentPipeline:
         domain = resolve_domain(intent, question)
         claims = claims_override if claims_override is not None else _claims(answer, intent)
         tool_result = tool_result_override if tool_result_override is not None else answer.model_dump(mode="json", exclude={"agent_trace"})
-        enriched_patient_context = enrich_patient_context(patient_context, question)
+        enriched_patient_context = (
+            patient_context
+            if isinstance(patient_context.get("clinical_context"), dict)
+            else enrich_patient_context(patient_context, question)
+        )
         state = MedicalAgentState(
             request_id=request_id,
             tenant_id=tenant_id,
@@ -768,6 +774,32 @@ class AnswerAgentPipeline:
                 trace = self._trace(
                     status="rejected",
                     reason="generic_non_answer",
+                    **trace_values,
+                )
+                return answer.model_copy(update={"agent_trace": trace})
+
+            v28_quality = review_response_quality(
+                question,
+                narrative_text,
+                domain=state.domain,
+            )
+            if not v28_quality.passed:
+                first_violation = (
+                    v28_quality.violations[0]
+                    if v28_quality.violations
+                    else "clinical_alignment_failed"
+                )
+                metrics.inc_counter(
+                    "medguard_llm_quality_rejections_total",
+                    labels={"risk_class": policy.risk_class.value},
+                )
+                metrics.inc_counter(
+                    "medguard_v28_response_quality_rejections_total",
+                    labels={"reason": first_violation},
+                )
+                trace = self._trace(
+                    status="rejected",
+                    reason=f"v28_response_quality:{first_violation}",
                     **trace_values,
                 )
                 return answer.model_copy(update={"agent_trace": trace})
