@@ -85,13 +85,14 @@ try {
   await desktop.screenshot({ path: fileURLToPath(new URL('ui-processing-desktop.png', artifactDir)), fullPage: false });
   await desktop.getByRole('heading', { name: 'Bạn cần được đánh giá cấp cứu ngay', exact: true }).waitFor();
   await desktop.getByText('MedGuard đang xử lý', { exact: true }).waitFor({ state: 'hidden' });
-  await desktop.locator('.answer-narrative .urgent').first().waitFor();
+  const emergencyAnswer = desktop.locator('.chat-assistant:not(.pending):visible').last();
+  await emergencyAnswer.locator('.answer-narrative .urgent:visible').waitFor();
   if (await desktop.getByText(/Cơ sở trả lời|Chi tiết dữ liệu nghiệp vụ/).count()) {
     throw new Error('Internal answer details must not be visible in chat');
   }
-  await desktop.locator('.chat-assistant').first().hover();
-  await desktop.getByRole('button', { name: 'Sao chép phản hồi' }).first().click();
-  await desktop.getByRole('button', { name: 'Đã sao chép' }).first().waitFor();
+  await emergencyAnswer.hover();
+  await emergencyAnswer.getByRole('button', { name: 'Sao chép phản hồi' }).click();
+  await emergencyAnswer.getByRole('button', { name: 'Đã sao chép' }).waitFor();
   await desktop.getByRole('status').filter({ hasText: 'Đã sao chép phản hồi' }).waitFor();
 
   const composer = desktop.getByRole('textbox', { name: 'Tin nhắn' });
