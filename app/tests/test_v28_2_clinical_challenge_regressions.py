@@ -2,11 +2,13 @@
 
 These cases target failure modes that ordinary keyword benchmarks often miss:
 - negated red flags embedded next to current symptoms,
+- changing symptom state inside one utterance,
 - unknown findings accidentally presented as negative,
 - symptom words mistaken for causal/exercise context,
 - Vietnamese urinary-retention wording where "không" is part of the symptom,
 - distinction between severe and thunderclap headache,
-- current findings versus hypothetical contingency language.
+- current findings versus hypothetical contingency language,
+- negated exposure/allergy keywords causing false emergencies.
 """
 
 import pytest
@@ -47,12 +49,37 @@ def test_exertional_chest_pressure_remains_urgent_even_without_classic_companion
     assert result.domain_assessment.subtype == "exertional_chest_pain_needs_prompt_assessment"
 
 
+def test_latest_positive_dyspnea_overrides_earlier_negated_mention(router):
+    result = router.parse(
+        "Tôi đau ngực; lúc đầu không khó thở nhưng giờ khó thở và vã mồ hôi"
+    )
+    assert result.positive_findings["shortness_of_breath"] is True
+    assert "shortness_of_breath" not in result.negative_findings
+    assert result.domain_assessment.risk_level == "EMERGENCY"
+
+
+def test_latest_negated_dyspnea_overrides_earlier_positive_mention(router):
+    result = router.parse(
+        "Lúc đầu tôi khó thở nhưng hiện tại không còn khó thở, chỉ hơi đau ngực khi ấn"
+    )
+    assert result.negative_findings["shortness_of_breath"] is True
+    assert "shortness_of_breath" not in result.positive_findings
+    assert result.domain_assessment.risk_level != "EMERGENCY"
+
+
 def test_headache_negated_focal_neuro_words_do_not_create_emergency(router):
     result = router.parse(
         "Tôi đau đầu nhưng không yếu tay, không yếu chân, không nói ngọng và không co giật"
     )
     assert result.domain_assessment.risk_level != "EMERGENCY"
     assert "focal_neurological_deficit" not in result.domain_assessment.red_flags
+
+
+def test_negated_high_intensity_does_not_create_severe_headache_feature(router):
+    result = router.parse("Tôi đau đầu, không đau dữ dội nhưng chỉ hơi đau")
+    assert result.severity.get("level") == "mild"
+    assert "severe_headache_pattern" not in result.risk_features
+    assert result.domain_assessment.risk_level == "ROUTINE"
 
 
 def test_severe_non_thunderclap_headache_is_urgent_not_emergency(router):
@@ -134,6 +161,22 @@ def test_current_allergy_airway_compromise_remains_emergency(router):
     )
     assert result.domain_assessment.risk_level == "EMERGENCY"
     assert result.domain_assessment.subtype == "anaphylaxis_airway_emergency"
+
+
+def test_negated_chemical_exposure_does_not_create_toxic_inhalation_emergency(router):
+    result = router.parse(
+        "Tôi hơi khó thở nhưng không tiếp xúc hóa chất, chất tẩy rửa hay khí độc"
+    )
+    assert "chemical_exposure" not in result.triggers
+    assert result.domain_assessment.subtype != "toxic_inhalation_respiratory_injury"
+    assert result.domain_assessment.risk_level != "EMERGENCY"
+
+
+def test_affirmed_chemical_exposure_with_dyspnea_is_emergency(router):
+    result = router.parse("Tôi hít mùi clo trong phòng kín và bây giờ khó thở nhiều")
+    assert "chemical_exposure" in result.triggers
+    assert result.domain_assessment.risk_level == "EMERGENCY"
+    assert result.domain_assessment.subtype == "toxic_inhalation_respiratory_injury"
 
 
 def test_isolated_chest_discomfort_preserves_uncertainty(router):
