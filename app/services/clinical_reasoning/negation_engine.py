@@ -30,12 +30,19 @@ class NegationEngine:
         "hết",
     )
 
+    # Besides classic conjunctions, temporal/contrast markers terminate the
+    # previous negation scope. This prevents "lúc đầu không khó thở, giờ khó
+    # thở" and "không đau dữ dội, chỉ hơi đau" from inheriting stale negation.
     RAW_CLAUSE_BOUNDARIES = (
         "nhưng",
         "tuy nhiên",
         "song",
         "chứ",
         "mà",
+        "giờ",
+        "hiện tại",
+        "bây giờ",
+        "chỉ",
         ";",
         ".",
         "!",
