@@ -208,6 +208,7 @@ jobs:
           path: .artifacts/*.png
           if-no-files-found: warn
           retention-days: 30
+          include-hidden-files: true
 
       - name: Stop MedGuard server
         if: always()
