@@ -172,6 +172,12 @@ def test_release_gate_rejects_context_leakage_after_model_approval():
         request_id="req-v28-release-gate",
     )
 
+    writer_envelope = research.calls[0]["payload"]["clinical_envelope"]
+    assert writer_envelope["version"] == "v14-structured-agent-input"
+    assert writer_envelope["patient_context"]["clinical_context"]["positive_findings"]["rash"] is True
+    assert writer_envelope["communication_contract"]["respect_v28_positive_negative_findings"] is True
+    assert writer_envelope["communication_contract"]["never_promote_negated_findings_to_present"] is True
+
     assert result.agent_trace is not None
     assert result.agent_trace.status == "rejected"
     assert result.agent_trace.fallback_reason == (
