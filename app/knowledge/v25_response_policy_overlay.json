@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "version": "25.11.0",
+    "version": "25.11.1",
     "effective_from": "2026-10-02",
     "purpose": "Post-V10 response-policy overlay for direct remote-prescribing refusal, clinically meaningful continuation cues, and bounded patient-facing education where generic symptom templates are insufficient.",
     "authority_contract": [
@@ -105,7 +105,7 @@
       ],
       "self_care": [
         "Giữ giờ ngủ-thức tương đối cố định và giảm màn hình, caffeine, nicotine và rượu vào buổi tối.",
-        "Không dùng thuốc ngủ kê đơn của người khác, thuốc còn dư hoặc phối hợp thuốc gây buồn ngủ với rượu.",
+        "Không dùng thuốc ngủ của người khác, thuốc còn dư hoặc phối hợp thuốc gây buồn ngủ với rượu.",
         "Nếu mất ngủ tiếp tục kéo dài, ảnh hưởng rõ sinh hoạt ban ngày hoặc tái diễn, hãy trao đổi với bác sĩ/dược sĩ để đánh giá nguyên nhân và lựa chọn điều trị phù hợp."
       ],
       "safety_net": [
