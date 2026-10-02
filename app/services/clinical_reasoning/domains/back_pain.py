@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import re
 from typing import Any
 
@@ -12,59 +11,86 @@ from app.services.clinical_reasoning.negation_engine import NegationEngine
 
 
 class BackPainReasoner:
-    """Evaluates back pain presentations, safeguarding against false Cauda Equina emergencies."""
+    """Evaluate back pain without confusing unknown findings with negatives."""
 
     def __init__(self) -> None:
         self.negation_engine = NegationEngine()
 
+    def _affirmed_regex(self, norm: str, pattern: str) -> bool:
+        for match in re.finditer(pattern, norm):
+            phrase = match.group(0).strip()
+            if phrase and not self.negation_engine.detect(norm, phrase):
+                return True
+        return False
+
     def evaluate(self, text: str, clinical_context: Any) -> DomainAssessment:
         norm = normalize_search_text(text)
+        positive = getattr(clinical_context, "positive_findings", {}) or {}
         red_flags: list[str] = []
 
-        # 1. Check for spinal emergency red flags with strict negation verification
-        raw_leg_weakness = bool(re.search(r"\b(?:yeu chan|chan yeu|kho nhac ban chan|sup ban chan|foot drop|liet chan|yeu hai chan)\b", norm))
-        leg_weakness = raw_leg_weakness and not self.negation_engine.detect(norm, "yeu chan") and not self.negation_engine.detect(norm, "liet chan") and not self.negation_engine.detect(norm, "yeu hai chan")
+        # 1. Spinal-neurologic warning features. Use structured findings where
+        # available and whole-phrase checks for urinary retention so the word
+        # "không" in "không tiểu được" is not misread as symptom negation.
+        leg_weakness = bool(positive.get("leg_weakness")) or self._affirmed_regex(
+            norm,
+            r"\b(?:chan yeu|kho nhac ban chan|sup ban chan|foot drop|yeu hai chan|liet chan)\b",
+        )
+        saddle = self._affirmed_regex(
+            norm,
+            r"\b(?:te vung yen ngua|te quanh hau mon|te quanh mong|te quanh sinh duc|mat cam giac quanh hau mon|mat cam giac vung yen ngua)\b",
+        )
 
-        raw_saddle = bool(re.search(r"\b(?:te vung yen ngua|te quanh hau mon|te quanh mong|te quanh sinh duc)\b", norm))
-        saddle = raw_saddle and not self.negation_engine.detect(norm, "te")
-
-        raw_incontinence = bool(re.search(r"\b(?:kho kiem soat tieu|tieu khong tu chu|bi tieu|khong tieu duoc|bi dai tien|mat kiem soat tieu tien)\b", norm))
-        incontinence = raw_incontinence and not self.negation_engine.detect(norm, "tieu")
+        urinary_retention = bool(
+            re.search(
+                r"\b(?:khong tieu duoc|bi tieu tien|bi tieu|cang bang quang.*khong tieu duoc|buon tieu.*khong tieu duoc)\b",
+                norm,
+            )
+        )
+        bladder_bowel_loss = bool(positive.get("incontinence")) or self._affirmed_regex(
+            norm,
+            r"\b(?:tieu khong tu chu|mat kiem soat tieu tien|dai tien khong tu chu|mat kiem soat dai tien)\b",
+        )
+        bladder_bowel_dysfunction = urinary_retention or bladder_bowel_loss
 
         if leg_weakness:
             red_flags.append("new_leg_weakness")
         if saddle:
             red_flags.append("saddle_sensory_change")
-        if incontinence:
-            red_flags.append("bladder_bowel_incontinence")
+        if bladder_bowel_dysfunction:
+            red_flags.append("new_bladder_bowel_dysfunction")
 
-        # Spinal emergency / Cauda Equina syndrome criteria
         if red_flags:
             return DomainAssessment(
                 risk_level="EMERGENCY",
                 subtype="spinal_neurological_emergency",
                 rationale=(
-                    "Đau lưng đi kèm yếu hai chân, mất cảm giác vùng yên ngựa hoặc rối loạn tiểu tiện/đại tiện "
-                    "là dấu hiệu cảnh báo chèn ép rễ thần kinh tủy sống nghiêm trọng (hội chứng chùm đuôi ngựa) cần giải áp phẫu thuật cấp cứu."
+                    "Đau lưng kèm yếu chân mới xuất hiện, thay đổi cảm giác vùng yên ngựa hoặc rối loạn tiểu tiện/đại tiện mới xuất hiện có thể gợi ý chèn ép thần kinh nghiêm trọng. "
+                    "Không thể xác định hội chứng chùm đuôi ngựa chỉ từ tin nhắn, nhưng các dấu hiệu này cần được đánh giá cấp cứu để không bỏ sót tình trạng cần can thiệp sớm."
                 ),
-                suggested_action="Gọi 115 hoặc đến khoa Cấp cứu bệnh viện có chuyên khoa cột sống/thần kinh ngay lập tức.",
+                suggested_action=(
+                    "Đến khoa Cấp cứu ngay hoặc gọi 115 nếu không thể di chuyển an toàn, đặc biệt khi yếu chân tăng, mất cảm giác vùng sinh dục-hậu môn, bí tiểu hoặc mất kiểm soát tiểu/đại tiện."
+                ),
                 red_flags=red_flags,
             )
 
-        # 2. Postural / Mechanical back pain
-        posture_pattern = bool(re.search(r"\b(?:ngoi may tinh|ngoi lau|ngoi ca ngay|moi lung|thay doi tu the|di lai thi giam|di lai thi de chiu)\b", norm))
+        # 2. Postural / mechanical pattern. This can support a benign mechanism
+        # but must not invent negative neurologic findings the user never gave.
+        posture_pattern = self._affirmed_regex(
+            norm,
+            r"\b(?:ngoi may tinh|ngoi lau|ngoi ca ngay|thay doi tu the|di lai thi giam|di lai thi de chiu)\b",
+        )
 
         if posture_pattern:
             return DomainAssessment(
                 risk_level="ROUTINE",
                 subtype="mechanical_postural_back_pain",
                 rationale=(
-                    "Đau mỏi lưng liên quan đến tư thế ngồi làm việc kéo dài và giảm khi đi lại, không kèm theo tê yếu chân "
-                    "hay rối loạn tiểu tiện, là biểu hiện điển hình của quá tải cơ cạnh cột sống cơ học lành tính."
+                    "Mối liên hệ với ngồi lâu/làm việc máy tính hoặc cải thiện khi thay đổi tư thế có thể phù hợp với đau lưng cơ học do quá tải tư thế. "
+                    "Mô tả hiện tại chưa ghi nhận red flag thần kinh, nhưng các dấu hiệu chưa được hỏi tới vẫn phải xem là chưa biết chứ không phải âm tính."
                 ),
                 suggested_action=(
-                    "Điều chỉnh tư thế ngồi công thái học, đứng dậy vận động nhẹ nhàng sau mỗi 45–60 phút, "
-                    "kết hợp các bài tập kéo giãn cơ lưng nhẹ nhàng. Theo dõi và đi khám nếu đau lan xuống chân hoặc tê yếu."
+                    "Điều chỉnh tư thế, đổi vị trí thường xuyên, đứng dậy vận động nhẹ sau mỗi 45–60 phút và tránh bất động kéo dài. "
+                    "Đi khám nếu đau kéo dài/tăng dần hoặc lan xuống chân; đi cấp cứu nếu xuất hiện yếu chân mới, tê vùng sinh dục-hậu môn, bí tiểu hoặc mất kiểm soát tiểu/đại tiện."
                 ),
                 red_flags=[],
             )
@@ -72,7 +98,11 @@ class BackPainReasoner:
         return DomainAssessment(
             risk_level="ROUTINE",
             subtype="common_mechanical_back_pain",
-            rationale="Đau lưng cơ học thông thường không có dấu hiệu chèn ép thần kinh hay tổn thương cấp tính.",
-            suggested_action="Nghỉ ngơi, tránh cúi gập người mang vác nặng và theo dõi triệu chứng.",
+            rationale=(
+                "Từ thông tin hiện có chưa ghi nhận dấu hiệu cấp cứu cột sống, nhưng cũng chưa đủ dữ kiện để xác định nguyên nhân hoặc coi các dấu hiệu chưa đề cập là âm tính."
+            ),
+            suggested_action=(
+                "Duy trì hoạt động nhẹ trong ngưỡng chịu được, tránh mang vác nặng tạm thời và theo dõi. Đi khám nếu đau kéo dài, tăng dần hoặc kèm đau lan/tê yếu; đi cấp cứu nếu xuất hiện yếu chân mới, tê vùng yên ngựa, bí tiểu hoặc mất kiểm soát tiểu/đại tiện."
+            ),
             red_flags=[],
         )
