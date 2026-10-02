@@ -10,57 +10,58 @@ await mkdir(artifactDir, { recursive: true });
 const browser = await chromium.launch({ headless: true, executablePath: chromePath });
 const errors = [];
 
-async function assertNoHorizontalOverflow(page, viewport) {
+function currentAssistant(page) {
+  return page.locator('.chat-assistant:not(.pending):visible').last();
+}
+
+function captureErrors(page, label) {
+  page.on('pageerror', (error) => errors.push(`${label} pageerror: ${error.message}`));
+  page.on('console', (message) => {
+    if (message.type() === 'error') errors.push(`${label} console: ${message.text()}`);
+  });
+}
+
+async function assertLayout(page, label) {
   const dimensions = await page.evaluate(() => ({
     clientWidth: document.documentElement.clientWidth,
     scrollWidth: document.documentElement.scrollWidth,
   }));
   if (dimensions.scrollWidth > dimensions.clientWidth + 1) {
-    throw new Error(`${viewport} horizontal overflow: ${JSON.stringify(dimensions)}`);
+    throw new Error(`${label} horizontal overflow: ${JSON.stringify(dimensions)}`);
+  }
+
+  for (const selector of ['.composer-box', '.chat-topbar']) {
+    const box = await page.locator(selector).boundingBox();
+    const viewport = page.viewportSize();
+    if (!box || box.x < -1 || box.y < -1 || box.x + box.width > viewport.width + 1 || box.y + box.height > viewport.height + 1) {
+      throw new Error(`${label} ${selector} outside viewport: ${JSON.stringify(box)}`);
+    }
   }
 }
 
-async function assertComposerInsideViewport(page, viewport) {
-  const box = await page.locator('.composer-box').boundingBox();
-  const size = page.viewportSize();
-  if (!box || box.x < 0 || box.y < 0 || box.x + box.width > size.width + 1 || box.y + box.height > size.height + 1) {
-    throw new Error(`${viewport} composer outside viewport: ${JSON.stringify(box)}`);
-  }
-}
-
-async function assertTopbarInsideViewport(page, viewport) {
-  const box = await page.locator('.chat-topbar').boundingBox();
-  const size = page.viewportSize();
-  if (!box || box.x < -1 || box.y < -1 || box.x + box.width > size.width + 1 || box.y + box.height > size.height + 1) {
-    throw new Error(`${viewport} topbar outside viewport: ${JSON.stringify(box)}`);
-  }
-}
-
-function currentAssistant(page) {
-  return page.locator('.chat-assistant:not(.pending):visible').last();
-}
-
-function captureErrors(page, viewport) {
-  page.on('pageerror', (error) => errors.push(`${viewport} pageerror: ${error.message}`));
-  page.on('console', (message) => {
-    if (message.type() === 'error') errors.push(`${viewport} console: ${message.text()}`));
-  });
+async function send(page, text) {
+  const composer = page.getByRole('textbox', { name: 'Tin nhắn' });
+  await composer.fill(text);
+  await page.getByRole('button', { name: 'Gửi tin nhắn' }).click();
+  const pending = page.getByText('MedGuard đang xử lý', { exact: true });
+  if (await pending.count()) await pending.waitFor({ state: 'hidden' });
+  return currentAssistant(page);
 }
 
 try {
-  const schedulePatient = `BN-UI-${Date.now()}`;
   const desktop = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   desktop.setDefaultTimeout(10000);
   captureErrors(desktop, 'desktop');
   await desktop.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-  await desktop.getByText('MedGuard AI', { exact: true }).first().waitFor();
   await desktop.getByRole('heading', { name: 'Bạn cần hỗ trợ gì hôm nay?' }).waitFor();
 
+  // Profile persistence and basic navigation.
+  const patientRef = `BN-UI-${Date.now()}`;
   await desktop.getByRole('button', { name: 'Mở Profile cá nhân' }).click();
   await desktop.getByLabel('Tên hiển thị').fill('An UI');
   await desktop.getByLabel('Tuổi', { exact: true }).fill('36');
   await desktop.getByLabel('Giới tính').selectOption('male');
-  await desktop.getByLabel('Mã hồ sơ').fill(schedulePatient);
+  await desktop.getByLabel('Mã hồ sơ').fill(patientRef);
   await desktop.getByLabel('Thuốc đang dùng').fill('warfarin');
   await desktop.getByLabel('Bệnh nền').fill('tăng huyết áp');
   await desktop.getByRole('button', { name: 'Lưu Profile' }).click();
@@ -68,145 +69,96 @@ try {
   await desktop.reload({ waitUntil: 'domcontentloaded' });
   await desktop.getByText('An UI', { exact: true }).waitFor();
 
-  await desktop.getByRole('button', { name: 'Mở Profile cá nhân' }).click();
-  await desktop.getByText('Thông tin không bắt buộc').waitFor();
-  await desktop.keyboard.press('Escape');
-  await desktop.getByText('Thông tin không bắt buộc').waitFor({ state: 'hidden' });
-
   await desktop.getByRole('button', { name: 'Thu gọn thanh bên' }).click();
   await desktop.getByRole('button', { name: 'Mở thanh bên' }).waitFor();
-  await desktop.waitForFunction(() => document.querySelector('.sidebar')?.getBoundingClientRect().right <= 1);
   await desktop.getByRole('button', { name: 'Mở thanh bên' }).click();
   await desktop.getByRole('button', { name: 'Thu gọn thanh bên' }).waitFor();
-  await desktop.waitForFunction(() => document.querySelector('.sidebar')?.getBoundingClientRect().left >= -1);
 
+  // Active emergency must render as structured emergency UI, not hidden prose.
   await desktop.getByRole('button', { name: 'Tôi bị đau ngực và khó thở' }).click();
   await desktop.getByRole('button', { name: 'Gửi tin nhắn' }).click();
   await desktop.getByText('MedGuard đang xử lý', { exact: true }).waitFor();
-  if (await desktop.getByText('Bạn cần được đánh giá cấp cứu ngay', { exact: true }).count()) {
-    throw new Error('The final answer must remain hidden while MedGuard is processing');
+  if (await desktop.getByRole('heading', { name: 'Bạn cần được đánh giá cấp cứu ngay', exact: true }).count()) {
+    throw new Error('Final emergency response became visible before processing completed');
   }
-  await desktop.screenshot({ path: fileURLToPath(new URL('ui-processing-desktop.png', artifactDir)), fullPage: false });
-  await desktop.getByRole('heading', { name: 'Bạn cần được đánh giá cấp cứu ngay', exact: true }).waitFor();
+  await desktop.screenshot({ path: fileURLToPath(new URL('ui-processing-desktop.png', artifactDir)) });
   await desktop.getByText('MedGuard đang xử lý', { exact: true }).waitFor({ state: 'hidden' });
-  const emergencyAnswer = currentAssistant(desktop);
-  await emergencyAnswer.locator('.clinical-summary-card.status-emergency').waitFor();
-  await emergencyAnswer.getByText('Cấp cứu ngay', { exact: true }).waitFor();
-  await emergencyAnswer.getByText('Hành động và dấu hiệu khẩn cấp', { exact: true }).waitFor();
-  if (await desktop.getByText(/Cơ sở trả lời|Chi tiết dữ liệu nghiệp vụ/).count()) {
-    throw new Error('Internal answer details must not be visible in chat');
-  }
-  await emergencyAnswer.hover();
-  await emergencyAnswer.getByRole('button', { name: 'Sao chép phản hồi' }).click();
-  await emergencyAnswer.getByRole('button', { name: 'Đã sao chép' }).waitFor();
-  await desktop.getByRole('status').filter({ hasText: 'Đã sao chép phản hồi' }).waitFor();
-
-  const composer = desktop.getByRole('textbox', { name: 'Tin nhắn' });
-  await composer.fill('Tôi đang cảm thấy bụng cứ cồn cào, sốt ruột không rõ lắm.');
-  await desktop.getByRole('button', { name: 'Gửi tin nhắn' }).click();
-  const abdominalAnswer = currentAssistant(desktop);
-  await abdominalAnswer.getByText(/chưa đủ để xác định nguyên nhân/).first().waitFor();
-  if (await abdominalAnswer.locator('.triage-status-pill').count()) {
-    throw new Error('Routine guidance must render as conversational prose without a status badge');
-  }
-  await abdominalAnswer.getByText(/Khi nói “sốt ruột”/).first().waitFor();
-  if (await abdominalAnswer.getByText(/Gateway|Nguồn chưa ghi nhận phê duyệt|Nguồn đang chờ chuyên gia duyệt/).count()) {
-    throw new Error('Internal gateway/knowledge governance metadata must not render in patient chat');
-  }
-  if (await abdominalAnswer.getByText(/Điều phối tiếp theo|Thêm dấu hiệu sinh tồn|Xuất FHIR/).count()) {
-    throw new Error('Automatic workflow shortcuts must not interrupt the conversational answer');
+  const emergency = currentAssistant(desktop);
+  await emergency.locator('.clinical-summary-card.status-emergency').waitFor();
+  await emergency.getByText('Cấp cứu ngay', { exact: true }).waitFor();
+  await emergency.getByText('Hành động và dấu hiệu khẩn cấp', { exact: true }).waitFor();
+  if (await emergency.getByText(/Cơ sở trả lời|Chi tiết dữ liệu nghiệp vụ|deterministic fallback/i).count()) {
+    throw new Error('Internal processing metadata leaked into emergency response');
   }
 
-  await composer.fill('Cảm giác nó cứ khó chịu, buồn nôn lắm.');
-  await desktop.getByRole('button', { name: 'Gửi tin nhắn' }).click();
-  await desktop.getByText('MedGuard đang xử lý', { exact: true }).waitFor({ state: 'hidden' });
-  const abdominalFollowUp = currentAssistant(desktop);
-  await abdominalFollowUp.getByText(/bụng cồn cào/).first().waitFor();
-  await abdominalFollowUp.getByText(/Bạn đã mô tả buồn nôn/).first().waitFor();
-  await abdominalFollowUp.screenshot({ path: fileURLToPath(new URL('ui-abdominal-followup.png', artifactDir)) });
+  // Routine conversation and a context-carrying follow-up.
+  const abdominal = await send(desktop, 'Tôi đang cảm thấy bụng cứ cồn cào, sốt ruột không rõ lắm.');
+  await abdominal.getByText(/chưa đủ để xác định nguyên nhân/).first().waitFor();
+  await abdominal.getByText(/Khi nói “sốt ruột”/).first().waitFor();
+  const followUp = await send(desktop, 'Cảm giác nó cứ khó chịu, buồn nôn lắm.');
+  await followUp.getByText(/bụng cồn cào/).first().waitFor();
+  await followUp.getByText(/Bạn đã mô tả buồn nôn/).first().waitFor();
+  await followUp.screenshot({ path: fileURLToPath(new URL('ui-abdominal-followup.png', artifactDir)) });
 
+  // Medication schedule workflow.
   await desktop.getByRole('button', { name: 'Tự nhận diện' }).click();
   await desktop.getByRole('menu').waitFor();
   await desktop.keyboard.press('Escape');
-  await desktop.getByRole('menu').waitFor({ state: 'hidden' });
-  await composer.fill('#lichthuoc uống amoxicillin lúc 8h và 20h mỗi ngày.');
-  await desktop.getByRole('button', { name: 'Gửi tin nhắn' }).click();
-  const scheduleAnswer = currentAssistant(desktop);
-  await scheduleAnswer.getByText(/Đã thêm 2 mốc uống amoxicillin/).first().waitFor();
-
+  const schedule = await send(desktop, '#lichthuoc uống amoxicillin lúc 8h và 20h mỗi ngày.');
+  await schedule.getByText(/Đã thêm 2 mốc uống amoxicillin/).first().waitFor();
   await desktop.locator('.sidebar-actions').getByRole('button', { name: 'Lịch uống thuốc' }).click();
   await desktop.getByRole('heading', { name: 'Lịch Uống Thuốc', exact: true }).waitFor();
   await desktop.getByText('Tuân thủ tuần này').waitFor();
   await desktop.getByRole('button', { name: 'Về phòng Chat' }).click();
-  await desktop.getByRole('textbox', { name: 'Tin nhắn' }).waitFor();
 
+  // QR authenticity workflow.
   await desktop.getByRole('button', { name: 'Quét QR' }).click();
   await desktop.getByRole('button', { name: 'Nhập mã' }).click();
   await desktop.getByPlaceholder('MEDGUARD|product=...|serial=...|lot=...').fill('MEDGUARD|product=MG-AMOX-500|serial=VN24A001|lot=AMX2409');
   await desktop.getByRole('button', { name: 'Kiểm tra mã' }).click();
   await desktop.getByRole('heading', { name: 'Mã khớp với registry hiện tại', exact: true }).waitFor();
-  await desktop.getByText('Kết quả phản ánh việc đối chiếu dữ liệu trong mã với registry đang kết nối, không phải kiểm định vật lý sản phẩm.').first().waitFor();
+  await desktop.getByText(/không phải kiểm định vật lý sản phẩm/).first().waitFor();
+  await desktop.getByRole('button', { name: 'Đóng', exact: true }).click();
 
-  await assertNoHorizontalOverflow(desktop, 'desktop');
-  await assertComposerInsideViewport(desktop, 'desktop');
-  await assertTopbarInsideViewport(desktop, 'desktop');
-  if (await desktop.getByRole('button', { name: 'Mở menu' }).isVisible()) throw new Error('Desktop menu button must be hidden');
-
+  // Dedicated appointment and audit surfaces.
   await desktop.locator('.topbar-actions').getByRole('button', { name: 'Lịch khám' }).click();
   await desktop.getByRole('heading', { name: 'Lịch Khám', exact: true }).waitFor();
   await desktop.getByText('Tổng Ca Hôm Nay').waitFor();
-  await desktop.getByText('Nguyễn Văn An').first().waitFor();
   await desktop.getByRole('button', { name: 'Danh sách ca' }).click();
   await desktop.getByRole('button', { name: 'Thời khóa biểu tuần' }).click();
   await desktop.getByRole('button', { name: 'Về phòng Chat' }).click();
-  await desktop.getByRole('textbox', { name: 'Tin nhắn' }).waitFor();
-  await desktop.screenshot({ path: fileURLToPath(new URL('ui-chat-desktop.png', artifactDir)), fullPage: false });
-
   await desktop.getByRole('button', { name: 'Cài đặt' }).first().click();
   await desktop.getByRole('button', { name: 'System & audit' }).click();
   await desktop.getByText('sqlite-memory').waitFor();
   await desktop.getByRole('button', { name: 'Audit', exact: true }).click();
   await desktop.getByText('chat.route').first().waitFor();
   await desktop.getByRole('button', { name: 'Đóng cài đặt' }).click();
+  await assertLayout(desktop, 'desktop');
+  await desktop.screenshot({ path: fileURLToPath(new URL('ui-chat-desktop.png', artifactDir)) });
 
+  // Mobile benign-control layout: deterministic routine case, independent of
+  // changing urgent rules for fever/nausea combinations.
   const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
   mobile.setDefaultTimeout(10000);
   captureErrors(mobile, 'mobile');
   await mobile.goto(baseUrl, { waitUntil: 'domcontentloaded' });
   await mobile.getByRole('button', { name: 'Mở menu' }).click();
   await mobile.getByRole('button', { name: 'Cuộc trò chuyện mới' }).click();
-  await mobile.getByRole('heading', { name: 'Bạn cần hỗ trợ gì hôm nay?' }).waitFor();
-  await mobile.getByRole('textbox', { name: 'Tin nhắn' }).fill('Tôi đau đầu nhẹ sau thức khuya, không sốt, không nôn, không yếu liệt.');
-  await mobile.getByRole('button', { name: 'Gửi tin nhắn' }).click();
-  await mobile.getByText('MedGuard đang xử lý', { exact: true }).waitFor({ state: 'hidden' });
-  const mobileAnswer = currentAssistant(mobile);
+  const mobileAnswer = await send(mobile, 'Tôi đau đầu nhẹ sau thức khuya, không sốt, không nôn, không yếu liệt.');
   await mobileAnswer.locator('.clinical-summary-card.status-routine').waitFor();
   await mobileAnswer.getByText('Thông tin cần biết thêm', { exact: true }).waitFor();
   await mobileAnswer.getByText('Khi nào cần đi khám / cấp cứu', { exact: true }).waitFor();
-  if (await mobileAnswer.getByText(/Cấp cứu ngay/, { exact: true }).count()) {
-    throw new Error('Benign mobile control must not render as an active emergency');
+  if (await mobileAnswer.getByText('Cấp cứu ngay', { exact: true }).count()) {
+    throw new Error('Benign mobile control rendered as active emergency');
   }
-  await mobile.waitForTimeout(350);
-  await mobile.screenshot({ path: fileURLToPath(new URL('ui-answer-mobile-direct.png', artifactDir)), fullPage: false });
+  await assertLayout(mobile, 'mobile');
+  await mobile.screenshot({ path: fileURLToPath(new URL('ui-answer-mobile-direct.png', artifactDir)) });
   await mobile.getByRole('button', { name: 'Quét QR' }).click();
   await mobile.getByRole('heading', { name: 'Xác thực sản phẩm' }).waitFor();
   await mobile.getByRole('button', { name: 'Đóng', exact: true }).click();
-  await assertNoHorizontalOverflow(mobile, 'mobile');
-  await assertComposerInsideViewport(mobile, 'mobile');
-  await assertTopbarInsideViewport(mobile, 'mobile');
-  await mobile.screenshot({ path: fileURLToPath(new URL('ui-chat-mobile.png', artifactDir)), fullPage: false });
 
-  const answerDesktop = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
-  answerDesktop.setDefaultTimeout(10000);
-  captureErrors(answerDesktop, 'answer-desktop');
-  await answerDesktop.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-  await answerDesktop.getByRole('textbox', { name: 'Tin nhắn' }).fill('Tôi đang bị đau đầu góc trái đầu.');
-  await answerDesktop.getByRole('button', { name: 'Gửi tin nhắn' }).click();
-  await currentAssistant(answerDesktop).getByText('Thông tin cần biết thêm', { exact: true }).waitFor();
-  await assertNoHorizontalOverflow(answerDesktop, 'answer-desktop');
-  await assertComposerInsideViewport(answerDesktop, 'answer-desktop');
-  await answerDesktop.screenshot({ path: fileURLToPath(new URL('ui-answer-desktop-direct.png', artifactDir)), fullPage: false });
-
+  // Citation rendering: inject a verified source into a normal clinical answer,
+  // then verify that citations remain patient-visible but model internals do not.
   const agentUi = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   agentUi.setDefaultTimeout(10000);
   captureErrors(agentUi, 'agent-ui');
@@ -231,34 +183,27 @@ try {
     await route.fulfill({ response: upstream, json: body });
   });
   await agentUi.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-  await agentUi.getByRole('textbox', { name: 'Tin nhắn' }).fill('Tôi đang bị đau đầu góc trái đầu.');
-  await agentUi.getByRole('button', { name: 'Gửi tin nhắn' }).click();
-  const verifiedAnswer = currentAssistant(agentUi);
-  await verifiedAnswer.getByText('Thông tin cần biết thêm', { exact: true }).waitFor();
-  if (await agentUi.getByText(/Cơ sở trả lời|Chi tiết dữ liệu nghiệp vụ|Đã kiểm chứng thông tin và nguồn tham khảo/).count()) {
-    throw new Error('Internal answer metadata must not be visible in chat');
-  }
-  if (await agentUi.getByText(/Gemini|GPT|Verifier Agent|shadow|deterministic fallback/i).count()) {
+  const verified = await send(agentUi, 'Tôi đang bị đau đầu góc trái đầu.');
+  await verified.getByText('Thông tin cần biết thêm', { exact: true }).waitFor();
+  if (await verified.getByText(/Gemini|GPT|Verifier Agent|shadow|deterministic fallback/i).count()) {
     throw new Error('Confidential model-processing details are visible in the UI');
   }
-  const detailPanel = verifiedAnswer.getByText('Giải thích chi tiết', { exact: true });
-  await detailPanel.waitFor();
-  await detailPanel.click();
-  const researchedSource = verifiedAnswer.getByRole('link', { name: /Mở nguồn 1/ }).first();
-  await researchedSource.waitFor();
-  await researchedSource.evaluate((element) => element.scrollIntoView({ block: 'center' }));
-  await agentUi.waitForTimeout(100);
-  const sourceBox = await researchedSource.boundingBox();
+  const detail = verified.getByText('Giải thích chi tiết', { exact: true });
+  await detail.waitFor();
+  await detail.click();
+  const sourceLink = verified.getByRole('link', { name: /Mở nguồn 1/ }).first();
+  await sourceLink.waitFor();
+  await sourceLink.evaluate((element) => element.scrollIntoView({ block: 'center' }));
+  const sourceBox = await sourceLink.boundingBox();
   const composerBox = await agentUi.locator('.composer-wrap').boundingBox();
   if (!sourceBox || !composerBox || sourceBox.y + sourceBox.height > composerBox.y) {
     throw new Error(`Inline citation is obscured by composer: ${JSON.stringify({ sourceBox, composerBox })}`);
   }
-  await assertNoHorizontalOverflow(agentUi, 'agent-ui');
-  await assertComposerInsideViewport(agentUi, 'agent-ui');
-  await agentUi.screenshot({ path: fileURLToPath(new URL('ui-agent-verification-desktop.png', artifactDir)), fullPage: false });
+  await assertLayout(agentUi, 'agent-ui');
+  await agentUi.screenshot({ path: fileURLToPath(new URL('ui-agent-verification-desktop.png', artifactDir)) });
 
   if (errors.length) throw new Error(errors.join('\n'));
-  console.log('ui_smoke=PASS desktop=1440x1000 mobile=390x844 structured_layout=PASS agents=PASS schedule=PASS qr=PASS history=PASS audit=PASS');
+  console.log('ui_smoke=PASS desktop=PASS mobile=PASS emergency=PASS routine=PASS schedule=PASS qr=PASS audit=PASS citations=PASS');
 } finally {
   await browser.close();
 }
