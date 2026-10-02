@@ -83,7 +83,7 @@ try {
     throw new Error('The final answer must remain hidden while MedGuard is processing');
   }
   await desktop.screenshot({ path: fileURLToPath(new URL('ui-processing-desktop.png', artifactDir)), fullPage: false });
-  await desktop.getByText('Bạn cần được đánh giá cấp cứu ngay', { exact: true }).waitFor();
+  await desktop.getByRole('heading', { name: 'Bạn cần được đánh giá cấp cứu ngay', exact: true }).waitFor();
   await desktop.getByText('MedGuard đang xử lý', { exact: true }).waitFor({ state: 'hidden' });
   await desktop.locator('.answer-narrative .urgent').first().waitFor();
   if (await desktop.getByText(/Cơ sở trả lời|Chi tiết dữ liệu nghiệp vụ/).count()) {
