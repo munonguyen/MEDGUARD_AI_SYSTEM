@@ -106,7 +106,42 @@ def _is_agent_first_envelope(value: dict[str, Any]) -> bool:
 
 
 def _structured_legacy_envelope(state: MedicalAgentState) -> dict[str, Any]:
+    """Build the stable V14 transport without dropping newer clinical state.
+
+    V25/V28 contracts intentionally travel inside the long-lived V14 transport
+    envelope. The bridge therefore has to preserve diagnosis-neutral clinical
+    context and communication constraints while still stripping identifiers and
+    legacy presentation prose. Clinical severity remains read-only and is never
+    recomputed here.
+    """
     source = state.tool_result
+    source_contract = source.get("communication_contract")
+    if not isinstance(source_contract, dict):
+        source_contract = {}
+
+    communication_contract: dict[str, Any] = {
+        "compose_original_response": True,
+        "legacy_template_prose_is_not_evidence": True,
+        "answer_main_concern_first": True,
+        "give_concrete_next_action": True,
+        "separate_assessment_from_diagnosis": True,
+        "avoid_generic_non_answers": True,
+        "reviewer_is_non_authoring": True,
+    }
+    # Newer contract flags are additive constraints. Keeping them here fixes a
+    # prior transport bug where V28 negation/hypothetical/medication rules were
+    # present in the contract but silently overwritten before Writer/Reviewer.
+    communication_contract.update(source_contract)
+
+    safe_context_keys = {
+        "age",
+        "sex",
+        "current_medications",
+        "allergies",
+        "conditions",
+        "clinical_context",
+        "clinical_context_meta",
+    }
     envelope: dict[str, Any] = {
         "version": "v14-structured-agent-input",
         "intent": state.intent,
@@ -124,18 +159,9 @@ def _structured_legacy_envelope(state: MedicalAgentState) -> dict[str, Any]:
         "patient_context": {
             key: value
             for key, value in state.patient_context.items()
-            if key in {"age", "sex", "current_medications", "allergies", "conditions"}
-            and value not in (None, "", [])
+            if key in safe_context_keys and value not in (None, "", [])
         },
-        "communication_contract": {
-            "compose_original_response": True,
-            "legacy_template_prose_is_not_evidence": True,
-            "answer_main_concern_first": True,
-            "give_concrete_next_action": True,
-            "separate_assessment_from_diagnosis": True,
-            "avoid_generic_non_answers": True,
-            "reviewer_is_non_authoring": True,
-        },
+        "communication_contract": communication_contract,
     }
     for key, value in source.items():
         if key in _LEGACY_PRESENTATION_KEYS or key in envelope:
