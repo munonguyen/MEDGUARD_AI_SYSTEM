@@ -23,6 +23,10 @@ _STRONG_LAB_MARKERS = (
     "creatinin",
     "creatinine",
     "hba1c",
+    "duong huyet luc doi",
+    "glucose luc doi",
+    "fasting glucose",
+    "fasting plasma glucose",
     "cholesterol",
     "triglycerid",
     "triglyceride",
@@ -106,8 +110,6 @@ def _has_laboratory_result_language(norm: str) -> tuple[bool, list[str]]:
         re.search(r"\b\d+(?:[.,]\d+)?\s*(?:mmol/l|mg/dl|u/l|ui/l|g/l|%)\b", norm)
     )
 
-    # Named analytes/tests are strong enough on their own, while generic
-    # "xét nghiệm" requires evidence that a result actually exists.
     is_result_interpretation = bool(strong_hits or qualitative_result or (generic_lab and result_cue))
     reasons = []
     if strong_hits:
@@ -118,7 +120,7 @@ def _has_laboratory_result_language(norm: str) -> tuple[bool, list[str]]:
 
 
 def resolve_clinical_task(text: str) -> ClinicalTaskDecision:
-    """Classify the *kind of clinical work* requested by the user.
+    """Classify the kind of clinical work requested by the user.
 
     This router intentionally does not determine urgency. Safety/triage remain
     independent and may raise the care level later without changing the task.
@@ -156,9 +158,7 @@ def resolve_clinical_task(text: str) -> ClinicalTaskDecision:
             domain="medication",
         )
 
-    if any(_contains_marker(norm, marker) for marker in _MONITORING_MARKERS) and bool(
-        re.search(r"\d", norm)
-    ):
+    if any(_contains_marker(norm, marker) for marker in _MONITORING_MARKERS) and bool(re.search(r"\d", norm)):
         return ClinicalTaskDecision(
             task=ClinicalTask.MONITORING,
             confidence=0.90,
@@ -174,8 +174,6 @@ def resolve_clinical_task(text: str) -> ClinicalTaskDecision:
             domain="followup",
         )
 
-    # Chronic-disease education is distinct from acute triage when the user is
-    # asking about long-term control rather than reporting a new red flag.
     if any(_contains_marker(norm, marker) for marker in ("tang huyet ap", "cao huyet ap")) and any(
         marker in norm for marker in ("chua khoi", "khoi hoan toan", "kiem soat", "song chung")
     ):
@@ -186,9 +184,6 @@ def resolve_clinical_task(text: str) -> ClinicalTaskDecision:
             domain="chronic_condition",
         )
 
-    # Broad symptom language belongs to symptom reasoning. Generic requests
-    # asking *whether* tests may be needed stay here instead of becoming lab
-    # interpretation when there is no result to interpret.
     if any(
         _contains_marker(norm, marker)
         for marker in (
