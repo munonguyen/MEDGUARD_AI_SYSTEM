@@ -36,6 +36,10 @@ async function assertTopbarInsideViewport(page, viewport) {
   }
 }
 
+function currentAssistant(page) {
+  return page.locator('.chat-assistant:not(.pending):visible').last();
+}
+
 function captureErrors(page, viewport) {
   page.on('pageerror', (error) => errors.push(`${viewport} pageerror: ${error.message}`));
   page.on('console', (message) => {
@@ -85,7 +89,7 @@ try {
   await desktop.screenshot({ path: fileURLToPath(new URL('ui-processing-desktop.png', artifactDir)), fullPage: false });
   await desktop.getByRole('heading', { name: 'Bạn cần được đánh giá cấp cứu ngay', exact: true }).waitFor();
   await desktop.getByText('MedGuard đang xử lý', { exact: true }).waitFor({ state: 'hidden' });
-  const emergencyAnswer = desktop.locator('.chat-assistant:not(.pending):visible').last();
+  const emergencyAnswer = currentAssistant(desktop);
   await emergencyAnswer.locator('.clinical-summary-card.status-emergency').waitFor();
   await emergencyAnswer.getByText('Cấp cứu ngay', { exact: true }).waitFor();
   await emergencyAnswer.getByText('Hành động và dấu hiệu khẩn cấp', { exact: true }).waitFor();
@@ -100,12 +104,12 @@ try {
   const composer = desktop.getByRole('textbox', { name: 'Tin nhắn' });
   await composer.fill('Tôi đang cảm thấy bụng cứ cồn cào, sốt ruột không rõ lắm.');
   await desktop.getByRole('button', { name: 'Gửi tin nhắn' }).click();
-  await desktop.getByText(/chưa đủ để xác định nguyên nhân/).waitFor();
-  const abdominalAnswer = desktop.locator('.chat-assistant:not(.pending)').last();
+  const abdominalAnswer = currentAssistant(desktop);
+  await abdominalAnswer.getByText(/chưa đủ để xác định nguyên nhân/).first().waitFor();
   if (await abdominalAnswer.locator('.triage-status-pill').count()) {
     throw new Error('Routine guidance must render as conversational prose without a status badge');
   }
-  await abdominalAnswer.getByText(/Khi nói “sốt ruột”/).waitFor();
+  await abdominalAnswer.getByText(/Khi nói “sốt ruột”/).first().waitFor();
   if (await abdominalAnswer.getByText(/Gateway|Nguồn chưa ghi nhận phê duyệt|Nguồn đang chờ chuyên gia duyệt/).count()) {
     throw new Error('Internal gateway/knowledge governance metadata must not render in patient chat');
   }
@@ -116,9 +120,9 @@ try {
   await composer.fill('Cảm giác nó cứ khó chịu, buồn nôn lắm.');
   await desktop.getByRole('button', { name: 'Gửi tin nhắn' }).click();
   await desktop.getByText('MedGuard đang xử lý', { exact: true }).waitFor({ state: 'hidden' });
-  const abdominalFollowUp = desktop.locator('.chat-assistant:not(.pending)').last();
+  const abdominalFollowUp = currentAssistant(desktop);
   await abdominalFollowUp.getByText(/bụng cồn cào/).first().waitFor();
-  await abdominalFollowUp.getByText(/Bạn đã mô tả buồn nôn/).waitFor();
+  await abdominalFollowUp.getByText(/Bạn đã mô tả buồn nôn/).first().waitFor();
   await abdominalFollowUp.screenshot({ path: fileURLToPath(new URL('ui-abdominal-followup.png', artifactDir)) });
 
   await desktop.getByRole('button', { name: 'Tự nhận diện' }).click();
@@ -175,11 +179,12 @@ try {
   await mobile.getByRole('heading', { name: 'Bạn cần hỗ trợ gì hôm nay?' }).waitFor();
   await mobile.getByRole('textbox', { name: 'Tin nhắn' }).fill('Tôi bị đau đầu, sốt và buồn nôn từ sáng nay.');
   await mobile.getByRole('button', { name: 'Gửi tin nhắn' }).click();
-  await mobile.getByText('Thông tin hiện tại chưa cho thấy rõ dấu hiệu cấp cứu', { exact: true }).waitFor();
-  await mobile.getByText('Bạn cho mình biết thêm', { exact: true }).waitFor();
-  await mobile.getByText('Đi cấp cứu ngay nếu đau đầu xuất hiện đột ngột và rất dữ dội', { exact: true }).waitFor();
-  if (await mobile.locator('.answer-narrative p').count() < 4) throw new Error('Expected a four-part conversational headache answer');
-  if (await mobile.locator('.answer-narrative strong').count() < 3) throw new Error('Expected bounded emphasis in narrative answer');
+  await mobile.getByRole('heading', { name: 'Thông tin hiện tại chưa cho thấy rõ dấu hiệu cấp cứu', exact: true }).waitFor();
+  const mobileAnswer = currentAssistant(mobile);
+  await mobileAnswer.locator('.clinical-summary-card.status-routine').waitFor();
+  await mobileAnswer.getByText('Thông tin cần biết thêm', { exact: true }).waitFor();
+  await mobileAnswer.getByText('Khi nào cần đi khám / cấp cứu', { exact: true }).waitFor();
+  await mobileAnswer.getByText('Đi cấp cứu ngay nếu đau đầu xuất hiện đột ngột và rất dữ dội', { exact: true }).waitFor();
   await mobile.waitForTimeout(350);
   await mobile.screenshot({ path: fileURLToPath(new URL('ui-answer-mobile-direct.png', artifactDir)), fullPage: false });
   await mobile.getByRole('button', { name: 'Quét QR' }).click();
@@ -196,7 +201,7 @@ try {
   await answerDesktop.goto(baseUrl, { waitUntil: 'domcontentloaded' });
   await answerDesktop.getByRole('textbox', { name: 'Tin nhắn' }).fill('Tôi đang bị đau đầu góc trái đầu.');
   await answerDesktop.getByRole('button', { name: 'Gửi tin nhắn' }).click();
-  await answerDesktop.getByText('Bạn cho mình biết thêm', { exact: true }).waitFor();
+  await currentAssistant(answerDesktop).getByText('Thông tin cần biết thêm', { exact: true }).waitFor();
   await assertNoHorizontalOverflow(answerDesktop, 'answer-desktop');
   await assertComposerInsideViewport(answerDesktop, 'answer-desktop');
   await answerDesktop.screenshot({ path: fileURLToPath(new URL('ui-answer-desktop-direct.png', artifactDir)), fullPage: false });
@@ -227,14 +232,15 @@ try {
   await agentUi.goto(baseUrl, { waitUntil: 'domcontentloaded' });
   await agentUi.getByRole('textbox', { name: 'Tin nhắn' }).fill('Tôi đang bị đau đầu góc trái đầu.');
   await agentUi.getByRole('button', { name: 'Gửi tin nhắn' }).click();
-  await agentUi.getByText('Bạn cho mình biết thêm', { exact: true }).waitFor();
+  const verifiedAnswer = currentAssistant(agentUi);
+  await verifiedAnswer.getByText('Thông tin cần biết thêm', { exact: true }).waitFor();
   if (await agentUi.getByText(/Cơ sở trả lời|Chi tiết dữ liệu nghiệp vụ|Đã kiểm chứng thông tin và nguồn tham khảo/).count()) {
     throw new Error('Internal answer metadata must not be visible in chat');
   }
   if (await agentUi.getByText(/Gemini|GPT|Verifier Agent|shadow|deterministic fallback/i).count()) {
     throw new Error('Confidential model-processing details are visible in the UI');
   }
-  const researchedSource = agentUi.getByRole('link', { name: /Mở nguồn 1/ }).first();
+  const researchedSource = verifiedAnswer.getByRole('link', { name: /Mở nguồn 1/ }).first();
   await researchedSource.waitFor();
   await researchedSource.evaluate((element) => element.scrollIntoView({ block: 'center' }));
   await agentUi.waitForTimeout(100);
@@ -248,7 +254,7 @@ try {
   await agentUi.screenshot({ path: fileURLToPath(new URL('ui-agent-verification-desktop.png', artifactDir)), fullPage: false });
 
   if (errors.length) throw new Error(errors.join('\n'));
-  console.log('ui_smoke=PASS desktop=1440x1000 mobile=390x844 narrative=PASS agents=PASS schedule=PASS qr=PASS history=PASS audit=PASS');
+  console.log('ui_smoke=PASS desktop=1440x1000 mobile=390x844 structured_layout=PASS agents=PASS schedule=PASS qr=PASS history=PASS audit=PASS');
 } finally {
   await browser.close();
 }
