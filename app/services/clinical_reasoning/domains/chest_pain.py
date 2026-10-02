@@ -109,7 +109,7 @@ class ChestPainReasoner:
                 risk_level="ROUTINE",
                 subtype="musculoskeletal_chest_wall",
                 rationale=(
-                    "Đau ngực sau chống đẩy/tập tạ hoặc tăng rõ khi ấn tại chỗ phù hợp hơn với đau cơ-thành ngực. "
+                    "Đau ngực sau chống đẩy/tập tạ hoặc tăng rõ khi ấn tại chỗ phù hợp hơn với căng cơ thành ngực hoặc đau thành ngực do vận động. "
                     "Đây không phải là bằng chứng tuyệt đối loại trừ nguyên nhân tim-phổi, nên vẫn cần theo dõi dấu hiệu cảnh báo."
                 ),
                 suggested_action=(
