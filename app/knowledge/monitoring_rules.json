@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "version": "1.2.0",
+    "version": "1.2.1",
     "effective_date": "2026-10-02",
     "approved_by": "[PENDING]",
     "purpose": "Development monitoring thresholds, metric-aware trend semantics, and bounded home-measurement guidance. Clinical approval is required before production use.",
@@ -59,7 +59,7 @@
       "critical_escalation": "EMERGENCY",
       "warning_escalation": "CLINIC",
       "detail_critical": "Huyết áp tâm thu rất cao; nếu kèm đau ngực, khó thở, yếu/tê, thay đổi thị lực, nói khó hoặc triệu chứng thần kinh mới, cần đánh giá cấp cứu ngay.",
-      "detail_warning": "Trị số tâm thu từ 140 mmHg trở lên nằm trong vùng huyết áp cao Stage 2 theo phân loại AHA/ACC. Một lần đo chưa đủ để xác nhận chẩn đoán; hãy đo lại đúng kỹ thuật và trao đổi với nhân viên y tế nếu mức này lặp lại."
+      "detail_warning": "Trị số tâm thu từ 140 mmHg trở lên nằm trong vùng huyết áp cao Stage 2 theo phân loại AHA/ACC. Một lần đo chưa đủ để xác nhận chẩn đoán; cần tiếp tục theo dõi bằng các lần đo lặp lại đúng kỹ thuật và trao đổi với nhân viên y tế để được đánh giá nếu mức này lặp lại."
     },
     {
       "metric": "diastolic",
@@ -70,7 +70,7 @@
       "critical_escalation": "EMERGENCY",
       "warning_escalation": "CLINIC",
       "detail_critical": "Huyết áp tâm trương rất cao; nếu kèm đau ngực, khó thở, yếu/tê, thay đổi thị lực, nói khó hoặc triệu chứng thần kinh mới, cần đánh giá cấp cứu ngay.",
-      "detail_warning": "Trị số tâm trương từ 90 mmHg trở lên nằm trong vùng huyết áp cao Stage 2 theo phân loại AHA/ACC. Một lần đo chưa đủ để xác nhận chẩn đoán; hãy đo lại đúng kỹ thuật và trao đổi với nhân viên y tế nếu mức này lặp lại."
+      "detail_warning": "Trị số tâm trương từ 90 mmHg trở lên nằm trong vùng huyết áp cao Stage 2 theo phân loại AHA/ACC. Một lần đo chưa đủ để xác nhận chẩn đoán; cần tiếp tục theo dõi bằng các lần đo lặp lại đúng kỹ thuật và trao đổi với nhân viên y tế để được đánh giá nếu mức này lặp lại."
     },
     {
       "metric": "heart_rate",
