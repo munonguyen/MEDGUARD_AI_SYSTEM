@@ -196,6 +196,17 @@ def build_clinical_agent_contract(
                     if message:
                         add("safety", message, required=True, locked=False)
 
+    # Hard medication contraindications become locked safety claims so the
+    # Writer cannot silently omit them and the existing deterministic locked-
+    # claim gate will reject a draft that changes/removes the prohibition.
+    clinical_context = enriched_context.get("clinical_context")
+    if isinstance(clinical_context, dict):
+        medication_safety = clinical_context.get("medication_safety")
+        if isinstance(medication_safety, dict) and medication_safety.get("allowed") is False:
+            guidance = _text(medication_safety.get("guidance"))
+            if guidance:
+                add("safety", guidance, required=True, locked=True)
+
     envelope = {
         "version": "v25-contextual-reasoning",
         "intent": intent,
