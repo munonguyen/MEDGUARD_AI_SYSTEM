@@ -29,8 +29,9 @@ class BackPainReasoner:
         red_flags: list[str] = []
 
         # 1. Spinal-neurologic warning features. Use structured findings where
-        # available and whole-phrase checks for urinary retention so the word
-        # "không" in "không tiểu được" is not misread as symptom negation.
+        # available and whole-phrase checks for urinary retention. In Vietnamese,
+        # "không tiểu được" is itself a positive symptom (urinary retention),
+        # whereas "không bí tiểu" is a true negation; these must not be conflated.
         leg_weakness = bool(positive.get("leg_weakness")) or self._affirmed_regex(
             norm,
             r"\b(?:chan yeu|kho nhac ban chan|sup ban chan|foot drop|yeu hai chan|liet chan)\b",
@@ -40,12 +41,15 @@ class BackPainReasoner:
             r"\b(?:te vung yen ngua|te quanh hau mon|te quanh mong|te quanh sinh duc|mat cam giac quanh hau mon|mat cam giac vung yen ngua)\b",
         )
 
-        urinary_retention = bool(
+        unable_to_void = bool(
             re.search(
-                r"\b(?:khong tieu duoc|bi tieu tien|bi tieu|cang bang quang.*khong tieu duoc|buon tieu.*khong tieu duoc)\b",
+                r"\b(?:khong tieu duoc|buon tieu.*khong tieu duoc|cang bang quang.*khong tieu duoc)\b",
                 norm,
             )
         )
+        retention_named = self._affirmed_regex(norm, r"\b(?:bi tieu tien|bi tieu)\b")
+        urinary_retention = unable_to_void or retention_named
+
         bladder_bowel_loss = bool(positive.get("incontinence")) or self._affirmed_regex(
             norm,
             r"\b(?:tieu khong tu chu|mat kiem soat tieu tien|dai tien khong tu chu|mat kiem soat dai tien)\b",
