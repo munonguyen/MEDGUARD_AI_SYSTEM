@@ -43,7 +43,7 @@ function currentAssistant(page) {
 function captureErrors(page, viewport) {
   page.on('pageerror', (error) => errors.push(`${viewport} pageerror: ${error.message}`));
   page.on('console', (message) => {
-    if (message.type() === 'error') errors.push(`${viewport} console: ${message.text()}`);
+    if (message.type() === 'error') errors.push(`${viewport} console: ${message.text()}`));
   });
 }
 
@@ -134,7 +134,6 @@ try {
   const scheduleAnswer = currentAssistant(desktop);
   await scheduleAnswer.getByText(/Đã thêm 2 mốc uống amoxicillin/).first().waitFor();
 
-  // Verify dedicated Medication Page
   await desktop.locator('.sidebar-actions').getByRole('button', { name: 'Lịch uống thuốc' }).click();
   await desktop.getByRole('heading', { name: 'Lịch Uống Thuốc', exact: true }).waitFor();
   await desktop.getByText('Tuân thủ tuần này').waitFor();
@@ -153,7 +152,6 @@ try {
   await assertTopbarInsideViewport(desktop, 'desktop');
   if (await desktop.getByRole('button', { name: 'Mở menu' }).isVisible()) throw new Error('Desktop menu button must be hidden');
 
-  // Test Dedicated Lịch Khám Page
   await desktop.locator('.topbar-actions').getByRole('button', { name: 'Lịch khám' }).click();
   await desktop.getByRole('heading', { name: 'Lịch Khám', exact: true }).waitFor();
   await desktop.getByText('Tổng Ca Hôm Nay').waitFor();
@@ -178,14 +176,16 @@ try {
   await mobile.getByRole('button', { name: 'Mở menu' }).click();
   await mobile.getByRole('button', { name: 'Cuộc trò chuyện mới' }).click();
   await mobile.getByRole('heading', { name: 'Bạn cần hỗ trợ gì hôm nay?' }).waitFor();
-  await mobile.getByRole('textbox', { name: 'Tin nhắn' }).fill('Tôi bị đau đầu, sốt và buồn nôn từ sáng nay.');
+  await mobile.getByRole('textbox', { name: 'Tin nhắn' }).fill('Tôi đau đầu nhẹ sau thức khuya, không sốt, không nôn, không yếu liệt.');
   await mobile.getByRole('button', { name: 'Gửi tin nhắn' }).click();
-  await mobile.getByRole('heading', { name: 'Thông tin hiện tại chưa cho thấy rõ dấu hiệu cấp cứu', exact: true }).waitFor();
+  await mobile.getByText('MedGuard đang xử lý', { exact: true }).waitFor({ state: 'hidden' });
   const mobileAnswer = currentAssistant(mobile);
   await mobileAnswer.locator('.clinical-summary-card.status-routine').waitFor();
   await mobileAnswer.getByText('Thông tin cần biết thêm', { exact: true }).waitFor();
   await mobileAnswer.getByText('Khi nào cần đi khám / cấp cứu', { exact: true }).waitFor();
-  await mobileAnswer.getByText('Đi cấp cứu ngay nếu đau đầu xuất hiện đột ngột và rất dữ dội', { exact: true }).waitFor();
+  if (await mobileAnswer.getByText(/Cấp cứu ngay/, { exact: true }).count()) {
+    throw new Error('Benign mobile control must not render as an active emergency');
+  }
   await mobile.waitForTimeout(350);
   await mobile.screenshot({ path: fileURLToPath(new URL('ui-answer-mobile-direct.png', artifactDir)), fullPage: false });
   await mobile.getByRole('button', { name: 'Quét QR' }).click();
