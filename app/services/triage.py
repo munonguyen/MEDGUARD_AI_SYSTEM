@@ -238,6 +238,31 @@ from app.services.semantic_risk import safe_semantic_evaluate, semantic_risk_eva
 from app.services.triage_resolver import resolve_triage
 
 
+_TRIAGE_HYPOTHETICAL_PATTERN = re.compile(
+    r"\b(?:neu|neu nhu|truong hop|gia su|lo may)\b.*?\b(?:thi phai lam gi|thi xu tri the nao|nen lam gi|can lam gi|lam gi)\b"
+)
+_TRIAGE_CONDITIONAL_START = re.compile(r"\b(?:neu nhu|neu|gia su|truong hop|lo may)\b")
+
+
+def _scope_current_triage_text(symptoms_text: str) -> tuple[str, bool]:
+    """Return current findings only when the user is asking a contingency question.
+
+    Historical V10/V11 detectors were written to be conservative and are not
+    clause-aware. Without this boundary, a sentence such as "Nếu sưng môi hoặc
+    khó thở thì làm gì?" can trigger a current emergency solely because the
+    red-flag words are present. V28 scopes only explicit contingency clauses;
+    normal current-symptom messages are returned byte-for-byte unchanged.
+    """
+    norm = normalize_search_text(symptoms_text)
+    if not _TRIAGE_HYPOTHETICAL_PATTERN.search(norm):
+        return symptoms_text, False
+    marker = _TRIAGE_CONDITIONAL_START.search(norm)
+    if marker is None:
+        return symptoms_text, False
+    current = norm[: marker.start()].strip(" ,.;:-")
+    return current, True
+
+
 def evaluate_triage(
     payload: TriageRequest,
     ctx: RequestContext,
@@ -245,8 +270,14 @@ def evaluate_triage(
     conversation_risk: str | None = None,
 ) -> TriageResponse:
     start = perf_counter()
-    rule = triage_rules(payload.symptoms_text, payload.vitals)
-    facts = extract_clinical_facts(payload.symptoms_text)
+    analysis_text, hypothetical_scope = _scope_current_triage_text(payload.symptoms_text)
+
+    # The legacy detector stack consumes only present findings. The original
+    # text is retained for V28's context-aware safety floor and patient-facing
+    # contingency guidance. This prevents false emergency escalation without
+    # weakening real red flags or historical sticky risk.
+    rule = triage_rules(analysis_text, payload.vitals)
+    facts = extract_clinical_facts(analysis_text)
 
     from app.services.dose_reasoning import evaluate_dose_reasoning
     from app.services.toxicology_reasoner import evaluate_toxicology, ToxicologyUrgency
@@ -255,14 +286,14 @@ def evaluate_triage(
     from app.services.clinical_fact_parser import parse_semantic_clinical_facts
     from app.services.partial_evidence_safety import evaluate_partial_evidence_safety
 
-    dose_assessment = evaluate_dose_reasoning(payload.symptoms_text)
-    tox_assessment = evaluate_toxicology(payload.symptoms_text)
+    dose_assessment = evaluate_dose_reasoning(analysis_text)
+    tox_assessment = evaluate_toxicology(analysis_text)
     is_emergency_tox = (tox_assessment.urgency == ToxicologyUrgency.EMERGENCY)
-    fact_set = getattr(facts, "fact_set", None) or parse_semantic_clinical_facts(payload.symptoms_text)
+    fact_set = getattr(facts, "fact_set", None) or parse_semantic_clinical_facts(analysis_text)
     vitals_dict = payload.vitals.model_dump(exclude_none=True) if payload.vitals else None
     clinical_safety_floor = evaluate_clinical_safety_floor(payload.symptoms_text, vitals_dict)
     comp_hypothesis = evaluate_compositional_risk(fact_set, vitals_dict)
-    partial_safety = evaluate_partial_evidence_safety(payload.symptoms_text, vitals_dict, fact_set=fact_set)
+    partial_safety = evaluate_partial_evidence_safety(analysis_text, vitals_dict, fact_set=fact_set)
 
     # Hybrid Conservative Resolution across Rule, Compositional Threat Reasoner, Semantic Evaluator, Partial Safety, Dose, and Multi-turn
     # 1. Fast-path: Explicit Emergency from deterministic rule, dose toxicity, toxicology reasoner, threat graph, or partial safety
@@ -309,7 +340,7 @@ def evaluate_triage(
     else:
         semantic_result = safe_semantic_evaluate(
             semantic_risk_evaluator,
-            payload.symptoms_text,
+            analysis_text,
             clinical_facts=facts,
         )
         if semantic_result and not semantic_result.uncertain:
@@ -365,7 +396,7 @@ def evaluate_triage(
     elif final_urgency == "ROUTINE" and esi_level is None:
         esi_level = 4
 
-    guidance = knowledge.find_symptom_guidance(payload.symptoms_text)
+    guidance = None if hypothetical_scope and not analysis_text else knowledge.find_symptom_guidance(payload.symptoms_text)
     has_guidance = guidance is not None
     use_guidance_actions = has_guidance and (
         final_urgency == "ROUTINE" or guidance.get("topic") == "lower_limb_pain"
@@ -418,7 +449,12 @@ def evaluate_triage(
         )
 
     advice = rule.advice
-    if final_urgency == "EMERGENCY" and rule.urgency != "EMERGENCY":
+    if hypothetical_scope and not analysis_text and final_urgency == "ROUTINE":
+        advice = (
+            "Các dấu hiệu bạn nêu đang ở dạng giả định, không phải triệu chứng hiện tại đã được xác nhận. "
+            "Nếu sưng môi/lưỡi, nghẹn họng, khó thở, ngất hoặc đau ngực nặng thực sự xuất hiện, hãy gọi 115 hoặc đến khoa Cấp cứu ngay."
+        )
+    elif final_urgency == "EMERGENCY" and rule.urgency != "EMERGENCY":
         advice = "Tình trạng có dấu hiệu nguy kịch cần liên hệ cấp cứu 115 hoặc đến cơ sở y tế gần nhất ngay lập tức."
     elif final_urgency == "URGENT" and rule.urgency in ("ROUTINE", "UNRESOLVED"):
         advice = "Nên được nhân viên y tế đánh giá sớm trong ngày; nếu triệu chứng nặng lên, hãy đến cơ sở cấp cứu."
@@ -457,6 +493,8 @@ def evaluate_triage(
                 "clinical_safety_floor": clinical_safety_floor.disposition,
                 "clinical_safety_sources": list(clinical_safety_floor.sources),
                 "clinical_safety_reasons": list(clinical_safety_floor.reasons),
+                "hypothetical_scope_applied": hypothetical_scope,
+                "current_analysis_text_present": bool(analysis_text),
                 "ood_downgrade_revoked": clinical_safety_floor.ood_downgrade_revoked,
                 "end_organ_couplings": list(
                     clinical_safety_floor.end_organ_coupling.coupling_ids
