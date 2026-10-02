@@ -150,13 +150,7 @@ class KnowledgeStore:
         return contextual
 
     def _find_explicit_response_policy(self, normalized: str) -> dict[str, Any] | None:
-        """Match explicit workflow/policy requests without clinical-negation semantics.
-
-        Requests such as ``hãy kê đơn`` are commands, not symptom assertions.
-        They should therefore use lexical command matching rather than the
-        clinical affirmed-phrase matcher, whose job is to reason about negated
-        symptoms and can intentionally suppress question-like language.
-        """
+        """Match explicit workflow/policy requests without clinical-negation semantics."""
         policy = self.files.get(
             "v25_response_policy_overlay.json", KnowledgeFile("", "", "", {})
         ).data.get("symptom_guidance", [])
@@ -170,15 +164,21 @@ class KnowledgeStore:
 
     @staticmethod
     def _guidance_is_route_compatible(guidance: dict[str, Any], normalized: str) -> bool:
-        """Reject a symptom template when its physical route contradicts the turn.
+        """Reject symptom templates whose physical mechanism contradicts the turn."""
+        topic = str(guidance.get("topic", ""))
 
-        The word ``hóa chất`` can describe either a skin burn or inhalation.
-        A lexical first-match used to select ``acute_burn`` for phrases such as
-        ``hít mùi hóa chất trong phòng kín`` and leak burn cooling instructions
-        into a respiratory/toxicology episode.  Keep this guard route-based: an
-        explicit skin-burn finding still permits burn guidance.
-        """
-        if str(guidance.get("topic", "")) != "acute_burn":
+        if topic == "open_wound_cut":
+            animal_bite_markers = (
+                "cho can", "meo can", "dong vat can", "suc vat can",
+                "khi can", "doi can", "chuot can",
+            )
+            if any(
+                contains_affirmed_phrase(normalized, marker)
+                for marker in animal_bite_markers
+            ):
+                return False
+
+        if topic != "acute_burn":
             return True
 
         inhalation_markers = (
@@ -199,8 +199,28 @@ class KnowledgeStore:
         )
         return not (has_inhalation_route and not has_skin_burn)
 
+    @staticmethod
+    def _is_animal_bite(normalized: str) -> bool:
+        return any(
+            contains_affirmed_phrase(normalized, marker)
+            for marker in (
+                "cho can", "meo can", "dong vat can", "suc vat can",
+                "khi can", "doi can", "chuot can",
+            )
+        )
+
     def find_symptom_guidance(self, symptoms_text: str) -> dict[str, Any] | None:
         normalized = normalize_search_text(symptoms_text)
+
+        # Animal-bite episodes are governed by dedicated urgent rabies/tetanus
+        # rules. Until a dedicated animal-bite symptom template exists, returning
+        # no generic guidance is safer than contaminating the response with burn,
+        # knife-cut or other wound-mechanism instructions/questions.
+        if self._is_animal_bite(normalized):
+            for guidance in self.symptom_guidance:
+                if guidance.get("topic") in {"animal_bite", "rabies_exposure"}:
+                    return self._contextualize_guidance(guidance, symptoms_text)
+            return None
 
         explicit_policy = self._find_explicit_response_policy(normalized)
         if explicit_policy is not None:

@@ -1,11 +1,12 @@
 {
   "_meta": {
-    "version": "1.1.0",
-    "effective_date": "2026-09-07",
+    "version": "1.2.1",
+    "effective_date": "2026-10-02",
     "approved_by": "[PENDING]",
     "purpose": "Development monitoring thresholds, metric-aware trend semantics, and bounded home-measurement guidance. Clinical approval is required before production use.",
     "source_references": [
-      "American Heart Association — Home Blood Pressure Monitoring (accessed 2026-09-10)",
+      "American Heart Association / American College of Cardiology — 2025 High Blood Pressure Guideline: stage 2 hypertension category >=140 systolic or >=90 diastolic; treatment decisions use average blood pressure (accessed 2026-10-02)",
+      "American Heart Association — Home Blood Pressure Monitoring (accessed 2026-10-02)",
       "CDC — Measuring Your Blood Pressure (updated 2026-05-12)"
     ]
   },
@@ -54,19 +55,22 @@
       "trend_policy": "higher_is_worse",
       "trend_min_delta": 5.0,
       "critical_above": 180,
-      "warning_above": 160,
+      "warning_above": 140,
       "critical_escalation": "EMERGENCY",
-      "warning_escalation": "URGENT",
-      "detail_critical": "Huyết áp tâm thu rất cao, nguy cơ tổn thương cơ quan đích.",
-      "detail_warning": "Huyết áp tâm thu cao, nên được đánh giá sớm."
+      "warning_escalation": "CLINIC",
+      "detail_critical": "Huyết áp tâm thu rất cao; nếu kèm đau ngực, khó thở, yếu/tê, thay đổi thị lực, nói khó hoặc triệu chứng thần kinh mới, cần đánh giá cấp cứu ngay.",
+      "detail_warning": "Trị số tâm thu từ 140 mmHg trở lên nằm trong vùng huyết áp cao Stage 2 theo phân loại AHA/ACC. Một lần đo chưa đủ để xác nhận chẩn đoán; cần tiếp tục theo dõi bằng các lần đo lặp lại đúng kỹ thuật và trao đổi với nhân viên y tế để được đánh giá nếu mức này lặp lại."
     },
     {
       "metric": "diastolic",
       "trend_policy": "higher_is_worse",
       "trend_min_delta": 5.0,
       "critical_above": 120,
+      "warning_above": 90,
       "critical_escalation": "EMERGENCY",
-      "detail_critical": "Huyết áp tâm trương nằm trong vùng nguy cơ cao."
+      "warning_escalation": "CLINIC",
+      "detail_critical": "Huyết áp tâm trương rất cao; nếu kèm đau ngực, khó thở, yếu/tê, thay đổi thị lực, nói khó hoặc triệu chứng thần kinh mới, cần đánh giá cấp cứu ngay.",
+      "detail_warning": "Trị số tâm trương từ 90 mmHg trở lên nằm trong vùng huyết áp cao Stage 2 theo phân loại AHA/ACC. Một lần đo chưa đủ để xác nhận chẩn đoán; cần tiếp tục theo dõi bằng các lần đo lặp lại đúng kỹ thuật và trao đổi với nhân viên y tế để được đánh giá nếu mức này lặp lại."
     },
     {
       "metric": "heart_rate",
@@ -92,7 +96,15 @@
     {
       "metric": "glucose_mg_dl",
       "trend_policy": "range_dependent",
-      "trend_min_delta": 10.0
+      "trend_min_delta": 10.0,
+      "critical_below": 54.0,
+      "warning_below": 70.0,
+      "warning_above": 180.0,
+      "critical_above": 300.0,
+      "critical_escalation": "EMERGENCY",
+      "warning_escalation": "URGENT",
+      "detail_critical": "Đường huyết hạ mức nguy hiểm (< 54 mg/dL), nguy cơ suy giảm ý thức hoặc hôn mê hạ đường huyết.",
+      "detail_warning": "Đường huyết thấp (< 70 mg/dL), cần áp dụng quy tắc 15 (bổ sung 15g đường nhanh) và đo lại sau 15 phút."
     }
   ]
 }
