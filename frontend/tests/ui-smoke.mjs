@@ -131,7 +131,8 @@ try {
   await desktop.getByRole('menu').waitFor({ state: 'hidden' });
   await composer.fill('#lichthuoc uống amoxicillin lúc 8h và 20h mỗi ngày.');
   await desktop.getByRole('button', { name: 'Gửi tin nhắn' }).click();
-  await desktop.getByText(/Đã thêm 2 mốc uống amoxicillin/).waitFor();
+  const scheduleAnswer = currentAssistant(desktop);
+  await scheduleAnswer.getByText(/Đã thêm 2 mốc uống amoxicillin/).first().waitFor();
 
   // Verify dedicated Medication Page
   await desktop.locator('.sidebar-actions').getByRole('button', { name: 'Lịch uống thuốc' }).click();
@@ -240,6 +241,9 @@ try {
   if (await agentUi.getByText(/Gemini|GPT|Verifier Agent|shadow|deterministic fallback/i).count()) {
     throw new Error('Confidential model-processing details are visible in the UI');
   }
+  const detailPanel = verifiedAnswer.getByText('Giải thích chi tiết', { exact: true });
+  await detailPanel.waitFor();
+  await detailPanel.click();
   const researchedSource = verifiedAnswer.getByRole('link', { name: /Mở nguồn 1/ }).first();
   await researchedSource.waitFor();
   await researchedSource.evaluate((element) => element.scrollIntoView({ block: 'center' }));
