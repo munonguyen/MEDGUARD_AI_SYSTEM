@@ -55,7 +55,6 @@ try {
   await desktop.goto(baseUrl, { waitUntil: 'domcontentloaded' });
   await desktop.getByRole('heading', { name: 'Bạn cần hỗ trợ gì hôm nay?' }).waitFor();
 
-  // Profile persistence and basic navigation.
   const patientRef = `BN-UI-${Date.now()}`;
   await desktop.getByRole('button', { name: 'Mở Profile cá nhân' }).click();
   await desktop.getByLabel('Tên hiển thị').fill('An UI');
@@ -74,7 +73,6 @@ try {
   await desktop.getByRole('button', { name: 'Mở thanh bên' }).click();
   await desktop.getByRole('button', { name: 'Thu gọn thanh bên' }).waitFor();
 
-  // Active emergency must render as structured emergency UI, not hidden prose.
   await desktop.getByRole('button', { name: 'Tôi bị đau ngực và khó thở' }).click();
   await desktop.getByRole('button', { name: 'Gửi tin nhắn' }).click();
   await desktop.getByText('MedGuard đang xử lý', { exact: true }).waitFor();
@@ -91,7 +89,6 @@ try {
     throw new Error('Internal processing metadata leaked into emergency response');
   }
 
-  // Routine conversation and a context-carrying follow-up.
   const abdominal = await send(desktop, 'Tôi đang cảm thấy bụng cứ cồn cào, sốt ruột không rõ lắm.');
   await abdominal.getByText(/chưa đủ để xác định nguyên nhân/).first().waitFor();
   await abdominal.getByText(/Khi nói “sốt ruột”/).first().waitFor();
@@ -100,7 +97,6 @@ try {
   await followUp.getByText(/Bạn đã mô tả buồn nôn/).first().waitFor();
   await followUp.screenshot({ path: fileURLToPath(new URL('ui-abdominal-followup.png', artifactDir)) });
 
-  // Medication schedule workflow.
   await desktop.getByRole('button', { name: 'Tự nhận diện' }).click();
   await desktop.getByRole('menu').waitFor();
   await desktop.keyboard.press('Escape');
@@ -111,16 +107,14 @@ try {
   await desktop.getByText('Tuân thủ tuần này').waitFor();
   await desktop.getByRole('button', { name: 'Về phòng Chat' }).click();
 
-  // QR authenticity workflow.
   await desktop.getByRole('button', { name: 'Quét QR' }).click();
   await desktop.getByRole('button', { name: 'Nhập mã' }).click();
   await desktop.getByPlaceholder('MEDGUARD|product=...|serial=...|lot=...').fill('MEDGUARD|product=MG-AMOX-500|serial=VN24A001|lot=AMX2409');
   await desktop.getByRole('button', { name: 'Kiểm tra mã' }).click();
   await desktop.getByRole('heading', { name: 'Mã khớp với registry hiện tại', exact: true }).waitFor();
   await desktop.getByText(/không phải kiểm định vật lý sản phẩm/).first().waitFor();
-  await desktop.getByRole('button', { name: 'Đóng', exact: true }).click();
+  await desktop.keyboard.press('Escape');
 
-  // Dedicated appointment and audit surfaces.
   await desktop.locator('.topbar-actions').getByRole('button', { name: 'Lịch khám' }).click();
   await desktop.getByRole('heading', { name: 'Lịch Khám', exact: true }).waitFor();
   await desktop.getByText('Tổng Ca Hôm Nay').waitFor();
@@ -136,8 +130,6 @@ try {
   await assertLayout(desktop, 'desktop');
   await desktop.screenshot({ path: fileURLToPath(new URL('ui-chat-desktop.png', artifactDir)) });
 
-  // Mobile benign-control layout: deterministic routine case, independent of
-  // changing urgent rules for fever/nausea combinations.
   const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
   mobile.setDefaultTimeout(10000);
   captureErrors(mobile, 'mobile');
@@ -157,8 +149,6 @@ try {
   await mobile.getByRole('heading', { name: 'Xác thực sản phẩm' }).waitFor();
   await mobile.getByRole('button', { name: 'Đóng', exact: true }).click();
 
-  // Citation rendering: inject a verified source into a normal clinical answer,
-  // then verify that citations remain patient-visible but model internals do not.
   const agentUi = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   agentUi.setDefaultTimeout(10000);
   captureErrors(agentUi, 'agent-ui');
