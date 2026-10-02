@@ -129,3 +129,38 @@ def test_bp_145_95_is_explained_as_high_without_emergency_overtriage() -> None:
     assert "stage 2" in text
     assert "một lần đo chưa đủ" in text
     assert any(marker in text for marker in ("đo lại", "nhân viên y tế", "cơ sở y tế"))
+
+
+def test_orthostatic_dizziness_answer_preserves_uncertainty_and_no_default_sugar() -> None:
+    body = _chat(
+        "Tôi bị chóng mặt mỗi khi đứng dậy. Nguyên nhân có thể là gì?",
+        "v28-qna-orthostatic-dizziness",
+    )
+    text = _answer_text(body)
+    assert body["intent"] == "triage"
+    assert any(marker in text for marker in ("nhiều nguyên nhân", "chưa đủ", "có thể liên quan"))
+    assert "uống một cốc nước ấm có chút đường" not in text
+    assert "không mặc định uống đường" in text
+    assert any(marker in text for marker in ("ngồi", "nằm", "tránh té", "đứng dậy từ từ"))
+
+
+def test_sleep_medication_answer_directly_discourages_unsupervised_hypnotics() -> None:
+    body = _chat(
+        "Tôi mất ngủ gần một tuần rồi. Tôi có nên dùng thuốc ngủ không?",
+        "v28-qna-sleep-medication",
+    )
+    text = _answer_text(body)
+    assert "không nên tự bắt đầu thuốc ngủ" in text or "không tự bắt đầu thuốc ngủ" in text
+    assert any(marker in text for marker in ("bác sĩ", "dược sĩ", "tương tác"))
+    assert any(marker in text for marker in ("giờ ngủ", "caffeine", "màn hình"))
+
+
+def test_hypertension_education_answers_control_question_not_generic_triage() -> None:
+    body = _chat(
+        "Bác sĩ bảo tôi bị tăng huyết áp. Bệnh này có chữa khỏi hoàn toàn được không?",
+        "v28-qna-hypertension-education",
+    )
+    text = _answer_text(body)
+    assert "kiểm soát lâu dài" in text
+    assert any(marker in text for marker in ("không tự ngừng thuốc", "trước khi giảm liều", "trước khi ngừng thuốc"))
+    assert any(marker in text for marker in ("theo dõi huyết áp", "nhật ký đo", "lối sống"))
