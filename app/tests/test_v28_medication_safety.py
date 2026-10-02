@@ -1,5 +1,6 @@
 import pytest
 from app.services.clinical_reasoning.medication_safety import MedicationSafetyPipeline
+from app.services.dose_reasoning import extract_paracetamol_dose_assessment
 
 
 @pytest.fixture
@@ -73,3 +74,28 @@ def test_routine_pain_prefers_non_pharmacological_first_line(pipeline):
     assert result.allowed is True
     assert "non_pharmacological_first_line" in result.warning_notes
     assert "không tự động kê đơn hay chỉ định liều dùng thuốc cá nhân hóa" in result.guidance
+
+
+def test_ordinary_paracetamol_use_does_not_fabricate_overdose():
+    result = extract_paracetamol_dose_assessment(
+        "Tôi uống paracetamol nhưng vẫn sốt. Tôi có thể uống thêm ibuprofen không?"
+    )
+    assert result is None
+
+
+def test_quantified_paracetamol_exposure_still_activates_dose_reasoning():
+    result = extract_paracetamol_dose_assessment(
+        "Tôi vừa uống 4 viên paracetamol 500 mg cùng lúc. Có sao không?"
+    )
+    assert result is not None
+    assert result.total_dose_mg == 2000.0
+    assert result.urgency == "URGENT"
+
+
+def test_high_quantified_paracetamol_exposure_preserves_emergency_detection():
+    result = extract_paracetamol_dose_assessment(
+        "Tôi uống 10 viên paracetamol 500 mg một lúc."
+    )
+    assert result is not None
+    assert result.total_dose_mg == 5000.0
+    assert result.urgency == "EMERGENCY"
