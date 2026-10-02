@@ -44,7 +44,7 @@ jobs:
         run: pytest -q
 
   response-quality:
-    name: Medical response quality gate (40 cases)
+    name: Medical response quality gate + Q&A audit (40 cases)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -85,6 +85,18 @@ jobs:
           }, ensure_ascii=False, indent=2))
           PY
           fi
+
+      - name: Upload 40-case Q&A quality audit
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: v28-medical-response-quality-${{ github.sha }}
+          path: |
+            datasets/DS-MEDICAL-RESPONSE-QUALITY/eval_report.json
+            artifacts/v28_response_quality/report.json
+            artifacts/v28_response_quality/REPORT_40_QUESTIONS_ANSWERS.md
+          if-no-files-found: warn
+          retention-days: 30
 
   conversation-quality-v24:
     name: V24 200-turn conversation benchmark
