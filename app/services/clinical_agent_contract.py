@@ -13,6 +13,7 @@ from typing import Any
 
 from app.models.chat import ChatIntent
 from app.services.clinical_episode_model import build_clinical_episode_model
+from app.services.clinical_reasoning.context_integration import enrich_patient_context
 from app.services.contextual_clinical_reasoner import build_contextual_reasoning_frame
 
 
@@ -29,8 +30,18 @@ def _text(value: Any) -> str:
 def _safe_patient_context(context: dict[str, Any] | None) -> dict[str, Any]:
     source = context or {}
     # Patient identifiers and previous generated answer state must never become
-    # medical evidence for the writer.
-    allowed = ("age", "sex", "current_medications", "allergies", "conditions")
+    # medical evidence for the writer. V28.1 structured clinical evidence is
+    # explicitly allowed because it is derived only from the current user text
+    # plus bounded non-identifying safety context.
+    allowed = (
+        "age",
+        "sex",
+        "current_medications",
+        "allergies",
+        "conditions",
+        "clinical_context",
+        "clinical_context_meta",
+    )
     return {key: source.get(key) for key in allowed if source.get(key) not in (None, [], "")}
 
 
@@ -93,6 +104,12 @@ def build_clinical_agent_contract(
     patient_context: dict[str, Any] | None = None,
 ) -> ClinicalAgentContract:
     result = dict(clinical_result or {})
+    # V28.1 must be available before the contract is frozen. Previously the
+    # enrichment happened later in AnswerAgentPipeline._execute(), which meant
+    # Writer/Reviewer could receive the old contract without negation/context
+    # evidence. Enriching here makes the structured evidence part of the
+    # authoritative agent envelope while keeping deterministic urgency intact.
+    enriched_context = enrich_patient_context(patient_context, question)
     claims: list[dict[str, Any]] = []
 
     def add(category: str, text: str, *, required: bool = True, locked: bool = False) -> None:
@@ -184,7 +201,7 @@ def build_clinical_agent_contract(
         "intent": intent,
         "user_question": question,
         "clinical_result": result,
-        "patient_context": _safe_patient_context(patient_context),
+        "patient_context": _safe_patient_context(enriched_context),
         "clinical_episode": episode_payload,
         "reasoning_frame": reasoning_payload,
         "communication_contract": {
@@ -202,12 +219,18 @@ def build_clinical_agent_contract(
             "reason_from_episode_delta_not_only_latest_sentence": True,
             "preserve_historical_hard_risk_until_explicitly_invalidated": True,
             "use_reasoning_frame_next_question_when_present": True,
+            "respect_v28_positive_negative_findings": True,
+            "never_promote_negated_findings_to_present": True,
+            "obey_medication_safety_context": True,
         },
         "professional_response_principles": [
             "Address the patient's actual concern before background explanation.",
             "Explain what in the story supports the working explanation and what remains unknown.",
             "Describe plausible symptom mechanisms in plain language without turning them into a diagnosis.",
             "Treat unmentioned findings as unknown, never as negative findings.",
+            "Treat explicitly negated V28 findings as absent in the current turn; never reinterpret them as positive red flags.",
+            "Use the V28 domain assessment as diagnosis-neutral context and never let it override a higher deterministic safety floor.",
+            "Obey medication_safety.allowed=false as a hard prohibition against recommending the contraindicated action.",
             "Update the assessment from new facts instead of repeating the previous answer.",
             "If the patient proposes a dangerous action, interrupt and correct it before explaining why.",
             "Give a specific action plan and a clear threshold for seeking care.",
