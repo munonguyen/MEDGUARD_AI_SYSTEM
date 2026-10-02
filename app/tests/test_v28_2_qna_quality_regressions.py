@@ -115,3 +115,17 @@ def test_dog_bite_answer_has_no_foreign_injury_template_leakage() -> None:
     for leaked in leaked_templates:
         assert leaked not in text
     assert any(marker in text for marker in ("bệnh dại", "tiêm", "vắc xin", "vaccine"))
+
+
+def test_bp_145_95_is_explained_as_high_without_emergency_overtriage() -> None:
+    body = _chat(
+        "Huyết áp của tôi là 145/95 mmHg. Con số này có ý nghĩa gì?",
+        "v28-qna-bp-145-95",
+    )
+    text = _answer_text(body)
+    assert body["intent"] == "monitoring"
+    assert (body.get("result") or {}).get("urgency") == "ROUTINE"
+    assert (body.get("result") or {}).get("escalation_level") == "CLINIC"
+    assert "stage 2" in text
+    assert "một lần đo chưa đủ" in text
+    assert any(marker in text for marker in ("đo lại", "nhân viên y tế", "cơ sở y tế"))
