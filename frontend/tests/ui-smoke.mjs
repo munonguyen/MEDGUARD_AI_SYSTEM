@@ -145,8 +145,8 @@ try {
   await desktop.getByRole('button', { name: 'Nhập mã' }).click();
   await desktop.getByPlaceholder('MEDGUARD|product=...|serial=...|lot=...').fill('MEDGUARD|product=MG-AMOX-500|serial=VN24A001|lot=AMX2409');
   await desktop.getByRole('button', { name: 'Kiểm tra mã' }).click();
-  await desktop.getByText('Mã khớp với registry hiện tại', { exact: true }).waitFor();
-  await desktop.getByText('Kết quả phản ánh việc đối chiếu dữ liệu trong mã với registry đang kết nối, không phải kiểm định vật lý sản phẩm.').waitFor();
+  await desktop.getByRole('heading', { name: 'Mã khớp với registry hiện tại', exact: true }).waitFor();
+  await desktop.getByText('Kết quả phản ánh việc đối chiếu dữ liệu trong mã với registry đang kết nối, không phải kiểm định vật lý sản phẩm.').first().waitFor();
 
   await assertNoHorizontalOverflow(desktop, 'desktop');
   await assertComposerInsideViewport(desktop, 'desktop');
@@ -223,7 +223,7 @@ try {
       supports_claim_ids: ['summary_1'],
     };
     body.answer.researched_sources = [source];
-    body.answer.narrative = body.answer.narrative.map((block) => ({ ...block, source_ids: ['src_nice'] }));
+    body.answer.narrative = (body.answer.narrative || []).map((block) => ({ ...block, source_ids: ['src_nice'] }));
     body.answer.answer_assurance = {
       status: 'verified',
       scores: { grounding: 0.98, safety: 0.99, completeness: 0.96, clarity: 0.95, citation_coverage: 0.98 },
