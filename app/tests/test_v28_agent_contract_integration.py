@@ -98,11 +98,14 @@ def test_hard_medication_block_becomes_locked_agent_claim():
 
 
 def test_release_gate_rejects_context_leakage_after_model_approval():
+    # Keep the fake model output fully valid against the real AgentDraft schema;
+    # the test must reach the post-model V28 release gate rather than fail during
+    # fixture validation.
     draft = AgentDraft.model_validate(
         {
             "question_analysis": {
                 "interpreted_request": "Mề đay sau thuốc mới.",
-                "key_questions": [],
+                "key_questions": ["Ban có lan nhanh hoặc xuất hiện khó thở không?"],
                 "ambiguities": [],
                 "risk_level": "low",
             },
@@ -115,11 +118,20 @@ def test_release_gate_rejects_context_leakage_after_model_approval():
                         "Việc đỡ sau nghỉ không xóa các dấu hiệu tim-phổi hay đau ngực theo gắng sức đã xuất hiện trước đó."
                     ),
                     "emphasis": [],
-                    "claim_ids": [],
-                    "source_ids": [],
+                    "claim_ids": ["summary_1"],
+                    "source_ids": ["src_nice"],
                 }
             ],
-            "sources": [],
+            "sources": [
+                {
+                    "source_id": "src_nice",
+                    "title": "Drug allergy guidance",
+                    "publisher": "NICE",
+                    "url": TRUSTED,
+                    "authority_tier": "guideline_or_regulator",
+                    "supports_claim_ids": ["summary_1"],
+                }
+            ],
             "notes": "",
         }
     )
