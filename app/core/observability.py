@@ -90,6 +90,12 @@ class PrometheusMetrics:
     def _labels_to_key(self, labels: dict[str, str]) -> tuple[tuple[str, str], ...]:
         normalized: list[tuple[str, str]] = []
         for key, value in labels.items():
+            # Backward-compatible privacy guard: older call sites may still
+            # submit tenant_id. Collapse it automatically instead of relying on
+            # every caller to remember the observability policy.
+            if key == "tenant_id":
+                key = "tenant_scope"
+                value = tenant_metric_scope(str(value), settings.allowed_tenants)
             if not _LABEL_NAME.fullmatch(key):
                 raise ValueError(f"invalid Prometheus label name: {key!r}")
             normalized.append((key, str(value)))
