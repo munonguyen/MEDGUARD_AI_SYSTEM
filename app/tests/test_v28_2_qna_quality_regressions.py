@@ -86,19 +86,32 @@ def test_persistent_fatigue_chat_no_longer_asks_for_lab_result_fields() -> None:
     assert any(marker in text for marker in ("đánh giá", "đi khám", "bác sĩ", "nguyên nhân"))
 
 
-def test_animal_bite_cannot_select_generic_cut_guidance() -> None:
+def test_animal_bite_bypasses_generic_symptom_templates() -> None:
     guidance = knowledge.find_symptom_guidance(
         "Tôi vừa bị chó cắn vào chân và có chảy máu. Tôi có cần tiêm phòng không?"
     )
-    assert guidance is None or guidance.get("topic") != "open_wound_cut"
+    assert guidance is None or guidance.get("topic") in {"animal_bite", "rabies_exposure"}
 
 
-def test_dog_bite_answer_has_no_knife_or_paper_cut_template_leakage() -> None:
+def test_dog_bite_answer_has_no_foreign_injury_template_leakage() -> None:
     body = _chat(
         "Tôi vừa bị chó cắn và có chảy máu. Tôi có cần tiêm phòng không?",
         "v28-qna-rabies-context-isolation",
     )
     text = _answer_text(body)
-    for leaked in ("dao rọc giấy", "mép giấy", "mảnh kính", "kéo"):
+    leaked_templates = (
+        "dao rọc giấy",
+        "mép giấy",
+        "mảnh kính",
+        "kéo",
+        "nước sôi",
+        "bọng nước",
+        "kem đánh răng",
+        "mỡ trăn",
+        "tác nhân gây bỏng",
+        "vùng da bị bỏng",
+        "sơ cứu bỏng",
+    )
+    for leaked in leaked_templates:
         assert leaked not in text
     assert any(marker in text for marker in ("bệnh dại", "tiêm", "vắc xin", "vaccine"))
