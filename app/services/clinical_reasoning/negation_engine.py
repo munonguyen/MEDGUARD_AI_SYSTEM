@@ -1,8 +1,9 @@
 """Clinical negation extraction for Vietnamese symptom text.
 
-Provides scope-aware negation detection ensuring negated clinical findings
-do not falsely trigger red-flag emergency escalations, while properly respecting
-clause boundaries (e.g. 'không khó thở nhưng đau ngực').
+Provides scope-aware negation detection ensuring negated clinical findings do
+not falsely trigger red-flag escalation. V28.2 adds mention-specific evaluation
+so a symptom can legitimately change state inside one utterance, for example:
+"lúc đầu không khó thở nhưng giờ khó thở".
 """
 
 from __future__ import annotations
@@ -14,7 +15,7 @@ from app.services.clinical_text import normalize_search_text
 
 
 class NegationEngine:
-    """Detects negated clinical findings within Vietnamese clinical utterances."""
+    """Detect negated clinical findings within Vietnamese clinical utterances."""
 
     RAW_NEGATION_WORDS = (
         "không hề",
@@ -55,63 +56,72 @@ class NegationEngine:
             )
         )
 
-    def detect(self, text: str, term: str) -> bool:
-        """Return True when a clinical term is negated in its immediate syntactic clause."""
+    def _is_negated_index(self, norm_text: str, idx: int) -> bool:
+        """Evaluate negation immediately before one normalized mention index."""
+        start = max(0, idx - 40)
+        prefix = norm_text[start:idx]
+
+        boundary_pos = -1
+        for boundary in self.clause_boundaries:
+            if boundary in (";", ".", "!", "?"):
+                b_idx = prefix.rfind(boundary)
+            else:
+                matches = list(re.finditer(rf"\b{re.escape(boundary)}\b", prefix))
+                b_idx = matches[-1].start() if matches else -1
+            if b_idx > boundary_pos:
+                boundary_pos = b_idx
+
+        effective_prefix = prefix[boundary_pos + 1 :] if boundary_pos != -1 else prefix
+        for neg in self.negation_words:
+            if re.search(rf"\b{re.escape(neg)}\b", effective_prefix):
+                # "chưa từng bị đau dữ dội như vậy" expresses novelty/severity,
+                # not absence of the symptom itself.
+                if neg in ("chua tung", "chua") and any(
+                    marker in effective_prefix
+                    for marker in ("chua tung bi", "chua bao gio", "truoc gio chua")
+                ):
+                    continue
+                return True
+        return False
+
+    def is_negated_at(self, text: str, normalized_index: int) -> bool:
+        """Return negation status for one mention at an index in normalized text.
+
+        Callers that obtain match positions from ``normalize_search_text(text)``
+        should use this method instead of aggregating all occurrences.
+        """
+        norm_text = normalize_search_text(text)
+        if normalized_index < 0 or normalized_index > len(norm_text):
+            return False
+        return self._is_negated_index(norm_text, normalized_index)
+
+    def mention_statuses(self, text: str, term: str) -> list[tuple[int, bool]]:
+        """Return ``(normalized_index, is_negated)`` for every term mention."""
         norm_text = normalize_search_text(text)
         norm_term = normalize_search_text(term).strip()
         if not norm_term:
-            return False
-
-        # Find all occurrences of target in normalized text
-        matches = [m.start() for m in re.finditer(rf"\b{re.escape(norm_term)}\b", norm_text)]
+            return []
+        matches = list(re.finditer(rf"\b{re.escape(norm_term)}\b", norm_text))
         if not matches:
-            # Fallback to substring matching if word boundary fails
-            matches = [m.start() for m in re.finditer(re.escape(norm_term), norm_text)]
+            matches = list(re.finditer(re.escape(norm_term), norm_text))
+        return [(m.start(), self._is_negated_index(norm_text, m.start())) for m in matches]
 
-        if not matches:
-            return False
+    def detect(self, text: str, term: str) -> bool:
+        """Return True when all observed mentions of ``term`` are negated.
 
-        for idx in matches:
-            # Look back up to 40 characters
-            start = max(0, idx - 40)
-            prefix = norm_text[start:idx]
-
-            # Find the closest clause boundary before the target
-            boundary_pos = -1
-            for boundary in self.clause_boundaries:
-                # search with word boundaries for words, or literal for punctuation
-                if boundary in (";", ".", "!", "?"):
-                    b_idx = prefix.rfind(boundary)
-                else:
-                    m = list(re.finditer(rf"\b{re.escape(boundary)}\b", prefix))
-                    b_idx = m[-1].start() if m else -1
-
-                if b_idx > boundary_pos:
-                    boundary_pos = b_idx
-
-            # If there is a clause boundary, only search after it
-            effective_prefix = prefix[boundary_pos + 1 :] if boundary_pos != -1 else prefix
-
-            # Check if any negation word appears in the effective prefix
-            for neg in self.negation_words:
-                pattern = rf"\b{re.escape(neg)}\b"
-                if re.search(pattern, effective_prefix):
-                    # Exception: phrases like 'chua tung bi dau du doi' indicate severity, not absence
-                    if neg in ("chua tung", "chua") and any(
-                        marker in effective_prefix for marker in ("chua tung bi", "chua bao gio", "truoc gio chua")
-                    ):
-                        continue
-                    return True
-
-        return False
+        For a single mention this preserves the original API semantics. For
+        mixed mentions, an affirmed mention prevents the finding from being
+        globally classified as absent; callers needing temporal/latest state
+        should use :meth:`mention_statuses` or :meth:`is_negated_at`.
+        """
+        statuses = self.mention_statuses(text, term)
+        return bool(statuses) and all(is_negated for _, is_negated in statuses)
 
     def extract(self, text: str, terms: Sequence[str]) -> dict[str, bool]:
-        """Map each finding in terms present in text to its positive/negative boolean status."""
-        norm_text = normalize_search_text(text)
+        """Map each finding in terms present in text to aggregate presence state."""
         result: dict[str, bool] = {}
         for term in terms:
-            norm_term = normalize_search_text(term)
-            if norm_term in norm_text:
-                is_negated = self.detect(text, term)
-                result[term] = not is_negated
+            statuses = self.mention_statuses(text, term)
+            if statuses:
+                result[term] = not all(is_negated for _, is_negated in statuses)
         return result
