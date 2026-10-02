@@ -163,8 +163,10 @@ def evaluate_clinical_safety_floor(
 
     candidates: list[tuple[SafetyFloorDisposition, float, str, str]] = []
 
-    # V28 is an additional deterministic safety source. It can only contribute
-    # URGENT/EMERGENCY candidates; ROUTINE never downgrades another detector.
+    # V28 is an additional deterministic safety source. URGENT/EMERGENCY can
+    # raise the floor. For a pure hypothetical question, a ROUTINE candidate is
+    # retained only as audit provenance; it cannot downgrade any stronger source
+    # because final resolution is still the monotonic maximum.
     if v28_context and v28_context.domain_assessment:
         v28_level = str(v28_context.domain_assessment.risk_level).upper()
         if v28_level in {"URGENT", "EMERGENCY"}:
@@ -174,6 +176,15 @@ def evaluate_clinical_safety_floor(
                     0.95 if v28_level == "EMERGENCY" else 0.86,
                     "v28_clinical_context_router",
                     v28_context.domain_assessment.rationale,
+                )
+            )
+        elif v28_context.is_hypothetical:
+            candidates.append(
+                (
+                    "ROUTINE",
+                    0.80,
+                    "v28_clinical_context_router",
+                    "Các dấu hiệu nguy hiểm được nêu dưới dạng giả định/dự phòng, không phải finding hiện tại.",
                 )
             )
 
@@ -212,18 +223,6 @@ def evaluate_clinical_safety_floor(
         candidates.append(("EMERGENCY", coupling.confidence, "end_organ_coupling", coupling.rationale))
 
     if not candidates:
-        # Preserve the fact that a pure hypothetical question was intentionally
-        # scoped as non-current so downstream diagnostics can audit the choice.
-        if v28_context and v28_context.is_hypothetical:
-            return ClinicalSafetyFloor(
-                disposition="ROUTINE",
-                confidence=0.80,
-                sources=("v28_clinical_context_router",),
-                reasons=(
-                    "Các dấu hiệu nguy hiểm được nêu dưới dạng giả định/dự phòng, không phải finding hiện tại.",
-                ),
-                end_organ_coupling=coupling,
-            )
         return ClinicalSafetyFloor(
             disposition="ROUTINE",
             confidence=0.60,
