@@ -230,6 +230,92 @@ def _musculoskeletal_mechanisms(episode: ClinicalEpisodeModel, text: str) -> lis
     return values
 
 
+def _peripheral_joint_mechanisms(episode: ClinicalEpisodeModel, text: str) -> list[MechanismHypothesis]:
+    """Bounded reasoning for hand/limb joints without importing spine assumptions."""
+    values: list[MechanismHypothesis] = []
+    overuse = bool(
+        re.search(
+            r"\b(mang vac|tap gym|tap luyen|lap lai|go ban phim|ban phim|cam chuot|dung tay nhieu|lam viec tay)\b",
+            text,
+        )
+    )
+    trauma = bool(re.search(r"\b(chan thuong|va dap|nga|lat|be|keo manh)\b", text))
+    inflammatory = bool(
+        re.search(
+            r"\b(sung khop|khop sung|nong do|do nong|cung khop buoi sang|cung buoi sang)\b",
+            text,
+        )
+    )
+    systemic = bool(re.search(r"\b(sot|ret run|lanh run|met la)\b", text))
+
+    if overuse or trauma:
+        values.append(
+            MechanismHypothesis(
+                hypothesis_id="peripheral_joint_mechanical_load",
+                label="Quá tải hoặc chấn thương cơ học quanh khớp có thể góp phần",
+                role="leading",
+                support_level="supported" if trauma else "plausible",
+                mechanism=(
+                    "Lặp lại động tác, tăng tải hoặc chấn thương có thể kích thích bao khớp, gân và các mô quanh khớp, "
+                    "từ đó gây đau khi cử động hoặc chịu lực."
+                ),
+                evidence_for=(episode.latest_user_message,),
+                unresolved=_unresolved(episode, "joint_inflammatory_signs", "hand_neurovascular_deficit"),
+                patient_safe_statement=(
+                    "Nếu đau xuất hiện sau tăng tải hoặc chấn thương, cơ chế cơ học trở nên hợp lý hơn; "
+                    "nhưng sưng nóng đỏ, sốt hoặc yếu/tê tay vẫn cần được sàng lọc riêng."
+                ),
+            )
+        )
+
+    if inflammatory:
+        values.append(
+            MechanismHypothesis(
+                hypothesis_id="peripheral_joint_inflammatory_pattern",
+                label="Dấu hiệu viêm tại khớp cần được đánh giá trực tiếp",
+                role="leading",
+                support_level="supported",
+                mechanism=(
+                    "Sưng, nóng, đỏ hoặc cứng khớp buổi sáng phản ánh hoạt động viêm tại hoặc quanh khớp; "
+                    "phân bố một hay nhiều khớp và triệu chứng toàn thân quyết định ngưỡng đánh giá tiếp theo."
+                ),
+                evidence_for=(episode.latest_user_message,),
+                unresolved=_unresolved(episode, "joint_distribution", "joint_systemic_features"),
+                patient_safe_statement=(
+                    "Sưng nóng đỏ hoặc cứng khớp buổi sáng làm quá trình viêm trở thành hướng cần được đánh giá; "
+                    "nếu kèm sốt hoặc khớp sưng đau tăng nhanh thì cần khám sớm."
+                ),
+            )
+        )
+
+    critical_unknowns = _unresolved(
+        episode,
+        "joint_inflammatory_signs",
+        "joint_systemic_features",
+        "hand_neurovascular_deficit",
+    )
+    if critical_unknowns and not inflammatory and not systemic:
+        values.append(
+            MechanismHypothesis(
+                hypothesis_id="peripheral_joint_safety_screen",
+                label="Cần phân biệt đau cơ học với tình trạng viêm hoặc ảnh hưởng thần kinh–mạch máu",
+                role="must_not_miss_pathway",
+                support_level="weak",
+                mechanism=(
+                    "Đau khớp đơn thuần chưa đủ để xác định cơ chế. Sưng nóng đỏ, sốt, yếu/tê hoặc thay đổi màu/nhiệt độ bàn tay "
+                    "là các dữ kiện có thể thay đổi mức xử trí và hiện chưa được xác nhận."
+                ),
+                unresolved=critical_unknowns,
+                patient_safe_statement=(
+                    "Hiện chưa đủ dữ kiện để phân biệt quá tải cơ–khớp với một quá trình viêm; "
+                    "dấu hiệu sưng/nóng/đỏ và cứng khớp buổi sáng là thông tin ưu tiên nhất."
+                ),
+            )
+        )
+
+    return values
+
+
 def _dermatology_mechanisms(episode: ClinicalEpisodeModel, text: str) -> list[MechanismHypothesis]:
     values: list[MechanismHypothesis] = []
     exposure = bool(re.search(r"\b(sau khi|thuoc moi|mon la|my pham|hoa chat|con trung)\b", text))
@@ -271,6 +357,13 @@ def _question_score(domain: str | None, item: DecisionUnknown) -> float:
             "bleeding_or_dehydration": 10.0,
             "pain_location_migration": 7.0,
         },
+        "peripheral_joint": {
+            "joint_inflammatory_signs": 16.0,
+            "joint_systemic_features": 13.0,
+            "hand_neurovascular_deficit": 12.0,
+            "joint_distribution": 8.0,
+            "joint_trauma_overuse": 6.0,
+        },
         "musculoskeletal_spine": {
             "cauda_equina_features": 12.0,
             "motor_sensory_deficit": 10.0,
@@ -308,6 +401,8 @@ def build_contextual_reasoning_frame(
         mechanisms.extend(_cardiorespiratory_mechanisms(episode, text))
     elif episode.chief_domain == "gastrointestinal":
         mechanisms.extend(_gastrointestinal_mechanisms(episode, text))
+    elif episode.chief_domain == "peripheral_joint":
+        mechanisms.extend(_peripheral_joint_mechanisms(episode, text))
     elif episode.chief_domain == "musculoskeletal_spine":
         mechanisms.extend(_musculoskeletal_mechanisms(episode, text))
     elif episode.chief_domain == "dermatology":

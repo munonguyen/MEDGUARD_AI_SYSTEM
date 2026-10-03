@@ -3,12 +3,12 @@ import {
   AlertCircle,
   AlertTriangle,
   CheckCircle2,
-  ChevronDown,
   CircleHelp,
   ListChecks,
   ShieldAlert,
   Stethoscope,
 } from 'lucide-react';
+import { selectPatientResponseSurface } from './responseAuthority.js';
 import './GroundedAnswer.css';
 
 const evidenceLabels = {
@@ -37,25 +37,9 @@ const knowledgeLabels = {
   not_recorded: 'Nguồn chưa ghi nhận phê duyệt',
 };
 
-const legacyQuestionPrefixes = [
-  'Bạn cho mình biết thêm:',
-  'Thông tin cần báo nhân viên y tế nếu có thể:',
-];
-
 const clinicalIntents = new Set(['triage', 'safety', 'monitoring', 'followup', 'pharmacy']);
 
-function isLegacyQuestionNarrative(block) {
-  return legacyQuestionPrefixes.some((prefix) => block?.text?.startsWith(prefix));
-}
-
-function ClinicalSection({
-  title,
-  icon: Icon,
-  items,
-  tone = 'neutral',
-  ordered = false,
-  className = '',
-}) {
+function ClinicalSection({ title, icon: Icon, items, tone = 'neutral', ordered = false, className = '' }) {
   if (!items?.length) return null;
   const List = ordered ? 'ol' : 'ul';
   return (
@@ -107,11 +91,16 @@ function statusConfig({ urgency, overallRisk, isClinical }) {
 export function GroundedAnswer({ answer, result, responseMeta = {} }) {
   if (!answer) return null;
 
-  const hasNarrative = answer.narrative?.length > 0;
   const researchedSources = answer.researched_sources || [];
   const sourcesById = new Map(
     researchedSources.map((source, index) => [source.source_id, { ...source, index: index + 1 }]),
   );
+  const responseSurface = selectPatientResponseSurface({
+    answer,
+    verificationStatus: responseMeta.verification_status,
+  });
+  const narrativeBlocks = responseSurface.narrativeBlocks;
+  const hasNarrative = narrativeBlocks.length > 0;
 
   const structuredUrgency = result?.urgency || result?.escalation_level;
   const showTechnicalMeta = responseMeta.showTechnicalMeta === true;
@@ -123,10 +112,48 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
   });
   const StatusIcon = status.icon;
 
+  if (responseSurface.canonicalVerifiedResponse) {
+    return (
+      <div className="grounded-answer modern-clinical-layout canonical-patient-response">
+        {showTechnicalMeta && (
+          <div className="answer-assurance-row" aria-label="Trạng thái kiểm chứng câu trả lời">
+            <span className="verification-pill verified">
+              <CheckCircle2 size={13} />
+              {verificationLabels.verified}
+            </span>
+            {responseMeta.knowledge_approval && (
+              <span className={`knowledge-pill ${responseMeta.knowledge_approval}`}>
+                {knowledgeLabels[responseMeta.knowledge_approval]}
+              </span>
+            )}
+          </div>
+        )}
+
+        {isClinical && (
+          <div className={`clinical-status-row canonical-safety-overlay status-${status.tone}`}>
+            <span className={`clinical-status-badge ${status.tone}`}>
+              <StatusIcon size={15} />
+              <strong>{status.label}</strong>
+            </span>
+          </div>
+        )}
+
+        <div className="answer-narrative clinical-narrative-fallback canonical-narrative">
+          {narrativeBlocks.map((block, index) => (
+            <NarrativeBlock
+              key={`${block.text}-${index}`}
+              block={block}
+              sourcesById={sourcesById}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   const displayQuestions = Array.isArray(answer.display_questions)
     ? answer.display_questions
     : (answer.questions || []).slice(0, 2);
-
   const hypotheses = (answer.clinical_hypotheses || [])
     .filter((item) => !String(item).toLowerCase().startsWith('lưu ý:'))
     .slice(0, 4);
@@ -134,10 +161,6 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
   const nextSteps = (answer.next_steps || []).slice(0, 5);
   const safetyNotes = (answer.safety_notes || []).slice(0, 4);
   const limitations = (answer.limitations || []).slice(0, 2);
-
-  const narrativeBlocks = hasNarrative
-    ? answer.narrative.filter((block) => !isLegacyQuestionNarrative(block))
-    : [];
   const hasStructuredContent = Boolean(
     keyPoints.length
     || hypotheses.length
@@ -147,7 +170,7 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
   );
 
   return (
-    <div className="grounded-answer modern-clinical-layout">
+    <div className="grounded-answer modern-clinical-layout deterministic-fallback-response">
       {showTechnicalMeta && (
         <div className="answer-assurance-row" aria-label="Trạng thái kiểm chứng câu trả lời">
           <span className={`verification-pill ${responseMeta.verification_status || 'not_requested'}`}>
@@ -179,8 +202,8 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
 
         <div className="clinical-summary-copy">
           <span className="clinical-kicker">{isClinical ? 'Đánh giá ban đầu' : 'Kết quả xử lý'}</span>
-          <h2>{answer.title}</h2>
-          <p>{answer.summary}</p>
+          {answer.title && <h2>{answer.title}</h2>}
+          {answer.summary && <p>{answer.summary}</p>}
           <small>{status.helper}</small>
         </div>
       </section>
@@ -193,14 +216,12 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
             items={keyPoints}
             tone="neutral"
           />
-
           <ClinicalSection
             title="Khả năng cần cân nhắc"
             icon={Stethoscope}
             items={hypotheses}
             tone="clinical"
           />
-
           <ClinicalSection
             title={isClinical ? 'Bạn nên làm gì lúc này' : 'Bước tiếp theo'}
             icon={ListChecks}
@@ -209,7 +230,6 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
             ordered
             className="clinical-section-wide"
           />
-
           <ClinicalSection
             title={status.tone === 'emergency' ? 'Hành động và dấu hiệu khẩn cấp' : 'Khi nào cần đi khám / cấp cứu'}
             icon={ShieldAlert}
@@ -217,7 +237,6 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
             tone={status.tone === 'emergency' ? 'danger' : 'warning'}
             className="clinical-section-wide"
           />
-
           <ClinicalSection
             title={isClinical ? 'Thông tin cần biết thêm' : 'Thông tin cần bổ sung'}
             icon={CircleHelp}
@@ -246,24 +265,6 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
             {limitations.map((item, index) => <p key={`${item}-${index}`}>{item}</p>)}
           </div>
         </div>
-      )}
-
-      {hasNarrative && hasStructuredContent && narrativeBlocks.length > 0 && (
-        <details className="clinical-detail-panel">
-          <summary>
-            <span><Stethoscope size={15} /> {isClinical ? 'Giải thích chi tiết' : 'Chi tiết xử lý'}</span>
-            <ChevronDown size={15} className="detail-chevron" />
-          </summary>
-          <div className="answer-narrative clinical-detail-content">
-            {narrativeBlocks.map((block, index) => (
-              <NarrativeBlock
-                key={`${block.text}-${index}`}
-                block={block}
-                sourcesById={sourcesById}
-              />
-            ))}
-          </div>
-        </details>
       )}
     </div>
   );

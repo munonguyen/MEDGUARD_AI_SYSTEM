@@ -170,7 +170,7 @@ def test_generate_response_sends_structured_clinical_context_not_fallback_prose_
     envelope = payload["clinical_envelope"]
     assert envelope["version"] == "v14-structured-agent-input"
     assert envelope["clinical_episode"]["version"] == "v25.1"
-    assert envelope["reasoning_frame"]["version"] == "v25.2"
+    assert envelope["reasoning_frame"]["version"] == "v27-peripheral-joint"
     assert envelope["communication_contract"]["legacy_template_prose_is_not_evidence"] is True
     dumped = json.dumps(payload, ensure_ascii=False)
     assert fallback.summary not in dumped

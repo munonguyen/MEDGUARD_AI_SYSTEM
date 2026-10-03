@@ -70,18 +70,35 @@ _FOLLOWUP_MARKERS = ("tai kham", "lich kham", "follow up", "follow-up", "lich he
 
 
 def _contains_marker(norm: str, marker: str) -> bool:
-    """Match task markers as lexical units, never arbitrary substrings.
-
-    Short laboratory abbreviations such as ``AST`` and ``ALT`` previously
-    matched inside medication names (for example ``atorvastatin``), causing an
-    explicit schedule command to be routed into LAB_INTERPRETATION before the
-    workflow intent router could run.  Word-boundary matching preserves true
-    lab signals while eliminating that class of cross-domain collision.
-    """
+    """Match task markers as lexical units, never arbitrary substrings."""
     return re.search(
         rf"(?<![a-z0-9]){re.escape(marker)}(?![a-z0-9])",
         norm,
     ) is not None
+
+
+def _is_peripheral_joint_request(norm: str) -> bool:
+    """Detect a peripheral hand/wrist/finger joint complaint by semantics.
+
+    V27 intentionally requires both a joint body-site signal and a symptom
+    signal. Word order is flexible ("đau khớp ngón tay" and "khớp ngón tay
+    ... đau" both match), while vague phrases such as "đau tay" do not.
+    """
+    joint_site = bool(
+        re.search(
+            r"\b(?:cac\s+|nhieu\s+)?khop\s+(?:ngon\s+tay|co\s+tay|ban\s+tay|tay)\b",
+            norm,
+        )
+    )
+    if not joint_site:
+        return False
+    symptom = bool(
+        re.search(
+            r"\b(?:dau|nhuc|sung|nong|do|cung|han che cu dong|kho cu dong|kho nam|kho cam)\b",
+            norm,
+        )
+    )
+    return symptom
 
 
 def resolve_clinical_task(text: str) -> ClinicalTaskDecision:
@@ -93,8 +110,6 @@ def resolve_clinical_task(text: str) -> ClinicalTaskDecision:
     norm = normalize_search_text(text)
 
     lab_hits = [marker for marker in _LAB_MARKERS if _contains_marker(norm, marker)]
-    # Qualitative +/- result syntax is a strong lab signal even when a test name
-    # is uncommon and absent from the small marker vocabulary.
     qualitative_result = bool(
         re.search(r"\b[a-z][a-z0-9-]{1,20}\s*(?:am tinh|duong tinh|\(-\)|\(\+\))", norm)
     )
@@ -126,6 +141,14 @@ def resolve_clinical_task(text: str) -> ClinicalTaskDecision:
             domain="medication",
         )
 
+    if _is_peripheral_joint_request(norm):
+        return ClinicalTaskDecision(
+            task=ClinicalTask.PERIPHERAL_JOINT,
+            confidence=0.94,
+            reasons=["peripheral_joint_language_detected"],
+            domain="peripheral_joint",
+        )
+
     if any(_contains_marker(norm, marker) for marker in _MONITORING_MARKERS) and bool(
         re.search(r"\d", norm)
     ):
@@ -144,8 +167,6 @@ def resolve_clinical_task(text: str) -> ClinicalTaskDecision:
             domain="followup",
         )
 
-    # Broad symptom language belongs to acute symptom reasoning. The clinical
-    # intent router can still refine the operational intent after this layer.
     if any(
         _contains_marker(norm, marker)
         for marker in (

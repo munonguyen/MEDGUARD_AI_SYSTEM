@@ -48,7 +48,11 @@ class V27LegalComplianceJudge:
         ),
         (
             "guaranteed_cure",
-            re.compile(r"(?i)\bkhỏi\s+hẳn\s+100%\b"),
+            # '%' is a non-word character, so a trailing \b does not match at
+            # sentence/end-of-string boundaries. Use an explicit lexical
+            # lookahead so asserted guarantees remain vetoed before whitespace,
+            # punctuation or the end of the response.
+            re.compile(r"(?i)\bkhỏi\s+hẳn\s+100%(?=\s|[.!?,;:]|$)"),
         ),
     )
 

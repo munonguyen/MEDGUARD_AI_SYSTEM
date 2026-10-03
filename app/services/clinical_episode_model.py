@@ -165,6 +165,48 @@ _DOMAIN_UNKNOWN_SPECS: dict[str, tuple[_UnknownSpec, ...]] = {
             patterns=(r"\b(non ra mau|phan den|di ngoai ra mau|non lien tuc|choang khi dung|khong non|phan binh thuong)\b",),
         ),
     ),
+    "peripheral_joint": (
+        _UnknownSpec(
+            key="joint_inflammatory_signs",
+            question="Các khớp đau có sưng, nóng, đỏ rõ hoặc cứng nhiều vào buổi sáng không?",
+            impact="critical",
+            changes=("urgent_evaluation", "inflammatory_vs_mechanical_pathway"),
+            rationale="Sưng nóng đỏ hoặc cứng khớp buổi sáng có thể chuyển hướng từ quá tải cơ học sang quá trình viêm/nhiễm cần đánh giá sớm hơn.",
+            patterns=(r"\b(sung khop|khop sung|nong do|do nong|cung khop buoi sang|khong sung|khong nong|khong do)\b",),
+        ),
+        _UnknownSpec(
+            key="joint_distribution",
+            question="Bạn đau một khớp hay nhiều khớp, ở một bên hay cả hai bên?",
+            impact="high",
+            changes=("leading_interpretation", "specialty"),
+            rationale="Phân bố một khớp, nhiều khớp hoặc đối xứng giúp định hướng cơ chế cơ học, viêm hoặc toàn thân.",
+            patterns=(r"\b(mot khop|nhieu khop|ca hai ben|hai ben|mot ben|doi xung|da khop)\b",),
+        ),
+        _UnknownSpec(
+            key="joint_systemic_features",
+            question="Bạn có sốt, rét run hoặc mệt lả đi kèm đau khớp không?",
+            impact="critical",
+            changes=("urgent_evaluation", "infection_systemic_pathway"),
+            rationale="Triệu chứng toàn thân đi kèm khớp sưng đau làm tăng mức cảnh giác với quá trình nhiễm trùng hoặc viêm toàn thân.",
+            patterns=(r"\b(sot|ret run|lanh run|met la|khong sot|khong ret run)\b",),
+        ),
+        _UnknownSpec(
+            key="joint_trauma_overuse",
+            question="Trước khi đau bạn có chấn thương, mang vác, tập luyện hoặc lặp lại động tác tay nhiều hơn bình thường không?",
+            impact="high",
+            changes=("mechanical_overuse_pathway",),
+            rationale="Chấn thương hoặc vận động lặp lại làm cơ chế cơ học/quá tải hợp lý hơn nhưng không tự loại trừ viêm nếu có dấu hiệu khác.",
+            patterns=(r"\b(chan thuong|va dap|mang vac|tap gym|tap luyen|lap lai|go ban phim|cam chuot|khong chan thuong)\b",),
+        ),
+        _UnknownSpec(
+            key="hand_neurovascular_deficit",
+            question="Bạn có yếu hoặc tê bàn tay, khó cầm nắm, ngón tay tím/lạnh hoặc đổi màu bất thường không?",
+            impact="critical",
+            changes=("urgent_neurovascular_evaluation",),
+            rationale="Thiếu sót thần kinh hoặc tưới máu ở bàn tay có thể làm thay đổi ngay mức xử trí.",
+            patterns=(r"\b(te ban tay|te ngon tay|yeu tay|kho cam nam|tim ngon|ngon tay lanh|doi mau|khong te|cam nam binh thuong)\b",),
+        ),
+    ),
     "musculoskeletal_spine": (
         _UnknownSpec(
             key="motor_sensory_deficit",
