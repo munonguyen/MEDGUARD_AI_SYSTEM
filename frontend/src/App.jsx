@@ -526,16 +526,16 @@ function clinicalContext(context) {
   };
 }
 
-export default function App() {
-  const [tenantId, setTenantId] = useState('tenant-demo');
-  const [apiKey, setApiKey] = useState('demo-key');
+export default function App({ account = null }) {
+  const [tenantId, setTenantId] = useState(account?.scope || 'tenant-demo');
+  const [apiKey, setApiKey] = useState(account ? '' : 'demo-key');
   const [consentToken, setConsentToken] = useState('consent-valid-ui');
   const [conversationId, setConversationId] = useState(() => crypto.randomUUID());
   const [conversationTitle, setConversationTitle] = useState('Cuộc trò chuyện mới');
   const [conversations, setConversations] = useState([]);
   const [entries, setEntries] = useState([]);
   const [message, setMessage] = useState('');
-  const [context, setContext] = useState(() => newContext(loadProfile('tenant-demo')));
+  const [context, setContext] = useState(() => newContext(account ? {} : loadProfile('tenant-demo')));
   const [selectedTool, setSelectedTool] = useState('auto');
   const [attachment, setAttachment] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -627,7 +627,10 @@ export default function App() {
     setConversationId(crypto.randomUUID());
     setConversationTitle('Cuộc trò chuyện mới');
     setEntries([]);
-    setContext(newContext(loadProfile(tenantId)));
+    let mounted = true;
+    if (account) api.request('/v1/auth/profile').then(d => { if (mounted) setContext(newContext(d.profile)); }).catch(() => {});
+    else setContext(newContext(loadProfile(tenantId)));
+    return () => { mounted = false; };
   }, [tenantId]);
 
   useEffect(() => {
@@ -710,9 +713,13 @@ export default function App() {
     setView('chat');
   };
 
-  const saveProfile = (profile) => {
+  const saveProfile = async (profile) => {
+    if (account) {
+      try { await api.request('/v1/auth/profile', {method:'PUT', body:profile}); }
+      catch (e) { notify(e.message); return; }
+    }
     try {
-      localStorage.setItem(`medguard.profile.${tenantId}`, JSON.stringify(profile));
+      if (!account) localStorage.setItem(`medguard.profile.${tenantId}`, JSON.stringify(profile));
     } catch {
       // The profile still applies to the current tab when browser storage is unavailable.
     }
@@ -721,7 +728,11 @@ export default function App() {
     notify('Đã lưu Profile');
   };
 
-  const clearProfile = () => {
+  const clearProfile = async () => {
+    if (account) {
+      try { await api.request('/v1/auth/profile', {method:'PUT', body:emptyProfile}); }
+      catch (e) { notify(e.message); return; }
+    }
     try {
       localStorage.removeItem(`medguard.profile.${tenantId}`);
     } catch {
@@ -818,7 +829,7 @@ export default function App() {
 
   const filteredConversations = conversations.filter((item) => item.title.toLowerCase().includes(historySearch.toLowerCase()));
   return <div className={`app-shell chat-shell ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
-    <Sidebar open={sidebarOpen} close={() => setSidebarOpen(false)} collapse={() => { setSidebarCollapsed(true); setSidebarOpen(false); }} conversations={filteredConversations} activeId={conversationId} onSelect={selectConversation} onNew={startNew} onDelete={deleteConversation} onSchedule={() => setView('medication')} onSchedulePage={() => setView('schedule')} onMedicationPage={() => setView('medication')} onSettings={() => { setSettingsInitialTab('general'); setSettingsOpen(true); }} onSystem={() => setView('system')} activeView={view} search={historySearch} setSearch={setHistorySearch} />
+    <Sidebar open={sidebarOpen} close={() => setSidebarOpen(false)} collapse={() => { setSidebarCollapsed(true); setSidebarOpen(false); }} conversations={filteredConversations} activeId={conversationId} onSelect={selectConversation} onNew={startNew} onDelete={deleteConversation} onSchedule={() => setView('medication')} onSchedulePage={() => setView('schedule')} onMedicationPage={() => setView('medication')} onSettings={() => { setSettingsInitialTab('general'); setSettingsOpen(true); }} onSystem={() => { if (!account || account.role === 'admin') setView('system'); }} activeView={view} search={historySearch} setSearch={setHistorySearch} />
     <main className="main-shell chat-main">
       <header className="topbar chat-topbar">
         <div className="topbar-title"><button className="icon-button menu-button" type="button" onClick={() => { setSidebarCollapsed(false); setSidebarOpen(true); }} title={sidebarCollapsed ? 'Mở thanh bên' : 'Mở menu'} aria-label={sidebarCollapsed ? 'Mở thanh bên' : 'Mở menu'}>{sidebarCollapsed ? <PanelLeftOpen size={20} /> : <Menu size={20} />}</button><div><h1>{view === 'system' ? 'System & audit' : view === 'schedule' ? 'Lịch khám' : view === 'medication' ? 'Lịch uống thuốc' : conversationTitle}</h1><span>{view === 'system' ? 'Trạng thái vận hành' : view === 'schedule' ? 'Thời khóa biểu ca khám bác sĩ' : view === 'medication' ? 'Thời khóa biểu nhắc thuốc cá nhân' : context.patient_ref || 'Có thể nhắn ngay không cần Profile'}</span></div></div>
@@ -827,8 +838,8 @@ export default function App() {
           <button className={`view-toggle-btn ${view === "medication" ? "active" : ""}`} type="button" onClick={() => setView(view === "medication" ? "chat" : "medication")} title={view === 'medication' ? 'Về phòng Chat' : 'Xem Lịch uống thuốc'}><Pill size={16} /><span>{view === 'medication' ? 'Trò chuyện' : 'Lịch uống thuốc'}</span></button>
           {view === 'chat' && <div className="profile-anchor"><button className={`patient-button ${context.patient_ref || context.display_name ? 'selected' : ''}`} type="button" aria-label="Mở Profile cá nhân" onClick={() => setPatientOpen(!patientOpen)}><span>{context.display_name ? context.display_name.trim().slice(0, 2).toUpperCase() : context.patient_ref ? context.patient_ref.slice(0, 2) : <UserRound size={15} />}</span><div><strong>{context.display_name || 'Profile cá nhân'}</strong><small>{context.patient_ref || 'Không bắt buộc'}</small></div><ChevronDown size={15} /></button>{patientOpen && <ProfileEditor context={context} onSave={saveProfile} onClear={clearProfile} close={() => setPatientOpen(false)} />}</div>}
           <button className="icon-button topbar-settings-btn" type="button" title="Cài đặt hệ thống" aria-label="Cài đặt" onClick={() => { setSettingsInitialTab('general'); setSettingsOpen(true); }}><Settings size={18} /></button>
-          <button className="readiness-button" type="button" title="Trạng thái hệ thống" onClick={() => { setSettingsInitialTab('system'); setSettingsOpen(true); }}><span className={`health-dot ${readiness?.production_ready ? 'ready' : (readiness?.environment === 'development' ? 'dev-ready' : '')}`} />{readiness?.production_ready ? 'Ready' : (readiness?.environment === 'development' ? 'Online (Dev)' : (readiness?.status || 'offline'))}</button>
-          <div className="credentials-anchor"><button className="tenant-button" type="button" title="Cấu hình kết nối" aria-label="Cấu hình kết nối" onClick={() => setCredentialsOpen(!credentialsOpen)}><span>{tenantId.slice(0, 1).toUpperCase()}</span><div><strong>{tenantId}</strong><small>{readiness?.environment || 'Environment'}</small></div><Settings2 size={16} /></button>{credentialsOpen && <Credentials tenantId={tenantId} setTenantId={setTenantId} apiKey={apiKey} setApiKey={setApiKey} consentToken={consentToken} setConsentToken={setConsentToken} close={() => setCredentialsOpen(false)} />}</div>
+          <button className="readiness-button" type="button" title="Trạng thái hệ thống" onClick={() => { setSettingsInitialTab(account?.role === 'patient' ? 'general' : 'system'); setSettingsOpen(true); }}><span className={`health-dot ${readiness?.production_ready ? 'ready' : (readiness?.environment === 'development' ? 'dev-ready' : '')}`} />{readiness?.production_ready ? 'Ready' : (readiness?.environment === 'development' ? 'Online (Dev)' : (readiness?.status || 'offline'))}</button>
+          {!account && <div className="credentials-anchor"><button className="tenant-button" type="button" title="Cấu hình kết nối" aria-label="Cấu hình kết nối" onClick={() => setCredentialsOpen(!credentialsOpen)}><span>{tenantId.slice(0, 1).toUpperCase()}</span><div><strong>{tenantId}</strong><small>{readiness?.environment || 'Environment'}</small></div><Settings2 size={16} /></button>{credentialsOpen && <Credentials tenantId={tenantId} setTenantId={setTenantId} apiKey={apiKey} setApiKey={setApiKey} consentToken={consentToken} setConsentToken={setConsentToken} close={() => setCredentialsOpen(false)} />}</div>}
         </div>
       </header>
       {view === 'system' ? (
@@ -889,7 +900,7 @@ export default function App() {
     </main>
     <QrScanner open={qrOpen} onClose={() => setQrOpen(false)} onDetected={(raw) => { setQrOpen(false); sendText(`Kiểm tra QR hàng giả: ${raw}`, 'authenticity'); }} />
     <SchedulePanel open={scheduleOpen} onClose={() => setScheduleOpen(false)} api={api} patientRef={context.patient_ref} onOpenSchedulePage={() => setView('schedule')} onNotify={notify} />
-    <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} initialTab={settingsInitialTab} context={context} onSaveProfile={saveProfile} onClearProfile={clearProfile} api={api} tenantId={tenantId} onClearAllChat={clearAllConversations} onExportData={exportClinicalData} onNotify={notify} />
+    <SettingsModal allowSystem={!account || account.role === 'admin'} open={settingsOpen} onClose={() => setSettingsOpen(false)} initialTab={settingsInitialTab} context={context} onSaveProfile={saveProfile} onClearProfile={clearProfile} api={api} tenantId={tenantId} onClearAllChat={clearAllConversations} onExportData={exportClinicalData} onNotify={notify} />
     {toast && <div className="ui-toast" role="status"><Check size={16} /><span>{toast}</span></div>}
   </div>;
 }

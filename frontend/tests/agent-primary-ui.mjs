@@ -1,3 +1,4 @@
+import { authenticatePage } from './login-helper.mjs';
 // Mocked UI authority contract only; no real model call.
 import assert from 'node:assert/strict';
 import {readFile,writeFile} from 'node:fs/promises';
@@ -13,6 +14,7 @@ try {
   f.answer.narrative=[{kind:'paragraph',text:'VERIFIED_AGENT_MARKER: nội dung agent đã duyệt.',source_ids:[],emphasis:[]}];
   f.verification_status=verified?'verified':'unavailable';f.answer_origin=verified?'gateway_verified':'deterministic_fallback';
   await page.route('**/v1/chat',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify(f)}));
+  await authenticatePage(page, 'http://127.0.0.1:8000');
   await page.goto('http://127.0.0.1:8000');await page.getByRole('textbox',{name:'Tin nhắn'}).fill('Tôi đau răng');await page.getByRole('button',{name:'Gửi tin nhắn'}).click();
   const card=page.locator('.chat-assistant:not(.pending):visible').last();await card.locator('.clinical-summary-copy').waitFor();
   if(verified){await card.locator('[data-answer-authority="verified-agent"]').waitFor();const t=await card.innerText();assert(t.includes('VERIFIED_AGENT_MARKER'));assert(!t.includes('LEGACY_SUMMARY_MARKER')&&!t.includes('LEGACY_ACTION_MARKER'));}

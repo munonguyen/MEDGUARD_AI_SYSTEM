@@ -1,3 +1,4 @@
+import { authenticatePage } from './login-helper.mjs';
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright-core';
@@ -24,6 +25,7 @@ try {
       page.setDefaultTimeout(15000);
       const errors = [];
       page.on('pageerror', err => errors.push(err.message));
+      await authenticatePage(page, baseUrl);
       await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
       await page.getByRole('textbox', { name: 'Tin nhắn' }).fill(question);
       const responsePromise = page.waitForResponse(r => r.url().endsWith('/v1/chat') && r.request().method() === 'POST');

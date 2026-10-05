@@ -1,3 +1,4 @@
+import { authenticatePage } from './login-helper.mjs';
 import { mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
@@ -52,6 +53,7 @@ try {
   const desktop = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   desktop.setDefaultTimeout(10000);
   captureErrors(desktop, 'desktop');
+  await authenticatePage(desktop, baseUrl);
   await desktop.goto(baseUrl, { waitUntil: 'domcontentloaded' });
   await desktop.getByRole('heading', { name: 'Bạn cần hỗ trợ gì hôm nay?' }).waitFor();
 
@@ -122,10 +124,7 @@ try {
   await desktop.getByRole('button', { name: 'Thời khóa biểu tuần' }).click();
   await desktop.getByRole('button', { name: 'Về phòng Chat' }).click();
   await desktop.getByRole('button', { name: 'Cài đặt' }).first().click();
-  await desktop.getByRole('button', { name: 'System & audit' }).click();
-  await desktop.getByText('sqlite-memory').waitFor();
-  await desktop.getByRole('button', { name: 'Audit', exact: true }).click();
-  await desktop.getByText('chat.route').first().waitFor();
+  if (await desktop.getByRole('button', { name: 'System & audit' }).count()) throw new Error('Patient sees administrative settings');
   await desktop.getByRole('button', { name: 'Đóng cài đặt' }).click();
   await assertLayout(desktop, 'desktop');
   await desktop.screenshot({ path: fileURLToPath(new URL('ui-chat-desktop.png', artifactDir)) });
@@ -133,6 +132,7 @@ try {
   const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
   mobile.setDefaultTimeout(10000);
   captureErrors(mobile, 'mobile');
+  await authenticatePage(mobile, baseUrl);
   await mobile.goto(baseUrl, { waitUntil: 'domcontentloaded' });
   await mobile.getByRole('button', { name: 'Mở menu' }).click();
   await mobile.getByRole('button', { name: 'Cuộc trò chuyện mới' }).click();
@@ -172,6 +172,7 @@ try {
     };
     await route.fulfill({ response: upstream, json: body });
   });
+  await authenticatePage(agentUi, baseUrl);
   await agentUi.goto(baseUrl, { waitUntil: 'domcontentloaded' });
   const verified = await send(agentUi, 'Tôi đang bị đau đầu góc trái đầu.');
   await verified.getByText('Thông tin cần biết thêm', { exact: true }).waitFor();
@@ -193,7 +194,7 @@ try {
   await agentUi.screenshot({ path: fileURLToPath(new URL('ui-agent-verification-desktop.png', artifactDir)) });
 
   if (errors.length) throw new Error(errors.join('\n'));
-  console.log('ui_smoke=PASS desktop=PASS mobile=PASS emergency=PASS routine=PASS schedule=PASS qr=PASS audit=PASS citations=PASS');
+  console.log('ui_smoke=PASS desktop=PASS mobile=PASS emergency=PASS routine=PASS schedule=PASS qr=PASS patient_acl=PASS citations=PASS');
 } finally {
   await browser.close();
 }

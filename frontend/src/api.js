@@ -1,3 +1,5 @@
+let browserSession = null;
+export function setBrowserSession(value) { browserSession = value; }
 export function createApiClient({ tenantId, apiKey, consentToken }) {
   async function request(path, options = {}) {
     const method = options.method || 'GET';
@@ -7,6 +9,10 @@ export function createApiClient({ tenantId, apiKey, consentToken }) {
       'X-Request-Id': `ui-${crypto.randomUUID()}`,
       ...(options.headers || {}),
     };
+    if (browserSession) {
+      delete headers['X-Tenant-Id']; delete headers['X-API-Key'];
+      headers['X-CSRF-Token'] = browserSession.csrf;
+    }
 
     if (method !== 'GET') {
       headers['Idempotency-Key'] = options.idempotencyKey || crypto.randomUUID();
@@ -24,6 +30,7 @@ export function createApiClient({ tenantId, apiKey, consentToken }) {
     try {
       response = await fetch(path, {
         method,
+        credentials: 'same-origin',
         headers,
         body: options.formData || (options.body !== undefined ? JSON.stringify(options.body) : undefined),
         signal: options.signal || controller?.signal,
@@ -41,6 +48,7 @@ export function createApiClient({ tenantId, apiKey, consentToken }) {
     const contentType = response.headers.get('content-type') || '';
     const data = contentType.includes('json') ? await response.json() : await response.text();
     if (!response.ok) {
+      if (response.status === 401 && browserSession) window.dispatchEvent(new Event('medguard:session-expired'));
       const error = new Error(data?.message || data?.error_code || `HTTP ${response.status}`);
       error.status = response.status;
       error.code = data?.error_code || 'request_failed';
