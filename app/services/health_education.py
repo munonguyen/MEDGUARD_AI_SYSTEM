@@ -16,6 +16,13 @@ def request_guidance(text: str) -> dict | None:
     Severity and multi-turn history remain owned by the clinical pipeline.
     """
     n = normalize_search_text(text)
+    if "thuoc" in n and re.search(r"\b(?:co the|co nen|nen|muon)\s+(?:tu\s+)?ngung\b", n):
+        return _guidance("Không tự ngừng thuốc chỉ vì thấy đỡ",
+            "Không tự ngừng thuốc đang được kê chỉ vì triệu chứng đã đỡ. Chưa biết tên thuốc, mục đích điều trị và thời gian dùng nên chưa thể quyết định có thể ngừng hay cần giảm dần cho riêng bạn.",
+            ["Trao đổi với bác sĩ kê thuốc hoặc dược sĩ trước khi ngừng hay thay đổi liều; kiểm tra thời gian dùng trên đơn và nhãn thuốc.",
+             "Nếu muốn ngừng vì tác dụng phụ, hãy nêu rõ triệu chứng và liên hệ nhân viên y tế để được hướng dẫn phù hợp."],
+            ["Tên thuốc, liều trên đơn và thời gian bạn đã dùng là gì?", "Bạn muốn ngừng vì đã đỡ hay vì đang có tác dụng phụ?"],
+            "https://www.fda.gov/consumers/womens-health/use-medicines-wisely", intent="safety")
     if "quen" in n and "thuoc" in n and any(x in n for x in ("gap doi", "bu lieu", "nen uong")):
         return _guidance("Xử trí khi quên một liều thuốc",
             "Không tự tăng liều để bù liều đã quên. Chưa biết tên thuốc, hàm lượng và thời điểm liều kế tiếp nên chưa thể xác định bạn cần uống bù hay bỏ qua liều.",

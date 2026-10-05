@@ -125,7 +125,7 @@ def test_single_critical_monitoring_point_is_never_suppressed():
     )
     body = response.json()
     assert response.status_code == 200
-    assert body["trend"] == "worsening"
+    assert body["trend"] == "insufficient_data"
     assert body["escalation_level"] == "EMERGENCY"
     assert body["metrics"][0]["direction"] == "unknown"
 

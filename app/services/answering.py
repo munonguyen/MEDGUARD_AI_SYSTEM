@@ -571,7 +571,15 @@ def _monitoring_answer(result: dict[str, Any], sources: list[ChatEvidenceSource]
     key_points = [str(alert.get("detail")) for alert in alerts if alert.get("detail")]
     return GroundedAnswer(
         title=titles.get(escalation, "Kết quả theo dõi chỉ số"),
-        summary=f"Hệ thống đã đối chiếu chỉ số với ngưỡng cấu hình. Mức chuyển tuyến hiện tại: {escalation}; xu hướng: {result.get('trend', 'chưa xác định')}.",
+        summary=(
+            "Chỉ số có cảnh báo cần được đánh giá; xem nơi chăm sóc và các bước bên dưới. "
+            if alerts and escalation != "NONE" else "Chưa có cảnh báo vượt ngưỡng từ dữ liệu hiện có. "
+        ) + {
+            "insufficient_data": "Chưa đủ số lần đo để kết luận xu hướng tăng, giảm hay ổn định.",
+            "worsening": "Các lần đo cho thấy xu hướng bất lợi cần được đánh giá.",
+            "improving": "Các lần đo cho thấy xu hướng cải thiện; vẫn cần đối chiếu với triệu chứng và hướng dẫn điều trị.",
+            "stable": "Các lần đo tương đối ổn định; ổn định không đồng nghĩa chỉ số bình thường.",
+        }.get(result.get("trend"), "Chưa xác định được xu hướng từ dữ liệu đã cung cấp."),
         key_points=key_points,
         next_steps=["Cung cấp các giá trị đo lặp lại cùng thời điểm và đơn vị để đánh giá xu hướng chính xác hơn."] if result.get("trend") == "insufficient_data" else [],
         decision_basis="versioned_rules",
@@ -655,10 +663,10 @@ def build_grounded_answer(
             title=education["title"], summary=education["summary"],
             next_steps=education["next_steps"], questions=education["questions"],
             limitations=[education["limitations"]],
-            sources=[ChatEvidenceSource(name="Nguồn tham khảo hướng dẫn sức khỏe", version="health-education@1.0.0",
+            sources=[ChatEvidenceSource(name="Nguồn tham khảo hướng dẫn sức khỏe", version="health-education@1.1.0",
                 approval_status="pending_review", references=education["references"])],
             decision_basis="versioned_rules", evidence_state="bounded_result",
-            rule_version="health-education@1.0.0", requires_human_review=True,
+            rule_version="health-education@1.1.0", requires_human_review=True,
         ), intent)
     if intent == "triage":
         return _with_narrative(_triage_answer(result, sources, reply=reply), intent)

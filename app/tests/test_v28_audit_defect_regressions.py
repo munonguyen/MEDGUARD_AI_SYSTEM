@@ -51,6 +51,39 @@ def test_interaction_explains_risk_and_retains_mechanism_for_review(ask):
     assert "COX-1" in body["result"]["warnings"][0]["detail"]
 
 
+def test_improvement_does_not_authorize_stopping_prescribed_medicine(ask):
+    body = ask("Tôi đang dùng thuốc bác sĩ kê nhưng thấy đỡ rồi. Tôi có thể tự ngừng thuốc không?")
+    shown = display_projection(body)["text"]
+    assert "Không tự ngừng thuốc" in shown
+    assert "bác sĩ kê thuốc hoặc dược sĩ" in shown
+    assert "tên thuốc" in shown.lower()
+    assert body["intent"] == "safety"
+    assert body["answer"]["sources"][0]["references"][0].startswith("https://www.fda.gov/")
+
+
+def test_negated_stopping_in_background_does_not_hide_interaction_question(ask):
+    body = ask("Tôi đang uống warfarin, tôi không ngừng thuốc này. Tôi có thể uống ibuprofen khi đau đầu không?")
+    assert "chảy máu" in display_projection(body)["text"].lower()
+    assert body["result"]["warnings"]
+
+
+@pytest.mark.parametrize("question,escalation", [
+    ("Huyết áp của tôi là 145/95 mmHg. Con số này có ý nghĩa gì?", "CLINIC"),
+])
+def test_one_measurement_keeps_threshold_warning_without_inventing_a_trend(ask, question, escalation):
+    body = ask(question)
+    assert body["result"]["trend"] == "insufficient_data"
+    assert body["result"]["escalation_level"] == escalation
+    assert "Chưa đủ số lần đo" in body["answer"]["summary"]
+    assert "worsening" not in body["answer"]["summary"]
+
+
+def test_critical_oxygen_question_keeps_emergency_triage_priority(ask):
+    body = ask("SpO2 của tôi là 89%. Con số này có ý nghĩa gì?")
+    assert body["result"]["urgency"] == "EMERGENCY"
+    assert "115" in display_projection(body)["text"]
+
+
 @pytest.mark.parametrize("question,urgency", [
     ("Tôi hơi khó thở, vẫn nói chuyện bình thường, không đau ngực, không tím môi.", "URGENT"),
     ("Tôi hơi khó thở nhưng không tiếp xúc hóa chất, chất tẩy rửa hay khí độc", "URGENT"),

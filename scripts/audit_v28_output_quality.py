@@ -233,6 +233,8 @@ const search=document.getElementById('search'),filter=document.getElementById('f
     requirements = ''.join(f'<li>{e(x)}</li>' for x in validation.get('release_requirements', []))
     guideline = research.get('communication_guideline', {})
     doctor_section = f'<p>{e(research.get("method", ""))}</p><table><tr><th>Tư vấn thực tế / tác giả</th><th>Điểm học hỏi</th><th>Giới hạn</th></tr>{doctor_rows}</table><p><a href="{e(guideline.get("url", ""))}">{e(guideline.get("title", ""))}</a>: {e(guideline.get("pattern", ""))}</p><h3>Cấu trúc trả lời cần hướng đến</h3><ol>{contract}</ol><h3>Điều kiện trước khi công bố chất lượng rộng hơn</h3><p>Đánh giá bác sĩ độc lập: {e(validation.get("status", "NOT_RUN"))}. {e(validation.get("design", ""))}</p><ul>{requirements}</ul><p>{e(validation.get("claim_policy", ""))}</p>'
+    for example in report.get('output_improvement_examples', []):
+        doctor_section += f'<details><summary>{e(example["case_id"])} — Câu trả lời trước và sau cải tiến</summary><p>{e(example["question"])}</p><h3>Trước</h3><div class="answer">{e(example["before"])}</div><h3>Sau</h3><div class="answer">{e(example["after"])}</div></details>'
     for key, value in mapping.items():
         template = template.replace(f"__{key}__", e(value))
     return template.replace('__REFS__', refs).replace('__REVIEW__', review_rows).replace('__DOCTOR_PATTERNS__', doctor_section).replace('__CASES__', ''.join(items)).replace('__DATA__', embedded)
@@ -274,7 +276,16 @@ def run() -> dict:
         'baseline_comparison': baseline_comparison(summarize(results)),
         'doctor_communication_research': json.loads((ROOT / 'docs/doctor_communication_patterns.json').read_text(encoding='utf-8')),
         'jury_calibration_baseline': json.loads((OUT / 'baseline_effe815_jury.json').read_text(encoding='utf-8')),
+        'output_improvement_examples': output_improvement_examples(results),
         'results': results}
+
+
+def output_improvement_examples(results: list[dict]) -> list[dict]:
+    baseline = json.loads((OUT / 'baseline_patient_text_effe815.json').read_text(encoding='utf-8'))
+    actual = {r['case_id']: r for r in results}
+    return [{'case_id': x['case_id'], 'question': x['question'],
+             'baseline_source_commit': baseline['source_commit'], 'before': x['display_text'],
+             'after': actual[x['case_id']]['display']['text']} for x in baseline['examples']]
 
 
 def baseline_comparison(summary: dict) -> dict:

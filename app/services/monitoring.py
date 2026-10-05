@@ -18,7 +18,7 @@ from app.services.audit import AuditEvent, audit_store
 
 
 ESCALATION_ORDER = ("NONE", "SELF_CARE", "CLINIC", "URGENT", "EMERGENCY")
-RULE_VERSION = "monitoring-rules@1.0.0"
+RULE_VERSION = "monitoring-rules@1.1.0"
 
 
 def _escalate(current: str, candidate: str) -> str:
@@ -103,12 +103,10 @@ def analyze_monitoring(payload: MonitoringRequest, ctx: RequestContext) -> Monit
             trend_effects.append(effect)
 
     has_trend_data = any(trend.direction != "unknown" for trend in trends)
-    if alerts:
-        overall = "worsening"
-        status = Status.ok
-    elif not has_trend_data:
+    if not has_trend_data:
         overall = "insufficient_data"
-        status = Status.unknown
+        # A threshold warning remains actionable even without a time series.
+        status = Status.ok if alerts else Status.unknown
         alerts.append(
             MonitoringAlert(
                 metric="overall",
