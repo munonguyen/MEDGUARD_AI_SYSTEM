@@ -401,8 +401,16 @@ class DAGDecisionEvaluator:
                 violations.append("DAG_MISSING_EMERGENCY_ESCALATION")
 
         if triage_urgency == "ROUTINE" and not red_flags_present:
-            if "gọi 115 ngay" in lower_resp:
-                violations.append("DAG_EXCESSIVE_EMERGENCY_ESCALATION")
+            for clause in re.split(r"[.!?;\n]+", lower_resp):
+                if "gọi 115 ngay" not in clause:
+                    continue
+                # A conditional safety-net is a branch, not the current
+                # disposition. Inspect each clause so a separate immediate
+                # instruction cannot hide behind an earlier "nếu".
+                conditional = re.search(r"\b(?:nếu|khi xuất hiện|khi có)\b", clause)
+                if not conditional:
+                    violations.append("DAG_EXCESSIVE_EMERGENCY_ESCALATION")
+                    break
 
         passed = len(violations) == 0
         score = 1.0 if passed else 0.0

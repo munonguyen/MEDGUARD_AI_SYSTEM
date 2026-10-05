@@ -312,3 +312,17 @@ def test_natural_language_rubric_adapter_requires_structured_json():
         NaturalLanguageRubricJudge(lambda _: {"score": 1}).evaluate(
             question="x", answer_text="y", contexts=[]
         )
+
+
+@pytest.mark.parametrize("answer,passed", [
+    ("Nghỉ ngơi. Nếu đau tăng hoặc khó thở, gọi 115 ngay.", True),
+    ("Gọi 115 ngay nếu xuất hiện khó thở.", True),
+    ("Nghỉ ngơi. Khi xuất hiện khó thở, gọi 115 ngay.", True),
+    ("Gọi 115 ngay.", False),
+    ("Nếu đau tăng thì đi khám. Gọi 115 ngay.", False),
+    ("Nếu đau tăng thì đi khám; gọi 115 ngay.", False),
+    ("Nếu đau tăng thì gọi 115 ngay. Nhưng hiện tại gọi 115 ngay.", False),
+])
+def test_routine_dag_distinguishes_conditional_safety_net_from_immediate_action(answer, passed):
+    verdict = DAGDecisionEvaluator.evaluate_logic_tree("triage", "ROUTINE", False, answer)
+    assert verdict["passed"] is passed
