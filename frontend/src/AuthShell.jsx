@@ -18,8 +18,16 @@ export default function AuthShell(){
  const [email,setEmail]=useState(''),[password,setPassword]=useState(''),[otp,setOtp]=useState(''),[consent,setConsent]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [backups,setBackups]=useState([]);
  const [manage,setManage]=useState(false),[sessions,setSessions]=useState([]),[newPassword,setNewPassword]=useState(''),[setup,setSetup]=useState(null);
- const [linkToken]=useState(query.get('reset_token')||query.get('verify_token')||'');
- useEffect(()=>{if(linkToken)history.replaceState(null,'',location.pathname);},[linkToken]);
+ const [linkToken,setLinkToken]=useState(query.get('reset_token')||query.get('verify_token')||'');
+ useEffect(()=>{
+  const readLink=()=>{
+   const params=new URLSearchParams(location.hash.slice(1)||location.search);
+   const token=params.get('reset_token')||params.get('verify_token');
+   if(token){setLinkToken(token);setMode(params.has('reset_token')?'reset':'verify');history.replaceState(null,'',location.pathname);}
+  };
+  readLink();window.addEventListener('hashchange',readLink);
+  return()=>window.removeEventListener('hashchange',readLink);
+ },[]);
  const clear=()=>{setBrowserSession(null);setUser(null);setCsrf('');setPassword('');setNewPassword('');setOtp('');setSetup(null);setManage(false);setMode('login');};
  useEffect(()=>{
   const expired=()=>{clear();setError('Phiên đã hết hạn. Hãy đăng nhập lại.');};window.addEventListener('medguard:session-expired',expired);
