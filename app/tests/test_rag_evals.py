@@ -76,3 +76,23 @@ def test_rag_prometheus_metrics_exported():
     assert "medguard_rag_retrieval_chunks_count_count" in rendered
     assert "medguard_rag_groundedness_score" in rendered
     assert "medguard_rag_safety_score" in rendered
+
+
+def test_medication_incident_evidence_is_retrievable_with_pending_approval():
+    results = knowledge_retriever.retrieve("quên thuốc huyết áp uống gấp đôi", intent="safety", top_k=5)
+    incident = next(r for r in results if r.chunk_id == "MED-INC-MISSED-HYPERTENSION-001")
+    assert "KHÔNG UỐNG GẤP ĐÔI" in incident.content
+    assert "Pending clinical pharmacy review" in incident.source_reference
+
+
+def test_monitoring_index_preserves_actual_thresholds_and_explanation():
+    chunks = {c.chunk_id: c for c in knowledge_retriever._chunks}
+    assert '"warning_above": 140' in chunks['MON-systolic'].content
+    assert "Một lần đo chưa đủ" in chunks['MON-systolic'].content
+
+
+def test_retrieval_preserves_external_source_url():
+    chunk = next(c for c in knowledge_retriever._chunks if c.source_url)
+    results = knowledge_retriever.retrieve(chunk.title, top_k=1000)
+    result = next(c for c in results if c.chunk_id == chunk.chunk_id)
+    assert result.source_url == chunk.source_url

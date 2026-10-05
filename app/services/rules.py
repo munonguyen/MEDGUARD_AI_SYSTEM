@@ -102,9 +102,18 @@ def _matches_clinical_pattern(text: str, pattern: dict) -> bool:
         if facts.gradual_onset or facts.user_quote_trap or (facts.onset_duration_hours and facts.onset_duration_hours >= 1.0):
             return False
 
+    bounded_chest = None
+    if pattern.get('id') == 'RF-ESI2-001':
+        from app.services.clinical_reasoning.chest_calibration import bounded_chest_assessment
+        bounded_chest = bounded_chest_assessment(text)
+
     phrases = (*pattern.get("patterns_vi", []), *pattern.get("patterns_en", []))
     for phrase in phrases:
         norm_phrase = normalize_search_text(phrase)
+        if bounded_chest and norm_phrase in {'dau nguc', 'tuc nguc', 'nang nguc', 'chest pain'}:
+            # A chest keyword alone is not an additional emergency finding
+            # when the bounded contextual assessment already qualifies it.
+            continue
         if (pattern.get("category") == "severe_respiratory_distress"
                 and norm_phrase == "kho tho" and _explicit_mild_dyspnea(text)):
             continue

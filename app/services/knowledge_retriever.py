@@ -98,6 +98,7 @@ class RetrievedChunk:
 _CLINICAL_DOCS = {"red_flag_protocols.json", "monitoring_rules.json", "crawled_clinical_guidelines.json"}
 _PHARMA_DOCS = {
     "drug_interactions.json",
+    "medication_incident_protocols.json",
     "contraindications.json",
     "allergy_cross_matrix.json",
     "atc_codes.json",
@@ -136,7 +137,7 @@ class KnowledgeRetriever:
         self._token_index: dict[str, list[int]] = {}
         self._idf: dict[str, float] = {}
         self._intent_filters: dict[str, set[str]] = {
-            "safety": {"drug_interactions.json", "contraindications.json", "allergy_cross_matrix.json", "atc_codes.json", "crawled_clinical_guidelines.json"},
+            "safety": {"medication_incident_protocols.json", "drug_interactions.json", "contraindications.json", "allergy_cross_matrix.json", "atc_codes.json", "crawled_clinical_guidelines.json"},
             "triage": {"red_flag_protocols.json", "crawled_clinical_guidelines.json"},
             "monitoring": {"monitoring_rules.json", "crawled_clinical_guidelines.json"},
             "authenticity": {"product_registry.json"},
@@ -276,11 +277,12 @@ class KnowledgeRetriever:
         for rule in knowledge.monitoring_rules:
             metric = rule.get("metric", "")
             cid = f"MON-{metric}"
+            # Keep the actual thresholds and explanatory fields. These rules
+            # do not contain a nested "thresholds" object; indexing an empty
+            # default hid the evidence used by the monitoring runtime.
             content = (
                 f"Quy tắc theo dõi sinh hiệu {metric}. "
-                f"Đơn vị: {rule.get('unit', '')}. "
-                f"Ngưỡng an toàn và báo động: {rule.get('thresholds', {})}. "
-                f"Xử trí khuyến cáo: {rule.get('action', 'Theo dõi lặp lại và báo bác sĩ khi vượt ngưỡng')}."
+                + json.dumps(rule, ensure_ascii=False, sort_keys=True)
             )
             chunks.append(
                 RetrievedChunk(
@@ -292,6 +294,22 @@ class KnowledgeRetriever:
                     source_reference="Quy chuẩn theo dõi dấu hiệu sinh tồn lâm sàng",
                 )
             )
+
+        # Medication incidents were used by the safety engine but missing
+        # from retrieval. Preserve approval status: local policy is evidence
+        # provenance, never proof of independent clinical validation.
+        incident_file = knowledge.files.get("medication_incident_protocols.json")
+        incident_meta = incident_file.data.get("_meta", {}) if incident_file else {}
+        for protocol in knowledge.reported_ingestion_protocols:
+            chunks.append(RetrievedChunk(
+                chunk_id=protocol["id"],
+                doc_name="medication_incident_protocols.json",
+                title="Sự cố dùng thuốc: " + protocol.get("ingredient", ""),
+                section="medication_incident",
+                content=json.dumps(protocol, ensure_ascii=False, sort_keys=True),
+                source_reference=json.dumps(incident_meta, ensure_ascii=False, sort_keys=True),
+                severity=protocol.get("risk"),
+            ))
 
         # 7. Optional Crawled Clinical Guidelines (Crawl4AI & refined web sources)
         crawled_file = Path(__file__).resolve().parent.parent / "knowledge" / "crawled_clinical_guidelines.json"
@@ -457,6 +475,7 @@ class KnowledgeRetriever:
                 section=self._chunks[i].section,
                 content=self._chunks[i].content,
                 source_reference=self._chunks[i].source_reference,
+                source_url=self._chunks[i].source_url,
                 score=round(scores[i], 3),
                 severity=self._chunks[i].severity,
             )

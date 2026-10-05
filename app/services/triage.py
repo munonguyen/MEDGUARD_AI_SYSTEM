@@ -472,6 +472,26 @@ def evaluate_triage(
     elif use_guidance_actions and guidance and guidance.get("advice"):
         advice = str(guidance.get("advice"))
 
+    from app.services.clinical_reasoning.chest_calibration import bounded_chest_assessment
+    bounded_chest = bounded_chest_assessment(analysis_text)
+    bounded_chest_applies = bool(bounded_chest and final_urgency == bounded_chest.risk_level)
+    if bounded_chest_applies:
+        guidance_summary = bounded_chest.rationale
+        advice = bounded_chest.suggested_action
+        clinical_hypotheses = []
+        clarifying_questions = [
+            "Cơn đau hiện còn không, kéo dài bao lâu và có giảm khi nghỉ không?"
+            if final_urgency == 'URGENT' else
+            "Đau có tăng khi ấn hoặc cử động tay không, và hiện đã giảm khi nghỉ chưa?"
+        ]
+        specialty = RecommendedSpecialty(code='CARDIOLOGY' if final_urgency == 'URGENT' else 'GENERAL',
+            label='Tim mạch' if final_urgency == 'URGENT' else 'Tổng quát', confidence=0.86)
+        guidance = {**(guidance or {}), 'topic':'bounded_chest_context',
+                    'safety_net':["Nếu đau không giảm sau vài phút nghỉ, tăng lên, xuất hiện khi nghỉ, hoặc có khó thở, vã mồ hôi, đau lan hay gần ngất, gọi 115 ngay; không tự lái xe."],
+                    'source_references':['https://www.nhs.uk/symptoms/chest-pain/',
+                                         'https://www.nhs.uk/conditions/angina/']}
+        has_guidance = True
+
     response = TriageResponse(
         request_id=ctx.request_id,
         status=Status.ok,

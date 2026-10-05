@@ -322,6 +322,9 @@ class SemanticRiskEvaluator:
 
             # Fact & attribute guard: Subacute chest discomfort or negated dyspnea
             if syn_id == "syn_cardiovascular_acute":
+                from app.services.clinical_reasoning.chest_calibration import bounded_chest_assessment
+                if bounded_chest_assessment(combined_text) is not None:
+                    continue
                 onset_hrs = getattr(clinical_facts, "onset_duration_hours", None)
                 if onset_hrs and onset_hrs >= 24 * 7:
                     if not any(rf in norm for rf in ("va mo hoi", "toat mo hoi", "lan tay", "lan ham", "de ep", "bop nghet")):

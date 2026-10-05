@@ -99,6 +99,11 @@ def evaluate_abstraction_lattice(graph: SemanticRelationGraph) -> LatticeEvaluat
     has_radiation = graph.has_concept("radiation_to_arm_or_jaw")
     has_dyspnea = graph.has_concept("severe_dyspnea")
     has_exertion = graph.has_concept("exertion_trigger")
+    bounded_exertion = False
+    if has_exertion:
+        from app.services.clinical_reasoning.chest_calibration import bounded_chest_assessment
+        bounded = bounded_chest_assessment(graph.normalized_text)
+        bounded_exertion = bool(bounded and bounded.risk_level == 'URGENT')
     has_syncope = graph.has_concept("syncope")
 
     has_fleeting = bool(
@@ -119,7 +124,7 @@ def evaluate_abstraction_lattice(graph: SemanticRelationGraph) -> LatticeEvaluat
                 is_benign_exclusion=True,
             )
         )
-    elif has_chest_pressure and (has_diaphoresis or has_radiation or has_dyspnea or has_exertion):
+    elif has_chest_pressure and (has_diaphoresis or has_radiation or has_dyspnea or (has_exertion and not bounded_exertion)):
         patterns.append(
             AbstractionPattern(
                 archetype=AbstractThreatArchetype.CARDIOPULMONARY_THREAT,
