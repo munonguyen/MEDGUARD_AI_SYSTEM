@@ -179,6 +179,21 @@ def test_affirmed_chemical_exposure_with_dyspnea_is_emergency(router):
     assert result.domain_assessment.subtype == "toxic_inhalation_respiratory_injury"
 
 
+@pytest.mark.parametrize("text,exposed", [
+    ("Tôi hơi khó thở nhưng không tiếp xúc hóa chất, chất tẩy rửa hay khí độc", False),
+    ("Tôi hơi khó thở trong phòng kín, không tiếp xúc hóa chất", False),
+    ("Tôi đang nổi mề đay nhẹ. Nếu hít khí độc và khó thở thì phải làm gì?", False),
+    ("Tôi không tiếp xúc hóa chất trước đó nhưng giờ hít khí độc và khó thở", True),
+    ("Tôi đã hít mùi clo và hiện tại khó thở", True),
+    ("Tôi không ho, tôi vừa hít khí độc và đang khó thở", True),
+    ("Tôi không đau đầu, đã hít mùi clo và đang khó thở", True),
+])
+def test_exposure_scope_uses_current_affirmed_evidence(router, text, exposed):
+    result = router.parse(text)
+    assert ("chemical_exposure" in result.triggers) is exposed
+    assert (result.domain_assessment.subtype == "toxic_inhalation_respiratory_injury") is exposed
+
+
 def test_isolated_chest_discomfort_preserves_uncertainty(router):
     result = router.parse("Tôi hơi đau ngực từ sáng")
     assert result.domain_assessment.risk_level == "ROUTINE"

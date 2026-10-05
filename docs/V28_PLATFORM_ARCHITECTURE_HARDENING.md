@@ -97,3 +97,15 @@ Every report entry contains the real system answer, expected behavioral contract
 ## 8. Production status is unchanged by architecture diagrams
 
 Adding Nginx configuration or support-plane adapters does not make MedGuard production-authorized. The release-evidence manifest remains authoritative. Database/object-storage/queue credentials, consent enforcement, independent clinical validation, approved clinical knowledge and other external evidence must be real and reviewed; they must never be marked PASS simply because a Docker service can start.
+
+## 9. Exposure scope and telemetry follow-up (2026-10-02)
+
+The context router is now the sole source of chemical-exposure triggers for the respiratory domain. Long negated lists retain clause scope rather than losing negation after 40 characters; current versus hypothetical and latest-mention semantics remain in force. A closed room alone no longer constitutes chemical exposure. Commas introducing an explicit new subject or temporal assertion terminate stale negation, while commas inside an exposure list preserve it.
+
+The telemetry registry bounds explicitly supplied `tenant_scope` values as well as legacy `tenant_id` labels. When both are supplied, the scope derived from the tenant identifier takes precedence, preventing duplicate Prometheus labels. Structured logs apply the same scope bounds. Rate-limit rejections now honor `metrics_enabled` while retaining rejection status, correlation and security headers.
+
+Public API regression coverage verifies that negated chemical exposure is not fabricated as an inhalation incident. **Known independent limitation:** the legacy `severe_respiratory_distress` rule still matches generic `khó thở`, including mild wording. The context-router fix does not downgrade that independent safety rule or establish calibrated public-API dyspnea triage. That rule requires a separate change with explicit emergency-preservation regressions.
+
+Two older regression assertions were updated to verify the current dose-reasoning and exercise-soreness contracts rather than obsolete exact prose. The paracetamol case still requires human review, an urgent assessment, a calculated total of 2000 mg, no further paracetamol and no induced vomiting. The exercise-soreness case still requires non-pharmacological care and worsening-symptom follow-up.
+
+Verification on this change: `.venv/bin/python -m pytest -q app/tests` passed **755 tests**. The public API benchmark (`scripts/evaluate_medical_response_quality.py --no-report`) passed **40 cases**, with **0 critical failures**, **0 subthreshold cases**, a **13.07/14** average and **679 ms** p95 in the local deterministic test environment. These are regression/evaluation results, not independent clinical validation or production-LLM performance evidence. No UI files changed and no new browser verification was performed for this patch.

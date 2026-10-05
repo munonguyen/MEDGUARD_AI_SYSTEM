@@ -63,12 +63,18 @@ class NegationEngine:
             )
         )
 
-    def _is_negated_index(self, norm_text: str, idx: int) -> bool:
+    def _is_negated_index(self, norm_text: str, idx: int, scope_chars: int | None = 40) -> bool:
         """Evaluate negation immediately before one normalized mention index."""
-        start = max(0, idx - 40)
+        start = max(0, idx - scope_chars) if scope_chars is not None else 0
         prefix = norm_text[start:idx]
 
         boundary_pos = -1
+        # A comma alone can join a negated list. A comma followed by a new
+        # subject/temporal predicate instead starts a new assertion, e.g.
+        # "không ho, tôi vừa hít khí độc". Do not carry the earlier negation.
+        new_assertions = list(re.finditer(r",\s*(?:toi|da|vua|dang)\b", prefix))
+        if new_assertions:
+            boundary_pos = new_assertions[-1].start()
         for boundary in self.clause_boundaries:
             if boundary in (";", ".", "!", "?"):
                 b_idx = prefix.rfind(boundary)
@@ -91,16 +97,18 @@ class NegationEngine:
                 return True
         return False
 
-    def is_negated_at(self, text: str, normalized_index: int) -> bool:
+    def is_negated_at(self, text: str, normalized_index: int, *, scope_chars: int | None = 40) -> bool:
         """Return negation status for one mention at an index in normalized text.
 
         Callers that obtain match positions from ``normalize_search_text(text)``
         should use this method instead of aggregating all occurrences.
+        ``scope_chars=None`` retains the whole clause for long exposure lists;
+        contrast, temporal and explicit new-assertion boundaries still apply.
         """
         norm_text = normalize_search_text(text)
         if normalized_index < 0 or normalized_index > len(norm_text):
             return False
-        return self._is_negated_index(norm_text, normalized_index)
+        return self._is_negated_index(norm_text, normalized_index, scope_chars)
 
     def mention_statuses(self, text: str, term: str) -> list[tuple[int, bool]]:
         """Return ``(normalized_index, is_negated)`` for every term mention."""

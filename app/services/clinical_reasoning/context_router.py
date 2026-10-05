@@ -77,6 +77,7 @@ class ClinicalContextRouter:
         norm: str,
         patterns: Iterable[str],
         conditional_start: int = -1,
+        scope_chars: int | None = 40,
     ) -> tuple[list[tuple[int, bool]], bool]:
         """Return current mentions ``(position, negated)`` and hypothetical flag."""
         current: list[tuple[int, bool]] = []
@@ -87,7 +88,7 @@ class ClinicalContextRouter:
                     hypothetical = True
                     continue
                 current.append(
-                    (match.start(), self.negation_engine.is_negated_at(norm, match.start()))
+                    (match.start(), self.negation_engine.is_negated_at(norm, match.start(), scope_chars=scope_chars))
                 )
         return current, hypothetical
 
@@ -96,8 +97,9 @@ class ClinicalContextRouter:
         norm: str,
         patterns: Iterable[str],
         conditional_start: int = -1,
+        scope_chars: int | None = 40,
     ) -> bool:
-        current, _ = self._mentions(norm, patterns, conditional_start)
+        current, _ = self._mentions(norm, patterns, conditional_start, scope_chars)
         if not current:
             return False
         _, negated = max(current, key=lambda item: item[0])
@@ -147,7 +149,11 @@ class ClinicalContextRouter:
         ):
             result.triggers.append("medication_ingestion")
         if self._latest_current_affirmed(
-            norm, ("hoa chat", "tay rua", "phong kin"), conditional_start
+            # Exposure lists can exceed the symptom-local negation window.
+            # Preserve clause scope and latest/current semantics centrally;
+            # downstream domains must not re-activate raw exposure keywords.
+            norm, ("hoa chat", "tay rua", "mui clo", "khi doc"), conditional_start,
+            scope_chars=None,
         ):
             result.triggers.append("chemical_exposure")
 

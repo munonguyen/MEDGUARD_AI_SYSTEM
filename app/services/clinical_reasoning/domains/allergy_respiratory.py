@@ -63,9 +63,7 @@ class AllergyRespiratoryReasoner:
                 red_flags=red_flags,
             )
 
-        chemical_inhalation = "chemical_exposure" in triggers or self._affirmed_regex(
-            norm, r"\b(?:mui clo|khi doc)\b"
-        )
+        chemical_inhalation = "chemical_exposure" in triggers
         inhalation_symptoms = bool(
             positive.get("shortness_of_breath")
             or positive.get("chest_pain")

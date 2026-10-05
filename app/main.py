@@ -148,23 +148,24 @@ def create_app() -> FastAPI:
                 response.headers["Retry-After"] = str(decision.reset_after_seconds)
                 _rate_limit_headers(response, decision)
                 _security_headers(response, path=path)
-                metrics.inc_counter(
-                    "medguard_rate_limit_rejections_total",
-                    labels={"endpoint": bucket, "reason": error_code},
-                )
-                metrics.inc_counter(
-                    "medguard_requests_total",
-                    labels={
-                        "tenant_id": tenant_id,
-                        "endpoint": bucket,
-                        "status": str(status_code),
-                    },
-                )
-                metrics.observe_histogram(
-                    "medguard_request_duration_seconds",
-                    value=perf_counter() - start,
-                    labels={"tenant_id": tenant_id, "endpoint": bucket},
-                )
+                if settings.metrics_enabled:
+                    metrics.inc_counter(
+                        "medguard_rate_limit_rejections_total",
+                        labels={"endpoint": bucket, "reason": error_code},
+                    )
+                    metrics.inc_counter(
+                        "medguard_requests_total",
+                        labels={
+                            "tenant_id": tenant_id,
+                            "endpoint": bucket,
+                            "status": str(status_code),
+                        },
+                    )
+                    metrics.observe_histogram(
+                        "medguard_request_duration_seconds",
+                        value=perf_counter() - start,
+                        labels={"tenant_id": tenant_id, "endpoint": bucket},
+                    )
                 return response
 
         try:

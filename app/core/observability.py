@@ -31,6 +31,10 @@ _METRIC_NAME = re.compile(r"^[a-zA-Z_:][a-zA-Z0-9_:]*$")
 _LABEL_NAME = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
 
 
+def _bounded_tenant_scope(value: str) -> str:
+    return value if value in ("configured", "anonymous", "untrusted") else "untrusted"
+
+
 @dataclass
 class MetricRecord:
     name: str
@@ -88,7 +92,7 @@ class PrometheusMetrics:
         return str(value).replace("\\", "\\\\").replace("\n", "\\n").replace('"', '\\"')
 
     def _labels_to_key(self, labels: dict[str, str]) -> tuple[tuple[str, str], ...]:
-        normalized: list[tuple[str, str]] = []
+        normalized: dict[str, str] = {}
         for key, value in labels.items():
             # Backward-compatible privacy guard: older call sites may still
             # submit tenant_id. Collapse it automatically instead of relying on
@@ -96,10 +100,15 @@ class PrometheusMetrics:
             if key == "tenant_id":
                 key = "tenant_scope"
                 value = tenant_metric_scope(str(value), settings.allowed_tenants)
+            elif key == "tenant_scope":
+                # An explicit scope must not bypass tenant privacy guards.
+                if "tenant_id" in labels:
+                    continue
+                value = _bounded_tenant_scope(str(value))
             if not _LABEL_NAME.fullmatch(key):
                 raise ValueError(f"invalid Prometheus label name: {key!r}")
-            normalized.append((key, str(value)))
-        return tuple(sorted(normalized))
+            normalized[key] = str(value)
+        return tuple(sorted(normalized.items()))
 
     @classmethod
     def _render_labels(cls, labels: tuple[tuple[str, str], ...]) -> str:
@@ -187,7 +196,7 @@ class PiiRedactingFormatter(logging.Formatter):
         # Never emit the raw tenant identifier in operational logs.  The audit
         # database retains tenant-scoped evidence when authorized.
         if hasattr(record, "tenant_scope"):
-            log_entry["tenant_scope"] = record.tenant_scope
+            log_entry["tenant_scope"] = _bounded_tenant_scope(str(record.tenant_scope))
 
         return json.dumps(log_entry, ensure_ascii=False)
 

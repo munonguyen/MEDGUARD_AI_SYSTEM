@@ -243,7 +243,12 @@ def test_reported_paracetamol_ingestion_does_not_return_a_clean_safety_result(mo
     assert body["intent"] == "safety"
     assert body["result"]["requires_human_review"] is True
     assert body["result"]["warnings"][0]["type"] == "REPORTED_ACUTE_INGESTION"
-    assert "liên hệ ngay cơ sở y tế" in text
+    # Dose reasoning now distinguishes a prompt review from an automatically
+    # life-threatening overdose. Verify the clinical contract, not old prose.
+    assert body["result"]["urgency"] == "URGENT"
+    assert body["result"]["dose_assessment"]["total_dose_mg"] == 2000
+    assert "liên hệ cơ sở y tế/trung tâm chống độc" in text
+    assert "không dùng thêm paracetamol" in text
     assert "không tự gây nôn" in text
     assert body["answer"]["questions"]
     assert body["answer"]["sources"][0]["name"] == "medication_incident_protocols.json"

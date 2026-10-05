@@ -50,7 +50,10 @@ def test_user_2_muscle_soreness_after_gym_workout(router):
     assert result.positive_findings["exercise"] is True
     assert result.domain_assessment.risk_level == "ROUTINE"
     assert result.domain_assessment.subtype == "exercise_soreness_doms"
-    assert "Không lạm dụng thuốc giảm đau" in result.domain_assessment.suggested_action
+    action = result.domain_assessment.suggested_action.lower()
+    assert "không cần tự động dùng thuốc giảm đau" in action
+    assert "giảm cường độ tập" in action
+    assert "đi khám nếu đau tăng" in action
 
     # Check medication safety pipeline
     med_safety = enriched["clinical_context"]["medication_safety"]

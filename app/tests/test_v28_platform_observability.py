@@ -56,6 +56,45 @@ def test_tenant_metric_scope_has_only_bounded_values() -> None:
     assert tenant_metric_scope("random-customer-name", settings.allowed_tenants) == "untrusted"
 
 
+def test_explicit_tenant_scope_cannot_leak_customer_names_or_duplicate_labels() -> None:
+    registry = PrometheusMetrics()
+    registry.inc_counter("medguard_test_total", labels={"tenant_scope": "hospital-secret"})
+    registry.inc_counter("medguard_test_total", labels={
+        "tenant_id": "unknown-customer", "tenant_scope": "configured",
+    })
+    rendered = registry.render()
+    assert "hospital-secret" not in rendered
+    assert rendered.count('tenant_scope="untrusted"') == 1
+    assert 'tenant_scope="untrusted"} 2.0' in rendered
+
+
+def test_structured_log_tenant_scope_is_bounded() -> None:
+    record = logging.LogRecord("medguard", logging.INFO, __file__, 1, "request", (), None)
+    record.tenant_scope = "hospital-secret"
+    payload = json.loads(PiiRedactingFormatter().format(record))
+    assert payload["tenant_scope"] == "untrusted"
+
+
+def test_disabled_metrics_do_not_record_rate_limit_rejections(monkeypatch) -> None:
+    from fastapi.testclient import TestClient
+    import app.main as main_module
+    from app.core.rate_limit import InMemoryRateLimiter
+
+    registry = PrometheusMetrics()
+    monkeypatch.setattr(main_module, "metrics", registry)
+    from dataclasses import replace
+    monkeypatch.setattr(main_module, "settings", replace(settings, metrics_enabled=False, rate_limit_enabled=True))
+    application = main_module.create_app()
+    application.state.rate_limiter = InMemoryRateLimiter(limit=1, window_seconds=60)
+    with TestClient(application) as client:
+        assert client.get("/v1/models").status_code == 200
+        response = client.get("/v1/models")
+        assert response.status_code == 429
+        assert response.headers["X-Content-Type-Options"] == "nosniff"
+    assert registry._counters == {}
+    assert registry._histograms == {}
+
+
 def test_metric_label_values_are_prometheus_escaped() -> None:
     registry = PrometheusMetrics()
     registry.inc_counter(

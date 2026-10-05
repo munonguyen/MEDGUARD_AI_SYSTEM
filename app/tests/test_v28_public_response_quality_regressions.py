@@ -58,6 +58,20 @@ def test_therapeutic_paracetamol_plus_ibuprofen_question_is_not_fabricated_as_ov
     assert not (result.get("dose_assessment") or {}).get("risk_level")
 
 
+def test_negated_exposure_list_does_not_create_toxic_inhalation_in_public_answer():
+    body = _chat(
+        "Tôi hơi khó thở nhưng không tiếp xúc hóa chất, chất tẩy rửa hay khí độc",
+        "negated-exposure-list",
+    )
+    # The pre-existing dyspnea safety rule still independently escalates this
+    # request. This regression only prevents fabricated chemical exposure;
+    # it must not silently weaken that separate clinical safety policy.
+    result = body.get("result") or {}
+    assert "toxic_inhalation_dyspnea" not in (result.get("red_flags") or [])
+    text = _visible_text(body)
+    assert "phơi nhiễm hơi/khí hóa chất được xác nhận" not in text
+
+
 def test_alt_question_gets_bounded_lab_explanation_not_generic_fallback():
     body = _chat(
         "Xét nghiệm máu của tôi có ALT cao. Điều đó có nghĩa là tôi bị bệnh gan không?",
