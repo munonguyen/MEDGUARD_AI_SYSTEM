@@ -36,3 +36,7 @@ Không nên đặt đích là câu khẳng định “chuyên nghiệp toàn di�
 - Sau tinh chỉnh cuối: 148 kiểm thử API/chat/kiến trúc/hồi quy/bộ chấm/báo cáo đạt, 40.85 giây; gồm ca phủ định ngừng thuốc không che tương tác warfarin–ibuprofen.
 - Một cảnh báo deprecation Starlette/httpx; không có lỗi kiểm thử. Không sửa ngưỡng lâm sàng hoặc nhãn kỳ vọng của 60 ca.
 - Kiểm định giao diện trình duyệt và gateway mô hình ngoài chưa chạy; kết quả API development không thay thế các kiểm định đó.
+
+Lần kiểm định cuối trên code commit e00c945: 57/60 nghiêm ngặt, 13.75/14 rubric, 60/60 ProfessionalResponseGate cho mặc định và narrative; hội đồng heuristic 54/60. Không còn cờ safety/legal; 6 ca chưa đạt đối soát nguồn là MRQ-017, MRQ-019, MRQ-020, MRQ-022, MRQ-034, MRQ-037. Ba bất đồng urgency vẫn là MRQ-033, CHALLENGE-015, CHALLENGE-016. Gate FAIL, chưa push. Phần tăng 6→54 hội đồng chủ yếu là hiệu chuẩn bộ chấm, không phải chứng nhận y khoa.
+
+HTML kiểm tra có đủ 60 ca, JSON nhúng khớp response/report gốc, 4 nguồn tư vấn bác sĩ và 3 ví dụ trước/sau thật; JavaScript kiểm tra cú pháp đạt. Chưa xác minh DOM hoặc hình ảnh giao diện.
