@@ -253,11 +253,13 @@ const search=document.getElementById('search'),filter=document.getElementById('f
     for key, value in mapping.items():
         template = template.replace(f"__{key}__", e(value))
     adaptive = report.get('adaptive_browser_evidence') or {}
+    browser_count = len(adaptive.get('results', []))
     adaptive_rows = ''.join(f'<tr><td>{e(x["device"])}<br>{e(x["question"])}</td><td>{e(x["presentation"])} · {x["primary_words"]} từ</td><td>{e(x["passed"])}</td></tr>' for x in adaptive.get('results', []))
     adaptive_answers = ''.join(f'<details><summary>{e(x["device"])} — {e(x["question"])}</summary><div class="answer">{e(x["primary_text"])}</div></details>' for x in adaptive.get('results', []))
     images = ''.join(f'<details><summary>{e(x["label"])}</summary><img alt="{e(x["label"])}" style="max-width:100%;height:auto" src="{e(x["data_url"])}"></details>' for x in report.get('browser_screenshots', []))
     release = report.get('production_evidence') or {}
     adaptive_section = f'<section><h2>Độ dài theo bối cảnh — kiểm tra trình duyệt thật</h2><p>Câu đơn giản trả lời ngắn; giải thích được mở rộng khi được yêu cầu. Hành động và cảnh báo không bị cắt vì giới hạn từ. Phần lý giải đầy đủ có thể mở thêm. Câu trả lời mới cuộn tới phần đầu để người dùng thấy hành động cấp cứu.</p><table><tr><th>Tình huống</th><th>Chế độ / độ dài phần chính</th><th>Đạt kiểm thử</th></tr>{adaptive_rows}</table><p>Số từ được tách bằng khoảng trắng, đo phần chính gồm tóm tắt, bước làm, cảnh báo, câu hỏi; không bao gồm metadata/giới hạn. Chỉ 8 ca này được kiểm tra DOM và ảnh trên trình duyệt; bộ 60 ca phía dưới vẫn là projection API.</p>{adaptive_answers}{images}<h3>Các điều kiện production còn chặn</h3><pre>{e(json.dumps({"code_sha": release.get("code_sha"), "production_release_eligible": release.get("production_release_eligible"), "release_blockers": release.get("release_blockers"), "runtime": release.get("readiness"), "public_output": release.get("quality", {}).get("public_output")}, ensure_ascii=False, indent=2))}</pre><p>Unit test và build đạt không thay thế phê duyệt lâm sàng, kiểm định nguồn hoặc bằng chứng vận hành production. Cổng phát hành mới kiểm tra từng ca đầu ra và commit; thiếu báo cáo hoặc còn cờ thì không cho phép promotion.</p></section>'
+    adaptive_section = adaptive_section.replace('Chỉ 8 ca này', f'Chỉ {browser_count} ca này')
     return template.replace('__ADAPTIVE_SECTION__', adaptive_section).replace('__REFS__', refs).replace('__REVIEW__', review_rows).replace('__DOCTOR_PATTERNS__', doctor_section).replace('__CASES__', ''.join(items)).replace('__DATA__', embedded)
 
 

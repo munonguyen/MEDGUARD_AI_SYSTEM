@@ -82,7 +82,9 @@ _RAW_TYPO_MAP: list[tuple[re.Pattern[str], str]] = [
 
 # Post-accent-removal dictionary for Latinized typos
 _POST_NORM_TYPO_MAP: list[tuple[re.Pattern[str], str]] = [
-    (re.compile(r"\b(?:kang\s+ko|cang\s+ko|kang\s+co|can\s+co)\b", re.I), "cang co"),
+    # "can co" is also the valid Vietnamese phrase "cần có". Never turn
+    # ordinary request language into a clinical finding after stripping tones.
+    (re.compile(r"\b(?:kang\s+ko|cang\s+ko|kang\s+co)\b", re.I), "cang co"),
     (re.compile(r"\b(?:uog)\b", re.I), "uong"),
     (re.compile(r"\b(?:dug)\b", re.I), "dung"),
     (re.compile(r"\b(?:zoi)\b", re.I), "voi"),

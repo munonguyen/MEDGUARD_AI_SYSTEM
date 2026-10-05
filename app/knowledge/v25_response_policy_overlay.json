@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "version": "25.11.1",
-    "effective_from": "2026-10-02",
+    "version": "25.12.0",
+    "effective_from": "2026-10-03",
     "purpose": "Post-V10 response-policy overlay for direct remote-prescribing refusal, clinically meaningful continuation cues, and bounded patient-facing education where generic symptom templates are insufficient.",
     "authority_contract": [
       "This overlay cannot downgrade any emergency or urgent disposition.",
@@ -11,7 +11,8 @@
     ],
     "source_references": [
       "American Heart Association — How to Manage High Blood Pressure (accessed 2026-10-02)",
-      "American Heart Association / American College of Cardiology — 2025 High Blood Pressure Guideline (accessed 2026-10-02)"
+      "American Heart Association / American College of Cardiology — 2025 High Blood Pressure Guideline (accessed 2026-10-02)",
+      "https://www.nhs.uk/symptoms/toothache/"
     ]
   },
   "urgent_patterns": [
@@ -31,7 +32,10 @@
       "label_vi": "ra máu âm đạo mới xuất hiện/chưa rõ nguyên nhân",
       "esi_level": 3,
       "urgency": "URGENT",
-      "specialty": {"code": "OBSTETRICS_GYNECOLOGY", "label": "Sản phụ khoa"},
+      "specialty": {
+        "code": "OBSTETRICS_GYNECOLOGY",
+        "label": "Sản phụ khoa"
+      },
       "advice": "Ra máu âm đạo mới xuất hiện hoặc chưa rõ nguyên nhân cần được đánh giá y tế sớm, đặc biệt nếu có khả năng mang thai. Nếu đau bụng tăng, đau lệch một bên, choáng/ngất, đau vai hoặc chảy máu nhiều, cần cấp cứu ngay."
     }
   ],
@@ -141,6 +145,53 @@
         "Bạn có bệnh tim mạch, đái tháo đường, bệnh thận, tiền sử đột quỵ hoặc đang mang thai không?"
       ],
       "advice": "Mục tiêu thực tế là kiểm soát huyết áp ổn định và giảm nguy cơ biến chứng; kế hoạch điều trị cần được cá nhân hóa với bác sĩ theo các số đo lặp lại và nguy cơ tim mạch của bạn."
+    },
+    {
+      "topic": "dental_pain",
+      "match_mode": "affirmed_complaint",
+      "keywords": [
+        "đau răng",
+        "nhức răng",
+        "ê buốt răng",
+        "sưng nướu",
+        "sưng lợi"
+      ],
+      "summary": "Để giảm đau răng tạm thời, bạn có thể ăn mềm, tránh nhai bên đau và tránh đồ quá nóng, lạnh hoặc ngọt. Cần khám nha sĩ để tìm và điều trị nguyên nhân; tin nhắn hiện chưa đủ để xác định vì sao đau.",
+      "clinical_hypotheses": [],
+      "clarifying_questions": [
+        "Bạn đau răng nào, từ khi nào và mức đau từ 0 đến 10 là bao nhiêu?",
+        "Bạn có sưng má/nướu, sốt, khó há miệng, khó nuốt hoặc khó thở không?"
+      ],
+      "self_care": [
+        "Dùng bàn chải mềm, vệ sinh nhẹ nhàng và tránh nhai bên răng đau.",
+        "Nếu là người lớn và có thể súc rồi nhổ an toàn, có thể súc miệng bằng nước muối ấm; không nuốt. Không áp dụng cho trẻ nhỏ.",
+        "Có thể hỏi dược sĩ về paracetamol hoặc ibuprofen phù hợp với tuổi, thai kỳ, bệnh nền và thuốc đang dùng; dùng đúng hướng dẫn, tránh trùng hoạt chất."
+      ],
+      "advice": "Đặt lịch nha sĩ; khám sớm nếu đau kéo dài hơn 2 ngày, không giảm với thuốc giảm đau, có sốt, đau khi cắn hoặc sưng má/hàm. Không tự dùng kháng sinh.",
+      "safety_net": [
+        "Đến cấp cứu ngay nếu sưng quanh mắt hoặc cổ, hoặc sưng miệng/cổ gây khó thở, khó nuốt hay khó nói."
+      ],
+      "source_references": [
+        "https://www.nhs.uk/symptoms/toothache/"
+      ]
+    },
+    {
+      "topic": "unlocalized_muscle_pain",
+      "match_mode": "affirmed_complaint",
+      "keywords": [],
+      "summary": "Bạn đang đau nhưng chưa cho biết rõ vị trí, mức độ và hoàn cảnh xuất hiện. Chưa đủ dữ kiện để xác định đau ở cơ, cổ hay nguyên nhân cụ thể; bạn hãy cho biết vùng đau để tôi hướng dẫn phù hợp.",
+      "clinical_hypotheses": [],
+      "clarifying_questions": [
+        "Bạn đau ở vùng cơ nào hay vùng cổ, bắt đầu từ khi nào và mức đau từ 0 đến 10 là bao nhiêu?",
+        "Có chấn thương hoặc tập nặng trước đó, sốt, sưng đỏ, yếu/tê tay chân hay nước tiểu sẫm màu không?"
+      ],
+      "self_care": [
+        "Tạm tránh hoạt động làm đau tăng; không cố kéo giãn, bẻ cổ hoặc xoa bóp mạnh khi chưa rõ nguyên nhân."
+      ],
+      "advice": "Nếu đau tăng, kéo dài hoặc ảnh hưởng vận động/sinh hoạt, hãy khám trực tiếp để đánh giá.",
+      "safety_net": [
+        "Nếu có khó thở, đau ngực, yếu liệt mới xuất hiện hoặc không thể cử động, hãy liên hệ cấp cứu 115."
+      ]
     }
   ]
 }

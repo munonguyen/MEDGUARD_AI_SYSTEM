@@ -114,6 +114,10 @@ class KnowledgeStore:
 
     def _contextualize_guidance(self, guidance: dict[str, Any], symptoms_text: str) -> dict[str, Any]:
         """Overlay V25 explanation/question planning without mutating knowledge."""
+        if guidance.get("topic") in {"dental_pain", "unlocalized_muscle_pain"}:
+            # Do not let an accent-folded spine/mechanism planner invent a
+            # location or cause for these bounded, clarification-first answers.
+            return guidance
         try:
             from app.services.contextual_triage_planner import (
                 build_contextual_triage_plan,
@@ -155,6 +159,8 @@ class KnowledgeStore:
             "v25_response_policy_overlay.json", KnowledgeFile("", "", "", {})
         ).data.get("symptom_guidance", [])
         for guidance in policy:
+            if guidance.get("match_mode") == "affirmed_complaint":
+                continue
             if any(
                 normalize_search_text(str(keyword)) in normalized
                 for keyword in guidance.get("keywords", [])
@@ -212,6 +218,26 @@ class KnowledgeStore:
     def find_symptom_guidance(self, symptoms_text: str) -> dict[str, Any] | None:
         normalized = normalize_search_text(symptoms_text)
 
+        dental = any(contains_affirmed_phrase(normalized, phrase) for phrase in
+                     ("dau rang", "nhuc rang", "e buot rang", "sung nuou", "sung loi"))
+        if dental:
+            return next((g for g in self.symptom_guidance if g.get("topic") == "dental_pain"), None)
+
+        # Accent folding makes cơ (muscle), cổ (neck), and có identical.
+        # A bare "đau cơ" / unaccented "dau co" cannot establish neck pain.
+        # Preserve raw anatomical evidence; ambiguous spelling asks location.
+        raw = symptoms_text.lower()
+        neck_evidence = bool(re.search(r"\b(?:cổ|kổ|gáy|gay|vai|neck)\b", raw))
+        raw_muscle_or_ambiguous = bool(re.search(
+            r"\b(?:đau|đâu|nhức|mỏi|dau|nhuc|moi)\s+(?:cơ|kơ|co)\b", raw))
+        muscle_complaint = raw_muscle_or_ambiguous and any(
+            contains_affirmed_phrase(normalized, phrase)
+            for phrase in ("dau co", "nhuc co", "moi co", "dau co bap"))
+        exertion = any(contains_affirmed_phrase(normalized, phrase) for phrase in
+                       ("tap gym", "tap luyen", "nang ta", "van suc", "cang co", "chuot rut"))
+        if muscle_complaint and not neck_evidence and not exertion:
+            return next((g for g in self.symptom_guidance if g.get("topic") == "unlocalized_muscle_pain"), None)
+
         # Animal-bite episodes are governed by dedicated urgent rabies/tetanus
         # rules. Until a dedicated animal-bite symptom template exists, returning
         # no generic guidance is safer than contaminating the response with burn,
@@ -247,6 +273,8 @@ class KnowledgeStore:
             if guidance.get("topic") == "remote_prescribing_request":
                 continue
             if not self._guidance_is_route_compatible(guidance, normalized):
+                continue
+            if guidance.get("topic") == "neck_shoulder_pain" and not neck_evidence:
                 continue
             if guidance.get("topic") == "lower_limb_pain":
                 direct_problem_phrases = (

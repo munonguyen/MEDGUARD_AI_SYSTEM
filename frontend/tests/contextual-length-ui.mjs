@@ -12,6 +12,8 @@ const scenarios = [
   ['detail', 'Giải thích chi tiết lợi ích của ngủ sớm', 'detailed'],
   ['headache', 'Tôi đau đầu nhẹ sau khi nhìn màn hình cả ngày.', 'focused'],
   ['emergency', 'Trả lời ngắn thôi: tôi đau ngực lan tay trái và vã mồ hôi, có nên ngủ sớm không?', 'focused'],
+  ['dental', 'Tôi đang đau răng,cần có cách nào để hết đau răng', 'focused'],
+  ['muscle', 'tôi đang đâu cơ', 'focused'],
 ];
 const evidence = [];
 try {
@@ -43,6 +45,16 @@ try {
         assert.equal(await card.locator('.clinical-limitations:visible').count(), 0);
       }
       if (name === 'detail') assert(words > 80);
+      if (name === 'dental') {
+        assert(primary.includes('nha sĩ') && primary.includes('ăn mềm'));
+        assert(!primary.includes('căng cơ') && !primary.includes('RICE'));
+        assert(raw.answer.sources.some(s => s.references.includes('https://www.nhs.uk/symptoms/toothache/')));
+      }
+      if (name === 'muscle') {
+        assert(primary.includes('vùng'));
+        assert(!primary.includes('thoái hóa') && !primary.includes('gối'));
+        assert.equal(raw.answer.clinical_hypotheses.length, 0);
+      }
       if (name === 'headache') {
         assert(!primary.includes('Tension headache'));
         assert(primary.includes('cấp cứu'));

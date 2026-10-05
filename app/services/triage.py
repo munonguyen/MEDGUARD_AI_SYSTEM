@@ -497,6 +497,8 @@ def evaluate_triage(
             knowledge_version=knowledge.version_string(),
             latency_ms=int((perf_counter() - start) * 1000),
             details={
+                "guidance_topic": guidance.get("topic") if guidance else None,
+                "guidance_source_references": guidance.get("source_references", []) if guidance else [],
                 "severity_resolution": "hybrid-conservative-max",
                 "rule_urgency": rule.urgency,
                 "rule_matched": rule.matched,

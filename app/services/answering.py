@@ -408,8 +408,22 @@ def _triage_answer(
         safety_notes = [str(value) for value in result.get("safety_net", [])]
         clinical_hypotheses = [str(value) for value in result.get("clinical_hypotheses", [])]
 
+    guidance_details = (result.get("trace") or {}).get("details") or {}
+    guidance_topic = guidance_details.get("guidance_topic")
+    references = guidance_details.get("guidance_source_references") or []
+    if references:
+        overlay = knowledge.files.get("v25_response_policy_overlay.json")
+        sources = [*sources, ChatEvidenceSource(name="Hướng dẫn chăm sóc theo triệu chứng",
+            version=overlay.version if overlay else "unknown", approval_status="pending_review",
+            references=references)]
+    title = titles.get(urgency, "Kết quả phân luồng")
+    if urgency == "ROUTINE" and guidance_topic == "unlocalized_muscle_pain":
+        title = "Cần làm rõ vị trí và mức độ đau"
+    elif urgency == "ROUTINE" and guidance_topic == "dental_pain":
+        title = "Đau răng — giảm đau tạm thời và khám nha sĩ"
+
     return GroundedAnswer(
-        title=titles.get(urgency, "Kết quả phân luồng"),
+        title=title,
         summary=summary,
         clinical_hypotheses=clinical_hypotheses,
         key_points=key_points,
