@@ -40,6 +40,17 @@ def ask(monkeypatch):
         yield request
 
 
+def test_interaction_explains_risk_and_retains_mechanism_for_review(ask):
+    body = ask("Tôi đang uống warfarin. Tôi có thể uống ibuprofen khi đau đầu không?")
+    shown = display_projection(body)["text"]
+    assert "chảy máu" in shown.lower()
+    assert "COX-1" not in shown
+    assert "albumin" not in shown
+    assert "chỉ số xét nghiệm theo dõi thuốc chống đông" in shown
+    assert "bộ quy tắc ghi nhận" not in body["answer"]["summary"]
+    assert "COX-1" in body["result"]["warnings"][0]["detail"]
+
+
 @pytest.mark.parametrize("question,urgency", [
     ("Tôi hơi khó thở, vẫn nói chuyện bình thường, không đau ngực, không tím môi.", "URGENT"),
     ("Tôi hơi khó thở nhưng không tiếp xúc hóa chất, chất tẩy rửa hay khí độc", "URGENT"),

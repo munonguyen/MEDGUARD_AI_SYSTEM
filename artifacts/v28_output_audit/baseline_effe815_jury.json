@@ -1,0 +1,21 @@
+{
+  "source_commit": "effe8153dee027e9b0adb4e0a98ca58bdbc56507",
+  "passed": 6,
+  "safety_violations": {
+    "UNSUPPORTED_DIAGNOSTIC_CERTAINTY": 50
+  },
+  "failed_by_dimension": {
+    "legal": 4,
+    "clinical": 0,
+    "groundedness": 6,
+    "psychological": 0
+  },
+  "note": "Baseline before certainty-negation calibration; identical 60 questions. Higher judge pass rate after calibration is not equivalent to better clinical answers.",
+  "frozen_original_outputs": {
+    "total": 60,
+    "old_certainty_pattern_flags": 50,
+    "calibrated_certainty_flags": 0,
+    "answers_rewritten": false,
+    "note": "Re-evaluates the identical archived display text, isolates evaluator calibration from answer edits."
+  }
+}

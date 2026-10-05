@@ -1,0 +1,63 @@
+{
+  "accessed_on": "2026-10-02",
+  "status": "COMMUNICATION_RESEARCH_ONLY_NOT_CLINICALLY_APPROVED",
+  "method": "Đọc 4 tư vấn công khai trên trang bệnh viện, diễn giải cách giao tiếp; không sao chép toàn văn, thông tin nhận dạng người hỏi hoặc dùng như đáp án chuẩn phân tầng/đơn thuốc.",
+  "sources": [
+    {
+      "title": "Thi thoảng đau ngực, khó chịu là bị sao?",
+      "url": "https://www.vinmec.com/vie/bai-viet/thi-thoang-dau-nguc-kho-chiu-la-bi-sao-vi",
+      "attribution": "Các bác sĩ Trung tâm Tim mạch, Vinmec Times City",
+      "page_updated": "2026-07-15",
+      "pattern": "Thừa nhận mô tả chưa đủ để định hướng; đưa ra nơi khám phù hợp thay vì khẳng định bệnh.",
+      "limit": "Không có thời hạn khám và safety-net đủ rõ; không lấy bài này làm nhãn vàng cho đau ngực."
+    },
+    {
+      "title": "Viêm dạ dày mãn tính có vùng trợt nhẹ có uống Ibuprofen được không?",
+      "url": "https://www.vinmec.com/vie/bai-viet/viem-da-day-man-tinh-co-vung-trot-nhe-co-uong-ibuprofen-duoc-khong-vi",
+      "attribution": "BSCKI Vũ Huy Hiền, Nội Tiêu hóa, Vinmec Times City",
+      "page_updated": "2024-07-22",
+      "pattern": "Trả lời trực tiếp việc tự dùng thuốc trong bối cảnh bệnh nền, giải thích nguy cơ và hướng đến bác sĩ điều trị.",
+      "limit": "Tư vấn cho một trường hợp; cần nguồn thuốc cập nhật và rà soát chuyên môn trước khi chuyển thành quy tắc."
+    },
+    {
+      "title": "Đau đầu thường xuyên và nôn ói khi bị đau phải làm sao?",
+      "url": "https://www.vinmec.com/vie/bai-viet/dau-dau-thuong-xuyen-va-non-oi-khi-bi-dau-phai-lam-sao-vi",
+      "attribution": "ThS BS Huỳnh An Thiên, Nội thần kinh, Vinmec Đà Nẵng",
+      "page_updated": "2024-07-22",
+      "pattern": "Gắn triệu chứng kéo dài với mục đích khám: đánh giá nguyên nhân và lập kế hoạch điều trị, dự phòng.",
+      "limit": "Không đủ quy tắc cấp cứu cho mọi đau đầu; không suy ra triệu chứng kéo dài luôn có thể chờ."
+    },
+    {
+      "title": "Đau ngực khi thở ra có sao không?",
+      "url": "https://www.vinmec.com/vie/bai-viet/dau-nguc-khi-tho-ra-co-sao-khong-vi",
+      "attribution": "BS Nguyễn Thanh Phong, Vinmec",
+      "page_updated": "2024-07-22",
+      "pattern": "Giải thích mối liên hệ với gắng sức nhưng vẫn giữ khả năng có bệnh; khuyến nghị đánh giá trực tiếp.",
+      "limit": "Không đồng nhất mang vác, chống đẩy và đau ngực khi leo cầu thang; không dùng để hạ mức cấp cứu 2 ca audit."
+    }
+  ],
+  "communication_guideline": {
+    "title": "NICE NG197 — Shared decision making, recommendations 1.2.11 and 1.4.2",
+    "url": "https://www.nice.org.uk/guidance/ng197/chapter/Recommendations",
+    "pattern": "Chia thông tin thành phần dễ tiếp nhận, kiểm tra người đọc hiểu được bước cần làm, giải thích nguy cơ trong bối cảnh cá nhân và nói rõ mức bất định.",
+    "limit": "Hướng dẫn giao tiếp trong chăm sóc; không chứng nhận hệ thống AI và không thay thế quy tắc cấp cứu."
+  },
+  "proposed_answer_contract": [
+    "Trả lời câu hỏi chính trước; nếu cấp cứu, hành động khẩn cấp đứng đầu và không chờ hỏi thêm.",
+    "Nêu dữ kiện đã cung cấp dẫn đến khuyến nghị; không tự bổ sung triệu chứng hay chẩn đoán.",
+    "Phân biệt điều đã biết, khả năng có thể xảy ra và điều cần khám mới xác định được.",
+    "Nêu bước tiếp theo, nơi tiếp cận và thời hạn nếu có nguồn/quy tắc được duyệt; không tự đặt thời hạn.",
+    "Safety-net phù hợp với triệu chứng, trình bày theo điều kiện nếu-thì.",
+    "Chọn 1–2 câu hỏi có thể thay đổi xử trí; không hỏi lại dữ kiện đã có.",
+    "Dùng ngôn ngữ người bệnh hiểu; diễn giải nguy cơ thay vì nêu mã hệ thống.",
+    "Mỗi khuyến nghị y khoa phải có nguồn thực sự được dùng, phiên bản và trạng thái duyệt."
+  ],
+  "independent_review_required": {
+    "status": "NOT_RUN",
+    "design": "Bộ ca giữ kín ngoài 60 câu phát triển; bác sĩ chấm độc lập, ẩn tên hệ thống và đối soát bất đồng; tối thiểu hai người chấm là đề xuất thiết kế, không phải chứng nhận tiêu chuẩn.",
+    "dimensions_0_to_4": ["Đúng y khoa", "Phân tầng phù hợp", "Trả lời sát câu hỏi", "Hành động rõ ràng", "Diễn đạt bất định", "Safety-net", "Dễ hiểu và tôn trọng", "Nguồn hỗ trợ từng khuyến nghị"],
+    "blocking_errors": ["Bỏ sót cấp cứu", "Chẩn đoán chắc chắn thiếu căn cứ", "Liều thuốc cá nhân hóa không được phép", "Khuyến nghị trái nguồn", "Nguồn không tồn tại"],
+    "release_requirements": ["Giải quyết 3 bất đồng urgency bằng duyệt nhãn có lý do", "Không còn lỗi chặn trong phạm vi kiểm định đã công bố", "Đánh giá gateway thật và giao diện desktop/mobile", "Kiểm tra nhiều lượt, nhóm nguy cơ và thay đổi cách diễn đạt", "Đối chiếu Ada/Buoy bằng đầu ra thật trên cùng ca trước khi nói vượt trội"],
+    "claim_policy": "Chỉ công bố đạt các tiêu chí trong phạm vi đã đo, kèm cỡ mẫu và giới hạn; không dùng 60/60 phần mềm để kết luận chuyên nghiệp toàn diện."
+  }
+}

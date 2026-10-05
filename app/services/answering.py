@@ -463,7 +463,7 @@ def _safety_answer(result: dict[str, Any], sources: list[ChatEvidenceSource]) ->
             f"Bạn không nên tự dùng {medicine_text} trong tình huống đã mô tả; "
             if medicine_text
             else "Bạn không nên tự dùng hoặc phối hợp thuốc trong tình huống đã mô tả; "
-        ) + f"bộ quy tắc ghi nhận {len(hard_stops)} cảnh báo bắt buộc dừng và cần bác sĩ hoặc dược sĩ xác nhận."
+        ) + "hãy trao đổi với bác sĩ hoặc dược sĩ trước khi dùng thêm thuốc này."
         if any(w.get("type") == "DRUG_DRUG_INTERACTION" for w in hard_stops):
             summary += " Có cảnh báo tương tác thuốc; đây là nguy cơ cần rà soát, không phải xác nhận bạn đã bị biến chứng."
         if any("xuất huyết" in str(w.get("clinical_consequence", "")).lower() for w in hard_stops):
@@ -473,7 +473,7 @@ def _safety_answer(result: dict[str, Any], sources: list[ChatEvidenceSource]) ->
         if ingestion_warns:
             summary = " ".join([str(w.get("detail", "")) + " " + str(w.get("recommendation", "")) for w in ingestion_warns]).strip()
         else:
-            summary = f"Bộ quy tắc ghi nhận {len(warnings)} cảnh báo và xếp mức nguy cơ tổng thể là {risk}."
+            summary = "Có cảnh báo liên quan đến thuốc bạn cung cấp. Hãy kiểm tra các nguy cơ và hướng xử trí bên dưới với bác sĩ hoặc dược sĩ trước khi tự thay đổi thuốc."
     else:
         summary = "Không tìm thấy cảnh báo trong dữ liệu đã nhập và bảng quy tắc hiện có. Kết quả này không chứng minh thuốc hoặc phối hợp thuốc là an toàn."
     key_points = []
@@ -482,7 +482,14 @@ def _safety_answer(result: dict[str, Any], sources: list[ChatEvidenceSource]) ->
         medication = f"{warning.get('medication')}: " if warning.get("medication") else ""
         point = f"{medication}{warning.get('detail') or warning.get('type', 'Cảnh báo thuốc')}"
         if warning.get("clinical_consequence"):
-            point += f" Nguy cơ có thể xảy ra: {warning['clinical_consequence']}"
+            consequence = str(warning['clinical_consequence']).replace(
+                "Xuất huyết tiêu hóa", "Chảy máu ở đường tiêu hóa"
+            ).replace("INR", "INR (chỉ số xét nghiệm theo dõi thuốc chống đông)")
+            if warning.get("type") == "DRUG_DRUG_INTERACTION":
+                # Keep the mechanism in result.warnings for clinical inspection;
+                # patient-facing text explains the consequence instead.
+                point = f"{medication}Có tương tác khi phối hợp thuốc."
+            point += f" Nguy cơ có thể xảy ra: {consequence}"
         key_points.append(point)
         if warning.get("recommendation") and warning.get("tier") != "HARD_STOP":
             next_steps.append(str(warning["recommendation"]))

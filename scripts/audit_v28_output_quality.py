@@ -175,6 +175,8 @@ def summarize(results: list[dict]) -> dict:
         "professional_default_passed": sum(r.get("professional_default", {}).get("passed", False) for r in results),
         "professional_expanded_passed": sum(r.get("professional_expanded", {}).get("passed", False) for r in results),
         "posthoc_jury_passed": sum(r.get("jury", {}).get("overall_passed", False) for r in results),
+        "jury_safety_violations": dict(Counter(v for r in results for v in r.get("jury", {}).get("safety_gate", {}).get("violations", []))),
+        "jury_failed_by_dimension": dict(Counter(k for r in results for k, v in r.get("jury", {}).get("verdicts", {}).items() if not v.get("passed"))),
         "software_output_gate": "PASS" if results and passed == len(results) else "FAIL",
         "independent_clinical_validation": "NOT_RUN", "external_paired_benchmark": "NOT_RUN",
         "superiority_proven": False, "push_recommended": False}
@@ -212,6 +214,7 @@ def render_report(report: dict) -> str:
 <section><h2>Nhận xét sau khi đọc đầu ra thực tế</h2><table><tr><th>Ưu tiên / ca</th><th>Phát hiện và biện pháp</th></tr>__REVIEW__</table><p>Nhận xét do trợ lý đọc báo cáo, không phải đánh giá bác sĩ độc lập.</p></section>
 <section><h2>So sánh trước và sau sửa</h2><pre>__BASELINE__</pre><p>Cùng 60 câu hỏi và cùng điều kiện gateway không sẵn sàng. Không đổi nhãn kỳ vọng để tăng điểm. Nhãn tổng hợp chưa được bác sĩ duyệt.</p></section>
 <section><h2>Các cờ phần mềm</h2><pre>__FAILURES__</pre><p>Không phải mọi cảnh báo heuristic đều là lỗi y khoa thật; từng ca cần được đọc lại. Tuy nhiên sai khác urgency, khẳng định không có bằng chứng và sai thứ tự hành động không được bù bằng điểm trung bình. Hội đồng heuristic đạt __JURY__/__TOTAL__; các ca còn lại không mặc nhiên là sai y khoa: bộ chấm từ/ngữ, nguồn và disclaimer có thể gắn cờ sai. Chưa đủ bằng chứng grounding để dùng kết quả này như chứng nhận lâm sàng.</p></section>
+<section><h2>Học cách giao tiếp từ tư vấn bác sĩ công khai</h2>__DOCTOR_PATTERNS__<h3>Kiểm tra hiệu chuẩn bộ chấm</h3><pre>__JURY_DIAGNOSTICS__</pre><p>Sửa nhận diện phủ định trong bộ chấm có thể làm điểm tăng dù câu trả lời không đổi. Đây không phải bằng chứng chất lượng y khoa tăng. Không đổi ngưỡng grounding, nhãn urgency hoặc bỏ gate lâm sàng.</p></section>
 <nav><input id="search" placeholder="Tìm câu hỏi, câu trả lời, ID..."><select id="filter"><option value="all">Tất cả câu</option><option value="fail">Cần sửa / kiểm tra</option><option value="pass">Đạt phần mềm</option></select><button id="export">Tải toàn bộ JSON</button><button onclick="window.print()">In / PDF</button></nav><p id="count"></p>__CASES__
 <section><h2>Dấu vết tái lập</h2><pre>__PROVENANCE__</pre></section></main><script type="application/json" id="report-data">__DATA__</script><script>
 const search=document.getElementById('search'),filter=document.getElementById('filter'),cases=[...document.querySelectorAll('.case')];function update(){let count=0;for(const card of cases){const show=(filter.value==='all'||card.dataset.state===filter.value)&&card.textContent.toLowerCase().includes(search.value.toLowerCase());card.hidden=!show;if(show)count++}document.getElementById('count').textContent=count+' câu đang hiển thị'}search.addEventListener('input',update);filter.addEventListener('change',update);update();document.getElementById('export').addEventListener('click',()=>{const data=document.getElementById('report-data').textContent;const url=URL.createObjectURL(new Blob([data],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='MedGuard_V28_Output_Audit.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000)});
@@ -222,9 +225,17 @@ const search=document.getElementById('search'),filter=document.getElementById('f
         "DISAGREE": len(s['urgency_disagreements']), "FAILURES": json.dumps(s['failures_by_type'], ensure_ascii=False, indent=2),
         "PROVENANCE": json.dumps(report['provenance'], ensure_ascii=False, indent=2)}
     mapping["BASELINE"] = json.dumps(report.get("baseline_comparison", {}), ensure_ascii=False, indent=2)
+    mapping["JURY_DIAGNOSTICS"] = json.dumps({"safety_violations": s.get("jury_safety_violations"), "failed_by_dimension": s.get("jury_failed_by_dimension"), "calibration_baseline": report.get("jury_calibration_baseline")}, ensure_ascii=False, indent=2)
+    research = report.get("doctor_communication_research", {})
+    doctor_rows = ''.join(f'<tr><td><a href="{e(x["url"])}">{e(x["title"])}</a><br>{e(x["attribution"])}</td><td>{e(x["pattern"])}</td><td>{e(x["limit"])}</td></tr>' for x in research.get('sources', []))
+    contract = ''.join(f'<li>{e(x)}</li>' for x in research.get('proposed_answer_contract', []))
+    validation = research.get('independent_review_required', {})
+    requirements = ''.join(f'<li>{e(x)}</li>' for x in validation.get('release_requirements', []))
+    guideline = research.get('communication_guideline', {})
+    doctor_section = f'<p>{e(research.get("method", ""))}</p><table><tr><th>Tư vấn thực tế / tác giả</th><th>Điểm học hỏi</th><th>Giới hạn</th></tr>{doctor_rows}</table><p><a href="{e(guideline.get("url", ""))}">{e(guideline.get("title", ""))}</a>: {e(guideline.get("pattern", ""))}</p><h3>Cấu trúc trả lời cần hướng đến</h3><ol>{contract}</ol><h3>Điều kiện trước khi công bố chất lượng rộng hơn</h3><p>Đánh giá bác sĩ độc lập: {e(validation.get("status", "NOT_RUN"))}. {e(validation.get("design", ""))}</p><ul>{requirements}</ul><p>{e(validation.get("claim_policy", ""))}</p>'
     for key, value in mapping.items():
         template = template.replace(f"__{key}__", e(value))
-    return template.replace('__REFS__', refs).replace('__REVIEW__', review_rows).replace('__CASES__', ''.join(items)).replace('__DATA__', embedded)
+    return template.replace('__REFS__', refs).replace('__REVIEW__', review_rows).replace('__DOCTOR_PATTERNS__', doctor_section).replace('__CASES__', ''.join(items)).replace('__DATA__', embedded)
 
 
 def run() -> dict:
@@ -260,7 +271,10 @@ def run() -> dict:
             'disabled_side_effects': ['background agent submission', 'active learning capture'],
             'source_review_status': 'pending', 'external_judge': 'not run', 'browser_verification': 'not run'},
         'summary': summarize(results), 'references': REFERENCES, 'manual_review': current_review(results),
-        'baseline_comparison': baseline_comparison(summarize(results)), 'results': results}
+        'baseline_comparison': baseline_comparison(summarize(results)),
+        'doctor_communication_research': json.loads((ROOT / 'docs/doctor_communication_patterns.json').read_text(encoding='utf-8')),
+        'jury_calibration_baseline': json.loads((OUT / 'baseline_effe815_jury.json').read_text(encoding='utf-8')),
+        'results': results}
 
 
 def baseline_comparison(summary: dict) -> dict:

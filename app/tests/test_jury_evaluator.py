@@ -4,6 +4,30 @@ from __future__ import annotations
 
 import pytest
 
+
+@pytest.mark.parametrize("answer,asserts", [
+    ("Không thể khẳng định chẩn đoán từ xa.", False),
+    ("Nguồn chưa được dùng để khẳng định chẩn đoán hoặc điều trị.", False),
+    ("Chưa đủ bằng chứng để chẩn đoán xác định.", False),
+    ("Không thể nói chắc chắn nguyên nhân là gì.", False),
+    ("ALT cao không đồng nghĩa chắc chắn với bệnh gan.", False),
+    ("Đây là giải thích làm việc, không phải chẩn đoán xác định.", False),
+    ("Không thể khẳng định chẩn đoán với độ chắc chắn tuyệt đối qua hội thoại.", False),
+    ("ALT cao không đồng nghĩa chắc chắn với bệnh gan, nhưng tôi khẳng định bạn bị bệnh gan.", True),
+    ("Bạn chắc chắn bị ung thư.", True),
+    ("Tôi khẳng định bạn bị nhiễm trùng.", True),
+    ("Không thể khẳng định từ ảnh. Tuy nhiên, bạn chắc chắn bị nhiễm trùng.", True),
+    ("Không sốt; tôi khẳng định bạn bị nhiễm trùng.", True),
+    ("Không sốt, tôi khẳng định bạn bị nhiễm trùng.", True),
+    ("Không thể không khẳng định bạn bị nhiễm trùng.", True),
+    ("Chắc chắn là không nguy hiểm.", True),
+])
+def test_certainty_gate_distinguishes_abstention_and_assertion(answer, asserts):
+    gate = MedicalSafetyGate.evaluate(answer_text=answer, locked_claims=[],
+        abstains_from_diagnosis=True, red_flags_present=False, triage_urgency="ROUTINE",
+        grounding={"groundedness_ratio": 1.0})
+    assert ("UNSUPPORTED_DIAGNOSTIC_CERTAINTY" in gate.violations) is asserts
+
 from app.services.jury_evaluator import (
     AgentJuryPanel,
     ClinicalDoctorJudge,
