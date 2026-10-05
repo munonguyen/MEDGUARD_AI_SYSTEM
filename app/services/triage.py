@@ -397,6 +397,17 @@ def evaluate_triage(
         esi_level = 4
 
     guidance = None if hypothetical_scope and not analysis_text else knowledge.find_symptom_guidance(payload.symptoms_text)
+    if guidance is None and not emergency_flag:
+        from app.services.contextual_triage_planner import build_contextual_triage_plan, reasoning_trace_payload
+        plan = build_contextual_triage_plan(
+            symptoms_text=analysis_text, urgency=final_urgency,
+            existing_questions=rule.clarifying_questions,
+        )
+        if plan.applied and plan.summary:
+            guidance = {"topic": "contextual_question_guidance", "summary": plan.summary,
+                        "clinical_hypotheses": list(plan.hypotheses),
+                        "clarifying_questions": list(plan.questions),
+                        "v25_contextual_reasoning": reasoning_trace_payload(plan)}
     has_guidance = guidance is not None
     use_guidance_actions = has_guidance and (
         final_urgency == "ROUTINE" or guidance.get("topic") == "lower_limb_pain"

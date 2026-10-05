@@ -76,7 +76,7 @@ try {
   await desktop.getByRole('button', { name: 'Tôi bị đau ngực và khó thở' }).click();
   await desktop.getByRole('button', { name: 'Gửi tin nhắn' }).click();
   await desktop.getByText('MedGuard đang xử lý', { exact: true }).waitFor();
-  if (await desktop.getByRole('heading', { name: 'Bạn cần được đánh giá cấp cứu ngay', exact: true }).count()) {
+  if (await desktop.getByRole('heading', { name: 'Gọi 115 hoặc đến khoa Cấp cứu ngay', exact: true }).count()) {
     throw new Error('Final emergency response became visible before processing completed');
   }
   await desktop.screenshot({ path: fileURLToPath(new URL('ui-processing-desktop.png', artifactDir)) });

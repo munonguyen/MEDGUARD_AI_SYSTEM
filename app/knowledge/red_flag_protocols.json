@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "version": "2.5.0",
-    "effective_from": "2026-09-12",
+    "version": "2.5.1",
+    "effective_from": "2026-10-02",
     "source_references": [
       "Manchester Triage System (MTS)",
       "Emergency Severity Index (ESI) Implementation Handbook v4",
@@ -15,7 +15,8 @@
       "NHS Deep vein thrombosis: symptoms and emergency advice (reviewed April 2026)",
       "WHO Rabies: vaccinations and immunization — post-exposure wound care",
       "NHS Stomach pain in pregnancy: urgent advice",
-      "NHS High temperature in children: immediate action criteria"
+      "NHS High temperature in children: immediate action criteria",
+      "https://www.nhs.uk/symptoms/shortness-of-breath/"
     ]
   },
   "red_flag_patterns": [
@@ -153,7 +154,7 @@
         "code": "RESPIRATORY",
         "label": "Hô hấp"
       },
-      "advice": "Suy hô hấp cấp tính. Sử dụng thuốc giãn phế quản tác dụng nhanh nếu có và đến cơ sở cấp cứu ngay.",
+      "advice": "Khó thở có thể có nhiều nguyên nhân và chưa thể xác định chỉ qua tin nhắn. Gọi 115 hoặc đến khoa Cấp cứu ngay; không tự lái xe và nhờ người bên cạnh hỗ trợ. Không tự dùng thuốc mới để trì hoãn việc khám.",
       "stop_downstream": true
     },
     {

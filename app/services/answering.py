@@ -324,18 +324,14 @@ def _triage_answer(
     specialty_label = specialty.get("label")
     emergency = bool(result.get("emergency_flag"))
     titles = {
-        "EMERGENCY": "Bạn cần được đánh giá cấp cứu ngay",
+        "EMERGENCY": "Gọi 115 hoặc đến khoa Cấp cứu ngay",
         "URGENT": "Bạn nên được nhân viên y tế đánh giá sớm",
         "ROUTINE": "Đánh giá ban đầu: mức theo dõi thường quy",
     }
     urgency_labels = {"EMERGENCY": "cấp cứu", "URGENT": "khẩn", "ROUTINE": "thường quy"}
     key_points = [f"Mức phân luồng: {urgency_labels.get(urgency, urgency)}"]
-    if esi:
-        key_points.append(
-            f"Mã ưu tiên nội bộ: ESI {esi} (đây là mức ưu tiên tiếp nhận, không phải xác suất chẩn đoán)"
-        )
     if specialty_label:
-        key_points.append(f"Hướng tiếp nhận do quy tắc lựa chọn: {specialty_label}")
+        key_points.append(f"Nơi khám phù hợp: {specialty_label}")
     key_points.extend(f"Dấu hiệu được nhận diện: {flag}" for flag in result.get("red_flags", []))
 
     is_dual_crisis = bool(
@@ -354,6 +350,7 @@ def _triage_answer(
             summary = reply
         else:
             summary = (
+                "Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay; không tự lái xe. "
                 "Các dấu hiệu bạn mô tả nằm trong nhóm cảnh báo cần đánh giá khẩn cấp. "
                 "Tin nhắn không đủ để xác định nguyên nhân, vì vậy ưu tiên lúc này là tiếp cận cấp cứu thay vì tiếp tục tự theo dõi tại nhà."
             )
@@ -467,6 +464,10 @@ def _safety_answer(result: dict[str, Any], sources: list[ChatEvidenceSource]) ->
             if medicine_text
             else "Bạn không nên tự dùng hoặc phối hợp thuốc trong tình huống đã mô tả; "
         ) + f"bộ quy tắc ghi nhận {len(hard_stops)} cảnh báo bắt buộc dừng và cần bác sĩ hoặc dược sĩ xác nhận."
+        if any(w.get("type") == "DRUG_DRUG_INTERACTION" for w in hard_stops):
+            summary += " Có cảnh báo tương tác thuốc; đây là nguy cơ cần rà soát, không phải xác nhận bạn đã bị biến chứng."
+        if any("xuất huyết" in str(w.get("clinical_consequence", "")).lower() for w in hard_stops):
+            summary += " Phối hợp này có thể tăng nguy cơ chảy máu."
     elif warnings:
         ingestion_warns = [w for w in warnings if w.get("type") == "REPORTED_ACUTE_INGESTION"]
         if ingestion_warns:
@@ -481,7 +482,7 @@ def _safety_answer(result: dict[str, Any], sources: list[ChatEvidenceSource]) ->
         medication = f"{warning.get('medication')}: " if warning.get("medication") else ""
         point = f"{medication}{warning.get('detail') or warning.get('type', 'Cảnh báo thuốc')}"
         if warning.get("clinical_consequence"):
-            point += f" Hệ quả được ghi nhận: {warning['clinical_consequence']}"
+            point += f" Nguy cơ có thể xảy ra: {warning['clinical_consequence']}"
         key_points.append(point)
         if warning.get("recommendation") and warning.get("tier") != "HARD_STOP":
             next_steps.append(str(warning["recommendation"]))
@@ -630,6 +631,28 @@ def build_grounded_answer(
         ), intent)
 
     sources = _sources(intent)
+    if result.get("clinical_task") == "LAB_INTERPRETATION":
+        return _with_narrative(GroundedAnswer(
+            title="Giải thích kết quả xét nghiệm", summary=result.get("summary") or reply,
+            key_points=list(result.get("interpretation_points") or []),
+            safety_notes=list(result.get("prohibited_actions") or []),
+            questions=list(result.get("clarifying_questions") or []),
+            next_steps=["Mang kết quả, đơn vị và khoảng tham chiếu đến bác sĩ để đối chiếu; xét nghiệm lại hoặc làm thêm xét nghiệm khi được chỉ định."],
+            limitations=["Kết quả xét nghiệm cần được đánh giá cùng triệu chứng, bệnh nền và các xét nghiệm liên quan; không thay thế chẩn đoán trực tiếp."],
+            decision_basis="versioned_rules", evidence_state="bounded_result",
+            rule_version="lab-interpretation@1.0.0", requires_human_review=True,
+        ), intent)
+    if result.get("education"):
+        education = result["education"]
+        return _with_narrative(GroundedAnswer(
+            title=education["title"], summary=education["summary"],
+            next_steps=education["next_steps"], questions=education["questions"],
+            limitations=[education["limitations"]],
+            sources=[ChatEvidenceSource(name="Nguồn tham khảo hướng dẫn sức khỏe", version="health-education@1.0.0",
+                approval_status="pending_review", references=education["references"])],
+            decision_basis="versioned_rules", evidence_state="bounded_result",
+            rule_version="health-education@1.0.0", requires_human_review=True,
+        ), intent)
     if intent == "triage":
         return _with_narrative(_triage_answer(result, sources, reply=reply), intent)
     if intent == "safety":

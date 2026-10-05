@@ -191,7 +191,7 @@ def interpret_laboratory_text(text: str) -> LabInterpretation:
             "Trong thực hành lâm sàng, đường huyết tương lúc đói khoảng từ 7,0 mmol/L (126 mg/dL) trở lên nằm trong vùng chẩn đoán đái tháo đường; khi không có tăng đường huyết rõ kèm triệu chứng điển hình, kết quả thường cần được xác nhận theo quy trình chẩn đoán phù hợp.",
         ]
         if mmol_value >= 7.0:
-            summary = "Kết quả bạn cung cấp nằm trong vùng cần được bác sĩ xác nhận và đánh giá thêm, không phải bằng chứng đủ để tự kết luận chẩn đoán."
+            summary = "Kết quả này cần xác nhận bởi bác sĩ và đánh giá thêm; không thể chẩn đoán chỉ từ một số đo đơn lẻ."
         else:
             summary = "Kết quả cần được đối chiếu với khoảng tham chiếu và các xét nghiệm/bối cảnh khác trước khi kết luận."
         return LabInterpretation(

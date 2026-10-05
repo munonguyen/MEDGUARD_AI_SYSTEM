@@ -125,8 +125,10 @@ def evaluate_abstraction_lattice(graph: SemanticRelationGraph) -> LatticeEvaluat
                 archetype=AbstractThreatArchetype.CARDIOPULMONARY_THREAT,
                 is_emergency=True,
                 confidence=0.98,
-                grounding_concepts=["chest_pressure", "autonomic_or_ischemic_features"],
-                clinical_rationale="Hội chứng đè nghẹt ngực cấp kèm triệu chứng thần kinh tự chủ hoặc lan tỏa (nghi thiếu máu cơ tim/ACS).",
+                grounding_concepts=["chest_pressure", "exertion_trigger" if has_exertion and not (has_diaphoresis or has_radiation or has_dyspnea) else "autonomic_or_ischemic_features"],
+                clinical_rationale=("Cảm giác đè nặng ngực liên quan gắng sức cần được đánh giá để loại trừ nguyên nhân tim mạch nguy hiểm."
+                    if has_exertion and not (has_diaphoresis or has_radiation or has_dyspnea)
+                    else "Hội chứng đè nghẹt ngực cấp kèm triệu chứng thần kinh tự chủ hoặc lan tỏa (nghi thiếu máu cơ tim/ACS)."),
             )
         )
 

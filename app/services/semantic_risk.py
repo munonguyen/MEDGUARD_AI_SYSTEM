@@ -155,8 +155,16 @@ _CRITICAL_SYNDROMES: list[dict[str, Any]] = [
         "id": "syn_trauma_anticoagulation",
         "label": "chấn thương đầu trên bệnh nhân dùng thuốc chống đông",
         "patterns": [
-            r"\b(dap dau|va dau|nga|chan thuong dau|dau dau)\b.*?\b(warfarin|chong dong|aspirin|clopidogrel|van tim)\b",
-            r"\b(warfarin|chong dong|van tim)\b.*?\b(dap dau|va dau|nga|chan thuong dau|dau dau)\b",
+            r"\b(dap dau|va dau|nga|chan thuong dau)\b.*?\b(warfarin|chong dong|aspirin|clopidogrel|van tim)\b",
+            r"\b(warfarin|chong dong|van tim)\b.*?\b(dap dau|va dau|nga|chan thuong dau)\b",
+        ],
+    },
+    {
+        "id": "syn_anticoagulant_new_severe_headache",
+        "label": "đau đầu mới xuất hiện hoặc dữ dội khi dùng thuốc chống đông cần đánh giá khẩn cấp",
+        "patterns": [
+            r"\b(warfarin|chong dong)\b.*?\b(dau dau du doi|dau dau dot ngot|dau dau moi xuat hien)\b",
+            r"\b(dau dau du doi|dau dau dot ngot|dau dau moi xuat hien)\b.*?\b(warfarin|chong dong)\b",
         ],
     },
     {
@@ -238,7 +246,7 @@ _CONCERNING_PATTERNS: list[dict[str, Any]] = [
             r"\b(?:cho|meo|chuot|dong vat|vat nuoi)\b.*?\bcan\b",
             r"\b(?:cho la can|can rach|rach nat.*chay mau)\b",
             r"\b(bi tieu|cau bang quang|tuc buot)\b",
-            r"\b(dau quon tung con|hong lung|nuoc tieu do|than)\b",
+            r"\b(dau quon tung con|hong lung|nuoc tieu do|dau vung than)\b",
             r"\b(yeu 2 chan|tien trien|gang vo|guillain)\b",
             r"\b(liet mat|nham mat khong kin)\b",
             r"\b(diec dac|mat thinh luc dot ngot)\b",
@@ -335,7 +343,12 @@ class SemanticRiskEvaluator:
                     continue
 
             for pat in syn["patterns"]:
-                if re.search(pat, norm, re.IGNORECASE):
+                matches = list(re.finditer(pat, norm, re.IGNORECASE))
+                if syn_id == "syn_anticoagulant_new_severe_headache":
+                    matches = [m for m in matches if all(
+                        contains_affirmed_phrase(norm, value) for value in m.groups() if value
+                    )]
+                if matches:
                     matched_critical.append(syn["label"])
                     break
 
@@ -352,7 +365,10 @@ class SemanticRiskEvaluator:
         matched_concerning: list[str] = []
         for con in _CONCERNING_PATTERNS:
             for pat in con["patterns"]:
-                if re.search(pat, norm, re.IGNORECASE):
+                if any(
+                    contains_affirmed_phrase(norm, match.group(0))
+                    for match in re.finditer(pat, norm, re.IGNORECASE)
+                ):
                     matched_concerning.append(con["label"])
                     break
 

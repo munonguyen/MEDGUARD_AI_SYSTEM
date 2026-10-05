@@ -210,7 +210,8 @@ def render_report(report: dict) -> str:
 <section><h2>Các kết quả đã đo</h2><table><tr><th>Phép kiểm tra</th><th>Kết quả</th></tr><tr><td>Rubric trên văn bản dự kiến hiển thị</td><td>__AVG__/14</td></tr><tr><td>Đạt tất cả điều kiện nghiêm ngặt</td><td>__PASS__/__TOTAL__</td></tr><tr><td>ProfessionalResponseGate · nội dung mặc định</td><td>__PROF__/__TOTAL__</td></tr><tr><td>ProfessionalResponseGate · narrative</td><td>__NARR__/__TOTAL__</td></tr><tr><td>AgentJuryPanel · 4 bộ chấm heuristic</td><td>__JURY__/__TOTAL__</td></tr><tr><td>Sai khác mức phân tầng</td><td>__DISAGREE__</td></tr><tr><td>Đối chiếu trực tiếp đầu ra Ada/Buoy</td><td>Chưa chạy · không có tỷ lệ thắng/thua</td></tr></table></section>
 <section><h2>Phương pháp và giới hạn</h2><p>Câu trả lời được gọi thật qua /v1/chat; không thay bằng đáp án mẫu. Khóa idempotency và hội thoại mới cho mỗi ca. Bộ câu hỏi tổng hợp có nhãn kỳ vọng chưa được bác sĩ độc lập duyệt. HTTP dùng FastAPI TestClient trong development; gateway mô hình ngoài chưa cấu hình. Không đo độ trễ production hoặc tính ổn định Gemini.</p><p>ProfessionalResponseGate và AgentJuryPanel là phần mềm nội bộ dựa trên quy tắc/heuristic. Các tên “ClinicalDoctorJudge” hoặc “LegalComplianceJudge” là tên lớp, không phải bác sĩ/luật sư hay đánh giá độc lập. Groundedness chỉ là đối soát từ/ngữ, số và phủ định với 5 đoạn tài liệu lấy sau khi trả lời; không chứng minh nguồn thực sự đã được pipeline dùng, cũng không chứng minh câu trả lời đúng y khoa. Không chạy DeepEval/Ragas/Langfuse bên ngoài.</p><p>Văn bản trong báo cáo được chiếu từ schema theo GroundedAnswer.jsx, giữ thứ tự và giới hạn mục. Đây chưa phải bằng chứng đọc DOM trên trình duyệt. Response JSON gốc, narrative và các nguồn được giữ riêng để kiểm tra chéo. Không tự thêm disclaimer hoặc nguồn vào đầu ra để nâng điểm.</p><h3>Đối chiếu cùng lĩnh vực</h3><p>Ada mô tả quy trình thu thập triệu chứng, yếu tố nguy cơ và khả năng bệnh; Buoy mô tả trao đổi triệu chứng, chọn nơi chăm sóc và theo dõi. Đây là đối chiếu khả năng công bố, không phải thử nghiệm chất lượng trả lời trực tiếp. Để kết luận vượt trội cần cùng tình huống, cùng ngôn ngữ, cùng lượt hỏi, đầu ra đối thủ thật và người chấm độc lập giấu tên hệ thống.</p><ul>__REFS__</ul></section>
 <section><h2>Nhận xét sau khi đọc đầu ra thực tế</h2><table><tr><th>Ưu tiên / ca</th><th>Phát hiện và biện pháp</th></tr>__REVIEW__</table><p>Nhận xét do trợ lý đọc báo cáo, không phải đánh giá bác sĩ độc lập.</p></section>
-<section><h2>Các cờ phần mềm</h2><pre>__FAILURES__</pre><p>Không phải mọi cảnh báo heuristic đều là lỗi y khoa thật; từng ca cần được đọc lại. Tuy nhiên sai khác urgency, khẳng định không có bằng chứng và sai thứ tự hành động không được bù bằng điểm trung bình. Hội đồng heuristic chỉ đạt 2/60 cũng không đồng nghĩa 58 câu sai y khoa: bộ chấm từ/ngữ, nguồn và disclaimer có thể gắn cờ sai.</p></section>
+<section><h2>So sánh trước và sau sửa</h2><pre>__BASELINE__</pre><p>Cùng 60 câu hỏi và cùng điều kiện gateway không sẵn sàng. Không đổi nhãn kỳ vọng để tăng điểm. Nhãn tổng hợp chưa được bác sĩ duyệt.</p></section>
+<section><h2>Các cờ phần mềm</h2><pre>__FAILURES__</pre><p>Không phải mọi cảnh báo heuristic đều là lỗi y khoa thật; từng ca cần được đọc lại. Tuy nhiên sai khác urgency, khẳng định không có bằng chứng và sai thứ tự hành động không được bù bằng điểm trung bình. Hội đồng heuristic đạt __JURY__/__TOTAL__; các ca còn lại không mặc nhiên là sai y khoa: bộ chấm từ/ngữ, nguồn và disclaimer có thể gắn cờ sai. Chưa đủ bằng chứng grounding để dùng kết quả này như chứng nhận lâm sàng.</p></section>
 <nav><input id="search" placeholder="Tìm câu hỏi, câu trả lời, ID..."><select id="filter"><option value="all">Tất cả câu</option><option value="fail">Cần sửa / kiểm tra</option><option value="pass">Đạt phần mềm</option></select><button id="export">Tải toàn bộ JSON</button><button onclick="window.print()">In / PDF</button></nav><p id="count"></p>__CASES__
 <section><h2>Dấu vết tái lập</h2><pre>__PROVENANCE__</pre></section></main><script type="application/json" id="report-data">__DATA__</script><script>
 const search=document.getElementById('search'),filter=document.getElementById('filter'),cases=[...document.querySelectorAll('.case')];function update(){let count=0;for(const card of cases){const show=(filter.value==='all'||card.dataset.state===filter.value)&&card.textContent.toLowerCase().includes(search.value.toLowerCase());card.hidden=!show;if(show)count++}document.getElementById('count').textContent=count+' câu đang hiển thị'}search.addEventListener('input',update);filter.addEventListener('change',update);update();document.getElementById('export').addEventListener('click',()=>{const data=document.getElementById('report-data').textContent;const url=URL.createObjectURL(new Blob([data],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='MedGuard_V28_Output_Audit.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000)});
@@ -220,6 +221,7 @@ const search=document.getElementById('search'),filter=document.getElementById('f
         "PROF": s['professional_default_passed'], "NARR": s['professional_expanded_passed'], "JURY": s['posthoc_jury_passed'],
         "DISAGREE": len(s['urgency_disagreements']), "FAILURES": json.dumps(s['failures_by_type'], ensure_ascii=False, indent=2),
         "PROVENANCE": json.dumps(report['provenance'], ensure_ascii=False, indent=2)}
+    mapping["BASELINE"] = json.dumps(report.get("baseline_comparison", {}), ensure_ascii=False, indent=2)
     for key, value in mapping.items():
         template = template.replace(f"__{key}__", e(value))
     return template.replace('__REFS__', refs).replace('__REVIEW__', review_rows).replace('__CASES__', ''.join(items)).replace('__DATA__', embedded)
@@ -244,19 +246,50 @@ def run() -> dict:
             results.append(row)
             print(f'{case["case_id"]}: {"PASS" if not row["strict_failures"] else "REVIEW"} urgency={row.get("urgency")}', flush=True)
     commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
-    diff = subprocess.check_output(['git', 'diff', 'HEAD'], cwd=ROOT)
+    diff = subprocess.check_output(['git', 'diff', 'HEAD', '--', 'app/services', 'app/knowledge', 'app/models', 'scripts', 'frontend/src'], cwd=ROOT)
     return {'generated_at': datetime.now(timezone.utc).isoformat(), 'schema_version': '1.0.0',
         'provenance': {'commit': commit, 'runner_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
             'dataset_sha256': hashlib.sha256(dataset_path.read_bytes()).hexdigest(),
             'challenge_sha256': hashlib.sha256(json.dumps(challenge_cases(), ensure_ascii=False, sort_keys=True).encode()).hexdigest(),
             'working_tree_diff_sha256': hashlib.sha256(diff).hexdigest(), 'run_id': run_id,
+            'working_tree_diff_scope': 'services, knowledge, models, scripts, frontend/src; excludes generated reports',
             'gateway_configured': bool(settings.llm_gateway_url), 'environment': settings.environment,
             'agent_mode': settings.agent_mode, 'agent_sync_enabled': settings.agent_sync_enabled,
             'agent_coverage_scope': settings.agent_coverage_scope,
             'runtime': 'FastAPI TestClient; public chat pipeline; no answer substitution',
             'disabled_side_effects': ['background agent submission', 'active learning capture'],
             'source_review_status': 'pending', 'external_judge': 'not run', 'browser_verification': 'not run'},
-        'summary': summarize(results), 'references': REFERENCES, 'manual_review': MANUAL_REVIEW, 'results': results}
+        'summary': summarize(results), 'references': REFERENCES, 'manual_review': current_review(results),
+        'baseline_comparison': baseline_comparison(summarize(results)), 'results': results}
+
+
+def baseline_comparison(summary: dict) -> dict:
+    path = OUT / 'baseline_006a9cd_summary.json'
+    if not path.exists():
+        return {'status': 'BASELINE_UNAVAILABLE'}
+    baseline = json.loads(path.read_text(encoding='utf-8'))
+    dimensions = ('strict_passed', 'strict_failed', 'professional_default_passed',
+                  'professional_expanded_passed', 'posthoc_jury_passed', 'rubric_average')
+    return {'baseline_commit': baseline['commit'], 'same_questions': True,
+            'before': {k: baseline['summary'][k] for k in dimensions},
+            'after': {k: summary[k] for k in dimensions}}
+
+
+def current_review(results: list[dict]) -> list[dict]:
+    failures = {r['case_id']: r['strict_failures'] for r in results}
+    rows = []
+    for item in MANUAL_REVIEW:
+        row = dict(item)
+        remaining = [case for case in row['cases'] if failures.get(case)]
+        if remaining:
+            row['assessment'] = 'Còn cần đánh giá: ' + ', '.join(remaining) + '. Nhãn phân luồng chưa được chuyên gia duyệt; không tự hạ cảnh báo để khớp nhãn.'
+            row['next_step'] = 'Duyệt lâm sàng độc lập cho các tình huống còn khác mức; kiểm định giao diện và benchmark đối thủ thật trước khi tuyên bố vượt trội.'
+        else:
+            row['finding'] = 'Phát hiện ban đầu (trước sửa): ' + row['finding']
+            row['assessment'] = 'Đã sửa đường dự phòng/định tuyến/nội dung liên quan; các ca này không còn cờ nghiêm ngặt trong lần chạy hiện tại.'
+            row['next_step'] = 'Giữ kiểm thử hồi quy và theo dõi trên gateway thật; kết quả không thay thế phê duyệt lâm sàng.'
+        rows.append(row)
+    return rows
 
 
 def main() -> int:

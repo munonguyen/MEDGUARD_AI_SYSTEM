@@ -488,6 +488,8 @@ def _detect_intent(payload: ChatRequest, normalized_text: str) -> ChatIntent:
         return "schedule"
 
     def contains(keyword: str) -> bool:
+        if keyword == "nang" and re.search(r"\bnang\s+\d+(?:[.,]\d+)?\s*(?:kg|kilogram)\b", normalized_text):
+            return False
         if " " not in keyword and len(keyword) <= 3:
             return any(
                 contains_affirmed_phrase(normalized_text, match.group(0))
@@ -577,6 +579,10 @@ def _detect_intent(payload: ChatRequest, normalized_text: str) -> ChatIntent:
             "co nguy hiem",
             "co sao khong",
             "co on khong",
+            "co the uong",
+            "co the dung",
+            "co nen uong",
+            "co nen dung",
         )
     ) or bool(
         re.search(
@@ -585,6 +591,11 @@ def _detect_intent(payload: ChatRequest, normalized_text: str) -> ChatIntent:
         )
     )
     if has_known_medication and asks_medication_safety:
+        # A symptom explaining why a medicine is requested must not displace
+        # the explicit medication question. Acute emergencies are still forced
+        # to triage by the safety floor in evaluate_chat.
+        if not has_non_vital_red_flags and sem_intent.urgency != "EMERGENCY":
+            return "safety"
         scores["safety"] += 8
     if has_known_medication and _requests_personalized_dose(normalized_text):
         scores["safety"] += 14
@@ -1321,6 +1332,17 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
     ):
         intent = "triage"
     patient_ref = _patient_ref(payload, latest_text)
+
+    # Explicit educational questions have a bounded answer even without the
+    # model gateway. Do not replace acute red flags or ongoing clinical history.
+    if (payload.intent_hint == "auto" and len(payload.messages) == 1
+            and pre_ood_safety_floor.disposition == "ROUTINE"
+            and not _check_red_flag_patterns(normalize_clinical_concepts(latest_text))):
+        from app.services.health_education import request_guidance
+        education = request_guidance(latest_text)
+        if education:
+            return _response(payload, ctx, status="answered", intent=education["intent"],
+                             reply=education["summary"], result={"education": education})
 
     if intent == "authenticity":
         latest = payload.messages[-1].content

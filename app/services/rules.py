@@ -74,6 +74,16 @@ def _check_red_flag_patterns(text: str) -> list[dict]:
     return matched
 
 
+def _explicit_mild_dyspnea(text: str) -> bool:
+    """Qualify only an affirmed mild symptom; other emergency rules still run."""
+    return any(contains_affirmed_phrase(text, phrase) for phrase in (
+        "hoi kho tho", "kho tho nhe",
+    )) and not any(contains_affirmed_phrase(text, phrase) for phrase in (
+        "kho tho du doi", "kho tho nhieu", "khong noi duoc", "moi tim",
+        "tim moi", "tho rit", "co keo", "ngat", "hon me",
+    ))
+
+
 def _matches_clinical_pattern(text: str, pattern: dict) -> bool:
     """Match either an exact phrase or every required clinical concept group.
 
@@ -95,6 +105,9 @@ def _matches_clinical_pattern(text: str, pattern: dict) -> bool:
     phrases = (*pattern.get("patterns_vi", []), *pattern.get("patterns_en", []))
     for phrase in phrases:
         norm_phrase = normalize_search_text(phrase)
+        if (pattern.get("category") == "severe_respiratory_distress"
+                and norm_phrase == "kho tho" and _explicit_mild_dyspnea(text)):
+            continue
         if norm_phrase == "tia":
             # Guard against Vietnamese homophones: "tía tô", "tia sáng", "tia chớp", "tia lửa", "tia UV"
             if any(h in text for h in ("tia to", "tia sang", "tia chop", "tia lua", "tia uv")):
@@ -855,6 +868,16 @@ def triage_rules(symptoms_text: str, vitals: VitalSigns | None = None) -> Triage
         )
 
     # Phase 5: Urgent clinical patterns from knowledge base (ESI 3)
+    if _explicit_mild_dyspnea(text):
+        return TriageRuleResult(
+            urgency="URGENT", emergency_flag=False, red_flags=[], esi_level=3,
+            recommended_specialty=("RESPIRATORY", "Hô hấp"),
+            clarifying_questions=["Khó thở bắt đầu lúc nào; có xảy ra khi nghỉ hoặc tăng dần không?"],
+            advice=("Khó thở mới xuất hiện dù nhẹ cần được nhân viên y tế đánh giá sớm trong ngày. "
+                    "Dừng gắng sức và nghỉ ở nơi an toàn. Gọi 115 ngay nếu khó thở tăng nhanh, "
+                    "không nói được cả câu, tím môi, đau ngực hoặc choáng ngất. "
+                    "Chưa thể xác định nguyên nhân chỉ qua tin nhắn; không tự dùng thuốc mới."),
+        )
     for u_pat in knowledge.urgent_patterns:
         if _matches_clinical_pattern(text, u_pat):
             configured_specialty = u_pat.get("specialty") or {}
