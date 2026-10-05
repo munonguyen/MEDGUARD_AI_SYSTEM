@@ -1119,7 +1119,8 @@ def _response(
         conversation_id=payload.conversation_id,
         status=status,
         intent=intent,
-        reply=answer.summary,
+        reply=("\n\n".join(block.text for block in answer.narrative)
+               if verification_status == "verified" and answer.narrative else answer.summary),
         required_fields=fields,
         extracted=extracted or {},
         result=serialized,

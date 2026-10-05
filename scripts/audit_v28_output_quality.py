@@ -126,6 +126,12 @@ def display_projection(body: dict) -> dict:
         blocks.extend(narrative)
     limitations = [] if is_brief else (answer.get("limitations") or [])[:2]
     blocks.extend(str(x) for x in limitations)
+    if body.get('verification_status') == 'verified' and body.get('answer_origin') == 'gateway_verified' and answer.get('narrative'):
+        narrative = [str(b['text']) for b in answer['narrative'] if b.get('text')]
+        blocks = [str(answer.get('title', '')), *narrative, *limitations]
+        sections = {k: [] for k in sections}
+    elif body.get('intent') in {'triage', 'safety', 'monitoring', 'followup', 'pharmacy'} and body.get('verification_status') in {'unavailable', 'timed_out', 'rejected', 'error', 'circuit_open'}:
+        blocks.insert(1, 'Chưa hoàn tất thẩm định câu trả lời. Nội dung bên dưới là hướng dẫn dự phòng, không phải tư vấn đã được thẩm định.')
     # A missing structured answer is not made valid by a hidden fallback field.
     return {"blocks": blocks, "text": "\n\n".join(blocks), "sections": sections,
         "narrative": narrative, "questions": questions, "limitations": limitations,

@@ -108,6 +108,10 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
   if (!answer) return null;
 
   const hasNarrative = answer.narrative?.length > 0;
+  const verifiedAgentPrimary = responseMeta.verification_status === 'verified'
+    && responseMeta.answer_origin === 'gateway_verified' && hasNarrative;
+  const agentUnavailable = clinicalIntents.has(responseMeta.intent)
+    && ['unavailable', 'timed_out', 'rejected', 'error', 'circuit_open'].includes(responseMeta.verification_status);
   // Clinical action/safety sections are never collapsed by brevity preferences.
   const isBrief = answer.presentation === 'brief' && !clinicalIntents.has(responseMeta.intent)
     && !(answer.safety_notes?.length) && !(answer.next_steps?.length)
@@ -145,7 +149,7 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
   const limitations = (answer.limitations || []).slice(0, 2);
 
   const narrativeBlocks = hasNarrative
-    ? answer.narrative.filter((block) => !isLegacyQuestionNarrative(block))
+    ? (verifiedAgentPrimary ? answer.narrative : answer.narrative.filter((block) => !isLegacyQuestionNarrative(block)))
     : [];
   const hasStructuredContent = Boolean(
     keyPoints.length
@@ -189,12 +193,19 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
         <div className="clinical-summary-copy">
           {!isBrief && <span className="clinical-kicker">{isClinical ? 'Đánh giá ban đầu' : 'Kết quả xử lý'}</span>}
           <h2>{answer.title}</h2>
-          <p>{focusedRoutine && answer.display_summary ? answer.display_summary : answer.summary}</p>
+          {agentUnavailable && <p role="status" className="agent-unavailable-notice">Chưa hoàn tất thẩm định câu trả lời. Nội dung bên dưới là hướng dẫn dự phòng, không phải tư vấn đã được thẩm định.</p>}
+          {!verifiedAgentPrimary && <p>{focusedRoutine && answer.display_summary ? answer.display_summary : answer.summary}</p>}
           {!isBrief && <small>{status.helper}</small>}
         </div>
       </section>
 
-      {!isBrief && hasStructuredContent ? (
+      {verifiedAgentPrimary ? (
+        <div className="answer-narrative clinical-agent-primary" data-answer-authority="verified-agent">
+          {narrativeBlocks.map((block, index) => (
+            <NarrativeBlock key={`primary-${index}`} block={block} sourcesById={sourcesById} />
+          ))}
+        </div>
+      ) : !isBrief && hasStructuredContent ? (
         <div className="clinical-report-body">
           <ClinicalSection
             title={isClinical ? 'Dữ kiện chính' : 'Thông tin chính'}
@@ -257,7 +268,7 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
         </div>
       )}
 
-      {(isBrief || isFocused || (hasNarrative && hasStructuredContent && narrativeBlocks.length > 0)) && (
+      {!verifiedAgentPrimary && (isBrief || isFocused || (hasNarrative && hasStructuredContent && narrativeBlocks.length > 0)) && (
         <details className="clinical-detail-panel">
           <summary>
             <span><Stethoscope size={15} /> {isClinical ? 'Giải thích chi tiết' : 'Chi tiết xử lý'}</span>
