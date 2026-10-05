@@ -257,6 +257,11 @@ class MedicalAgentGraph:
             domain=state.domain,
             top_k=2,
         )
+        if not state.retrieved_chunks:
+            from app.services.knowledge_pool import capture_knowledge_gap
+            capture_knowledge_gap(question=state.question, domain=state.domain,
+                intent=state.intent if state.intent in {'triage','safety','general','pharmacy','monitoring','followup'} else 'general',
+                reason='no_local_evidence')
         state.status = "writing"
 
     def node_writer(
@@ -609,6 +614,8 @@ class MedicalAgentGraph:
             if state.iteration > 0:
                 metrics.inc_counter("medguard_agent_loop_self_corrected_total")
             state.status = "verified"
+            from app.services.knowledge_pool import stage_verified_public_evidence
+            stage_verified_public_evidence(state.runtime_evidence, state.domain)
             return "COMPLETE"
 
         if state.iteration < self.max_iterations:

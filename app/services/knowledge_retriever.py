@@ -95,8 +95,9 @@ class RetrievedChunk:
         return asdict(self)
 
 
-_CLINICAL_DOCS = {"red_flag_protocols.json", "monitoring_rules.json", "crawled_clinical_guidelines.json"}
+_CLINICAL_DOCS = {"knowledge_pool", "red_flag_protocols.json", "monitoring_rules.json", "crawled_clinical_guidelines.json"}
 _PHARMA_DOCS = {
+    "knowledge_pool",
     "drug_interactions.json",
     "medication_incident_protocols.json",
     "contraindications.json",
@@ -137,9 +138,9 @@ class KnowledgeRetriever:
         self._token_index: dict[str, list[int]] = {}
         self._idf: dict[str, float] = {}
         self._intent_filters: dict[str, set[str]] = {
-            "safety": {"medication_incident_protocols.json", "drug_interactions.json", "contraindications.json", "allergy_cross_matrix.json", "atc_codes.json", "crawled_clinical_guidelines.json"},
-            "triage": {"red_flag_protocols.json", "crawled_clinical_guidelines.json"},
-            "monitoring": {"monitoring_rules.json", "crawled_clinical_guidelines.json"},
+            "safety": {"knowledge_pool", "medication_incident_protocols.json", "drug_interactions.json", "contraindications.json", "allergy_cross_matrix.json", "atc_codes.json", "crawled_clinical_guidelines.json"},
+            "triage": {"knowledge_pool", "red_flag_protocols.json", "crawled_clinical_guidelines.json"},
+            "monitoring": {"knowledge_pool", "monitoring_rules.json", "crawled_clinical_guidelines.json"},
             "authenticity": {"product_registry.json"},
         }
         self._build_index()
@@ -407,6 +408,18 @@ class KnowledgeRetriever:
         """Retrieve top-K most relevant chunks for query with optional intent and domain filtering."""
         start = perf_counter()
         effective_domain = domain or resolve_domain(intent, query)
+        from app.services.knowledge_pool import approved_pool_documents
+        pooled = approved_pool_documents(effective_domain)
+        chunks = [*self._chunks, *(RetrievedChunk(
+            chunk_id=row['id'], doc_name='knowledge_pool', title=row['title'],
+            section='reviewed_public_knowledge', content=row['content'],
+            source_reference=row['review'], source_url=row['source_url'],
+        ) for row in pooled)]
+        regions = [*self._chunk_regions, *(_primary_body_regions(c) for c in chunks[len(self._chunks):])]
+        token_index = dict(self._token_index)
+        for idx in range(len(self._chunks), len(chunks)):
+            for token in _tokenize(chunks[idx].title + ' ' + chunks[idx].content):
+                token_index[token] = [*token_index.get(token, []), idx]
         query_tokens = _tokenize(query, remove_stopwords=True)
         if not query_tokens:
             # Fallback to without removing stopwords if empty
@@ -423,15 +436,15 @@ class KnowledgeRetriever:
         domain_boosted: set[int] = set()
 
         for token in query_tokens:
-            matching_indices = self._token_index.get(token, [])
+            matching_indices = token_index.get(token, [])
             token_idf = self._idf.get(token, 1.0)
 
             for idx in matching_indices:
-                chunk = self._chunks[idx]
+                chunk = chunks[idx]
                 if allowed_docs and chunk.doc_name not in allowed_docs:
                     continue
 
-                chunk_regions = self._chunk_regions[idx]
+                chunk_regions = regions[idx]
                 if query_regions and chunk_regions and query_regions.isdisjoint(chunk_regions):
                     continue
 
@@ -462,22 +475,22 @@ class KnowledgeRetriever:
             scores = {
                 idx: score
                 for idx, score in scores.items()
-                if self._chunk_regions[idx] & query_regions
+                if regions[idx] & query_regions
             }
 
         ranked_indices = sorted(scores.keys(), key=lambda i: scores[i], reverse=True)[:top_k]
 
         results = [
             RetrievedChunk(
-                chunk_id=self._chunks[i].chunk_id,
-                doc_name=self._chunks[i].doc_name,
-                title=self._chunks[i].title,
-                section=self._chunks[i].section,
-                content=self._chunks[i].content,
-                source_reference=self._chunks[i].source_reference,
-                source_url=self._chunks[i].source_url,
+                chunk_id=chunks[i].chunk_id,
+                doc_name=chunks[i].doc_name,
+                title=chunks[i].title,
+                section=chunks[i].section,
+                content=chunks[i].content,
+                source_reference=chunks[i].source_reference,
+                source_url=chunks[i].source_url,
                 score=round(scores[i], 3),
-                severity=self._chunks[i].severity,
+                severity=chunks[i].severity,
             )
             for i in ranked_indices
         ]

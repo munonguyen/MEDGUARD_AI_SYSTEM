@@ -158,6 +158,9 @@ _EPISODE_DOMAIN_MARKERS: dict[str, tuple[str, ...]] = {
         "kho noi",
     ),
     "musculoskeletal_spine": (
+        "cang co",
+        "dau tay",
+        "moi tay",
         "dau lung",
         "moi lung",
         "that lung",

@@ -94,6 +94,8 @@ def create_app() -> FastAPI:
 
     app.state.accounts = AccountStore()
     app.include_router(accounts_router, prefix="/v1")
+    from app.api.knowledge_pool import router as knowledge_pool_router
+    app.include_router(knowledge_pool_router)
     import os
 
     if os.getenv("MEDGUARD_ENVIRONMENT") == "production":

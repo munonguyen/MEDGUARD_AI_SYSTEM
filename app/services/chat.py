@@ -1062,6 +1062,10 @@ def _response(
     internal_agent_trace = answer.agent_trace
     if internal_agent_trace:
         agent_status = internal_agent_trace.status
+        # A disabled pipeline can coexist with an enabled chat configuration
+        # during startup/reconfiguration. Preserve the fallback API contract.
+        if agent_status == "disabled":
+            agent_status = "unavailable" if agent_eligible else "not_requested"
     elif agent_submitted:
         agent_status = "shadow_pending"
     orchestrator = {

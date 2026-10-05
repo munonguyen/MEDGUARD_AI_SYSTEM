@@ -28,6 +28,17 @@ def _tailor_guidance(
     v25_has_leading_mechanism = bool(
         isinstance(v25_trace, dict) and v25_trace.get("leading_hypotheses")
     )
+    normalized = normalize_search_text(symptoms_text)
+    if topic == "headache" and "dau dau" in normalized and any(
+        marker in normalized for marker in ("goc trai", "ben trai", "phia trai", "nua trai")
+    ):
+        summary = (
+            "Bạn đang đau vùng bên trái đầu; vị trí này chưa đủ để xác định nguyên nhân. "
+            "Cần biết cơn đau bắt đầu lúc nào, có xuất hiện đột ngột và dữ dội hay không, "
+            "cùng các triệu chứng đi kèm trước khi chọn cách xử trí."
+        )
+        questions = ["Cơn đau bắt đầu khi nào, mức độ từ 0 đến 10; có đột ngột dữ dội, yếu/tê, nói khó, nhìn mờ, sốt hoặc cứng cổ không?"]
+        return summary, questions
     if topic == "lower_limb_pain":
         norm = symptoms_text.lower()
         if summary and any(
@@ -397,6 +408,18 @@ def evaluate_triage(
         esi_level = 4
 
     guidance = None if hypothetical_scope and not analysis_text else knowledge.find_symptom_guidance(payload.symptoms_text)
+    if guidance and guidance.get('topic') == 'headache' and any(
+        marker in normalize_search_text(payload.symptoms_text)
+        for marker in ('goc trai', 'ben trai', 'phia trai', 'nua trai')
+    ):
+        guidance = {**guidance, 'clinical_hypotheses': [],
+                    'safety_net': [*guidance.get('safety_net', []),
+                        'Gọi 115 nếu đau đầu đột ngột rất dữ dội hoặc có yếu/tê một bên, nói khó, lú lẫn, ngất hay co giật; không tự lái xe.'],
+                    'source_references': ['https://www.nhs.uk/symptoms/headaches/']}
+    if guidance is None:
+        from app.services.knowledge_pool import capture_knowledge_gap
+        capture_knowledge_gap(question=payload.symptoms_text, domain='clinical',
+                              intent='triage', reason='no_matching_guidance')
     if guidance is None and not emergency_flag:
         from app.services.contextual_triage_planner import build_contextual_triage_plan, reasoning_trace_payload
         plan = build_contextual_triage_plan(
