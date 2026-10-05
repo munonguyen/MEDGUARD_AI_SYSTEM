@@ -51,6 +51,9 @@ class AnswerAssurance(BaseModel):
 class GroundedAnswer(BaseModel):
     title: str
     summary: str
+    presentation: Literal["brief", "focused", "detailed"] = "detailed"
+    display_summary: str | None = None
+    display_next_steps: list[str] | None = None
     clinical_hypotheses: list[str] = Field(default_factory=list)
     key_points: list[str] = Field(default_factory=list)
     next_steps: list[str] = Field(default_factory=list)

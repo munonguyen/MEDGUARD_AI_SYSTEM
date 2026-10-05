@@ -16,6 +16,22 @@ def request_guidance(text: str) -> dict | None:
     Severity and multi-turn history remain owned by the clinical pipeline.
     """
     n = normalize_search_text(text)
+    sleep_question = re.fullmatch(
+        r"(?:(?:toi|minh|em)\s+)?(?:co\s+)?(?:nen\s+)?ngu som(?:\s+(?:khong|co loi ich gi|co tac dung gi))?[?.!]*"
+        r"|ngu som co (?:loi|loi ich|tac dung) gi[?.!]*"
+        r"|giai thich chi tiet (?:loi ich|tac dung) cua ngu som[?.!]*", n)
+    if sleep_question:
+        value = _guidance("Ngủ sớm và đều đặn",
+            "Có, nếu phù hợp với lịch sinh hoạt của bạn. Đi ngủ sớm hơn để ngủ đủ và giữ giờ ngủ đều đặn có thể giúp giảm mệt mỏi, cải thiện sự tập trung, trí nhớ và tâm trạng. Điều quan trọng là ngủ đủ và ngủ tốt, không chỉ là lên giường sớm.",
+            [], [], "https://www.cdc.gov/sleep/about/index.html")
+        value.update(presentation="brief", requires_human_review=False)
+        if "chi tiet" in n:
+            value["next_steps"] = [
+                "Giữ giờ ngủ và thức dậy tương đối đều mỗi ngày, phù hợp lịch sinh hoạt.",
+                "Tạo phòng ngủ yên tĩnh, thoải mái; giảm dùng thiết bị điện tử trước giờ ngủ.",
+                "Tránh caffeine vào buổi chiều/tối và hạn chế bữa ăn lớn, rượu bia trước khi ngủ.",
+                "Nếu thường xuyên khó ngủ hoặc vẫn buồn ngủ dù ngủ đủ, hãy trao đổi với nhân viên y tế."]
+        return value
     if "thuoc" in n and re.search(r"\b(?:co the|co nen|nen|muon)\s+(?:tu\s+)?ngung\b", n):
         return _guidance("Không tự ngừng thuốc chỉ vì thấy đỡ",
             "Không tự ngừng thuốc đang được kê chỉ vì triệu chứng đã đỡ. Chưa biết tên thuốc, mục đích điều trị và thời gian dùng nên chưa thể quyết định có thể ngừng hay cần giảm dần cho riêng bạn.",

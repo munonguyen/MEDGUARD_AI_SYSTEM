@@ -108,6 +108,13 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
   if (!answer) return null;
 
   const hasNarrative = answer.narrative?.length > 0;
+  // Clinical action/safety sections are never collapsed by brevity preferences.
+  const isBrief = answer.presentation === 'brief' && !clinicalIntents.has(responseMeta.intent)
+    && !(answer.safety_notes?.length) && !(answer.next_steps?.length)
+    && !(answer.questions?.length) && !(answer.key_points?.length) && !(answer.clinical_hypotheses?.length)
+    && !answer.requires_human_review
+    && !['URGENT', 'EMERGENCY', 'CRITICAL'].includes(result?.urgency || result?.escalation_level);
+  const isFocused = answer.presentation === 'focused';
   const researchedSources = answer.researched_sources || [];
   const sourcesById = new Map(
     researchedSources.map((source, index) => [source.source_id, { ...source, index: index + 1 }]),
@@ -130,9 +137,11 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
   const hypotheses = (answer.clinical_hypotheses || [])
     .filter((item) => !String(item).toLowerCase().startsWith('lưu ý:'))
     .slice(0, 4);
-  const keyPoints = (answer.key_points || []).slice(0, 5);
-  const nextSteps = (answer.next_steps || []).slice(0, 5);
-  const safetyNotes = (answer.safety_notes || []).slice(0, 4);
+  const keyPoints = isClinical ? (answer.key_points || []) : (answer.key_points || []).slice(0, 5);
+  const focusedRoutine = isFocused && responseMeta.intent === 'triage' && result?.urgency === 'ROUTINE';
+  const nextSteps = focusedRoutine && Array.isArray(answer.display_next_steps)
+    ? answer.display_next_steps : (answer.next_steps || []);
+  const safetyNotes = answer.safety_notes || [];
   const limitations = (answer.limitations || []).slice(0, 2);
 
   const narrativeBlocks = hasNarrative
@@ -165,7 +174,7 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
       )}
 
       <section className={`clinical-summary-card status-${status.tone}`}>
-        <div className="clinical-status-row">
+        {!isBrief && <div className="clinical-status-row">
           <span className={`clinical-status-badge ${status.tone}`}>
             <StatusIcon size={15} />
             <strong>{status.label}</strong>
@@ -175,29 +184,29 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
               {evidenceLabels[answer.evidence_state] || answer.evidence_state}
             </span>
           )}
-        </div>
+        </div>}
 
         <div className="clinical-summary-copy">
-          <span className="clinical-kicker">{isClinical ? 'Đánh giá ban đầu' : 'Kết quả xử lý'}</span>
+          {!isBrief && <span className="clinical-kicker">{isClinical ? 'Đánh giá ban đầu' : 'Kết quả xử lý'}</span>}
           <h2>{answer.title}</h2>
-          <p>{answer.summary}</p>
-          <small>{status.helper}</small>
+          <p>{focusedRoutine && answer.display_summary ? answer.display_summary : answer.summary}</p>
+          {!isBrief && <small>{status.helper}</small>}
         </div>
       </section>
 
-      {hasStructuredContent ? (
+      {!isBrief && hasStructuredContent ? (
         <div className="clinical-report-body">
           <ClinicalSection
             title={isClinical ? 'Dữ kiện chính' : 'Thông tin chính'}
             icon={Activity}
-            items={keyPoints}
+            items={isFocused && responseMeta.intent === 'triage' && status.tone === 'routine' ? [] : keyPoints}
             tone="neutral"
           />
 
           <ClinicalSection
             title="Khả năng cần cân nhắc"
             icon={Stethoscope}
-            items={hypotheses}
+            items={isFocused ? [] : hypotheses}
             tone="clinical"
           />
 
@@ -226,7 +235,7 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
             className="clinical-section-wide"
           />
         </div>
-      ) : hasNarrative ? (
+      ) : !isBrief && hasNarrative ? (
         <div className="answer-narrative clinical-narrative-fallback">
           {narrativeBlocks.map((block, index) => (
             <NarrativeBlock
@@ -238,7 +247,7 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
         </div>
       ) : null}
 
-      {limitations.length > 0 && (
+      {!isBrief && limitations.length > 0 && (
         <div className="clinical-limitations">
           <AlertCircle size={15} />
           <div>
@@ -248,13 +257,20 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
         </div>
       )}
 
-      {hasNarrative && hasStructuredContent && narrativeBlocks.length > 0 && (
+      {(isBrief || isFocused || (hasNarrative && hasStructuredContent && narrativeBlocks.length > 0)) && (
         <details className="clinical-detail-panel">
           <summary>
             <span><Stethoscope size={15} /> {isClinical ? 'Giải thích chi tiết' : 'Chi tiết xử lý'}</span>
             <ChevronDown size={15} className="detail-chevron" />
           </summary>
           <div className="answer-narrative clinical-detail-content">
+            {isFocused && <>
+              {answer.display_summary && <p>{answer.summary}</p>}
+              <ClinicalSection title="Dữ kiện chính" icon={Activity} items={keyPoints} tone="neutral" />
+              <ClinicalSection title="Khả năng cần cân nhắc" icon={Stethoscope} items={hypotheses} tone="clinical" />
+              {answer.display_next_steps && <ClinicalSection title="Các bước chăm sóc đầy đủ" icon={ListChecks} items={answer.next_steps || []} tone="action" />}
+            </>}
+            {isBrief && limitations.map((item, index) => <p key={`limit-${index}`}>{item}</p>)}
             {narrativeBlocks.map((block, index) => (
               <NarrativeBlock
                 key={`${block.text}-${index}`}

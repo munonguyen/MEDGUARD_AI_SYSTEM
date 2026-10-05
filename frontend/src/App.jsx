@@ -248,8 +248,14 @@ function Conversation({ entries, busy, onNotify }) {
         // User just sent a message -> always scroll to reveal
         scrollToBottom(true);
       } else if (isAtBottomRef.current) {
-        // Assistant replied and user was already at bottom -> keep pinned to bottom
-        scrollToBottom(true);
+        // Show the start of a new answer. Pinning a long answer to its end
+        // hides the emergency action on small screens.
+        const replies = streamRef.current.querySelectorAll('.chat-assistant:not(.pending-premium)');
+        const reply = replies[replies.length - 1];
+        if (reply) {
+          const top = scroller.scrollTop + reply.getBoundingClientRect().top - scroller.getBoundingClientRect().top - 12;
+          scroller.scrollTo({ top: Math.max(0, top), behavior: 'instant' });
+        }
       } else {
         // User is reading history higher up -> DO NOT yank scroll, show new message pill
         setHasNewMessages(true);

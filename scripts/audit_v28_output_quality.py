@@ -92,25 +92,39 @@ def display_projection(body: dict) -> dict:
     replacing the visible answer with a nicer narrative or metadata.
     """
     answer = body.get("answer") or {}
+    focused_routine = answer.get('presentation') == 'focused' and body.get('intent') == 'triage' and (body.get('result') or {}).get('urgency') == 'ROUTINE'
     questions = answer.get("display_questions")
     if not isinstance(questions, list):
         questions = (answer.get("questions") or [])[:2]
     sections = {
-        "Dữ kiện chính": (answer.get("key_points") or [])[:5],
+        "Dữ kiện chính": (answer.get("key_points") or []) if body.get('intent') in {'triage', 'safety', 'monitoring', 'followup', 'pharmacy'} else (answer.get("key_points") or [])[:5],
         "Khả năng cần cân nhắc": [x for x in answer.get("clinical_hypotheses") or [] if not str(x).lower().startswith("lưu ý:")][:4],
-        "Bạn nên làm gì lúc này": (answer.get("next_steps") or [])[:5],
-        "Khi nào cần đi khám / cấp cứu": (answer.get("safety_notes") or [])[:4],
+        "Bạn nên làm gì lúc này": answer.get('display_next_steps') if focused_routine and isinstance(answer.get('display_next_steps'), list) else answer.get("next_steps") or [],
+        "Khi nào cần đi khám / cấp cứu": answer.get("safety_notes") or [],
         "Thông tin cần bổ sung": questions,
     }
+    is_brief = (answer.get("presentation") == "brief" and body.get("intent") == "general"
+                and not answer.get("safety_notes") and not answer.get("next_steps")
+                and not answer.get("questions") and not answer.get("key_points") and not answer.get("clinical_hypotheses")
+                and not answer.get("requires_human_review")
+                and str((body.get("result") or {}).get("urgency") or (body.get("result") or {}).get("escalation_level") or "") not in {"URGENT", "EMERGENCY", "CRITICAL"})
+    if answer.get("presentation") == "focused":
+        if body.get("intent") == "triage" and str((body.get("result") or {}).get("urgency", "ROUTINE")) == "ROUTINE":
+            sections["Dữ kiện chính"] = []
+        sections["Khả năng cần cân nhắc"] = []
     narrative = [str(b.get("text", "")) for b in answer.get("narrative") or []
         if b.get("text") and not str(b["text"]).startswith(LEGACY_PREFIXES)]
     blocks = [str(answer[k]) for k in ("title", "summary") if answer.get(k)]
+    if focused_routine and answer.get('display_summary'):
+        blocks = [answer['title'], answer['display_summary']]
     structured = any(sections.values())
-    if structured:
+    if is_brief:
+        sections = {k: [] for k in sections}
+    elif structured:
         blocks.extend(str(x) for values in sections.values() for x in values)
     else:
         blocks.extend(narrative)
-    limitations = (answer.get("limitations") or [])[:2]
+    limitations = [] if is_brief else (answer.get("limitations") or [])[:2]
     blocks.extend(str(x) for x in limitations)
     # A missing structured answer is not made valid by a hidden fallback field.
     return {"blocks": blocks, "text": "\n\n".join(blocks), "sections": sections,
@@ -210,6 +224,7 @@ def render_report(report: dict) -> str:
 <main><h1>MedGuard · Kiểm định câu hỏi &amp; câu trả lời</h1><p>__TIME__ · Commit __COMMIT__ · Bộ 40 câu chuẩn + 20 tình huống thử thách</p>
 <section class="notice"><b>Kết luận: chưa đủ bằng chứng để tuyên bố chuyên nghiệp toàn diện hoặc tốt hơn Ada/Buoy.</b><p>__FAILED__/__TOTAL__ câu không đạt kiểm tra nghiêm ngặt. Gate đầu ra: <b>__GATE__</b>. Chưa push trong lần kiểm định này. Không bỏ qua lỗi chỉ vì điểm trung bình cao.</p></section>
 <section><h2>Các kết quả đã đo</h2><table><tr><th>Phép kiểm tra</th><th>Kết quả</th></tr><tr><td>Rubric trên văn bản dự kiến hiển thị</td><td>__AVG__/14</td></tr><tr><td>Đạt tất cả điều kiện nghiêm ngặt</td><td>__PASS__/__TOTAL__</td></tr><tr><td>ProfessionalResponseGate · nội dung mặc định</td><td>__PROF__/__TOTAL__</td></tr><tr><td>ProfessionalResponseGate · narrative</td><td>__NARR__/__TOTAL__</td></tr><tr><td>AgentJuryPanel · 4 bộ chấm heuristic</td><td>__JURY__/__TOTAL__</td></tr><tr><td>Sai khác mức phân tầng</td><td>__DISAGREE__</td></tr><tr><td>Đối chiếu trực tiếp đầu ra Ada/Buoy</td><td>Chưa chạy · không có tỷ lệ thắng/thua</td></tr></table></section>
+__ADAPTIVE_SECTION__
 <section><h2>Phương pháp và giới hạn</h2><p>Câu trả lời được gọi thật qua /v1/chat; không thay bằng đáp án mẫu. Khóa idempotency và hội thoại mới cho mỗi ca. Bộ câu hỏi tổng hợp có nhãn kỳ vọng chưa được bác sĩ độc lập duyệt. HTTP dùng FastAPI TestClient trong development; gateway mô hình ngoài chưa cấu hình. Không đo độ trễ production hoặc tính ổn định Gemini.</p><p>ProfessionalResponseGate và AgentJuryPanel là phần mềm nội bộ dựa trên quy tắc/heuristic. Các tên “ClinicalDoctorJudge” hoặc “LegalComplianceJudge” là tên lớp, không phải bác sĩ/luật sư hay đánh giá độc lập. Groundedness chỉ là đối soát từ/ngữ, số và phủ định với 5 đoạn tài liệu lấy sau khi trả lời; không chứng minh nguồn thực sự đã được pipeline dùng, cũng không chứng minh câu trả lời đúng y khoa. Không chạy DeepEval/Ragas/Langfuse bên ngoài.</p><p>Văn bản trong báo cáo được chiếu từ schema theo GroundedAnswer.jsx, giữ thứ tự và giới hạn mục. Đây chưa phải bằng chứng đọc DOM trên trình duyệt. Response JSON gốc, narrative và các nguồn được giữ riêng để kiểm tra chéo. Không tự thêm disclaimer hoặc nguồn vào đầu ra để nâng điểm.</p><h3>Đối chiếu cùng lĩnh vực</h3><p>Ada mô tả quy trình thu thập triệu chứng, yếu tố nguy cơ và khả năng bệnh; Buoy mô tả trao đổi triệu chứng, chọn nơi chăm sóc và theo dõi. Đây là đối chiếu khả năng công bố, không phải thử nghiệm chất lượng trả lời trực tiếp. Để kết luận vượt trội cần cùng tình huống, cùng ngôn ngữ, cùng lượt hỏi, đầu ra đối thủ thật và người chấm độc lập giấu tên hệ thống.</p><ul>__REFS__</ul></section>
 <section><h2>Nhận xét sau khi đọc đầu ra thực tế</h2><table><tr><th>Ưu tiên / ca</th><th>Phát hiện và biện pháp</th></tr>__REVIEW__</table><p>Nhận xét do trợ lý đọc báo cáo, không phải đánh giá bác sĩ độc lập.</p></section>
 <section><h2>So sánh trước và sau sửa</h2><pre>__BASELINE__</pre><p>Cùng 60 câu hỏi và cùng điều kiện gateway không sẵn sàng. Không đổi nhãn kỳ vọng để tăng điểm. Nhãn tổng hợp chưa được bác sĩ duyệt.</p></section>
@@ -237,7 +252,13 @@ const search=document.getElementById('search'),filter=document.getElementById('f
         doctor_section += f'<details><summary>{e(example["case_id"])} — Câu trả lời trước và sau cải tiến</summary><p>{e(example["question"])}</p><h3>Trước</h3><div class="answer">{e(example["before"])}</div><h3>Sau</h3><div class="answer">{e(example["after"])}</div></details>'
     for key, value in mapping.items():
         template = template.replace(f"__{key}__", e(value))
-    return template.replace('__REFS__', refs).replace('__REVIEW__', review_rows).replace('__DOCTOR_PATTERNS__', doctor_section).replace('__CASES__', ''.join(items)).replace('__DATA__', embedded)
+    adaptive = report.get('adaptive_browser_evidence') or {}
+    adaptive_rows = ''.join(f'<tr><td>{e(x["device"])}<br>{e(x["question"])}</td><td>{e(x["presentation"])} · {x["primary_words"]} từ</td><td>{e(x["passed"])}</td></tr>' for x in adaptive.get('results', []))
+    adaptive_answers = ''.join(f'<details><summary>{e(x["device"])} — {e(x["question"])}</summary><div class="answer">{e(x["primary_text"])}</div></details>' for x in adaptive.get('results', []))
+    images = ''.join(f'<details><summary>{e(x["label"])}</summary><img alt="{e(x["label"])}" style="max-width:100%;height:auto" src="{e(x["data_url"])}"></details>' for x in report.get('browser_screenshots', []))
+    release = report.get('production_evidence') or {}
+    adaptive_section = f'<section><h2>Độ dài theo bối cảnh — kiểm tra trình duyệt thật</h2><p>Câu đơn giản trả lời ngắn; giải thích được mở rộng khi được yêu cầu. Hành động và cảnh báo không bị cắt vì giới hạn từ. Phần lý giải đầy đủ có thể mở thêm. Câu trả lời mới cuộn tới phần đầu để người dùng thấy hành động cấp cứu.</p><table><tr><th>Tình huống</th><th>Chế độ / độ dài phần chính</th><th>Đạt kiểm thử</th></tr>{adaptive_rows}</table><p>Số từ được tách bằng khoảng trắng, đo phần chính gồm tóm tắt, bước làm, cảnh báo, câu hỏi; không bao gồm metadata/giới hạn. Chỉ 8 ca này được kiểm tra DOM và ảnh trên trình duyệt; bộ 60 ca phía dưới vẫn là projection API.</p>{adaptive_answers}{images}<h3>Các điều kiện production còn chặn</h3><pre>{e(json.dumps({"code_sha": release.get("code_sha"), "production_release_eligible": release.get("production_release_eligible"), "release_blockers": release.get("release_blockers"), "runtime": release.get("readiness"), "public_output": release.get("quality", {}).get("public_output")}, ensure_ascii=False, indent=2))}</pre><p>Unit test và build đạt không thay thế phê duyệt lâm sàng, kiểm định nguồn hoặc bằng chứng vận hành production. Cổng phát hành mới kiểm tra từng ca đầu ra và commit; thiếu báo cáo hoặc còn cờ thì không cho phép promotion.</p></section>'
+    return template.replace('__ADAPTIVE_SECTION__', adaptive_section).replace('__REFS__', refs).replace('__REVIEW__', review_rows).replace('__DOCTOR_PATTERNS__', doctor_section).replace('__CASES__', ''.join(items)).replace('__DATA__', embedded)
 
 
 def run() -> dict:
@@ -259,6 +280,10 @@ def run() -> dict:
             results.append(row)
             print(f'{case["case_id"]}: {"PASS" if not row["strict_failures"] else "REVIEW"} urgency={row.get("urgency")}', flush=True)
     commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
+    browser_path = ROOT / 'artifacts/v28_adaptive_length/browser_evidence.json'
+    browser = json.loads(browser_path.read_text(encoding='utf-8')) if browser_path.exists() else {}
+    if browser.get('code_sha') != commit:
+        browser = {}
     diff = subprocess.check_output(['git', 'diff', 'HEAD', '--', 'app/services', 'app/knowledge', 'app/models', 'scripts', 'frontend/src'], cwd=ROOT)
     return {'generated_at': datetime.now(timezone.utc).isoformat(), 'schema_version': '1.0.0',
         'provenance': {'commit': commit, 'runner_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
@@ -276,6 +301,7 @@ def run() -> dict:
         'baseline_comparison': baseline_comparison(summarize(results)),
         'doctor_communication_research': json.loads((ROOT / 'docs/doctor_communication_patterns.json').read_text(encoding='utf-8')),
         'jury_calibration_baseline': json.loads((OUT / 'baseline_effe815_jury.json').read_text(encoding='utf-8')),
+        'adaptive_browser_evidence': browser,
         'output_improvement_examples': output_improvement_examples(results),
         'results': results}
 

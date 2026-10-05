@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
+from app.tests.public_output_fixture import passing_public_output
 
 from scripts.generate_release_evidence import build_release_evidence, evidence_digest
 from scripts.verify_production_promotion import verify_production_promotion
@@ -87,6 +88,7 @@ def _eligible_payload(*, sha: str = "candidate123") -> dict:
         },
         external_evidence=_external(),
         git_sha=sha,
+        public_output_audit=passing_public_output(sha),
         generated_at="2026-09-29T00:00:00+00:00",
         model_configuration=_models(),
     )
@@ -121,6 +123,7 @@ def test_current_repository_state_cannot_self_authorize_with_blockers() -> None:
         },
         external_evidence=_external(valid=False),
         git_sha="candidate123",
+        public_output_audit=passing_public_output("candidate123"),
         generated_at="2026-09-29T00:00:00+00:00",
         model_configuration=_models(),
     )

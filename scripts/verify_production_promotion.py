@@ -60,6 +60,8 @@ def verify_production_promotion(
         errors.append("medical_response_quality_not_passed")
     if (quality.get("professional_response") or {}).get("gate_passed") is not True:
         errors.append("professional_response_quality_not_passed")
+    if (quality.get('public_output') or {}).get('gate_passed') is not True:
+        errors.append('public_output_quality_not_passed')
 
     return not errors, sorted(set(errors))
 

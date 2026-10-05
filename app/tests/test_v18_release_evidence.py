@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
+from app.tests.public_output_fixture import passing_public_output
 
 from scripts.generate_release_evidence import (
     build_release_evidence,
@@ -93,6 +94,7 @@ def test_pending_clinician_review_is_explicit_release_blocker() -> None:
         },
         external_evidence=_external(),
         git_sha="abc123",
+        public_output_audit=passing_public_output("abc123"),
         generated_at="2026-09-28T00:00:00+00:00",
         model_configuration=_models(),
     )
@@ -116,6 +118,7 @@ def test_fully_approved_evidence_can_be_release_eligible() -> None:
         },
         external_evidence=_external(),
         git_sha="abc123",
+        public_output_audit=passing_public_output("abc123"),
         generated_at="2026-09-28T00:00:00+00:00",
         model_configuration=_models(),
     )
@@ -139,6 +142,7 @@ def test_external_evidence_is_required_for_release_eligibility() -> None:
         },
         external_evidence=_external(valid=False),
         git_sha="abc123",
+        public_output_audit=passing_public_output("abc123"),
         generated_at="2026-09-28T00:00:00+00:00",
         model_configuration=_models(),
     )
@@ -160,6 +164,7 @@ def test_failed_quality_gate_is_recorded_as_blocker() -> None:
         },
         external_evidence=_external(),
         git_sha="abc123",
+        public_output_audit=passing_public_output("abc123"),
         generated_at="2026-09-28T00:00:00+00:00",
         model_configuration=_models(),
     )
@@ -180,6 +185,7 @@ def test_digest_detects_manifest_tampering() -> None:
         },
         external_evidence=_external(),
         git_sha="abc123",
+        public_output_audit=passing_public_output("abc123"),
         generated_at="2026-09-28T00:00:00+00:00",
         model_configuration=_models(),
     )
@@ -202,6 +208,7 @@ def test_validator_rejects_eligible_manifest_without_external_evidence() -> None
         },
         external_evidence=_external(),
         git_sha="abc123",
+        public_output_audit=passing_public_output("abc123"),
         generated_at="2026-09-28T00:00:00+00:00",
         model_configuration=_models(),
     )
@@ -224,6 +231,7 @@ def test_manifest_does_not_need_or_store_secret_values() -> None:
         },
         external_evidence=_external(valid=False),
         git_sha="abc123",
+        public_output_audit=passing_public_output("abc123"),
         generated_at="2026-09-28T00:00:00+00:00",
         model_configuration=_models(),
     )

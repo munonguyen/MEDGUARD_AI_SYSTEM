@@ -661,12 +661,13 @@ def build_grounded_answer(
         education = result["education"]
         return _with_narrative(GroundedAnswer(
             title=education["title"], summary=education["summary"],
+            presentation=education.get("presentation", "detailed"),
             next_steps=education["next_steps"], questions=education["questions"],
             limitations=[education["limitations"]],
-            sources=[ChatEvidenceSource(name="Nguồn tham khảo hướng dẫn sức khỏe", version="health-education@1.1.0",
+            sources=[ChatEvidenceSource(name="Nguồn tham khảo hướng dẫn sức khỏe", version="health-education@1.2.0",
                 approval_status="pending_review", references=education["references"])],
             decision_basis="versioned_rules", evidence_state="bounded_result",
-            rule_version="health-education@1.1.0", requires_human_review=True,
+            rule_version="health-education@1.2.0", requires_human_review=education.get("requires_human_review", True),
         ), intent)
     if intent == "triage":
         return _with_narrative(_triage_answer(result, sources, reply=reply), intent)

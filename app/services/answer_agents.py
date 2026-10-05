@@ -677,6 +677,15 @@ class AnswerAgentPipeline:
             if domain == "pharmacology"
             else _CLINICAL_RESEARCH_INSTRUCTIONS
         )
+        writer_instructions += (
+            "\nAdapt length to the bounded presentation contract: "
+            + ("brief: one direct paragraph, normally at most 80 words; no repeated title, boilerplate or invented follow-up questions. "
+               if answer.presentation == "brief" else
+               "focused: direct answer and necessary actions first; avoid repeating fields and listing speculative diagnoses. "
+               if answer.presentation == "focused" else
+               "detailed: explain reasoning and relevant context in readable sections. ")
+            + "Preserve every locked safety claim verbatim regardless of length."
+        )
         verifier_instructions = (
             _PHARMA_VERIFIER_INSTRUCTIONS
             if domain == "pharmacology"

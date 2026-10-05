@@ -990,6 +990,9 @@ def _response(
         required_fields=fields,
         result=serialized,
     )
+    from app.services.response_presentation import select_presentation
+    answer = select_presentation(answer, question=agent_question or payload.messages[-1].content,
+                                 intent=intent, result=serialized if isinstance(serialized, dict) else None)
     agent_status: str | None = None
     agent_submitted = False
     clinical_task_name = (
