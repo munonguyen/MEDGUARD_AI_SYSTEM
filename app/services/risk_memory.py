@@ -253,6 +253,32 @@ _EPISODE_DOMAIN_MARKERS: dict[str, tuple[str, ...]] = {
         "mun",
         "ngua toan than",
     ),
+    "dental": (
+        "e buot rang",
+        "buot rang",
+        "dau rang",
+        "nhuc rang",
+        "sau rang",
+        "viem tuy rang",
+        "tuy rang",
+        "viem nuou",
+        "sung nuou",
+        "chay mau chan rang",
+        "mon co rang",
+        "mon men rang",
+    ),
+    "ophthalmology": (
+        "dau mat do",
+        "viem ket mac",
+        "do mat",
+        "mat do",
+        "com mat",
+        "ghen mat",
+        "du mat",
+        "chay nuoc mat",
+        "nhuc mat",
+        "mo mat",
+    ),
 }
 
 _EPISODE_CONTINUATION_MARKERS: tuple[str, ...] = (

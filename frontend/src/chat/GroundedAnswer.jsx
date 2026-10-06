@@ -5,7 +5,9 @@ import {
   CheckCircle2,
   ChevronDown,
   CircleHelp,
+  ExternalLink,
   ListChecks,
+  Send,
   ShieldAlert,
   Stethoscope,
 } from 'lucide-react';
@@ -71,6 +73,61 @@ function ClinicalSection({
   );
 }
 
+function InteractiveQuestions({ questions, onSelectQuestion, isClinical }) {
+  if (!questions?.length) return null;
+  return (
+    <section className="interactive-question-section" aria-label="Gợi ý câu hỏi làm rõ">
+      <div className="interactive-question-header">
+        <CircleHelp size={15} className="question-header-icon" />
+        <span>{isClinical ? 'Câu hỏi làm rõ gợi ý (nhấn để gửi nhanh):' : 'Câu hỏi gợi ý:'}</span>
+      </div>
+      <div className="interactive-question-chips" role="group">
+        {questions.map((q, idx) => (
+          <button
+            key={`q-chip-${idx}`}
+            type="button"
+            className="interactive-question-chip"
+            onClick={() => onSelectQuestion?.(q)}
+            title={`Nhấn để gửi: "${q}"`}
+          >
+            <span className="question-chip-text">{q}</span>
+            <Send size={12} className="question-chip-icon" />
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ResearchedSourcesFootnote({ sources }) {
+  if (!sources?.length) return null;
+  return (
+    <section className="answer-sources-footnote" aria-label="Tài liệu tham khảo chuyên môn">
+      <div className="sources-footnote-header">
+        <span className="sources-footnote-title">Tài liệu tham khảo chuyên môn:</span>
+      </div>
+      <ol className="sources-footnote-list">
+        {sources.map((src, idx) => (
+          <li key={`src-${src.source_id || idx}`}>
+            <a
+              href={src.url}
+              target="_blank"
+              rel="noreferrer"
+              className="source-footnote-link"
+              title={`${src.publisher}: ${src.title}`}
+            >
+              <span className="source-footnote-index">[{idx + 1}]</span>
+              <strong className="source-footnote-name">{src.title}</strong>
+              {src.publisher ? <span className="source-footnote-publisher"> — {src.publisher}</span> : null}
+              <ExternalLink size={11} className="source-footnote-external" />
+            </a>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
 function statusConfig({ urgency, overallRisk, isClinical }) {
   if (!isClinical) {
     return {
@@ -104,7 +161,7 @@ function statusConfig({ urgency, overallRisk, isClinical }) {
   };
 }
 
-export function GroundedAnswer({ answer, result, responseMeta = {} }) {
+export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQuestion }) {
   if (!answer) return null;
 
   const hasNarrative = answer.narrative?.length > 0;
@@ -134,9 +191,12 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
   });
   const StatusIcon = status.icon;
 
-  const displayQuestions = Array.isArray(answer.display_questions)
-    ? answer.display_questions
-    : (answer.questions || []).slice(0, 2);
+  const displayQuestions = [
+    ...new Set([
+      ...(Array.isArray(answer.display_questions) ? answer.display_questions : []),
+      ...(Array.isArray(answer.questions) ? answer.questions : []),
+    ]),
+  ].slice(0, 3);
 
   const hypotheses = (answer.clinical_hypotheses || [])
     .filter((item) => !String(item).toLowerCase().startsWith('lưu ý:'))
@@ -149,7 +209,7 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
   const limitations = (answer.limitations || []).slice(0, 2);
 
   const narrativeBlocks = hasNarrative
-    ? (verifiedAgentPrimary ? answer.narrative : answer.narrative.filter((block) => !isLegacyQuestionNarrative(block)))
+    ? (displayQuestions.length > 0 ? answer.narrative.filter((block) => !isLegacyQuestionNarrative(block)) : answer.narrative)
     : [];
   const hasStructuredContent = Boolean(
     keyPoints.length
@@ -200,11 +260,19 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
       </section>
 
       {verifiedAgentPrimary ? (
-        <div className="answer-narrative clinical-agent-primary" data-answer-authority="verified-agent">
-          {narrativeBlocks.map((block, index) => (
-            <NarrativeBlock key={`primary-${index}`} block={block} sourcesById={sourcesById} />
-          ))}
-        </div>
+        <>
+          <div className="answer-narrative clinical-agent-primary" data-answer-authority="verified-agent">
+            {narrativeBlocks.map((block, index) => (
+              <NarrativeBlock key={`primary-${index}`} block={block} sourcesById={sourcesById} />
+            ))}
+          </div>
+          <ResearchedSourcesFootnote sources={researchedSources} />
+          <InteractiveQuestions
+            questions={displayQuestions}
+            onSelectQuestion={onSelectQuestion}
+            isClinical={isClinical}
+          />
+        </>
       ) : !isBrief && hasStructuredContent ? (
         <div className="clinical-report-body">
           <ClinicalSection
@@ -238,24 +306,32 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
             className="clinical-section-wide"
           />
 
-          <ClinicalSection
-            title={isClinical ? 'Thông tin cần biết thêm' : 'Thông tin cần bổ sung'}
-            icon={CircleHelp}
-            items={displayQuestions}
-            tone="question"
-            className="clinical-section-wide"
+          <ResearchedSourcesFootnote sources={researchedSources} />
+
+          <InteractiveQuestions
+            questions={displayQuestions}
+            onSelectQuestion={onSelectQuestion}
+            isClinical={isClinical}
           />
         </div>
       ) : !isBrief && hasNarrative ? (
-        <div className="answer-narrative clinical-narrative-fallback">
-          {narrativeBlocks.map((block, index) => (
-            <NarrativeBlock
-              key={`${block.text}-${index}`}
-              block={block}
-              sourcesById={sourcesById}
-            />
-          ))}
-        </div>
+        <>
+          <div className="answer-narrative clinical-narrative-fallback">
+            {narrativeBlocks.map((block, index) => (
+              <NarrativeBlock
+                key={`${block.text}-${index}`}
+                block={block}
+                sourcesById={sourcesById}
+              />
+            ))}
+          </div>
+          <ResearchedSourcesFootnote sources={researchedSources} />
+          <InteractiveQuestions
+            questions={displayQuestions}
+            onSelectQuestion={onSelectQuestion}
+            isClinical={isClinical}
+          />
+        </>
       ) : null}
 
       {!isBrief && limitations.length > 0 && (

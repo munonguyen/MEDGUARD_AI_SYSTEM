@@ -1,8 +1,8 @@
 {
   "_meta": {
     "version": "1.0.0",
-    "updated_at": "2026-10-06T03:42:20.053094+00:00",
-    "total_captured": 2906
+    "updated_at": "2026-10-06T06:47:21.776845+00:00",
+    "total_captured": 2910
   },
   "cases": [
     {
@@ -130545,6 +130545,154 @@
       "tenant_id": "tenant-demo",
       "conversation_id": "v28-quality-negated-exposure-list",
       "request_id": "req_0014b8c10d7c4ca7",
+      "user_query": "Tôi hơi khó thở nhưng không tiếp xúc hóa chất, chất tẩy rửa hay khí độc",
+      "detected_intent": "triage",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Các triệu chứng bạn mô tả cần được nhân viên y tế đánh giá trực tiếp sớm. Hệ thống không thể xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn; hãy ưu tiên hướng xử trí bên dưới.",
+      "narrative": [
+        {
+          "kind": "paragraph",
+          "text": "Bạn nên được nhân viên y tế đánh giá sớm. Các triệu chứng bạn mô tả cần được nhân viên y tế đánh giá trực tiếp sớm. Hệ thống không thể xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn; hãy ưu tiên hướng xử trí bên dưới.",
+          "emphasis": [
+            "Bạn nên được nhân viên y tế đánh giá sớm"
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Khó thở mới xuất hiện dù nhẹ cần được nhân viên y tế đánh giá sớm trong ngày. Dừng gắng sức và nghỉ ở nơi an toàn. Gọi 115 ngay nếu khó thở tăng nhanh, không nói được cả câu, tím môi, đau ngực hoặc choáng ngất. Chưa thể xác định nguyên nhân chỉ qua tin nhắn; không tự dùng thuốc mới.",
+          "emphasis": []
+        },
+        {
+          "kind": "paragraph",
+          "text": "Bạn cho mình biết thêm: Khó thở bắt đầu lúc nào; có xảy ra khi nghỉ hoặc tăng dần không?",
+          "emphasis": [
+            "Bạn cho mình biết thêm"
+          ]
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261006-7BB467A9",
+      "timestamp": "2026-10-06T06:01:58.798918+00:00",
+      "tenant_id": "user-e0959166d33142e0960e6ef4e3eef49f",
+      "conversation_id": "8f5eca7a-a1ba-4866-bc78-f5c93212aadf",
+      "request_id": "ui-5e7b138d-f02a-408a-82b1-dd0df814d01d",
+      "user_query": "Tôi đang đau mắt đỏ",
+      "detected_intent": "triage",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Với các dữ kiện hiện có, bệnh cảnh đang ở mức theo dõi thường quy. Chưa thể xác định nguyên nhân chỉ từ tin nhắn; hãy làm theo hướng chăm sóc và dấu hiệu cảnh báo bên dưới.",
+      "narrative": [
+        {
+          "kind": "paragraph",
+          "text": "Triệu chứng đau mắt đỏ của bạn có thể liên quan đến các vấn đề ở bề mặt nhãn cầu như viêm kết mạc hoặc kích ứng, cần được theo dõi sát và khám chuyên khoa Mắt nếu không cải thiện.",
+          "emphasis": []
+        },
+        {
+          "kind": "paragraph",
+          "text": "Bạn nên vệ sinh mắt bằng nước muối sinh lý 0.9%, tránh dụi mắt hoặc tự ý nhỏ các loại thuốc cũ hay corticoid khi chưa có chỉ định của bác sĩ. Hãy đi khám ngay nếu xuất hiện các dấu hiệu nặng như đau nhức nhiều, mờ mắt hoặc sợ ánh sáng.",
+          "emphasis": []
+        },
+        {
+          "kind": "paragraph",
+          "text": "Triệu chứng xuất hiện từ khi nào?",
+          "emphasis": []
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261006-CA1CA7C5",
+      "timestamp": "2026-10-06T06:33:12.687092+00:00",
+      "tenant_id": "tenant-demo",
+      "conversation_id": "v28-quality-negated-exposure-list",
+      "request_id": "req_0e069409ed1f4e23",
+      "user_query": "Tôi hơi khó thở nhưng không tiếp xúc hóa chất, chất tẩy rửa hay khí độc",
+      "detected_intent": "triage",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Các triệu chứng bạn mô tả cần được nhân viên y tế đánh giá trực tiếp sớm. Hệ thống không thể xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn; hãy ưu tiên hướng xử trí bên dưới.",
+      "narrative": [
+        {
+          "kind": "paragraph",
+          "text": "Bạn nên được nhân viên y tế đánh giá sớm. Các triệu chứng bạn mô tả cần được nhân viên y tế đánh giá trực tiếp sớm. Hệ thống không thể xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn; hãy ưu tiên hướng xử trí bên dưới.",
+          "emphasis": [
+            "Bạn nên được nhân viên y tế đánh giá sớm"
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Khó thở mới xuất hiện dù nhẹ cần được nhân viên y tế đánh giá sớm trong ngày. Dừng gắng sức và nghỉ ở nơi an toàn. Gọi 115 ngay nếu khó thở tăng nhanh, không nói được cả câu, tím môi, đau ngực hoặc choáng ngất. Chưa thể xác định nguyên nhân chỉ qua tin nhắn; không tự dùng thuốc mới.",
+          "emphasis": []
+        },
+        {
+          "kind": "paragraph",
+          "text": "Bạn cho mình biết thêm: Khó thở bắt đầu lúc nào; có xảy ra khi nghỉ hoặc tăng dần không?",
+          "emphasis": [
+            "Bạn cho mình biết thêm"
+          ]
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261006-A33E8BC7",
+      "timestamp": "2026-10-06T06:44:01.520633+00:00",
+      "tenant_id": "user-e0959166d33142e0960e6ef4e3eef49f",
+      "conversation_id": "0b591f7b-4a13-4665-81b6-ab709f657782",
+      "request_id": "ui-20940499-15be-4c4c-a02d-bbbb87c1ea3d",
+      "user_query": "Bạn có thể chia sẻ cụ thể hơn về triệu chứng, vị trí khó chịu hoặc băn khoăn sức khỏe của bạn không?",
+      "detected_intent": "triage",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Với các dữ kiện hiện có, bệnh cảnh đang ở mức theo dõi thường quy. Chưa thể xác định nguyên nhân chỉ từ tin nhắn; hãy làm theo hướng chăm sóc và dấu hiệu cảnh báo bên dưới.",
+      "narrative": [
+        {
+          "kind": "paragraph",
+          "text": "Đối với lịch tái khám viêm loét dạ dày tá tràng sau phác đồ diệt khuẩn Hp 14 ngày và nội soi kiểm tra, việc theo dõi sát các triệu chứng lâm sàng là rất quan trọng để đánh giá hiệu quả điều trị.",
+          "emphasis": []
+        },
+        {
+          "kind": "paragraph",
+          "text": "Hiện tại hệ thống chưa ghi nhận đầy đủ các triệu chứng cụ thể của người bệnh, do đó cần thêm đánh giá lâm sàng toàn diện.",
+          "emphasis": []
+        },
+        {
+          "kind": "paragraph",
+          "text": "Triệu chứng xuất hiện từ từ hay khởi phát đột ngột và đạt mức nặng trong vài phút?",
+          "emphasis": []
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261006-67AA4753",
+      "timestamp": "2026-10-06T06:47:21.741390+00:00",
+      "tenant_id": "tenant-demo",
+      "conversation_id": "v28-quality-negated-exposure-list",
+      "request_id": "req_b967c27364364512",
       "user_query": "Tôi hơi khó thở nhưng không tiếp xúc hóa chất, chất tẩy rửa hay khí độc",
       "detected_intent": "triage",
       "suggested_intent": "triage",

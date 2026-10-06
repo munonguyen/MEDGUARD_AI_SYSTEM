@@ -176,6 +176,20 @@ def _tailor_guidance(
             )
         return summary, questions
 
+    if topic == "toothache_dental":
+        summary = (
+            "Tình trạng ê buốt hoặc đau nhức răng thường do mòn men răng, hở cổ chân răng hoặc sâu răng tiến triển chạm vào ngà/tủy răng. "
+            "Hiện tại chưa ghi nhận dấu hiệu nguy kịch. Bạn nên tránh ăn đồ quá nóng, lạnh hoặc chua ngọt, súc miệng bằng nước muối ấm nhẹ và dùng kem đánh răng chống ê buốt; có thể hỏi dược sĩ về thuốc giảm đau thông thường (Paracetamol/Ibuprofen) và đặt lịch khám nha khoa sớm để hàn trám hoặc xử lý triệt để nguyên nhân."
+        )
+        return summary, questions
+
+    if topic == "red_eye_conjunctivitis":
+        summary = (
+            "Tình trạng đau mắt đỏ (viêm kết mạc) thường do virus, vi khuẩn hoặc dị ứng gây cộm xốn, đỏ mắt và tiết dịch dử ghèn. "
+            "Hiện tại chưa ghi nhận dấu hiệu nguy kịch. Bạn hãy nhỏ nước muối sinh lý NaCl 0.9% để làm sạch mắt, chườm mát làm dịu mi mắt và giữ vệ sinh tránh lây nhiễm chéo; tuyệt đối không tự ý nhỏ thuốc chứa Corticoid và nên đến khám chuyên khoa Mắt để kiểm tra giác mạc."
+        )
+        return summary, questions
+
     if topic not in {"abdominal_pain", "upper_abdominal_discomfort"}:
         return summary, questions
 

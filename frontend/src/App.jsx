@@ -170,7 +170,7 @@ function Welcome({ onPrompt }) {
   </div>;
 }
 
-function Conversation({ entries, busy, onNotify }) {
+function Conversation({ entries, busy, onNotify, onSelectQuestion }) {
   const streamRef = useRef(null);
   const latestRef = useRef(null);
   const [copied, setCopied] = useState(null);
@@ -352,7 +352,12 @@ function Conversation({ entries, busy, onNotify }) {
             <div className="assistant-content">
               <strong>MedGuard AI</strong>
               {entry.answer ? (
-                <GroundedAnswer answer={entry.answer} result={entry.result} responseMeta={entry} />
+                <GroundedAnswer
+                  answer={entry.answer}
+                  result={entry.result}
+                  responseMeta={entry}
+                  onSelectQuestion={onSelectQuestion}
+                />
               ) : (
                 <p>{entry.text}</p>
               )}
@@ -922,6 +927,7 @@ export default function App({ account = null, isGuest = false, guestCount = 0, g
                 entries={entries}
                 busy={busy}
                 onNotify={notify}
+                onSelectQuestion={(q) => sendText(q)}
               />
             ) : (
               <Welcome onPrompt={(text) => { setMessage(text); requestAnimationFrame(() => document.querySelector('[aria-label="Tin nhắn"]')?.focus()); }} />

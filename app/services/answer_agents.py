@@ -852,10 +852,15 @@ class AnswerAgentPipeline:
                 return answer.model_copy(update={"agent_trace": trace})
 
             trace = self._trace(status="verified", **trace_values)
+            display_questions = list(dict.fromkeys((answer.display_questions or []) + (answer.questions or [])))
+            if not display_questions and state.draft.question_analysis.key_questions:
+                display_questions = [q for q in state.draft.question_analysis.key_questions if q.strip()]
             return answer.model_copy(
                 update={
                     "narrative": narrative,
                     "researched_sources": state.draft.sources,
+                    "display_questions": display_questions[:3] if display_questions else [],
+                    "questions": answer.questions or display_questions or [],
                     "answer_assurance": AnswerAssurance(status="verified", scores=state.verification.scores),
                     "agent_trace": trace,
                 }

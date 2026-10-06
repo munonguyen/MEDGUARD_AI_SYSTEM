@@ -32,7 +32,7 @@ _STOPWORDS = {
 }
 
 _BODY_REGION_TERMS: dict[str, tuple[str, ...]] = {
-    "head": ("đầu", "sọ", "mặt", "head", "headache", "face"),
+    "head": ("đầu", "sọ", "mặt", "răng", "nướu", "lợi", "hàm", "mắt", "head", "headache", "face", "tooth", "dental", "eye"),
     "neck": ("cổ", "gáy", "neck"),
     "chest": ("ngực", "tim", "phổi", "chest", "heart", "lung"),
     "abdomen": ("bụng", "dạ dày", "ruột", "phân", "abdomen", "stomach", "bowel"),
@@ -263,14 +263,18 @@ class KnowledgeRetriever:
                 f"Dấu hiệu nguy hiểm cần khám ngay: {red_flags}. "
                 f"Chăm sóc ban đầu: {self_care}. Khuyến cáo: {symp.get('advice', '')}."
             )
+            title = symp.get("source_title") or f"Hướng dẫn triệu chứng: {name}"
+            source_ref = symp.get("source_publisher") or "NICE Guidelines / Hướng dẫn chẩn đoán BYT"
+            source_url = symp.get("source_url") or symp.get("source_uri")
             chunks.append(
                 RetrievedChunk(
                     chunk_id=cid,
                     doc_name="red_flag_protocols.json",
-                    title=f"Hướng dẫn triệu chứng: {name}",
+                    title=title,
                     section="symptom_guidance",
                     content=content,
-                    source_reference="NICE Guidelines / Hướng dẫn chẩn đoán BYT",
+                    source_reference=source_ref,
+                    source_url=source_url,
                 )
             )
 

@@ -415,7 +415,10 @@ class MedicalAgentGraph:
             known_source_ids = {s.source_id for s in draft.sources}
             first_src_id = draft.sources[0].source_id
 
-            # In offline/no-web-search mode, align source URLs with retrieved knowledge chunks
+            # In offline/no-web-search mode, align source URLs and metadata with retrieved knowledge chunks
+            chunk_by_url = {c.source_url: c for c in state.retrieved_chunks if c.source_url}
+            top_chunk = state.retrieved_chunks[0] if state.retrieved_chunks else None
+
             if not getattr(self, "web_search_required", True) and retrieved_urls:
                 for s in draft.sources:
                     if not s.url.startswith("https://") or "medguard.local" in s.url or s.url not in retrieved_urls:
@@ -424,6 +427,14 @@ class MedicalAgentGraph:
                 for s in draft.sources:
                     if not s.url.startswith("https://") or "medguard.local" in s.url:
                         s.url = retrieved_urls[0]
+
+            if top_chunk:
+                for s in draft.sources:
+                    matching_c = chunk_by_url.get(s.url) or top_chunk
+                    if matching_c and matching_c.title and (s.title in {"src_guideline", "Medical Guideline", "Bộ Y tế", "Cục KCB", "NICE Guidelines", "Hướng dẫn chẩn đoán điều trị"} or not s.title or s.url == matching_c.source_url):
+                        s.title = matching_c.title
+                        if matching_c.source_reference:
+                            s.publisher = matching_c.source_reference
 
             # Ensure evidence claims point to existing sources
             for ec in draft.evidence_claims:

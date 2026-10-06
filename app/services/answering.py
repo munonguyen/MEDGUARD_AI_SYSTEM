@@ -179,7 +179,12 @@ def _with_narrative(answer: GroundedAnswer, intent: ChatIntent) -> GroundedAnswe
             )
         )
 
-    res = answer.model_copy(update={"narrative": blocks})
+    res = answer.model_copy(
+        update={
+            "narrative": blocks,
+            "display_questions": visible_questions if not answer.display_questions else answer.display_questions,
+        }
+    )
     return _sanitize_clinical_response(res)
 
 

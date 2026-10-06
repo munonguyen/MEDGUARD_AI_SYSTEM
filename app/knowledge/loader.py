@@ -149,7 +149,9 @@ class KnowledgeStore:
         if plan.hypotheses:
             contextual["clinical_hypotheses"] = list(plan.hypotheses)
         if plan.questions:
-            contextual["clarifying_questions"] = list(plan.questions)
+            existing_qs = [str(q) for q in guidance.get("clarifying_questions", [])]
+            combined = list(plan.questions) + [q for q in existing_qs if q not in plan.questions]
+            contextual["clarifying_questions"] = combined[:3]
         contextual["v25_contextual_reasoning"] = reasoning_trace_payload(plan)
         return contextual
 

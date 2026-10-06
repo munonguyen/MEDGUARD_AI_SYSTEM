@@ -217,6 +217,58 @@ _DOMAIN_UNKNOWN_SPECS: dict[str, tuple[_UnknownSpec, ...]] = {
             patterns=(r"\b(tray xuoc|chay mau|ri dich|chay mu|dau nhuc|nhiem trung|khong bi tray|khong chay mau)\b",),
         ),
     ),
+    "dental": (
+        _UnknownSpec(
+            key="swelling_or_infection",
+            question="Vùng nướu chân răng hoặc mặt/má có bị sưng phù, chảy mủ hay khó há miệng không?",
+            impact="critical",
+            changes=("emergency_disposition", "maxillofacial_infection_pathway"),
+            rationale="Sưng phù nề vùng mặt hoặc chảy mủ là dấu hiệu áp xe nhiễm trùng khoang hàm mặt cần can thiệp khẩn.",
+            patterns=(r"\b(sung nuou|sung ma|sung mat|sung ham|chay mu|kho ha mieng|khong sung|khong chay mu)\b",),
+        ),
+        _UnknownSpec(
+            key="trigger_sensitivity",
+            question="Răng ê buốt khi ăn uống đồ nóng, lạnh, chua ngọt hay buốt nhức tự nhiên kéo dài liên tục?",
+            impact="high",
+            changes=("pulpitis_vs_hypersensitivity", "treatment_choice"),
+            rationale="Phân biệt ê buốt do nhạy cảm ngà với đau buốt tủy răng tự nhiên kéo dài.",
+            patterns=(r"\b(nong|lanh|chua|ngot|tu nhien|lien tuc|thoang qua|ve dem|khong buot)\b",),
+        ),
+        _UnknownSpec(
+            key="prior_cavity_damage",
+            question="Cơn ê buốt xuất hiện bao lâu rồi và răng có bị lỗ sâu nhìn thấy hoặc mẻ vỡ thân răng không?",
+            impact="medium",
+            changes=("caries_fracture_evaluation", "dental_referral"),
+            rationale="Xác định tiền sử sâu răng hoặc mẻ vỡ răng để hướng dẫn hàn trám phục hồi.",
+            patterns=(r"\b(sau rang|me rang|me vo|lo sau|bao lau|moi bi|lau roi|khong me)\b",),
+        ),
+    ),
+    "ophthalmology": (
+        _UnknownSpec(
+            key="visual_acuity_change",
+            question="Bạn có bị nhìn mờ rõ rệt, giảm thị lực, chói mắt sợ ánh sáng hay đau nhức sâu trong nhãn cầu không?",
+            impact="critical",
+            changes=("emergency_disposition", "keratitis_or_glaucoma_pathway"),
+            rationale="Giảm thị lực hoặc đau nhức sâu nhãn cầu là dấu hiệu báo động viêm giác mạc hoặc tăng nhãn áp cấp.",
+            patterns=(r"\b(nhin mo|giam thi luc|choi mat|so anh sang|dau nhuc mat|nhuc sau mat|nhin ro|khong mo)\b",),
+        ),
+        _UnknownSpec(
+            key="discharge_crusting",
+            question="Mắt có tiết nhiều dử ghèn mủ vàng đục hay xanh làm dính chặt mi mắt vào buổi sáng không?",
+            impact="high",
+            changes=("bacterial_vs_viral_conjunctivitis", "topical_indication"),
+            rationale="Dử ghèn mủ dính mi mắt buổi sáng giúp phân biệt viêm kết mạc vi khuẩn với virus.",
+            patterns=(r"\b(ghen mu|dử mat|ghen vang|ghen xanh|dinh mi|nuoc mat trong|khong ghen|khong co ghen)\b",),
+        ),
+        _UnknownSpec(
+            key="contagion_contact",
+            question="Triệu chứng bị ở một hay cả hai mắt, và gần đây bạn có tiếp xúc với người bị đau mắt đỏ không?",
+            impact="medium",
+            changes=("epidemic_viral_pathway", "isolation_hygiene"),
+            rationale="Đau mắt đỏ dịch tễ thường lây lan nhanh và bắt đầu từ một mắt sang mắt kia.",
+            patterns=(r"\b(mot ben|mot mat|ca hai mat|hai mat|lay|tiep xuc|dich|khong tiep xuc)\b",),
+        ),
+    ),
 }
 
 
