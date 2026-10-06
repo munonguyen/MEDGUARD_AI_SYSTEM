@@ -60,6 +60,7 @@ class GroundedAnswer(BaseModel):
     safety_notes: list[str] = Field(default_factory=list)
     questions: list[str] = Field(default_factory=list)
     display_questions: list[str] | None = None
+    suggested_followups: list[str] = Field(default_factory=list)
     decision_basis: Literal[
         "versioned_rules",
         "registry_record",

@@ -179,13 +179,79 @@ def _with_narrative(answer: GroundedAnswer, intent: ChatIntent) -> GroundedAnswe
             )
         )
 
+    suggested_followups = answer.suggested_followups or _generate_suggested_followups(answer, intent)
+
     res = answer.model_copy(
         update={
             "narrative": blocks,
             "display_questions": visible_questions if not answer.display_questions else answer.display_questions,
+            "suggested_followups": suggested_followups,
         }
     )
     return _sanitize_clinical_response(res)
+
+
+def _generate_suggested_followups(answer: GroundedAnswer, intent: ChatIntent) -> list[str]:
+    """Generate high-value follow-up questions from the USER's perspective to ask the AI assistant."""
+    is_emergency = _is_emergency_answer(answer)
+    if is_emergency:
+        return [
+            "Những việc cần làm ngay trong lúc chờ cấp cứu 115 là gì?",
+            "Người nhà cần chuẩn bị giấy tờ hoặc thuốc men gì mang theo?",
+        ]
+
+    combined = f"{answer.title} {answer.summary} {' '.join(answer.key_points)} {' '.join(answer.safety_notes)}".lower()
+
+    if any(k in combined for k in ("warfarin", "aspirin", "chống đông", "tương tác", "xuất huyết", "chảy máu", "nsaid")):
+        return [
+            "Có thuốc giảm đau nào thay thế an toàn khi đang dùng warfarin không?",
+            "Dấu hiệu xuất huyết nguy hiểm nào cần đi cấp cứu ngay?",
+            "Nếu tôi đã lỡ uống một liều aspirin thì cần xử trí như thế nào?",
+        ]
+
+    if any(k in combined for k in ("răng", "nướu", "lợi", "ê buốt", "tủy", "dental", "nha sĩ")):
+        return [
+            "Có cách nào giảm ê buốt và đau răng nhanh tại nhà không?",
+            "Thuốc giảm đau nào an toàn và phù hợp cho đau răng?",
+            "Khi nào đau răng là dấu hiệu tủy bị tổn thương cần đi nha sĩ ngay?",
+        ]
+
+    if any(k in combined for k in ("mắt", "kết mạc", "đỏ mắt", "cộm", "nhãn cầu")):
+        return [
+            "Cách dùng nước muối sinh lý vệ sinh mắt đúng cách?",
+            "Dấu hiệu viêm mắt nào cảnh báo nguy hiểm cần khám bác sĩ ngay?",
+            "Đau mắt đỏ có lây không và phòng tránh thế nào?",
+        ]
+
+    if any(k in combined for k in ("ngứa", "mẩn", "ban đỏ", "mề đay", "dị ứng", "da liễu")):
+        return [
+            "Có loại thuốc bôi hoặc thuốc uống dị ứng nào an toàn không?",
+            "Dấu hiệu dị ứng nặng nào cần đến bệnh viện ngay?",
+            "Cần kiêng ăn uống hoặc tiếp xúc gì để đỡ ngứa?",
+        ]
+
+    if any(k in combined for k in ("khó thở", "đau ngực", "tức ngực", "hô hấp", "thở dốc")):
+        return [
+            "Dấu hiệu nào cho thấy cần gọi cấp cứu 115 ngay lập tức?",
+            "Tư thế nghỉ ngơi nào giúp dễ thở hơn trong lúc chờ hỗ trợ y tế?",
+            "Khi nào cơn khó thở cần được can thiệp y tế khẩn cấp?",
+        ]
+
+    if any(k in combined for k in ("dạ dày", "loét", "đau bụng", "tiêu hóa", "hp")):
+        return [
+            "Nên ăn uống và kiêng gì khi đang bị đau dạ dày cấp?",
+            "Dấu hiệu xuất huyết tiêu hóa cần nhập viện kiểm tra là gì?",
+            "Thuốc giảm đau nào không làm hại dạ dày?",
+        ]
+
+    if intent in _CLINICAL_INTENTS:
+        return [
+            "Khi nào tôi cần đi khám bác sĩ trực tiếp?",
+            "Cần theo dõi thêm những triệu chứng gì tại nhà?",
+            "Chế độ ăn uống và sinh hoạt nào phù hợp lúc này?",
+        ]
+
+    return []
 
 
 def _sanitize_clinical_response(answer: GroundedAnswer) -> GroundedAnswer:

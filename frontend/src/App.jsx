@@ -13,6 +13,7 @@ import {
   HeartPulse,
   ListOrdered,
   LoaderCircle,
+  LogOut,
   Menu,
   MessageSquare,
   Paperclip,
@@ -26,6 +27,7 @@ import {
   Send,
   Settings,
   Settings2,
+  Shield,
   ShieldCheck,
   Sparkles,
   Stethoscope,
@@ -544,7 +546,16 @@ function clinicalContext(context) {
   };
 }
 
-export default function App({ account = null, isGuest = false, guestCount = 0, guestMax = 3, onGuestQuestionAsked = null, onRequireAuth = null }) {
+export default function App({
+  account = null,
+  isGuest = false,
+  guestCount = 0,
+  guestMax = 3,
+  onGuestQuestionAsked = null,
+  onRequireAuth = null,
+  onManageAccount = null,
+  onLogout = null,
+}) {
   const guestRemaining = Math.max(0, guestMax - guestCount);
   const isGuestLocked = isGuest && guestRemaining <= 0;
   const [tenantId, setTenantId] = useState(account?.scope || 'tenant-demo');
@@ -569,6 +580,7 @@ export default function App({ account = null, isGuest = false, guestCount = 0, g
   });
   const [credentialsOpen, setCredentialsOpen] = useState(false);
   const [patientOpen, setPatientOpen] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -861,7 +873,21 @@ export default function App({ account = null, isGuest = false, guestCount = 0, g
     <Sidebar open={sidebarOpen} close={() => setSidebarOpen(false)} collapse={() => { setSidebarCollapsed(true); setSidebarOpen(false); }} conversations={filteredConversations} activeId={conversationId} onSelect={selectConversation} onNew={startNew} onDelete={deleteConversation} onSchedule={() => setView('medication')} onSchedulePage={() => setView('schedule')} onMedicationPage={() => setView('medication')} onSettings={() => { setSettingsInitialTab('general'); setSettingsOpen(true); }} onSystem={() => { if (!account || account.role === 'admin') setView('system'); }} activeView={view} search={historySearch} setSearch={setHistorySearch} />
     <main className="main-shell chat-main">
       <header className="topbar chat-topbar">
-        <div className="topbar-title"><button className="icon-button menu-button" type="button" onClick={() => { setSidebarCollapsed(false); setSidebarOpen(true); }} title={sidebarCollapsed ? 'Mở thanh bên' : 'Mở menu'} aria-label={sidebarCollapsed ? 'Mở thanh bên' : 'Mở menu'}>{sidebarCollapsed ? <PanelLeftOpen size={20} /> : <Menu size={20} />}</button><div><h1>{view === 'system' ? 'System & audit' : view === 'schedule' ? 'Lịch khám' : view === 'medication' ? 'Lịch uống thuốc' : conversationTitle}</h1><span>{view === 'system' ? 'Trạng thái vận hành' : view === 'schedule' ? 'Thời khóa biểu ca khám bác sĩ' : view === 'medication' ? 'Thời khóa biểu nhắc thuốc cá nhân' : context.patient_ref || 'Có thể nhắn ngay không cần Profile'}</span></div></div>
+        <div className="topbar-title">
+          <button
+            className="icon-button menu-button"
+            type="button"
+            onClick={() => { setSidebarCollapsed(false); setSidebarOpen(true); }}
+            title={sidebarCollapsed ? 'Mở thanh bên' : 'Mở menu'}
+            aria-label={sidebarCollapsed ? 'Mở thanh bên' : 'Mở menu'}
+          >
+            {sidebarCollapsed ? <PanelLeftOpen size={20} /> : <Menu size={20} />}
+          </button>
+          <div>
+            <h1>{view === 'system' ? 'Hệ thống & Kiểm toán' : view === 'schedule' ? 'Lịch khám bệnh' : view === 'medication' ? 'Lịch uống thuốc' : conversationTitle}</h1>
+            <span>{view === 'system' ? 'Trạng thái vận hành lâm sàng' : view === 'schedule' ? 'Thời khóa biểu ca khám bác sĩ' : view === 'medication' ? 'Thời khóa biểu nhắc thuốc cá nhân' : (context.display_name ? `Bệnh nhân: ${context.display_name}` : context.patient_ref || 'Hỗ trợ y khoa 24/7')}</span>
+          </div>
+        </div>
         <div className="topbar-actions">
           {isGuest && (
             <div className="guest-topbar-indicator" title="Chế độ khách dùng thử">
@@ -872,12 +898,150 @@ export default function App({ account = null, isGuest = false, guestCount = 0, g
               </button>
             </div>
           )}
-          <button className={`view-toggle-btn ${view === "schedule" ? "active" : ""}`} type="button" onClick={() => setView(view === "schedule" ? "chat" : "schedule")} title={view === 'schedule' ? 'Về phòng Chat' : 'Xem Lịch khám'}><CalendarClock size={16} /><span>{view === 'schedule' ? 'Trò chuyện' : 'Lịch khám'}</span></button>
-          <button className={`view-toggle-btn ${view === "medication" ? "active" : ""}`} type="button" onClick={() => setView(view === "medication" ? "chat" : "medication")} title={view === 'medication' ? 'Về phòng Chat' : 'Xem Lịch uống thuốc'}><Pill size={16} /><span>{view === 'medication' ? 'Trò chuyện' : 'Lịch uống thuốc'}</span></button>
-          {view === 'chat' && <div className="profile-anchor"><button className={`patient-button ${context.patient_ref || context.display_name ? 'selected' : ''}`} type="button" aria-label="Mở Profile cá nhân" onClick={() => setPatientOpen(!patientOpen)}><span>{context.display_name ? context.display_name.trim().slice(0, 2).toUpperCase() : context.patient_ref ? context.patient_ref.slice(0, 2) : <UserRound size={15} />}</span><div><strong>{context.display_name || 'Profile cá nhân'}</strong><small>{context.patient_ref || 'Không bắt buộc'}</small></div><ChevronDown size={15} /></button>{patientOpen && <ProfileEditor context={context} onSave={saveProfile} onClear={clearProfile} close={() => setPatientOpen(false)} />}</div>}
-          <button className="icon-button topbar-settings-btn" type="button" title="Cài đặt hệ thống" aria-label="Cài đặt" onClick={() => { setSettingsInitialTab('general'); setSettingsOpen(true); }}><Settings size={18} /></button>
-          <button className="readiness-button" type="button" title="Trạng thái hệ thống" onClick={() => { setSettingsInitialTab(account?.role === 'patient' ? 'general' : 'system'); setSettingsOpen(true); }}><span className={`health-dot ${readiness?.production_ready ? 'ready' : (readiness?.environment === 'development' ? 'dev-ready' : '')}`} />{readiness?.production_ready ? 'Ready' : (readiness?.environment === 'development' ? 'Online (Dev)' : (readiness?.status || 'offline'))}</button>
-          {!account && <div className="credentials-anchor"><button className="tenant-button" type="button" title="Cấu hình kết nối" aria-label="Cấu hình kết nối" onClick={() => setCredentialsOpen(!credentialsOpen)}><span>{tenantId.slice(0, 1).toUpperCase()}</span><div><strong>{tenantId}</strong><small>{readiness?.environment || 'Environment'}</small></div><Settings2 size={16} /></button>{credentialsOpen && <Credentials tenantId={tenantId} setTenantId={setTenantId} apiKey={apiKey} setApiKey={setApiKey} consentToken={consentToken} setConsentToken={setConsentToken} close={() => setCredentialsOpen(false)} />}</div>}
+
+          <div className="topbar-view-tabs" role="tablist">
+            <button
+              role="tab"
+              aria-selected={view === "chat"}
+              className={`view-tab-btn ${view === "chat" ? "active" : ""}`}
+              type="button"
+              onClick={() => setView("chat")}
+              title="Phòng trò chuyện"
+            >
+              <MessageSquare size={14} />
+              <span>Hội thoại</span>
+            </button>
+            <button
+              role="tab"
+              aria-selected={view === "schedule"}
+              className={`view-tab-btn ${view === "schedule" ? "active" : ""}`}
+              type="button"
+              onClick={() => setView(view === "schedule" ? "chat" : "schedule")}
+              title="Lịch khám bác sĩ"
+            >
+              <CalendarClock size={14} />
+              <span>Lịch khám</span>
+            </button>
+            <button
+              role="tab"
+              aria-selected={view === "medication"}
+              className={`view-tab-btn ${view === "medication" ? "active" : ""}`}
+              type="button"
+              onClick={() => setView(view === "medication" ? "chat" : "medication")}
+              title="Lịch uống thuốc"
+            >
+              <Pill size={14} />
+              <span>Lịch thuốc</span>
+            </button>
+          </div>
+
+          {view === 'chat' && (
+            <div className="profile-anchor">
+              <button
+                className={`patient-button ${context.patient_ref || context.display_name ? 'selected' : ''}`}
+                type="button"
+                aria-label="Mở Profile cá nhân"
+                onClick={() => setPatientOpen(!patientOpen)}
+              >
+                <span>{context.display_name ? context.display_name.trim().slice(0, 2).toUpperCase() : context.patient_ref ? context.patient_ref.slice(0, 2) : <UserRound size={15} />}</span>
+                <div>
+                  <strong>{context.display_name || 'Hồ sơ bệnh nhân'}</strong>
+                  <small>{context.patient_ref || 'Không bắt buộc'}</small>
+                </div>
+                <ChevronDown size={14} />
+              </button>
+              {patientOpen && <ProfileEditor context={context} onSave={saveProfile} onClear={clearProfile} close={() => setPatientOpen(false)} />}
+            </div>
+          )}
+
+          <button
+            className="readiness-button"
+            type="button"
+            title="Trạng thái hệ thống"
+            onClick={() => { setSettingsInitialTab(account?.role === 'patient' ? 'general' : 'system'); setSettingsOpen(true); }}
+          >
+            <span className={`health-dot ${readiness?.production_ready ? 'ready' : (readiness?.environment === 'development' ? 'dev-ready' : '')}`} />
+            {readiness?.production_ready ? 'Ready' : (readiness?.environment === 'development' ? 'Online (Dev)' : (readiness?.status || 'offline'))}
+          </button>
+
+          <button
+            className="icon-button topbar-settings-btn"
+            type="button"
+            title="Cài đặt hệ thống"
+            aria-label="Cài đặt"
+            onClick={() => { setSettingsInitialTab('general'); setSettingsOpen(true); }}
+          >
+            <Settings size={18} />
+          </button>
+
+          {account && (
+            <div className="account-anchor">
+              <button
+                className="account-topbar-pill"
+                type="button"
+                title="Tài khoản & bảo mật"
+                onClick={() => setAccountMenuOpen(!accountMenuOpen)}
+              >
+                <span className="account-avatar-badge">{(account.email || 'U').slice(0, 2).toUpperCase()}</span>
+                <div className="account-pill-text">
+                  <strong>{account.email.split('@')[0]}</strong>
+                  <small>{account.mfa_enabled ? 'MFA Bật' : 'Tài khoản'}</small>
+                </div>
+                <ChevronDown size={13} className="account-chevron" />
+              </button>
+              {accountMenuOpen && (
+                <div className="account-popover">
+                  <div className="account-popover-user">
+                    <strong>{account.email}</strong>
+                    <span>{account.mfa_enabled ? 'Bảo mật 2 lớp: ĐÃ BẬT' : 'Chưa kích hoạt MFA'}</span>
+                  </div>
+                  <div className="account-popover-divider" />
+                  <button
+                    type="button"
+                    className="account-popover-item"
+                    onClick={() => {
+                      setAccountMenuOpen(false);
+                      onManageAccount?.();
+                    }}
+                  >
+                    <Shield size={15} />
+                    <span>Tài khoản & bảo mật</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="account-popover-item danger"
+                    onClick={() => {
+                      setAccountMenuOpen(false);
+                      onLogout?.();
+                    }}
+                  >
+                    <LogOut size={15} />
+                    <span>Đăng xuất</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {!account && !isGuest && (
+            <div className="credentials-anchor">
+              <button
+                className="tenant-button"
+                type="button"
+                title="Cấu hình kết nối"
+                aria-label="Cấu hình kết nối"
+                onClick={() => setCredentialsOpen(!credentialsOpen)}
+              >
+                <span>{tenantId.slice(0, 1).toUpperCase()}</span>
+                <div>
+                  <strong>{tenantId}</strong>
+                  <small>{readiness?.environment || 'Environment'}</small>
+                </div>
+                <Settings2 size={16} />
+              </button>
+              {credentialsOpen && <Credentials tenantId={tenantId} setTenantId={setTenantId} apiKey={apiKey} setApiKey={setApiKey} consentToken={consentToken} setConsentToken={setConsentToken} close={() => setCredentialsOpen(false)} />}
+            </div>
+          )}
         </div>
       </header>
       {view === 'system' ? (

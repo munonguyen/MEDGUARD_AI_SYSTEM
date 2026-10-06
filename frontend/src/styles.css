@@ -712,6 +712,7 @@ body { overflow: hidden; background: var(--canvas); color: var(--text); }
 .profile-save:hover { filter: brightness(1.06); }
 
 .chat-workspace {
+  position: relative;
   flex: 1;
   min-height: 0;
   display: flex;
@@ -1290,14 +1291,14 @@ body { overflow: hidden; background: var(--canvas); color: var(--text); }
    Sticky Scroll-to-Bottom Floating Action Button
    ========================================================================== */
 .scroll-bottom-container {
-  position: sticky;
-  bottom: 16px;
+  position: absolute;
+  bottom: 84px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   justify-content: center;
-  width: 100%;
   pointer-events: none;
-  z-index: 30;
-  margin-top: 12px;
+  z-index: 35;
 }
 
 .scroll-bottom-fab {
@@ -1680,6 +1681,195 @@ body { overflow: hidden; background: var(--canvas); color: var(--text); }
    ========================================================================== */
 
 /* Topbar & Navigation Enhancements */
+.topbar-view-tabs {
+  display: inline-flex;
+  align-items: center;
+  background: #f1f5f9;
+  padding: 3px;
+  border-radius: 9999px;
+  border: 1px solid #e2e8f0;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.view-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 9999px;
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  white-space: nowrap;
+}
+
+.view-tab-btn:hover {
+  color: #0f172a;
+}
+
+.view-tab-btn.active {
+  background: #ffffff;
+  color: #0f766e;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+.view-tab-btn.active svg {
+  color: #0d9488;
+}
+
+@media (max-width: 980px) {
+  .view-tab-btn span {
+    display: none;
+  }
+  .view-tab-btn {
+    padding: 0 8px;
+    height: 30px;
+  }
+}
+
+/* Integrated User Account Pill & Popover */
+.account-anchor {
+  position: relative;
+}
+
+.account-topbar-pill {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 4px 4px;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  background: #ffffff;
+  color: #0f172a;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.account-topbar-pill:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
+}
+
+.account-avatar-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #0284c7 0%, #0d9488 100%);
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(13, 148, 136, 0.25);
+}
+
+.account-pill-text {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  line-height: 1.2;
+}
+
+.account-pill-text strong {
+  font-size: 12px;
+  font-weight: 650;
+  color: #0f172a;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-pill-text small {
+  font-size: 10px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.account-chevron {
+  color: #94a3b8;
+  margin-left: 2px;
+}
+
+.account-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 90;
+  min-width: 230px;
+  padding: 8px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 12px 28px -4px rgba(15, 23, 42, 0.12), 0 4px 8px -2px rgba(15, 23, 42, 0.05);
+  animation: tool-menu-in 150ms ease-out;
+}
+
+.account-popover-user {
+  padding: 8px 10px;
+}
+
+.account-popover-user strong {
+  display: block;
+  font-size: 12.5px;
+  color: #0f172a;
+  word-break: break-all;
+}
+
+.account-popover-user span {
+  display: block;
+  font-size: 10.5px;
+  color: #059669;
+  font-weight: 600;
+  margin-top: 3px;
+}
+
+.account-popover-divider {
+  height: 1px;
+  background: #f1f5f9;
+  margin: 4px 0;
+}
+
+.account-popover-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #334155;
+  font-size: 12.5px;
+  font-weight: 550;
+  text-align: left;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.account-popover-item:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.account-popover-item.danger {
+  color: #dc2626;
+}
+
+.account-popover-item.danger:hover {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
 .view-toggle-btn {
   display: inline-flex;
   align-items: center;
@@ -1706,16 +1896,6 @@ body { overflow: hidden; background: var(--canvas); color: var(--text); }
   color: white;
   border-color: #0284c7;
   box-shadow: 0 2px 8px rgba(2, 132, 199, 0.28);
-}
-@media (max-width: 980px) {
-  .view-toggle-btn span {
-    display: none;
-  }
-  .view-toggle-btn {
-    width: 38px;
-    padding: 0;
-    justify-content: center;
-  }
 }
 .sidebar-actions .nav-link-btn {
   display: flex;

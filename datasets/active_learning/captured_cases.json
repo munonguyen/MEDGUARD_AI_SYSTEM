@@ -1,8 +1,8 @@
 {
   "_meta": {
     "version": "1.0.0",
-    "updated_at": "2026-10-06T06:47:21.776845+00:00",
-    "total_captured": 2910
+    "updated_at": "2026-10-06T07:43:28.117440+00:00",
+    "total_captured": 2911
   },
   "cases": [
     {
@@ -130693,6 +130693,45 @@
       "tenant_id": "tenant-demo",
       "conversation_id": "v28-quality-negated-exposure-list",
       "request_id": "req_b967c27364364512",
+      "user_query": "Tôi hơi khó thở nhưng không tiếp xúc hóa chất, chất tẩy rửa hay khí độc",
+      "detected_intent": "triage",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Các triệu chứng bạn mô tả cần được nhân viên y tế đánh giá trực tiếp sớm. Hệ thống không thể xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn; hãy ưu tiên hướng xử trí bên dưới.",
+      "narrative": [
+        {
+          "kind": "paragraph",
+          "text": "Bạn nên được nhân viên y tế đánh giá sớm. Các triệu chứng bạn mô tả cần được nhân viên y tế đánh giá trực tiếp sớm. Hệ thống không thể xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn; hãy ưu tiên hướng xử trí bên dưới.",
+          "emphasis": [
+            "Bạn nên được nhân viên y tế đánh giá sớm"
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Khó thở mới xuất hiện dù nhẹ cần được nhân viên y tế đánh giá sớm trong ngày. Dừng gắng sức và nghỉ ở nơi an toàn. Gọi 115 ngay nếu khó thở tăng nhanh, không nói được cả câu, tím môi, đau ngực hoặc choáng ngất. Chưa thể xác định nguyên nhân chỉ qua tin nhắn; không tự dùng thuốc mới.",
+          "emphasis": []
+        },
+        {
+          "kind": "paragraph",
+          "text": "Bạn cho mình biết thêm: Khó thở bắt đầu lúc nào; có xảy ra khi nghỉ hoặc tăng dần không?",
+          "emphasis": [
+            "Bạn cho mình biết thêm"
+          ]
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261006-54FCD2D7",
+      "timestamp": "2026-10-06T07:43:28.086018+00:00",
+      "tenant_id": "tenant-demo",
+      "conversation_id": "v28-quality-negated-exposure-list",
+      "request_id": "req_3b0f2e9f4f37484f",
       "user_query": "Tôi hơi khó thở nhưng không tiếp xúc hóa chất, chất tẩy rửa hay khí độc",
       "detected_intent": "triage",
       "suggested_intent": "triage",

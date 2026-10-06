@@ -861,6 +861,7 @@ class AnswerAgentPipeline:
                     "researched_sources": state.draft.sources,
                     "display_questions": display_questions[:3] if display_questions else [],
                     "questions": answer.questions or display_questions or [],
+                    "suggested_followups": answer.suggested_followups or [],
                     "answer_assurance": AnswerAssurance(status="verified", scores=state.verification.scores),
                     "agent_trace": trace,
                 }

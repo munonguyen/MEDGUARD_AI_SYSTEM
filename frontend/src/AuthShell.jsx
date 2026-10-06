@@ -180,8 +180,7 @@ export default function AuthShell(){
   </div>
  </section></main>;
  const action=(path,body,then)=>perform(async()=>{const d=await auth(path,body,csrf);setNotice(d.message||'Hoàn tất');if(then)await then(d);});
- return <div className="authenticated-shell"><div className="account-bar"><span>{user.email}{user.mfa_enabled?' · MFA':''}</span><button onClick={()=>perform(async()=>{setManage(!manage);setSessions((await auth('sessions',null,csrf,'GET')).sessions);})}>Tài khoản & bảo mật</button><button disabled={busy} onClick={()=>action('logout',null,clear)}>Đăng xuất</button></div>
- {manage?<main className="auth-screen"><section className="auth-card"><h1>Tài khoản & bảo mật</h1><p>{user.email} · {user.email_verified?'Email đã xác thực':'Email chưa xác thực'}</p>
+ if(manage)return <main className="auth-screen"><section className="auth-card"><h1>Tài khoản & bảo mật</h1><p>{user.email} · {user.email_verified?'Email đã xác thực':'Email chưa xác thực'}</p>
  {error&&<p role="alert">{error}</p>}{notice&&<p role="status">{notice}</p>}
  <button disabled={busy} onClick={()=>action('verification-email')}>Gửi email xác thực</button>
  <h2>Đổi mật khẩu / xác nhận thao tác</h2><label>Mật khẩu hiện tại<input type="password" autoComplete="current-password" value={password} onChange={e=>setPassword(e.target.value)}/></label><label>Mật khẩu mới<input type="password" autoComplete="new-password" minLength={12} value={newPassword} onChange={e=>setNewPassword(e.target.value)}/></label><label>Mã MFA hoặc mã khôi phục<input value={otp} onChange={e=>setOtp(e.target.value)} maxLength={32}/></label>
@@ -189,5 +188,6 @@ export default function AuthShell(){
  <h2>Xác thực hai lớp</h2>{!user.mfa_enabled?<><button disabled={busy} onClick={()=>action('mfa/setup',{current_password:password},setSetup)}>Thiết lập MFA</button>{setup&&<><p>Thêm khóa vào ứng dụng Authenticator rồi nhập mã 6 số. Giữ khóa này riêng tư.</p><code className="auth-secret">{setup.secret}</code><button disabled={busy} onClick={()=>action('mfa/enable',{token:setup.setup_token,code:otp},d=>{setBackups(d.recovery_codes||[]);clear();})}>Xác nhận bật MFA</button></>}</>:<button disabled={busy} onClick={()=>action('mfa/disable',{current_password:password,otp:otp||null},clear)}>Tắt MFA sau xác thực</button>}
  <h2>Phiên đăng nhập</h2>{sessions.map(s=><div className="auth-session" key={s.id}><span>{s.current?'Phiên hiện tại':'Phiên khác'} · {new Date(s.last_seen*1000).toLocaleString()}</span><button disabled={busy} onClick={()=>perform(async()=>{await auth('sessions/'+s.id,null,csrf,'DELETE');if(s.current)clear();else setSessions(sessions.filter(x=>x.id!==s.id));})}>Thu hồi</button></div>)}
  <button disabled={busy} onClick={()=>action('logout-all',null,clear)}>Đăng xuất tất cả thiết bị</button><button onClick={()=>{setManage(false);setPassword('');setOtp('');setSetup(null);}}>Về trò chuyện</button>
- </section></main>:<App key={user.id} account={user}/>}</div>;
+ </section></main>;
+ return <App key={user.id} account={user} onManageAccount={()=>perform(async()=>{setManage(true);setSessions((await auth('sessions',null,csrf,'GET')).sessions);})} onLogout={()=>action('logout',null,clear)}/>;
 }
