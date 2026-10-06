@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Activity,
   AlarmClock,
+  ArrowLeft,
+  ArrowUpRight,
   Braces,
   CalendarClock,
   CalendarDays,
@@ -9,7 +11,10 @@ import {
   CheckCircle2,
   ChevronDown,
   Copy,
+  Eye,
+  EyeOff,
   FileScan,
+  Heart,
   HeartPulse,
   ListOrdered,
   LoaderCircle,
@@ -51,6 +56,7 @@ import { SchedulePage } from './schedule/SchedulePage';
 import { MedicationPage } from './schedule/MedicationPage';
 import { SettingsModal } from './settings/SettingsModal';
 import { DoctorCompanion } from './companion/DoctorCompanion';
+import { DoctorStudioView } from './companion/DoctorStudioView';
 
 const tenantDefaults = { 'tenant-demo': 'demo-key', 'tenant-alt': 'alt-key' };
 
@@ -184,12 +190,63 @@ function ToolMenu({ open, selected, onSelect }) {
   </div>;
 }
 
-function Welcome({ onPrompt }) {
-  return <div className="welcome-view">
-    <img src="/static/brand-mark.svg" alt="Biểu trưng MedGuard AI" width="56" height="56" />
-    <h1>Bạn cần hỗ trợ gì hôm nay?</h1>
-    <div className="starter-grid">{starterPrompts.map((item) => { const Icon = item.icon; return <button type="button" key={item.title} onClick={() => onPrompt(item.text)}><Icon size={18} /><span>{item.title}</span><Send size={14} /></button>; })}</div>
-  </div>;
+function Welcome({ onPrompt, isStudioMode = false }) {
+  if (isStudioMode) {
+    return (
+      <div className="studio-welcome-block">
+        <div className="studio-welcome-icon" aria-hidden="true">
+          <Heart size={22} />
+        </div>
+        <h2>Hôm nay bạn cảm thấy thế nào?</h2>
+        <p>Bắt đầu bằng điều bạn đang lo lắng. Tôi sẽ cùng bạn tìm hiểu từng bước.</p>
+        <div className="studio-starter-list">
+          <button
+            type="button"
+            className="studio-starter-item"
+            onClick={() => onPrompt('Tôi muốn hỏi về triệu chứng')}
+          >
+            <span>Tôi muốn hỏi về triệu chứng</span>
+            <ArrowUpRight size={16} />
+          </button>
+          <button
+            type="button"
+            className="studio-starter-item"
+            onClick={() => onPrompt('Kiểm tra thuốc đang dùng')}
+          >
+            <span>Kiểm tra thuốc đang dùng</span>
+            <ArrowUpRight size={16} />
+          </button>
+          <button
+            type="button"
+            className="studio-starter-item"
+            onClick={() => onPrompt('Giải thích kết quả khám')}
+          >
+            <span>Giải thích kết quả khám</span>
+            <ArrowUpRight size={16} />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="welcome-view">
+      <img src="/static/brand-mark.svg" alt="Biểu trưng MedGuard AI" width="56" height="56" />
+      <h1>Bạn cần hỗ trợ gì hôm nay?</h1>
+      <div className="starter-grid">
+        {starterPrompts.map((item) => {
+          const Icon = item.icon;
+          return (
+            <button type="button" key={item.title} onClick={() => onPrompt(item.text)}>
+              <Icon size={18} />
+              <span>{item.title}</span>
+              <Send size={14} />
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 function Conversation({
@@ -624,6 +681,8 @@ export default function App({
   const [speakingText, setSpeakingText] = useState(null);
   const [autoSpeak, setAutoSpeak] = useState(false);
   const [companionOpen, setCompanionOpen] = useState(false);
+  const [avatarPersona, setAvatarPersona] = useState('dr_mai');
+  const [avatarEnabled, setAvatarEnabled] = useState(true);
   const [readiness, setReadiness] = useState(null);
   const [view, setView] = useState('chat');
   const [historySearch, setHistorySearch] = useState('');
@@ -946,7 +1005,7 @@ export default function App({
             {sidebarCollapsed ? <PanelLeftOpen size={20} /> : <Menu size={20} />}
           </button>
           <div>
-            <h1>{view === 'system' ? 'Hệ thống & Kiểm toán' : view === 'schedule' ? 'Lịch khám bệnh' : view === 'medication' ? 'Lịch uống thuốc' : conversationTitle}</h1>
+            <h1>{view === 'system' ? 'Hệ thống & Kiểm toán' : view === 'schedule' ? 'Lịch khám bệnh' : view === 'medication' ? 'Lịch uống thuốc' : (avatarEnabled ? 'MedGuard PHÒNG TƯ VẤN' : conversationTitle)}</h1>
             <span>{view === 'system' ? 'Trạng thái vận hành lâm sàng' : view === 'schedule' ? 'Thời khóa biểu ca khám bác sĩ' : view === 'medication' ? 'Thời khóa biểu nhắc thuốc cá nhân' : (context.display_name ? `Bệnh nhân: ${context.display_name}` : context.patient_ref || 'Hỗ trợ y khoa 24/7')}</span>
           </div>
         </div>
@@ -957,6 +1016,37 @@ export default function App({
               <span>Khách: <strong>{guestRemaining}/{guestMax}</strong> lượt</span>
               <button type="button" className="guest-topbar-btn" onClick={onRequireAuth}>
                 Đăng nhập
+              </button>
+            </div>
+          )}
+
+          {view === 'chat' && (
+            <div className="studio-topbar-controls">
+              <div className="studio-segmented-pill" role="group" aria-label="Chọn bác sĩ tư vấn">
+                <button
+                  type="button"
+                  className={`studio-segmented-btn ${avatarPersona === 'dr_mai' ? 'active' : ''}`}
+                  onClick={() => setAvatarPersona('dr_mai')}
+                >
+                  Bác sĩ nữ
+                </button>
+                <button
+                  type="button"
+                  className={`studio-segmented-btn ${avatarPersona === 'dr_tuan' ? 'active' : ''}`}
+                  onClick={() => setAvatarPersona('dr_tuan')}
+                >
+                  Bác sĩ nam
+                </button>
+              </div>
+
+              <button
+                type="button"
+                className="studio-toggle-btn"
+                onClick={() => setAvatarEnabled(!avatarEnabled)}
+                title={avatarEnabled ? 'Tắt nhân vật 3D' : 'Bật nhân vật 3D'}
+              >
+                {avatarEnabled ? <EyeOff size={15} /> : <Eye size={15} />}
+                <span>{avatarEnabled ? 'Tắt nhân vật' : 'Bật nhân vật'}</span>
               </button>
             </div>
           )}
@@ -1015,17 +1105,6 @@ export default function App({
               {patientOpen && <ProfileEditor context={context} onSave={saveProfile} onClear={clearProfile} close={() => setPatientOpen(false)} />}
             </div>
           )}
-
-          <button
-            className={`doctor-companion-topbar-btn ${companionOpen ? 'active' : ''}`}
-            type="button"
-            title="Bác sĩ 3D AI đồng hành (Grok-style companion)"
-            aria-label="Bác sĩ 3D AI"
-            onClick={() => setCompanionOpen(!companionOpen)}
-          >
-            <Sparkles size={14} className="doctor-btn-sparkle" />
-            <span>Bác sĩ 3D</span>
-          </button>
 
           <button
             className="readiness-button"
@@ -1156,6 +1235,57 @@ export default function App({
             onNotify={notify}
           />
         </div>
+      ) : avatarEnabled ? (
+        <DoctorStudioView
+          persona={avatarPersona}
+          speakingText={speakingText}
+          isBusy={busy}
+          autoSpeak={autoSpeak}
+          setAutoSpeak={setAutoSpeak}
+          onSpeechInput={(transcript) => {
+            setMessage(transcript);
+            sendText(transcript);
+          }}
+          onNotify={notify}
+        >
+          <section id="main-chat-workspace" className={`chat-workspace ${entries.length ? 'has-messages' : ''}`} aria-live="polite">
+            <div className="chat-scroll">
+              {entries.length ? (
+                <Conversation
+                  entries={entries}
+                  busy={busy}
+                  onNotify={notify}
+                  onSelectQuestion={(q) => sendText(q)}
+                  speakingKey={speakingKey}
+                  setSpeakingKey={setSpeakingKey}
+                  setSpeakingText={setSpeakingText}
+                />
+              ) : (
+                <Welcome
+                  onPrompt={(text) => {
+                    setMessage(text);
+                    requestAnimationFrame(() => document.querySelector('[aria-label="Tin nhắn"]')?.focus());
+                  }}
+                  isStudioMode={true}
+                />
+              )}
+            </div>
+            <Composer
+              value={message}
+              setValue={setMessage}
+              onSend={() => sendText()}
+              busy={busy}
+              selectedTool={selectedTool}
+              setSelectedTool={setSelectedTool}
+              attachment={attachment}
+              setAttachment={setAttachment}
+              onQr={() => setQrOpen(true)}
+              isGuestLocked={isGuestLocked}
+              guestMax={guestMax}
+              onRequireAuth={onRequireAuth}
+            />
+          </section>
+        </DoctorStudioView>
       ) : (
         <section id="main-chat-workspace" className={`chat-workspace ${entries.length ? 'has-messages' : ''}`} aria-live="polite">
           <div className="chat-scroll">
@@ -1170,26 +1300,47 @@ export default function App({
                 setSpeakingText={setSpeakingText}
               />
             ) : (
-              <Welcome onPrompt={(text) => { setMessage(text); requestAnimationFrame(() => document.querySelector('[aria-label="Tin nhắn"]')?.focus()); }} />
+              <Welcome
+                onPrompt={(text) => {
+                  setMessage(text);
+                  requestAnimationFrame(() => document.querySelector('[aria-label="Tin nhắn"]')?.focus());
+                }}
+                isStudioMode={false}
+              />
             )}
           </div>
-          <Composer value={message} setValue={setMessage} onSend={() => sendText()} busy={busy} selectedTool={selectedTool} setSelectedTool={setSelectedTool} attachment={attachment} setAttachment={setAttachment} onQr={() => setQrOpen(true)} isGuestLocked={isGuestLocked} guestMax={guestMax} onRequireAuth={onRequireAuth} />
+          <Composer
+            value={message}
+            setValue={setMessage}
+            onSend={() => sendText()}
+            busy={busy}
+            selectedTool={selectedTool}
+            setSelectedTool={setSelectedTool}
+            attachment={attachment}
+            setAttachment={setAttachment}
+            onQr={() => setQrOpen(true)}
+            isGuestLocked={isGuestLocked}
+            guestMax={guestMax}
+            onRequireAuth={onRequireAuth}
+          />
         </section>
       )}
     </main>
     <QrScanner open={qrOpen} onClose={() => setQrOpen(false)} onDetected={(raw) => { setQrOpen(false); sendText(`Kiểm tra QR hàng giả: ${raw}`, 'authenticity'); }} />
     <SchedulePanel open={scheduleOpen} onClose={() => setScheduleOpen(false)} api={api} patientRef={context.patient_ref} onOpenSchedulePage={() => setView('schedule')} onNotify={notify} />
     <SettingsModal allowSystem={!account || account.role === 'admin'} open={settingsOpen} onClose={() => setSettingsOpen(false)} initialTab={settingsInitialTab} context={context} onSaveProfile={saveProfile} onClearProfile={clearProfile} api={api} tenantId={tenantId} onClearAllChat={clearAllConversations} onExportData={exportClinicalData} onNotify={notify} />
-    <DoctorCompanion
-      isOpen={companionOpen}
-      setIsOpen={setCompanionOpen}
-      speakingText={speakingText}
-      isBusy={busy}
-      lastAnswer={entries.filter((e) => e.role === 'assistant' && e.answer).slice(-1)[0]?.answer}
-      autoSpeak={autoSpeak}
-      setAutoSpeak={setAutoSpeak}
-      onNotify={notify}
-    />
+    {!avatarEnabled && (
+      <DoctorCompanion
+        isOpen={companionOpen}
+        setIsOpen={setCompanionOpen}
+        speakingText={speakingText}
+        isBusy={busy}
+        lastAnswer={entries.filter((e) => e.role === 'assistant' && e.answer).slice(-1)[0]?.answer}
+        autoSpeak={autoSpeak}
+        setAutoSpeak={setAutoSpeak}
+        onNotify={notify}
+      />
+    )}
     {toast && <div className="ui-toast" role="status" aria-live="polite" aria-atomic="true"><Check size={16} /><span>{toast}</span></div>}
   </div>;
 }

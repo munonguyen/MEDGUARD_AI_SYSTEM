@@ -76,10 +76,10 @@ export class DoctorAvatar3D {
     // 1. Scene
     this.scene = new THREE.Scene();
 
-    // 2. Camera (portrait composition framing the doctor's bust)
-    this.camera = new THREE.PerspectiveCamera(34, width / height, 0.1, 100);
-    this.camera.position.set(0, 1.45, 2.75);
-    this.camera.lookAt(0, 1.35, 0);
+    // 2. Camera (cinematic portrait bust shot framing face & stethoscope)
+    this.camera = new THREE.PerspectiveCamera(30, width / height, 0.1, 100);
+    this.camera.position.set(0, 1.28, 1.85);
+    this.camera.lookAt(0, 1.20, 0);
 
     // 3. Renderer with ACES Filmic tone mapping for realistic skin & fabric
     this.renderer = new THREE.WebGLRenderer({
@@ -150,120 +150,184 @@ export class DoctorAvatar3D {
 
     const isFemale = persona === 'dr_mai';
 
-    // Materials Palette
-    const skinColor = isFemale ? 0xffdfd0 : 0xf6cfb8;
+    // Materials Palette (Studio PBR Shading)
+    const skinColor = isFemale ? 0xffdfd2 : 0xf6d0be;
     const skinMaterial = new THREE.MeshStandardMaterial({
       color: skinColor,
-      roughness: 0.58,
+      roughness: isFemale ? 0.48 : 0.54,
+      metalness: 0.02,
+    });
+
+    const hairColor = isFemale ? 0x1d1816 : 0x181514;
+    const hairMaterial = new THREE.MeshStandardMaterial({
+      color: hairColor,
+      roughness: 0.45,
+      metalness: 0.15,
+    });
+
+    const scrubColor = isFemale ? 0x0284c7 : 0x0d9488; // Hospital French Blue (Mai) & Clinical Teal (Tuan)
+    const scrubMaterial = new THREE.MeshStandardMaterial({
+      color: scrubColor,
+      roughness: 0.52,
       metalness: 0.04,
     });
 
-    const hairColor = isFemale ? 0x241711 : 0x1c1a19;
-    const hairMaterial = new THREE.MeshStandardMaterial({
-      color: hairColor,
-      roughness: 0.65,
-      metalness: 0.1,
-    });
-
-    const labCoatMaterial = new THREE.MeshStandardMaterial({
-      color: 0xf8fafc,
+    const scrubTrimMaterial = new THREE.MeshStandardMaterial({
+      color: isFemale ? 0x38bdf8 : 0x2dd4bf,
       roughness: 0.45,
       metalness: 0.05,
     });
 
-    const scrubMaterial = new THREE.MeshStandardMaterial({
-      color: isFemale ? 0x0284c7 : 0x0d9488, // Blue scrub for Dr. Mai, Teal for Dr. Tuan
-      roughness: 0.55,
-      metalness: 0.05,
+    const underShirtMaterial = new THREE.MeshStandardMaterial({
+      color: 0xf8fafc,
+      roughness: 0.4,
+      metalness: 0.02,
     });
 
     const rubberMaterial = new THREE.MeshStandardMaterial({
       color: 0x1e293b,
-      roughness: 0.7,
-      metalness: 0.1,
+      roughness: 0.65,
+      metalness: 0.08,
     });
 
     const chromeMaterial = new THREE.MeshStandardMaterial({
-      color: 0xe2e8f0,
-      roughness: 0.15,
-      metalness: 0.95,
+      color: 0xf1f5f9,
+      roughness: 0.12,
+      metalness: 0.98,
     });
 
-    // --- 1. TORSO & MEDICAL COAT ---
+    // --- 1. TORSO & MEDICAL SCRUBS ---
     const torsoGroup = new THREE.Group();
     this.torsoGroup = torsoGroup;
 
     // Body core
-    const chestGeom = new THREE.CylinderGeometry(0.38, 0.35, 0.72, 24);
+    const chestGeom = new THREE.CylinderGeometry(0.36, 0.33, 0.76, 28);
     const chestMesh = new THREE.Mesh(chestGeom, scrubMaterial);
     chestMesh.position.y = 0.85;
     torsoGroup.add(chestMesh);
 
-    // Lab Coat (outer shell)
-    const coatGeom = new THREE.CylinderGeometry(0.42, 0.40, 0.78, 24, 1, true, -Math.PI * 0.42, Math.PI * 1.84);
-    const coatMesh = new THREE.Mesh(coatGeom, labCoatMaterial);
-    coatMesh.position.y = 0.84;
-    coatMesh.rotation.y = Math.PI * 0.08;
-    torsoGroup.add(coatMesh);
+    // Inner collar peek (white undershirt)
+    const underShirtGeom = new THREE.CylinderGeometry(0.18, 0.20, 0.14, 20);
+    const underShirtMesh = new THREE.Mesh(underShirtGeom, underShirtMaterial);
+    underShirtMesh.position.set(0, 1.15, 0.02);
+    torsoGroup.add(underShirtMesh);
 
-    // Lapels (ve áo blouse)
-    const lapelGeom = new THREE.BoxGeometry(0.12, 0.38, 0.04);
-    const leftLapel = new THREE.Mesh(lapelGeom, labCoatMaterial);
-    leftLapel.position.set(-0.16, 1.05, 0.36);
-    leftLapel.rotation.set(0.1, 0.2, -0.3);
-    torsoGroup.add(leftLapel);
+    // V-Neck Collar Left Trim
+    const vTrimLeftGeom = new THREE.BoxGeometry(0.045, 0.28, 0.035);
+    const vTrimLeft = new THREE.Mesh(vTrimLeftGeom, scrubTrimMaterial);
+    vTrimLeft.position.set(-0.09, 1.08, 0.29);
+    vTrimLeft.rotation.set(0.1, 0.15, -0.42);
+    torsoGroup.add(vTrimLeft);
 
-    const rightLapel = new THREE.Mesh(lapelGeom, labCoatMaterial);
-    rightLapel.position.set(0.16, 1.05, 0.36);
-    rightLapel.rotation.set(0.1, -0.2, 0.3);
-    torsoGroup.add(rightLapel);
+    // V-Neck Collar Right Trim
+    const vTrimRightGeom = new THREE.BoxGeometry(0.045, 0.28, 0.035);
+    const vTrimRight = new THREE.Mesh(vTrimRightGeom, scrubTrimMaterial);
+    vTrimRight.position.set(0.09, 1.08, 0.29);
+    vTrimRight.rotation.set(0.1, -0.15, 0.42);
+    torsoGroup.add(vTrimRight);
 
-    // Stethoscope (Ống nghe y tế quàng cổ)
+    // Stethoscope (Ống nghe y tế chuẩn Littmann)
     const stethGroup = new THREE.Group();
     this.stethoscope = stethGroup;
 
-    // Tube around neck
+    // Silicone Tubing around neck
     const curve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(-0.16, 1.26, 0.12),
-      new THREE.Vector3(-0.24, 1.15, 0.28),
-      new THREE.Vector3(-0.12, 0.92, 0.38),
-      new THREE.Vector3(0.04, 0.76, 0.39),
-      new THREE.Vector3(0.16, 0.82, 0.37),
-      new THREE.Vector3(0.24, 1.15, 0.28),
-      new THREE.Vector3(0.16, 1.26, 0.12),
+      new THREE.Vector3(-0.15, 1.25, 0.10),
+      new THREE.Vector3(-0.24, 1.14, 0.26),
+      new THREE.Vector3(-0.14, 0.88, 0.36),
+      new THREE.Vector3(0.04, 0.72, 0.38),
+      new THREE.Vector3(0.16, 0.80, 0.35),
+      new THREE.Vector3(0.24, 1.14, 0.26),
+      new THREE.Vector3(0.15, 1.25, 0.10),
     ]);
-    const tubeGeom = new THREE.TubeGeometry(curve, 32, 0.016, 10, false);
+    const tubeGeom = new THREE.TubeGeometry(curve, 36, 0.016, 12, false);
     const tubeMesh = new THREE.Mesh(tubeGeom, rubberMaterial);
     stethGroup.add(tubeMesh);
 
-    // Chest piece (Mặt chuông kim loại)
-    const diaphragmGeom = new THREE.CylinderGeometry(0.045, 0.045, 0.02, 20);
+    // Binaural metal spring tubes
+    const leftEarpieceCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(-0.15, 1.25, 0.10),
+      new THREE.Vector3(-0.18, 1.35, 0.06),
+      new THREE.Vector3(-0.22, 1.34, 0.02),
+    ]);
+    const leftEarpiece = new THREE.Mesh(new THREE.TubeGeometry(leftEarpieceCurve, 12, 0.009, 8, false), chromeMaterial);
+    stethGroup.add(leftEarpiece);
+
+    const rightEarpieceCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0.15, 1.25, 0.10),
+      new THREE.Vector3(0.18, 1.35, 0.06),
+      new THREE.Vector3(0.22, 1.34, 0.02),
+    ]);
+    const rightEarpiece = new THREE.Mesh(new THREE.TubeGeometry(rightEarpieceCurve, 12, 0.009, 8, false), chromeMaterial);
+    stethGroup.add(rightEarpiece);
+
+    // Double-sided Chest Piece (Mặt chuông & màng nghe kim loại chrome bóng)
+    const diaphragmGeom = new THREE.CylinderGeometry(0.048, 0.048, 0.022, 24);
     const diaphragmMesh = new THREE.Mesh(diaphragmGeom, chromeMaterial);
-    diaphragmMesh.position.set(0.04, 0.75, 0.40);
+    diaphragmMesh.position.set(0.04, 0.71, 0.39);
     diaphragmMesh.rotation.x = Math.PI / 2;
     stethGroup.add(diaphragmMesh);
+
+    const diaphragmCenterGeom = new THREE.CircleGeometry(0.038, 20);
+    const diaphragmCenter = new THREE.Mesh(diaphragmCenterGeom, rubberMaterial);
+    diaphragmCenter.position.set(0.04, 0.71, 0.402);
+    stethGroup.add(diaphragmCenter);
 
     torsoGroup.add(stethGroup);
 
     // Medical Badge (Thẻ nhân viên y tế MedGuard)
-    const badgeGeom = new THREE.BoxGeometry(0.09, 0.13, 0.012);
+    const badgeGeom = new THREE.BoxGeometry(0.095, 0.135, 0.012);
     const badgeMaterial = new THREE.MeshStandardMaterial({
       color: 0x0f172a,
-      roughness: 0.3,
-      metalness: 0.2,
+      roughness: 0.25,
+      metalness: 0.3,
     });
     const badgeMesh = new THREE.Mesh(badgeGeom, badgeMaterial);
-    badgeMesh.position.set(0.22, 0.98, 0.38);
+    badgeMesh.position.set(0.21, 0.96, 0.35);
     badgeMesh.rotation.set(0.05, -0.15, 0.05);
 
     // Green status light on badge
     const badgeDotGeom = new THREE.SphereGeometry(0.012, 12, 12);
     const badgeDotMaterial = new THREE.MeshBasicMaterial({ color: 0x10b981 });
     const badgeDot = new THREE.Mesh(badgeDotGeom, badgeDotMaterial);
-    badgeDot.position.set(0.025, 0.045, 0.01);
+    badgeDot.position.set(0.028, 0.046, 0.01);
     badgeMesh.add(badgeDot);
 
+    // Badge lanyard clip
+    const clipGeom = new THREE.BoxGeometry(0.03, 0.04, 0.015);
+    const clipMesh = new THREE.Mesh(clipGeom, chromeMaterial);
+    clipMesh.position.set(0.0, 0.075, 0.0);
+    badgeMesh.add(clipMesh);
+
     torsoGroup.add(badgeMesh);
+
+    // Natural relaxed arms posture
+    const armMaterial = scrubMaterial;
+    const leftArmGeom = new THREE.CylinderGeometry(0.088, 0.078, 0.48, 20);
+    const leftArm = new THREE.Mesh(leftArmGeom, armMaterial);
+    leftArm.position.set(-0.35, 0.82, 0.08);
+    leftArm.rotation.set(0.14, 0.08, 0.24);
+    torsoGroup.add(leftArm);
+
+    // Forearm & wrist
+    const leftForearmGeom = new THREE.CylinderGeometry(0.075, 0.065, 0.36, 16);
+    const leftForearm = new THREE.Mesh(leftForearmGeom, skinMaterial);
+    leftForearm.position.set(-0.32, 0.48, 0.18);
+    leftForearm.rotation.set(0.35, 0.2, 0.15);
+    torsoGroup.add(leftForearm);
+
+    const rightArmGeom = new THREE.CylinderGeometry(0.088, 0.078, 0.48, 20);
+    const rightArm = new THREE.Mesh(rightArmGeom, armMaterial);
+    rightArm.position.set(0.35, 0.82, 0.08);
+    rightArm.rotation.set(0.14, -0.08, -0.24);
+    torsoGroup.add(rightArm);
+
+    const rightForearmGeom = new THREE.CylinderGeometry(0.075, 0.065, 0.36, 16);
+    const rightForearm = new THREE.Mesh(rightForearmGeom, skinMaterial);
+    rightForearm.position.set(0.32, 0.48, 0.18);
+    rightForearm.rotation.set(0.35, -0.2, -0.15);
+    torsoGroup.add(rightForearm);
+
     root.add(torsoGroup);
 
     // --- 2. NECK & HEAD RIG ---
@@ -271,7 +335,7 @@ export class DoctorAvatar3D {
     neckGroup.position.set(0, 1.20, 0);
     this.neckGroup = neckGroup;
 
-    const neckGeom = new THREE.CylinderGeometry(0.13, 0.15, 0.18, 20);
+    const neckGeom = new THREE.CylinderGeometry(0.125, 0.155, 0.19, 24);
     const neckMesh = new THREE.Mesh(neckGeom, skinMaterial);
     neckMesh.position.y = 0.09;
     neckGroup.add(neckMesh);
@@ -281,18 +345,36 @@ export class DoctorAvatar3D {
     this.headGroup = headGroup;
 
     // Head base geometry (organic cranial shaping)
-    const headGeom = new THREE.SphereGeometry(0.25, 32, 24);
+    const headGeom = new THREE.SphereGeometry(0.25, 36, 28);
     headGeom.scale(0.92, 1.15, 0.98);
     const headMesh = new THREE.Mesh(headGeom, skinMaterial);
     headMesh.position.set(0, 0.12, 0);
     headGroup.add(headMesh);
 
-    // Chin / Jawline
-    const chinGeom = new THREE.BoxGeometry(0.16, 0.14, 0.16);
+    // Chin / Jawline (smooth feminine/masculine jaw curve)
+    const chinGeom = new THREE.BoxGeometry(0.15, 0.13, 0.15);
     const chinMesh = new THREE.Mesh(chinGeom, skinMaterial);
-    chinMesh.position.set(0, -0.06, 0.12);
-    chinMesh.rotation.x = 0.25;
+    chinMesh.position.set(0, -0.055, 0.12);
+    chinMesh.rotation.x = 0.26;
     headGroup.add(chinMesh);
+
+    // Rosy Cheeks (warm glowing skin subsurface)
+    if (isFemale) {
+      const blushMaterial = new THREE.MeshBasicMaterial({
+        color: 0xf472b6,
+        transparent: true,
+        opacity: 0.18,
+      });
+      const leftBlush = new THREE.Mesh(new THREE.CircleGeometry(0.038, 16), blushMaterial);
+      leftBlush.position.set(-0.135, 0.075, 0.215);
+      leftBlush.rotation.y = -0.4;
+      headGroup.add(leftBlush);
+
+      const rightBlush = new THREE.Mesh(new THREE.CircleGeometry(0.038, 16), blushMaterial);
+      rightBlush.position.set(0.135, 0.075, 0.215);
+      rightBlush.rotation.y = 0.4;
+      headGroup.add(rightBlush);
+    }
 
     // Ears
     const earGeom = new THREE.CylinderGeometry(0.045, 0.035, 0.02, 16);
@@ -309,34 +391,47 @@ export class DoctorAvatar3D {
     // Hair
     const hairGroup = new THREE.Group();
     if (isFemale) {
-      // Elegant doctor tied-back hair
-      const hairTopGeom = new THREE.SphereGeometry(0.27, 24, 20, 0, Math.PI * 2, 0, Math.PI * 0.58);
+      // Elegant doctor shoulder-length bob hair
+      const hairTopGeom = new THREE.SphereGeometry(0.275, 28, 24, 0, Math.PI * 2, 0, Math.PI * 0.58);
       const hairTop = new THREE.Mesh(hairTopGeom, hairMaterial);
       hairTop.position.set(0, 0.16, -0.02);
       hairGroup.add(hairTop);
 
-      // Back ponytail/bun
-      const bunGeom = new THREE.SphereGeometry(0.12, 16, 16);
+      // Back volume
+      const bunGeom = new THREE.SphereGeometry(0.19, 20, 20);
       const bun = new THREE.Mesh(bunGeom, hairMaterial);
-      bun.position.set(0, 0.14, -0.26);
-      bun.scale.set(1.0, 1.1, 0.8);
+      bun.position.set(0, 0.08, -0.16);
+      bun.scale.set(1.15, 1.45, 0.95);
       hairGroup.add(bun);
 
       // Front bangs side fringe
-      const fringeGeom = new THREE.BoxGeometry(0.24, 0.08, 0.06);
+      const fringeGeom = new THREE.BoxGeometry(0.25, 0.09, 0.06);
       const fringe = new THREE.Mesh(fringeGeom, hairMaterial);
-      fringe.position.set(-0.06, 0.32, 0.18);
-      fringe.rotation.set(-0.1, 0.1, -0.15);
+      fringe.position.set(-0.06, 0.32, 0.185);
+      fringe.rotation.set(-0.1, 0.12, -0.14);
       hairGroup.add(fringe);
+
+      // Left and right shoulder-length hair locks
+      const leftLockGeom = new THREE.CylinderGeometry(0.065, 0.04, 0.36, 16);
+      const leftLock = new THREE.Mesh(leftLockGeom, hairMaterial);
+      leftLock.position.set(-0.21, 0.01, 0.04);
+      leftLock.rotation.set(0.12, 0.05, 0.14);
+      hairGroup.add(leftLock);
+
+      const rightLockGeom = new THREE.CylinderGeometry(0.065, 0.04, 0.36, 16);
+      const rightLock = new THREE.Mesh(rightLockGeom, hairMaterial);
+      rightLock.position.set(0.21, 0.01, 0.04);
+      rightLock.rotation.set(0.12, -0.05, -0.14);
+      hairGroup.add(rightLock);
     } else {
       // Modern side-part doctor hair
-      const hairGeom = new THREE.SphereGeometry(0.265, 24, 20, 0, Math.PI * 2, 0, Math.PI * 0.52);
+      const hairGeom = new THREE.SphereGeometry(0.27, 28, 24, 0, Math.PI * 2, 0, Math.PI * 0.52);
       const hairMesh = new THREE.Mesh(hairGeom, hairMaterial);
       hairMesh.position.set(0, 0.17, -0.01);
       hairGroup.add(hairMesh);
 
       // Parting volume
-      const partGeom = new THREE.BoxGeometry(0.26, 0.08, 0.22);
+      const partGeom = new THREE.BoxGeometry(0.26, 0.085, 0.22);
       const partMesh = new THREE.Mesh(partGeom, hairMaterial);
       partMesh.position.set(0.04, 0.33, 0.06);
       partMesh.rotation.set(-0.15, 0.1, 0.1);
@@ -344,47 +439,67 @@ export class DoctorAvatar3D {
     }
     headGroup.add(hairGroup);
 
-    // --- 3. EYES & BLINK RIG ---
+    // --- 3. EYES & BLINK RIG (GROK COMPANION DUAL-CATCHLIGHT EYE ENGINE) ---
     const eyeWhiteMaterial = new THREE.MeshStandardMaterial({
-      color: 0xffffff,
-      roughness: 0.15,
-      metalness: 0.05,
+      color: 0xfcfcfc,
+      roughness: 0.12,
+      metalness: 0.04,
     });
 
-    const irisColor = isFemale ? 0x663d23 : 0x422919;
+    const irisColor = isFemale ? 0x5a341a : 0x3d2314;
     const irisMaterial = new THREE.MeshStandardMaterial({
       color: irisColor,
-      roughness: 0.25,
-      metalness: 0.1,
+      roughness: 0.2,
+      metalness: 0.08,
     });
 
+    const limbalMaterial = new THREE.MeshBasicMaterial({ color: 0x140e0b });
     const pupilMaterial = new THREE.MeshBasicMaterial({ color: 0x050505 });
-    const highlightMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const primaryCatchlightMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const secondaryCatchlightMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.55 });
+    const lashLineMaterial = new THREE.MeshBasicMaterial({ color: 0x1f1917 });
 
     const createEye = (isRight = false) => {
       const eyeRig = new THREE.Group();
 
       // Sclera (White sphere)
-      const eyeball = new THREE.Mesh(new THREE.SphereGeometry(0.052, 20, 16), eyeWhiteMaterial);
+      const eyeball = new THREE.Mesh(new THREE.SphereGeometry(0.052, 24, 20), eyeWhiteMaterial);
       eyeRig.add(eyeball);
 
-      // Iris
-      const iris = new THREE.Mesh(new THREE.CircleGeometry(0.026, 20), irisMaterial);
-      iris.position.set(0, 0, 0.051);
+      // Dark Limbal Ring (outer edge of iris)
+      const limbal = new THREE.Mesh(new THREE.RingGeometry(0.024, 0.028, 24), limbalMaterial);
+      limbal.position.set(0, 0, 0.051);
+      eyeRig.add(limbal);
+
+      // Iris disc
+      const iris = new THREE.Mesh(new THREE.CircleGeometry(0.025, 24), irisMaterial);
+      iris.position.set(0, 0, 0.0512);
       eyeRig.add(iris);
 
       // Pupil
-      const pupil = new THREE.Mesh(new THREE.CircleGeometry(0.014, 16), pupilMaterial);
-      pupil.position.set(0, 0, 0.0515);
+      const pupil = new THREE.Mesh(new THREE.CircleGeometry(0.013, 20), pupilMaterial);
+      pupil.position.set(0, 0, 0.0516);
       eyeRig.add(pupil);
 
-      // Cornea specular catchlight (gives that alert, intelligent AI companion gleam)
-      const catchlight = new THREE.Mesh(new THREE.CircleGeometry(0.006, 8), highlightMaterial);
-      catchlight.position.set(0.008, 0.008, 0.052);
-      eyeRig.add(catchlight);
+      // PRIMARY CATCHLIGHT (sharp specular gleam)
+      const primaryCatchlight = new THREE.Mesh(new THREE.CircleGeometry(0.0055, 12), primaryCatchlightMaterial);
+      primaryCatchlight.position.set(0.008, 0.008, 0.052);
+      eyeRig.add(primaryCatchlight);
+
+      // SECONDARY CATCHLIGHT (soft subtle studio fill reflection)
+      const secondaryCatchlight = new THREE.Mesh(new THREE.CircleGeometry(0.003, 10), secondaryCatchlightMaterial);
+      secondaryCatchlight.position.set(-0.006, -0.005, 0.052);
+      eyeRig.add(secondaryCatchlight);
+
+      // Lash line upper contour
+      const lashGeom = new THREE.BoxGeometry(0.065, 0.008, 0.015);
+      const lashLine = new THREE.Mesh(lashGeom, lashLineMaterial);
+      lashLine.position.set(0, 0.032, 0.046);
+      lashLine.rotation.x = -0.3;
+      eyeRig.add(lashLine);
 
       // Eyelid for blinking
-      const lidGeom = new THREE.SphereGeometry(0.056, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.5);
+      const lidGeom = new THREE.SphereGeometry(0.056, 20, 16, 0, Math.PI * 2, 0, Math.PI * 0.5);
       const upperLid = new THREE.Mesh(lidGeom, skinMaterial);
       upperLid.rotation.x = -Math.PI * 0.5; // open position
       eyeRig.add(upperLid);
@@ -409,8 +524,8 @@ export class DoctorAvatar3D {
     this.rightUpperEyelid = rightEyeData.upperLid;
 
     // Eyebrows
-    const browGeom = new THREE.BoxGeometry(0.085, 0.018, 0.02);
-    const browMaterial = new THREE.MeshStandardMaterial({ color: hairColor, roughness: 0.8 });
+    const browGeom = new THREE.BoxGeometry(0.088, 0.018, 0.02);
+    const browMaterial = new THREE.MeshStandardMaterial({ color: hairColor, roughness: 0.75 });
 
     const leftBrow = new THREE.Mesh(browGeom, browMaterial);
     leftBrow.position.set(-eyeSpacing, eyeHeight + 0.075, eyeDepth + 0.015);
@@ -425,32 +540,32 @@ export class DoctorAvatar3D {
     this.rightBrow = rightBrow;
 
     // --- 4. NOSE & MOUTH / JAW (LIP-SYNC RIG) ---
-    // Soft nose
-    const noseGeom = new THREE.ConeGeometry(0.035, 0.09, 12);
+    // Soft elegant nose
+    const noseGeom = new THREE.ConeGeometry(0.034, 0.092, 16);
     const nose = new THREE.Mesh(noseGeom, skinMaterial);
     nose.position.set(0, 0.08, eyeDepth + 0.045);
-    nose.rotation.x = -0.35;
+    nose.rotation.x = -0.34;
     headGroup.add(nose);
 
     // Mouth group
     const mouthGroup = new THREE.Group();
     mouthGroup.position.set(0, -0.035, eyeDepth + 0.02);
 
-    const lipColor = isFemale ? 0xd9777f : 0xc07065;
+    const lipColor = isFemale ? 0xdb707a : 0xbe695f;
     const lipMaterial = new THREE.MeshStandardMaterial({
       color: lipColor,
-      roughness: 0.45,
-      metalness: 0.08,
+      roughness: 0.38,
+      metalness: 0.06,
     });
 
-    // Upper lip
-    const upperLipGeom = new THREE.BoxGeometry(0.08, 0.016, 0.02);
+    // Upper lip (refined cupid's bow)
+    const upperLipGeom = new THREE.BoxGeometry(0.082, 0.016, 0.022);
     const upperLip = new THREE.Mesh(upperLipGeom, lipMaterial);
     upperLip.position.set(0, 0.01, 0);
     mouthGroup.add(upperLip);
 
     // Lower lip (rigged to jaw for lip-sync)
-    const lowerLipGeom = new THREE.BoxGeometry(0.075, 0.018, 0.02);
+    const lowerLipGeom = new THREE.BoxGeometry(0.078, 0.02, 0.022);
     const lowerLip = new THREE.Mesh(lowerLipGeom, lipMaterial);
     lowerLip.position.set(0, -0.01, 0);
     mouthGroup.add(lowerLip);
