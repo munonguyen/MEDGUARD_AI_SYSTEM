@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "skills": {
+    "meshy-3d-generation": {
+      "source": "meshy-dev/meshy-3d-agent",
+      "sourceType": "github",
+      "skillPath": "skills/meshy-3d-generation/SKILL.md",
+      "computedHash": "a4f0503792dc3e2a3e99d7e099fb4e3b43949474aaf60c6639a3c8d093f34789"
+    },
+    "meshy-3d-printing": {
+      "source": "meshy-dev/meshy-3d-agent",
+      "sourceType": "github",
+      "skillPath": "skills/meshy-3d-printing/SKILL.md",
+      "computedHash": "be56329083a3681a421e77e54d1faa3b0358908713d9aa669be285f8c9bb4ed7"
+    },
+    "meshy-openclaw": {
+      "source": "meshy-dev/meshy-3d-agent",
+      "sourceType": "github",
+      "skillPath": "skills/meshy-openclaw/SKILL.md",
+      "computedHash": "32e83a8e2fa0f72cbebf3c752825063d58b752fab83272295ee3c18f80aecbb0"
+    }
+  }
+}

@@ -50,6 +50,7 @@ import { SystemModule } from './modules/SystemModule';
 import { SchedulePage } from './schedule/SchedulePage';
 import { MedicationPage } from './schedule/MedicationPage';
 import { SettingsModal } from './settings/SettingsModal';
+import { DoctorCompanion } from './companion/DoctorCompanion';
 
 const tenantDefaults = { 'tenant-demo': 'demo-key', 'tenant-alt': 'alt-key' };
 
@@ -191,12 +192,19 @@ function Welcome({ onPrompt }) {
   </div>;
 }
 
-function Conversation({ entries, busy, onNotify, onSelectQuestion }) {
+function Conversation({
+  entries,
+  busy,
+  onNotify,
+  onSelectQuestion,
+  speakingKey,
+  setSpeakingKey,
+  setSpeakingText,
+}) {
   const streamRef = useRef(null);
   const latestRef = useRef(null);
   const [copied, setCopied] = useState(null);
   const [feedback, setFeedback] = useState({});
-  const [speakingKey, setSpeakingKey] = useState(null);
 
   // Smart scrolling states
   const [showScrollBottom, setShowScrollBottom] = useState(false);
@@ -335,6 +343,7 @@ function Conversation({ entries, busy, onNotify, onSelectQuestion }) {
     if (speakingKey === key) {
       window.speechSynthesis.cancel();
       setSpeakingKey(null);
+      setSpeakingText?.(null);
       return;
     }
     window.speechSynthesis.cancel();
@@ -343,11 +352,18 @@ function Conversation({ entries, busy, onNotify, onSelectQuestion }) {
     const utter = new SpeechSynthesisUtterance(cleanText);
     utter.lang = 'vi-VN';
     utter.rate = 1.0;
-    utter.onend = () => setSpeakingKey(null);
-    utter.onerror = () => setSpeakingKey(null);
+    utter.onend = () => {
+      setSpeakingKey(null);
+      setSpeakingText?.(null);
+    };
+    utter.onerror = () => {
+      setSpeakingKey(null);
+      setSpeakingText?.(null);
+    };
     setSpeakingKey(key);
+    setSpeakingText?.(cleanText);
     window.speechSynthesis.speak(utter);
-    onNotify?.('Đang phát âm thanh giọng đọc');
+    onNotify?.('Bác sĩ ảo đang giải thích lâm sàng');
   };
 
   return (
@@ -604,6 +620,10 @@ export default function App({
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsInitialTab, setSettingsInitialTab] = useState('general');
+  const [speakingKey, setSpeakingKey] = useState(null);
+  const [speakingText, setSpeakingText] = useState(null);
+  const [autoSpeak, setAutoSpeak] = useState(false);
+  const [companionOpen, setCompanionOpen] = useState(false);
   const [readiness, setReadiness] = useState(null);
   const [view, setView] = useState('chat');
   const [historySearch, setHistorySearch] = useState('');
@@ -882,6 +902,28 @@ export default function App({
         if (responseEntry.role !== 'error' && isGuest && onGuestQuestionAsked) {
           onGuestQuestionAsked();
         }
+        if (responseEntry.role !== 'error' && autoSpeak && 'speechSynthesis' in window) {
+          const textToRead = responseEntry.answer?.summary || responseEntry.text || '';
+          if (textToRead) {
+            window.speechSynthesis.cancel();
+            const cleanText = textToRead.replace(/[#*`_]/g, '');
+            const utter = new SpeechSynthesisUtterance(cleanText);
+            utter.lang = 'vi-VN';
+            utter.rate = 1.0;
+            const key = responseEntry.id || Date.now();
+            utter.onend = () => {
+              setSpeakingKey(null);
+              setSpeakingText(null);
+            };
+            utter.onerror = () => {
+              setSpeakingKey(null);
+              setSpeakingText(null);
+            };
+            setSpeakingKey(key);
+            setSpeakingText(cleanText);
+            window.speechSynthesis.speak(utter);
+          }
+        }
       }
       setBusy(false);
     }
@@ -973,6 +1015,17 @@ export default function App({
               {patientOpen && <ProfileEditor context={context} onSave={saveProfile} onClear={clearProfile} close={() => setPatientOpen(false)} />}
             </div>
           )}
+
+          <button
+            className={`doctor-companion-topbar-btn ${companionOpen ? 'active' : ''}`}
+            type="button"
+            title="Bác sĩ 3D AI đồng hành (Grok-style companion)"
+            aria-label="Bác sĩ 3D AI"
+            onClick={() => setCompanionOpen(!companionOpen)}
+          >
+            <Sparkles size={14} className="doctor-btn-sparkle" />
+            <span>Bác sĩ 3D</span>
+          </button>
 
           <button
             className="readiness-button"
@@ -1112,6 +1165,9 @@ export default function App({
                 busy={busy}
                 onNotify={notify}
                 onSelectQuestion={(q) => sendText(q)}
+                speakingKey={speakingKey}
+                setSpeakingKey={setSpeakingKey}
+                setSpeakingText={setSpeakingText}
               />
             ) : (
               <Welcome onPrompt={(text) => { setMessage(text); requestAnimationFrame(() => document.querySelector('[aria-label="Tin nhắn"]')?.focus()); }} />
@@ -1124,6 +1180,16 @@ export default function App({
     <QrScanner open={qrOpen} onClose={() => setQrOpen(false)} onDetected={(raw) => { setQrOpen(false); sendText(`Kiểm tra QR hàng giả: ${raw}`, 'authenticity'); }} />
     <SchedulePanel open={scheduleOpen} onClose={() => setScheduleOpen(false)} api={api} patientRef={context.patient_ref} onOpenSchedulePage={() => setView('schedule')} onNotify={notify} />
     <SettingsModal allowSystem={!account || account.role === 'admin'} open={settingsOpen} onClose={() => setSettingsOpen(false)} initialTab={settingsInitialTab} context={context} onSaveProfile={saveProfile} onClearProfile={clearProfile} api={api} tenantId={tenantId} onClearAllChat={clearAllConversations} onExportData={exportClinicalData} onNotify={notify} />
+    <DoctorCompanion
+      isOpen={companionOpen}
+      setIsOpen={setCompanionOpen}
+      speakingText={speakingText}
+      isBusy={busy}
+      lastAnswer={entries.filter((e) => e.role === 'assistant' && e.answer).slice(-1)[0]?.answer}
+      autoSpeak={autoSpeak}
+      setAutoSpeak={setAutoSpeak}
+      onNotify={notify}
+    />
     {toast && <div className="ui-toast" role="status" aria-live="polite" aria-atomic="true"><Check size={16} /><span>{toast}</span></div>}
   </div>;
 }
