@@ -460,7 +460,7 @@ function Conversation({ entries, busy, onNotify }) {
   );
 }
 
-function Composer({ value, setValue, onSend, busy, selectedTool, setSelectedTool, attachment, setAttachment, onQr }) {
+function Composer({ value, setValue, onSend, busy, selectedTool, setSelectedTool, attachment, setAttachment, onQr, isGuestLocked = false, guestMax = 3, onRequireAuth = null }) {
   const [toolsOpen, setToolsOpen] = useState(false);
   const textareaRef = useRef(null);
   const fileRef = useRef(null);
@@ -490,24 +490,37 @@ function Composer({ value, setValue, onSend, busy, selectedTool, setSelectedTool
   }, [toolsOpen]);
 
   const submit = () => {
-    if ((!value.trim() && !attachment) || busy) return;
+    if (isGuestLocked || (!value.trim() && !attachment) || busy) return;
     onSend();
   };
 
   return <div className="composer-wrap">
-    <div className="composer-box">
-      {attachment && <div className="attachment-preview"><img src={attachment.url} alt="Ảnh chuẩn bị gửi" /><div><strong>{attachment.file.name}</strong><span>{Math.ceil(attachment.file.size / 1024)} KB</span></div><button className="icon-button" type="button" title="Bỏ ảnh" aria-label="Bỏ ảnh" onClick={() => setAttachment(null)}><X size={16} /></button></div>}
-      <textarea ref={textareaRef} rows="1" value={value} onChange={(event) => setValue(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); submit(); } }} placeholder="Nhắn cho MedGuard AI" aria-label="Tin nhắn" />
-      <div className="composer-tools">
-        <div className="composer-left">
-          <button className="icon-button" type="button" title="Đính kèm ảnh đơn thuốc hoặc kết quả khám" aria-label="Đính kèm ảnh" onClick={() => fileRef.current?.click()}><Paperclip size={19} /></button>
-          <input ref={fileRef} className="visually-hidden" type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => { const file = event.target.files?.[0]; if (file) setAttachment({ file, url: URL.createObjectURL(file) }); event.target.value = ''; }} />
-          <button className="icon-button" type="button" title="Quét QR sản phẩm" aria-label="Quét QR" onClick={onQr}><QrCode size={19} /></button>
-          <div className="tool-anchor" ref={toolAnchorRef}><button className="mode-button" type="button" aria-haspopup="menu" aria-expanded={toolsOpen} onClick={() => setToolsOpen(!toolsOpen)}><ToolIcon size={16} /><span>{tool.label}</span><ChevronDown size={14} /></button><ToolMenu open={toolsOpen} selected={selectedTool} onSelect={(id) => { setSelectedTool(id); setToolsOpen(false); }} /></div>
+    {isGuestLocked ? (
+      <div className="guest-composer-locked">
+        <div className="guest-locked-content">
+          <div className="guest-locked-badge">Hết lượt hỏi dùng thử</div>
+          <strong>Bạn đã hoàn thành {guestMax}/{guestMax} lượt hỏi miễn phí</strong>
+          <p>Để tiếp tục nhận hướng dẫn lâm sàng cá nhân hóa và đồng bộ hồ sơ sức khỏe, vui lòng đăng nhập hoặc tạo tài khoản MedGuard AI.</p>
         </div>
-        <button className="send-button" type="button" title="Gửi" aria-label="Gửi tin nhắn" disabled={busy || (!value.trim() && !attachment)} onClick={submit}>{busy ? <LoaderCircle className="spin" size={18} /> : <Send size={18} />}</button>
+        <button type="button" className="guest-locked-action-btn" onClick={onRequireAuth}>
+          Đăng ký / Đăng nhập ngay →
+        </button>
       </div>
-    </div>
+    ) : (
+      <div className="composer-box">
+        {attachment && <div className="attachment-preview"><img src={attachment.url} alt="Ảnh chuẩn bị gửi" /><div><strong>{attachment.file.name}</strong><span>{Math.ceil(attachment.file.size / 1024)} KB</span></div><button className="icon-button" type="button" title="Bỏ ảnh" aria-label="Bỏ ảnh" onClick={() => setAttachment(null)}><X size={16} /></button></div>}
+        <textarea ref={textareaRef} rows="1" value={value} onChange={(event) => setValue(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); submit(); } }} placeholder="Nhắn cho MedGuard AI" aria-label="Tin nhắn" />
+        <div className="composer-tools">
+          <div className="composer-left">
+            <button className="icon-button" type="button" title="Đính kèm ảnh đơn thuốc hoặc kết quả khám" aria-label="Đính kèm ảnh" onClick={() => fileRef.current?.click()}><Paperclip size={19} /></button>
+            <input ref={fileRef} className="visually-hidden" type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => { const file = event.target.files?.[0]; if (file) setAttachment({ file, url: URL.createObjectURL(file) }); event.target.value = ''; }} />
+            <button className="icon-button" type="button" title="Quét QR sản phẩm" aria-label="Quét QR" onClick={onQr}><QrCode size={19} /></button>
+            <div className="tool-anchor" ref={toolAnchorRef}><button className="mode-button" type="button" aria-haspopup="menu" aria-expanded={toolsOpen} onClick={() => setToolsOpen(!toolsOpen)}><ToolIcon size={16} /><span>{tool.label}</span><ChevronDown size={14} /></button><ToolMenu open={toolsOpen} selected={selectedTool} onSelect={(id) => { setSelectedTool(id); setToolsOpen(false); }} /></div>
+          </div>
+          <button className="send-button" type="button" title="Gửi" aria-label="Gửi tin nhắn" disabled={busy || (!value.trim() && !attachment)} onClick={submit}>{busy ? <LoaderCircle className="spin" size={18} /> : <Send size={18} />}</button>
+        </div>
+      </div>
+    )}
     <p className="composer-disclaimer">MedGuard AI có thể mắc lỗi. Quyết định lâm sàng cần người có thẩm quyền xác nhận.</p>
   </div>;
 }
@@ -526,7 +539,9 @@ function clinicalContext(context) {
   };
 }
 
-export default function App({ account = null }) {
+export default function App({ account = null, isGuest = false, guestCount = 0, guestMax = 3, onGuestQuestionAsked = null, onRequireAuth = null }) {
+  const guestRemaining = Math.max(0, guestMax - guestCount);
+  const isGuestLocked = isGuest && guestRemaining <= 0;
   const [tenantId, setTenantId] = useState(account?.scope || 'tenant-demo');
   const [apiKey, setApiKey] = useState(account ? '' : 'demo-key');
   const [consentToken, setConsentToken] = useState('consent-valid-ui');
@@ -770,6 +785,10 @@ export default function App({ account = null }) {
   };
 
   const sendText = async (overrideText, overrideIntent) => {
+    if (isGuest && guestRemaining <= 0) {
+      notify('Bạn đã dùng hết 3 lượt hỏi dùng thử. Vui lòng đăng nhập để tiếp tục.');
+      return;
+    }
     const text = (overrideText ?? message).trim();
     const currentAttachment = attachment;
     if ((!text && !currentAttachment) || busy) return;
@@ -822,7 +841,12 @@ export default function App({ account = null }) {
     } finally {
       const remaining = 350 - (performance.now() - processingStartedAt);
       if (remaining > 0) await new Promise((resolve) => window.setTimeout(resolve, remaining));
-      if (responseEntry) setEntries((current) => [...current, responseEntry]);
+      if (responseEntry) {
+        setEntries((current) => [...current, responseEntry]);
+        if (responseEntry.role !== 'error' && isGuest && onGuestQuestionAsked) {
+          onGuestQuestionAsked();
+        }
+      }
       setBusy(false);
     }
   };
@@ -834,6 +858,15 @@ export default function App({ account = null }) {
       <header className="topbar chat-topbar">
         <div className="topbar-title"><button className="icon-button menu-button" type="button" onClick={() => { setSidebarCollapsed(false); setSidebarOpen(true); }} title={sidebarCollapsed ? 'Mở thanh bên' : 'Mở menu'} aria-label={sidebarCollapsed ? 'Mở thanh bên' : 'Mở menu'}>{sidebarCollapsed ? <PanelLeftOpen size={20} /> : <Menu size={20} />}</button><div><h1>{view === 'system' ? 'System & audit' : view === 'schedule' ? 'Lịch khám' : view === 'medication' ? 'Lịch uống thuốc' : conversationTitle}</h1><span>{view === 'system' ? 'Trạng thái vận hành' : view === 'schedule' ? 'Thời khóa biểu ca khám bác sĩ' : view === 'medication' ? 'Thời khóa biểu nhắc thuốc cá nhân' : context.patient_ref || 'Có thể nhắn ngay không cần Profile'}</span></div></div>
         <div className="topbar-actions">
+          {isGuest && (
+            <div className="guest-topbar-indicator" title="Chế độ khách dùng thử">
+              <span className={`guest-indicator-dot ${guestRemaining > 0 ? 'active' : 'exhausted'}`} />
+              <span>Khách: <strong>{guestRemaining}/{guestMax}</strong> lượt</span>
+              <button type="button" className="guest-topbar-btn" onClick={onRequireAuth}>
+                Đăng nhập
+              </button>
+            </div>
+          )}
           <button className={`view-toggle-btn ${view === "schedule" ? "active" : ""}`} type="button" onClick={() => setView(view === "schedule" ? "chat" : "schedule")} title={view === 'schedule' ? 'Về phòng Chat' : 'Xem Lịch khám'}><CalendarClock size={16} /><span>{view === 'schedule' ? 'Trò chuyện' : 'Lịch khám'}</span></button>
           <button className={`view-toggle-btn ${view === "medication" ? "active" : ""}`} type="button" onClick={() => setView(view === "medication" ? "chat" : "medication")} title={view === 'medication' ? 'Về phòng Chat' : 'Xem Lịch uống thuốc'}><Pill size={16} /><span>{view === 'medication' ? 'Trò chuyện' : 'Lịch uống thuốc'}</span></button>
           {view === 'chat' && <div className="profile-anchor"><button className={`patient-button ${context.patient_ref || context.display_name ? 'selected' : ''}`} type="button" aria-label="Mở Profile cá nhân" onClick={() => setPatientOpen(!patientOpen)}><span>{context.display_name ? context.display_name.trim().slice(0, 2).toUpperCase() : context.patient_ref ? context.patient_ref.slice(0, 2) : <UserRound size={15} />}</span><div><strong>{context.display_name || 'Profile cá nhân'}</strong><small>{context.patient_ref || 'Không bắt buộc'}</small></div><ChevronDown size={15} /></button>{patientOpen && <ProfileEditor context={context} onSave={saveProfile} onClear={clearProfile} close={() => setPatientOpen(false)} />}</div>}
@@ -894,7 +927,7 @@ export default function App({ account = null }) {
               <Welcome onPrompt={(text) => { setMessage(text); requestAnimationFrame(() => document.querySelector('[aria-label="Tin nhắn"]')?.focus()); }} />
             )}
           </div>
-          <Composer value={message} setValue={setMessage} onSend={() => sendText()} busy={busy} selectedTool={selectedTool} setSelectedTool={setSelectedTool} attachment={attachment} setAttachment={setAttachment} onQr={() => setQrOpen(true)} />
+          <Composer value={message} setValue={setMessage} onSend={() => sendText()} busy={busy} selectedTool={selectedTool} setSelectedTool={setSelectedTool} attachment={attachment} setAttachment={setAttachment} onQr={() => setQrOpen(true)} isGuestLocked={isGuestLocked} guestMax={guestMax} onRequireAuth={onRequireAuth} />
         </section>
       )}
     </main>

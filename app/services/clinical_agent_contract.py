@@ -72,12 +72,17 @@ def _episode_messages(question: str) -> list[dict[str, str]]:
     return messages or [{"role": "user", "content": question.strip()}]
 
 
-def _contextual_reasoning(question: str, urgency: str) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
+def _contextual_reasoning(
+    question: str,
+    urgency: str,
+    messages: Sequence[Any] | None = None,
+) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
     """Build V25 context fail-softly; safety behavior never depends on it."""
     try:
+        resolved_messages = messages or _episode_messages(question)
         episode = build_clinical_episode_model(
             episode_id="writer-active-episode",
-            messages=_episode_messages(question),
+            messages=resolved_messages,
         )
         # The semantic parser intentionally focuses on clinical findings. Keep
         # the already-resolved user-authored episode narrative as well so a
@@ -131,7 +136,14 @@ def build_clinical_agent_contract(
     reasoning_payload: dict[str, Any] | None = None
 
     if intent == "triage":
-        episode_payload, reasoning_payload = _contextual_reasoning(question, urgency)
+        conv_messages = enriched_context.get("conversation_messages") or (
+            patient_context.get("conversation_messages") if isinstance(patient_context, dict) else None
+        )
+        episode_payload, reasoning_payload = _contextual_reasoning(
+            question,
+            urgency,
+            messages=conv_messages,
+        )
         add("summary", f"Mức xử trí tối thiểu đã được hệ thống an toàn xác định: {urgency}.")
 
         specialty = result.get("recommended_specialty")

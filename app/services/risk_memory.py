@@ -116,6 +116,49 @@ _EPISODE_DOMAIN_MARKERS: dict[str, tuple[str, ...]] = {
         "nhuc rang",
         "sung loi",
         "sung nuou",
+        "sau rang",
+        "viem tuy rang",
+        "chay mau chan rang",
+        "nho rang",
+    ),
+    "hair_scalp": (
+        "rung toc",
+        "toc rung",
+        "hoi dau",
+        "rung toc nhieu",
+        "gay rung toc",
+        "nam da dau",
+        "ngua da dau",
+        "ngua dau",
+        "gau ngua",
+        "nam toc",
+        "hoi toc",
+    ),
+    "ent": (
+        "dau hong",
+        "viem hong",
+        "rat hong",
+        "ngat mui",
+        "chay mui",
+        "chay mau cam",
+        "u tai",
+        "dau tai",
+        "viem xoang",
+    ),
+    "ophthalmology": (
+        "dau mat",
+        "do mat",
+        "nhuc mat",
+        "mo mat",
+        "cay mat",
+        "chay nuoc mat",
+        "do long trang",
+    ),
+    "urinary": (
+        "tieu buot",
+        "tieu rat",
+        "tieu ra mau",
+        "kho tieu",
     ),
     "gastrointestinal": (
         "dau bung",
@@ -159,6 +202,16 @@ _EPISODE_DOMAIN_MARKERS: dict[str, tuple[str, ...]] = {
     ),
     "musculoskeletal_spine": (
         "cang co",
+        "ngon chan",
+        "ngon tay",
+        "ban chan",
+        "ban tay",
+        "co tay",
+        "co chan",
+        "khop goi",
+        "dau khop",
+        "cang co o cac ngon chan",
+        "cang co ngon chan",
         "dau tay",
         "moi tay",
         "dau lung",
@@ -168,7 +221,6 @@ _EPISODE_DOMAIN_MARKERS: dict[str, tuple[str, ...]] = {
         "moi co",
         "dau vai",
         "vai gay",
-        "dau khop",
         "dau bap chan",
         "dau chan",
         "te chan",
@@ -177,12 +229,29 @@ _EPISODE_DOMAIN_MARKERS: dict[str, tuple[str, ...]] = {
         "yeu chan",
     ),
     "dermatology": (
-        "phat ban",
+        "man ngua",
+        "ban do",
+        "man do",
         "noi man",
+        "phat ban",
+        "noi ban",
+        "ngua rat",
         "ngua da",
+        "ngua",
+        "cang gai",
+        "gai",
+        "rat da",
+        "me day",
+        "noi me day",
+        "di ung da",
+        "di ung",
+        "mun nuoc",
+        "san phu",
         "zona",
         "benh ghe",
         "nam da",
+        "mun",
+        "ngua toan than",
     ),
 }
 
@@ -366,8 +435,30 @@ def should_start_new_episode(latest_text: str, previous_text: str | None = None)
 
     previous_domain = infer_episode_domain(previous_text)
     current_domain = infer_episode_domain(latest_text)
-    return bool(
-        previous_domain
-        and current_domain
-        and previous_domain != current_domain
-    )
+    if previous_domain and current_domain and previous_domain != current_domain:
+        return True
+
+    # When previous text belonged to an identified domain, but current text does not match
+    # that domain and has no continuation markers: check if current text introduces an independent inquiry
+    if previous_domain and not current_domain:
+        prev_markers = _EPISODE_DOMAIN_MARKERS.get(previous_domain, ())
+        has_prev_marker = any(marker in norm for marker in prev_markers)
+        if not has_prev_marker:
+            is_new_inquiry = any(
+                p in norm
+                for p in (
+                    "toi bi", "dang bi", "moi bi", "vua bi", "bi dau",
+                    "kho chiu o", "lam sao de", "cach nao de", "chua khoi",
+                    "can lam gi", "dieu tri the nao", "uong thuoc gi", "hoi ve"
+                )
+            )
+            if is_new_inquiry:
+                return True
+
+    if not previous_domain and current_domain:
+        curr_markers = _EPISODE_DOMAIN_MARKERS.get(current_domain, ())
+        has_curr_in_prev = any(marker in normalize_search_text(previous_text) for marker in curr_markers)
+        if not has_curr_in_prev:
+            return True
+
+    return False

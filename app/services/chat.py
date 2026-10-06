@@ -4,9 +4,12 @@ from __future__ import annotations
 
 from datetime import date, datetime, time as datetime_time, timedelta, timezone
 from hashlib import sha256
+import logging
 import re
 from typing import Any
 from zoneinfo import ZoneInfo
+
+logger = logging.getLogger(__name__)
 
 from app.core.config import settings
 from app.core.context import RequestContext
@@ -1023,6 +1026,9 @@ def _response(
         and intent in _active_research_agent_intents()
     )
     agent_patient_context = payload.context.model_dump(mode="json")
+    agent_patient_context["conversation_messages"] = [
+        msg.model_dump(mode="json") for msg in payload.messages
+    ]
     if intent in {"triage", "safety"} or clinical_task_name:
         agent_patient_context["last_result"] = None
     if agent_first_clinical:
@@ -1060,6 +1066,7 @@ def _response(
             patient_context=agent_patient_context,
         )
     internal_agent_trace = answer.agent_trace
+    logger.warning("CHAT AGENT TRACE: status=%s reason=%s", getattr(internal_agent_trace, "status", None), getattr(internal_agent_trace, "fallback_reason", None))
     if internal_agent_trace:
         agent_status = internal_agent_trace.status
         # A disabled pipeline can coexist with an enabled chat configuration

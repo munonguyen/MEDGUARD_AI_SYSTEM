@@ -5400,6 +5400,56 @@
       "safety_net": [
         "Cần đi khám bác sĩ ngay nếu: Vùng da bị ngứa sưng tấy đỏ lan rộng, chảy mủ vàng, lở loét hoặc kèm theo sốt (dấu hiệu nhiễm trùng vi khuẩn bội nhiễm); hoặc điều trị sau 2 tuần vẫn ngứa tăng dần."
       ]
+    },
+    {
+      "topic": "pruritus_rash_dermatology",
+      "keywords": [
+        "mẩn ngứa",
+        "man ngua",
+        "ban đỏ",
+        "ban do",
+        "mẩn đỏ",
+        "man do",
+        "nổi mẩn",
+        "noi man",
+        "ngứa rát",
+        "ngua rat",
+        "càng gãi càng ngứa",
+        "cang gai cang ngua",
+        "ngứa da",
+        "ngua da",
+        "nổi mày đay",
+        "noi may day",
+        "mày đay",
+        "may day",
+        "dị ứng da",
+        "di ung da",
+        "nổi ban",
+        "noi ban",
+        "phát ban",
+        "phat ban"
+      ],
+      "summary": "Tình trạng mẩn ngứa và ban đỏ trên da thường là biểu hiện của phản ứng dị ứng cấp tính (như mày đay cấp, viêm da tiếp xúc) hoặc kích ứng da. Cào gãi nhiều kích thích đầu tận cùng thần kinh và giải phóng thêm histamin, làm tăng phản ứng viêm và cảm giác rát ngứa (vòng xoắn ngứa - gãi). Cần phân biệt phản ứng lành tính tại da với phản ứng dị ứng toàn thân nặng (phù mạch, khó thở).",
+      "clinical_hypotheses": [
+        "Mày đay cấp tính hoặc dị ứng thời tiết/thực phẩm: Ban đỏ nổi sẩn phù cục hoặc dát đỏ kèm ngứa ngáy dữ dội, có thể xuất hiện sau phơi nhiễm dị nguyên.",
+        "Viêm da tiếp xúc dị ứng hoặc kích ứng: Tổn thương dát đỏ, mẩn ngứa rát khu trú ở vùng da tiếp xúc hóa mỹ phẩm, xà phòng hoặc côn trùng.",
+        "Tổn thương trầy xước thứ phát do cào gãi: Cào gãi liên tục phá vỡ hàng rào bảo vệ da, gây rát, trợt da và tăng nguy cơ bội nhiễm vi khuẩn."
+      ],
+      "clarifying_questions": [
+        "Bạn có bị sưng môi, sưng mí mắt, nghẹn họng hoặc cảm giác khó thở không?",
+        "Nốt mẩn ngứa là dát đỏ phẳng hay nổi sẩn gồ mày đay, có mụn nước rỉ dịch không và bị ở một vùng hay lan toàn thân?",
+        "Trước khi nổi ban bạn có dùng thuốc mới, ăn thực phẩm lạ, tiếp xúc hóa mỹ phẩm hoặc bị côn trùng đốt không?"
+      ],
+      "self_care": [
+        "Cắt đứt vòng xoắn ngứa - gãi: Tuyệt đối tránh cào gãi bằng móng tay để ngăn tổn thương biểu bì và nhiễm trùng; có thể dùng lòng bàn tay xoa nhẹ hoặc vỗ nhẹ nếu quá ngứa.",
+        "Chườm mát làm dịu da tức thì: Dùng khăn sạch bọc đá hoặc khăn mát chườm lên vùng da tổn thương trong 10-15 phút để co mạch và làm dịu cơn ngứa rát.",
+        "Vệ sinh và dưỡng ẩm bảo vệ da: Tắm bằng nước mát hoặc ấm vừa phải, tránh dùng xà phòng có chất tẩy mạnh hoặc chà xát khăn cứng; mặc quần áo vải cotton rộng rãi, thoáng mát.",
+        "Các nhóm thuốc hỗ trợ triệu chứng thường dùng theo hướng dẫn chuyên khoa: Có thể tham khảo dược sĩ hoặc bác sĩ về thuốc kháng histamin H1 thế hệ 2 đường uống (như Cetirizine, Loratadine, Fexofenadine) để giảm ngứa hiệu quả mà ít gây buồn ngủ; bôi kem/gel làm dịu da (như hồ nước, kẽm oxyd, Calamine lotion); tuyệt đối không tự ý bôi thuốc chứa corticoid kéo dài hoặc tự ý uống kháng sinh khi chưa rõ nguyên nhân."
+      ],
+      "advice": "Nếu tình trạng mẩn ngứa ban đỏ không thuyên giảm sau vài ngày, ban lan rộng toàn thân hoặc rỉ dịch mủ, bạn nên đến cơ sở y tế có chuyên khoa Da liễu để được bác sĩ thăm khám và kê đơn phù hợp.",
+      "safety_net": [
+        "Cần gọi cấp cứu 115 hoặc đến ngay cơ sở y tế gần nhất nếu xuất hiện dấu hiệu phản vệ: Khó thở, thở rít, khàn tiếng, cảm giác nghẹn họng; sưng phù môi, lưỡi hoặc mắt; hoa mắt, chóng mặt hoặc choáng ngất."
+      ]
     }
   ],
   "specialty_routing": [
@@ -5473,9 +5523,16 @@
         "label": "Da liễu"
       },
       "keywords": [
+        "mẩn ngứa",
+        "ban đỏ",
         "ngứa",
         "phát ban",
         "mẩn đỏ",
+        "nổi mẩn",
+        "ngứa rát",
+        "nổi ban",
+        "mày đay",
+        "dị ứng",
         "mụn",
         "viêm da",
         "dị ứng da",

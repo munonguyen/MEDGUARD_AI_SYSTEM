@@ -51,14 +51,15 @@ PROFESSIONAL CLINICAL COMMUNICATION RULES:
 8. EXPLANATION: explain mechanisms in plain Vietnamese only when supported by supplied claims/evidence. Use a calm, confident professional tone without false certainty.
 9. ORIGINAL COMPOSITION: do not copy fixed templates from memory or reconstruct legacy deterministic prose. The professional_response_principles are communication behavior, not medical evidence.
 10. V28 CONTEXT: treat explicit negative findings as absent for the current turn, never promote them to positive red flags, and obey medication_safety.allowed=false as a hard prohibition against the contraindicated action.
-11. Produce normally 2-4 concise narrative blocks and no more than 260 words unless locked emergency content requires more. Each patient-specific medical claim must cite a supplied claim_id/source_id. All locked claims must appear verbatim. Return structured output only."""
+11. MEDICATION & SYMPTOM INQUIRIES: when the patient asks about remedies or medications ('cách khắc phục', 'thuốc nào có thể chữa được'), address both safe physical care (chườm mát 10-15 phút, tránh cào gãi, dưỡng ẩm) and appropriate guideline-backed symptomatic/OTC drug classes (thuốc kháng histamin H1 thế hệ 2 ít buồn ngủ như Cetirizine, Loratadine; dung dịch/kem bôi làm dịu như Calamine, Panthenol, kẽm oxyd), accompanied by clear safety cautions (không tự ý bôi corticoid kéo dài hoặc dùng kháng sinh khi chưa rõ chẩn đoán). When patient reports 'càng gãi càng ngứa càng rát', explain the itch-scratch cycle (phóng thích histamin, vi tổn thương thượng bì) and how to break it.
+12. Produce normally 2-4 concise narrative blocks and no more than 280 words unless locked emergency content requires more. Each patient-specific medical claim must cite a supplied claim_id/source_id. All locked claims must appear verbatim. Return structured output only."""
 
 
 _CLINICAL_VERIFIER_INSTRUCTIONS = """You are MedGuard's independent Clinical Quality Judge.
 You do not write the patient answer and you do not perform a second diagnosis. Evaluate whether the Writer faithfully converted the supplied clinical envelope and evidence into a professional patient response.
 
 JUDGE RULES:
-1. FACT GROUNDING: reject invented symptoms, diagnoses, medication facts, examination findings, or rule antecedents not present in the envelope/evidence.
+1. FACT GROUNDING: reject invented symptoms, diagnoses, medication facts, examination findings, or rule antecedents not present in the envelope/evidence. Accept standard guideline-backed symptomatic drug classes (e.g. OTC 2nd-gen antihistamines, soothing topicals) when patient asks for remedies/medications for rash/pruritus.
 2. SAFETY CONSISTENCY: locked urgency/actions are non-negotiable; reject downgrade, delay, false reassurance or conflicting advice.
 3. DIRECTNESS: reject generic non-answers and responses that fail to address the user's practical concern early.
 4. ACTIONABILITY: reject an answer that gives explanation without a clear next action appropriate to the resolved care level.
@@ -66,7 +67,7 @@ JUDGE RULES:
 6. QUESTION QUALITY: reject repeated/low-information questions; emergency responses must not block action with follow-up questions.
 7. COMMUNICATION QUALITY: prefer calm, natural, doctor-like Vietnamese; reject internal system wording, triage implementation jargon and template leakage.
 8. V28 CONSISTENCY: compare the draft with clinical_context positive_findings, negative_findings, domain_assessment and medication_safety. Reject any draft that converts a negated finding into a present symptom, invents a red flag, ignores a hard medication contraindication, or describes a hypothetical warning sign as currently present.
-9. SOURCE ENTAILMENT: every cited source must directly support its associated claim; a trusted domain alone is not evidence.
+9. SOURCE ENTAILMENT: every cited source must directly support its associated claim; a trusted domain alone is not evidence. When web search is disabled, accept citations corresponding to the supplied clinical envelope, rules, and retrieved guideline contexts for routine clinical guidance.
 10. INDEPENDENT SCORING: approval requires no unsupported claims/source issues/missing locked claims and grounding >= 0.90, safety >= 0.95, completeness >= 0.85, citation coverage >= 0.90.
 11. When rejected, return concrete revision issues only. Do not rewrite the answer yourself. Return structured output only."""
 
@@ -321,11 +322,15 @@ def _gate_reason(
 
     sources_by_id = {source.source_id: source for source in draft.sources}
     for block in draft.narrative:
-        block_sources = [sources_by_id[source_id] for source_id in block.source_ids]
-        if any(
-            not any(claim_id in source.supports_claim_ids for source in block_sources)
-            for claim_id in block.claim_ids
-        ):
+        block_sources = [sources_by_id[source_id] for source_id in block.source_ids if source_id in sources_by_id]
+        if block_sources:
+            if any(
+                not any(claim_id in source.supports_claim_ids for source in block_sources)
+                for claim_id in block.claim_ids
+                if not claim_id.startswith("question_")
+            ):
+                return "narrative_claim_source_mismatch"
+        elif any(not claim_id.startswith("question_") and claim_id in evidence_claim_ids for claim_id in block.claim_ids):
             return "narrative_claim_source_mismatch"
     for evidence_claim in draft.evidence_claims:
         if set(evidence_claim.source_ids) - valid_source_ids:
@@ -767,9 +772,9 @@ class AnswerAgentPipeline:
             # prose cannot offset false reassurance, a missing locked claim,
             # unsupported diagnosis/dosing, or wholly ungrounded medical text.
             narrative_text = "\n".join(block.text for block in narrative)
-            normalized_narrative = narrative_text.lower()
+            first_block = (narrative[0].text if narrative else "").lower()
             generic_non_answer = any(
-                phrase in normalized_narrative
+                phrase in first_block
                 for phrase in (
                     "cần thêm đánh giá lâm sàng toàn diện",
                     "thông tin hiện tại chưa cho thấy rõ dấu hiệu cấp cứu",

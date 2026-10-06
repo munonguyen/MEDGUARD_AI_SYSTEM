@@ -5264,3 +5264,36 @@ body { overflow: hidden; background: var(--canvas); color: var(--text); }
 .authenticated-shell .auth-screen{flex:1;min-height:0;overflow-y:auto;align-items:flex-start}
 .authenticated-shell .auth-card{margin:auto}
 body:has(>.auth-screen),body:has(#root>.auth-screen){overflow-y:auto}
+
+/* Guest Mode Styles */
+.auth-guest-section{margin-top:20px;display:flex;flex-direction:column;gap:12px;align-items:center;width:100%}
+.auth-guest-divider{display:flex;align-items:center;width:100%;gap:12px;color:#94a3b8;font-size:12px;font-weight:700;letter-spacing:1px}
+.auth-guest-divider::before,.auth-guest-divider::after{content:'';flex:1;height:1px;background:#e2e8f0}
+.auth-guest-btn{width:100%!important;padding:12px 18px!important;border:1.5px solid #0f766e!important;border-radius:12px!important;background:linear-gradient(135deg,#f0fdfa,#f8fafc)!important;color:#0f766e!important;font-weight:600!important;font-size:14.5px!important;display:flex!important;align-items:center;justify-content:center;transition:all .2s ease;box-shadow:0 2px 8px #0f766e10}
+.auth-guest-btn:hover{background:#0f766e!important;color:#ffffff!important;box-shadow:0 4px 14px #0f766e30;transform:translateY(-1px)}
+.auth-remember-label{display:flex!important;flex-direction:row!important;align-items:center!important;gap:8px!important;font-size:13.5px!important;color:#475569!important;margin:6px 0 10px 0!important;cursor:pointer;user-select:none}
+.auth-remember-label input[type="checkbox"]{width:16px!important;height:16px!important;accent-color:#0f766e!important;cursor:pointer;margin:0!important}
+
+.guest-account-bar{background:linear-gradient(90deg,#f0fdfa,#f8fafc)!important;border-bottom:1px solid #ccfbf1!important}
+.guest-badge-text{font-size:13.5px;color:#0f766e;display:flex;align-items:center;gap:6px;font-weight:500}
+.guest-badge-text strong{color:#115e59;font-weight:700}
+.guest-login-nav-btn{background:#0f766e!important;color:#ffffff!important;border:none!important;font-weight:600!important;padding:6px 14px!important;border-radius:8px!important;box-shadow:0 2px 6px #0f766e25;transition:all .15s ease}
+.guest-login-nav-btn:hover{background:#115e59!important;transform:scale(1.02)}
+
+.guest-topbar-indicator{display:inline-flex;align-items:center;gap:8px;padding:4px 10px;background:#f0fdfa;border:1px solid #99f6e4;border-radius:20px;font-size:12.5px;color:#0f766e;font-weight:500}
+.guest-indicator-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.guest-indicator-dot.active{background:#0d9488;box-shadow:0 0 0 2px #99f6e4,0 0 8px #0d948880;animation:guest-pulse 2s infinite}
+.guest-indicator-dot.exhausted{background:#f43f5e;box-shadow:0 0 0 2px #fecdd3}
+@keyframes guest-pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.2);opacity:.8}}
+.guest-topbar-btn{background:#0f766e;color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:11.5px;font-weight:600;cursor:pointer;transition:background .15s}
+.guest-topbar-btn:hover{background:#115e59}
+
+.guest-composer-locked{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 20px;background:linear-gradient(135deg,#f8fafc,#f0fdf4);border:1.5px solid #86efac;border-radius:16px;box-shadow:0 6px 20px #16a34a12}
+.guest-locked-content{display:flex;flex-direction:column;gap:4px}
+.guest-locked-badge{display:inline-block;width:max-content;background:#fee2e2;color:#b91c1c;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+.guest-locked-content strong{font-size:14.5px;color:#0f172a}
+.guest-locked-content p{font-size:13px;color:#475569;margin:0}
+.guest-locked-action-btn{white-space:nowrap;background:linear-gradient(135deg,#0f766e,#0d9488);color:#fff;border:none;padding:10px 18px;border-radius:10px;font-weight:600;font-size:13.5px;cursor:pointer;box-shadow:0 3px 12px #0f766e30;transition:all .15s ease}
+.guest-locked-action-btn:hover{transform:translateY(-1px);box-shadow:0 5px 16px #0f766e40;background:#115e59}
+@media(max-width:680px){.guest-composer-locked{flex-direction:column;align-items:stretch;text-align:left}.guest-locked-action-btn{width:100%}}
+

@@ -186,19 +186,35 @@ _DOMAIN_UNKNOWN_SPECS: dict[str, tuple[_UnknownSpec, ...]] = {
     "dermatology": (
         _UnknownSpec(
             key="airway_mucosal_involvement",
-            question="Bạn có sưng môi/lưỡi, nghẹn cổ, khàn tiếng hoặc khó thở không?",
+            question="Bạn có sưng môi, sưng mí mắt, nghẹn cổ họng hay khó thở không?",
             impact="critical",
             changes=("emergency_disposition", "anaphylaxis_pathway"),
-            rationale="Triệu chứng đường thở hoặc niêm mạc có thể biến một phản ứng da thành cấp cứu.",
-            patterns=(r"\b(sung moi|sung luoi|nghen co|khan tieng|kho tho|khong sung moi|tho binh thuong)\b",),
+            rationale="Dấu hiệu sưng phù niêm mạc hoặc co thắt đường thở có thể biến phản ứng dị ứng da thành sốc phản vệ nguy hiểm tính mạng.",
+            patterns=(r"\b(sung moi|sung luoi|sung mat|nghen co|nghen hong|khan tieng|kho tho|khong sung moi|tho binh thuong)\b",),
+        ),
+        _UnknownSpec(
+            key="rash_distribution_spread",
+            question="Ban đỏ mẩn ngứa xuất hiện ở vùng nào (khu trú hay lan toàn thân), có phồng rộp, nổi sẩn phù mày đay hay mụn nước, rỉ dịch không?",
+            impact="high",
+            changes=("dermatology_classification", "topical_treatment_choice"),
+            rationale="Hình thái và phạm vi phân bố của ban da giúp phân biệt viêm da tiếp xúc, mày đay cấp, dị ứng toàn thân hay nhiễm trùng da.",
+            patterns=(r"\b(toan than|khu tru|mun nuoc|ri dich|phong rop|san phu|cuc|mang do|vung nao|o dau|o bung|o lung|o tay|o chan|khap nguoi)\b",),
         ),
         _UnknownSpec(
             key="new_exposure",
-            question="Ngay trước khi nổi ban bạn có dùng thuốc, ăn món lạ hoặc tiếp xúc sản phẩm/hóa chất mới nào không?",
+            question="Ngay trước khi nổi ban bạn có dùng thuốc mới, ăn món lạ hoặc tiếp xúc hóa mỹ phẩm, xà phòng hay côn trùng đốt không?",
             impact="high",
             changes=("exposure_hypothesis", "avoidance_advice"),
             rationale="Mối liên hệ thời gian với một phơi nhiễm mới giúp xác định hướng phản ứng dị ứng/tiếp xúc.",
-            patterns=(r"\b(thuoc moi|mon la|thuc an moi|my pham moi|hoa chat|sau khi uong|sau khi an|khong co gi moi)\b",),
+            patterns=(r"\b(thuoc moi|mon la|thuc an moi|my pham|hoa chat|xa phong|con trung|sau khi uong|sau khi an|khong co gi moi)\b",),
+        ),
+        _UnknownSpec(
+            key="scratch_skin_damage",
+            question="Vùng da ngứa khi cào gãi có bị trầy xước, chảy máu, rỉ dịch mủ hoặc nóng đỏ đau nhức tăng dần không?",
+            impact="high",
+            changes=("infection_risk", "skin_barrier_integrity"),
+            rationale="Tổn thương trầy xước do cào gãi làm tăng nguy cơ bội nhiễm vi khuẩn và cần hướng dẫn sát trùng tại chỗ.",
+            patterns=(r"\b(tray xuoc|chay mau|ri dich|chay mu|dau nhuc|nhiem trung|khong bi tray|khong chay mau)\b",),
         ),
     ),
 }
@@ -236,12 +252,40 @@ def _answered(text: str, spec: _UnknownSpec) -> bool:
     return any(re.search(pattern, normalized) for pattern in spec.patterns)
 
 
-def _unknowns(domain: str | None, active_text: str) -> tuple[DecisionUnknown, ...]:
-    specs = [*_COMMON_UNKNOWN_SPECS, *_DOMAIN_UNKNOWN_SPECS.get(domain or "", ())]
+def _already_asked(assistant_text: str, spec: _UnknownSpec) -> bool:
+    """Detect if an unknown question was already asked in an earlier assistant turn."""
+    if not assistant_text:
+        return False
+    norm_assistant = normalize_search_text(assistant_text)
+    if any(re.search(pat, norm_assistant) for pat in spec.patterns):
+        return True
+    norm_q = normalize_search_text(spec.question)
+    q_words = [w for w in norm_q.split() if len(w) > 3]
+    if len(q_words) >= 3:
+        for i in range(len(q_words) - 2):
+            trigram = " ".join(q_words[i : i + 3])
+            if trigram in norm_assistant:
+                return True
+    return False
+
+
+def _unknowns(
+    domain: str | None,
+    active_text: str,
+    assistant_text: str = "",
+) -> tuple[DecisionUnknown, ...]:
+    if domain and domain in _DOMAIN_UNKNOWN_SPECS:
+        specs = [*_DOMAIN_UNKNOWN_SPECS[domain], *_COMMON_UNKNOWN_SPECS]
+    else:
+        specs = [*_COMMON_UNKNOWN_SPECS]
     values: list[DecisionUnknown] = []
     seen: set[str] = set()
     for spec in specs:
-        if spec.key in seen or _answered(active_text, spec):
+        if (
+            spec.key in seen
+            or _answered(active_text, spec)
+            or _already_asked(assistant_text, spec)
+        ):
             continue
         seen.add(spec.key)
         values.append(
@@ -319,6 +363,12 @@ def build_clinical_episode_model(
     historical_facts = _dedupe_facts(historical)
 
     active_text = "\n".join(active_texts)
+    assistant_turns = [
+        content.strip()
+        for role, content in map(_message_parts, messages)
+        if role == "assistant" and content.strip()
+    ]
+    assistant_text = "\n".join(assistant_turns)
     coverage_values = [fact_set.semantic_coverage for _, fact_set in active_fact_sets]
     semantic_coverage = sum(coverage_values) / len(coverage_values) if coverage_values else 0.0
     historical_concepts = tuple(fact.concept for fact in historical_facts)
@@ -330,7 +380,7 @@ def build_clinical_episode_model(
         problem_representation=_problem_representation(active_domain, positive_facts, user_turns[-1]),
         confirmed_positive=positive_facts,
         confirmed_negative=negative_facts,
-        unknown_decision_relevant=_unknowns(active_domain, active_text),
+        unknown_decision_relevant=_unknowns(active_domain, active_text, assistant_text),
         historical_risk=historical_facts,
         delta=EpisodeDelta(
             new_positive=latest_positive,

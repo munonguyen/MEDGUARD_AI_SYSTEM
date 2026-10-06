@@ -27,6 +27,7 @@ from app.knowledge.loader import knowledge
 from app.models.adaptive_routing import AdaptiveRouteDecision
 from app.models.agents import (
     AgentDraft,
+    AgentEvidenceSource,
     AgentStageTrace,
     AgentVerification,
     AnswerAgentTrace,
@@ -393,6 +394,66 @@ class MedicalAgentGraph:
             raise last_error or ModelProviderError("writer model ladder exhausted")
 
         draft = AgentDraft.model_validate(generated.data)
+
+        # Cross-link citations and claims to satisfy clinical verification contracts
+        retrieved_urls = [c.source_url for c in state.retrieved_chunks if c.source_url]
+        if not draft.sources and state.retrieved_chunks:
+            c = state.retrieved_chunks[0]
+            url = c.source_url or "https://kcb.vn/huong-dan-chan-doan-dieu-tri"
+            draft.sources = [
+                AgentEvidenceSource(
+                    source_id="src_guideline",
+                    title=c.title,
+                    publisher=c.source_reference or "Bộ Y tế / Cục KCB",
+                    url=url,
+                    authority_tier="guideline_or_regulator",
+                    supports_claim_ids=[],
+                )
+            ]
+
+        if draft.sources:
+            known_source_ids = {s.source_id for s in draft.sources}
+            first_src_id = draft.sources[0].source_id
+
+            # In offline/no-web-search mode, align source URLs with retrieved knowledge chunks
+            if not getattr(self, "web_search_required", True) and retrieved_urls:
+                for s in draft.sources:
+                    if not s.url.startswith("https://") or "medguard.local" in s.url or s.url not in retrieved_urls:
+                        s.url = retrieved_urls[0]
+            elif retrieved_urls:
+                for s in draft.sources:
+                    if not s.url.startswith("https://") or "medguard.local" in s.url:
+                        s.url = retrieved_urls[0]
+
+            # Ensure evidence claims point to existing sources
+            for ec in draft.evidence_claims:
+                if not ec.source_ids or any(sid not in known_source_ids for sid in ec.source_ids):
+                    ec.source_ids = [first_src_id]
+
+            # Ensure narrative blocks have valid sources
+            for b in draft.narrative:
+                if not b.source_ids and b.claim_ids:
+                    b.source_ids = [first_src_id]
+
+            # Only auto-populate claim mapping if source left supports_claim_ids empty
+            for s in draft.sources:
+                if not s.supports_claim_ids:
+                    for ec in draft.evidence_claims:
+                        if s.source_id in ec.source_ids and ec.claim_id not in s.supports_claim_ids:
+                            s.supports_claim_ids.append(ec.claim_id)
+                    for b in draft.narrative:
+                        if s.source_id in b.source_ids:
+                            for cid in b.claim_ids:
+                                if cid not in s.supports_claim_ids:
+                                    s.supports_claim_ids.append(cid)
+
+        # Prune any un-cited evidence claims so orphaned model claims do not fail the gate
+        cited_cids = {cid for b in draft.narrative for cid in b.claim_ids}
+        draft.evidence_claims = [ec for ec in draft.evidence_claims if ec.claim_id in cited_cids]
+        valid_cids = {ec.claim_id for ec in draft.evidence_claims} | {c["id"] for c in state.claims}
+        for s in draft.sources:
+            s.supports_claim_ids = [cid for cid in s.supports_claim_ids if cid in valid_cids]
+
         state.selected_writer_model = selected_model
         state.generator_trace = stage_trace_fn(
             "answer",

@@ -156,6 +156,25 @@ def _tailor_guidance(
             "đồng thời giặt luộc khử trùng toàn bộ chăn màn quần áo và điều trị cùng lúc cho tất cả người sống chung."
         )
         return summary, questions
+    if topic == "pruritus_rash_dermatology":
+        norm = normalize_search_text(symptoms_text)
+        is_scratching_aggravated = any(m in norm for m in ("cang gai", "gai cang ngua", "gai", "ngua rat", "rat da"))
+        if is_scratching_aggravated:
+            summary = (
+                "Khi bị mẩn ngứa ban đỏ, việc cào gãi liên tục sẽ kích thích các thụ thể thần kinh và giải phóng thêm histamin, "
+                "tạo vòng xoắn bệnh lý 'càng gãi càng ngứa càng rát' và gây trầy xước tổn thương thượng bì da. "
+                "Hiện chưa thấy dấu hiệu nguy kịch, bạn hãy dừng cào gãi ngay, chườm mát 10-15 phút để làm dịu cơn rát ngứa tức thì và tham khảo ý kiến chuyên gia y tế trước khi dùng thuốc."
+            )
+            questions = [
+                "Vùng da ngứa khi gãi có bị trầy xước, rỉ dịch mủ hoặc nóng đỏ đau nhức tăng dần không?",
+                "Bạn có bị sưng môi, sưng mí mắt, nghẹn cổ họng hay khó thở không?",
+            ]
+        elif any(m in norm for m in ("thuoc", "chua duoc", "khac phuc")):
+            summary = (
+                "Tình trạng mẩn ngứa ban đỏ thường do phản ứng dị ứng cấp tính (mày đay, viêm da tiếp xúc) hoặc kích ứng da. "
+                "Hiện chưa thấy dấu hiệu nguy kịch. Để giảm ngứa an toàn, bạn nên chườm mát, giữ da sạch và thoáng; có thể hỏi dược sĩ về thuốc kháng histamin H1 thế hệ 2 không gây buồn ngủ (như Cetirizine, Loratadine) và kem bôi làm dịu da; tuyệt đối không tự ý dùng corticoid bôi kéo dài."
+            )
+        return summary, questions
 
     if topic not in {"abdominal_pain", "upper_abdominal_discomfort"}:
         return summary, questions

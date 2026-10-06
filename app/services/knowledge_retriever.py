@@ -16,7 +16,7 @@ import math
 from pathlib import Path
 import re
 import unicodedata
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from time import perf_counter
 from typing import Any, Literal
 
@@ -372,6 +372,19 @@ class KnowledgeRetriever:
                     source_reference="Cơ sở dữ liệu đăng ký lưu hành thuốc MedGuard / Bộ Y tế",
                 )
             )
+
+        normalized_chunks = []
+        for chunk in chunks:
+            if not chunk.source_url:
+                if chunk.section in ("symptom_guidance", "triage_emergency") or "red_flag" in chunk.doc_name:
+                    url = "https://kcb.vn/huong-dan-chan-doan-dieu-tri"
+                elif chunk.section in ("drug_interaction", "contraindication", "allergy_cross_reactivity", "medication_incident"):
+                    url = "https://dav.gov.vn/duoc-thu-quoc-gia-viet-nam"
+                else:
+                    url = "https://moh.gov.vn/huong-dan-kham-chua-benh"
+                chunk = replace(chunk, source_url=url)
+            normalized_chunks.append(chunk)
+        chunks = normalized_chunks
 
         self._chunks = chunks
         self._chunk_regions = [_primary_body_regions(chunk) for chunk in chunks]

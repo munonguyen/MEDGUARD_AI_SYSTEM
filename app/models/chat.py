@@ -276,12 +276,16 @@ class ChatResponse(DisclaimerMixin):
                     normalized_questions.append(question)
             replacement = f"{prompt_label}: {' '.join(normalized_questions)}"
 
+        narrative_has_embedded_question = any(
+            "?" in b.text and not b.text.strip().startswith(prompt_label)
+            for b in self.answer.narrative
+        )
         updated: list[AnswerNarrativeBlock] = []
         found_question_block = False
         for block in self.answer.narrative:
             if block.text.strip().startswith(prompt_label):
                 found_question_block = True
-                if replacement:
+                if replacement and not narrative_has_embedded_question:
                     updated.append(
                         block.model_copy(
                             update={
@@ -293,7 +297,7 @@ class ChatResponse(DisclaimerMixin):
                 continue
             updated.append(block)
 
-        if replacement and not found_question_block:
+        if replacement and not found_question_block and not narrative_has_embedded_question:
             updated.append(
                 AnswerNarrativeBlock(
                     kind="paragraph",

@@ -187,17 +187,43 @@ def _route_specialty(text: str) -> tuple[str, str, float] | None:
     """Route to specialty based on keyword matching from knowledge base."""
     best: tuple[str, str, float] | None = None
     best_count = 0
+    norm_text = normalize_search_text(text)
     for route in knowledge.specialty_routing:
         matches = sum(
             1
             for keyword in route["keywords"]
-            if contains_affirmed_phrase(text, normalize_search_text(keyword))
+            if contains_affirmed_phrase(norm_text, normalize_search_text(keyword))
         )
         if matches > best_count:
             best_count = matches
             spec = route["specialty"]
             best = (spec["code"], spec["label"], route["confidence"])
     return best
+
+
+def is_mild_pruritus_rash_dermatology(symptoms_text: str) -> bool:
+    """Detect benign acute pruritus, rash, urticaria or contact reaction without anaphylaxis red flags."""
+    norm = normalize_search_text(symptoms_text)
+    has_rash_pruritus = any(
+        contains_affirmed_phrase(norm, marker)
+        for marker in (
+            "man ngua", "ban do", "man do", "noi man", "ngua rat",
+            "cang gai cang ngua", "cang gai", "noi ban", "di ung da", "me day",
+            "ngua da", "ngua"
+        )
+    )
+    if not has_rash_pruritus:
+        return False
+    # Exclude any anaphylaxis, severe mucosal involvement, or life-threatening systemic red flags
+    has_emergency_features = any(
+        contains_affirmed_phrase(norm, marker)
+        for marker in (
+            "kho tho", "tho rit", "sung moi", "sung luoi", "sung mat",
+            "nghen hong", "nghen co", "khan tieng", "choang", "ngat",
+            "hon me", "sot cao", "bong troc", "hoai tu", "lo loet toan than"
+        )
+    )
+    return not has_emergency_features
 
 
 def triage_rules(symptoms_text: str, vitals: VitalSigns | None = None) -> TriageRuleResult:
@@ -207,6 +233,21 @@ def triage_rules(symptoms_text: str, vitals: VitalSigns | None = None) -> Triage
     # -----------------------------------------------------------------
     # Anti-Overtriage Clinical Resolvers (Benign Traps / Non-Emergencies)
     # -----------------------------------------------------------------
+    # 0. Benign acute pruritus, rash, urticaria or localized skin irritation
+    if is_mild_pruritus_rash_dermatology(symptoms_text):
+        return TriageRuleResult(
+            urgency="ROUTINE",
+            emergency_flag=False,
+            red_flags=[],
+            esi_level=4,
+            recommended_specialty=("DERMATOLOGY", "Da liễu"),
+            clarifying_questions=[
+                "Ban đỏ mẩn ngứa xuất hiện ở vùng nào (khu trú hay lan toàn thân), có phồng rộp, nổi sẩn phù mày đay hay mụn nước không?",
+                "Ngay trước khi nổi ban bạn có dùng thuốc mới, ăn thực phẩm lạ, tiếp xúc hóa mỹ phẩm hay bị côn trùng đốt không?",
+            ],
+            advice="Tình trạng mẩn ngứa ban đỏ thường do phản ứng dị ứng cấp tính (mày đay, viêm da tiếp xúc) hoặc kích ứng da. Trong thời gian chưa đi khám chuyên khoa Da liễu, bạn nên chườm mát, tránh cào gãi làm trầy xước bội nhiễm và có thể hỏi dược sĩ về thuốc giảm ngứa không kê đơn an toàn.",
+        )
+
     # 1. Reproducible chest wall tenderness (costochondritis / muscle strain)
     if is_reproducible_musculoskeletal_chest_pain(symptoms_text):
         return TriageRuleResult(
@@ -936,6 +977,16 @@ def triage_rules(symptoms_text: str, vitals: VitalSigns | None = None) -> Triage
     # Phase 7: No explicit rule matched -> UNRESOLVED (fail closed, never default to ROUTINE)
     routed = _route_specialty(text)
     specialty = (routed[0], routed[1]) if routed else ("GENERAL", "Tổng quát")
+    if specialty[0] == "DERMATOLOGY":
+        unresolved_questions = [
+            "Ban đỏ mẩn ngứa xuất hiện ở vùng nào (khu trú hay lan toàn thân), có phồng rộp hay mụn nước không?",
+            "Ngay trước khi nổi ban bạn có tiếp xúc hóa mỹ phẩm, thuốc mới hay thực phẩm lạ không?",
+        ]
+    else:
+        unresolved_questions = [
+            "Triệu chứng xuất hiện từ khi nào?",
+            "Có sốt hoặc đau tăng dần không?",
+        ]
 
     return TriageRuleResult(
         urgency="UNRESOLVED",
@@ -943,10 +994,7 @@ def triage_rules(symptoms_text: str, vitals: VitalSigns | None = None) -> Triage
         red_flags=[],
         esi_level=None,
         recommended_specialty=specialty,
-        clarifying_questions=[
-            "Triệu chứng xuất hiện từ khi nào?",
-            "Có sốt hoặc đau tăng dần không?",
-        ],
+        clarifying_questions=unresolved_questions,
         advice="Cần thêm đánh giá lâm sàng toàn diện.",
         matched=False,
         confidence=0.0,
