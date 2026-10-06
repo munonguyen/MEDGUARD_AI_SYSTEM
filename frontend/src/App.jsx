@@ -76,7 +76,15 @@ const starterPrompts = [
 ];
 
 function Brand() {
-  return <div className="brand"><img src="/static/brand-mark.svg" alt="" /><div><strong>MedGuard AI</strong><span>Clinical assistant</span></div></div>;
+  return (
+    <div className="brand">
+      <img src="/static/brand-mark.svg" alt="Biểu trưng MedGuard AI" width="32" height="32" />
+      <div>
+        <strong>MedGuard AI</strong>
+        <span>Clinical assistant</span>
+      </div>
+    </div>
+  );
 }
 
 function Credentials({ tenantId, setTenantId, apiKey, setApiKey, consentToken, setConsentToken, close }) {
@@ -143,9 +151,20 @@ function Sidebar({ open, close, collapse, conversations, activeId, onSelect, onN
     <aside className={`sidebar ${open ? 'open' : ''}`}>
       <div className="sidebar-top"><Brand /><button className="icon-button sidebar-collapse" type="button" onClick={collapse} title="Thu gọn thanh bên" aria-label="Thu gọn thanh bên"><PanelLeftClose size={18} /></button><button className="icon-button sidebar-close" type="button" onClick={close} title="Đóng" aria-label="Đóng menu"><X size={18} /></button></div>
       <button className="new-chat" type="button" onClick={() => { onNew(); close(); }}><Plus size={17} /><span>Cuộc trò chuyện mới</span></button>
-      <div className="history-search"><Search size={15} /><input value={search} onChange={(event) => setSearch(event.target.value)} aria-label="Tìm lịch sử" placeholder="Tìm cuộc trò chuyện" /></div>
+      <div className="history-search">
+        <Search size={15} />
+        <input
+          type="search"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          aria-label="Tìm kiếm lịch sử trò chuyện"
+          placeholder="Tìm cuộc trò chuyện…"
+          spellCheck="false"
+          autoComplete="off"
+        />
+      </div>
       <div className="history-block"><span className="nav-label">Gần đây</span><nav aria-label="Lịch sử trò chuyện">
-        {conversations.length ? conversations.map((item) => <div className={`history-row ${activeId === item.conversation_id && activeView === 'chat' ? 'active' : ''}`} key={item.conversation_id}><button type="button" onClick={() => { onSelect(item.conversation_id); close(); }}><MessageSquare size={15} /><span>{item.title}</span></button><button className="history-delete" type="button" title="Xóa cuộc trò chuyện" aria-label={`Xóa ${item.title}`} onClick={() => onDelete(item.conversation_id)}><Trash2 size={14} /></button></div>) : <p className="history-empty">Chưa có cuộc trò chuyện</p>}
+        {conversations.length ? conversations.map((item) => <div className={`history-row ${activeId === item.conversation_id && activeView === 'chat' ? 'active' : ''}`} key={item.conversation_id}><button type="button" onClick={() => { onSelect(item.conversation_id); close(); }}><MessageSquare size={15} /><span>{item.title}</span></button><button className="history-delete" type="button" title="Xóa cuộc trò chuyện" aria-label={`Xóa cuộc trò chuyện: ${item.title}`} onClick={() => onDelete(item.conversation_id)}><Trash2 size={14} /></button></div>) : <p className="history-empty">Chưa có cuộc trò chuyện</p>}
       </nav></div>
       <div className="sidebar-actions">
         <button type="button" className={`nav-link-btn ${activeView === 'schedule' ? 'active' : ''}`} onClick={() => { onSchedulePage(); close(); }}><CalendarClock size={17} /><span>Lịch khám</span></button>
@@ -166,7 +185,7 @@ function ToolMenu({ open, selected, onSelect }) {
 
 function Welcome({ onPrompt }) {
   return <div className="welcome-view">
-    <img src="/static/brand-mark.svg" alt="" />
+    <img src="/static/brand-mark.svg" alt="Biểu trưng MedGuard AI" width="56" height="56" />
     <h1>Bạn cần hỗ trợ gì hôm nay?</h1>
     <div className="starter-grid">{starterPrompts.map((item) => { const Icon = item.icon; return <button type="button" key={item.title} onClick={() => onPrompt(item.text)}><Icon size={18} /><span>{item.title}</span><Send size={14} /></button>; })}</div>
   </div>;
@@ -350,7 +369,7 @@ function Conversation({ entries, busy, onNotify, onSelectQuestion }) {
             ref={index === entries.length - 1 ? latestRef : null}
             key={key}
           >
-            <img className="assistant-avatar" src="/static/brand-mark.svg" alt="" />
+            <img className="assistant-avatar" src="/static/brand-mark.svg" alt="MedGuard AI" width="28" height="28" />
             <div className="assistant-content">
               <strong>MedGuard AI</strong>
               {entry.answer ? (
@@ -411,7 +430,7 @@ function Conversation({ entries, busy, onNotify, onSelectQuestion }) {
       {busy && (
         <article className="chat-assistant pending-premium message-enter">
           <div className="assistant-avatar-wrap">
-            <img className="assistant-avatar pulse-glow" src="/static/brand-mark.svg" alt="" />
+            <img className="assistant-avatar pulse-glow" src="/static/brand-mark.svg" alt="MedGuard AI" width="28" height="28" />
           </div>
           <div className="assistant-content">
             <strong>MedGuard AI</strong>
@@ -422,9 +441,9 @@ function Conversation({ entries, busy, onNotify, onSelectQuestion }) {
                   <span className="thinking-pulse-dot" />
                   <Sparkles className="spin-slow" size={14} />
                   <span className="thinking-phase-text">
-                    {loadingPhase === 0 && 'Đang phân tích triệu chứng lâm sàng...'}
-                    {loadingPhase === 1 && 'Đang đối chiếu phác đồ & cơ sở tri thức y khoa...'}
-                    {loadingPhase >= 2 && 'Đang chạy kiểm định an toàn qua Gateway...'}
+                    {loadingPhase === 0 && 'Đang phân tích triệu chứng lâm sàng…'}
+                    {loadingPhase === 1 && 'Đang đối chiếu phác đồ & cơ sở tri thức y khoa…'}
+                    {loadingPhase >= 2 && 'Đang chạy kiểm định an toàn qua Gateway…'}
                   </span>
                 </div>
                 <div className="thinking-dots" aria-hidden="true">
@@ -514,9 +533,9 @@ function Composer({ value, setValue, onSend, busy, selectedTool, setSelectedTool
         </button>
       </div>
     ) : (
-      <div className="composer-box">
-        {attachment && <div className="attachment-preview"><img src={attachment.url} alt="Ảnh chuẩn bị gửi" /><div><strong>{attachment.file.name}</strong><span>{Math.ceil(attachment.file.size / 1024)} KB</span></div><button className="icon-button" type="button" title="Bỏ ảnh" aria-label="Bỏ ảnh" onClick={() => setAttachment(null)}><X size={16} /></button></div>}
-        <textarea ref={textareaRef} rows="1" value={value} onChange={(event) => setValue(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); submit(); } }} placeholder="Nhắn cho MedGuard AI" aria-label="Tin nhắn" />
+      <form className="composer-box" onSubmit={(event) => { event.preventDefault(); submit(); }}>
+        {attachment && <div className="attachment-preview"><img src={attachment.url} alt="Ảnh chuẩn bị gửi" width="48" height="48" /><div><strong>{attachment.file.name}</strong><span>{Math.ceil(attachment.file.size / 1024)} KB</span></div><button className="icon-button" type="button" title="Bỏ ảnh" aria-label="Bỏ ảnh" onClick={() => setAttachment(null)}><X size={16} /></button></div>}
+        <textarea ref={textareaRef} rows="1" value={value} onChange={(event) => setValue(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); submit(); } }} placeholder="Nhắn cho MedGuard AI…" aria-label="Tin nhắn" />
         <div className="composer-tools">
           <div className="composer-left">
             <button className="icon-button" type="button" title="Đính kèm ảnh đơn thuốc hoặc kết quả khám" aria-label="Đính kèm ảnh" onClick={() => fileRef.current?.click()}><Paperclip size={19} /></button>
@@ -524,9 +543,9 @@ function Composer({ value, setValue, onSend, busy, selectedTool, setSelectedTool
             <button className="icon-button" type="button" title="Quét QR sản phẩm" aria-label="Quét QR" onClick={onQr}><QrCode size={19} /></button>
             <div className="tool-anchor" ref={toolAnchorRef}><button className="mode-button" type="button" aria-haspopup="menu" aria-expanded={toolsOpen} onClick={() => setToolsOpen(!toolsOpen)}><ToolIcon size={16} /><span>{tool.label}</span><ChevronDown size={14} /></button><ToolMenu open={toolsOpen} selected={selectedTool} onSelect={(id) => { setSelectedTool(id); setToolsOpen(false); }} /></div>
           </div>
-          <button className="send-button" type="button" title="Gửi" aria-label="Gửi tin nhắn" disabled={busy || (!value.trim() && !attachment)} onClick={submit}>{busy ? <LoaderCircle className="spin" size={18} /> : <Send size={18} />}</button>
+          <button className="send-button" type="submit" title="Gửi" aria-label="Gửi tin nhắn" disabled={busy || (!value.trim() && !attachment)}>{busy ? <LoaderCircle className="spin" size={18} /> : <Send size={18} />}</button>
         </div>
-      </div>
+      </form>
     )}
     <p className="composer-disclaimer">MedGuard AI có thể mắc lỗi. Quyết định lâm sàng cần người có thẩm quyền xác nhận.</p>
   </div>;
@@ -870,8 +889,9 @@ export default function App({
 
   const filteredConversations = conversations.filter((item) => item.title.toLowerCase().includes(historySearch.toLowerCase()));
   return <div className={`app-shell chat-shell ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+    <a href="#main-content" className="skip-link">Chuyển đến nội dung chính</a>
     <Sidebar open={sidebarOpen} close={() => setSidebarOpen(false)} collapse={() => { setSidebarCollapsed(true); setSidebarOpen(false); }} conversations={filteredConversations} activeId={conversationId} onSelect={selectConversation} onNew={startNew} onDelete={deleteConversation} onSchedule={() => setView('medication')} onSchedulePage={() => setView('schedule')} onMedicationPage={() => setView('medication')} onSettings={() => { setSettingsInitialTab('general'); setSettingsOpen(true); }} onSystem={() => { if (!account || account.role === 'admin') setView('system'); }} activeView={view} search={historySearch} setSearch={setHistorySearch} />
-    <main className="main-shell chat-main">
+    <main className="main-shell chat-main" id="main-content" tabIndex={-1}>
       <header className="topbar chat-topbar">
         <div className="topbar-title">
           <button
@@ -1084,7 +1104,7 @@ export default function App({
           />
         </div>
       ) : (
-        <section className={`chat-workspace ${entries.length ? 'has-messages' : ''}`} aria-live="polite">
+        <section id="main-chat-workspace" className={`chat-workspace ${entries.length ? 'has-messages' : ''}`} aria-live="polite">
           <div className="chat-scroll">
             {entries.length ? (
               <Conversation
@@ -1104,6 +1124,6 @@ export default function App({
     <QrScanner open={qrOpen} onClose={() => setQrOpen(false)} onDetected={(raw) => { setQrOpen(false); sendText(`Kiểm tra QR hàng giả: ${raw}`, 'authenticity'); }} />
     <SchedulePanel open={scheduleOpen} onClose={() => setScheduleOpen(false)} api={api} patientRef={context.patient_ref} onOpenSchedulePage={() => setView('schedule')} onNotify={notify} />
     <SettingsModal allowSystem={!account || account.role === 'admin'} open={settingsOpen} onClose={() => setSettingsOpen(false)} initialTab={settingsInitialTab} context={context} onSaveProfile={saveProfile} onClearProfile={clearProfile} api={api} tenantId={tenantId} onClearAllChat={clearAllConversations} onExportData={exportClinicalData} onNotify={notify} />
-    {toast && <div className="ui-toast" role="status"><Check size={16} /><span>{toast}</span></div>}
+    {toast && <div className="ui-toast" role="status" aria-live="polite" aria-atomic="true"><Check size={16} /><span>{toast}</span></div>}
   </div>;
 }

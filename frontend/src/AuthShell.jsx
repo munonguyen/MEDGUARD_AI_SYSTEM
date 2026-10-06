@@ -154,7 +154,7 @@ export default function AuthShell(){
    </div>
   );
  }
- if(!user||mode==='reset'||mode==='verify')return <main className="auth-screen"><section className="auth-card"><img src="/static/brand-mark.svg" alt=""/><h1>MedGuard AI</h1><p>{({login:'Đăng nhập để quản lý hội thoại riêng của bạn',register:'Tạo tài khoản',forgot:'Khôi phục mật khẩu',reset:'Đặt mật khẩu mới',verify:'Xác thực email'})[mode]}</p>
+ if(!user||mode==='reset'||mode==='verify')return <main className="auth-screen"><section className="auth-card"><img src="/static/brand-mark.svg" alt="Biểu trưng MedGuard AI" width="48" height="48"/><h1>MedGuard AI</h1><p>{({login:'Đăng nhập để quản lý hội thoại riêng của bạn',register:'Tạo tài khoản',forgot:'Khôi phục mật khẩu',reset:'Đặt mật khẩu mới',verify:'Xác thực email'})[mode]}</p>
   <form onSubmit={submit} method="post" action="#">
    {['login','register','forgot'].includes(mode)&&<label htmlFor="auth-username">Email<input id="auth-username" name="username" type="email" autoComplete="username" required maxLength={254} value={email} onChange={e=>setEmail(e.target.value)}/></label>}
    {['login','register','reset'].includes(mode)&&<label htmlFor="auth-password">Mật khẩu<input id="auth-password" name="password" type="password" autoComplete={mode==='login'?'current-password':'new-password'} required minLength={mode==='login'?1:12} maxLength={256} value={password} onChange={e=>setPassword(e.target.value)}/></label>}

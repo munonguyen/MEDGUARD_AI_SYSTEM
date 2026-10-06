@@ -303,7 +303,7 @@ export function SchedulePanel({ open, onClose, api, patientRef, onOpenSchedulePa
                   disabled={adding || !medName.trim()}
                 >
                   {adding ? <LoaderCircle className="spin" size={15} /> : <Plus size={15} />}
-                  <span>{adding ? 'Đang lưu...' : 'Lưu mốc thuốc'}</span>
+                  <span>{adding ? 'Đang lưu…' : 'Lưu mốc thuốc'}</span>
                 </button>
               </div>
             </div>
@@ -315,7 +315,7 @@ export function SchedulePanel({ open, onClose, api, patientRef, onOpenSchedulePa
           {busy && !schedules.length && (
             <div className="drawer-state">
               <LoaderCircle className="spin" size={24} />
-              <span>Đang đồng bộ danh sách thuốc...</span>
+              <span>Đang đồng bộ danh sách thuốc…</span>
             </div>
           )}
 
