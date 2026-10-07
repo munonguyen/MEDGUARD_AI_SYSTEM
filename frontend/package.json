@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test:ui": "node tests/ui-smoke.mjs",
     "test:doctor-motion": "node tests/doctor-motion.mjs",
-    "test:doctor-web": "node tests/doctor-refinement-web.mjs"
+    "test:doctor-web": "node tests/doctor-refinement-web.mjs",
+    "test:auth-proxy": "node tests/auth-proxy-web.mjs"
   },
   "dependencies": {
     "@pixiv/three-vrm": "^3.5.5",

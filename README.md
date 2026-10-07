@@ -61,6 +61,32 @@ npm run build
 
 Vite proxies `/v1` and `/metrics` to FastAPI at port `8000`. The production build uses the same origin as FastAPI, avoiding a second API base URL or browser credential boundary.
 
+The development proxy preserves the browser-facing `Host` (`changeOrigin: false`)
+so the backend can compare it with `Origin` on login and other state-changing
+requests. Restart Vite after updating its configuration. If
+`MEDGUARD_PUBLIC_ORIGIN` is explicitly set, it must match the URL opened in the
+browser, including scheme and port. Production requires the configured HTTPS
+public origin; do not disable Origin/CSRF checks or trust arbitrary forwarded
+headers to resolve a development mismatch.
+
+Authentication is restored only from the server session cookie (`HttpOnly`,
+`SameSite=Strict`, and `Secure` in production), with existing absolute and idle
+expiry. Passwords are never saved by the application in browser storage. Older
+`medguard.auth.remember` records are removed on page initialization; expired
+sessions require login again.
+
+Run the real development-proxy browser regression with a free backend port 8000
+and Vite test port 5295:
+
+```bash
+MEDGUARD_TEST_PYTHON=/path/to/python CHROME_PATH=/path/to/chromium npm --prefix frontend run test:auth-proxy
+```
+
+This uses an isolated temporary account database and synthetic accounts. It
+checks both localhost and 127.0.0.1, login/reload/logout, cookie restrictions,
+legacy password cleanup, and rejection of cross-origin and invalid-CSRF writes.
+
+
 To exercise restart persistence locally, set `MEDGUARD_SQLITE_PATH=./var/medguard.sqlite3`. The default remains isolated in-memory SQLite for tests and short development runs.
 
 Development credentials:

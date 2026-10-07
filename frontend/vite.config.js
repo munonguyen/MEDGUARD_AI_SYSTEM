@@ -8,8 +8,9 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/v1': 'http://127.0.0.1:8000',
-      '/metrics': 'http://127.0.0.1:8000',
+      // Preserve the browser-facing Host so backend Origin/CSRF checks agree.
+      '/v1': { target: 'http://127.0.0.1:8000', changeOrigin: false },
+      '/metrics': { target: 'http://127.0.0.1:8000', changeOrigin: false },
     },
   },
   build: {

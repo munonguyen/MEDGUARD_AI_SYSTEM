@@ -7,7 +7,7 @@ async function auth(path,body,csrf,method='POST'){
  const data=await r.json();if(!r.ok){
   if(r.status===401&&csrf&&['session_expired','login_required'].includes(data.detail?.error_code||data.error_code))window.dispatchEvent(new Event('medguard:session-expired'));
   const code=data.detail?.error_code||data.error_code;
-  const messages={invalid_credentials:'Email, mật khẩu hoặc mã xác thực không đúng. Mã MFA chỉ dùng một lần.',email_verification_required:'Hãy xác thực email trước khi đăng nhập.',email_delivery_failed:'Máy chủ chưa gửi được email. Hãy thử lại hoặc liên hệ quản trị viên.',email_delivery_not_configured:'Máy chủ chưa cấu hình gửi email. Vui lòng liên hệ quản trị viên.',authentication_rate_limited:'Bạn đã thử quá nhiều lần. Hãy đợi một phút rồi thử lại.',password_requires_12_to_256_bytes:'Mật khẩu cần ít nhất 12 ký tự và tối đa 256 byte.',account_not_created:'Không thể tạo tài khoản. Nếu đã đăng ký, hãy đăng nhập hoặc khôi phục mật khẩu.',invalid_or_expired_token:'Liên kết đã hết hạn hoặc đã được sử dụng.',session_expired:'Phiên đã hết hạn. Hãy đăng nhập lại.',csrf_invalid:'Không thể xác thực yêu cầu. Hãy tải lại trang.',consent_required:'Cần đồng ý xử lý dữ liệu để tạo tài khoản.'};
+  const messages={invalid_credentials:'Email, mật khẩu hoặc mã xác thực không đúng. Mã MFA chỉ dùng một lần.',email_verification_required:'Hãy xác thực email trước khi đăng nhập.',email_delivery_failed:'Máy chủ chưa gửi được email. Hãy thử lại hoặc liên hệ quản trị viên.',email_delivery_not_configured:'Máy chủ chưa cấu hình gửi email. Vui lòng liên hệ quản trị viên.',authentication_rate_limited:'Bạn đã thử quá nhiều lần. Hãy đợi một phút rồi thử lại.',password_requires_12_to_256_bytes:'Mật khẩu cần ít nhất 12 ký tự và tối đa 256 byte.',account_not_created:'Không thể tạo tài khoản. Nếu đã đăng ký, hãy đăng nhập hoặc khôi phục mật khẩu.',invalid_or_expired_token:'Liên kết đã hết hạn hoặc đã được sử dụng.',session_expired:'Phiên đã hết hạn. Hãy đăng nhập lại.',cross_origin_request:'Địa chỉ trang không khớp cấu hình bảo mật của máy chủ. Hãy kiểm tra địa chỉ truy cập và khởi động lại frontend/backend.',csrf_invalid:'Không thể xác thực yêu cầu. Hãy tải lại trang.',consent_required:'Cần đồng ý xử lý dữ liệu để tạo tài khoản.'};
   throw new Error(messages[code]||data.detail?.message||data.message||'Không thể hoàn tất yêu cầu');
  }return data;
 }
@@ -28,7 +28,6 @@ export default function AuthShell(){
   try { return parseInt(localStorage.getItem('medguard.guest_usage_count') || '0', 10); } catch { return 0; }
  });
  const guestRemaining = Math.max(0, GUEST_MAX_QUESTIONS - guestCount);
- const [rememberMe, setRememberMe] = useState(true);
  const [email,setEmail]=useState(''),[password,setPassword]=useState(''),[otp,setOtp]=useState(''),[consent,setConsent]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [backups,setBackups]=useState([]);
  const [manage,setManage]=useState(false),[sessions,setSessions]=useState([]),[newPassword,setNewPassword]=useState(''),[setup,setSetup]=useState(null);
@@ -51,6 +50,8 @@ export default function AuthShell(){
   window.addEventListener('medguard:session-expired',expired);
 
   const initAuth = async () => {
+   // Remove credentials saved by older versions; never replay a cached password.
+   try { localStorage.removeItem('medguard.auth.remember'); } catch {}
    try {
     const [a, b] = await Promise.all([auth('me', null, null, 'GET'), auth('csrf', null, null, 'GET')]);
     setUser(a.user);
@@ -59,26 +60,8 @@ export default function AuthShell(){
     setBrowserSession({ user: a.user, csrf: b.csrf_token });
     return;
    } catch {
-    // Current session cookie is not valid, try auto-login from client machine cache
-   }
-
-   try {
-    const saved = localStorage.getItem('medguard.auth.remember');
-    if (saved) {
-     const parsed = JSON.parse(saved);
-     if (parsed?.email && parsed?.password) {
-      const d = await auth('login', { email: parsed.email, password: parsed.password });
-      setUser(d.user);
-      setEmail(d.user.email);
-      setCsrf(d.csrf_token);
-      setBrowserSession({ user: d.user, csrf: d.csrf_token });
-      setIsGuest(false);
-      try { localStorage.removeItem('medguard.guest_mode'); } catch {}
-      return;
-     }
-    }
-   } catch {
-    try { localStorage.removeItem('medguard.auth.remember'); } catch {}
+    // Only a valid server session restores authentication.
+    setBrowserSession(null);
    }
   };
 
@@ -99,11 +82,7 @@ export default function AuthShell(){
     setEmail(d.user.email);
     setCsrf(d.csrf_token);
     setBrowserSession({user:d.user,csrf:d.csrf_token});
-    if(rememberMe && !submitOtp) {
-     try { localStorage.setItem('medguard.auth.remember', JSON.stringify({email:submitEmail, password:submitPassword})); } catch {}
-    } else {
-     try { localStorage.removeItem('medguard.auth.remember'); } catch {}
-    }
+    try { localStorage.removeItem('medguard.auth.remember'); } catch {}
     setPassword('');
     setOtp('');
     setBackups([]);
@@ -164,7 +143,6 @@ export default function AuthShell(){
    {['login','register','reset'].includes(mode)&&<label htmlFor="auth-password">Mật khẩu<input id="auth-password" name="password" type="password" autoComplete={mode==='login'?'current-password':'new-password'} required minLength={mode==='login'?1:12} maxLength={256} value={password} onChange={e=>setPassword(e.target.value)}/></label>}
    {mode==='register'&&<small>Dùng ít nhất 12 ký tự; nên dùng mật khẩu riêng hoặc trình quản lý mật khẩu.</small>}
    {mode==='login'&&<label htmlFor="auth-otp">Mã MFA hoặc mã khôi phục (nếu đã bật)<input id="auth-otp" name="otp" autoComplete="one-time-code" maxLength={32} value={otp} onChange={e=>setOtp(e.target.value)}/></label>}
-   {mode==='login'&&<label className="auth-remember-label"><input type="checkbox" checked={rememberMe} onChange={e=>setRememberMe(e.target.checked)}/><span>Tự động đăng nhập trên thiết bị này</span></label>}
    {mode==='register'&&<label className="auth-consent"><input type="checkbox" checked={consent} required onChange={e=>setConsent(e.target.checked)}/>Tôi đồng ý sử dụng dữ liệu tôi cung cấp để xử lý yêu cầu hỗ trợ sức khỏe. AI không thay thế bác sĩ.</label>}
    {error&&<p role="alert">{error}</p>}{notice&&<p role="status">{notice}</p>}{backups.length>0&&<div><h2>Mã khôi phục — lưu lại trước khi tiếp tục</h2><p>Mỗi mã chỉ sử dụng một lần. Không chia sẻ các mã này.</p>{backups.map(c=><code className="auth-secret" key={c}>{c}</code>)}</div>}
    <button disabled={busy}>{busy?'Đang xử lý…':({login:'Đăng nhập',register:'Tạo tài khoản',forgot:'Gửi liên kết khôi phục',reset:'Đặt lại mật khẩu',verify:'Xác thực email'})[mode]}</button>

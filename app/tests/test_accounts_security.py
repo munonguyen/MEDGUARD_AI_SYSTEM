@@ -438,9 +438,18 @@ def test_production_requires_config_and_secure_cookie(app, monkeypatch, tmp_path
     assert c.get("/", headers={"host": "attacker.invalid"}).status_code == 400
     csrf = signup(c)
     response = c.post(
-        "/v1/auth/login", json={"email": "patient@example.com", "password": PASSWORD}
+        "/v1/auth/login", json={"email": "patient@example.com", "password": PASSWORD},
+        headers={"Origin": "https://medguard.example"},
     )
+    assert response.status_code == 200
     assert "Secure" in response.headers["set-cookie"]
+    # Development addresses and forged forwarding headers cannot override the
+    # explicit production public origin, even with otherwise valid credentials.
+    assert c.post(
+        "/v1/auth/login",
+        json={"email": "patient@example.com", "password": PASSWORD},
+        headers={"Origin": "http://localhost:5173", "X-Forwarded-Host": "localhost:5173"},
+    ).status_code == 403
     assert c.get("/metrics").status_code == 403
     assert (
         TestClient(production, base_url="https://medguard.example")
@@ -480,3 +489,20 @@ def test_email_token_is_url_fragment(monkeypatch):
     send_email("patient@example.com", "a-private-token", "reset")
     assert "/#reset_token=a-private-token" in messages[0].get_content()
     assert "/?reset_token=" not in messages[0].get_content()
+
+
+@pytest.mark.parametrize("origin", ["https://attacker.invalid", "http://localhost:9999", "null"])
+def test_login_does_not_trust_client_forwarded_origin(app, origin):
+    c = TestClient(app, base_url="http://localhost:5173")
+    response = c.post(
+        "/v1/auth/login",
+        json={"email": "synthetic@example.com", "password": PASSWORD},
+        headers={
+            "Origin": origin,
+            "X-Forwarded-Host": origin.removeprefix("https://").removeprefix("http://"),
+            "X-Forwarded-Proto": "https",
+            "Forwarded": 'host="attacker.invalid";proto=https',
+        },
+    )
+    assert response.status_code == 403
+    assert "cross_origin_request" in response.text
