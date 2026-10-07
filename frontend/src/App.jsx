@@ -171,7 +171,7 @@ function Sidebar({ open, close, collapse, conversations, activeId, onSelect, onN
       <div className="sidebar-actions">
         <button type="button" className={`nav-link-btn companion-nav-btn ${activeView === 'companion' ? 'active' : ''}`} onClick={() => { onCompanionPage?.(); close(); }}>
           <Sparkles size={17} />
-          <span>Trợ lý 3D Live (Grok)</span>
+          <span>Bác sĩ 3D Live</span>
         </button>
         <button type="button" className={`nav-link-btn ${activeView === 'schedule' ? 'active' : ''}`} onClick={() => { onSchedulePage(); close(); }}><CalendarClock size={17} /><span>Lịch khám</span></button>
         <button type="button" className={`nav-link-btn ${activeView === 'medication' ? 'active' : ''}`} onClick={() => { onMedicationPage(); close(); }}><CalendarDays size={17} /><span>Lịch uống thuốc</span></button>
@@ -973,8 +973,8 @@ export default function App({
             {sidebarCollapsed ? <PanelLeftOpen size={20} /> : <Menu size={20} />}
           </button>
           <div>
-            <h1>{view === 'system' ? 'Hệ thống & Kiểm toán' : view === 'schedule' ? 'Lịch khám bệnh' : view === 'medication' ? 'Lịch uống thuốc' : view === 'companion' ? 'Trợ lý 3D Live (Ani)' : conversationTitle}</h1>
-            <span>{view === 'system' ? 'Trạng thái vận hành lâm sàng' : view === 'schedule' ? 'Thời khóa biểu ca khám bác sĩ' : view === 'medication' ? 'Thời khóa biểu nhắc thuốc cá nhân' : view === 'companion' ? 'Tương tác giọng nói & hình thể 3D trực tiếp' : (context.display_name ? `Bệnh nhân: ${context.display_name}` : context.patient_ref || 'Hỗ trợ y khoa 24/7')}</span>
+            <h1>{view === 'system' ? 'Hệ thống & Kiểm toán' : view === 'schedule' ? 'Lịch khám bệnh' : view === 'medication' ? 'Lịch uống thuốc' : view === 'companion' ? 'Bác sĩ 3D Live' : conversationTitle}</h1>
+            <span>{view === 'system' ? 'Trạng thái vận hành lâm sàng' : view === 'schedule' ? 'Thời khóa biểu ca khám bác sĩ' : view === 'medication' ? 'Thời khóa biểu nhắc thuốc cá nhân' : view === 'companion' ? 'Bác sĩ ảo 3D tư vấn trực tiếp qua giọng nói & cử chỉ' : (context.display_name ? `Bệnh nhân: ${context.display_name}` : context.patient_ref || 'Hỗ trợ y khoa 24/7')}</span>
           </div>
         </div>
         <div className="topbar-actions">
@@ -1007,10 +1007,10 @@ export default function App({
               className={`view-tab-btn ${view === "companion" ? "active" : ""}`}
               type="button"
               onClick={() => setView("companion")}
-              title="Trợ lý 3D Live tương tác trực tiếp"
+              title="Bác sĩ 3D Live tương tác trực tiếp"
             >
               <Sparkles size={14} />
-              <span>Trợ lý 3D Live</span>
+              <span>Bác sĩ 3D Live</span>
             </button>
             <button
               role="tab"
