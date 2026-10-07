@@ -689,7 +689,17 @@ export default function App({
   const [avatarPersona, setAvatarPersona] = useState('dr_mai');
   const [avatarEnabled, setAvatarEnabled] = useState(true);
   const [readiness, setReadiness] = useState(null);
-  const [view, setView] = useState('chat');
+  const [view, setView] = useState(() => {
+    try {
+      const sp = new URLSearchParams(window.location.search);
+      const hash = window.location.hash.replace(/^#\/?/, '');
+      const initial = sp.get('view') || hash;
+      if (['chat', 'companion', 'schedule', 'medication', 'system'].includes(initial)) {
+        return initial;
+      }
+    } catch {}
+    return 'chat';
+  });
   const [historySearch, setHistorySearch] = useState('');
   const [toast, setToast] = useState(null);
   const toastTimerRef = useRef(null);

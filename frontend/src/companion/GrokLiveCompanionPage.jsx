@@ -41,8 +41,8 @@ export function GrokLiveCompanionPage({
   const recognitionRef = useRef(null);
 
   // States
-  const [modelUrl, setModelUrl] = useState('/models/AniGrok.vrm');
-  const [modelName, setModelName] = useState('Ani (Grok Style)');
+  const [modelUrl, setModelUrl] = useState('/models/AliciaSolid.vrm');
+  const [modelName, setModelName] = useState('Ani (3D Anime Companion)');
   const [cameraPreset, setCameraPreset] = useState('waist');
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -493,10 +493,10 @@ export function GrokLiveCompanionPage({
                   setShowSettings(false);
                 }}
               >
-                <option value="/models/AniGrok.vrm">Ani (Grok 3D Companion Style)</option>
-                <option value="/models/AliciaSolid.vrm">Alicia Solid (Classic Anime VRM)</option>
-                <option value="/models/Godette.vrm">Godette (Godot Anime Style)</option>
+                <option value="/models/AliciaSolid.vrm">Ani · Alicia (Anime 3D Companion)</option>
                 <option value="/models/VRM1_Sample.vrm">VRM 1.0 Sample</option>
+                <option value="/models/Godette.vrm">Godette (Godot Anime Style)</option>
+                <option value="/models/AniGrok.vrm">Ani Base Mannequin</option>
               </select>
             </div>
 

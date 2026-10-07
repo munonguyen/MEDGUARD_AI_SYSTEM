@@ -18,7 +18,11 @@ export default function AuthShell(){
  const query=new URLSearchParams(location.hash.slice(1) || location.search);
  const [mode,setMode]=useState(()=>query.has('reset_token')?'reset':query.has('verify_token')?'verify':'login');
  const [isGuest, setIsGuest] = useState(() => {
-  try { return localStorage.getItem('medguard.guest_mode') === 'true'; } catch { return false; }
+  try {
+   const q = new URLSearchParams(location.hash.slice(1) || location.search);
+   if (q.has('guest') || q.get('view') === 'companion' || location.hash.includes('companion')) return true;
+   return localStorage.getItem('medguard.guest_mode') === 'true';
+  } catch { return false; }
  });
  const [guestCount, setGuestCount] = useState(() => {
   try { return parseInt(localStorage.getItem('medguard.guest_usage_count') || '0', 10); } catch { return 0; }

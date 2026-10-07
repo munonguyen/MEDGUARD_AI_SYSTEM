@@ -70,11 +70,11 @@ def _security_headers(response, *, path: str) -> None:
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "no-referrer"
     response.headers["Permissions-Policy"] = (
-        "camera=(self), microphone=(), geolocation=(), payment=(), usb=()"
+        "camera=(self), microphone=(self), geolocation=(), payment=(), usb=()"
     )
     if path in {"/", "/dashboard"} or path.startswith("/static/"):
         response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; base-uri 'self'; connect-src 'self'; "
+            "default-src 'self'; base-uri 'self'; connect-src 'self' blob:; "
             "font-src 'self'; frame-ancestors 'none'; img-src 'self' data: blob:; "
             "media-src 'self' blob:; object-src 'none'; script-src 'self'; style-src 'self'"
         )

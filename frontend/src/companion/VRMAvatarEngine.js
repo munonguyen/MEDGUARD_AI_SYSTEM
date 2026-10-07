@@ -18,7 +18,7 @@ export class VRMAvatarEngine {
   constructor(canvasElement, options = {}) {
     this.canvas = canvasElement;
     this.options = {
-      modelUrl: options.modelUrl || '/models/AniGrok.vrm',
+      modelUrl: options.modelUrl || '/models/AliciaSolid.vrm',
       cameraPreset: options.cameraPreset || 'waist', // 'portrait' | 'waist' | 'full'
       onLoaded: options.onLoaded || null,
       onError: options.onError || null,
@@ -53,11 +53,11 @@ export class VRMAvatarEngine {
     this.currentExpression = 'neutral';
     this.targetBones = {};
 
-    // Camera targets
+    // Camera targets (calibrated for anime humanoid 1.4-1.55m height)
     this.cameraTargets = {
-      portrait: { pos: new THREE.Vector3(0, 1.34, 0.95), lookAt: new THREE.Vector3(0, 1.28, 0) },
-      waist: { pos: new THREE.Vector3(0, 1.22, 1.55), lookAt: new THREE.Vector3(0, 1.10, 0) },
-      full: { pos: new THREE.Vector3(0, 0.95, 2.35), lookAt: new THREE.Vector3(0, 0.90, 0) },
+      portrait: { pos: new THREE.Vector3(0, 1.28, 0.95), lookAt: new THREE.Vector3(0, 1.26, 0) },
+      waist: { pos: new THREE.Vector3(0, 0.98, 2.05), lookAt: new THREE.Vector3(0, 1.02, 0) },
+      full: { pos: new THREE.Vector3(0, 0.78, 3.10), lookAt: new THREE.Vector3(0, 0.80, 0) },
     };
     this.currentCameraPreset = this.options.cameraPreset;
 
@@ -75,8 +75,9 @@ export class VRMAvatarEngine {
     // 1. Scene
     this.scene = new THREE.Scene();
 
-    // 2. Camera with 85mm portrait perspective
-    this.camera = new THREE.PerspectiveCamera(30, width / height, 0.1, 100);
+    // 2. Camera with portrait perspective
+    const initialFov = (width / height < 0.6) ? 38 : (width / height < 1.0) ? 34 : 30;
+    this.camera = new THREE.PerspectiveCamera(initialFov, width / height, 0.1, 100);
     const targetCam = this.cameraTargets[this.currentCameraPreset] || this.cameraTargets.waist;
     this.camera.position.copy(targetCam.pos);
     this.camera.lookAt(targetCam.lookAt);
@@ -92,52 +93,55 @@ export class VRMAvatarEngine {
     this.renderer.setSize(width, height, false);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.18;
+    this.renderer.toneMappingExposure = 1.0;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
 
     // 4. Studio Cinematic Lighting (Signature Grok Purple Glow)
     this.setupLighting();
 
-    // 5. Load default model
+    // 5. Expose engine instance for debugging/inspection
+    window.__MEDGUARD_VRM_ENGINE__ = this;
+
+    // 6. Load default model
     this.loadModel(this.options.modelUrl);
 
-    // 6. Listeners
+    // 7. Listeners
     this.onPointerMove = this.onPointerMove.bind(this);
     window.addEventListener('pointermove', this.onPointerMove, { passive: true });
 
-    // 7. Render Loop
+    // 8. Render Loop
     this.animate = this.animate.bind(this);
     this.rafId = requestAnimationFrame(this.animate);
   }
 
   setupLighting() {
     // Soft overall ambient
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     this.scene.add(ambientLight);
 
     // Key Light: warm flattering front-top light
-    const keyLight = new THREE.DirectionalLight(0xfff6ea, 1.6);
-    keyLight.position.set(1.2, 2.4, 2.0);
+    const keyLight = new THREE.DirectionalLight(0xfff6ea, 0.85);
+    keyLight.position.set(1.0, 2.0, 2.0);
     this.scene.add(keyLight);
 
     // Fill Light: soft lavender/blue from left
-    const fillLight = new THREE.DirectionalLight(0xe0e7ff, 0.85);
-    fillLight.position.set(-1.6, 1.4, 1.5);
+    const fillLight = new THREE.DirectionalLight(0xddd6fe, 0.45);
+    fillLight.position.set(-1.5, 1.2, 1.5);
     this.scene.add(fillLight);
 
     // SIGNATURE GROK PURPLE/MAGENTA RIM LIGHT
     // Illuminates hair edges and silhouette with vibrant magenta
-    const rimLight = new THREE.DirectionalLight(0xc026d3, 2.4);
-    rimLight.position.set(0, 2.2, -2.2);
+    const rimLight = new THREE.DirectionalLight(0xd946ef, 2.8);
+    rimLight.position.set(0.8, 1.8, -2.0);
     this.scene.add(rimLight);
 
     // Secondary cyan rim light on shoulders
-    const rimCyan = new THREE.DirectionalLight(0x38bdf8, 1.0);
-    rimCyan.position.set(-1.8, 1.8, -1.5);
+    const rimCyan = new THREE.DirectionalLight(0x38bdf8, 1.2);
+    rimCyan.position.set(-1.6, 1.6, -1.8);
     this.scene.add(rimCyan);
 
     // Subtle ground spotlight creating glowing floor vignette
-    const floorLight = new THREE.PointLight(0xa855f7, 0.8, 5);
+    const floorLight = new THREE.PointLight(0xa855f7, 0.7, 5);
     floorLight.position.set(0, 0.1, 0.5);
     this.scene.add(floorLight);
   }
@@ -257,39 +261,43 @@ export class VRMAvatarEngine {
     const rightHand = humanoid.getNormalizedBoneNode('rightHand');
     const head = humanoid.getNormalizedBoneNode('head');
 
-    // Reset default arm positions
-    if (leftUpperArm) leftUpperArm.rotation.set(0.15, 0, 1.25);
-    if (rightUpperArm) rightUpperArm.rotation.set(0.15, 0, -1.25);
-    if (leftLowerArm) leftLowerArm.rotation.set(-0.25, 0.1, 0);
-    if (rightLowerArm) rightLowerArm.rotation.set(-0.25, -0.1, 0);
+    // Reset default arm positions (resting naturally along torso)
+    if (leftUpperArm) leftUpperArm.rotation.set(0.15, 0.1, 1.22);
+    if (rightUpperArm) rightUpperArm.rotation.set(0.15, -0.1, -1.22);
+    if (leftLowerArm) leftLowerArm.rotation.set(0.1, 0, 0.2);
+    if (rightLowerArm) rightLowerArm.rotation.set(0.1, 0, -0.2);
     if (leftHand) leftHand.rotation.set(0, 0, 0);
     if (rightHand) rightHand.rotation.set(0, 0, 0);
+    if (head) head.rotation.set(0, 0, 0);
 
     if (poseName === 'pose_hand_to_cheek') {
-      // Signature Grok Ani pose: Right hand lifted touching or hovering near cheek
-      if (rightUpperArm) rightUpperArm.rotation.set(0.75, -0.3, -0.6);
-      if (rightLowerArm) rightLowerArm.rotation.set(1.45, 0.2, 0.1);
-      if (rightHand) rightHand.rotation.set(0.35, 0.4, -0.2);
-      if (head) head.rotation.set(-0.05, 0.08, 0.12);
+      // Signature Grok Ani pose: Right hand lifted gracefully near cheek
+      if (rightUpperArm) rightUpperArm.rotation.set(-0.25, 0.35, -1.05);
+      if (rightLowerArm) rightLowerArm.rotation.set(-0.6, -0.4, -1.45);
+      if (rightHand) rightHand.rotation.set(-0.1, 0.2, -0.35);
+      if (head) head.rotation.set(-0.04, 0.08, 0.09);
       this.setExpression('relaxed');
     } else if (poseName === 'pose_wave') {
       // Waving hello
-      if (rightUpperArm) rightUpperArm.rotation.set(0.4, 0, -1.7);
-      if (rightLowerArm) rightLowerArm.rotation.set(0.8, 0, 0);
-      if (rightHand) rightHand.rotation.set(0, 0.3, -0.4);
+      if (rightUpperArm) rightUpperArm.rotation.set(0.1, 0, -2.1);
+      if (rightLowerArm) rightLowerArm.rotation.set(0, 0, -0.8);
+      if (rightHand) rightHand.rotation.set(0, 0, -0.3);
+      if (head) head.rotation.set(0, 0.05, 0.02);
       this.setExpression('happy');
     } else if (poseName === 'pose_thinking') {
-      // Pondering with hand on chin
-      if (rightUpperArm) rightUpperArm.rotation.set(0.65, -0.2, -0.45);
-      if (rightLowerArm) rightLowerArm.rotation.set(1.2, 0.3, 0);
-      if (head) head.rotation.set(0.1, -0.1, -0.08);
+      // Pondering with hand near chin
+      if (rightUpperArm) rightUpperArm.rotation.set(-0.15, 0.2, -1.1);
+      if (rightLowerArm) rightLowerArm.rotation.set(-0.4, -0.3, -1.2);
+      if (rightHand) rightHand.rotation.set(-0.1, 0.1, -0.2);
+      if (head) head.rotation.set(0.06, -0.1, -0.06);
       this.setExpression('surprised');
     } else if (poseName === 'pose_cheer') {
-      // Both arms slightly bent with cheerful smile
-      if (leftUpperArm) leftUpperArm.rotation.set(0.4, 0.1, 0.9);
-      if (rightUpperArm) rightUpperArm.rotation.set(0.4, -0.1, -0.9);
-      if (leftLowerArm) leftLowerArm.rotation.set(-0.6, 0.2, 0);
-      if (rightLowerArm) rightLowerArm.rotation.set(-0.6, -0.2, 0);
+      // Both arms slightly bent cheer
+      if (leftUpperArm) leftUpperArm.rotation.set(0.2, 0, 0.8);
+      if (rightUpperArm) rightUpperArm.rotation.set(0.2, 0, -0.8);
+      if (leftLowerArm) leftLowerArm.rotation.set(0, 0, 0.6);
+      if (rightLowerArm) rightLowerArm.rotation.set(0, 0, -0.6);
+      if (head) head.rotation.set(-0.02, 0, 0);
       this.setExpression('happy');
     } else {
       // Relaxed idle
@@ -326,6 +334,14 @@ export class VRMAvatarEngine {
   resize(width, height) {
     if (!this.renderer || !this.camera) return;
     this.camera.aspect = width / height;
+    if (this.camera.aspect < 0.6) {
+      // Mobile narrow portrait
+      this.camera.fov = 38;
+    } else if (this.camera.aspect < 1.0) {
+      this.camera.fov = 34;
+    } else {
+      this.camera.fov = 30;
+    }
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height, false);
   }
