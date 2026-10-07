@@ -5549,3 +5549,35 @@ body:has(>.auth-screen),body:has(#root>.auth-screen){overflow-y:auto}
 .guest-locked-action-btn:hover{transform:translateY(-1px);box-shadow:0 5px 16px #0f766e40;background:#115e59}
 @media(max-width:680px){.guest-composer-locked{flex-direction:column;align-items:stretch;text-align:left}.guest-locked-action-btn{width:100%}}
 
+/* Floating Doctor 3D Live shortcut button in chat workspace */
+.floating-doctor-companion-btn {
+  position: absolute;
+  top: 14px;
+  right: 20px;
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #0f766e, #0d9488);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.35);
+  backdrop-filter: blur(8px);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.floating-doctor-companion-btn:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 6px 20px rgba(13, 148, 136, 0.5);
+  background: linear-gradient(135deg, #115e59, #0f766e);
+}
+
+.floating-doctor-companion-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+

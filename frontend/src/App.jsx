@@ -1227,6 +1227,15 @@ export default function App({
             guestMax={guestMax}
             onRequireAuth={onRequireAuth}
           />
+          <button
+            type="button"
+            className="floating-doctor-companion-btn"
+            onClick={() => setView('companion')}
+            title="Mở Bác sĩ 3D Live tương tác trực tiếp bằng giọng nói"
+          >
+            <Sparkles size={16} />
+            <span>Gặp Bác sĩ 3D Live</span>
+          </button>
         </section>
       )}
     </main>

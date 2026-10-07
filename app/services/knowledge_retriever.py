@@ -495,6 +495,29 @@ class KnowledgeRetriever:
                 if regions[idx] & query_regions
             }
 
+        # Clinical prerequisite gating & emergency syndrome alignment
+        query_lower = query.lower()
+        for idx in list(scores.keys()):
+            chunk = chunks[idx]
+            cid_lower = (chunk.chunk_id + " " + chunk.title).lower()
+
+            # Penalize specialized condition protocols if query lacks their defining prerequisite
+            if "postop" in cid_lower and not any(k in query_norm for k in ["phau thuat", "mo", "sau mo", "hau phau"]):
+                scores[idx] -= 30.0
+            elif "pregnancy" in cid_lower and not any(k in query_norm for k in ["mang thai", "thai", "bau", "pregnancy"]):
+                scores[idx] -= 30.0
+            elif ("travel" in cid_lower or "flight" in cid_lower) and not any(k in query_norm for k in ["may bay", "chuyen bay", "travel", "flight"]):
+                scores[idx] -= 30.0
+            elif "cocaine" in cid_lower and not any(k in query_norm for k in ["cocaine", "ma tuy", "chat kich thich"]):
+                scores[idx] -= 30.0
+
+            # Prioritize acute cardiovascular protocols for chest pain with radiation / dyspnea
+            if "cardiovascular_acute" in cid_lower or "acute_coronary_syndrome" in cid_lower:
+                if ("đau ngực" in query_lower or "dau nguc" in query_norm or "tức ngực" in query_lower or "tuc nguc" in query_norm) and (
+                    "lan" in query_norm or "tay" in query_norm or "kho tho" in query_norm or "khó thở" in query_lower
+                ):
+                    scores[idx] += 20.0
+
         ranked_indices = sorted(scores.keys(), key=lambda i: scores[i], reverse=True)[:top_k]
 
         results = [
