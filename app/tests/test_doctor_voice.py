@@ -47,3 +47,18 @@ def test_tts_provider_failure_is_clear_without_leaking_details(monkeypatch):
         response = client.post('/v1/tts',json={"text":"Chào bạn.","persona":"dr_mai"})
         assert response.status_code == 503
         assert 'credential' not in response.text
+
+
+def test_voice_profiles_endpoint_and_headers_match_active_configuration(monkeypatch):
+    from app.services.doctor_voice import VOICE_PROFILES, VOICE_PROFILE_REVISION
+    async def synth(payload): return b"ID3sample"
+    monkeypatch.setattr("app.api.routes.synthesize_doctor_speech", synth)
+    with TestClient(app) as client:
+        config=client.get('/v1/tts/profiles').json()
+        assert config == {"revision":VOICE_PROFILE_REVISION,"profiles":VOICE_PROFILES}
+        for persona,profile in config['profiles'].items():
+            result=client.post('/v1/tts',json={"text":"Xin chào bạn.","persona":persona})
+            assert result.headers['X-Doctor-Voice']==profile['voice']
+            assert result.headers['X-Doctor-Voice-Rate']==profile['rate']
+            assert result.headers['X-Doctor-Voice-Pitch']==profile['pitch']
+            assert result.headers['X-Doctor-Voice-Revision']==config['revision']

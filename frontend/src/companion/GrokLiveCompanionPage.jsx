@@ -119,6 +119,8 @@ export function GrokLiveCompanionPage({
   const [showEmotions, setShowEmotions] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [voiceConfig,setVoiceConfig] = useState(null);
+  const [voiceConfigError,setVoiceConfigError] = useState('');
   const [modelStatus,setModelStatus] = useState({phase:'loading',error:''});
 
   const currentDoctorName = customModelName
@@ -173,6 +175,18 @@ export function GrokLiveCompanionPage({
       }
     };
   }, []);
+
+  useEffect(()=>{
+    if(!showSettings)return;
+    let active=true;const controller=new AbortController();
+    setVoiceConfig(null);setVoiceConfigError('');
+    const load=api?api.request('/v1/tts/profiles',{signal:controller.signal}):fetch('/v1/tts/profiles',{signal:controller.signal}).then(r=>{if(!r.ok)throw new Error();return r.json();});
+    load.then(data=>{
+      if(!data?.profiles?.dr_tuan?.voice||!data?.profiles?.dr_mai?.voice)throw new Error();
+      if(active)setVoiceConfig(data);
+    }).catch(()=>{if(active)setVoiceConfigError('Chưa nhận được cấu hình giọng bác sĩ. Hãy kiểm tra backend đã cập nhật và đang chạy.');});
+    return ()=>{active=false;controller.abort();};
+  },[showSettings,api]);
 
   // Clean up Web Speech Recognition & Audio on unmount
   useEffect(() => {
@@ -878,6 +892,8 @@ export function GrokLiveCompanionPage({
             <div className="grok-settings-group">
               <label>Chọn Bác sĩ tư vấn:</label>
               <p className="doctor-voice-description">Nam: giọng Nam Minh trầm, rõ ràng. Nữ: giọng Hoài My dịu, nhịp nói chậm vừa phải. Giọng đọc được tạo riêng cho từng nhân vật.</p>
+              <p className="doctor-voice-description" role="status">{voiceConfigError || (voiceConfig ? `Giọng đang cấu hình trên máy chủ: ${voiceConfig.profiles[doctorPersona].voice} · tốc độ ${voiceConfig.profiles[doctorPersona].rate} · cao độ ${voiceConfig.profiles[doctorPersona].pitch}` : 'Đang kiểm tra cấu hình giọng nói…')}</p>
+              <button type="button" className="grok-back-chat-btn" disabled={!voiceConfig||isVoiceLoading||isMuted} onClick={()=>speakDoctorVoice('Xin chào bạn. Tôi sẽ lắng nghe và giải thích rõ ràng từng thông tin, để bạn dễ theo dõi.',doctorPersona)}>Nghe thử giọng bác sĩ</button>
               <div className="doctor-preset-grid">
                 <button
                   type="button"

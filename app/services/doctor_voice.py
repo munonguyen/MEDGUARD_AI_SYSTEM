@@ -18,6 +18,8 @@ class DoctorSpeechRequest(BaseModel):
         return value
 
 
+VOICE_PROFILE_REVISION = "doctor-voices-20261007"
+
 VOICE_PROFILES = {
     "dr_tuan": {"voice": "vi-VN-NamMinhNeural", "rate": "-8%", "pitch": "-6Hz"},
     "dr_mai": {"voice": "vi-VN-HoaiMyNeural", "rate": "-7%", "pitch": "-12Hz"},

@@ -44,6 +44,16 @@ without silently substituting an operating-system voice. Stop, persona changes
 and unmount cancel pending synthesis and dispose playback and analysis resources.
 The legacy GET endpoint remains for compatibility with older views.
 
+The settings dialog fetches `/v1/tts/profiles` and displays the running backend's
+voice, rate and pitch for the selected doctor. “Nghe thử giọng bác sĩ” plays a
+short sample through the same POST audio pipeline. Missing profile metadata
+shows an update/backend warning and disables preview. The response revision is
+`doctor-voices-20261007`; POST audio includes the revision and voice settings in
+response headers. Restart the updated backend as well as the frontend. These
+changes are on `feature/doctor-avatar-refinement`, not the default `develop`.
+These are general Vietnamese neural voices with calmer tempo/pitch settings;
+configuration alone does not establish a clinical or professional voice quality.
+
 ## Verification
 
 - `python -m pytest app/tests/test_doctor_voice.py -q`
@@ -54,5 +64,6 @@ The legacy GET endpoint remains for compatibility with older views.
 
 The browser test uses real VRMs and real Web Audio analysis with a deterministic
 audio fixture. It checks both personas, silence, stop, pending-speech cancellation,
-rapid switches, provider failure, viewport overflow and runtime errors. Two short
-neural voice samples were also synthesized against the live provider separately.
+rapid switches, provider failure, viewport overflow and runtime errors. The latest live-provider probe could not synthesize either voice because of a
+TLS certificate validation error in the test environment. The fixture does not
+verify provider availability or subjective voice quality.

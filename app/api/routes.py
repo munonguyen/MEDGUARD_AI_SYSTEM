@@ -66,7 +66,7 @@ from app.services.fhir import (
 )
 from app.workers.ocr_worker import run_vision_pipeline
 
-from app.services.doctor_voice import DoctorSpeechRequest, VOICE_PROFILES, synthesize_doctor_speech
+from app.services.doctor_voice import DoctorSpeechRequest, VOICE_PROFILES, VOICE_PROFILE_REVISION, synthesize_doctor_speech
 
 router = APIRouter()
 
@@ -635,6 +635,11 @@ def fhir_export(
     return response
 
 
+@router.get("/tts/profiles")
+def doctor_voice_profiles() -> dict[str, Any]:
+    return {"revision": VOICE_PROFILE_REVISION, "profiles": VOICE_PROFILES}
+
+
 @router.post("/tts")
 async def post_text_to_speech(payload: DoctorSpeechRequest) -> Response:
     """Render the selected doctor's voice without logging clinical text in a URL."""
@@ -645,6 +650,9 @@ async def post_text_to_speech(payload: DoctorSpeechRequest) -> Response:
     return Response(content=audio, media_type="audio/mpeg", headers={
         "Cache-Control": "no-store",
         "X-Doctor-Voice": VOICE_PROFILES[payload.persona]["voice"],
+        "X-Doctor-Voice-Revision": VOICE_PROFILE_REVISION,
+        "X-Doctor-Voice-Rate": VOICE_PROFILES[payload.persona]["rate"],
+        "X-Doctor-Voice-Pitch": VOICE_PROFILES[payload.persona]["pitch"],
     })
 
 
