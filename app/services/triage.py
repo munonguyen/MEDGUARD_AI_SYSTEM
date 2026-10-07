@@ -28,6 +28,17 @@ def _tailor_guidance(
     v25_has_leading_mechanism = bool(
         isinstance(v25_trace, dict) and v25_trace.get("leading_hypotheses")
     )
+    normalized = normalize_search_text(symptoms_text)
+    if topic == "headache" and "dau dau" in normalized and any(
+        marker in normalized for marker in ("goc trai", "ben trai", "phia trai", "nua trai")
+    ):
+        summary = (
+            "Bạn đang đau vùng bên trái đầu; vị trí này chưa đủ để xác định nguyên nhân. "
+            "Cần biết cơn đau bắt đầu lúc nào, có xuất hiện đột ngột và dữ dội hay không, "
+            "cùng các triệu chứng đi kèm trước khi chọn cách xử trí."
+        )
+        questions = ["Cơn đau bắt đầu khi nào, mức độ từ 0 đến 10; có đột ngột dữ dội, yếu/tê, nói khó, nhìn mờ, sốt hoặc cứng cổ không?"]
+        return summary, questions
     if topic == "lower_limb_pain":
         norm = symptoms_text.lower()
         if summary and any(
@@ -145,6 +156,39 @@ def _tailor_guidance(
             "đồng thời giặt luộc khử trùng toàn bộ chăn màn quần áo và điều trị cùng lúc cho tất cả người sống chung."
         )
         return summary, questions
+    if topic == "pruritus_rash_dermatology":
+        norm = normalize_search_text(symptoms_text)
+        is_scratching_aggravated = any(m in norm for m in ("cang gai", "gai cang ngua", "gai", "ngua rat", "rat da"))
+        if is_scratching_aggravated:
+            summary = (
+                "Khi bị mẩn ngứa ban đỏ, việc cào gãi liên tục sẽ kích thích các thụ thể thần kinh và giải phóng thêm histamin, "
+                "tạo vòng xoắn bệnh lý 'càng gãi càng ngứa càng rát' và gây trầy xước tổn thương thượng bì da. "
+                "Hiện chưa thấy dấu hiệu nguy kịch, bạn hãy dừng cào gãi ngay, chườm mát 10-15 phút để làm dịu cơn rát ngứa tức thì và tham khảo ý kiến chuyên gia y tế trước khi dùng thuốc."
+            )
+            questions = [
+                "Vùng da ngứa khi gãi có bị trầy xước, rỉ dịch mủ hoặc nóng đỏ đau nhức tăng dần không?",
+                "Bạn có bị sưng môi, sưng mí mắt, nghẹn cổ họng hay khó thở không?",
+            ]
+        elif any(m in norm for m in ("thuoc", "chua duoc", "khac phuc")):
+            summary = (
+                "Tình trạng mẩn ngứa ban đỏ thường do phản ứng dị ứng cấp tính (mày đay, viêm da tiếp xúc) hoặc kích ứng da. "
+                "Hiện chưa thấy dấu hiệu nguy kịch. Để giảm ngứa an toàn, bạn nên chườm mát, giữ da sạch và thoáng; có thể hỏi dược sĩ về thuốc kháng histamin H1 thế hệ 2 không gây buồn ngủ (như Cetirizine, Loratadine) và kem bôi làm dịu da; tuyệt đối không tự ý dùng corticoid bôi kéo dài."
+            )
+        return summary, questions
+
+    if topic == "toothache_dental":
+        summary = (
+            "Tình trạng ê buốt hoặc đau nhức răng thường do mòn men răng, hở cổ chân răng hoặc sâu răng tiến triển chạm vào ngà/tủy răng. "
+            "Hiện tại chưa ghi nhận dấu hiệu nguy kịch. Bạn nên tránh ăn đồ quá nóng, lạnh hoặc chua ngọt, súc miệng bằng nước muối ấm nhẹ và dùng kem đánh răng chống ê buốt; có thể hỏi dược sĩ về thuốc giảm đau thông thường (Paracetamol/Ibuprofen) và đặt lịch khám nha khoa sớm để hàn trám hoặc xử lý triệt để nguyên nhân."
+        )
+        return summary, questions
+
+    if topic == "red_eye_conjunctivitis":
+        summary = (
+            "Tình trạng đau mắt đỏ (viêm kết mạc) thường do virus, vi khuẩn hoặc dị ứng gây cộm xốn, đỏ mắt và tiết dịch dử ghèn. "
+            "Hiện tại chưa ghi nhận dấu hiệu nguy kịch. Bạn hãy nhỏ nước muối sinh lý NaCl 0.9% để làm sạch mắt, chườm mát làm dịu mi mắt và giữ vệ sinh tránh lây nhiễm chéo; tuyệt đối không tự ý nhỏ thuốc chứa Corticoid và nên đến khám chuyên khoa Mắt để kiểm tra giác mạc."
+        )
+        return summary, questions
 
     if topic not in {"abdominal_pain", "upper_abdominal_discomfort"}:
         return summary, questions
@@ -238,6 +282,31 @@ from app.services.semantic_risk import safe_semantic_evaluate, semantic_risk_eva
 from app.services.triage_resolver import resolve_triage
 
 
+_TRIAGE_HYPOTHETICAL_PATTERN = re.compile(
+    r"\b(?:neu|neu nhu|truong hop|gia su|lo may)\b.*?\b(?:thi phai lam gi|thi xu tri the nao|nen lam gi|can lam gi|lam gi)\b"
+)
+_TRIAGE_CONDITIONAL_START = re.compile(r"\b(?:neu nhu|neu|gia su|truong hop|lo may)\b")
+
+
+def _scope_current_triage_text(symptoms_text: str) -> tuple[str, bool]:
+    """Return current findings only when the user is asking a contingency question.
+
+    Historical V10/V11 detectors were written to be conservative and are not
+    clause-aware. Without this boundary, a sentence such as "Nếu sưng môi hoặc
+    khó thở thì làm gì?" can trigger a current emergency solely because the
+    red-flag words are present. V28 scopes only explicit contingency clauses;
+    normal current-symptom messages are returned byte-for-byte unchanged.
+    """
+    norm = normalize_search_text(symptoms_text)
+    if not _TRIAGE_HYPOTHETICAL_PATTERN.search(norm):
+        return symptoms_text, False
+    marker = _TRIAGE_CONDITIONAL_START.search(norm)
+    if marker is None:
+        return symptoms_text, False
+    current = norm[: marker.start()].strip(" ,.;:-")
+    return current, True
+
+
 def evaluate_triage(
     payload: TriageRequest,
     ctx: RequestContext,
@@ -245,8 +314,14 @@ def evaluate_triage(
     conversation_risk: str | None = None,
 ) -> TriageResponse:
     start = perf_counter()
-    rule = triage_rules(payload.symptoms_text, payload.vitals)
-    facts = extract_clinical_facts(payload.symptoms_text)
+    analysis_text, hypothetical_scope = _scope_current_triage_text(payload.symptoms_text)
+
+    # The legacy detector stack consumes only present findings. The original
+    # text is retained for V28's context-aware safety floor and patient-facing
+    # contingency guidance. This prevents false emergency escalation without
+    # weakening real red flags or historical sticky risk.
+    rule = triage_rules(analysis_text, payload.vitals)
+    facts = extract_clinical_facts(analysis_text)
 
     from app.services.dose_reasoning import evaluate_dose_reasoning
     from app.services.toxicology_reasoner import evaluate_toxicology, ToxicologyUrgency
@@ -255,14 +330,14 @@ def evaluate_triage(
     from app.services.clinical_fact_parser import parse_semantic_clinical_facts
     from app.services.partial_evidence_safety import evaluate_partial_evidence_safety
 
-    dose_assessment = evaluate_dose_reasoning(payload.symptoms_text)
-    tox_assessment = evaluate_toxicology(payload.symptoms_text)
+    dose_assessment = evaluate_dose_reasoning(analysis_text)
+    tox_assessment = evaluate_toxicology(analysis_text)
     is_emergency_tox = (tox_assessment.urgency == ToxicologyUrgency.EMERGENCY)
-    fact_set = getattr(facts, "fact_set", None) or parse_semantic_clinical_facts(payload.symptoms_text)
+    fact_set = getattr(facts, "fact_set", None) or parse_semantic_clinical_facts(analysis_text)
     vitals_dict = payload.vitals.model_dump(exclude_none=True) if payload.vitals else None
     clinical_safety_floor = evaluate_clinical_safety_floor(payload.symptoms_text, vitals_dict)
     comp_hypothesis = evaluate_compositional_risk(fact_set, vitals_dict)
-    partial_safety = evaluate_partial_evidence_safety(payload.symptoms_text, vitals_dict, fact_set=fact_set)
+    partial_safety = evaluate_partial_evidence_safety(analysis_text, vitals_dict, fact_set=fact_set)
 
     # Hybrid Conservative Resolution across Rule, Compositional Threat Reasoner, Semantic Evaluator, Partial Safety, Dose, and Multi-turn
     # 1. Fast-path: Explicit Emergency from deterministic rule, dose toxicity, toxicology reasoner, threat graph, or partial safety
@@ -309,7 +384,7 @@ def evaluate_triage(
     else:
         semantic_result = safe_semantic_evaluate(
             semantic_risk_evaluator,
-            payload.symptoms_text,
+            analysis_text,
             clinical_facts=facts,
         )
         if semantic_result and not semantic_result.uncertain:
@@ -365,7 +440,30 @@ def evaluate_triage(
     elif final_urgency == "ROUTINE" and esi_level is None:
         esi_level = 4
 
-    guidance = knowledge.find_symptom_guidance(payload.symptoms_text)
+    guidance = None if hypothetical_scope and not analysis_text else knowledge.find_symptom_guidance(payload.symptoms_text)
+    if guidance and guidance.get('topic') == 'headache' and any(
+        marker in normalize_search_text(payload.symptoms_text)
+        for marker in ('goc trai', 'ben trai', 'phia trai', 'nua trai')
+    ):
+        guidance = {**guidance, 'clinical_hypotheses': [],
+                    'safety_net': [*guidance.get('safety_net', []),
+                        'Gọi 115 nếu đau đầu đột ngột rất dữ dội hoặc có yếu/tê một bên, nói khó, lú lẫn, ngất hay co giật; không tự lái xe.'],
+                    'source_references': ['https://www.nhs.uk/symptoms/headaches/']}
+    if guidance is None:
+        from app.services.knowledge_pool import capture_knowledge_gap
+        capture_knowledge_gap(question=payload.symptoms_text, domain='clinical',
+                              intent='triage', reason='no_matching_guidance')
+    if guidance is None and not emergency_flag:
+        from app.services.contextual_triage_planner import build_contextual_triage_plan, reasoning_trace_payload
+        plan = build_contextual_triage_plan(
+            symptoms_text=analysis_text, urgency=final_urgency,
+            existing_questions=rule.clarifying_questions,
+        )
+        if plan.applied and plan.summary:
+            guidance = {"topic": "contextual_question_guidance", "summary": plan.summary,
+                        "clinical_hypotheses": list(plan.hypotheses),
+                        "clarifying_questions": list(plan.questions),
+                        "v25_contextual_reasoning": reasoning_trace_payload(plan)}
     has_guidance = guidance is not None
     use_guidance_actions = has_guidance and (
         final_urgency == "ROUTINE" or guidance.get("topic") == "lower_limb_pain"
@@ -418,12 +516,37 @@ def evaluate_triage(
         )
 
     advice = rule.advice
-    if final_urgency == "EMERGENCY" and rule.urgency != "EMERGENCY":
+    if hypothetical_scope and not analysis_text and final_urgency == "ROUTINE":
+        advice = (
+            "Các dấu hiệu bạn nêu đang ở dạng giả định, không phải triệu chứng hiện tại đã được xác nhận. "
+            "Nếu sưng môi/lưỡi, nghẹn họng, khó thở, ngất hoặc đau ngực nặng thực sự xuất hiện, hãy gọi 115 hoặc đến khoa Cấp cứu ngay."
+        )
+    elif final_urgency == "EMERGENCY" and rule.urgency != "EMERGENCY":
         advice = "Tình trạng có dấu hiệu nguy kịch cần liên hệ cấp cứu 115 hoặc đến cơ sở y tế gần nhất ngay lập tức."
     elif final_urgency == "URGENT" and rule.urgency in ("ROUTINE", "UNRESOLVED"):
         advice = "Nên được nhân viên y tế đánh giá sớm trong ngày; nếu triệu chứng nặng lên, hãy đến cơ sở cấp cứu."
     elif use_guidance_actions and guidance and guidance.get("advice"):
         advice = str(guidance.get("advice"))
+
+    from app.services.clinical_reasoning.chest_calibration import bounded_chest_assessment
+    bounded_chest = bounded_chest_assessment(analysis_text)
+    bounded_chest_applies = bool(bounded_chest and final_urgency == bounded_chest.risk_level)
+    if bounded_chest_applies:
+        guidance_summary = bounded_chest.rationale
+        advice = bounded_chest.suggested_action
+        clinical_hypotheses = []
+        clarifying_questions = [
+            "Cơn đau hiện còn không, kéo dài bao lâu và có giảm khi nghỉ không?"
+            if final_urgency == 'URGENT' else
+            "Đau có tăng khi ấn hoặc cử động tay không, và hiện đã giảm khi nghỉ chưa?"
+        ]
+        specialty = RecommendedSpecialty(code='CARDIOLOGY' if final_urgency == 'URGENT' else 'GENERAL',
+            label='Tim mạch' if final_urgency == 'URGENT' else 'Tổng quát', confidence=0.86)
+        guidance = {**(guidance or {}), 'topic':'bounded_chest_context',
+                    'safety_net':["Nếu đau không giảm sau vài phút nghỉ, tăng lên, xuất hiện khi nghỉ, hoặc có khó thở, vã mồ hôi, đau lan hay gần ngất, gọi 115 ngay; không tự lái xe."],
+                    'source_references':['https://www.nhs.uk/symptoms/chest-pain/',
+                                         'https://www.nhs.uk/conditions/angina/']}
+        has_guidance = True
 
     response = TriageResponse(
         request_id=ctx.request_id,
@@ -450,6 +573,8 @@ def evaluate_triage(
             knowledge_version=knowledge.version_string(),
             latency_ms=int((perf_counter() - start) * 1000),
             details={
+                "guidance_topic": guidance.get("topic") if guidance else None,
+                "guidance_source_references": guidance.get("source_references", []) if guidance else [],
                 "severity_resolution": "hybrid-conservative-max",
                 "rule_urgency": rule.urgency,
                 "rule_matched": rule.matched,
@@ -457,6 +582,8 @@ def evaluate_triage(
                 "clinical_safety_floor": clinical_safety_floor.disposition,
                 "clinical_safety_sources": list(clinical_safety_floor.sources),
                 "clinical_safety_reasons": list(clinical_safety_floor.reasons),
+                "hypothetical_scope_applied": hypothetical_scope,
+                "current_analysis_text_present": bool(analysis_text),
                 "ood_downgrade_revoked": clinical_safety_floor.ood_downgrade_revoked,
                 "end_organ_couplings": list(
                     clinical_safety_floor.end_organ_coupling.coupling_ids

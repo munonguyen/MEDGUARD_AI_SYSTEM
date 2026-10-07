@@ -316,7 +316,7 @@ def test_emergency_triage_returns_immediately_and_still_submits_shadow_check(mon
         resp = orchestrate_chat(req, ctx)
 
         assert resp.result["urgency"] == "EMERGENCY"
-        assert resp.answer.title == "Bạn cần được đánh giá cấp cứu ngay"
+        assert resp.answer.title == "Gọi 115 hoặc đến khoa Cấp cứu ngay"
         assert resp.answer.questions == []
         assert resp.verification_status == "shadow_pending"
         assert len(submitted) == 1

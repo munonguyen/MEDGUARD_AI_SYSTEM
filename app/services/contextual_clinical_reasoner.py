@@ -232,13 +232,32 @@ def _musculoskeletal_mechanisms(episode: ClinicalEpisodeModel, text: str) -> lis
 
 def _dermatology_mechanisms(episode: ClinicalEpisodeModel, text: str) -> list[MechanismHypothesis]:
     values: list[MechanismHypothesis] = []
-    exposure = bool(re.search(r"\b(sau khi|thuoc moi|mon la|my pham|hoa chat|con trung)\b", text))
+    norm = normalize_search_text(text)
+
+    # 1. Scratch-itch cycle / mechanical aggravation
+    scratching = bool(re.search(r"\b(cang gai|gai|ngua rat|rat da|rat hon|ngua hon|tray xuoc)\b", norm))
+    if scratching:
+        values.append(
+            MechanismHypothesis(
+                hypothesis_id="itch_scratch_cycle_aggravation",
+                label="Cào gãi kích thích vòng xoắn ngứa - gãi và tăng giải phóng histamin",
+                role="leading",
+                support_level="supported",
+                mechanism="Cào gãi cơ học kích thích đầu tận cùng thần kinh cảm giác và tế bào mast giải phóng thêm histamin, làm phản ứng viêm bùng phát và gây cảm giác càng gãi càng rát ngứa.",
+                evidence_for=(episode.latest_user_message,),
+                unresolved=_unresolved(episode, "scratch_skin_damage", "airway_mucosal_involvement"),
+                patient_safe_statement="Càng gãi càng ngứa rát là biểu hiện điển hình của vòng xoắn kích thích thần kinh - giải phóng histamin tại da; chườm mát và kiềm chế gãi là mấu chốt để cắt cơn ngứa.",
+            )
+        )
+
+    # 2. Exposure reaction pathway
+    exposure = bool(re.search(r"\b(sau khi|thuoc moi|mon la|my pham|hoa chat|con trung)\b", norm))
     if exposure:
         values.append(
             MechanismHypothesis(
                 hypothesis_id="exposure_reaction_pathway",
                 label="Phản ứng liên quan phơi nhiễm là một hướng cần xem xét",
-                role="leading",
+                role="contributor" if scratching else "leading",
                 support_level="plausible",
                 mechanism="Một thuốc, thực phẩm, hóa chất hoặc tác nhân tiếp xúc mới có thể hoạt hóa phản ứng viêm/dị ứng và gây ban, ngứa hoặc phù.",
                 evidence_for=(episode.latest_user_message,),
@@ -246,10 +265,27 @@ def _dermatology_mechanisms(episode: ClinicalEpisodeModel, text: str) -> list[Me
                 patient_safe_statement="Mối liên hệ thời gian với phơi nhiễm mới gợi ý một phản ứng liên quan, nhưng dấu hiệu đường thở mới là yếu tố quyết định mức khẩn cấp.",
             )
         )
+
+    # 3. Acute erythema and pruritus / urticaria
+    has_rash_pruritus = bool(re.search(r"\b(man ngua|ban do|noi man|phat ban|me day|di ung da)\b", norm))
+    if has_rash_pruritus and not values:
+        values.append(
+            MechanismHypothesis(
+                hypothesis_id="acute_erythema_pruritus_reaction",
+                label="Phản ứng viêm mạch nông và kích thích thụ thể ngứa ở da",
+                role="leading",
+                support_level="plausible",
+                mechanism="Các chất trung gian gây viêm (đặc biệt histamin) làm giãn mao mạch nông tại bì gây ban đỏ và kích thích đầu tận cùng thần kinh thụ cảm ngứa.",
+                evidence_for=(episode.latest_user_message,),
+                unresolved=_unresolved(episode, "airway_mucosal_involvement", "rash_distribution_spread"),
+                patient_safe_statement="Ban đỏ kèm mẩn ngứa thường là biểu hiện của viêm da dị ứng hoặc kích ứng nông; cần loại trừ ngay dấu hiệu phù niêm mạc hoặc khó thở.",
+            )
+        )
+
     return values
 
 
-def _question_score(domain: str | None, item: DecisionUnknown) -> float:
+def _question_score(domain: str | None, item: DecisionUnknown, latest_text: str = "") -> float:
     impact = {"critical": 40.0, "high": 25.0, "medium": 12.0, "low": 5.0}[item.impact]
     score = impact + 4.0 * len(item.changes)
     if "emergency_disposition" in item.changes:
@@ -277,10 +313,30 @@ def _question_score(domain: str | None, item: DecisionUnknown) -> float:
         },
         "dermatology": {
             "airway_mucosal_involvement": 14.0,
-            "new_exposure": 6.0,
+            "rash_distribution_spread": 10.0,
+            "new_exposure": 8.0,
+            "scratch_skin_damage": 7.0,
+        },
+        "dental": {
+            "swelling_or_infection": 14.0,
+            "trigger_sensitivity": 10.0,
+            "prior_cavity_damage": 7.0,
+        },
+        "ophthalmology": {
+            "visual_acuity_change": 14.0,
+            "discharge_crusting": 10.0,
+            "contagion_contact": 7.0,
         },
     }
-    return score + domain_priority.get(domain or "", {}).get(item.key, 0.0)
+    target_specs = domain_priority.get(domain or "", {})
+    bonus = target_specs.get(item.key, 0.0)
+    if item.key in target_specs:
+        score += 25.0
+    if domain == "dermatology" and item.key == "scratch_skin_damage":
+        norm_latest = normalize_search_text(latest_text)
+        if any(w in norm_latest for w in ("gai", "cang gai", "rat", "tray")):
+            bonus += 5.0
+    return score + bonus
 
 
 def select_next_question(episode: ClinicalEpisodeModel, *, urgency: str) -> DecisionUnknown | None:
@@ -288,10 +344,79 @@ def select_next_question(episode: ClinicalEpisodeModel, *, urgency: str) -> Deci
         return None
     if not episode.unknown_decision_relevant:
         return None
+    latest_text = episode.latest_user_message or ""
     return max(
         episode.unknown_decision_relevant,
-        key=lambda item: (_question_score(episode.chief_domain, item), item.key),
+        key=lambda item: (_question_score(episode.chief_domain, item, latest_text), item.key),
     )
+
+
+def _dental_mechanisms(episode: ClinicalEpisodeModel, text: str) -> list[MechanismHypothesis]:
+    values: list[MechanismHypothesis] = []
+    norm = normalize_search_text(text)
+
+    infection_sign = bool(re.search(r"\b(sung|sung nuou|chay mu|sung ma|sung ham|kho ha mieng)\b", norm))
+    if infection_sign:
+        values.append(
+            MechanismHypothesis(
+                hypothesis_id="acute_odontogenic_infection_abscess",
+                label="Nhiễm trùng khoang miệng hoặc áp xe quanh chóp răng",
+                role="leading",
+                support_level="supported",
+                mechanism="Vi khuẩn xâm nhập từ buồng tủy hoặc túi nha chu lan qua chóp răng vào mô mềm quanh cuống, gây sưng phù nề nướu, chảy mủ và nguy cơ lan vào các khoang cân mạc mặt.",
+                evidence_for=(episode.latest_user_message,),
+                unresolved=_unresolved(episode, "swelling_or_infection"),
+                patient_safe_statement="Sưng nề nướu hoặc chảy mủ là dấu hiệu nhiễm trùng quanh răng cần được nha sĩ dẫn lưu và kê thuốc kháng sinh đặc hiệu sớm.",
+            )
+        )
+
+    values.append(
+        MechanismHypothesis(
+            hypothesis_id="dentine_hypersensitivity_or_pulp_irritation",
+            label="Kích thích ngà răng hoặc buốt tủy do mòn men răng / sâu răng",
+            role="contributor" if infection_sign else "leading",
+            support_level="supported",
+            mechanism="Lộ các ống ngà vi thể (do mòn men răng, tụt nướu) hoặc tổn thương sâu răng khiến kích thích nhiệt, chua ngọt truyền trực tiếp vào thụ thể tủy răng gây phản xạ buốt nhói.",
+            evidence_for=(episode.latest_user_message,),
+            unresolved=_unresolved(episode, "swelling_or_infection", "trigger_sensitivity"),
+            patient_safe_statement="Cơn ê buốt răng thường do mòn men răng hoặc kích thích tủy răng khi tiếp xúc thức ăn đồ uống; cần tránh đồ quá nóng, lạnh và đi khám nha sĩ để hàn trám bảo vệ tủy.",
+        )
+    )
+    return values
+
+
+def _ophthalmology_mechanisms(episode: ClinicalEpisodeModel, text: str) -> list[MechanismHypothesis]:
+    values: list[MechanismHypothesis] = []
+    norm = normalize_search_text(text)
+
+    vision_warning = bool(re.search(r"\b(nhin mo|giam thi luc|choi mat|so anh sang|nhuc sau mat|nhuc mat)\b", norm))
+    if vision_warning:
+        values.append(
+            MechanismHypothesis(
+                hypothesis_id="keratitis_or_intraocular_pressure_elevation",
+                label="Tổn thương giác mạc hoặc tăng nhãn áp cấp",
+                role="leading",
+                support_level="supported",
+                mechanism="Viêm loét giác mạc hoặc ứ trệ thủy dịch làm tăng nhãn áp gây kích thích dây thần kinh sinh ba, làm giảm thị lực và đau buốt sâu trong hốc mắt.",
+                evidence_for=(episode.latest_user_message,),
+                unresolved=_unresolved(episode, "visual_acuity_change"),
+                patient_safe_statement="Đau mắt kèm nhìn mờ hoặc sợ ánh sáng là dấu hiệu cảnh báo tổn thương giác mạc; cần bác sĩ Mắt khám chuyên sâu ngay.",
+            )
+        )
+
+    values.append(
+        MechanismHypothesis(
+            hypothesis_id="acute_infectious_conjunctivitis",
+            label="Viêm kết mạc cấp (đau mắt đỏ) dịch tễ hoặc dị ứng",
+            role="contributor" if vision_warning else "leading",
+            support_level="supported",
+            mechanism="Tác nhân virus (Adenovirus) hoặc vi khuẩn gây viêm sung huyết mạch máu kết mạc làm mắt đỏ rực, kích thích tiết dịch dử ghèn và cảm giác cộm xốn mi mắt.",
+            evidence_for=(episode.latest_user_message,),
+            unresolved=_unresolved(episode, "visual_acuity_change", "discharge_crusting"),
+            patient_safe_statement="Đau mắt đỏ là bệnh viêm kết mạc cấp rất dễ lây lan; cần nhỏ nước muối sinh lý NaCl 0.9%, kiêng dụi mắt và giữ vệ sinh cá nhân sạch sẽ.",
+        )
+    )
+    return values
 
 
 def build_contextual_reasoning_frame(
@@ -312,6 +437,10 @@ def build_contextual_reasoning_frame(
         mechanisms.extend(_musculoskeletal_mechanisms(episode, text))
     elif episode.chief_domain == "dermatology":
         mechanisms.extend(_dermatology_mechanisms(episode, text))
+    elif episode.chief_domain == "dental":
+        mechanisms.extend(_dental_mechanisms(episode, text))
+    elif episode.chief_domain == "ophthalmology":
+        mechanisms.extend(_ophthalmology_mechanisms(episode, text))
 
     question = select_next_question(episode, urgency=urgency)
     leading = tuple(

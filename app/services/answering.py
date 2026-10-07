@@ -179,8 +179,79 @@ def _with_narrative(answer: GroundedAnswer, intent: ChatIntent) -> GroundedAnswe
             )
         )
 
-    res = answer.model_copy(update={"narrative": blocks})
+    suggested_followups = answer.suggested_followups or _generate_suggested_followups(answer, intent)
+
+    res = answer.model_copy(
+        update={
+            "narrative": blocks,
+            "display_questions": visible_questions if not answer.display_questions else answer.display_questions,
+            "suggested_followups": suggested_followups,
+        }
+    )
     return _sanitize_clinical_response(res)
+
+
+def _generate_suggested_followups(answer: GroundedAnswer, intent: ChatIntent) -> list[str]:
+    """Generate high-value follow-up questions from the USER's perspective to ask the AI assistant."""
+    is_emergency = _is_emergency_answer(answer)
+    if is_emergency:
+        return [
+            "Những việc cần làm ngay trong lúc chờ cấp cứu 115 là gì?",
+            "Người nhà cần chuẩn bị giấy tờ hoặc thuốc men gì mang theo?",
+        ]
+
+    combined = f"{answer.title} {answer.summary} {' '.join(answer.key_points)} {' '.join(answer.safety_notes)}".lower()
+
+    if any(k in combined for k in ("warfarin", "aspirin", "chống đông", "tương tác", "xuất huyết", "chảy máu", "nsaid")):
+        return [
+            "Có thuốc giảm đau nào thay thế an toàn khi đang dùng warfarin không?",
+            "Dấu hiệu xuất huyết nguy hiểm nào cần đi cấp cứu ngay?",
+            "Nếu tôi đã lỡ uống một liều aspirin thì cần xử trí như thế nào?",
+        ]
+
+    if any(k in combined for k in ("răng", "nướu", "lợi", "ê buốt", "tủy", "dental", "nha sĩ")):
+        return [
+            "Có cách nào giảm ê buốt và đau răng nhanh tại nhà không?",
+            "Thuốc giảm đau nào an toàn và phù hợp cho đau răng?",
+            "Khi nào đau răng là dấu hiệu tủy bị tổn thương cần đi nha sĩ ngay?",
+        ]
+
+    if any(k in combined for k in ("mắt", "kết mạc", "đỏ mắt", "cộm", "nhãn cầu")):
+        return [
+            "Cách dùng nước muối sinh lý vệ sinh mắt đúng cách?",
+            "Dấu hiệu viêm mắt nào cảnh báo nguy hiểm cần khám bác sĩ ngay?",
+            "Đau mắt đỏ có lây không và phòng tránh thế nào?",
+        ]
+
+    if any(k in combined for k in ("ngứa", "mẩn", "ban đỏ", "mề đay", "dị ứng", "da liễu")):
+        return [
+            "Có loại thuốc bôi hoặc thuốc uống dị ứng nào an toàn không?",
+            "Dấu hiệu dị ứng nặng nào cần đến bệnh viện ngay?",
+            "Cần kiêng ăn uống hoặc tiếp xúc gì để đỡ ngứa?",
+        ]
+
+    if any(k in combined for k in ("khó thở", "đau ngực", "tức ngực", "hô hấp", "thở dốc")):
+        return [
+            "Dấu hiệu nào cho thấy cần gọi cấp cứu 115 ngay lập tức?",
+            "Tư thế nghỉ ngơi nào giúp dễ thở hơn trong lúc chờ hỗ trợ y tế?",
+            "Khi nào cơn khó thở cần được can thiệp y tế khẩn cấp?",
+        ]
+
+    if any(k in combined for k in ("dạ dày", "loét", "đau bụng", "tiêu hóa", "hp")):
+        return [
+            "Nên ăn uống và kiêng gì khi đang bị đau dạ dày cấp?",
+            "Dấu hiệu xuất huyết tiêu hóa cần nhập viện kiểm tra là gì?",
+            "Thuốc giảm đau nào không làm hại dạ dày?",
+        ]
+
+    if intent in _CLINICAL_INTENTS:
+        return [
+            "Khi nào tôi cần đi khám bác sĩ trực tiếp?",
+            "Cần theo dõi thêm những triệu chứng gì tại nhà?",
+            "Chế độ ăn uống và sinh hoạt nào phù hợp lúc này?",
+        ]
+
+    return []
 
 
 def _sanitize_clinical_response(answer: GroundedAnswer) -> GroundedAnswer:
@@ -324,18 +395,14 @@ def _triage_answer(
     specialty_label = specialty.get("label")
     emergency = bool(result.get("emergency_flag"))
     titles = {
-        "EMERGENCY": "Bạn cần được đánh giá cấp cứu ngay",
+        "EMERGENCY": "Gọi 115 hoặc đến khoa Cấp cứu ngay",
         "URGENT": "Bạn nên được nhân viên y tế đánh giá sớm",
         "ROUTINE": "Đánh giá ban đầu: mức theo dõi thường quy",
     }
     urgency_labels = {"EMERGENCY": "cấp cứu", "URGENT": "khẩn", "ROUTINE": "thường quy"}
     key_points = [f"Mức phân luồng: {urgency_labels.get(urgency, urgency)}"]
-    if esi:
-        key_points.append(
-            f"Mã ưu tiên nội bộ: ESI {esi} (đây là mức ưu tiên tiếp nhận, không phải xác suất chẩn đoán)"
-        )
     if specialty_label:
-        key_points.append(f"Hướng tiếp nhận do quy tắc lựa chọn: {specialty_label}")
+        key_points.append(f"Nơi khám phù hợp: {specialty_label}")
     key_points.extend(f"Dấu hiệu được nhận diện: {flag}" for flag in result.get("red_flags", []))
 
     is_dual_crisis = bool(
@@ -354,6 +421,7 @@ def _triage_answer(
             summary = reply
         else:
             summary = (
+                "Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay; không tự lái xe. "
                 "Các dấu hiệu bạn mô tả nằm trong nhóm cảnh báo cần đánh giá khẩn cấp. "
                 "Tin nhắn không đủ để xác định nguyên nhân, vì vậy ưu tiên lúc này là tiếp cận cấp cứu thay vì tiếp tục tự theo dõi tại nhà."
             )
@@ -411,8 +479,22 @@ def _triage_answer(
         safety_notes = [str(value) for value in result.get("safety_net", [])]
         clinical_hypotheses = [str(value) for value in result.get("clinical_hypotheses", [])]
 
+    guidance_details = (result.get("trace") or {}).get("details") or {}
+    guidance_topic = guidance_details.get("guidance_topic")
+    references = guidance_details.get("guidance_source_references") or []
+    if references:
+        overlay = knowledge.files.get("v25_response_policy_overlay.json")
+        sources = [*sources, ChatEvidenceSource(name="Hướng dẫn chăm sóc theo triệu chứng",
+            version=overlay.version if overlay else "unknown", approval_status="pending_review",
+            references=references)]
+    title = titles.get(urgency, "Kết quả phân luồng")
+    if urgency == "ROUTINE" and guidance_topic == "unlocalized_muscle_pain":
+        title = "Cần làm rõ vị trí và mức độ đau"
+    elif urgency == "ROUTINE" and guidance_topic == "dental_pain":
+        title = "Đau răng — giảm đau tạm thời và khám nha sĩ"
+
     return GroundedAnswer(
-        title=titles.get(urgency, "Kết quả phân luồng"),
+        title=title,
         summary=summary,
         clinical_hypotheses=clinical_hypotheses,
         key_points=key_points,
@@ -466,13 +548,17 @@ def _safety_answer(result: dict[str, Any], sources: list[ChatEvidenceSource]) ->
             f"Bạn không nên tự dùng {medicine_text} trong tình huống đã mô tả; "
             if medicine_text
             else "Bạn không nên tự dùng hoặc phối hợp thuốc trong tình huống đã mô tả; "
-        ) + f"bộ quy tắc ghi nhận {len(hard_stops)} cảnh báo bắt buộc dừng và cần bác sĩ hoặc dược sĩ xác nhận."
+        ) + "hãy trao đổi với bác sĩ hoặc dược sĩ trước khi dùng thêm thuốc này."
+        if any(w.get("type") == "DRUG_DRUG_INTERACTION" for w in hard_stops):
+            summary += " Có cảnh báo tương tác thuốc; đây là nguy cơ cần rà soát, không phải xác nhận bạn đã bị biến chứng."
+        if any("xuất huyết" in str(w.get("clinical_consequence", "")).lower() for w in hard_stops):
+            summary += " Phối hợp này có thể tăng nguy cơ chảy máu."
     elif warnings:
         ingestion_warns = [w for w in warnings if w.get("type") == "REPORTED_ACUTE_INGESTION"]
         if ingestion_warns:
             summary = " ".join([str(w.get("detail", "")) + " " + str(w.get("recommendation", "")) for w in ingestion_warns]).strip()
         else:
-            summary = f"Bộ quy tắc ghi nhận {len(warnings)} cảnh báo và xếp mức nguy cơ tổng thể là {risk}."
+            summary = "Có cảnh báo liên quan đến thuốc bạn cung cấp. Hãy kiểm tra các nguy cơ và hướng xử trí bên dưới với bác sĩ hoặc dược sĩ trước khi tự thay đổi thuốc."
     else:
         summary = "Không tìm thấy cảnh báo trong dữ liệu đã nhập và bảng quy tắc hiện có. Kết quả này không chứng minh thuốc hoặc phối hợp thuốc là an toàn."
     key_points = []
@@ -481,7 +567,14 @@ def _safety_answer(result: dict[str, Any], sources: list[ChatEvidenceSource]) ->
         medication = f"{warning.get('medication')}: " if warning.get("medication") else ""
         point = f"{medication}{warning.get('detail') or warning.get('type', 'Cảnh báo thuốc')}"
         if warning.get("clinical_consequence"):
-            point += f" Hệ quả được ghi nhận: {warning['clinical_consequence']}"
+            consequence = str(warning['clinical_consequence']).replace(
+                "Xuất huyết tiêu hóa", "Chảy máu ở đường tiêu hóa"
+            ).replace("INR", "INR (chỉ số xét nghiệm theo dõi thuốc chống đông)")
+            if warning.get("type") == "DRUG_DRUG_INTERACTION":
+                # Keep the mechanism in result.warnings for clinical inspection;
+                # patient-facing text explains the consequence instead.
+                point = f"{medication}Có tương tác khi phối hợp thuốc."
+            point += f" Nguy cơ có thể xảy ra: {consequence}"
         key_points.append(point)
         if warning.get("recommendation") and warning.get("tier") != "HARD_STOP":
             next_steps.append(str(warning["recommendation"]))
@@ -563,7 +656,15 @@ def _monitoring_answer(result: dict[str, Any], sources: list[ChatEvidenceSource]
     key_points = [str(alert.get("detail")) for alert in alerts if alert.get("detail")]
     return GroundedAnswer(
         title=titles.get(escalation, "Kết quả theo dõi chỉ số"),
-        summary=f"Hệ thống đã đối chiếu chỉ số với ngưỡng cấu hình. Mức chuyển tuyến hiện tại: {escalation}; xu hướng: {result.get('trend', 'chưa xác định')}.",
+        summary=(
+            "Chỉ số có cảnh báo cần được đánh giá; xem nơi chăm sóc và các bước bên dưới. "
+            if alerts and escalation != "NONE" else "Chưa có cảnh báo vượt ngưỡng từ dữ liệu hiện có. "
+        ) + {
+            "insufficient_data": "Chưa đủ số lần đo để kết luận xu hướng tăng, giảm hay ổn định.",
+            "worsening": "Các lần đo cho thấy xu hướng bất lợi cần được đánh giá.",
+            "improving": "Các lần đo cho thấy xu hướng cải thiện; vẫn cần đối chiếu với triệu chứng và hướng dẫn điều trị.",
+            "stable": "Các lần đo tương đối ổn định; ổn định không đồng nghĩa chỉ số bình thường.",
+        }.get(result.get("trend"), "Chưa xác định được xu hướng từ dữ liệu đã cung cấp."),
         key_points=key_points,
         next_steps=["Cung cấp các giá trị đo lặp lại cùng thời điểm và đơn vị để đánh giá xu hướng chính xác hơn."] if result.get("trend") == "insufficient_data" else [],
         decision_basis="versioned_rules",
@@ -630,6 +731,29 @@ def build_grounded_answer(
         ), intent)
 
     sources = _sources(intent)
+    if result.get("clinical_task") == "LAB_INTERPRETATION":
+        return _with_narrative(GroundedAnswer(
+            title="Giải thích kết quả xét nghiệm", summary=result.get("summary") or reply,
+            key_points=list(result.get("interpretation_points") or []),
+            safety_notes=list(result.get("prohibited_actions") or []),
+            questions=list(result.get("clarifying_questions") or []),
+            next_steps=["Mang kết quả, đơn vị và khoảng tham chiếu đến bác sĩ để đối chiếu; xét nghiệm lại hoặc làm thêm xét nghiệm khi được chỉ định."],
+            limitations=["Kết quả xét nghiệm cần được đánh giá cùng triệu chứng, bệnh nền và các xét nghiệm liên quan; không thay thế chẩn đoán trực tiếp."],
+            decision_basis="versioned_rules", evidence_state="bounded_result",
+            rule_version="lab-interpretation@1.0.0", requires_human_review=True,
+        ), intent)
+    if result.get("education"):
+        education = result["education"]
+        return _with_narrative(GroundedAnswer(
+            title=education["title"], summary=education["summary"],
+            presentation=education.get("presentation", "detailed"),
+            next_steps=education["next_steps"], questions=education["questions"],
+            limitations=[education["limitations"]],
+            sources=[ChatEvidenceSource(name="Nguồn tham khảo hướng dẫn sức khỏe", version="health-education@1.2.0",
+                approval_status="pending_review", references=education["references"])],
+            decision_basis="versioned_rules", evidence_state="bounded_result",
+            rule_version="health-education@1.2.0", requires_human_review=education.get("requires_human_review", True),
+        ), intent)
     if intent == "triage":
         return _with_narrative(_triage_answer(result, sources, reply=reply), intent)
     if intent == "safety":

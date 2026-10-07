@@ -1,0 +1,36 @@
+{
+  "commit": "006a9cd",
+  "generated_at": "2026-10-02T14:24:20.375604+00:00",
+  "summary": {
+    "total": 60,
+    "strict_passed": 20,
+    "strict_failed": 40,
+    "urgency_disagreements": [
+      "MRQ-033",
+      "CHALLENGE-001",
+      "CHALLENGE-002",
+      "CHALLENGE-005",
+      "CHALLENGE-012",
+      "CHALLENGE-013",
+      "CHALLENGE-015",
+      "CHALLENGE-016"
+    ],
+    "failures_by_type": {
+      "DISPLAY_QUALITY": 23,
+      "REQUIRED_CONTENT_OK": 12,
+      "REQUIRED_ACTION_OK": 5,
+      "INTENT_OK": 6,
+      "URGENCY_MISMATCH": 8,
+      "FORBIDDEN_CONTENT": 2
+    },
+    "rubric_average": 13.13,
+    "professional_default_passed": 37,
+    "professional_expanded_passed": 60,
+    "posthoc_jury_passed": 2,
+    "software_output_gate": "FAIL",
+    "independent_clinical_validation": "NOT_RUN",
+    "external_paired_benchmark": "NOT_RUN",
+    "superiority_proven": false,
+    "push_recommended": false
+  }
+}

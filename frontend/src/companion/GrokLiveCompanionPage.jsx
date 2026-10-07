@@ -1,0 +1,970 @@
+import { useEffect, useRef, useState } from 'react';
+import {
+  Activity,
+  Camera,
+  ChevronLeft,
+  Mic,
+  Send,
+  Settings,
+  Smile,
+  Sparkles,
+  Upload,
+  User,
+  Volume2,
+  VolumeX,
+  X,
+} from 'lucide-react';
+import { VRMAvatarEngine } from './VRMAvatarEngine';
+import './GrokLiveCompanionPage.css';
+
+/**
+ * Normalizes text for professional clinical text-to-speech:
+ * - Strips all Markdown syntax (*, #, -, bullets, links, backticks)
+ * - Expands Vietnamese medical abbreviations to clear spoken phrases
+ */
+const normalizeMedicalSpeech = (text) => {
+  if (!text) return '';
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/^#+\s+/gm, '')
+    .replace(/^\s*[-*•]\s+/gm, '')
+    .replace(/\[\d+\]/g, '')
+    .replace(/[`>~_]/g, '')
+    .replace(/\bBS\.\s*/gi, 'Bác sĩ ')
+    .replace(/\bBs\.\s*/gi, 'Bác sĩ ')
+    .replace(/\bThS\.BS\s*/gi, 'Thạc sĩ Bác sĩ ')
+    .replace(/\bCKII\b/gi, 'Chuyên khoa hai ')
+    .replace(/\bmg\b/gi, ' mi-li-gam ')
+    .replace(/\bml\b/gi, ' mi-li-lít ')
+    .replace(/\b°C\b/gi, ' độ C ')
+    .replace(/\bBN\b/gi, ' bệnh nhân ')
+    .replace(/\s+/g, ' ')
+    .trim();
+};
+
+/**
+ * Selects the most natural, professional Vietnamese TTS voice:
+ * - Dr. Mai: Soft, clear, empathetic female tone (HoaiMy, Linh, vi-VN)
+ * - Dr. Tuan: Deep, steady, reassuring male tone (NamMinh, Nam, vi-VN)
+ */
+const getBestDoctorVoice = (persona) => {
+  if (typeof window === 'undefined' || !window.speechSynthesis) return null;
+  const voices = window.speechSynthesis.getVoices();
+  const viVoices = voices.filter(
+    (v) => (v.lang && (v.lang.startsWith('vi') || v.lang.includes('VN'))) || v.name.toLowerCase().includes('vietnamese')
+  );
+  if (!viVoices.length) return null;
+
+  if (persona === 'dr_mai') {
+    const femaleKeywords = ['hoaimy', 'linh', 'nu', 'female', 'vietnamese'];
+    for (const kw of femaleKeywords) {
+      const match = viVoices.find((v) => v.name.toLowerCase().includes(kw));
+      if (match) return match;
+    }
+  } else {
+    const maleKeywords = ['namminh', 'nam', 'male', 'vietnamese'];
+    for (const kw of maleKeywords) {
+      const match = viVoices.find((v) => v.name.toLowerCase().includes(kw));
+      if (match) return match;
+    }
+  }
+  return viVoices[0];
+};
+
+/**
+ * Trích xuất câu trả lời ngắn gọn và chính xác (2-3 câu trọng tâm, 30-55 từ).
+ * Cả phụ đề trên màn hình và giọng đọc đều là nội dung này,
+ * giúp nhân vật nói trọn vẹn 100% câu trả lời mà không bị cắt cụt hay ngắt timer.
+ */
+const formatShortPreciseClinicalAdvice = (text) => {
+  if (!text) return '';
+  const clean = normalizeMedicalSpeech(text);
+
+  // Tách câu theo dấu câu kết thúc
+  const rawSentences = clean.match(/[^.!?]+[.!?]+/g) || [clean];
+  const filtered = rawSentences
+    .map((s) => s.trim())
+    .filter((s) => {
+      if (/^(dưới đây là|kết quả phân tích|sau đây là|chào bạn)/i.test(s)) return false;
+      return s.length > 8;
+    });
+
+  if (filtered.length === 0) return clean.slice(0, 180).trim();
+  if (filtered.length <= 2) return filtered.join(' ');
+
+  // Chắt lọc tối đa 2-3 câu cốt lõi (khoảng 35-50 từ)
+  let result = '';
+  for (const s of filtered) {
+    const candidate = (result ? result + ' ' + s : s).trim();
+    const words = candidate.split(/\s+/).length;
+    if (words <= 52 || !result) {
+      result = candidate;
+    } else {
+      break;
+    }
+  }
+  return result || filtered[0];
+};
+
+/**
+ * GrokLiveCompanionPage (Bác Sĩ 3D Live Companion)
+ * Interactive Anime Doctor Avatar powered by VRMAvatarEngine.
+ */
+export function GrokLiveCompanionPage({
+  api = null,
+  context = {},
+  onBackToChat = null,
+  onNotify = null,
+}) {
+  const canvasRef = useRef(null);
+  const engineRef = useRef(null);
+  const audioRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const recognitionRef = useRef(null);
+  const conversationIdRef = useRef(crypto.randomUUID ? crypto.randomUUID() : `companion-${Date.now()}`);
+  const messagesHistoryRef = useRef([]);
+  const speechIdRef = useRef(0);
+
+  // Doctor Personas: 'dr_tuan' (Male) | 'dr_mai' (Female)
+  const [doctorPersona, setDoctorPersona] = useState('dr_tuan');
+  const [customModelName, setCustomModelName] = useState(null);
+  const [cameraPreset, setCameraPreset] = useState('waist');
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isBusy, setIsBusy] = useState(false);
+  const [inputText, setInputText] = useState('');
+  const [dialogueText, setDialogueText] = useState(
+    'Xin chào! Tôi là Bác sĩ Minh Tuấn từ MedGuard AI. Tôi luôn sẵn sàng lắng nghe và tư vấn sức khỏe cho bạn. Bạn đang có băn khoăn hay triệu chứng gì cần hỗ trợ hôm nay?'
+  );
+  // Consultation Emotional Tone: 'empathetic' | 'clinical' | 'encouraging' | 'cautious'
+  const [consultationTone, setConsultationTone] = useState('empathetic');
+  const [showEmotions, setShowEmotions] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [isCapturing, setIsCapturing] = useState(false);
+
+  const currentDoctorName = customModelName
+    ? customModelName
+    : doctorPersona === 'dr_tuan'
+    ? 'BS.CKII Vũ Minh Tuấn'
+    : 'ThS.BS Lê Thanh Mai';
+
+  const currentDoctorRole = customModelName
+    ? 'Mô hình 3D tùy chỉnh'
+    : doctorPersona === 'dr_tuan'
+    ? 'Trưởng khoa Tư vấn Y tế'
+    : 'Bác sĩ Dược & Lâm sàng';
+
+  // Mount 3D Doctor Engine
+  useEffect(() => {
+    if (!canvasRef.current) return;
+
+    const engine = new VRMAvatarEngine(canvasRef.current, {
+      persona: doctorPersona,
+      cameraPreset,
+      onLoaded: (model) => {
+        onNotify?.(`Bác sĩ 3D đã sẵn sàng: ${currentDoctorName}`);
+        engine.setConsultationTone(consultationTone);
+      },
+      onError: (err) => {
+        onNotify?.('Đang tải mô hình bác sĩ mặc định');
+      },
+    });
+    engineRef.current = engine;
+    if (typeof window !== 'undefined') {
+      window.__companionEngine = engine;
+    }
+
+    const handleResize = () => {
+      if (canvasRef.current) {
+        engine.resize(window.innerWidth, window.innerHeight);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      engine.destroy();
+      engineRef.current = null;
+      if (typeof window !== 'undefined' && window.__companionEngine === engine) {
+        window.__companionEngine = null;
+      }
+    };
+  }, []);
+
+  // Clean up Web Speech Recognition & Audio on unmount
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        try {
+          audioRef.current.pause();
+        } catch {}
+        audioRef.current = null;
+      }
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.abort();
+        } catch {
+          // ignore
+        }
+        recognitionRef.current = null;
+      }
+    };
+  }, []);
+
+  // Fallback Web Speech Synthesis if backend TTS is unavailable
+  const fallbackSpeechSynthesis = (cleanSpeech, persona, reqSpeechId) => {
+    if (!window.speechSynthesis) return;
+    const utter = new SpeechSynthesisUtterance(cleanSpeech);
+    utter.lang = 'vi-VN';
+    utter.rate = 0.96;
+    // Phân biệt rõ giọng nam và nữ: Nữ cao trong trẻo, Nam trầm ấm
+    utter.pitch = persona === 'dr_mai' ? 1.15 : 0.86;
+
+    const bestVoice = getBestDoctorVoice(persona);
+    if (bestVoice) {
+      utter.voice = bestVoice;
+    }
+
+    utter.onstart = () => {
+      if (reqSpeechId !== null && reqSpeechId !== speechIdRef.current) return;
+      setIsSpeaking(true);
+      engineRef.current?.startSpeaking(cleanSpeech);
+    };
+
+    utter.onend = () => {
+      if (reqSpeechId !== null && reqSpeechId !== speechIdRef.current) return;
+      setIsSpeaking(false);
+      engineRef.current?.stopSpeaking();
+    };
+
+    utter.onerror = () => {
+      setIsSpeaking(false);
+      engineRef.current?.stopSpeaking();
+    };
+
+    window.speechSynthesis.speak(utter);
+  };
+
+  // High Quality Neural TTS Playback (/v1/tts: NamMinhNeural & HoaiMyNeural)
+  // Nói trọn vẹn 100% câu trả lời, không dùng timer ngắt giữa chừng
+  const speakDoctorVoice = (text, persona = doctorPersona, reqSpeechId = null) => {
+    if (isMuted || typeof window === 'undefined') return;
+    if (reqSpeechId !== null && reqSpeechId !== speechIdRef.current) return;
+
+    // Hủy audio cũ nếu đang phát
+    if (audioRef.current) {
+      try {
+        audioRef.current.pause();
+      } catch {}
+      audioRef.current = null;
+    }
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+
+    const cleanSpeech = normalizeMedicalSpeech(text);
+    if (!cleanSpeech) return;
+
+    // 1. Gọi backend Edge Neural TTS tự nhiên chuẩn người thật
+    const ttsUrl = `/v1/tts?text=${encodeURIComponent(cleanSpeech)}&persona=${persona}`;
+    const audio = new Audio(ttsUrl);
+    audioRef.current = audio;
+
+    audio.onplay = () => {
+      if (reqSpeechId !== null && reqSpeechId !== speechIdRef.current) {
+        audio.pause();
+        return;
+      }
+      setIsSpeaking(true);
+      engineRef.current?.startSpeaking(cleanSpeech);
+    };
+
+    audio.onended = () => {
+      if (reqSpeechId !== null && reqSpeechId !== speechIdRef.current) return;
+      setIsSpeaking(false);
+      engineRef.current?.stopSpeaking();
+      audioRef.current = null;
+    };
+
+    audio.onerror = () => {
+      console.warn('Backend /v1/tts unavailable, falling back to Web Speech Synthesis');
+      if (reqSpeechId !== null && reqSpeechId !== speechIdRef.current) return;
+      fallbackSpeechSynthesis(cleanSpeech, persona, reqSpeechId);
+    };
+
+    audio.play().catch(() => {
+      fallbackSpeechSynthesis(cleanSpeech, persona, reqSpeechId);
+    });
+  };
+
+  // Alias for backward compatibility
+  const speakText = (text, persona = doctorPersona, reqSpeechId = null) => {
+    speakDoctorVoice(text, persona, reqSpeechId);
+  };
+
+  // Stop All Speech & Actions immediately
+  const handleStop = () => {
+    speechIdRef.current++;
+    if (audioRef.current) {
+      try {
+        audioRef.current.pause();
+      } catch {}
+      audioRef.current = null;
+    }
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+    if (recognitionRef.current && isListening) {
+      recognitionRef.current.stop();
+    }
+    setIsSpeaking(false);
+    setIsListening(false);
+    setIsBusy(false);
+    engineRef.current?.stopSpeaking();
+    engineRef.current?.applyPose('pose_idle');
+  };
+
+  // Switch Doctor Persona without interrupting with unprompted voice greeting
+  const handleSwitchDoctor = (persona) => {
+    if (persona === doctorPersona && !customModelName) return;
+
+    handleStop();
+    setDoctorPersona(persona);
+    setCustomModelName(null);
+    engineRef.current?.setPersona(persona);
+
+    const name = persona === 'dr_tuan' ? 'BS.CKII Vũ Minh Tuấn' : 'ThS.BS Lê Thanh Mai';
+    const greeting =
+      persona === 'dr_tuan'
+        ? 'Xin chào! Tôi là Bác sĩ Minh Tuấn. Hãy cho tôi biết triệu chứng hoặc câu hỏi sức khỏe của bạn nhé!'
+        : 'Xin chào! Tôi là Bác sĩ Thanh Mai. Tôi có thể hỗ trợ gì về thông tin thuốc hoặc chăm sóc sức khỏe cho bạn?';
+
+    setDialogueText(greeting);
+    onNotify?.(`Đã chuyển sang ${name}`);
+  };
+
+  // Select Consultation Tone & Style (Cảm xúc khi trả lời câu hỏi)
+  const handleSelectTone = (tone) => {
+    setConsultationTone(tone);
+    engineRef.current?.setConsultationTone(tone);
+    setShowEmotions(false);
+
+    const toneLabels = {
+      empathetic: 'Ân cần & Thấu cảm',
+      clinical: 'Khoa học & Chuẩn xác',
+      encouraging: 'Lạc quan & Động viên',
+      cautious: 'Cẩn trọng & Cảnh báo',
+    };
+    onNotify?.(`Chế độ tư vấn: ${toneLabels[tone]}`);
+
+    const greetings = {
+      empathetic:
+        doctorPersona === 'dr_tuan'
+          ? 'Chào bạn, Bác sĩ Minh Tuấn luôn lắng nghe và thấu hiểu. Bạn hãy chia sẻ mọi băn khoăn sức khỏe nhé.'
+          : 'Chào bạn, Bác sĩ Thanh Mai luôn ở đây đồng hành cùng bạn. Hãy yên tâm chia sẻ mọi khó chịu nhé!',
+      clinical:
+        doctorPersona === 'dr_tuan'
+          ? 'Chào bạn, Bác sĩ Minh Tuấn sẽ phân tích cụ thể cơ chế triệu chứng và đưa ra phác đồ chuẩn mực y khoa.'
+          : 'Chào bạn, Bác sĩ Thanh Mai sẵn sàng giải thích cơ chế dược lý và phân tích triệu chứng rõ ràng cho bạn.',
+      encouraging:
+        doctorPersona === 'dr_tuan'
+          ? 'Chào bạn, hãy luôn giữ tinh thần lạc quan nhé! Chúng ta sẽ cùng nhau cải thiện sức khỏe thật tốt!'
+          : 'Chào bạn, hãy mỉm cười và giữ tinh thần tích cực nhé! Sức khỏe của bạn sẽ sớm phục hồi thôi!',
+      cautious:
+        doctorPersona === 'dr_tuan'
+          ? 'Chào bạn, Bác sĩ Tuấn sẽ chú ý đặc biệt các dấu hiệu cờ đỏ nguy cơ để đảm bảo an toàn tuyệt đối cho bạn.'
+          : 'Chào bạn, Bác sĩ Mai sẽ rà soát kỹ các dấu hiệu cảnh báo nguy hiểm để hướng dẫn xử trí kịp thời.',
+    };
+
+    const textGreeting = greetings[tone] || greetings.empathetic;
+    setDialogueText(textGreeting);
+    speakDoctorVoice(textGreeting, doctorPersona);
+  };
+
+  // Process User Query (Voice or Text) via FastAPI /v1/chat
+  const handleUserQuery = async (query) => {
+    const text = (query || inputText).trim();
+    if (!text) return;
+
+    handleStop();
+    const currentSpeechId = ++speechIdRef.current;
+
+    setInputText('');
+    setIsBusy(true);
+    setIsSpeaking(false);
+    setDialogueText(`"${text}" — Bác sĩ đang phân tích...`);
+    engineRef.current?.applyPose('pose_thinking');
+
+    try {
+      let reply = '';
+      if (api) {
+        const toneInstruction = {
+          empathetic: 'Phong cách tư vấn: Ân cần, thấu cảm, dịu dàng trấn an và quan tâm.',
+          clinical: 'Phong cách tư vấn: Khoa học, chuẩn xác, giải thích cơ chế và phác đồ rõ ràng.',
+          encouraging: 'Phong cách tư vấn: Lạc quan, khích lệ và truyền niềm tin phục hồi tích cực.',
+          cautious: 'Phong cách tư vấn: Cẩn trọng, cảnh báo các dấu hiệu cờ đỏ và nguy cơ biến chứng.',
+        }[consultationTone] || '';
+
+        const payload = {
+          conversation_id: conversationIdRef.current,
+          messages: [
+            ...messagesHistoryRef.current.slice(-6),
+            { role: 'user', content: `${text} (${toneInstruction} Yêu cầu trả lời súc tích 2-3 câu trọng tâm nhất).` },
+          ],
+          context: {
+            patient_ref: context?.patient_ref || 'BN-LIVE',
+            display_name: context?.display_name || 'Bệnh nhân',
+            conditions: context?.conditions || [],
+          },
+          intent_hint: 'auto',
+          locale: 'vi-VN',
+        };
+
+        const data = await api.request('/v1/chat', {
+          method: 'POST',
+          body: payload,
+          timeoutMs: 15000,
+        });
+
+        reply =
+          data?.reply ||
+          data?.answer?.summary ||
+          data?.answer?.clinical_advice ||
+          'Bác sĩ đã tiếp nhận thông tin của bạn.';
+
+        // Store chat history for natural follow-up reasoning
+        messagesHistoryRef.current = [
+          ...messagesHistoryRef.current.slice(-6),
+          { role: 'user', content: text },
+          { role: 'assistant', content: reply },
+        ];
+      } else {
+        reply = `Cảm ơn bạn đã hỏi về "${text}". Bạn chú ý theo dõi biểu hiện cơ thể và duy trì lối sống điều độ nhé.`;
+      }
+
+      // Check race condition
+      if (currentSpeechId !== speechIdRef.current) return;
+
+      // ĐỊNH DẠNG CÂU TRẢ LỜI NGẮN GỌN VÀ CHÍNH XÁC (2-3 câu trọng tâm)
+      const conciseAdvice = formatShortPreciseClinicalAdvice(reply);
+
+      // Cả chữ hiển thị trên màn hình và giọng đọc đều là nội dung này!
+      setDialogueText(conciseAdvice);
+      setIsBusy(false);
+      engineRef.current?.applyPose('pose_idle');
+
+      // Nhân vật nói trọn vẹn toàn bộ câu trả lời, không hẹn giờ ngắt
+      speakDoctorVoice(conciseAdvice, doctorPersona, currentSpeechId);
+    } catch (err) {
+      console.error('Companion query failed:', err);
+      if (currentSpeechId !== speechIdRef.current) return;
+      const errMsg =
+        'Bác sĩ đã ghi nhận câu hỏi, nhưng kết nối máy chủ tạm thời gián đoạn. Bạn vui lòng thử gửi lại nhé!';
+      setDialogueText(errMsg);
+      setIsBusy(false);
+      engineRef.current?.applyPose('pose_idle');
+      speakDoctorVoice(errMsg, doctorPersona, currentSpeechId);
+    }
+  };
+
+  // Toggle Microphone (Hỗ trợ toàn diện Chrome, Edge, Safari macOS/iOS với getUserMedia permission request)
+  const toggleMic = async () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (isListening) {
+      try {
+        recognitionRef.current?.stop();
+      } catch (e) {
+        console.warn('Stop mic error:', e);
+      }
+      setIsListening(false);
+      engineRef.current?.applyPose('pose_idle');
+      return;
+    }
+
+    if (!SpeechRecognition) {
+      onNotify?.('Trình duyệt chưa hỗ trợ Web Speech API nhận diện giọng nói. Vui lòng sử dụng Chrome, Edge hoặc Safari mới nhất.');
+      return;
+    }
+
+    try {
+      // 1. Dừng ngay giọng nói bác sĩ nếu đang nói
+      if (isSpeaking) {
+        handleStop();
+      }
+
+      // 2. Yêu cầu quyền Micro trực tiếp qua getUserMedia để bật popup cho phép trên Safari và Chrome
+      if (navigator.mediaDevices?.getUserMedia) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          // Dừng ngay các track stream kiểm tra để nhả mic phần cứng cho Web Speech API
+          stream.getTracks().forEach((track) => track.stop());
+        } catch (micErr) {
+          console.warn('Microphone permission check:', micErr);
+          if (micErr.name === 'NotAllowedError' || micErr.name === 'PermissionDeniedError') {
+            onNotify?.('Microphone đang bị chặn. Vui lòng nhấn vào biểu tượng ổ khóa / mic trên thanh địa chỉ để Cho phép (Allow).');
+            setDialogueText('Vui lòng cấp quyền Microphone trong cài đặt trình duyệt để nói chuyện trực tiếp với Bác sĩ.');
+            return;
+          }
+        }
+      }
+
+      // 3. Khởi tạo phiên SpeechRecognition mới
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.lang = 'vi-VN';
+      recognition.maxAlternatives = 1;
+
+      let recognizedFinal = '';
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        engineRef.current?.applyPose('pose_listening');
+        setDialogueText('Bác sĩ đang lắng nghe... Mời bạn nói.');
+        onNotify?.('Micro đã bật. Bác sĩ đang lắng nghe bạn nói...');
+      };
+
+      recognition.onresult = (event) => {
+        let interim = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          const chunk = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            recognizedFinal += chunk;
+          } else {
+            interim += chunk;
+          }
+        }
+        const liveText = recognizedFinal || interim;
+        if (liveText) {
+          setDialogueText(`"${liveText}"`);
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.warn('Speech recognition error event:', event.error);
+        setIsListening(false);
+        engineRef.current?.applyPose('pose_idle');
+
+        if (event.error === 'not-allowed') {
+          onNotify?.('Quyền Micro bị từ chối. Vui lòng cho phép truy cập Micro trong cài đặt trình duyệt.');
+          setDialogueText('Trình duyệt chưa cho phép truy cập Micro. Bạn vui lòng bật quyền Micro hoặc gõ vào ô chat nhé.');
+        } else if (event.error === 'no-speech') {
+          onNotify?.('Chưa nghe rõ âm thanh. Bạn hãy nói to hơn hoặc lại gần mic nhé.');
+          setDialogueText('Bác sĩ chưa nghe rõ. Bạn có thể nhấn lại nút mic để nói hoặc nhập câu hỏi.');
+        } else if (event.error === 'network') {
+          onNotify?.('Lỗi kết nối mạng dịch vụ nhận diện giọng nói (Web Speech API).');
+        } else if (event.error !== 'aborted') {
+          onNotify?.(`Lỗi mic: ${event.error}`);
+        }
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+        const query = recognizedFinal.trim();
+        if (query) {
+          handleUserQuery(query);
+        } else {
+          engineRef.current?.applyPose('pose_idle');
+        }
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (err) {
+      console.error('Cannot start speech recognition:', err);
+      setIsListening(false);
+      engineRef.current?.applyPose('pose_idle');
+      onNotify?.('Không thể mở Microphone: ' + (err.message || 'Lỗi không xác định'));
+    }
+  };
+
+  // Cycle Camera View (Portrait, Waist, Full)
+  const handleCycleCamera = () => {
+    const next = engineRef.current?.cycleCamera();
+    if (next) {
+      setCameraPreset(next);
+      const labels = {
+        portrait: 'Cận cảnh gương mặt (Portrait)',
+        waist: 'Nửa người áo blouse (Waist)',
+        full: 'Toàn cảnh (Full)',
+      };
+      onNotify?.(`Góc nhìn: ${labels[next] || next}`);
+    }
+  };
+
+  // Capture Snapshot
+  const handleCapture = () => {
+    setIsCapturing(true);
+    setTimeout(() => setIsCapturing(false), 260);
+
+    const dataUrl = engineRef.current?.capturePhoto();
+    if (dataUrl) {
+      onNotify?.('Đã lưu ảnh bác sĩ 3D về thiết bị thành công!');
+    }
+  };
+
+  // Apply Pose and Expression
+  const handleSelectPose = (pose, expr, label) => {
+    engineRef.current?.applyPose(pose);
+    if (expr) engineRef.current?.setExpression(expr);
+    setShowEmotions(false);
+    onNotify?.(`Tư thế: ${label}`);
+  };
+
+  // Upload Custom 3D Model File (.glb, .gltf, .vrm)
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    engineRef.current?.loadCustomModelFile(file);
+    const cleanName = file.name.replace(/\.[^/.]+$/, '');
+    setCustomModelName(cleanName);
+    setShowSettings(false);
+    onNotify?.(`Đã nạp mô hình 3D: ${file.name}`);
+  };
+
+  return (
+    <div className="grok-companion-page">
+      {/* Ambient Clinical Glow Backdrop */}
+      <div className="grok-ambient-glow" />
+
+      {/* Snapshot Shutter Flash */}
+      <div className={`grok-capture-flash ${isCapturing ? 'active' : ''}`} />
+
+      {/* Fullscreen 3D WebGL Canvas */}
+      <canvas ref={canvasRef} className="grok-canvas-stage" />
+
+      {/* TOP NAVIGATION BAR */}
+      <header className="grok-topbar">
+        {/* Left: Back to Chat Button */}
+        <div className="grok-topbar-left">
+          <button
+            type="button"
+            className="grok-back-chat-btn"
+            onClick={onBackToChat}
+            title="Quay lại phòng hội thoại văn bản"
+          >
+            <ChevronLeft size={18} />
+            <span>Quay lại Chat</span>
+          </button>
+
+          {/* Quick Doctor Persona Switcher */}
+          <div className="grok-doctor-switcher">
+            <button
+              type="button"
+              className={`doctor-switch-pill ${doctorPersona === 'dr_tuan' && !customModelName ? 'active' : ''}`}
+              onClick={() => handleSwitchDoctor('dr_tuan')}
+              title="BS.CKII Vũ Minh Tuấn - Trưởng khoa Tư vấn"
+            >
+              <User size={13} />
+              <span>BS. Minh Tuấn</span>
+            </button>
+            <button
+              type="button"
+              className={`doctor-switch-pill ${doctorPersona === 'dr_mai' && !customModelName ? 'active' : ''}`}
+              onClick={() => handleSwitchDoctor('dr_mai')}
+              title="ThS.BS Lê Thanh Mai - Bác sĩ Dược & Lâm sàng"
+            >
+              <User size={13} />
+              <span>BS. Thanh Mai</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Center: Live Status Indicator */}
+        <div className="grok-model-badge">
+          <span className={`grok-status-dot ${isBusy ? 'busy' : isSpeaking ? 'speaking' : ''}`} />
+          <span>{isBusy ? 'Đang suy nghĩ...' : isSpeaking ? 'Đang tư vấn...' : 'Sẵn sàng tư vấn'}</span>
+        </div>
+
+        {/* Right: Snapshot & Settings Buttons */}
+        <div className="grok-topbar-right">
+          <button
+            type="button"
+            className="grok-capture-btn"
+            onClick={handleCapture}
+            title="Chụp ảnh bác sĩ 3D (PNG)"
+          >
+            <Camera size={15} />
+            <span>Chụp ảnh</span>
+          </button>
+
+          <button
+            type="button"
+            className="grok-settings-btn"
+            onClick={() => setShowSettings(true)}
+            title="Cài đặt bác sĩ & mô hình 3D"
+          >
+            <Settings size={18} />
+          </button>
+        </div>
+      </header>
+
+      {/* FLOATING DIALOGUE / CLINICAL SUBTITLE CARD (DOCKED ABOVE BOTTOM DOCK - NEVER COVERS FACE) */}
+      {dialogueText && (
+        <section className="grok-dialogue-overlay" aria-live="polite">
+          <div className="grok-speech-bubble">
+            <div className="grok-bubble-header">
+              <div className="grok-doctor-title-tag">
+                <span className="grok-tag-pulse" />
+                <span className="grok-bubble-author">{currentDoctorName}</span>
+                <span className="grok-bubble-role">• {currentDoctorRole}</span>
+              </div>
+              {isSpeaking && (
+                <div className="grok-voice-waves" aria-label="Đang phát giọng nói">
+                  <span />
+                  <span />
+                  <span />
+                </div>
+              )}
+            </div>
+            <p className="grok-bubble-text">{dialogueText}</p>
+          </div>
+        </section>
+      )}
+
+      {/* BOTTOM FLOATING CONTROL DOCK */}
+      <footer className="grok-bottom-dock">
+        {/* UPPER PILL CONTROL BAR */}
+        <div className="grok-controls-pill-row">
+          {/* Camera Angle Toggle */}
+          <button
+            type="button"
+            className="grok-dock-btn"
+            onClick={handleCycleCamera}
+            title="Đổi góc quay (Cận cảnh / Nửa người / Toàn thân)"
+            aria-label="Góc quay camera"
+          >
+            <Camera size={20} />
+          </button>
+
+          {/* Voice Mute / Speaker Toggle */}
+          <button
+            type="button"
+            className={`grok-dock-btn ${isMuted ? 'active' : ''}`}
+            onClick={() => {
+              setIsMuted(!isMuted);
+              if (!isMuted && isSpeaking) handleStop();
+              onNotify?.(isMuted ? 'Đã bật giọng nói bác sĩ' : 'Đã tắt giọng nói bác sĩ');
+            }}
+            title={isMuted ? 'Bật giọng nói' : 'Tắt giọng nói'}
+            aria-label="Âm thanh"
+          >
+            {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+          </button>
+
+          {/* Center Voice Mic Call Button */}
+          <button
+            type="button"
+            className={`grok-mic-primary-btn ${isListening ? 'listening' : ''}`}
+            onClick={toggleMic}
+            title={isListening ? 'Dừng lắng nghe' : 'Nói trực tiếp với bác sĩ'}
+            aria-label="Micro trò chuyện"
+          >
+            <Mic size={24} />
+          </button>
+
+          {/* Consultation Emotional Tone & Style Toggle */}
+          <button
+            type="button"
+            className={`grok-dock-btn ${showEmotions ? 'active' : ''}`}
+            onClick={() => setShowEmotions(!showEmotions)}
+            title="Cảm xúc & Phong cách tư vấn của Bác sĩ"
+            aria-label="Cảm xúc tư vấn"
+          >
+            <span style={{ fontSize: '18px' }}>
+              {consultationTone === 'empathetic' ? '💖' : consultationTone === 'clinical' ? '🩺' : consultationTone === 'encouraging' ? '🌟' : '⚠️'}
+            </span>
+          </button>
+
+          {/* Doctor Switcher Quick Toggle */}
+          <button
+            type="button"
+            className="grok-dock-btn"
+            onClick={() => handleSwitchDoctor(doctorPersona === 'dr_tuan' ? 'dr_mai' : 'dr_tuan')}
+            title={`Đổi sang ${doctorPersona === 'dr_tuan' ? 'BS. Thanh Mai (Nữ)' : 'BS. Minh Tuấn (Nam)'}`}
+            aria-label="Đổi bác sĩ"
+          >
+            <User size={20} />
+          </button>
+        </div>
+
+        {/* LOWER INPUT BAR ("Hỏi bác sĩ bất kỳ điều gì...") */}
+        <form
+          className="grok-input-pill-row"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleUserQuery();
+          }}
+        >
+          <input
+            type="text"
+            className="grok-text-input"
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            placeholder={`Hỏi ${currentDoctorName} về triệu chứng, đơn thuốc, sức khỏe...`}
+            aria-label="Nhập câu hỏi cho bác sĩ"
+          />
+
+          {isSpeaking || isListening || isBusy ? (
+            <button
+              type="button"
+              className="grok-stop-action-btn"
+              onClick={handleStop}
+              title="Dừng phản hồi"
+            >
+              <span className="stop-square" />
+              <span>Dừng</span>
+            </button>
+          ) : (
+            <button
+              type="submit"
+              className="grok-send-action-btn"
+              disabled={!inputText.trim()}
+              title="Gửi câu hỏi"
+            >
+              <Send size={18} />
+            </button>
+          )}
+        </form>
+      </footer>
+
+      {/* CONSULTATION EMOTIONAL TONE & STYLE MENU */}
+      {showEmotions && (
+        <div className="grok-popover-menu" role="menu">
+          <span className="grok-popover-title">Cảm Xúc & Phong Cách Tư Vấn</span>
+          <button
+            type="button"
+            className={`grok-popover-item ${consultationTone === 'empathetic' ? 'active' : ''}`}
+            onClick={() => handleSelectTone('empathetic')}
+          >
+            <span style={{ fontSize: '20px' }}>💖</span>
+            <div className="grok-popover-text">
+              <strong>Ân cần & Thấu cảm</strong>
+              <small>Trấn an dịu dàng, lắng nghe, nét mặt ấm áp</small>
+            </div>
+          </button>
+          <button
+            type="button"
+            className={`grok-popover-item ${consultationTone === 'clinical' ? 'active' : ''}`}
+            onClick={() => handleSelectTone('clinical')}
+          >
+            <span style={{ fontSize: '20px' }}>🩺</span>
+            <div className="grok-popover-text">
+              <strong>Khoa học & Chuẩn xác</strong>
+              <small>Phân tích cơ chế bệnh học, phác đồ rõ ràng</small>
+            </div>
+          </button>
+          <button
+            type="button"
+            className={`grok-popover-item ${consultationTone === 'encouraging' ? 'active' : ''}`}
+            onClick={() => handleSelectTone('encouraging')}
+          >
+            <span style={{ fontSize: '20px' }}>🌟</span>
+            <div className="grok-popover-text">
+              <strong>Lạc quan & Động viên</strong>
+              <small>Truyền năng lượng tích cực, nụ cười rạng rỡ</small>
+            </div>
+          </button>
+          <button
+            type="button"
+            className={`grok-popover-item ${consultationTone === 'cautious' ? 'active' : ''}`}
+            onClick={() => handleSelectTone('cautious')}
+          >
+            <span style={{ fontSize: '20px' }}>⚠️</span>
+            <div className="grok-popover-text">
+              <strong>Cẩn trọng & Cảnh báo</strong>
+              <small>Cảnh giác cờ đỏ (red flags), dặn dò an toàn</small>
+            </div>
+          </button>
+        </div>
+      )}
+
+      {/* SETTINGS MODAL */}
+      {showSettings && (
+        <div className="grok-settings-backdrop" onClick={() => setShowSettings(false)}>
+          <div className="grok-settings-card" onClick={(e) => e.stopPropagation()}>
+            <h3>
+              <span>Cài Đặt Bác Sĩ & Mô Hình 3D</span>
+              <button
+                type="button"
+                className="icon-button"
+                onClick={() => setShowSettings(false)}
+                title="Đóng"
+              >
+                <X size={18} />
+              </button>
+            </h3>
+
+            {/* Choose Doctor Persona */}
+            <div className="grok-settings-group">
+              <label>Chọn Bác sĩ tư vấn:</label>
+              <div className="doctor-preset-grid">
+                <button
+                  type="button"
+                  className={`doctor-card-btn ${doctorPersona === 'dr_tuan' && !customModelName ? 'active' : ''}`}
+                  onClick={() => {
+                    handleSwitchDoctor('dr_tuan');
+                    setShowSettings(false);
+                  }}
+                >
+                  <div className="card-avatar">👨‍⚕️</div>
+                  <div className="card-info">
+                    <strong>BS.CKII Vũ Minh Tuấn</strong>
+                    <span>Nam • Áo Blouse trắng & Ống nghe</span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  className={`doctor-card-btn ${doctorPersona === 'dr_mai' && !customModelName ? 'active' : ''}`}
+                  onClick={() => {
+                    handleSwitchDoctor('dr_mai');
+                    setShowSettings(false);
+                  }}
+                >
+                  <div className="card-avatar">👩‍⚕️</div>
+                  <div className="card-info">
+                    <strong>ThS.BS Lê Thanh Mai</strong>
+                    <span>Nữ • Áo Blouse trắng & Ống nghe</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* Upload Custom 3D Model */}
+            <div className="grok-settings-group">
+              <label>Hoặc nạp mô hình 3D bác sĩ riêng (.glb, .gltf, .vrm):</label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".glb,.gltf,.vrm"
+                style={{ display: 'none' }}
+                onChange={handleFileUpload}
+              />
+              <button
+                type="button"
+                className="grok-file-upload-btn"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload size={18} />
+                <span>Tải lên file .GLB / .VRM từ máy tính</span>
+              </button>
+            </div>
+
+            <button
+              type="button"
+              className="grok-close-settings-btn"
+              onClick={() => setShowSettings(false)}
+            >
+              Hoàn tất
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -51,12 +51,16 @@ class AnswerAssurance(BaseModel):
 class GroundedAnswer(BaseModel):
     title: str
     summary: str
+    presentation: Literal["brief", "focused", "detailed"] = "detailed"
+    display_summary: str | None = None
+    display_next_steps: list[str] | None = None
     clinical_hypotheses: list[str] = Field(default_factory=list)
     key_points: list[str] = Field(default_factory=list)
     next_steps: list[str] = Field(default_factory=list)
     safety_notes: list[str] = Field(default_factory=list)
     questions: list[str] = Field(default_factory=list)
     display_questions: list[str] | None = None
+    suggested_followups: list[str] = Field(default_factory=list)
     decision_basis: Literal[
         "versioned_rules",
         "registry_record",
@@ -273,12 +277,16 @@ class ChatResponse(DisclaimerMixin):
                     normalized_questions.append(question)
             replacement = f"{prompt_label}: {' '.join(normalized_questions)}"
 
+        narrative_has_embedded_question = any(
+            "?" in b.text and not b.text.strip().startswith(prompt_label)
+            for b in self.answer.narrative
+        )
         updated: list[AnswerNarrativeBlock] = []
         found_question_block = False
         for block in self.answer.narrative:
             if block.text.strip().startswith(prompt_label):
                 found_question_block = True
-                if replacement:
+                if replacement and not narrative_has_embedded_question:
                     updated.append(
                         block.model_copy(
                             update={
@@ -290,7 +298,7 @@ class ChatResponse(DisclaimerMixin):
                 continue
             updated.append(block)
 
-        if replacement and not found_question_block:
+        if replacement and not found_question_block and not narrative_has_embedded_question:
             updated.append(
                 AnswerNarrativeBlock(
                     kind="paragraph",

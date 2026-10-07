@@ -43,7 +43,7 @@ export function SubmitButton({ busy, children = 'Phân tích', disabled = false 
   return (
     <button className="primary-button" type="submit" disabled={busy || disabled}>
       {busy ? <LoaderCircle className="spin" size={17} /> : <Send size={17} />}
-      <span>{busy ? 'Đang xử lý' : children}</span>
+      <span>{busy ? 'Đang xử lý…' : children}</span>
     </button>
   );
 }

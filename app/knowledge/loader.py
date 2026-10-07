@@ -114,6 +114,10 @@ class KnowledgeStore:
 
     def _contextualize_guidance(self, guidance: dict[str, Any], symptoms_text: str) -> dict[str, Any]:
         """Overlay V25 explanation/question planning without mutating knowledge."""
+        if guidance.get("topic") in {"dental_pain", "unlocalized_muscle_pain"}:
+            # Do not let an accent-folded spine/mechanism planner invent a
+            # location or cause for these bounded, clarification-first answers.
+            return guidance
         try:
             from app.services.contextual_triage_planner import (
                 build_contextual_triage_plan,
@@ -145,22 +149,20 @@ class KnowledgeStore:
         if plan.hypotheses:
             contextual["clinical_hypotheses"] = list(plan.hypotheses)
         if plan.questions:
-            contextual["clarifying_questions"] = list(plan.questions)
+            existing_qs = [str(q) for q in guidance.get("clarifying_questions", [])]
+            combined = list(plan.questions) + [q for q in existing_qs if q not in plan.questions]
+            contextual["clarifying_questions"] = combined[:3]
         contextual["v25_contextual_reasoning"] = reasoning_trace_payload(plan)
         return contextual
 
     def _find_explicit_response_policy(self, normalized: str) -> dict[str, Any] | None:
-        """Match explicit workflow/policy requests without clinical-negation semantics.
-
-        Requests such as ``hãy kê đơn`` are commands, not symptom assertions.
-        They should therefore use lexical command matching rather than the
-        clinical affirmed-phrase matcher, whose job is to reason about negated
-        symptoms and can intentionally suppress question-like language.
-        """
+        """Match explicit workflow/policy requests without clinical-negation semantics."""
         policy = self.files.get(
             "v25_response_policy_overlay.json", KnowledgeFile("", "", "", {})
         ).data.get("symptom_guidance", [])
         for guidance in policy:
+            if guidance.get("match_mode") == "affirmed_complaint":
+                continue
             if any(
                 normalize_search_text(str(keyword)) in normalized
                 for keyword in guidance.get("keywords", [])
@@ -170,15 +172,21 @@ class KnowledgeStore:
 
     @staticmethod
     def _guidance_is_route_compatible(guidance: dict[str, Any], normalized: str) -> bool:
-        """Reject a symptom template when its physical route contradicts the turn.
+        """Reject symptom templates whose physical mechanism contradicts the turn."""
+        topic = str(guidance.get("topic", ""))
 
-        The word ``hóa chất`` can describe either a skin burn or inhalation.
-        A lexical first-match used to select ``acute_burn`` for phrases such as
-        ``hít mùi hóa chất trong phòng kín`` and leak burn cooling instructions
-        into a respiratory/toxicology episode.  Keep this guard route-based: an
-        explicit skin-burn finding still permits burn guidance.
-        """
-        if str(guidance.get("topic", "")) != "acute_burn":
+        if topic == "open_wound_cut":
+            animal_bite_markers = (
+                "cho can", "meo can", "dong vat can", "suc vat can",
+                "khi can", "doi can", "chuot can",
+            )
+            if any(
+                contains_affirmed_phrase(normalized, marker)
+                for marker in animal_bite_markers
+            ):
+                return False
+
+        if topic != "acute_burn":
             return True
 
         inhalation_markers = (
@@ -199,8 +207,48 @@ class KnowledgeStore:
         )
         return not (has_inhalation_route and not has_skin_burn)
 
+    @staticmethod
+    def _is_animal_bite(normalized: str) -> bool:
+        return any(
+            contains_affirmed_phrase(normalized, marker)
+            for marker in (
+                "cho can", "meo can", "dong vat can", "suc vat can",
+                "khi can", "doi can", "chuot can",
+            )
+        )
+
     def find_symptom_guidance(self, symptoms_text: str) -> dict[str, Any] | None:
         normalized = normalize_search_text(symptoms_text)
+
+        dental = any(contains_affirmed_phrase(normalized, phrase) for phrase in
+                     ("dau rang", "nhuc rang", "e buot rang", "sung nuou", "sung loi"))
+        if dental:
+            return next((g for g in self.symptom_guidance if g.get("topic") == "dental_pain"), None)
+
+        # Accent folding makes cơ (muscle), cổ (neck), and có identical.
+        # A bare "đau cơ" / unaccented "dau co" cannot establish neck pain.
+        # Preserve raw anatomical evidence; ambiguous spelling asks location.
+        raw = symptoms_text.lower()
+        neck_evidence = bool(re.search(r"\b(?:cổ|kổ|gáy|gay|vai|neck)\b", raw))
+        raw_muscle_or_ambiguous = bool(re.search(
+            r"\b(?:đau|đâu|nhức|mỏi|dau|nhuc|moi)\s+(?:cơ|kơ|co)\b", raw))
+        muscle_complaint = raw_muscle_or_ambiguous and any(
+            contains_affirmed_phrase(normalized, phrase)
+            for phrase in ("dau co", "nhuc co", "moi co", "dau co bap"))
+        exertion = any(contains_affirmed_phrase(normalized, phrase) for phrase in
+                       ("tap gym", "tap luyen", "nang ta", "van suc", "cang co", "chuot rut"))
+        if muscle_complaint and not neck_evidence and not exertion:
+            return next((g for g in self.symptom_guidance if g.get("topic") == "unlocalized_muscle_pain"), None)
+
+        # Animal-bite episodes are governed by dedicated urgent rabies/tetanus
+        # rules. Until a dedicated animal-bite symptom template exists, returning
+        # no generic guidance is safer than contaminating the response with burn,
+        # knife-cut or other wound-mechanism instructions/questions.
+        if self._is_animal_bite(normalized):
+            for guidance in self.symptom_guidance:
+                if guidance.get("topic") in {"animal_bite", "rabies_exposure"}:
+                    return self._contextualize_guidance(guidance, symptoms_text)
+            return None
 
         explicit_policy = self._find_explicit_response_policy(normalized)
         if explicit_policy is not None:
@@ -227,6 +275,8 @@ class KnowledgeStore:
             if guidance.get("topic") == "remote_prescribing_request":
                 continue
             if not self._guidance_is_route_compatible(guidance, normalized):
+                continue
+            if guidance.get("topic") == "neck_shoulder_pain" and not neck_evidence:
                 continue
             if guidance.get("topic") == "lower_limb_pain":
                 direct_problem_phrases = (

@@ -1,0 +1,81 @@
+model_list:
+  # ==========================================================
+  # 1. Primary Chat & General Clinical Agents
+  # ==========================================================
+  - model_name: medguard-answer
+    litellm_params:
+      model: gemini/gemini-3.5-flash-lite
+      api_key: os.environ/GEMINI_API_KEY
+      timeout: 25
+    model_info:
+      mode: chat
+      supports_web_search: true
+      supported_environments: [development, staging, production]
+
+  - model_name: medguard-verifier
+    litellm_params:
+      model: gemini/gemini-3.5-flash-lite
+      api_key: os.environ/GEMINI_API_KEY
+      timeout: 25
+    model_info:
+      mode: chat
+      role: verifier_judge
+      supports_web_search: false
+      supported_environments: [development, staging, production]
+
+  # ==========================================================
+  # 2. Specialized Clinical Domain Agents
+  # ==========================================================
+  - model_name: medguard-clinical-answer
+    litellm_params:
+      model: gemini/gemini-3.5-flash-lite
+      api_key: os.environ/GEMINI_API_KEY
+      timeout: 25
+    model_info:
+      mode: chat
+      supports_web_search: true
+      supported_environments: [development, staging, production]
+
+  - model_name: medguard-clinical-verifier
+    litellm_params:
+      model: gemini/gemini-3.5-flash-lite
+      api_key: os.environ/GEMINI_API_KEY
+      timeout: 25
+    model_info:
+      mode: chat
+      role: verifier_judge
+      supports_web_search: false
+      supported_environments: [development, staging, production]
+
+  # ==========================================================
+  # 3. Pharmacy & Medication Safety Agents
+  # ==========================================================
+  - model_name: medguard-pharma-answer
+    litellm_params:
+      model: gemini/gemini-3.5-flash-lite
+      api_key: os.environ/GEMINI_API_KEY
+      timeout: 25
+    model_info:
+      mode: chat
+      supports_web_search: true
+      supported_environments: [development, staging, production]
+
+  - model_name: medguard-pharma-verifier
+    litellm_params:
+      model: gemini/gemini-3.5-flash-lite
+      api_key: os.environ/GEMINI_API_KEY
+      timeout: 25
+    model_info:
+      mode: chat
+      role: verifier_judge
+      supports_web_search: false
+      supported_environments: [development, staging, production]
+
+litellm_settings:
+  drop_params: true
+  telemetry: false
+  request_timeout: 25
+  num_retries: 0
+
+general_settings:
+  master_key: sk-c32ad8e56c80777ce080f62104190266489b80bfd299af4321c7eae85812d579

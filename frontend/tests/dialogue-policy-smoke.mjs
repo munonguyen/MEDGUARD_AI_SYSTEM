@@ -56,7 +56,7 @@ try {
     send,
     'Tôi đau ngực dữ dội, khó thở và vã mồ hôi.',
   );
-  await page.getByText('Bạn cần được đánh giá cấp cứu ngay', { exact: true }).waitFor();
+  await page.getByText('Gọi 115 hoặc đến khoa Cấp cứu ngay', { exact: true }).waitFor();
   if (emergencyPayload?.result?.urgency !== 'EMERGENCY') {
     throw new Error(`Expected EMERGENCY, got ${emergencyPayload?.result?.urgency}`);
   }

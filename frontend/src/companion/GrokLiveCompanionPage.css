@@ -1,0 +1,780 @@
+/* MedGuard 3D Clinical Doctor Studio Page */
+.grok-companion-page {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 30%, #0d2738 0%, #081724 55%, #03080e 100%);
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Ambient Medical Teal & Cyan Glow */
+.grok-ambient-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: 
+    radial-gradient(circle at 50% 20%, rgba(13, 148, 136, 0.18) 0%, transparent 60%),
+    radial-gradient(circle at 15% 75%, rgba(6, 182, 212, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 85% 75%, rgba(16, 185, 129, 0.10) 0%, transparent 50%);
+  z-index: 1;
+}
+
+/* 3D WebGL Canvas */
+.grok-canvas-stage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 2;
+  cursor: grab;
+}
+
+.grok-canvas-stage:active {
+  cursor: grabbing;
+}
+
+/* Flash Shutter effect on Capture */
+.grok-capture-flash {
+  position: absolute;
+  inset: 0;
+  background: #ffffff;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 100;
+  transition: opacity 120ms ease-out;
+}
+
+.grok-capture-flash.active {
+  opacity: 0.85;
+}
+
+/* TOP NAVIGATION BAR */
+.grok-topbar {
+  position: absolute;
+  top: 16px;
+  left: 20px;
+  right: 20px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.grok-topbar > * {
+  pointer-events: auto;
+}
+
+.grok-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.grok-back-chat-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 9999px;
+  background: rgba(11, 23, 36, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #f1f5f9;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all 180ms ease;
+}
+
+.grok-back-chat-btn:hover {
+  background: rgba(13, 148, 136, 0.4);
+  border-color: #2dd4bf;
+  transform: translateY(-1px);
+}
+
+/* Quick Doctor Switcher Pills */
+.grok-doctor-switcher {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px;
+  background: rgba(11, 23, 36, 0.75);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  gap: 4px;
+}
+
+.doctor-switch-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  border: 0;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all 160ms ease;
+}
+
+.doctor-switch-pill:hover {
+  color: #ffffff;
+}
+
+.doctor-switch-pill.active {
+  background: rgba(13, 148, 136, 0.5);
+  color: #ffffff;
+  border: 1px solid rgba(45, 212, 191, 0.6);
+  box-shadow: 0 0 12px rgba(13, 148, 136, 0.4);
+}
+
+/* Live Status Badge in Center */
+.grok-model-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 16px;
+  border-radius: 9999px;
+  background: rgba(11, 23, 36, 0.7);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 13px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.grok-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+}
+
+.grok-status-dot.busy {
+  background: #f59e0b;
+  box-shadow: 0 0 10px #f59e0b;
+  animation: grokPulseDot 1s infinite alternate;
+}
+
+.grok-status-dot.speaking {
+  background: #06b6d4;
+  box-shadow: 0 0 10px #06b6d4;
+  animation: grokPulseDot 0.6s infinite alternate;
+}
+
+@keyframes grokPulseDot {
+  from { transform: scale(0.85); opacity: 0.7; }
+  to { transform: scale(1.25); opacity: 1; }
+}
+
+.grok-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.grok-capture-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 15px;
+  border-radius: 9999px;
+  background: rgba(11, 23, 36, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all 180ms ease;
+}
+
+.grok-capture-btn:hover {
+  background: rgba(13, 148, 136, 0.35);
+  border-color: #2dd4bf;
+  box-shadow: 0 0 16px rgba(13, 148, 136, 0.35);
+  transform: translateY(-1px);
+}
+
+.grok-settings-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  background: rgba(11, 23, 36, 0.72);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #f1f5f9;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all 180ms ease;
+}
+
+.grok-settings-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+/* FLOATING CLINICAL SUBTITLE DOCKED ABOVE BOTTOM CONTROLS (NEVER COVERS DOCTOR FACE) */
+.grok-dialogue-overlay {
+  position: absolute;
+  bottom: 126px; /* Positioned neatly above the 72px dock + 24px margin */
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(92%, 640px);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.grok-speech-bubble {
+  background: rgba(9, 20, 31, 0.84);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(45, 212, 191, 0.32);
+  border-radius: 18px;
+  padding: 14px 20px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 24px rgba(13, 148, 136, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: grokBubbleAppear 240ms cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: auto;
+}
+
+@keyframes grokBubbleAppear {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.grok-bubble-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.grok-doctor-title-tag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.grok-tag-pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+}
+
+.grok-bubble-author {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #2dd4bf;
+}
+
+.grok-bubble-role {
+  font-size: 12px;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+.grok-voice-waves {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.grok-voice-waves span {
+  width: 3px;
+  height: 12px;
+  background: #2dd4bf;
+  border-radius: 999px;
+  animation: grokWavePulse 600ms infinite ease-in-out alternate;
+}
+
+.grok-voice-waves span:nth-child(2) { height: 18px; animation-delay: 150ms; }
+.grok-voice-waves span:nth-child(3) { height: 8px; animation-delay: 300ms; }
+
+@keyframes grokWavePulse {
+  from { transform: scaleY(0.4); opacity: 0.5; }
+  to { transform: scaleY(1.2); opacity: 1; }
+}
+
+.grok-bubble-text {
+  margin: 2px 0 0;
+  font-size: 14.5px;
+  line-height: 1.52;
+  color: #f1f5f9;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* BOTTOM FLOATING CONTROL DOCK */
+.grok-bottom-dock {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(92%, 560px);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Upper Dock: Control Icons Row */
+.grok-controls-pill-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: rgba(11, 23, 36, 0.75);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 9999px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), 0 0 20px rgba(13, 148, 136, 0.15);
+}
+
+.grok-dock-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 9999px;
+  border: 0;
+  background: transparent;
+  color: #cbd5e1;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.grok-dock-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.grok-dock-btn.active {
+  background: rgba(13, 148, 136, 0.35);
+  color: #2dd4bf;
+  border: 1px solid rgba(45, 212, 191, 0.5);
+}
+
+/* Center Highlighted Voice Mic Button */
+.grok-mic-primary-btn {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #0d9488 0%, #0284c7 100%);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  box-shadow: 0 0 24px rgba(13, 148, 136, 0.65);
+  transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.grok-mic-primary-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 32px rgba(13, 148, 136, 0.9);
+}
+
+.grok-mic-primary-btn.listening {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  box-shadow: 0 0 32px rgba(239, 68, 68, 0.85);
+  animation: grokMicPulse 1s infinite alternate;
+}
+
+@keyframes grokMicPulse {
+  from { transform: scale(1.0); }
+  to { transform: scale(1.12); }
+}
+
+/* Lower Dock: Text Input Pill Bar */
+.grok-input-pill-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 18px;
+  background: rgba(11, 23, 36, 0.8);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 9999px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+}
+
+.grok-text-input {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: #ffffff;
+  font-size: 14.5px;
+  padding: 8px 0;
+}
+
+.grok-text-input::placeholder {
+  color: #94a3b8;
+}
+
+.grok-send-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  border: 0;
+  background: linear-gradient(135deg, #0d9488 0%, #0284c7 100%);
+  color: #ffffff;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all 160ms ease;
+}
+
+.grok-send-action-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.grok-send-action-btn:not(:disabled):hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 16px rgba(13, 148, 136, 0.7);
+}
+
+.grok-stop-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 9999px;
+  border: 0;
+  background: rgba(239, 68, 68, 0.25);
+  border: 1px solid #ef4444;
+  color: #fca5a5;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all 160ms ease;
+}
+
+.grok-stop-action-btn:hover {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.stop-square {
+  width: 10px;
+  height: 10px;
+  background: currentColor;
+  border-radius: 2px;
+}
+
+/* CONSULTATION EMOTIONAL TONE & STYLE MENU */
+.grok-popover-menu {
+  position: absolute;
+  bottom: 110px;
+  right: 50%;
+  transform: translateX(180px);
+  width: 285px;
+  background: rgba(11, 23, 36, 0.94);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(45, 212, 191, 0.35);
+  border-radius: 18px;
+  padding: 10px;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.75), 0 0 24px rgba(13, 148, 136, 0.2);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: grokBubbleAppear 180ms ease;
+}
+
+.grok-popover-title {
+  padding: 6px 10px 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #2dd4bf;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.grok-popover-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #f1f5f9;
+  text-align: left;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.grok-popover-item:hover {
+  background: rgba(13, 148, 136, 0.22);
+  border-color: rgba(45, 212, 191, 0.3);
+  color: #ffffff;
+}
+
+.grok-popover-item.active {
+  background: rgba(13, 148, 136, 0.35);
+  border-color: rgba(45, 212, 191, 0.6);
+  box-shadow: 0 0 12px rgba(13, 148, 136, 0.3);
+}
+
+.grok-popover-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.grok-popover-text strong {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.grok-popover-text small {
+  font-size: 11px;
+  font-weight: 400;
+  color: #94a3b8;
+  line-height: 1.3;
+}
+
+/* SETTINGS MODAL */
+.grok-settings-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.grok-settings-card {
+  width: min(100%, 480px);
+  background: #0f202e;
+  border: 1px solid rgba(45, 212, 191, 0.35);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  animation: grokBubbleAppear 220ms ease;
+}
+
+.grok-settings-card h3 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 18px;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+.grok-settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.grok-settings-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.doctor-preset-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.doctor-card-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  cursor: pointer;
+  text-align: left;
+  transition: all 160ms ease;
+}
+
+.doctor-card-btn:hover {
+  background: rgba(13, 148, 136, 0.2);
+  border-color: rgba(45, 212, 191, 0.4);
+}
+
+.doctor-card-btn.active {
+  background: rgba(13, 148, 136, 0.35);
+  border-color: #2dd4bf;
+  box-shadow: 0 0 16px rgba(13, 148, 136, 0.3);
+}
+
+.card-avatar {
+  font-size: 24px;
+}
+
+.card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.card-info strong {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.card-info span {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.grok-file-upload-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(13, 148, 136, 0.15);
+  border: 1px dashed rgba(45, 212, 191, 0.45);
+  color: #2dd4bf;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+
+.grok-file-upload-btn:hover {
+  background: rgba(13, 148, 136, 0.25);
+  border-color: #2dd4bf;
+}
+
+.grok-close-settings-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 0;
+  background: linear-gradient(135deg, #0d9488 0%, #0284c7 100%);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+
+.grok-close-settings-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 16px rgba(13, 148, 136, 0.5);
+}
+
+/* RESPONSIVE ADAPTATIONS */
+@media (max-width: 768px) {
+  .grok-topbar {
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    gap: 6px;
+  }
+
+  .grok-back-chat-btn span {
+    display: none;
+  }
+
+  .grok-doctor-switcher {
+    padding: 2px;
+  }
+
+  .doctor-switch-pill {
+    padding: 5px 8px;
+    font-size: 11.5px;
+  }
+
+  .grok-model-badge {
+    display: none;
+  }
+
+  .grok-capture-btn span {
+    display: none;
+  }
+
+  .grok-dialogue-overlay {
+    bottom: 110px;
+    width: 94%;
+  }
+
+  .grok-speech-bubble {
+    padding: 12px 16px;
+  }
+
+  .grok-bubble-text {
+    font-size: 13.5px;
+  }
+
+  .grok-bottom-dock {
+    bottom: 14px;
+    width: 95%;
+  }
+
+  .grok-popover-menu {
+    right: 12px;
+    transform: none;
+  }
+
+  .doctor-preset-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -4,9 +4,12 @@ from __future__ import annotations
 
 from datetime import date, datetime, time as datetime_time, timedelta, timezone
 from hashlib import sha256
+import logging
 import re
 from typing import Any
 from zoneinfo import ZoneInfo
+
+logger = logging.getLogger(__name__)
 
 from app.core.config import settings
 from app.core.context import RequestContext
@@ -488,6 +491,8 @@ def _detect_intent(payload: ChatRequest, normalized_text: str) -> ChatIntent:
         return "schedule"
 
     def contains(keyword: str) -> bool:
+        if keyword == "nang" and re.search(r"\bnang\s+\d+(?:[.,]\d+)?\s*(?:kg|kilogram)\b", normalized_text):
+            return False
         if " " not in keyword and len(keyword) <= 3:
             return any(
                 contains_affirmed_phrase(normalized_text, match.group(0))
@@ -577,6 +582,10 @@ def _detect_intent(payload: ChatRequest, normalized_text: str) -> ChatIntent:
             "co nguy hiem",
             "co sao khong",
             "co on khong",
+            "co the uong",
+            "co the dung",
+            "co nen uong",
+            "co nen dung",
         )
     ) or bool(
         re.search(
@@ -585,6 +594,11 @@ def _detect_intent(payload: ChatRequest, normalized_text: str) -> ChatIntent:
         )
     )
     if has_known_medication and asks_medication_safety:
+        # A symptom explaining why a medicine is requested must not displace
+        # the explicit medication question. Acute emergencies are still forced
+        # to triage by the safety floor in evaluate_chat.
+        if not has_non_vital_red_flags and sem_intent.urgency != "EMERGENCY":
+            return "safety"
         scores["safety"] += 8
     if has_known_medication and _requests_personalized_dose(normalized_text):
         scores["safety"] += 14
@@ -979,6 +993,9 @@ def _response(
         required_fields=fields,
         result=serialized,
     )
+    from app.services.response_presentation import select_presentation
+    answer = select_presentation(answer, question=agent_question or payload.messages[-1].content,
+                                 intent=intent, result=serialized if isinstance(serialized, dict) else None)
     agent_status: str | None = None
     agent_submitted = False
     clinical_task_name = (
@@ -1009,6 +1026,9 @@ def _response(
         and intent in _active_research_agent_intents()
     )
     agent_patient_context = payload.context.model_dump(mode="json")
+    agent_patient_context["conversation_messages"] = [
+        msg.model_dump(mode="json") for msg in payload.messages
+    ]
     if intent in {"triage", "safety"} or clinical_task_name:
         agent_patient_context["last_result"] = None
     if agent_first_clinical:
@@ -1046,8 +1066,13 @@ def _response(
             patient_context=agent_patient_context,
         )
     internal_agent_trace = answer.agent_trace
+    logger.warning("CHAT AGENT TRACE: status=%s reason=%s", getattr(internal_agent_trace, "status", None), getattr(internal_agent_trace, "fallback_reason", None))
     if internal_agent_trace:
         agent_status = internal_agent_trace.status
+        # A disabled pipeline can coexist with an enabled chat configuration
+        # during startup/reconfiguration. Preserve the fallback API contract.
+        if agent_status == "disabled":
+            agent_status = "unavailable" if agent_eligible else "not_requested"
     elif agent_submitted:
         agent_status = "shadow_pending"
     orchestrator = {
@@ -1105,7 +1130,8 @@ def _response(
         conversation_id=payload.conversation_id,
         status=status,
         intent=intent,
-        reply=answer.summary,
+        reply=("\n\n".join(block.text for block in answer.narrative)
+               if verification_status == "verified" and answer.narrative else answer.summary),
         required_fields=fields,
         extracted=extracted or {},
         result=serialized,
@@ -1321,6 +1347,17 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
     ):
         intent = "triage"
     patient_ref = _patient_ref(payload, latest_text)
+
+    # Explicit educational questions have a bounded answer even without the
+    # model gateway. Do not replace acute red flags or ongoing clinical history.
+    if (payload.intent_hint == "auto" and len(payload.messages) == 1
+            and pre_ood_safety_floor.disposition == "ROUTINE"
+            and not _check_red_flag_patterns(normalize_clinical_concepts(latest_text))):
+        from app.services.health_education import request_guidance
+        education = request_guidance(latest_text)
+        if education:
+            return _response(payload, ctx, status="answered", intent=education["intent"],
+                             reply=education["summary"], result={"education": education})
 
     if intent == "authenticity":
         latest = payload.messages[-1].content

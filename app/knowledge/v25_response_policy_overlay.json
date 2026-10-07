@@ -1,12 +1,18 @@
 {
   "_meta": {
-    "version": "25.10.0",
-    "effective_from": "2026-09-29",
-    "purpose": "Post-V10 response-policy overlay for direct remote-prescribing refusal and clinically meaningful continuation cues.",
+    "version": "25.12.0",
+    "effective_from": "2026-10-03",
+    "purpose": "Post-V10 response-policy overlay for direct remote-prescribing refusal, clinically meaningful continuation cues, and bounded patient-facing education where generic symptom templates are insufficient.",
     "authority_contract": [
       "This overlay cannot downgrade any emergency or urgent disposition.",
-      "Remote-prescribing policy changes communication/action guidance only; it does not create a diagnosis.",
-      "Continuation rules are conservative and must remain auditable independently from frozen V10 knowledge."
+      "Response-policy guidance changes communication/action guidance only; it does not create a diagnosis.",
+      "Continuation and education rules are conservative and must remain auditable independently from frozen V10 knowledge.",
+      "Medication-safety guidance must not recommend a prescription drug or personalized dose without the required clinical context."
+    ],
+    "source_references": [
+      "American Heart Association — How to Manage High Blood Pressure (accessed 2026-10-02)",
+      "American Heart Association / American College of Cardiology — 2025 High Blood Pressure Guideline (accessed 2026-10-02)",
+      "https://www.nhs.uk/symptoms/toothache/"
     ]
   },
   "urgent_patterns": [
@@ -26,7 +32,10 @@
       "label_vi": "ra máu âm đạo mới xuất hiện/chưa rõ nguyên nhân",
       "esi_level": 3,
       "urgency": "URGENT",
-      "specialty": {"code": "OBSTETRICS_GYNECOLOGY", "label": "Sản phụ khoa"},
+      "specialty": {
+        "code": "OBSTETRICS_GYNECOLOGY",
+        "label": "Sản phụ khoa"
+      },
       "advice": "Ra máu âm đạo mới xuất hiện hoặc chưa rõ nguyên nhân cần được đánh giá y tế sớm, đặc biệt nếu có khả năng mang thai. Nếu đau bụng tăng, đau lệch một bên, choáng/ngất, đau vai hoặc chảy máu nhiều, cần cấp cứu ngay."
     }
   ],
@@ -56,6 +65,133 @@
         "Triệu chứng nào khiến bạn muốn dùng thuốc kê đơn, và hiện có dấu hiệu nặng lên hoặc phản ứng thuốc nào không?"
       ],
       "advice": "Không tự dùng thuốc kê đơn hoặc tự điều chỉnh liều; cần bác sĩ hoặc dược sĩ xác nhận chỉ định và liều dựa trên bệnh cảnh cụ thể."
+    },
+    {
+      "topic": "orthostatic_dizziness_guidance",
+      "keywords": [
+        "chóng mặt mỗi khi đứng dậy",
+        "chóng mặt khi đứng dậy",
+        "xây xẩm khi đứng dậy",
+        "hoa mắt khi đứng dậy"
+      ],
+      "summary": "Chóng mặt hoặc xây xẩm khi đứng dậy có thể liên quan đến nhiều nguyên nhân như tụt huyết áp tư thế, thiếu nước, thiếu ăn, tác dụng của thuốc hoặc nguyên nhân khác. Chỉ từ tin nhắn chưa đủ để xác định nguyên nhân, nên ưu tiên phòng té ngã và làm rõ hoàn cảnh xuất hiện cơn.",
+      "clinical_hypotheses": [
+        "Tụt huyết áp tư thế hoặc giảm thể tích tuần hoàn là một khả năng khi cơn xuất hiện rõ sau chuyển từ nằm/ngồi sang đứng.",
+        "Thuốc đang dùng, thiếu ăn, thiếu nước hoặc một số nguyên nhân tim mạch-thần kinh khác cũng có thể gây cảm giác xây xẩm; cần thêm dữ kiện để phân biệt."
+      ],
+      "self_care": [
+        "Khi cơn xuất hiện, ngồi hoặc nằm xuống ngay để tránh té ngã; đứng dậy từ từ sau khi triệu chứng đã hết.",
+        "Uống nước phù hợp nếu bạn không bị bác sĩ dặn hạn chế dịch; không mặc định uống đường nếu chưa có bằng chứng hạ đường huyết hoặc bỏ bữa kèm triệu chứng phù hợp.",
+        "Nếu có máy đo, ghi lại huyết áp và nhịp tim sau khi nghỉ và khi triệu chứng tái diễn để cung cấp cho nhân viên y tế."
+      ],
+      "safety_net": [
+        "Đi cấp cứu nếu chóng mặt kèm ngất, đau ngực, khó thở, tim đập rất bất thường, yếu/tê một bên, méo miệng, nói khó hoặc thay đổi thị lực mới xuất hiện."
+      ],
+      "clarifying_questions": [
+        "Cơn kéo dài bao lâu và có xảy ra gần như mỗi lần đứng dậy không?",
+        "Bạn có từng ngất, đau ngực, hồi hộp, khó thở hoặc có dấu hiệu thần kinh như yếu/tê một bên hay nói khó không?",
+        "Bạn đang dùng thuốc gì, có tiêu chảy/nôn, thiếu nước, bỏ bữa hoặc đo được huyết áp gần đây không?"
+      ],
+      "advice": "Nếu cơn lặp lại thường xuyên dù đã đứng dậy từ từ và uống đủ nước, hãy sắp xếp khám để đánh giá huyết áp tư thế, thuốc đang dùng và các nguyên nhân khác."
+    },
+    {
+      "topic": "sleep_medication_safety_guidance",
+      "keywords": [
+        "có nên dùng thuốc ngủ",
+        "có nên uống thuốc ngủ",
+        "tự dùng thuốc ngủ",
+        "tự mua thuốc ngủ"
+      ],
+      "summary": "Không nên tự bắt đầu thuốc ngủ chỉ dựa trên tư vấn từ xa. Mất ngủ gần một tuần có thể liên quan đến lịch ngủ, caffeine/chất kích thích, căng thẳng, thuốc đang dùng hoặc vấn đề sức khỏe khác; việc có cần thuốc và loại nào cần dựa trên đánh giá nguyên nhân, bệnh nền và nguy cơ tương tác.",
+      "clinical_hypotheses": [
+        "Rối loạn lịch ngủ, căng thẳng hoặc chất kích thích là các yếu tố thường cần được rà soát trước khi cân nhắc thuốc.",
+        "Một số thuốc gây buồn ngủ có thể làm giảm tỉnh táo ngày hôm sau hoặc tương tác với rượu và thuốc khác, nên không nên tự lựa chọn chỉ dựa trên triệu chứng mất ngủ."
+      ],
+      "self_care": [
+        "Giữ giờ ngủ-thức tương đối cố định và giảm màn hình, caffeine, nicotine và rượu vào buổi tối.",
+        "Không dùng thuốc ngủ của người khác, thuốc còn dư hoặc phối hợp thuốc gây buồn ngủ với rượu.",
+        "Nếu mất ngủ tiếp tục kéo dài, ảnh hưởng rõ sinh hoạt ban ngày hoặc tái diễn, hãy trao đổi với bác sĩ/dược sĩ để đánh giá nguyên nhân và lựa chọn điều trị phù hợp."
+      ],
+      "safety_net": [
+        "Cần đánh giá y tế sớm nếu mất ngủ đi kèm kích động bất thường, lú lẫn, hành vi nguy hiểm, khó thở/đau ngực hoặc ý nghĩ tự làm hại bản thân."
+      ],
+      "clarifying_questions": [
+        "Bạn khó vào giấc, hay thức giữa đêm hay thức dậy quá sớm?",
+        "Bạn đang dùng thuốc, thực phẩm bổ sung, rượu, caffeine hoặc chất kích thích nào có thể ảnh hưởng giấc ngủ không?",
+        "Ban ngày bạn có buồn ngủ quá mức, lo âu/trầm buồn rõ hoặc thay đổi hành vi bất thường không?"
+      ],
+      "advice": "Không tự bắt đầu thuốc ngủ; nếu cần thuốc, hãy để bác sĩ hoặc dược sĩ đánh giá chống chỉ định, tương tác và thời gian sử dụng phù hợp."
+    },
+    {
+      "topic": "hypertension_long_term_education",
+      "keywords": [
+        "tăng huyết áp có chữa khỏi",
+        "cao huyết áp có chữa khỏi",
+        "bệnh tăng huyết áp có chữa khỏi",
+        "tăng huyết áp. bệnh này có chữa khỏi"
+      ],
+      "summary": "Tăng huyết áp thường là tình trạng cần được kiểm soát lâu dài hơn là một bệnh có thể 'chữa khỏi hoàn toàn' bằng một đợt điều trị. Kiểm soát tốt bằng lối sống, theo dõi và thuốc khi được chỉ định có thể giảm đáng kể nguy cơ tim mạch; không nên tự ngừng thuốc khi huyết áp về mức tốt.",
+      "clinical_hypotheses": [],
+      "self_care": [
+        "Theo dõi huyết áp đúng kỹ thuật và mang nhật ký đo khi tái khám.",
+        "Duy trì chế độ ăn có lợi cho tim mạch, hạn chế natri, vận động phù hợp, kiểm soát cân nặng và hạn chế rượu theo hướng dẫn của nhân viên y tế.",
+        "Dùng thuốc đúng đơn nếu đã được kê và trao đổi với bác sĩ trước khi giảm liều hoặc ngừng thuốc."
+      ],
+      "safety_net": [
+        "Nếu huyết áp rất cao và kèm đau ngực, khó thở, yếu/tê, thay đổi thị lực, nói khó hoặc triệu chứng thần kinh mới, cần đánh giá cấp cứu."
+      ],
+      "clarifying_questions": [
+        "Bạn đã được đo huyết áp nhiều lần ở mức nào và bác sĩ có kê thuốc hay đặt mục tiêu huyết áp cụ thể chưa?",
+        "Bạn có bệnh tim mạch, đái tháo đường, bệnh thận, tiền sử đột quỵ hoặc đang mang thai không?"
+      ],
+      "advice": "Mục tiêu thực tế là kiểm soát huyết áp ổn định và giảm nguy cơ biến chứng; kế hoạch điều trị cần được cá nhân hóa với bác sĩ theo các số đo lặp lại và nguy cơ tim mạch của bạn."
+    },
+    {
+      "topic": "dental_pain",
+      "match_mode": "affirmed_complaint",
+      "keywords": [
+        "đau răng",
+        "nhức răng",
+        "ê buốt răng",
+        "sưng nướu",
+        "sưng lợi"
+      ],
+      "summary": "Để giảm đau răng tạm thời, bạn có thể ăn mềm, tránh nhai bên đau và tránh đồ quá nóng, lạnh hoặc ngọt. Cần khám nha sĩ để tìm và điều trị nguyên nhân; tin nhắn hiện chưa đủ để xác định vì sao đau.",
+      "clinical_hypotheses": [],
+      "clarifying_questions": [
+        "Bạn đau răng nào, từ khi nào và mức đau từ 0 đến 10 là bao nhiêu?",
+        "Bạn có sưng má/nướu, sốt, khó há miệng, khó nuốt hoặc khó thở không?"
+      ],
+      "self_care": [
+        "Dùng bàn chải mềm, vệ sinh nhẹ nhàng và tránh nhai bên răng đau.",
+        "Nếu là người lớn và có thể súc rồi nhổ an toàn, có thể súc miệng bằng nước muối ấm; không nuốt. Không áp dụng cho trẻ nhỏ.",
+        "Có thể hỏi dược sĩ về paracetamol hoặc ibuprofen phù hợp với tuổi, thai kỳ, bệnh nền và thuốc đang dùng; dùng đúng hướng dẫn, tránh trùng hoạt chất."
+      ],
+      "advice": "Đặt lịch nha sĩ; khám sớm nếu đau kéo dài hơn 2 ngày, không giảm với thuốc giảm đau, có sốt, đau khi cắn hoặc sưng má/hàm. Không tự dùng kháng sinh.",
+      "safety_net": [
+        "Đến cấp cứu ngay nếu sưng quanh mắt hoặc cổ, hoặc sưng miệng/cổ gây khó thở, khó nuốt hay khó nói."
+      ],
+      "source_references": [
+        "https://www.nhs.uk/symptoms/toothache/"
+      ]
+    },
+    {
+      "topic": "unlocalized_muscle_pain",
+      "match_mode": "affirmed_complaint",
+      "keywords": [],
+      "summary": "Bạn đang đau nhưng chưa cho biết rõ vị trí, mức độ và hoàn cảnh xuất hiện. Chưa đủ dữ kiện để xác định đau ở cơ, cổ hay nguyên nhân cụ thể; bạn hãy cho biết vùng đau để tôi hướng dẫn phù hợp.",
+      "clinical_hypotheses": [],
+      "clarifying_questions": [
+        "Bạn đau ở vùng cơ nào hay vùng cổ, bắt đầu từ khi nào và mức đau từ 0 đến 10 là bao nhiêu?",
+        "Có chấn thương hoặc tập nặng trước đó, sốt, sưng đỏ, yếu/tê tay chân hay nước tiểu sẫm màu không?"
+      ],
+      "self_care": [
+        "Tạm tránh hoạt động làm đau tăng; không cố kéo giãn, bẻ cổ hoặc xoa bóp mạnh khi chưa rõ nguyên nhân."
+      ],
+      "advice": "Nếu đau tăng, kéo dài hoặc ảnh hưởng vận động/sinh hoạt, hãy khám trực tiếp để đánh giá.",
+      "safety_net": [
+        "Nếu có khó thở, đau ngực, yếu liệt mới xuất hiện hoặc không thể cử động, hãy liên hệ cấp cứu 115."
+      ]
     }
   ]
 }

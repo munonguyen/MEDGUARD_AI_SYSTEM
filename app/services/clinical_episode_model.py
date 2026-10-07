@@ -186,19 +186,87 @@ _DOMAIN_UNKNOWN_SPECS: dict[str, tuple[_UnknownSpec, ...]] = {
     "dermatology": (
         _UnknownSpec(
             key="airway_mucosal_involvement",
-            question="Bạn có sưng môi/lưỡi, nghẹn cổ, khàn tiếng hoặc khó thở không?",
+            question="Bạn có sưng môi, sưng mí mắt, nghẹn cổ họng hay khó thở không?",
             impact="critical",
             changes=("emergency_disposition", "anaphylaxis_pathway"),
-            rationale="Triệu chứng đường thở hoặc niêm mạc có thể biến một phản ứng da thành cấp cứu.",
-            patterns=(r"\b(sung moi|sung luoi|nghen co|khan tieng|kho tho|khong sung moi|tho binh thuong)\b",),
+            rationale="Dấu hiệu sưng phù niêm mạc hoặc co thắt đường thở có thể biến phản ứng dị ứng da thành sốc phản vệ nguy hiểm tính mạng.",
+            patterns=(r"\b(sung moi|sung luoi|sung mat|nghen co|nghen hong|khan tieng|kho tho|khong sung moi|tho binh thuong)\b",),
+        ),
+        _UnknownSpec(
+            key="rash_distribution_spread",
+            question="Ban đỏ mẩn ngứa xuất hiện ở vùng nào (khu trú hay lan toàn thân), có phồng rộp, nổi sẩn phù mày đay hay mụn nước, rỉ dịch không?",
+            impact="high",
+            changes=("dermatology_classification", "topical_treatment_choice"),
+            rationale="Hình thái và phạm vi phân bố của ban da giúp phân biệt viêm da tiếp xúc, mày đay cấp, dị ứng toàn thân hay nhiễm trùng da.",
+            patterns=(r"\b(toan than|khu tru|mun nuoc|ri dich|phong rop|san phu|cuc|mang do|vung nao|o dau|o bung|o lung|o tay|o chan|khap nguoi)\b",),
         ),
         _UnknownSpec(
             key="new_exposure",
-            question="Ngay trước khi nổi ban bạn có dùng thuốc, ăn món lạ hoặc tiếp xúc sản phẩm/hóa chất mới nào không?",
+            question="Ngay trước khi nổi ban bạn có dùng thuốc mới, ăn món lạ hoặc tiếp xúc hóa mỹ phẩm, xà phòng hay côn trùng đốt không?",
             impact="high",
             changes=("exposure_hypothesis", "avoidance_advice"),
             rationale="Mối liên hệ thời gian với một phơi nhiễm mới giúp xác định hướng phản ứng dị ứng/tiếp xúc.",
-            patterns=(r"\b(thuoc moi|mon la|thuc an moi|my pham moi|hoa chat|sau khi uong|sau khi an|khong co gi moi)\b",),
+            patterns=(r"\b(thuoc moi|mon la|thuc an moi|my pham|hoa chat|xa phong|con trung|sau khi uong|sau khi an|khong co gi moi)\b",),
+        ),
+        _UnknownSpec(
+            key="scratch_skin_damage",
+            question="Vùng da ngứa khi cào gãi có bị trầy xước, chảy máu, rỉ dịch mủ hoặc nóng đỏ đau nhức tăng dần không?",
+            impact="high",
+            changes=("infection_risk", "skin_barrier_integrity"),
+            rationale="Tổn thương trầy xước do cào gãi làm tăng nguy cơ bội nhiễm vi khuẩn và cần hướng dẫn sát trùng tại chỗ.",
+            patterns=(r"\b(tray xuoc|chay mau|ri dich|chay mu|dau nhuc|nhiem trung|khong bi tray|khong chay mau)\b",),
+        ),
+    ),
+    "dental": (
+        _UnknownSpec(
+            key="swelling_or_infection",
+            question="Vùng nướu chân răng hoặc mặt/má có bị sưng phù, chảy mủ hay khó há miệng không?",
+            impact="critical",
+            changes=("emergency_disposition", "maxillofacial_infection_pathway"),
+            rationale="Sưng phù nề vùng mặt hoặc chảy mủ là dấu hiệu áp xe nhiễm trùng khoang hàm mặt cần can thiệp khẩn.",
+            patterns=(r"\b(sung nuou|sung ma|sung mat|sung ham|chay mu|kho ha mieng|khong sung|khong chay mu)\b",),
+        ),
+        _UnknownSpec(
+            key="trigger_sensitivity",
+            question="Răng ê buốt khi ăn uống đồ nóng, lạnh, chua ngọt hay buốt nhức tự nhiên kéo dài liên tục?",
+            impact="high",
+            changes=("pulpitis_vs_hypersensitivity", "treatment_choice"),
+            rationale="Phân biệt ê buốt do nhạy cảm ngà với đau buốt tủy răng tự nhiên kéo dài.",
+            patterns=(r"\b(nong|lanh|chua|ngot|tu nhien|lien tuc|thoang qua|ve dem|khong buot)\b",),
+        ),
+        _UnknownSpec(
+            key="prior_cavity_damage",
+            question="Cơn ê buốt xuất hiện bao lâu rồi và răng có bị lỗ sâu nhìn thấy hoặc mẻ vỡ thân răng không?",
+            impact="medium",
+            changes=("caries_fracture_evaluation", "dental_referral"),
+            rationale="Xác định tiền sử sâu răng hoặc mẻ vỡ răng để hướng dẫn hàn trám phục hồi.",
+            patterns=(r"\b(sau rang|me rang|me vo|lo sau|bao lau|moi bi|lau roi|khong me)\b",),
+        ),
+    ),
+    "ophthalmology": (
+        _UnknownSpec(
+            key="visual_acuity_change",
+            question="Bạn có bị nhìn mờ rõ rệt, giảm thị lực, chói mắt sợ ánh sáng hay đau nhức sâu trong nhãn cầu không?",
+            impact="critical",
+            changes=("emergency_disposition", "keratitis_or_glaucoma_pathway"),
+            rationale="Giảm thị lực hoặc đau nhức sâu nhãn cầu là dấu hiệu báo động viêm giác mạc hoặc tăng nhãn áp cấp.",
+            patterns=(r"\b(nhin mo|giam thi luc|choi mat|so anh sang|dau nhuc mat|nhuc sau mat|nhin ro|khong mo)\b",),
+        ),
+        _UnknownSpec(
+            key="discharge_crusting",
+            question="Mắt có tiết nhiều dử ghèn mủ vàng đục hay xanh làm dính chặt mi mắt vào buổi sáng không?",
+            impact="high",
+            changes=("bacterial_vs_viral_conjunctivitis", "topical_indication"),
+            rationale="Dử ghèn mủ dính mi mắt buổi sáng giúp phân biệt viêm kết mạc vi khuẩn với virus.",
+            patterns=(r"\b(ghen mu|dử mat|ghen vang|ghen xanh|dinh mi|nuoc mat trong|khong ghen|khong co ghen)\b",),
+        ),
+        _UnknownSpec(
+            key="contagion_contact",
+            question="Triệu chứng bị ở một hay cả hai mắt, và gần đây bạn có tiếp xúc với người bị đau mắt đỏ không?",
+            impact="medium",
+            changes=("epidemic_viral_pathway", "isolation_hygiene"),
+            rationale="Đau mắt đỏ dịch tễ thường lây lan nhanh và bắt đầu từ một mắt sang mắt kia.",
+            patterns=(r"\b(mot ben|mot mat|ca hai mat|hai mat|lay|tiep xuc|dich|khong tiep xuc)\b",),
         ),
     ),
 }
@@ -236,12 +304,40 @@ def _answered(text: str, spec: _UnknownSpec) -> bool:
     return any(re.search(pattern, normalized) for pattern in spec.patterns)
 
 
-def _unknowns(domain: str | None, active_text: str) -> tuple[DecisionUnknown, ...]:
-    specs = [*_COMMON_UNKNOWN_SPECS, *_DOMAIN_UNKNOWN_SPECS.get(domain or "", ())]
+def _already_asked(assistant_text: str, spec: _UnknownSpec) -> bool:
+    """Detect if an unknown question was already asked in an earlier assistant turn."""
+    if not assistant_text:
+        return False
+    norm_assistant = normalize_search_text(assistant_text)
+    if any(re.search(pat, norm_assistant) for pat in spec.patterns):
+        return True
+    norm_q = normalize_search_text(spec.question)
+    q_words = [w for w in norm_q.split() if len(w) > 3]
+    if len(q_words) >= 3:
+        for i in range(len(q_words) - 2):
+            trigram = " ".join(q_words[i : i + 3])
+            if trigram in norm_assistant:
+                return True
+    return False
+
+
+def _unknowns(
+    domain: str | None,
+    active_text: str,
+    assistant_text: str = "",
+) -> tuple[DecisionUnknown, ...]:
+    if domain and domain in _DOMAIN_UNKNOWN_SPECS:
+        specs = [*_DOMAIN_UNKNOWN_SPECS[domain], *_COMMON_UNKNOWN_SPECS]
+    else:
+        specs = [*_COMMON_UNKNOWN_SPECS]
     values: list[DecisionUnknown] = []
     seen: set[str] = set()
     for spec in specs:
-        if spec.key in seen or _answered(active_text, spec):
+        if (
+            spec.key in seen
+            or _answered(active_text, spec)
+            or _already_asked(assistant_text, spec)
+        ):
             continue
         seen.add(spec.key)
         values.append(
@@ -319,6 +415,12 @@ def build_clinical_episode_model(
     historical_facts = _dedupe_facts(historical)
 
     active_text = "\n".join(active_texts)
+    assistant_turns = [
+        content.strip()
+        for role, content in map(_message_parts, messages)
+        if role == "assistant" and content.strip()
+    ]
+    assistant_text = "\n".join(assistant_turns)
     coverage_values = [fact_set.semantic_coverage for _, fact_set in active_fact_sets]
     semantic_coverage = sum(coverage_values) / len(coverage_values) if coverage_values else 0.0
     historical_concepts = tuple(fact.concept for fact in historical_facts)
@@ -330,7 +432,7 @@ def build_clinical_episode_model(
         problem_representation=_problem_representation(active_domain, positive_facts, user_turns[-1]),
         confirmed_positive=positive_facts,
         confirmed_negative=negative_facts,
-        unknown_decision_relevant=_unknowns(active_domain, active_text),
+        unknown_decision_relevant=_unknowns(active_domain, active_text, assistant_text),
         historical_risk=historical_facts,
         delta=EpisodeDelta(
             new_positive=latest_positive,

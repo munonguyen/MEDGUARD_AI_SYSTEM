@@ -99,6 +99,11 @@ def evaluate_abstraction_lattice(graph: SemanticRelationGraph) -> LatticeEvaluat
     has_radiation = graph.has_concept("radiation_to_arm_or_jaw")
     has_dyspnea = graph.has_concept("severe_dyspnea")
     has_exertion = graph.has_concept("exertion_trigger")
+    bounded_exertion = False
+    if has_exertion:
+        from app.services.clinical_reasoning.chest_calibration import bounded_chest_assessment
+        bounded = bounded_chest_assessment(graph.normalized_text)
+        bounded_exertion = bool(bounded and bounded.risk_level == 'URGENT')
     has_syncope = graph.has_concept("syncope")
 
     has_fleeting = bool(
@@ -119,14 +124,16 @@ def evaluate_abstraction_lattice(graph: SemanticRelationGraph) -> LatticeEvaluat
                 is_benign_exclusion=True,
             )
         )
-    elif has_chest_pressure and (has_diaphoresis or has_radiation or has_dyspnea or has_exertion):
+    elif has_chest_pressure and (has_diaphoresis or has_radiation or has_dyspnea or (has_exertion and not bounded_exertion)):
         patterns.append(
             AbstractionPattern(
                 archetype=AbstractThreatArchetype.CARDIOPULMONARY_THREAT,
                 is_emergency=True,
                 confidence=0.98,
-                grounding_concepts=["chest_pressure", "autonomic_or_ischemic_features"],
-                clinical_rationale="Hội chứng đè nghẹt ngực cấp kèm triệu chứng thần kinh tự chủ hoặc lan tỏa (nghi thiếu máu cơ tim/ACS).",
+                grounding_concepts=["chest_pressure", "exertion_trigger" if has_exertion and not (has_diaphoresis or has_radiation or has_dyspnea) else "autonomic_or_ischemic_features"],
+                clinical_rationale=("Cảm giác đè nặng ngực liên quan gắng sức cần được đánh giá để loại trừ nguyên nhân tim mạch nguy hiểm."
+                    if has_exertion and not (has_diaphoresis or has_radiation or has_dyspnea)
+                    else "Hội chứng đè nghẹt ngực cấp kèm triệu chứng thần kinh tự chủ hoặc lan tỏa (nghi thiếu máu cơ tim/ACS)."),
             )
         )
 

@@ -50,6 +50,7 @@ function loadStoredSettings() {
 }
 
 export function SettingsModal({
+  allowSystem = true,
   open,
   onClose,
   initialTab = 'general',
@@ -200,7 +201,7 @@ export function SettingsModal({
               <span>Dữ liệu & Quyền riêng tư</span>
             </button>
             <div className="settings-nav-divider" />
-            <button
+            {allowSystem && <button
               type="button"
               className={`settings-nav-item ${activeTab === 'system' ? 'active' : ''}`}
               onClick={() => setActiveTab('system')}
@@ -209,7 +210,7 @@ export function SettingsModal({
             >
               <Workflow size={17} />
               <span>System & audit</span>
-            </button>
+            </button>}
           </nav>
 
           {/* Tab Content Panels */}
@@ -572,7 +573,7 @@ export function SettingsModal({
               </div>
             )}
 
-            {activeTab === 'system' && (
+            {allowSystem && activeTab === 'system' && (
               <div className="settings-pane system-tab-pane animate-fade-in">
                 <div className="pane-section">
                   <div className="section-head-with-badge">

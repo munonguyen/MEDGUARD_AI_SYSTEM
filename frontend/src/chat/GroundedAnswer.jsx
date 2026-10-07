@@ -5,8 +5,12 @@ import {
   CheckCircle2,
   ChevronDown,
   CircleHelp,
+  ClipboardList,
+  ExternalLink,
   ListChecks,
+  Send,
   ShieldAlert,
+  Sparkles,
   Stethoscope,
 } from 'lucide-react';
 import './GroundedAnswer.css';
@@ -37,15 +41,79 @@ const knowledgeLabels = {
   not_recorded: 'Nguồn chưa ghi nhận phê duyệt',
 };
 
-const legacyQuestionPrefixes = [
-  'Bạn cho mình biết thêm:',
-  'Thông tin cần báo nhân viên y tế nếu có thể:',
-];
-
 const clinicalIntents = new Set(['triage', 'safety', 'monitoring', 'followup', 'pharmacy']);
 
-function isLegacyQuestionNarrative(block) {
-  return legacyQuestionPrefixes.some((prefix) => block?.text?.startsWith(prefix));
+/**
+ * Generate contextual user follow-up questions to ask the AI assistant.
+ * (Questions from user -> assistant, NOT system asking user).
+ */
+function getContextualFollowups(answer, intent, tone) {
+  if (tone === 'emergency') {
+    return [
+      'Những việc cần làm ngay trong lúc chờ cấp cứu 115 là gì?',
+      'Người nhà cần chuẩn bị giấy tờ hoặc thuốc men gì mang theo khi cấp cứu?',
+    ];
+  }
+
+  const combined = `${answer?.title || ''} ${answer?.summary || ''} ${(answer?.key_points || []).join(' ')} ${(answer?.safety_notes || []).join(' ')}`.toLowerCase();
+
+  if (['warfarin', 'aspirin', 'chống đông', 'tương tác', 'xuất huyết', 'nsaid', 'chảy máu'].some((k) => combined.includes(k))) {
+    return [
+      'Có loại thuốc giảm đau nào thay thế an toàn khi đang dùng warfarin không?',
+      'Dấu hiệu xuất huyết nguy hiểm nào cần đi bệnh viện cấp cứu ngay?',
+      'Nếu tôi đã lỡ uống một liều aspirin thì cần theo dõi và xử trí như thế nào?',
+    ];
+  }
+
+  if (['răng', 'nướu', 'lợi', 'ê buốt', 'tủy', 'dental', 'nha sĩ'].some((k) => combined.includes(k))) {
+    return [
+      'Có cách nào giảm ê buốt và đau răng nhanh tại nhà an toàn không?',
+      'Thuốc giảm đau nào an toàn và phù hợp cho đau răng không cần kê đơn?',
+      'Khi nào đau răng là dấu hiệu tủy răng bị tổn thương cần đi nha sĩ ngay?',
+    ];
+  }
+
+  if (['mắt', 'kết mạc', 'đỏ mắt', 'cộm', 'nhãn cầu', 'chảy nước mắt'].some((k) => combined.includes(k))) {
+    return [
+      'Cách dùng nước muối sinh lý vệ sinh mắt đúng cách hàng ngày?',
+      'Dấu hiệu viêm mắt nào cảnh báo nguy hiểm cần khám bác sĩ ngay?',
+      'Đau mắt đỏ có lây không và cần làm gì để phòng ngừa cho người xung quanh?',
+    ];
+  }
+
+  if (['ngứa', 'mẩn', 'ban đỏ', 'mề đay', 'dị ứng', 'da liễu'].some((k) => combined.includes(k))) {
+    return [
+      'Có loại thuốc bôi hoặc thuốc uống dị ứng nào an toàn không?',
+      'Dấu hiệu dị ứng nặng nào cần đến bệnh viện cấp cứu ngay?',
+      'Cần kiêng ăn uống hoặc tránh tiếp xúc với những gì để đỡ ngứa?',
+    ];
+  }
+
+  if (['khó thở', 'đau ngực', 'tức ngực', 'hô hấp', 'thở dốc'].some((k) => combined.includes(k))) {
+    return [
+      'Dấu hiệu nào cho thấy cần gọi cấp cứu 115 ngay lập tức?',
+      'Tư thế nghỉ ngơi nào giúp dễ thở hơn trong lúc chờ nhân viên y tế?',
+      'Khi nào cơn khó thở cần can thiệp y tế khẩn cấp?',
+    ];
+  }
+
+  if (['dạ dày', 'loét', 'đau bụng', 'tiêu hóa', 'hp', 'trào ngược'].some((k) => combined.includes(k))) {
+    return [
+      'Nên ăn uống và kiêng gì khi đang bị đau dạ dày cấp?',
+      'Dấu hiệu xuất huyết tiêu hóa cần nhập viện kiểm tra là gì?',
+      'Thuốc giảm đau nào không làm tổn hại niêm mạc dạ dày?',
+    ];
+  }
+
+  if (clinicalIntents.has(intent)) {
+    return [
+      'Khi nào tôi cần đi khám bác sĩ trực tiếp thay vì tự theo dõi tại nhà?',
+      'Cần theo dõi thêm những triệu chứng bất thường nào tại nhà?',
+      'Chế độ ăn uống và sinh hoạt nào phù hợp nhất với tình trạng này?',
+    ];
+  }
+
+  return [];
 }
 
 function ClinicalSection({
@@ -67,6 +135,90 @@ function ClinicalSection({
       <List className={ordered ? 'clinical-steps-list' : 'clinical-bullet-list'}>
         {items.map((item, index) => <li key={`${item}-${index}`}>{item}</li>)}
       </List>
+    </section>
+  );
+}
+
+/**
+ * Clinical Clarifying Information from Doctor/System to User.
+ * Printed purely as text/bullets within the clinical document ("in trên văn bản").
+ */
+function ClinicalClarifyingNotes({ questions }) {
+  if (!questions?.length) return null;
+  return (
+    <div className="clinical-clarifying-notes" role="note" aria-label="Thông tin lâm sàng cần làm rõ">
+      <div className="clarifying-notes-header">
+        <ClipboardList size={15} className="clarifying-notes-icon" />
+        <span>Thông tin lâm sàng cần làm rõ thêm:</span>
+      </div>
+      <ul className="clarifying-notes-list">
+        {questions.map((q, idx) => (
+          <li key={`clarify-q-${idx}`}>{q}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/**
+ * Interactive Follow-up Question Chips for the User to ask the AI Assistant.
+ * (Clickable prompt chips: User -> Assistant).
+ */
+function InteractiveFollowupPrompts({ questions, onSelectQuestion }) {
+  if (!questions?.length) return null;
+  return (
+    <section className="interactive-followup-section" aria-label="Gợi ý câu hỏi tiếp theo dành cho bạn">
+      <div className="interactive-followup-header">
+        <Sparkles size={14} className="followup-header-icon" />
+        <span>Gợi ý câu hỏi bạn có thể hỏi tiếp (Nhấn để gửi nhanh):</span>
+      </div>
+      <div className="interactive-followup-chips" role="group">
+        {questions.map((q, idx) => (
+          <button
+            key={`followup-chip-${idx}`}
+            type="button"
+            className="interactive-followup-chip"
+            onClick={() => onSelectQuestion?.(q)}
+            title={`Nhấn để gửi câu hỏi: "${q}"`}
+          >
+            <span className="followup-chip-sparkle">💬</span>
+            <span className="followup-chip-text">{q}</span>
+            <Send size={12} className="followup-chip-icon" />
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Authoritative Ministry of Health Guideline References Footnote.
+ */
+function ResearchedSourcesFootnote({ sources }) {
+  if (!sources?.length) return null;
+  return (
+    <section className="answer-sources-footnote" aria-label="Tài liệu tham khảo chuyên môn">
+      <div className="sources-footnote-header">
+        <span className="sources-footnote-title">Tài liệu tham khảo chuyên môn & văn bản quy chuẩn (Bộ Y tế):</span>
+      </div>
+      <ol className="sources-footnote-list">
+        {sources.map((src, idx) => (
+          <li key={`src-${src.source_id || idx}`}>
+            <a
+              href={src.url}
+              target="_blank"
+              rel="noreferrer"
+              className="source-footnote-link"
+              title={`${src.publisher}: ${src.title}`}
+            >
+              <span className="source-footnote-index">[{idx + 1}]</span>
+              <strong className="source-footnote-name">{src.title}</strong>
+              {src.publisher ? <span className="source-footnote-publisher"> — {src.publisher}</span> : null}
+              <ExternalLink size={11} className="source-footnote-external" />
+            </a>
+          </li>
+        ))}
+      </ol>
     </section>
   );
 }
@@ -104,10 +256,22 @@ function statusConfig({ urgency, overallRisk, isClinical }) {
   };
 }
 
-export function GroundedAnswer({ answer, result, responseMeta = {} }) {
+export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQuestion }) {
   if (!answer) return null;
 
   const hasNarrative = answer.narrative?.length > 0;
+  const verifiedAgentPrimary = responseMeta.verification_status === 'verified'
+    && responseMeta.answer_origin === 'gateway_verified' && hasNarrative;
+  const agentUnavailable = clinicalIntents.has(responseMeta.intent)
+    && ['unavailable', 'timed_out', 'rejected', 'error', 'circuit_open'].includes(responseMeta.verification_status);
+
+  // Clinical action/safety sections are never collapsed by brevity preferences.
+  const isBrief = answer.presentation === 'brief' && !clinicalIntents.has(responseMeta.intent)
+    && !(answer.safety_notes?.length) && !(answer.next_steps?.length)
+    && !(answer.questions?.length) && !(answer.key_points?.length) && !(answer.clinical_hypotheses?.length)
+    && !answer.requires_human_review
+    && !['URGENT', 'EMERGENCY', 'CRITICAL'].includes(result?.urgency || result?.escalation_level);
+  const isFocused = answer.presentation === 'focused';
   const researchedSources = answer.researched_sources || [];
   const sourcesById = new Map(
     researchedSources.map((source, index) => [source.source_id, { ...source, index: index + 1 }]),
@@ -123,27 +287,44 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
   });
   const StatusIcon = status.icon;
 
-  const displayQuestions = Array.isArray(answer.display_questions)
-    ? answer.display_questions
-    : (answer.questions || []).slice(0, 2);
+  // System clarifying questions (printed in document/narrative only)
+  const systemClarifyingQuestions = [
+    ...new Set([
+      ...(Array.isArray(answer.display_questions) ? answer.display_questions : []),
+      ...(Array.isArray(answer.questions) ? answer.questions : []),
+    ]),
+  ].slice(0, 3);
+
+  // User follow-up questions (clickable chips for user to ask assistant)
+  const userFollowupQuestions = [
+    ...new Set([
+      ...(Array.isArray(answer.suggested_followups) ? answer.suggested_followups : []),
+      ...getContextualFollowups(answer, responseMeta.intent, status.tone),
+    ]),
+  ].slice(0, 3);
 
   const hypotheses = (answer.clinical_hypotheses || [])
     .filter((item) => !String(item).toLowerCase().startsWith('lưu ý:'))
     .slice(0, 4);
-  const keyPoints = (answer.key_points || []).slice(0, 5);
-  const nextSteps = (answer.next_steps || []).slice(0, 5);
-  const safetyNotes = (answer.safety_notes || []).slice(0, 4);
+  const keyPoints = isClinical ? (answer.key_points || []) : (answer.key_points || []).slice(0, 5);
+  const focusedRoutine = isFocused && responseMeta.intent === 'triage' && result?.urgency === 'ROUTINE';
+  const nextSteps = focusedRoutine && Array.isArray(answer.display_next_steps)
+    ? answer.display_next_steps : (answer.next_steps || []);
+  const safetyNotes = answer.safety_notes || [];
   const limitations = (answer.limitations || []).slice(0, 2);
 
-  const narrativeBlocks = hasNarrative
-    ? answer.narrative.filter((block) => !isLegacyQuestionNarrative(block))
-    : [];
+  // Narrative blocks: preserve all clinical context, system clarifying questions are printed in document
+  const narrativeBlocks = hasNarrative ? answer.narrative : [];
+  const hasNarrativeClarifying = narrativeBlocks.some((b) =>
+    b.text?.startsWith('Bạn cho mình biết thêm:') || b.text?.startsWith('Thông tin cần báo nhân viên y tế')
+  );
+
   const hasStructuredContent = Boolean(
     keyPoints.length
     || hypotheses.length
     || nextSteps.length
     || safetyNotes.length
-    || displayQuestions.length,
+    || systemClarifyingQuestions.length,
   );
 
   return (
@@ -165,7 +346,7 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
       )}
 
       <section className={`clinical-summary-card status-${status.tone}`}>
-        <div className="clinical-status-row">
+        {!isBrief && <div className="clinical-status-row">
           <span className={`clinical-status-badge ${status.tone}`}>
             <StatusIcon size={15} />
             <strong>{status.label}</strong>
@@ -175,29 +356,49 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
               {evidenceLabels[answer.evidence_state] || answer.evidence_state}
             </span>
           )}
-        </div>
+        </div>}
 
         <div className="clinical-summary-copy">
-          <span className="clinical-kicker">{isClinical ? 'Đánh giá ban đầu' : 'Kết quả xử lý'}</span>
+          {!isBrief && <span className="clinical-kicker">{isClinical ? 'Đánh giá ban đầu' : 'Kết quả xử lý'}</span>}
           <h2>{answer.title}</h2>
-          <p>{answer.summary}</p>
-          <small>{status.helper}</small>
+          {agentUnavailable && <p role="status" className="agent-unavailable-notice">Chưa hoàn tất thẩm định câu trả lời. Nội dung bên dưới là hướng dẫn dự phòng, không phải tư vấn đã được thẩm định.</p>}
+          {!verifiedAgentPrimary && <p>{focusedRoutine && answer.display_summary ? answer.display_summary : answer.summary}</p>}
+          {!isBrief && <small>{status.helper}</small>}
         </div>
       </section>
 
-      {hasStructuredContent ? (
+      {verifiedAgentPrimary ? (
+        <>
+          <div className="answer-narrative clinical-agent-primary" data-answer-authority="verified-agent">
+            {narrativeBlocks.map((block, index) => (
+              <NarrativeBlock key={`primary-${index}`} block={block} sourcesById={sourcesById} />
+            ))}
+          </div>
+
+          {!hasNarrativeClarifying && systemClarifyingQuestions.length > 0 && (
+            <ClinicalClarifyingNotes questions={systemClarifyingQuestions} />
+          )}
+
+          <ResearchedSourcesFootnote sources={researchedSources} />
+
+          <InteractiveFollowupPrompts
+            questions={userFollowupQuestions}
+            onSelectQuestion={onSelectQuestion}
+          />
+        </>
+      ) : !isBrief && hasStructuredContent ? (
         <div className="clinical-report-body">
           <ClinicalSection
             title={isClinical ? 'Dữ kiện chính' : 'Thông tin chính'}
             icon={Activity}
-            items={keyPoints}
+            items={isFocused && responseMeta.intent === 'triage' && status.tone === 'routine' ? [] : keyPoints}
             tone="neutral"
           />
 
           <ClinicalSection
             title="Khả năng cần cân nhắc"
             icon={Stethoscope}
-            items={hypotheses}
+            items={isFocused ? [] : hypotheses}
             tone="clinical"
           />
 
@@ -218,27 +419,43 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
             className="clinical-section-wide"
           />
 
-          <ClinicalSection
-            title={isClinical ? 'Thông tin cần biết thêm' : 'Thông tin cần bổ sung'}
-            icon={CircleHelp}
-            items={displayQuestions}
-            tone="question"
-            className="clinical-section-wide"
+          {!hasNarrativeClarifying && systemClarifyingQuestions.length > 0 && (
+            <ClinicalClarifyingNotes questions={systemClarifyingQuestions} />
+          )}
+
+          <ResearchedSourcesFootnote sources={researchedSources} />
+
+          <InteractiveFollowupPrompts
+            questions={userFollowupQuestions}
+            onSelectQuestion={onSelectQuestion}
           />
         </div>
-      ) : hasNarrative ? (
-        <div className="answer-narrative clinical-narrative-fallback">
-          {narrativeBlocks.map((block, index) => (
-            <NarrativeBlock
-              key={`${block.text}-${index}`}
-              block={block}
-              sourcesById={sourcesById}
-            />
-          ))}
-        </div>
+      ) : !isBrief && hasNarrative ? (
+        <>
+          <div className="answer-narrative clinical-narrative-fallback">
+            {narrativeBlocks.map((block, index) => (
+              <NarrativeBlock
+                key={`${block.text}-${index}`}
+                block={block}
+                sourcesById={sourcesById}
+              />
+            ))}
+          </div>
+
+          {!hasNarrativeClarifying && systemClarifyingQuestions.length > 0 && (
+            <ClinicalClarifyingNotes questions={systemClarifyingQuestions} />
+          )}
+
+          <ResearchedSourcesFootnote sources={researchedSources} />
+
+          <InteractiveFollowupPrompts
+            questions={userFollowupQuestions}
+            onSelectQuestion={onSelectQuestion}
+          />
+        </>
       ) : null}
 
-      {limitations.length > 0 && (
+      {!isBrief && limitations.length > 0 && (
         <div className="clinical-limitations">
           <AlertCircle size={15} />
           <div>
@@ -248,20 +465,24 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
         </div>
       )}
 
-      {hasNarrative && hasStructuredContent && narrativeBlocks.length > 0 && (
+      {!verifiedAgentPrimary && (isBrief || isFocused || (hasNarrative && hasStructuredContent && narrativeBlocks.length > 0)) && (
         <details className="clinical-detail-panel">
           <summary>
             <span><Stethoscope size={15} /> {isClinical ? 'Giải thích chi tiết' : 'Chi tiết xử lý'}</span>
-            <ChevronDown size={15} className="detail-chevron" />
+            <ChevronDown size={14} className="panel-chevron" />
           </summary>
-          <div className="answer-narrative clinical-detail-content">
-            {narrativeBlocks.map((block, index) => (
-              <NarrativeBlock
-                key={`${block.text}-${index}`}
-                block={block}
-                sourcesById={sourcesById}
-              />
-            ))}
+          <div className="clinical-detail-content">
+            {narrativeBlocks.length > 0 ? (
+              narrativeBlocks.map((block, index) => (
+                <NarrativeBlock
+                  key={`detail-${index}`}
+                  block={block}
+                  sourcesById={sourcesById}
+                />
+              ))
+            ) : (
+              <p>{answer.summary}</p>
+            )}
           </div>
         </details>
       )}
@@ -272,6 +493,23 @@ export function GroundedAnswer({ answer, result, responseMeta = {} }) {
 function NarrativeBlock({ block, sourcesById }) {
   const isUrgentBlock = block.kind === 'urgent';
   const isCautionBlock = block.kind === 'caution';
+  const isClarifyingBlock = block.text?.startsWith('Bạn cho mình biết thêm:') || block.text?.startsWith('Thông tin cần báo nhân viên y tế nếu có thể:');
+
+  if (isClarifyingBlock) {
+    const cleanPrompt = block.text.replace(/^(Bạn cho mình biết thêm:|Thông tin cần báo nhân viên y tế nếu có thể:)\s*/, '');
+    return (
+      <div className="narrative-clarifying-block">
+        <div className="clarifying-block-header">
+          <ClipboardList size={14} className="clarifying-block-icon" />
+          <span>Thông tin cần làm rõ thêm để hỗ trợ tư vấn:</span>
+        </div>
+        <p className="clarifying-block-text">
+          <HighlightedText text={cleanPrompt} emphasis={block.emphasis} />
+        </p>
+      </div>
+    );
+  }
+
   return (
     <p className={block.kind}>
       {isUrgentBlock && <AlertCircle size={17} className="block-lead-icon urgent" />}

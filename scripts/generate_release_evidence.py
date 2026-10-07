@@ -28,10 +28,11 @@ from app.services.clinical_validation_governance import (
 from app.services.external_evidence_registry import evaluate_external_evidence_registry
 from app.services.readiness import build_readiness
 from scripts.benchmark_professional_response import run_professional_response_benchmark
+from scripts.public_output_evidence import load_public_output_audit, summarize_public_output_audit
 from scripts.evaluate_medical_response_quality import run_benchmark as run_medical_response_quality_benchmark
 
 
-SCHEMA_VERSION = "1.1.0"
+SCHEMA_VERSION = "1.2.0"
 
 
 def _git_sha() -> str:
@@ -117,7 +118,12 @@ def build_release_evidence(
     git_sha: str | None = None,
     generated_at: str | None = None,
     model_configuration: dict[str, Any] | None = None,
+    public_output_audit: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    candidate_sha = git_sha or _git_sha()
+    public_output = summarize_public_output_audit(
+        load_public_output_audit() if public_output_audit is None else public_output_audit,
+        expected_sha=candidate_sha)
     readiness_obj = readiness or build_readiness()
     medical = medical_quality or run_medical_response_quality_benchmark()
     professional = professional_quality or run_professional_response_benchmark()
@@ -160,6 +166,8 @@ def build_release_evidence(
     }
 
     blockers = list(readiness_data["required_blockers"])
+    if not public_output['gate_passed']:
+        blockers.append('public_output_quality')
     if not medical_summary["gate_passed"]:
         blockers.append("medical_response_quality")
     if not professional_summary["gate_passed"]:
@@ -172,13 +180,14 @@ def build_release_evidence(
     payload: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "generated_at": generated_at or datetime.now(timezone.utc).isoformat(),
-        "code_sha": git_sha or _git_sha(),
+        "code_sha": candidate_sha,
         "environment": settings.environment,
         "service": settings.service_name,
         "readiness": readiness_data,
         "quality": {
             "medical_response": medical_summary,
             "professional_response": professional_summary,
+            "public_output": public_output,
         },
         "clinical_validation": {
             "status": clinical_status,
@@ -199,6 +208,7 @@ def build_release_evidence(
             and professional_summary["gate_passed"]
             and clinical_status == "pass"
             and external_summary["valid"]
+            and public_output['gate_passed']
         ),
         "release_blockers": sorted(set(blockers)),
         "governance_note": (
@@ -239,6 +249,11 @@ def validate_release_evidence(payload: dict[str, Any]) -> tuple[bool, list[str]]
             errors.append("eligible_without_clinical_validation")
         if external.get("valid") is not True:
             errors.append("eligible_without_external_evidence")
+        public = quality.get('public_output') or {}
+        if (public.get('gate_passed') is not True or public.get('code_sha') != payload.get('code_sha')
+                or public.get('blockers') or not isinstance(public.get('total'), int) or public['total'] < 60
+                or any(public.get(k) != public['total'] for k in ('strict_passed', 'professional_passed', 'jury_passed'))):
+            errors.append('eligible_without_public_output_quality')
     return not errors, errors
 
 

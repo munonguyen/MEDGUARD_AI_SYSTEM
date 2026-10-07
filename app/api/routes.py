@@ -3,7 +3,7 @@ from __future__ import annotations
 from hashlib import sha256
 from typing import Any
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile, status
 
 from app.core.context import RequestContext
 from app.core.security import verify_tenant_api_key, verify_tenant_credentials
@@ -631,3 +631,41 @@ def fhir_export(
     response = to_fhir_bundle(resources)
     store_idempotent_response(action="fhir.export", payload=payload, ctx=ctx, response=response)
     return response
+
+
+@router.get("/tts")
+async def get_text_to_speech(
+    text: str,
+    persona: str = "dr_tuan",
+) -> Response:
+    """Generate high-quality, human-like neural Vietnamese speech for male & female doctors."""
+    clean_text = text.strip()
+    if not clean_text:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Text cannot be empty")
+
+    voice = "vi-VN-NamMinhNeural" if persona == "dr_tuan" else "vi-VN-HoaiMyNeural"
+
+    try:
+        from edge_tts import Communicate
+        comm = Communicate(clean_text[:800], voice=voice)
+        chunks = []
+        async for chunk in comm.stream():
+            if chunk["type"] == "audio":
+                chunks.append(chunk["data"])
+        audio_bytes = b"".join(chunks)
+        if not audio_bytes:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="TTS synthesis produced empty audio")
+
+        return Response(
+            content=audio_bytes,
+            media_type="audio/mpeg",
+            headers={
+                "Cache-Control": "public, max-age=86400",
+                "Content-Disposition": f'inline; filename="doctor_voice_{persona}.mp3"',
+            },
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"TTS synthesis failed: {str(exc)}",
+        )

@@ -82,7 +82,9 @@ _RAW_TYPO_MAP: list[tuple[re.Pattern[str], str]] = [
 
 # Post-accent-removal dictionary for Latinized typos
 _POST_NORM_TYPO_MAP: list[tuple[re.Pattern[str], str]] = [
-    (re.compile(r"\b(?:kang\s+ko|cang\s+ko|kang\s+co|can\s+co)\b", re.I), "cang co"),
+    # "can co" is also the valid Vietnamese phrase "cần có". Never turn
+    # ordinary request language into a clinical finding after stripping tones.
+    (re.compile(r"\b(?:kang\s+ko|cang\s+ko|kang\s+co)\b", re.I), "cang co"),
     (re.compile(r"\b(?:uog)\b", re.I), "uong"),
     (re.compile(r"\b(?:dug)\b", re.I), "dung"),
     (re.compile(r"\b(?:zoi)\b", re.I), "voi"),
@@ -121,6 +123,16 @@ def normalize_search_text(value: str) -> str:
     for pattern, repl in _POST_NORM_TYPO_MAP:
         normalized = pattern.sub(repl, normalized)
 
+    # Normalize anatomical relations, not only adjacent symptom keywords.
+    # A location modifier must stay inside one phrase and explicitly refer to
+    # the head; "đầu gối" / fingers and unrelated limbs are excluded.
+    normalized = re.sub(
+        r"\b(?:dau|nhuc)\s+(?:(?:o|tai)\s+)?"
+        r"((?:(?:goc|vung|ben|phia|nua|trai|phai|sau|tren|duoi)\s+){1,4})"
+        r"dau\b(?!\s+(?:goi|ngon|ngon tay|ngon chan)\b)",
+        lambda match: "dau dau " + match.group(1).strip(),
+        normalized,
+    )
     # Pass 4: Collapse whitespace
     return re.sub(r"\s+", " ", normalized).strip()
 

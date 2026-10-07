@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "version": "2.5.0",
-    "effective_from": "2026-09-12",
+    "version": "2.5.1",
+    "effective_from": "2026-10-02",
     "source_references": [
       "Manchester Triage System (MTS)",
       "Emergency Severity Index (ESI) Implementation Handbook v4",
@@ -15,7 +15,8 @@
       "NHS Deep vein thrombosis: symptoms and emergency advice (reviewed April 2026)",
       "WHO Rabies: vaccinations and immunization — post-exposure wound care",
       "NHS Stomach pain in pregnancy: urgent advice",
-      "NHS High temperature in children: immediate action criteria"
+      "NHS High temperature in children: immediate action criteria",
+      "https://www.nhs.uk/symptoms/shortness-of-breath/"
     ]
   },
   "red_flag_patterns": [
@@ -153,7 +154,7 @@
         "code": "RESPIRATORY",
         "label": "Hô hấp"
       },
-      "advice": "Suy hô hấp cấp tính. Sử dụng thuốc giãn phế quản tác dụng nhanh nếu có và đến cơ sở cấp cứu ngay.",
+      "advice": "Khó thở có thể có nhiều nguyên nhân và chưa thể xác định chỉ qua tin nhắn. Gọi 115 hoặc đến khoa Cấp cứu ngay; không tự lái xe và nhờ người bên cạnh hỗ trợ. Không tự dùng thuốc mới để trì hoãn việc khám.",
       "stop_downstream": true
     },
     {
@@ -5399,6 +5400,153 @@
       "safety_net": [
         "Cần đi khám bác sĩ ngay nếu: Vùng da bị ngứa sưng tấy đỏ lan rộng, chảy mủ vàng, lở loét hoặc kèm theo sốt (dấu hiệu nhiễm trùng vi khuẩn bội nhiễm); hoặc điều trị sau 2 tuần vẫn ngứa tăng dần."
       ]
+    },
+    {
+      "topic": "pruritus_rash_dermatology",
+      "keywords": [
+        "mẩn ngứa",
+        "man ngua",
+        "ban đỏ",
+        "ban do",
+        "mẩn đỏ",
+        "man do",
+        "nổi mẩn",
+        "noi man",
+        "ngứa rát",
+        "ngua rat",
+        "càng gãi càng ngứa",
+        "cang gai cang ngua",
+        "ngứa da",
+        "ngua da",
+        "nổi mày đay",
+        "noi may day",
+        "mày đay",
+        "may day",
+        "dị ứng da",
+        "di ung da",
+        "nổi ban",
+        "noi ban",
+        "phát ban",
+        "phat ban"
+      ],
+      "summary": "Tình trạng mẩn ngứa và ban đỏ trên da thường là biểu hiện của phản ứng dị ứng cấp tính (như mày đay cấp, viêm da tiếp xúc) hoặc kích ứng da. Cào gãi nhiều kích thích đầu tận cùng thần kinh và giải phóng thêm histamin, làm tăng phản ứng viêm và cảm giác rát ngứa (vòng xoắn ngứa - gãi). Cần phân biệt phản ứng lành tính tại da với phản ứng dị ứng toàn thân nặng (phù mạch, khó thở).",
+      "clinical_hypotheses": [
+        "Mày đay cấp tính hoặc dị ứng thời tiết/thực phẩm: Ban đỏ nổi sẩn phù cục hoặc dát đỏ kèm ngứa ngáy dữ dội, có thể xuất hiện sau phơi nhiễm dị nguyên.",
+        "Viêm da tiếp xúc dị ứng hoặc kích ứng: Tổn thương dát đỏ, mẩn ngứa rát khu trú ở vùng da tiếp xúc hóa mỹ phẩm, xà phòng hoặc côn trùng.",
+        "Tổn thương trầy xước thứ phát do cào gãi: Cào gãi liên tục phá vỡ hàng rào bảo vệ da, gây rát, trợt da và tăng nguy cơ bội nhiễm vi khuẩn."
+      ],
+      "clarifying_questions": [
+        "Bạn có bị sưng môi, sưng mí mắt, nghẹn họng hoặc cảm giác khó thở không?",
+        "Nốt mẩn ngứa là dát đỏ phẳng hay nổi sẩn gồ mày đay, có mụn nước rỉ dịch không và bị ở một vùng hay lan toàn thân?",
+        "Trước khi nổi ban bạn có dùng thuốc mới, ăn thực phẩm lạ, tiếp xúc hóa mỹ phẩm hoặc bị côn trùng đốt không?"
+      ],
+      "self_care": [
+        "Cắt đứt vòng xoắn ngứa - gãi: Tuyệt đối tránh cào gãi bằng móng tay để ngăn tổn thương biểu bì và nhiễm trùng; có thể dùng lòng bàn tay xoa nhẹ hoặc vỗ nhẹ nếu quá ngứa.",
+        "Chườm mát làm dịu da tức thì: Dùng khăn sạch bọc đá hoặc khăn mát chườm lên vùng da tổn thương trong 10-15 phút để co mạch và làm dịu cơn ngứa rát.",
+        "Vệ sinh và dưỡng ẩm bảo vệ da: Tắm bằng nước mát hoặc ấm vừa phải, tránh dùng xà phòng có chất tẩy mạnh hoặc chà xát khăn cứng; mặc quần áo vải cotton rộng rãi, thoáng mát.",
+        "Các nhóm thuốc hỗ trợ triệu chứng thường dùng theo hướng dẫn chuyên khoa: Có thể tham khảo dược sĩ hoặc bác sĩ về thuốc kháng histamin H1 thế hệ 2 đường uống (như Cetirizine, Loratadine, Fexofenadine) để giảm ngứa hiệu quả mà ít gây buồn ngủ; bôi kem/gel làm dịu da (như hồ nước, kẽm oxyd, Calamine lotion); tuyệt đối không tự ý bôi thuốc chứa corticoid kéo dài hoặc tự ý uống kháng sinh khi chưa rõ nguyên nhân."
+      ],
+      "advice": "Nếu tình trạng mẩn ngứa ban đỏ không thuyên giảm sau vài ngày, ban lan rộng toàn thân hoặc rỉ dịch mủ, bạn nên đến cơ sở y tế có chuyên khoa Da liễu để được bác sĩ thăm khám và kê đơn phù hợp.",
+      "safety_net": [
+        "Cần gọi cấp cứu 115 hoặc đến ngay cơ sở y tế gần nhất nếu xuất hiện dấu hiệu phản vệ: Khó thở, thở rít, khàn tiếng, cảm giác nghẹn họng; sưng phù môi, lưỡi hoặc mắt; hoa mắt, chóng mặt hoặc choáng ngất."
+      ],
+      "source_title": "Hướng dẫn Chẩn đoán và Điều trị các bệnh Da liễu (QĐ 75/QĐ-BYT)",
+      "source_publisher": "Bộ Y tế — Cục Quản lý Khám, chữa bệnh",
+      "source_url": "https://kcb.vn/van-ban/quyet-dinh-75-qd-byt-tai-lieu-huong-dan-chan-doan-va-dieu-tri-cac-benh-da-lieu.html"
+    },
+    {
+      "topic": "toothache_dental",
+      "keywords": [
+        "ê buốt răng",
+        "e buot rang",
+        "buốt răng",
+        "buot rang",
+        "đau răng",
+        "dau rang",
+        "nhức răng",
+        "nhuc rang",
+        "sâu răng",
+        "sau rang",
+        "viêm tủy răng",
+        "viem tuy rang",
+        "viêm nướu",
+        "viem nuou",
+        "sưng nướu",
+        "sung nuou",
+        "chảy máu chân răng",
+        "chay mau chan rang"
+      ],
+      "summary": "Tình trạng ê buốt hoặc đau nhức răng thường xuất phát từ tổn thương ngà răng/men răng (mòn men, nhạy cảm ngà), sâu răng tiến triển hoặc kích thích tủy răng. Cần phân biệt ê buốt thoáng qua với viêm tủy răng cấp hoặc nhiễm trùng quanh chóp răng có sưng phù vùng hàm mặt.",
+      "clinical_hypotheses": [
+        "Nhạy cảm ngà răng / Mòn men răng: Răng ê buốt buốt nhói thoáng qua khi tiếp xúc kích thích nóng, lạnh, chua hoặc ngọt và hết ngay khi ngừng kích thích.",
+        "Sâu răng hoặc nứt vỡ thân răng: Có lỗ sâu nhìn thấy hoặc cảm nhận kẽ răng rắt thức ăn; đau buốt rõ hơn khi nhai hoặc đồ ăn lọt vào lỗ sâu.",
+        "Viêm tủy răng có hồi phục hoặc không hồi phục: Cơn ê buốt kéo dài nhiều phút sau kích thích nhiệt, hoặc đau buốt nhói tự nhiên dữ dội tăng về đêm.",
+        "Viêm nha chu hoặc tụt nướu: Lộ chân răng, sưng nề nhẹ viền nướu, dễ chảy máu khi đánh răng."
+      ],
+      "clarifying_questions": [
+        "Răng ê buốt khi ăn uống đồ nóng, lạnh, ngọt hay ê buốt buốt nhức tự nhiên kéo dài cả khi không kích thích?",
+        "Vùng răng đau có kèm theo sưng nướu, chảy mủ, lung lay răng hay sưng phù vùng má/hàm không?",
+        "Cơn đau ê buốt xuất hiện bao lâu rồi và trước đó răng có bị sâu răng hay mòn men răng không?"
+      ],
+      "self_care": [
+        "Tránh các kích thích nhiệt và cơ học: Tạm thời không ăn đồ quá nóng, quá lạnh, quá chua hoặc ngọt gắt; tránh nhai vào bên cung hàm có răng ê buốt.",
+        "Vệ sinh răng miệng đúng cách: Dùng bàn chải lông mềm chải nhẹ nhàng theo chiều dọc, tránh chà ngang làm mòn cổ răng; dùng kem đánh răng chuyên biệt giảm ê buốt có chứa kali nitrat hoặc fluor.",
+        "Súc miệng nước muối ấm nhẹ: Hòa 1/2 thìa cà phê muối tinh trong cốc nước ấm (khoảng 0.9%) súc miệng 30 giây rồi nhổ ra, ngày 2-3 lần để sát khuẩn nhẹ.",
+        "Thuốc giảm đau thông thường khi cần: Có thể tham khảo ý kiến dược sĩ về Paracetamol hoặc Ibuprofen uống giảm đau tạm thời theo liều khuyến cáo; tuyệt đối không tự ý dùng thuốc kháng sinh hoặc đặt thuốc linh tinh vào lỗ sâu răng."
+      ],
+      "advice": "Tình trạng ê buốt răng cần được bác sĩ chuyên khoa Răng Hàm Mặt thăm khám trực tiếp để xử lý triệt để nguyên nhân (hàn trám lỗ sâu, điều trị tủy hoặc chống ê buốt chuyên sâu).",
+      "safety_net": [
+        "Cần đi khám chuyên khoa Răng Hàm Mặt ngay nếu: Đau nhức buốt dữ dội không đáp ứng thuốc giảm đau; xuất hiện sưng phù nề vùng má, mắt hoặc dưới hàm; sốt cao, há miệng khó hoặc khó nuốt (nguy cơ áp xe khoang sâu vùng hàm mặt)."
+      ],
+      "source_title": "Hướng dẫn Chẩn đoán và Điều trị chuyên ngành Răng Hàm Mặt (QĐ 3200/QĐ-BYT)",
+      "source_publisher": "Bộ Y tế — Cục Quản lý Khám, chữa bệnh",
+      "source_url": "https://kcb.vn/van-ban/quyet-dinh-so-3200-qd-byt-ve-viec-ban-hanh-tai-lieu-huong-dan-chan-doan-va-dieu-tri-chuyen-nganh-rang-ham-mat.html"
+    },
+    {
+      "topic": "red_eye_conjunctivitis",
+      "keywords": [
+        "đau mắt đỏ",
+        "dau mat do",
+        "viêm kết mạc",
+        "viem ket mac",
+        "đỏ mắt",
+        "do mat",
+        "mắt đỏ",
+        "mat do",
+        "cộm mắt",
+        "com mat",
+        "ghèn mắt",
+        "ghen mat",
+        "dử mắt",
+        "du mat",
+        "chảy nước mắt",
+        "chay nuoc mat"
+      ],
+      "summary": "Tình trạng đau mắt đỏ (viêm kết mạc cấp) là viêm lớp màng trong suốt bao phủ lòng trắng và mặt trong mi mắt, thường do virus (Adenovirus), vi khuẩn hoặc dị ứng. Bệnh rất dễ lây lan qua tiếp xúc trực tiếp hoặc gián tiếp với dịch tiết mắt. Cần theo dõi sát để loại trừ các bệnh lý giác mạc và glôcôm nguy hiểm.",
+      "clinical_hypotheses": [
+        "Viêm kết mạc cấp do virus (đau mắt đỏ dịch tễ): Thường bắt đầu ở một mắt rồi lây sang mắt kia; cộm xốn, đỏ kết mạc, chảy nước mắt trong hoặc ít dử ghèn, có thể kèm sốt nhẹ hoặc sưng hạch trước tai.",
+        "Viêm kết mạc do vi khuẩn: Mắt đỏ nhiều kèm tiết dịch mủ nhầy màu vàng hoặc xanh đục, thường dính chặt hai mi mắt khi thức dậy vào buổi sáng.",
+        "Viêm kết mạc dị ứng: Ngứa mắt dữ dội, cộm xốn, chảy nước mắt, thường bị cả hai mắt cùng lúc và có tiền sử viêm mũi dị ứng/cơ địa dị ứng.",
+        "Dị vật kết giác mạc hoặc xước giác mạc: Cộm rát buốt chói mắt dữ dội sau khi bụi hoặc côn trùng bay vào mắt."
+      ],
+      "clarifying_questions": [
+        "Mắt có tiết nhiều ghèn mủ vàng đục hay xanh làm dính chặt mi mắt vào buổi sáng không?",
+        "Bạn có bị nhìn mờ rõ rệt, chói mắt/sợ ánh sáng hoặc đau nhức buốt sâu trong nhãn cầu không?",
+        "Triệu chứng bị ở một bên hay cả hai mắt, và gần đây có tiếp xúc với người bị đau mắt đỏ không?"
+      ],
+      "self_care": [
+        "Vệ sinh mắt an toàn: Rửa mắt bằng nước muối sinh lý NaCl 0.9% từ 3-4 lần/ngày để làm sạch dử mắt; dùng gạc sạch lau từ khóe mắt ra ngoài và bỏ ngay sau một lần dùng.",
+        "Chườm mát làm dịu mi mắt: Dùng khăn sạch ngâm nước mát vắt ráo đắp nhẹ lên mắt 10-15 phút để giảm phù nề cộm xốn.",
+        "Chống lây nhiễm chéo: Tuyệt đối không dụi mắt; rửa tay xà phòng thường xuyên; dùng khăn mặt, gối và đồ dùng cá nhân riêng; không dùng chung thuốc nhỏ mắt.",
+        "Cảnh báo dùng thuốc: Tuyệt đối KHÔNG tự ý mua thuốc nhỏ mắt chứa Corticoid (như Dexamethasone) hoặc thuốc co mạch khi chưa có bác sĩ Mắt chỉ định vì có thể gây biến chứng loét thủng giác mạc hoặc tăng nhãn áp."
+      ],
+      "advice": "Bạn nên đến khám tại cơ sở y tế có chuyên khoa Mắt để được bác sĩ soi đáy mắt, đánh giá giác mạc và chỉ định phác đồ nhỏ mắt chính xác.",
+      "safety_net": [
+        "Cần đến khám chuyên khoa Mắt ngay nếu: Thị lực giảm sút (nhìn mờ, lóa mắt); đau nhức buốt sâu trong nhãn cầu; sợ ánh sáng dữ dội; xuất hiện đốm trắng hoặc vết đục trên tròng đen (giác mạc); hoặc triệu chứng không đỡ sau 5-7 ngày."
+      ],
+      "source_title": "Hướng dẫn Chẩn đoán và Điều trị các bệnh về Mắt & Viêm kết mạc (QĐ 3906/QĐ-BYT)",
+      "source_publisher": "Bộ Y tế — Cục Quản lý Khám, chữa bệnh",
+      "source_url": "https://kcb.vn/van-ban/quyet-dinh-so-3906-qd-byt-huong-dan-chan-doan-va-dieu-tri-cac-benh-ve-mat.html"
     }
   ],
   "specialty_routing": [
@@ -5472,9 +5620,16 @@
         "label": "Da liễu"
       },
       "keywords": [
+        "mẩn ngứa",
+        "ban đỏ",
         "ngứa",
         "phát ban",
         "mẩn đỏ",
+        "nổi mẩn",
+        "ngứa rát",
+        "nổi ban",
+        "mày đay",
+        "dị ứng",
         "mụn",
         "viêm da",
         "dị ứng da",
@@ -5581,9 +5736,36 @@
       "keywords": [
         "đau mắt",
         "đỏ mắt",
+        "đau mắt đỏ",
+        "viêm kết mạc",
+        "mắt đỏ",
         "mắt mờ",
         "cộm mắt",
+        "ghèn mắt",
+        "dử mắt",
         "chảy nước mắt"
+      ],
+      "confidence": 0.95
+    },
+    {
+      "specialty": {
+        "code": "DENTAL",
+        "label": "Răng Hàm Mặt"
+      },
+      "keywords": [
+        "ê buốt răng",
+        "buốt răng",
+        "đau răng",
+        "nhức răng",
+        "sâu răng",
+        "viêm tủy",
+        "viêm tủy răng",
+        "viêm nướu",
+        "viêm lợi",
+        "sưng nướu",
+        "chảy máu chân răng",
+        "nhổ răng",
+        "mọc răng khôn"
       ],
       "confidence": 0.95
     },

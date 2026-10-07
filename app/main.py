@@ -14,7 +14,6 @@ from app.core.config import settings
 from app.core.observability import metrics
 from app.core.rate_limit import RateLimitDecision, rate_limiter
 
-
 _REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9._:-]{1,128}$")
 _RATE_LIMIT_EXEMPT_PATHS = {
     "/v1/health",
@@ -71,27 +70,49 @@ def _security_headers(response, *, path: str) -> None:
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "no-referrer"
     response.headers["Permissions-Policy"] = (
-        "camera=(self), microphone=(), geolocation=(), payment=(), usb=()"
+        "camera=(self), microphone=(self), geolocation=(), payment=(), usb=()"
     )
     if path in {"/", "/dashboard"} or path.startswith("/static/"):
         response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; base-uri 'self'; connect-src 'self'; "
+            "default-src 'self'; base-uri 'self'; connect-src 'self' blob:; "
             "font-src 'self'; frame-ancestors 'none'; img-src 'self' data: blob:; "
             "media-src 'self' blob:; object-src 'none'; script-src 'self'; style-src 'self'"
         )
     if path.startswith("/v1/"):
         response.headers["Cache-Control"] = "no-store"
     if settings.environment.lower() == "production":
-        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        response.headers["Strict-Transport-Security"] = (
+            "max-age=31536000; includeSubDomains"
+        )
 
 
 def create_app() -> FastAPI:
     app = FastAPI(title="MedGuard AI", version="0.1.0")
     app.state.rate_limiter = rate_limiter
+    from app.core.accounts import AccountStore
+    from app.api.accounts import router as accounts_router
+
+    app.state.accounts = AccountStore()
+    app.include_router(accounts_router, prefix="/v1")
+    from app.api.knowledge_pool import router as knowledge_pool_router
+    app.include_router(knowledge_pool_router)
+    import os
+
+    if os.getenv("MEDGUARD_ENVIRONMENT") == "production":
+        from urllib.parse import urlsplit
+        from starlette.middleware.trustedhost import TrustedHostMiddleware
+
+        app.add_middleware(
+            TrustedHostMiddleware,
+            allowed_hosts=[urlsplit(os.environ["MEDGUARD_PUBLIC_ORIGIN"]).hostname],
+        )
 
     static_dir = Path(__file__).parent / "static"
     if static_dir.exists():
         app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+        models_dir = static_dir / "models"
+        if models_dir.exists():
+            app.mount("/models", StaticFiles(directory=str(models_dir)), name="models")
 
     @app.get("/", include_in_schema=False)
     @app.get("/dashboard", include_in_schema=False)
@@ -102,7 +123,13 @@ def create_app() -> FastAPI:
     app.include_router(router, prefix=f"/{settings.api_version}")
 
     @app.get("/metrics")
-    def prometheus_metrics() -> PlainTextResponse:
+    def prometheus_metrics(request: Request) -> PlainTextResponse:
+        if os.getenv("MEDGUARD_ENVIRONMENT") == "production":
+            from app.core.accounts import reject
+
+            user = request.app.state.accounts.authenticate(request)
+            if user["role"] != "admin":
+                reject("permission_denied", 403)
         return PlainTextResponse(metrics.render(), media_type="text/plain")
 
     @app.middleware("http")
@@ -118,7 +145,11 @@ def create_app() -> FastAPI:
 
         if settings.rate_limit_enabled and _should_rate_limit(path):
             client_host = request.client.host if request.client else "unknown"
-            identity = tenant_id if tenant_id in settings.allowed_tenants else f"client:{client_host}"
+            identity = (
+                tenant_id
+                if tenant_id in settings.allowed_tenants
+                else f"client:{client_host}"
+            )
             decision = await run_in_threadpool(
                 request.app.state.rate_limiter.check,
                 identity,
@@ -141,30 +172,33 @@ def create_app() -> FastAPI:
                             else "Too many requests. Retry after the current window."
                         ),
                         "request_id": req_id,
-                        "details": {"retry_after_seconds": decision.reset_after_seconds},
+                        "details": {
+                            "retry_after_seconds": decision.reset_after_seconds
+                        },
                     },
                 )
                 response.headers["X-Request-Id"] = req_id
                 response.headers["Retry-After"] = str(decision.reset_after_seconds)
                 _rate_limit_headers(response, decision)
                 _security_headers(response, path=path)
-                metrics.inc_counter(
-                    "medguard_rate_limit_rejections_total",
-                    labels={"endpoint": bucket, "reason": error_code},
-                )
-                metrics.inc_counter(
-                    "medguard_requests_total",
-                    labels={
-                        "tenant_id": tenant_id,
-                        "endpoint": bucket,
-                        "status": str(status_code),
-                    },
-                )
-                metrics.observe_histogram(
-                    "medguard_request_duration_seconds",
-                    value=perf_counter() - start,
-                    labels={"tenant_id": tenant_id, "endpoint": bucket},
-                )
+                if settings.metrics_enabled:
+                    metrics.inc_counter(
+                        "medguard_rate_limit_rejections_total",
+                        labels={"endpoint": bucket, "reason": error_code},
+                    )
+                    metrics.inc_counter(
+                        "medguard_requests_total",
+                        labels={
+                            "tenant_id": tenant_id,
+                            "endpoint": bucket,
+                            "status": str(status_code),
+                        },
+                    )
+                    metrics.observe_histogram(
+                        "medguard_request_duration_seconds",
+                        value=perf_counter() - start,
+                        labels={"tenant_id": tenant_id, "endpoint": bucket},
+                    )
                 return response
 
         try:
@@ -181,7 +215,11 @@ def create_app() -> FastAPI:
             if settings.metrics_enabled and path != "/metrics":
                 metrics.inc_counter(
                     "medguard_requests_total",
-                    labels={"tenant_id": tenant_id, "endpoint": endpoint, "status": str(response.status_code)},
+                    labels={
+                        "tenant_id": tenant_id,
+                        "endpoint": endpoint,
+                        "status": str(response.status_code),
+                    },
                 )
                 metrics.observe_histogram(
                     "medguard_request_duration_seconds",
@@ -193,7 +231,11 @@ def create_app() -> FastAPI:
             if settings.metrics_enabled and path != "/metrics":
                 metrics.inc_counter(
                     "medguard_requests_total",
-                    labels={"tenant_id": tenant_id, "endpoint": bucket, "status": "500"},
+                    labels={
+                        "tenant_id": tenant_id,
+                        "endpoint": bucket,
+                        "status": "500",
+                    },
                 )
             raise
 
@@ -213,7 +255,9 @@ def create_app() -> FastAPI:
         detail = exc.detail
         if isinstance(detail, dict):
             error_code = detail.get("error_code", "http_error")
-            details = {key: value for key, value in detail.items() if key != "error_code"}
+            details = {
+                key: value for key, value in detail.items() if key != "error_code"
+            }
             message = detail.get("message", error_code)
         else:
             error_code = str(detail)
