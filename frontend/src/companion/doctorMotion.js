@@ -1,0 +1,86 @@
+import { Euler, Quaternion } from 'three';
+
+const REST = {
+  spine: [0, 0, 0], chest: [0, 0, 0], head: [0, 0, 0],
+  leftUpperArm: [.08, .04, 1.30], rightUpperArm: [.08, -.04, -1.30],
+  leftLowerArm: [-.12, 0, .12], rightLowerArm: [-.12, 0, -.12],
+  leftHand: [0, .04, .04], rightHand: [0, -.04, -.04],
+};
+const smoothPulse = (t, start, duration) => {
+  const x = (t - start) / duration;
+  return x > 0 && x < 1 ? Math.sin(Math.PI * x) ** 2 : 0;
+};
+
+// Time-based quaternion damping makes transitions identical at 30/60/120 fps.
+export class DoctorMotion {
+  constructor(vrm, persona) {
+    this.vrm = vrm; this.persona = persona; this.pose = 'pose_idle';
+    this.tone = 'empathetic'; this.expression = 'neutral';
+    this.time = 0; this.speechTime = 0; this.speechWeight = 0;
+    this.bones = Object.fromEntries(Object.keys(REST).map(name => [name, vrm.humanoid?.getNormalizedBoneNode(name)]));
+    this.target = new Quaternion(); this.euler = new Euler();
+    this.values = {};
+    this.blinkAt = 2.5 + Math.random() * 2; this.blinkStarted = -10;
+    for (const [name, xyz] of Object.entries(REST)) this.bones[name]?.quaternion.setFromEuler(this.euler.set(...xyz));
+  }
+  setPose(pose) { this.pose = pose; this.poseStarted = this.time; }
+  setExpression(expression) { this.expression = expression; }
+  update(dt, { speaking, look, audioLevel = 0, hasAudio = false, reducedMotion = false }) {
+    dt = Math.min(dt, .05); this.time += dt;
+    this.speechTime = speaking ? this.speechTime + dt : 0;
+    const alpha = 1 - Math.exp(-dt * 7);
+    this.speechWeight += ((speaking ? 1 : 0) - this.speechWeight) * alpha;
+    const targets = Object.fromEntries(Object.entries(REST).map(([k, v]) => [k, [...v]]));
+    const listen = this.pose === 'pose_listening';
+    const think = this.pose === 'pose_thinking';
+    const cautious = this.tone === 'cautious';
+    const time = this.time;
+    if (!reducedMotion) {
+      targets.spine[0] = Math.sin(time * 1.35) * .004;
+      targets.chest[0] = Math.sin(time * 1.35 - .2) * .003;
+      targets.head = [-look.y * .09 + (listen ? -.025 : think ? .02 : 0), look.x * .15, listen ? .025 : 0];
+      // A single restrained explanatory gesture, then a quiet hold between phrases.
+      const phase = this.speechTime % 7.8;
+      const gesture = smoothPulse(phase, 1.1, 3.4) * this.speechWeight * (cautious ? .5 : 1);
+      targets.rightUpperArm[0] += gesture * .18;
+      targets.rightUpperArm[2] += gesture * .12;
+      targets.rightLowerArm[0] -= gesture * .56;
+      targets.rightHand[1] -= gesture * .12;
+      targets.rightHand[2] -= gesture * .07;
+      targets.head[0] += smoothPulse(phase, 2.3, .9) * .022 * this.speechWeight;
+      targets.head[1] += Math.sin(time * .42) * .008;
+      if (think) targets.head[1] += .045;
+      if (this.pose === 'pose_wave') {
+        const age = time - (this.poseStarted ?? time);
+        const wave = smoothPulse(age, 0, 2.4);
+        targets.rightUpperArm[2] -= wave * .85;
+        targets.rightLowerArm[2] -= wave * .5;
+        targets.rightHand[2] += Math.sin(age * 7) * wave * .12;
+      }
+    }
+    for (const [name, xyz] of Object.entries(targets)) {
+      this.target.setFromEuler(this.euler.set(...xyz));
+      this.bones[name]?.quaternion.slerp(this.target, alpha);
+    }
+    if (time >= this.blinkAt) { this.blinkStarted = time; this.blinkAt = time + 3 + Math.random() * 3; }
+    const blinkAge = time - this.blinkStarted;
+    const blink = blinkAge < .08 ? blinkAge / .08 : blinkAge < .22 ? 1 - (blinkAge - .08) / .14 : 0;
+    this.setValue('blink', Math.max(0, blink), 1);
+    const happy = cautious ? 0 : this.tone === 'encouraging' ? .20 : this.tone === 'empathetic' ? .12 : .035;
+    this.setValue('happy', this.expression === 'surprised' ? 0 : happy, alpha);
+    this.setValue('relaxed', think ? .10 : .03, alpha);
+    this.setValue('surprised', this.expression === 'surprised' ? .10 : 0, alpha);
+    // RMS gates mouth movement during actual audio pauses; no invented phoneme alignment.
+    const fallback = Math.max(0, Math.sin(this.speechTime * 14) * .10 + Math.sin(this.speechTime * 23) * .06);
+    const opening = speaking ? (hasAudio ? Math.min(.55, Math.max(0, audioLevel - .012) * 3.8) : fallback) : 0;
+    this.setValue('aa', opening * .75, 1 - Math.exp(-dt * 24));
+    this.setValue('oh', opening * .16, alpha);
+    this.setValue('ih', opening * .09, alpha);
+    this.setValue('ee', 0, alpha);
+    this.vrm.update(dt);
+  }
+  setValue(name, target, alpha) {
+    this.values[name] = (this.values[name] ?? 0) + (target - (this.values[name] ?? 0)) * alpha;
+    this.vrm.expressionManager?.setValue(name, this.values[name]);
+  }
+}

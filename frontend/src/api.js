@@ -46,7 +46,9 @@ export function createApiClient({ tenantId, apiKey, consentToken }) {
       if (timeoutId !== null) window.clearTimeout(timeoutId);
     }
     const contentType = response.headers.get('content-type') || '';
-    const data = contentType.includes('json') ? await response.json() : await response.text();
+    const data = response.ok && options.responseType === 'blob'
+      ? await response.blob()
+      : contentType.includes('json') ? await response.json() : await response.text();
     if (!response.ok) {
       if (response.status === 401 && browserSession) window.dispatchEvent(new Event('medguard:session-expired'));
       const error = new Error(data?.message || data?.error_code || `HTTP ${response.status}`);

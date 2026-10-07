@@ -44,35 +44,6 @@ const normalizeMedicalSpeech = (text) => {
 };
 
 /**
- * Selects the most natural, professional Vietnamese TTS voice:
- * - Dr. Mai: Soft, clear, empathetic female tone (HoaiMy, Linh, vi-VN)
- * - Dr. Tuan: Deep, steady, reassuring male tone (NamMinh, Nam, vi-VN)
- */
-const getBestDoctorVoice = (persona) => {
-  if (typeof window === 'undefined' || !window.speechSynthesis) return null;
-  const voices = window.speechSynthesis.getVoices();
-  const viVoices = voices.filter(
-    (v) => (v.lang && (v.lang.startsWith('vi') || v.lang.includes('VN'))) || v.name.toLowerCase().includes('vietnamese')
-  );
-  if (!viVoices.length) return null;
-
-  if (persona === 'dr_mai') {
-    const femaleKeywords = ['hoaimy', 'linh', 'nu', 'female', 'vietnamese'];
-    for (const kw of femaleKeywords) {
-      const match = viVoices.find((v) => v.name.toLowerCase().includes(kw));
-      if (match) return match;
-    }
-  } else {
-    const maleKeywords = ['namminh', 'nam', 'male', 'vietnamese'];
-    for (const kw of maleKeywords) {
-      const match = viVoices.find((v) => v.name.toLowerCase().includes(kw));
-      if (match) return match;
-    }
-  }
-  return viVoices[0];
-};
-
-/**
  * Trích xuất câu trả lời ngắn gọn và chính xác (2-3 câu trọng tâm, 30-55 từ).
  * Cả phụ đề trên màn hình và giọng đọc đều là nội dung này,
  * giúp nhân vật nói trọn vẹn 100% câu trả lời mà không bị cắt cụt hay ngắt timer.
@@ -120,11 +91,15 @@ export function GrokLiveCompanionPage({
   const canvasRef = useRef(null);
   const engineRef = useRef(null);
   const audioRef = useRef(null);
+  const audioContextRef = useRef(null);
+  const ttsAbortRef = useRef(null);
+  const audioUrlRef = useRef(null);
   const fileInputRef = useRef(null);
   const recognitionRef = useRef(null);
   const conversationIdRef = useRef(crypto.randomUUID ? crypto.randomUUID() : `companion-${Date.now()}`);
   const messagesHistoryRef = useRef([]);
   const speechIdRef = useRef(0);
+  const mutedRef = useRef(false);
 
   // Doctor Personas: 'dr_tuan' (Male) | 'dr_mai' (Female)
   const [doctorPersona, setDoctorPersona] = useState('dr_tuan');
@@ -132,6 +107,7 @@ export function GrokLiveCompanionPage({
   const [cameraPreset, setCameraPreset] = useState('waist');
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isVoiceLoading, setIsVoiceLoading] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
   const [inputText, setInputText] = useState('');
@@ -164,8 +140,7 @@ export function GrokLiveCompanionPage({
       persona: doctorPersona,
       cameraPreset,
       onLoaded: (model) => {
-        onNotify?.(`Bác sĩ 3D đã sẵn sàng: ${currentDoctorName}`);
-        engine.setConsultationTone(consultationTone);
+        onNotify?.('Nhân vật bác sĩ đã sẵn sàng.');
       },
       onError: (err) => {
         onNotify?.('Đang tải mô hình bác sĩ mặc định');
@@ -178,13 +153,16 @@ export function GrokLiveCompanionPage({
 
     const handleResize = () => {
       if (canvasRef.current) {
-        engine.resize(window.innerWidth, window.innerHeight);
+        const rect = canvasRef.current.getBoundingClientRect();
+        engine.resize(rect.width, rect.height);
       }
     };
-    window.addEventListener('resize', handleResize);
+    const observer = new ResizeObserver(handleResize);
+    observer.observe(canvasRef.current);
+    handleResize();
 
     return () => {
-      window.removeEventListener('resize', handleResize);
+      observer.disconnect();
       engine.destroy();
       engineRef.current = null;
       if (typeof window !== 'undefined' && window.__companionEngine === engine) {
@@ -196,12 +174,8 @@ export function GrokLiveCompanionPage({
   // Clean up Web Speech Recognition & Audio on unmount
   useEffect(() => {
     return () => {
-      if (audioRef.current) {
-        try {
-          audioRef.current.pause();
-        } catch {}
-        audioRef.current = null;
-      }
+      speechIdRef.current++;
+      disposePlayback();
       if (recognitionRef.current) {
         try {
           recognitionRef.current.abort();
@@ -213,90 +187,86 @@ export function GrokLiveCompanionPage({
     };
   }, []);
 
-  // Fallback Web Speech Synthesis if backend TTS is unavailable
-  const fallbackSpeechSynthesis = (cleanSpeech, persona, reqSpeechId) => {
-    if (!window.speechSynthesis) return;
-    const utter = new SpeechSynthesisUtterance(cleanSpeech);
-    utter.lang = 'vi-VN';
-    utter.rate = 0.96;
-    // Phân biệt rõ giọng nam và nữ: Nữ cao trong trẻo, Nam trầm ấm
-    utter.pitch = persona === 'dr_mai' ? 1.15 : 0.86;
-
-    const bestVoice = getBestDoctorVoice(persona);
-    if (bestVoice) {
-      utter.voice = bestVoice;
+  const disposePlayback = () => {
+    ttsAbortRef.current?.abort();
+    ttsAbortRef.current = null;
+    if (audioRef.current) {
+      const audio = audioRef.current;
+      audio.onplaying = audio.onended = audio.onerror = audio.onpause = null;
+      audio.pause();
+      audio.removeAttribute('src');
+      audio.load();
+      audioRef.current = null;
     }
-
-    utter.onstart = () => {
-      if (reqSpeechId !== null && reqSpeechId !== speechIdRef.current) return;
-      setIsSpeaking(true);
-      engineRef.current?.startSpeaking(cleanSpeech);
-    };
-
-    utter.onend = () => {
-      if (reqSpeechId !== null && reqSpeechId !== speechIdRef.current) return;
-      setIsSpeaking(false);
-      engineRef.current?.stopSpeaking();
-    };
-
-    utter.onerror = () => {
-      setIsSpeaking(false);
-      engineRef.current?.stopSpeaking();
-    };
-
-    window.speechSynthesis.speak(utter);
+    if (audioUrlRef.current) URL.revokeObjectURL(audioUrlRef.current);
+    audioUrlRef.current = null;
+    audioContextRef.current?.close().catch(() => {});
+    audioContextRef.current = null;
+    engineRef.current?.stopSpeaking();
   };
 
-  // High Quality Neural TTS Playback (/v1/tts: NamMinhNeural & HoaiMyNeural)
-  // Nói trọn vẹn 100% câu trả lời, không dùng timer ngắt giữa chừng
-  const speakDoctorVoice = (text, persona = doctorPersona, reqSpeechId = null) => {
-    if (isMuted || typeof window === 'undefined') return;
+  const speakDoctorVoice = async (text, persona = doctorPersona, reqSpeechId = null) => {
+    if (mutedRef.current || typeof window === 'undefined') return;
     if (reqSpeechId !== null && reqSpeechId !== speechIdRef.current) return;
-
-    // Hủy audio cũ nếu đang phát
-    if (audioRef.current) {
-      try {
-        audioRef.current.pause();
-      } catch {}
-      audioRef.current = null;
-    }
-    if (window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-    }
-
+    disposePlayback();
+    setIsSpeaking(false);
+    const requestId = reqSpeechId ?? ++speechIdRef.current;
     const cleanSpeech = normalizeMedicalSpeech(text);
     if (!cleanSpeech) return;
-
-    // 1. Gọi backend Edge Neural TTS tự nhiên chuẩn người thật
-    const ttsUrl = `/v1/tts?text=${encodeURIComponent(cleanSpeech)}&persona=${persona}`;
-    const audio = new Audio(ttsUrl);
-    audioRef.current = audio;
-
-    audio.onplay = () => {
-      if (reqSpeechId !== null && reqSpeechId !== speechIdRef.current) {
-        audio.pause();
-        return;
+    setIsVoiceLoading(true);
+    const controller = new AbortController();
+    ttsAbortRef.current = controller;
+    const current = () => !mutedRef.current && !controller.signal.aborted && requestId === speechIdRef.current;
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    const audioContext = AudioContextClass ? new AudioContextClass() : null;
+    audioContextRef.current = audioContext;
+    // Resume within the interaction where possible (not after the synthesis request).
+    audioContext?.resume().catch(() => {});
+    const timeout = window.setTimeout(() => controller.abort(), 30000);
+    try {
+      const body = { text: cleanSpeech, persona };
+      let blob;
+      if (api) {
+        blob = await api.request('/v1/tts', { method: 'POST', body, responseType: 'blob', signal: controller.signal });
+      } else {
+        const response = await fetch('/v1/tts', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body), signal: controller.signal,
+        });
+        if (!response.ok) throw new Error('Voice unavailable');
+        blob = await response.blob();
       }
-      setIsSpeaking(true);
-      engineRef.current?.startSpeaking(cleanSpeech);
-    };
-
-    audio.onended = () => {
-      if (reqSpeechId !== null && reqSpeechId !== speechIdRef.current) return;
+      if (!current()) return;
+      window.clearTimeout(timeout);
+      audioUrlRef.current = URL.createObjectURL(blob);
+      const audio = new Audio(audioUrlRef.current);
+      audioRef.current = audio;
+      let analyser = null;
+      if (audioContext) {
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 512;
+        const source = audioContext.createMediaElementSource(audio);
+        source.connect(analyser); analyser.connect(audioContext.destination);
+        await audioContext.resume();
+      }
+      audio.onplaying = () => {
+        if (!current()) { audio.pause(); return; }
+        setIsVoiceLoading(false);
+        setIsSpeaking(true);
+        engineRef.current?.setAudioAnalyser(analyser);
+        engineRef.current?.startSpeaking(cleanSpeech);
+      };
+      audio.onpause = () => { if (current()) { setIsSpeaking(false); engineRef.current?.stopSpeaking(); } };
+      audio.onended = () => { if (current()) { setIsVoiceLoading(false); setIsSpeaking(false); disposePlayback(); } };
+      audio.onerror = () => { if (current()) { setIsVoiceLoading(false); setIsSpeaking(false); disposePlayback(); onNotify?.('Chưa phát được giọng bác sĩ. Bạn vẫn có thể đọc câu trả lời.'); } };
+      await audio.play();
+    } catch (error) {
+      if (requestId !== speechIdRef.current) return;
+      setIsVoiceLoading(false);
       setIsSpeaking(false);
-      engineRef.current?.stopSpeaking();
-      audioRef.current = null;
-    };
-
-    audio.onerror = () => {
-      console.warn('Backend /v1/tts unavailable, falling back to Web Speech Synthesis');
-      if (reqSpeechId !== null && reqSpeechId !== speechIdRef.current) return;
-      fallbackSpeechSynthesis(cleanSpeech, persona, reqSpeechId);
-    };
-
-    audio.play().catch(() => {
-      fallbackSpeechSynthesis(cleanSpeech, persona, reqSpeechId);
-    });
+      disposePlayback();
+      onNotify?.('Giọng bác sĩ tạm thời chưa sẵn sàng. Bạn vẫn có thể đọc câu trả lời và thử lại.');
+    } finally { window.clearTimeout(timeout); }
   };
 
   // Alias for backward compatibility
@@ -307,18 +277,14 @@ export function GrokLiveCompanionPage({
   // Stop All Speech & Actions immediately
   const handleStop = () => {
     speechIdRef.current++;
-    if (audioRef.current) {
-      try {
-        audioRef.current.pause();
-      } catch {}
-      audioRef.current = null;
-    }
+    disposePlayback();
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.cancel();
     }
     if (recognitionRef.current && isListening) {
       recognitionRef.current.stop();
     }
+    setIsVoiceLoading(false);
     setIsSpeaking(false);
     setIsListening(false);
     setIsBusy(false);
@@ -676,8 +642,8 @@ export function GrokLiveCompanionPage({
 
         {/* Center: Live Status Indicator */}
         <div className="grok-model-badge">
-          <span className={`grok-status-dot ${isBusy ? 'busy' : isSpeaking ? 'speaking' : ''}`} />
-          <span>{isBusy ? 'Đang suy nghĩ...' : isSpeaking ? 'Đang tư vấn...' : 'Sẵn sàng tư vấn'}</span>
+          <span className={`grok-status-dot ${isBusy || isVoiceLoading ? 'busy' : isSpeaking ? 'speaking' : ''}`} />
+          <span>{isBusy ? 'Đang suy nghĩ...' : isVoiceLoading ? 'Đang chuẩn bị giọng…' : isSpeaking ? 'Đang tư vấn...' : 'Sẵn sàng tư vấn'}</span>
         </div>
 
         {/* Right: Snapshot & Settings Buttons */}
@@ -746,8 +712,9 @@ export function GrokLiveCompanionPage({
             type="button"
             className={`grok-dock-btn ${isMuted ? 'active' : ''}`}
             onClick={() => {
+              mutedRef.current = !isMuted;
               setIsMuted(!isMuted);
-              if (!isMuted && isSpeaking) handleStop();
+              if (!isMuted && (isSpeaking || isVoiceLoading)) handleStop();
               onNotify?.(isMuted ? 'Đã bật giọng nói bác sĩ' : 'Đã tắt giọng nói bác sĩ');
             }}
             title={isMuted ? 'Bật giọng nói' : 'Tắt giọng nói'}
@@ -809,7 +776,7 @@ export function GrokLiveCompanionPage({
             aria-label="Nhập câu hỏi cho bác sĩ"
           />
 
-          {isSpeaking || isListening || isBusy ? (
+          {isSpeaking || isListening || isBusy || isVoiceLoading ? (
             <button
               type="button"
               className="grok-stop-action-btn"
@@ -902,6 +869,7 @@ export function GrokLiveCompanionPage({
             {/* Choose Doctor Persona */}
             <div className="grok-settings-group">
               <label>Chọn Bác sĩ tư vấn:</label>
+              <p className="doctor-voice-description">Nam: giọng Nam Minh trầm, rõ ràng. Nữ: giọng Hoài My dịu, nhịp nói chậm vừa phải. Giọng đọc được tạo riêng cho từng nhân vật.</p>
               <div className="doctor-preset-grid">
                 <button
                   type="button"

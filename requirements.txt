@@ -8,3 +8,4 @@ argon2-cffi==25.1.0
 cryptography==50.0.2
 python-dotenv==1.2.4
 PyYAML==6.0.3
+edge-tts==7.2.8

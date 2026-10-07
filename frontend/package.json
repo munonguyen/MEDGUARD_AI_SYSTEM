@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test:ui": "node tests/ui-smoke.mjs"
+    "test:ui": "node tests/ui-smoke.mjs",
+    "test:doctor-motion": "node tests/doctor-motion.mjs",
+    "test:doctor-web": "node tests/doctor-refinement-web.mjs"
   },
   "dependencies": {
     "@pixiv/three-vrm": "^3.5.5",

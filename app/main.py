@@ -36,6 +36,7 @@ _RATE_LIMIT_STATIC_BUCKETS = {
     "/v1/queue/prioritize",
     "/v1/result-delivery/prepare",
     "/v1/triage",
+    "/v1/tts",
 }
 
 
