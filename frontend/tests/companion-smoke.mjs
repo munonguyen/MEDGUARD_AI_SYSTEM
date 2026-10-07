@@ -14,6 +14,9 @@ try {
   // 1. Desktop Test
   const desktop = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   desktop.setDefaultTimeout(20000);
+  desktop.on('console', msg => console.log('PAGE LOG:', msg.text()));
+  desktop.on('pageerror', err => console.log('PAGE ERR:', err.message));
+  desktop.on('requestfailed', req => console.log('REQ FAIL:', req.url(), req.failure()?.errorText));
 
   // Navigate to main app
   await desktop.goto(`${baseUrl}/static/index.html`, { waitUntil: 'domcontentloaded' });
@@ -63,7 +66,7 @@ try {
   await desktop.waitForFunction(() => {
     const text = document.querySelector('.grok-bubble-text')?.innerText || '';
     return text.length > 0 && !text.toLowerCase().includes('phân tích');
-  }, { timeout: 15000 }).catch(() => console.log('Timeout waiting for text change, proceeding...'));
+  }, { timeout: 40000 }).catch(() => console.log('Timeout waiting for text change, proceeding...'));
 
   const replyText = await desktop.locator('.grok-bubble-text').innerText();
   console.log(`Server reply: "${replyText.slice(0, 140)}..."`);

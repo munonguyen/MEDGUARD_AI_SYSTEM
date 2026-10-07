@@ -39,10 +39,29 @@ def verify_password(encoded, raw):
 
 def check_origin(request):
     origin = request.headers.get("origin")
+    if not origin:
+        return
     expected = os.getenv("MEDGUARD_PUBLIC_ORIGIN") or str(request.base_url).rstrip("/")
-    if origin and not hmac.compare_digest(origin.rstrip("/"), expected.rstrip("/")):
+    allowed = {expected.rstrip("/")}
+    if os.getenv("MEDGUARD_ENVIRONMENT") != "production":
+        allowed.update({
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://localhost:8000",
+            "http://127.0.0.1:8000",
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+        })
+    extra_allowed = os.getenv("MEDGUARD_ALLOWED_ORIGINS", "")
+    if extra_allowed:
+        for o in extra_allowed.split(","):
+            if o.strip():
+                allowed.add(o.strip().rstrip("/"))
+
+    origin_clean = origin.rstrip("/")
+    if not any(hmac.compare_digest(origin_clean, a) for a in allowed):
         reject("cross_origin_request", 403)
-    if request.headers.get("sec-fetch-site") == "cross-site":
+    if os.getenv("MEDGUARD_ENVIRONMENT") == "production" and request.headers.get("sec-fetch-site") == "cross-site":
         reject("cross_origin_request", 403)
 
 

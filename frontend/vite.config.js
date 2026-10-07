@@ -10,6 +10,7 @@ export default defineConfig({
     proxy: {
       '/v1': 'http://127.0.0.1:8000',
       '/metrics': 'http://127.0.0.1:8000',
+      '/models': 'http://127.0.0.1:8000',
     },
   },
   build: {

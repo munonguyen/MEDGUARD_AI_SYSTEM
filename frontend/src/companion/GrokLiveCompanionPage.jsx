@@ -425,7 +425,7 @@ export function GrokLiveCompanionPage({
         const data = await api.request('/v1/chat', {
           method: 'POST',
           body: payload,
-          timeoutMs: 15000,
+          timeoutMs: 35000,
         });
 
         reply =
