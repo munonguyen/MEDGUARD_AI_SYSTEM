@@ -119,6 +119,7 @@ export function GrokLiveCompanionPage({
   const [showEmotions, setShowEmotions] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [modelStatus,setModelStatus] = useState({phase:'loading',error:''});
 
   const currentDoctorName = customModelName
     ? customModelName
@@ -139,11 +140,13 @@ export function GrokLiveCompanionPage({
     const engine = new VRMAvatarEngine(canvasRef.current, {
       persona: doctorPersona,
       cameraPreset,
+      onLoading: () => setModelStatus({phase:'loading',error:''}),
       onLoaded: (model) => {
+        setModelStatus({phase:'ready',error:''});
         onNotify?.('Nhân vật bác sĩ đã sẵn sàng.');
       },
       onError: (err) => {
-        onNotify?.('Đang tải mô hình bác sĩ mặc định');
+        setModelStatus({phase:'error',error:err?.message || 'Không khởi tạo được WebGL.'});
       },
     });
     engineRef.current = engine;
@@ -603,6 +606,11 @@ export function GrokLiveCompanionPage({
       {/* Fullscreen 3D WebGL Canvas */}
       <canvas ref={canvasRef} className="grok-canvas-stage" />
 
+      {modelStatus.phase==='error' && <div className="grok-model-error" role="alert">
+        <strong>Chưa hiển thị được nhân vật 3D</strong>
+        <p>{modelStatus.error}</p>
+        <button type="button" onClick={()=>{const e=engineRef.current;if(e?.renderer&&!e.isDestroyed)e.loadModel(e.options.modelUrl);else window.location.reload();}}>Thử tải lại nhân vật</button>
+      </div>}
       {/* TOP NAVIGATION BAR */}
       <header className="grok-topbar">
         {/* Left: Back to Chat Button */}
@@ -643,7 +651,7 @@ export function GrokLiveCompanionPage({
         {/* Center: Live Status Indicator */}
         <div className="grok-model-badge">
           <span className={`grok-status-dot ${isBusy || isVoiceLoading ? 'busy' : isSpeaking ? 'speaking' : ''}`} />
-          <span>{isBusy ? 'Đang suy nghĩ...' : isVoiceLoading ? 'Đang chuẩn bị giọng…' : isSpeaking ? 'Đang tư vấn...' : 'Sẵn sàng tư vấn'}</span>
+          <span>{modelStatus.phase==='error' ? 'Lỗi tải nhân vật' : modelStatus.phase==='loading' ? 'Đang tải nhân vật…' : isBusy ? 'Đang suy nghĩ...' : isVoiceLoading ? 'Đang chuẩn bị giọng…' : isSpeaking ? 'Đang tư vấn...' : 'Sẵn sàng tư vấn'}</span>
         </div>
 
         {/* Right: Snapshot & Settings Buttons */}

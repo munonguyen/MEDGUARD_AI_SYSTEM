@@ -57,7 +57,8 @@ export class VRMAvatarEngine {
     this.audioSamples = null;
     this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-    this.init();
+    try { this.init(); }
+    catch (error) { this.destroy(); console.error('Doctor renderer initialization failed:', error); this.options.onError?.(error); }
   }
 
   init() {
@@ -92,6 +93,11 @@ export class VRMAvatarEngine {
 
     // 4. Clinical Studio Cinematic Lighting (Dịu nhẹ, màu da tự nhiên, không cháy sáng)
     this.setupLighting();
+
+    this.onContextLost = event => { event.preventDefault(); this.contextLost = true; this.options.onError?.(new Error('Mất kết nối WebGL. Hãy thử tải lại nhân vật.')); };
+    this.onContextRestored = () => { this.contextLost = false; if(this.currentVrm) this.options.onLoaded?.(this.currentVrm); };
+    this.canvas.addEventListener('webglcontextlost',this.onContextLost);
+    this.canvas.addEventListener('webglcontextrestored',this.onContextRestored);
 
     // 5. Load model
     this.loadModel(this.options.modelUrl);
@@ -140,6 +146,8 @@ export class VRMAvatarEngine {
 
   loadModel(url) {
     const generation = ++this.loadGeneration;
+    this.options.modelUrl = url;
+    this.options.onLoading?.(url);
     this.motion = null;
     this.isVrmLoaded = false;
     if (this.modelRoot && this.modelRoot !== this.currentVrm?.scene) {
@@ -263,12 +271,8 @@ export class VRMAvatarEngine {
       undefined,
       (err) => {
         if (this.isDestroyed || generation !== this.loadGeneration) return;
-        console.warn('VRM load error, falling back to AliciaSolid:', err);
-        if (url !== `${import.meta.env.BASE_URL}models/AliciaSolid.vrm`) {
-          this.loadModel(`${import.meta.env.BASE_URL}models/AliciaSolid.vrm`);
-        } else {
-          this.options.onError?.(err);
-        }
+        console.error('Doctor model load failed:', url, err);
+        this.options.onError?.(new Error(`Không tải được model ${url}: ${err?.message || 'Lỗi dữ liệu hoặc kết nối'}`));
       }
     );
   }
@@ -475,7 +479,7 @@ export class VRMAvatarEngine {
   }
 
   resize(width, height) {
-    if (!this.renderer || !this.camera) return;
+    if (!this.renderer || !this.camera || !Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) return;
     this.camera.aspect = width / height;
     if (this.camera.aspect < 0.6) {
       this.camera.fov = 38;
@@ -506,7 +510,7 @@ export class VRMAvatarEngine {
     this.rafId = requestAnimationFrame(this.animate);
     const delta = this.lastFrameAt === null ? 0 : Math.min((now - this.lastFrameAt) / 1000, .05);
     this.lastFrameAt = now;
-    if (document.hidden) return;
+    if (document.hidden || this.contextLost) return;
     const alpha = 1 - Math.exp(-delta * 5);
     this.currentLookAt.x += (this.mouseTarget.x - this.currentLookAt.x) * alpha;
     this.currentLookAt.y += (this.mouseTarget.y - this.currentLookAt.y) * alpha;
@@ -532,6 +536,8 @@ export class VRMAvatarEngine {
       cancelAnimationFrame(this.rafId);
     }
     window.removeEventListener('pointermove', this.onPointerMove);
+    this.canvas.removeEventListener('webglcontextlost',this.onContextLost);
+    this.canvas.removeEventListener('webglcontextrestored',this.onContextRestored);
     if (this.currentVrm) {
       this.scene.remove(this.currentVrm.scene);
       VRMUtils.deepDispose(this.currentVrm.scene);

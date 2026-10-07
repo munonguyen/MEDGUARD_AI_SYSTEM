@@ -811,3 +811,7 @@
   .grok-topbar-right { gap: 4px; }
   .doctor-switch-pill { padding: 5px 6px; font-size: 10px; }
 }
+
+.grok-model-error { position:absolute;top:24%;left:50%;transform:translateX(-50%);width:min(520px,85%);z-index:8;padding:20px;border:1px solid #f4b06d;border-radius:16px;background:#102331;color:#fff;user-select:text; }
+.grok-model-error p {overflow-wrap:anywhere;font-size:14px;line-height:1.5;}
+.grok-model-error button {padding:10px 14px;border-radius:10px;border:1px solid #35c9bc;background:#134b4b;color:white;cursor:pointer;}
