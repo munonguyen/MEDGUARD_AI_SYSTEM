@@ -1,0 +1,564 @@
+/* Grok Live 3D Companion Studio Page */
+.grok-companion-page {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 32%, #2d123b 0%, #170921 55%, #0b0410 100%);
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Ambient Backdrop Glow */
+.grok-ambient-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: 
+    radial-gradient(circle at 50% 25%, rgba(192, 38, 211, 0.18) 0%, transparent 60%),
+    radial-gradient(circle at 20% 80%, rgba(147, 51, 234, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(56, 189, 248, 0.08) 0%, transparent 50%);
+  z-index: 1;
+}
+
+/* 3D WebGL Canvas */
+.grok-canvas-stage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 2;
+  cursor: grab;
+}
+
+.grok-canvas-stage:active {
+  cursor: grabbing;
+}
+
+/* Flash Shutter effect on Capture */
+.grok-capture-flash {
+  position: absolute;
+  inset: 0;
+  background: #ffffff;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 100;
+  transition: opacity 120ms ease-out;
+}
+
+.grok-capture-flash.active {
+  opacity: 0.85;
+}
+
+/* TOP NAVIGATION BAR */
+.grok-topbar {
+  position: absolute;
+  top: 16px;
+  left: 20px;
+  right: 20px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.grok-topbar > * {
+  pointer-events: auto;
+}
+
+.grok-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  background: rgba(23, 11, 33, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.grok-menu-btn:hover {
+  background: rgba(45, 18, 59, 0.85);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: scale(1.05);
+}
+
+.grok-model-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  background: rgba(23, 11, 33, 0.55);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 13px;
+  font-weight: 550;
+  color: #e9d5ff;
+}
+
+.grok-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 8px #22c55e;
+}
+
+.grok-capture-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  background: rgba(23, 11, 33, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all 180ms ease;
+}
+
+.grok-capture-btn:hover {
+  background: rgba(192, 38, 211, 0.3);
+  border-color: #c026d3;
+  box-shadow: 0 0 16px rgba(192, 38, 211, 0.4);
+  transform: scale(1.04);
+}
+
+/* FLOATING SUBTITLE / DIALOGUE CARD */
+.grok-dialogue-overlay {
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(92%, 560px);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.grok-speech-bubble {
+  background: rgba(18, 9, 26, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(192, 38, 211, 0.35);
+  border-radius: 18px;
+  padding: 16px 20px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5), 0 0 24px rgba(192, 38, 211, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: grokBubbleAppear 240ms cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: auto;
+}
+
+@keyframes grokBubbleAppear {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.grok-bubble-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.grok-bubble-author {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #f472b6;
+}
+
+.grok-voice-waves {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.grok-voice-waves span {
+  width: 3px;
+  height: 12px;
+  background: #c026d3;
+  border-radius: 999px;
+  animation: grokWavePulse 600ms infinite ease-in-out alternate;
+}
+
+.grok-voice-waves span:nth-child(2) { height: 18px; animation-delay: 150ms; }
+.grok-voice-waves span:nth-child(3) { height: 8px; animation-delay: 300ms; }
+
+@keyframes grokWavePulse {
+  from { transform: scaleY(0.4); opacity: 0.5; }
+  to { transform: scaleY(1.2); opacity: 1; }
+}
+
+.grok-bubble-text {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: #f8fafc;
+}
+
+/* BOTTOM FLOATING CONTROL DOCK (GROK GLASSMORPHIC DOCK) */
+.grok-bottom-dock {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(92%, 520px);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Upper Dock: Control Icons Row */
+.grok-controls-pill-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  background: rgba(24, 11, 33, 0.65);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(192, 38, 211, 0.15);
+}
+
+.grok-dock-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 9999px;
+  border: 0;
+  background: transparent;
+  color: #cbd5e1;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.grok-dock-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.grok-dock-btn.active {
+  background: rgba(192, 38, 211, 0.35);
+  color: #fdf4ff;
+  border: 1px solid rgba(192, 38, 211, 0.5);
+}
+
+/* Center Highlighted Mic Button */
+.grok-mic-primary-btn {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #c026d3 0%, #9333ea 100%);
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  box-shadow: 0 0 20px rgba(192, 38, 211, 0.6);
+  transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.grok-mic-primary-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 28px rgba(192, 38, 211, 0.85);
+}
+
+.grok-mic-primary-btn.listening {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  box-shadow: 0 0 28px rgba(239, 68, 68, 0.85);
+  animation: grokMicPulse 1s infinite alternate;
+}
+
+@keyframes grokMicPulse {
+  from { transform: scale(1); box-shadow: 0 0 16px rgba(239, 68, 68, 0.5); }
+  to { transform: scale(1.08); box-shadow: 0 0 32px rgba(239, 68, 68, 0.95); }
+}
+
+/* Lower Dock: "Ask Anything" Input & Stop Action */
+.grok-input-pill-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(24, 11, 33, 0.72);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  padding: 6px 8px 6px 20px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+}
+
+.grok-text-input {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: #ffffff;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.grok-text-input::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.grok-stop-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 18px;
+  border-radius: 9999px;
+  border: 0;
+  background: #ffffff;
+  color: #000000;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all 160ms ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.grok-stop-action-btn:hover {
+  background: #f1f5f9;
+  transform: scale(1.03);
+}
+
+.grok-stop-action-btn .stop-square {
+  width: 11px;
+  height: 11px;
+  background: #000000;
+  border-radius: 2px;
+}
+
+.grok-send-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 9999px;
+  border: 0;
+  background: #c026d3;
+  color: #ffffff;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all 160ms ease;
+}
+
+.grok-send-action-btn:hover {
+  background: #d946ef;
+  transform: scale(1.06);
+}
+
+/* POSE & EMOTION PICKER POPOVER */
+.grok-popover-menu {
+  position: absolute;
+  bottom: 124px;
+  right: 12px;
+  background: rgba(20, 9, 28, 0.92);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(192, 38, 211, 0.35);
+  border-radius: 16px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.6), 0 0 24px rgba(192, 38, 211, 0.2);
+  z-index: 30;
+  width: 220px;
+  animation: grokPopIn 160ms ease-out;
+}
+
+@keyframes grokPopIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.grok-popover-title {
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #f472b6;
+  letter-spacing: 0.05em;
+}
+
+.grok-popover-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: transparent;
+  border: 0;
+  border-radius: 10px;
+  color: #e2e8f0;
+  font-size: 13.5px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background 140ms ease;
+}
+
+.grok-popover-item:hover {
+  background: rgba(192, 38, 211, 0.25);
+  color: #ffffff;
+}
+
+/* SETTINGS MODAL */
+.grok-settings-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.grok-settings-card {
+  width: min(100%, 420px);
+  background: #170b21;
+  border: 1px solid rgba(192, 38, 211, 0.4);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.grok-settings-card h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.grok-settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.grok-settings-group label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #cbd5e1;
+}
+
+.grok-select-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: #251236;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  color: #ffffff;
+  font-size: 14px;
+  outline: none;
+}
+
+.grok-file-upload-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  background: rgba(192, 38, 211, 0.15);
+  border: 1px dashed rgba(192, 38, 211, 0.5);
+  border-radius: 12px;
+  color: #f0abfc;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.grok-file-upload-btn:hover {
+  background: rgba(192, 38, 211, 0.28);
+  border-color: #c026d3;
+}
+
+.grok-close-settings-btn {
+  padding: 11px;
+  border-radius: 12px;
+  border: 0;
+  background: #c026d3;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background 140ms ease;
+}
+
+.grok-close-settings-btn:hover {
+  background: #d946ef;
+}
+
+/* MOBILE ADAPTATIONS */
+@media (max-width: 640px) {
+  .grok-bottom-dock {
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    width: 95%;
+  }
+
+  .grok-dock-btn {
+    width: 42px;
+    height: 42px;
+  }
+
+  .grok-mic-primary-btn {
+    width: 48px;
+    height: 48px;
+  }
+
+  .grok-dialogue-overlay {
+    top: 72px;
+  }
+
+  .grok-speech-bubble {
+    padding: 12px 16px;
+  }
+}

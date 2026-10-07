@@ -10,6 +10,7 @@
     "test:ui": "node tests/ui-smoke.mjs"
   },
   "dependencies": {
+    "@pixiv/three-vrm": "^3.5.5",
     "@zxing/browser": "0.2.1",
     "lucide-react": "1.42.0",
     "react": "19.2.8",

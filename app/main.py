@@ -110,6 +110,9 @@ def create_app() -> FastAPI:
     static_dir = Path(__file__).parent / "static"
     if static_dir.exists():
         app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+        models_dir = static_dir / "models"
+        if models_dir.exists():
+            app.mount("/models", StaticFiles(directory=str(models_dir)), name="models")
 
     @app.get("/", include_in_schema=False)
     @app.get("/dashboard", include_in_schema=False)
