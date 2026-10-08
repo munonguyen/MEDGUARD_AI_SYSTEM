@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { VRMAvatarEngine } from './VRMAvatarEngine';
 import { splitSpeech, runSpeechQueue } from './speechQueue';
+import { readSpeechTiming } from './speechTimeline.js';
 import { clinicalReply, verificationNotice, awaitReviewedReply } from './clinicalReply';
 import './GrokLiveCompanionPage.css';
 
@@ -248,6 +249,8 @@ export function GrokLiveCompanionPage({
     ttsAbortRef.current = controller;
     const current = () => !mutedRef.current && !controller.signal.aborted && requestId === speechIdRef.current;
     const audioContext = primeAudio();
+    // Warm up in parallel with TTS, never await classifier loading before sound.
+    void engineRef.current?.prepareLipSync(audioContext);
     const voiceStarted = performance.now();
     let firstSound = true;
     try {
@@ -272,7 +275,9 @@ export function GrokLiveCompanionPage({
             error.code = data.error_code;
             throw error;
           }
-          return await response.blob();
+          const blob=await response.blob();
+          blob.motionTiming=readSpeechTiming(response.headers);
+          return blob;
         } finally {
           window.clearTimeout(timer);
           controller.signal.removeEventListener('abort', cancel);
@@ -295,6 +300,7 @@ export function GrokLiveCompanionPage({
           audio.onplaying = audio.onended = audio.onerror = audio.onpause = null;
           audio.pause(); audio.removeAttribute('src'); audio.load();
           source?.disconnect(); analyser?.disconnect();
+          engineRef.current?.disconnectLipSync();
           URL.revokeObjectURL(url);
           if (audioRef.current === audio) audioRef.current = null;
           if (audioUrlRef.current === url) audioUrlRef.current = null;
@@ -311,12 +317,15 @@ export function GrokLiveCompanionPage({
           source = playbackSourceRef.current || audioContext.createMediaElementSource(audio);
           playbackSourceRef.current = source;
           source.connect(analyser); analyser.connect(audioContext.destination);
+          void engineRef.current?.prepareLipSync(audioContext).then(()=>{
+            if(current()&&!settled)engineRef.current?.connectLipSync(source);
+          });
         }
         audio.onplaying = () => {
           if (!current()) return abort();
           setIsVoiceLoading(false); setIsSpeaking(true);
           engineRef.current?.setAudioAnalyser(analyser);
-          engineRef.current?.startSpeaking(cleanSpeech, { continuation: !firstSound, segmentText:sentence, media:audio });
+          engineRef.current?.startSpeaking(cleanSpeech, { continuation: !firstSound, segmentText:sentence, media:audio, timing:blob.motionTiming });
           if (firstSound) {
             firstSound = false;
             const now = performance.now();

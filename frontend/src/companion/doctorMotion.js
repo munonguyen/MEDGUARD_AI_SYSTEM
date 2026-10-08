@@ -1,5 +1,8 @@
 import { Euler, Matrix4, Quaternion, Vector3 } from 'three';
 import { GesturePlanner, motionContext, phraseIntent, splitMotionPhrases } from './doctorMotionContext.js';
+import { choreograph } from './gestureChoreography.js';
+import { normalizeSpeechTiming, activeSpeechCue } from './speechTimeline.js';
+import { MOUTH_CHANNELS } from './doctorLipSync.js';
 
 const REST = {
   hips:[0,0,0], spine:[0,0,0], chest:[0,0,0], upperChest:[0,0,0], neck:[0,0,0], head:[0,0,0],
@@ -121,14 +124,15 @@ export class DoctorMotion {
     this.pendingTransition=true;
   }
   startUtterance(text='') {
-    this.utteranceText=text;this.speechTime=0;this.segmentTime=0;this.segmentOffset=0;this.segmentPlan=null;
+    this.utteranceText=text;this.speechTime=0;this.segmentTime=0;this.segmentOffset=0;this.segmentPlan=null;this.segmentTiming=null;
     const context=this.severe?'cautious':this.questionContext||this.tone||'clinical';
     this.utterancePlan=this.planner.plan(text,context);
     this.gesturePlan=this.utterancePlan.map(p=>p.intent);
     this.gestureDurations=this.utterancePlan.map(p=>p.duration);
     this.currentCue=null;this.currentCueKey='';this.freeCue=null;this.pendingTransition=true;
   }
-  beginSpeechSegment(text='') {
+  beginSpeechSegment(text='',timing=null) {
+    this.segmentTiming=normalizeSpeechTiming(timing);
     const phrases=splitMotionPhrases(text),context=this.severe?'cautious':this.questionContext||this.tone;
     this.segmentPlan=phrases.map((phrase,i)=>{
       const existing=this.utterancePlan[this.segmentOffset+i];
@@ -143,6 +147,18 @@ export class DoctorMotion {
   cueAt(speaking,responding,playbackTime,playbackDuration) {
     if(this.pose==='pose_wave')return {cue:this.previewCue,phase:this.time-this.poseStarted,duration:3.4,key:'preview-'+this.poseStarted};
     const plan=this.segmentPlan||this.utterancePlan;
+    if(speaking&&this.segmentTiming?.phrases.length) {
+      const phrase=activeSpeechCue(this.segmentTiming.phrases,playbackTime);
+      if(!phrase)return {cue:plan[0],phase:0,duration:1,key:'timed-rest',rest:true};
+      const key='timed-'+phrase.start;
+      if(this.currentCueKey!==key){
+        const context=this.severe?'cautious':motionContext(phrase.text,this.questionContext||this.tone);
+        this.freeCue=this.planner.select(phraseIntent(phrase.text,context),context);this.currentCueKey=key;this.pendingTransition=true;
+      }
+      // One meaningful stroke per phrase, then settle during long explanation.
+      const duration=Math.min(5,Math.max(1.2,phrase.end-phrase.start));
+      return {cue:this.freeCue,phase:playbackTime-phrase.start,duration,key,rest:playbackTime-phrase.start>duration};
+    }
     if(speaking&&this.segmentPlan&&Number.isFinite(playbackDuration)&&playbackDuration>0) {
       // Character weights estimate sentence boundaries inside an audio file.
       // Real media time prevents drift through stalls and queued TTS gaps.
@@ -151,14 +167,13 @@ export class DoctorMotion {
       for(let i=0;i<plan.length;i++) {
         const span=playbackDuration*Math.max(12,plan[i].text.length)/total;
         if(playbackTime<start+span||i===plan.length-1) {
-          const age=clamp(playbackTime-start,0,span),cycles=Math.max(1,Math.ceil(span/5.3));
-          const duration=span/cycles,index=Math.min(cycles-1,Math.floor(age/duration));
-          const key=`${this.segmentOffset}:${i}:${index}`;
+          const age=clamp(playbackTime-start,0,span),duration=Math.min(5.3,span);
+          const key=`${this.segmentOffset}:${i}`;
           if(key!==this.currentCueKey) {
-            this.freeCue=index===0?plan[i]:this.planner.select(plan[i].intent,plan[i].emotion);
+            this.freeCue=plan[i];
             this.currentCueKey=key;this.pendingTransition=true;
           }
-          return {cue:this.freeCue,phase:age-index*duration,duration:Math.max(1.2,duration),key};
+          return {cue:this.freeCue,phase:age,duration:Math.max(1.2,duration),key,rest:age>duration};
         }
         start+=span;
       }
@@ -176,7 +191,7 @@ export class DoctorMotion {
     }
     return {cue:this.freeCue,phase:Math.max(0,this.speechTime-(this.freeCueAt||0)),duration:this.freeCue.duration,key:'tail-'+this.freeCueAt};
   }
-  update(dt,{speaking=false,look={x:0,y:0},audioLevel=0,hasAudio=false,spectrum=null,playbackTime,playbackDuration,reducedMotion=false}={}) {
+  update(dt,{speaking=false,look={x:0,y:0},audioLevel=0,hasAudio=false,spectrum=null,visemes=null,playbackTime,playbackDuration,reducedMotion=false}={}) {
     dt=clamp(dt,0,.15);this.time+=dt;if(speaking){this.speechTime+=dt;this.segmentTime+=dt;}
     const time=this.time,replyAge=time-this.poseStarted;
     const responding=this.pose==='pose_acknowledge'&&replyAge<3.8;
@@ -229,7 +244,7 @@ export class DoctorMotion {
       targets.neck[0]+=this.headLook.y*.035;targets.neck[1]+=this.headLook.x*.055;
       targets.chest[1]+=this.headLook.x*.022;
       const {cue,phase,duration}=action;
-      const active=speaking||responding||this.pose==='pose_wave';
+      const active=!action.rest&&(speaking||responding||this.pose==='pose_wave');
       const weight=(this.pose==='pose_wave'?1:this.speechWeight)*cue.energy;
       const strength=active?weight:0;
       this.applyGesture(targets,cue,phase,duration,strength);
@@ -240,6 +255,7 @@ export class DoctorMotion {
       targets.spine[1]+=Math.sin(time*.53)*.005;targets.head[1]+=Math.sin(time*.42)*.005;
     }
     this.applyJoints(dt,reducedMotion);
+    this.animationLayer?.apply(dt,{...action,active:!action.rest&&(speaking||responding||this.pose==='pose_wave'),reducedMotion});
     if(this.hipRest&&this.legs.length) {
       // Millimetre-scale weight transfer plus two-bone IK preserves planted feet.
       const hip=this.bones.hips;
@@ -253,7 +269,7 @@ export class DoctorMotion {
       const bone=this.bones[name];previous.rotateTowards(bone.quaternion,dt*(name.endsWith('Hand')?2.1:3.2));bone.quaternion.copy(previous);
     }
     this.updateFingers(dt,reducedMotion);
-    this.updateFace(dt,{speaking,hasAudio,audioLevel,spectrum,cautious,empathetic,think,listen,reducedMotion,gazeX,gazeY});
+    this.updateFace(dt,{speaking,hasAudio,audioLevel,spectrum,visemes,cautious,empathetic,think,listen,reducedMotion,gazeX,gazeY});
     this.vrm.update(dt);
   }
   applyGesture(targets,cue,phase,duration,strength) {
@@ -302,6 +318,12 @@ export class DoctorMotion {
         tz:heart?.17:compact?.19:.23+(style.arc||0)*Math.sin(phase*1.3),palm:heart?'heart':style.id==='compact-stop'?'stop':'offer'});
       if(style.secondary)Object.assign(this.armGoals[other],{target:secondary,tx:cue.intent==='compare'?.24:.18,ty:.015,tz:.20,palm:'offer'});
     }
+    const point=choreograph(cue.intent,phase,duration,style);
+    // Scale adult reference-space paths for a different-sized custom rig.
+    const chain=this.arms.find(a=>a.side===arm);
+    const scale=chain?clamp((chain.l1+chain.l2)/.52,.65,1.3):1;
+    Object.assign(this.armGoals[arm],{tx:point[0]*scale,ty:point[1]*scale,tz:point[2]*scale});
+    if(style.secondary){const secondaryPoint=choreograph(cue.intent,Math.max(0,phase-.2),duration,style);Object.assign(this.armGoals[other],{tx:secondaryPoint[0]*.94*scale,ty:secondaryPoint[1]*.6*scale,tz:secondaryPoint[2]*.9*scale});}
   }
   applyJoints(dt,reducedMotion) {
     // The shipped VRM0 rigs author +X on the right arm. Modern +Z-facing
@@ -414,7 +436,7 @@ export class DoctorMotion {
       }
     }
   }
-  updateFace(dt,{speaking,hasAudio,audioLevel,spectrum,cautious,empathetic,think,listen,reducedMotion,gazeX,gazeY}) {
+  updateFace(dt,{speaking,hasAudio,audioLevel,spectrum,visemes,cautious,empathetic,think,listen,reducedMotion,gazeX,gazeY}) {
     const alpha=damp(7,dt),time=this.time;
     if(time>=this.blinkAt){this.blinkStarted=time;this.blinkAt=time+(cautious?4:3)+this.random()*3;}
     if(this.wasThinking&&!think){this.blinkStarted=time;this.blinkAt=time+3+this.random()*3;}
@@ -446,10 +468,11 @@ export class DoctorMotion {
     const low=spectrum?.low??.5,high=spectrum?.high??.15,mid=spectrum?.mid??.35;
     const round=clamp(.10+low*.24,0,.38),wide=clamp(.08+high*.24+mid*.10,0,.32);
     const mouthAlpha=damp(opening>0?24:35,dt);
-    this.setValue('aa',opening*(1-round-wide*.5),mouthAlpha);
-    this.setValue('oh',opening*round,mouthAlpha);
-    this.setValue('ih',opening*wide*.55,mouthAlpha);
-    this.setValue('ee',opening*wide*.45,mouthAlpha);
+    const fallback={aa:opening*(1-round-wide*.5),oh:opening*round,ih:opening*wide*.55,ee:opening*wide*.45,ou:0};
+    const mouth=speaking&&hasAudio?(visemes||fallback):{};
+    for(const name of MOUTH_CHANNELS)this.setValue(name,mouth[name]||0,mouthAlpha);
+    this.extraVisemes??=Object.keys(this.vrm.expressionManager?.expressionMap||{}).filter(n=>n.startsWith('viseme_'));
+    for(const name of this.extraVisemes)this.setValue(name,mouth[name]||0,mouthAlpha);
   }
   setValue(name,target,alpha) {
     this.values[name]=(this.values[name]??0)+(clamp(target)-(this.values[name]??0))*alpha;

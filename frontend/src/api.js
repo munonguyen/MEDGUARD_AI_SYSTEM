@@ -1,3 +1,4 @@
+import {readSpeechTiming} from './companion/speechTimeline.js';
 let browserSession = null;
 export function setBrowserSession(value) { browserSession = value; }
 export function createApiClient({ tenantId, apiKey, consentToken }) {
@@ -51,6 +52,7 @@ export function createApiClient({ tenantId, apiKey, consentToken }) {
         error.details = data?.details;
         throw error;
       }
+      if(options.responseType==='blob')data.motionTiming=readSpeechTiming(response.headers);
       return data;
     } catch (error) {
       if (timedOut && !options.signal?.aborted) {

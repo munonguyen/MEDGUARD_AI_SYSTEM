@@ -13,10 +13,14 @@
     "test:doctor-web": "node tests/doctor-refinement-web.mjs",
     "test:auth-proxy": "node tests/auth-proxy-web.mjs",
     "test:doctor-live": "node tests/doctor-live-web.mjs",
-    "test:doctor-latency": "node tests/speech-queue.mjs && node tests/api-cancellation.mjs && node tests/clinical-reply.mjs"
+    "test:doctor-latency": "node tests/speech-queue.mjs && node tests/api-cancellation.mjs && node tests/clinical-reply.mjs",
+    "test:doctor-animation": "node tests/doctor-animation.mjs && node tests/doctor-audio-core.mjs",
+    "build:doctor-vrma": "node scripts/build-doctor-vrma.mjs",
+    "test:doctor-rigs": "node tests/doctor-real-rigs.mjs"
   },
   "dependencies": {
     "@pixiv/three-vrm": "^3.5.5",
+    "@pixiv/three-vrm-animation": "3.5.5",
     "@zxing/browser": "0.2.1",
     "lucide-react": "1.42.0",
     "react": "19.2.8",

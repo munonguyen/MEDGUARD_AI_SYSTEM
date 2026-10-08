@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
 import { DoctorMotion } from './doctorMotion.js';
+import { DoctorAnimationLayer } from './doctorAnimationLayer.js';
+import { DoctorLipSync } from './doctorLipSync.js';
 import { tailorDoctorMaterials, addCoatDetails, addLowerCoatPockets, fitCoatDetails } from './doctorWardrobe.js';
 
 /** VRM doctor renderer with damped poses and audio-envelope mouth movement. */
@@ -55,6 +57,7 @@ export class VRMAvatarEngine {
     this.loadGeneration = 0;
     this.audioAnalyser = null;
     this.audioSamples = null;
+    this.lipSync = new DoctorLipSync({base:import.meta.env.BASE_URL});
     this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
     try { this.init(); }
@@ -148,6 +151,8 @@ export class VRMAvatarEngine {
     const generation = ++this.loadGeneration;
     this.options.modelUrl = url;
     this.options.onLoading?.(url);
+    this.motion?.animationLayer?.destroy();
+    this.lipSync?.reset();
     this.motion = null;
     this.isVrmLoaded = false;
     if (this.modelRoot && this.modelRoot !== this.currentVrm?.scene) {
@@ -189,6 +194,12 @@ export class VRMAvatarEngine {
           this.modelRoot = vrm.scene;
           this.isVrmLoaded = true;
           this.motion = new DoctorMotion(vrm, this.options.persona);
+          this.mouthExpressions=Object.keys(vrm.expressionManager?.expressionMap||{});
+          const animationLayer=new DoctorAnimationLayer(vrm);
+          this.motion.animationLayer=animationLayer;
+          // Nonblocking: avatar and speech can start before optional clips load.
+          animationLayer.load(import.meta.env.BASE_URL+'animations/doctor-gestures.vrma')
+            .catch(error=>{if(!animationLayer.destroyed){animationLayer.error=error.message;animationLayer.destroy();}});
           this.motion.tone = this.consultationTone || 'empathetic';
 
           vrm.scene.position.set(0, 0, 0);
@@ -465,11 +476,15 @@ export class VRMAvatarEngine {
     this.audioSpectrum = {low:0,mid:0,high:0};
   }
 
+  prepareLipSync(context) {return this.lipSync.prepare(context);}
+  connectLipSync(source) {return this.lipSync.connect(source);}
+  disconnectLipSync() {this.lipSync.disconnect();}
+
   setConversationContext(question, metadata = {}) {
     this.motion?.setContext(question, metadata);
   }
 
-  startSpeaking(text = '', { continuation = false, segmentText = text, media = null } = {}) {
+  startSpeaking(text = '', { continuation = false, segmentText = text, media = null, timing = null } = {}) {
     this.motion?.setPose('pose_idle');
     if (!continuation) {
       if (!this.replyPrepared || this.motion?.utteranceText !== text) this.motion?.startUtterance(text);
@@ -477,7 +492,7 @@ export class VRMAvatarEngine {
     }
     this.speechMedia = media;
     const segmentKey=media?.currentSrc || media?.src || segmentText;
-    if(segmentKey!==this.speechSegmentKey || !this.isSpeaking)this.motion?.beginSpeechSegment(segmentText);
+    if(segmentKey!==this.speechSegmentKey || !this.isSpeaking){this.motion?.beginSpeechSegment(segmentText,timing);this.lipSync.begin(timing);}
     this.speechSegmentKey=segmentKey;
     this.isSpeaking = true;
   }
@@ -490,6 +505,7 @@ export class VRMAvatarEngine {
 
   stopSpeaking() {
     this.isSpeaking = false;
+    this.lipSync.reset();
     this.speechMedia = null;
     this.speechSegmentKey = null;
     this.setAudioAnalyser(null);
@@ -556,6 +572,7 @@ export class VRMAvatarEngine {
       speaking: this.isSpeaking, look: this.mouseTarget,
       audioLevel, hasAudio: !!this.audioAnalyser,
       spectrum:this.audioSpectrum,
+      visemes:this.lipSync.sample(delta,{speaking:this.isSpeaking,audioLevel,playbackTime:this.speechMedia?.currentTime,expressions:this.mouthExpressions||[]}),
       playbackTime:this.speechMedia?.currentTime,
       playbackDuration:this.speechMedia?.duration,
       reducedMotion: this.reducedMotion.matches,
@@ -566,6 +583,8 @@ export class VRMAvatarEngine {
   destroy() {
     this.isDestroyed = true;
     this.loadGeneration++;
+    this.lipSync?.destroy();
+    this.motion?.animationLayer?.destroy();
     this.setAudioAnalyser(null);
     if (this.customObjectUrl) URL.revokeObjectURL(this.customObjectUrl);
     if (this.rafId) {
