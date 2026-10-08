@@ -15,20 +15,23 @@ try{
  browser=await chromium.launch({executablePath:process.env.CHROME_PATH,headless:true,args:['--no-sandbox','--autoplay-policy=no-user-gesture-required']});
  const page=await browser.newPage({viewport:{width:1440,height:1000}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.addInitScript(()=>{
+  window.companionTimings=[];window.addEventListener('medguard:companion-latency',e=>window.companionTimings.push(e.detail));
   window.osSpeechCalls=0;window.speechSynthesis.speak=()=>window.osSpeechCalls++;
   const play = HTMLMediaElement.prototype.play;
   HTMLMediaElement.prototype.play = function(...args) { window.doctorTestAudio = this; return play.apply(this,args); };
  });
- const requests=[];let voiceFails=false; let voiceDelay=0; let profileFails=false;
+ let replyText='Tôi đã ghi nhận thông tin bạn cung cấp. Bạn hãy cho biết thời điểm triệu chứng bắt đầu để tôi hỗ trợ rõ ràng hơn.';
+ const requests=[];let holdNext=null;let voiceFails=false; let voiceDelay=0; let profileFails=false;
  await page.route('**/v1/**',async r=>{
   const path=new URL(r.request().url()).pathname;
   if(path==='/v1/tts/profiles')return profileFails?r.fulfill({status:404,json:{detail:'Not found'}}):r.fulfill({json:{revision:'doctor-voices-20261008',profiles:{dr_tuan:{voice:'vi-VN-NamMinhNeural',rate:'-8%',pitch:'-6Hz'},dr_mai:{voice:'vi-VN-HoaiMyNeural',rate:'-7%',pitch:'-12Hz'}}}});
   if(path==='/v1/tts'){
-   assert.equal(r.request().method(),'POST');requests.push(r.request().postDataJSON());
+   assert.equal(r.request().method(),'POST');const body=r.request().postDataJSON();requests.push(body);
+   if(holdNext && !body.text.startsWith('Tôi đã ghi nhận'))await holdNext;
    if (voiceDelay) await new Promise(resolve=>setTimeout(resolve,voiceDelay));
    return voiceFails?r.fulfill({status:503,json:{detail:'Voice unavailable'}}):r.fulfill({status:200,contentType:'audio/wav',body:wav});
   }
-  if(path==='/v1/chat')return r.fulfill({json:{reply:'Tôi đã ghi nhận thông tin bạn cung cấp. Bạn hãy cho biết thời điểm triệu chứng bắt đầu để tôi hỗ trợ rõ ràng hơn.'}});
+  if(path==='/v1/chat')return r.fulfill({json:{reply:replyText}});
   return r.fulfill({json:{}});
  });
  await page.goto(`http://127.0.0.1:${port}/static/?view=companion`,{waitUntil:'domcontentloaded'});
@@ -67,7 +70,30 @@ try{
   await page.locator('.grok-settings-card button[title="Đóng"]').click();
   await page.locator('.grok-stop-action-btn').click();
  }
+ async function verifyQueue(persona) {
+  const original=replyText;
+  replyText='Tôi đã ghi nhận thông tin bạn cung cấp. '+
+   'Bạn hãy cho biết thời điểm bắt đầu, những thay đổi gần đây và các thông tin liên quan để tôi có thể hiểu rõ tình trạng bạn đang trao đổi. '+
+   'Nếu xuất hiện đau ngực kèm khó thở hoặc ngất, hãy gọi cấp cứu ngay. Không tự tăng liều thuốc đang dùng. Bạn có đang dùng thuốc nào không?';
+  let release;holdNext=new Promise(r=>{release=r;});
+  const start=requests.length;
+  try {
+   await send();
+   await page.getByText('Nếu xuất hiện đau ngực kèm khó thở hoặc ngất, hãy gọi cấp cứu ngay.',{exact:false}).waitFor();
+   assert.equal(requests[start].persona,persona);
+   assert(requests.length>=start+2,'next sentence is prepared concurrently');
+   assert.equal(await page.evaluate(()=>window.__companionEngine.isSpeaking),true,'plays first while next response remains blocked');
+  } finally {release();holdNext=null;}
+  await page.waitForFunction(()=>{const b=[...document.querySelectorAll('button')].find(b=>b.textContent==='Đọc lại');return b && !b.disabled},null,{timeout:20000});
+  assert.equal(requests.slice(start).map(r=>r.text).join(' '),replyText);
+  const timings=await page.evaluate(()=>window.companionTimings);
+  assert(timings.some(t=>t.stage==='first_audio'&&t.persona===persona));
+  assert(timings.every(t=>!('text' in t)&&!('question' in t)));
+  replyText=original;
+  console.log(`${persona}: first audio before next response, complete warning retained and spoken in order PASS`);
+ }
  await preview('dr_tuan','vi-VN-NamMinhNeural');
+ await verifyQueue('dr_tuan');
  await send();assert.equal(requests.at(-1).persona,'dr_tuan');
  await page.waitForFunction(()=>window.__companionEngine.motion.values.aa>.05);
  // Check inside the WAV's silent segment, using media time instead of a wall-clock delay.
@@ -82,6 +108,7 @@ try{
  await captureUniform('doctor-male-uniform.png');
  await page.getByRole('button',{name:'BS. Thanh Mai',exact:true}).click();await waitPersona('dr_mai');
  await preview('dr_mai','vi-VN-HoaiMyNeural');
+ await verifyQueue('dr_mai');
  await send();assert.equal(requests.at(-1).persona,'dr_mai');
  await page.waitForTimeout(500);
  await page.screenshot({path:new URL('doctor-female-speaking.png',artifactDir).pathname});

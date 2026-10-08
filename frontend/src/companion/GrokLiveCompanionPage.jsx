@@ -15,6 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import { VRMAvatarEngine } from './VRMAvatarEngine';
+import { splitSpeech, runSpeechQueue } from './speechQueue';
 import './GrokLiveCompanionPage.css';
 
 /**
@@ -44,41 +45,6 @@ const normalizeMedicalSpeech = (text) => {
 };
 
 /**
- * Trích xuất câu trả lời ngắn gọn và chính xác (2-3 câu trọng tâm, 30-55 từ).
- * Cả phụ đề trên màn hình và giọng đọc đều là nội dung này,
- * giúp nhân vật nói trọn vẹn 100% câu trả lời mà không bị cắt cụt hay ngắt timer.
- */
-const formatShortPreciseClinicalAdvice = (text) => {
-  if (!text) return '';
-  const clean = normalizeMedicalSpeech(text);
-
-  // Tách câu theo dấu câu kết thúc
-  const rawSentences = clean.match(/[^.!?]+[.!?]+/g) || [clean];
-  const filtered = rawSentences
-    .map((s) => s.trim())
-    .filter((s) => {
-      if (/^(dưới đây là|kết quả phân tích|sau đây là|chào bạn)/i.test(s)) return false;
-      return s.length > 8;
-    });
-
-  if (filtered.length === 0) return clean.slice(0, 180).trim();
-  if (filtered.length <= 2) return filtered.join(' ');
-
-  // Chắt lọc tối đa 2-3 câu cốt lõi (khoảng 35-50 từ)
-  let result = '';
-  for (const s of filtered) {
-    const candidate = (result ? result + ' ' + s : s).trim();
-    const words = candidate.split(/\s+/).length;
-    if (words <= 52 || !result) {
-      result = candidate;
-    } else {
-      break;
-    }
-  }
-  return result || filtered[0];
-};
-
-/**
  * GrokLiveCompanionPage (Bác Sĩ 3D Live Companion)
  * Interactive Anime Doctor Avatar powered by VRMAvatarEngine.
  */
@@ -93,6 +59,8 @@ export function GrokLiveCompanionPage({
   const audioRef = useRef(null);
   const audioContextRef = useRef(null);
   const ttsAbortRef = useRef(null);
+  const chatAbortRef = useRef(null);
+  const queryStartedRef = useRef(null);
   const audioUrlRef = useRef(null);
   const fileInputRef = useRef(null);
   const recognitionRef = useRef(null);
@@ -194,6 +162,7 @@ export function GrokLiveCompanionPage({
     return () => {
       speechIdRef.current++;
       disposePlayback();
+      chatAbortRef.current?.abort();
       if (recognitionRef.current) {
         try {
           recognitionRef.current.abort();
@@ -241,55 +210,98 @@ export function GrokLiveCompanionPage({
     audioContextRef.current = audioContext;
     // Resume within the interaction where possible (not after the synthesis request).
     audioContext?.resume().catch(() => {});
-    const timeout = window.setTimeout(() => controller.abort(), 30000);
+    const voiceStarted = performance.now();
+    let firstSound = true;
     try {
-      const body = { text: cleanSpeech, persona };
-      let blob;
-      if (api) {
-        blob = await api.request('/v1/tts', { method: 'POST', body, responseType: 'blob', signal: controller.signal });
-      } else {
-        const response = await fetch('/v1/tts', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body), signal: controller.signal,
+      const synthesize = async sentence => {
+        const body = { text: sentence, persona };
+        if (api) return api.request('/v1/tts', {
+          method: 'POST', body, responseType: 'blob', signal: controller.signal, timeoutMs: 30000,
         });
-        if (!response.ok) throw new Error('Voice unavailable');
-        blob = await response.blob();
-      }
-      if (!current()) return;
-      window.clearTimeout(timeout);
-      audioUrlRef.current = URL.createObjectURL(blob);
-      const audio = new Audio(audioUrlRef.current);
-      audioRef.current = audio;
-      let analyser = null;
-      if (audioContext) {
-        analyser = audioContext.createAnalyser();
-        analyser.fftSize = 512;
-        const source = audioContext.createMediaElementSource(audio);
-        source.connect(analyser); analyser.connect(audioContext.destination);
-        await Promise.race([audioContext.resume(), new Promise(resolve=>window.setTimeout(resolve,300))]);
-        if(audioContext.state !== 'running') throw new DOMException('Audio needs a user gesture', 'NotAllowedError');
-      }
-      audio.onplaying = () => {
-        if (!current()) { audio.pause(); return; }
-        setIsVoiceLoading(false);
-        setIsSpeaking(true);
-        engineRef.current?.setAudioAnalyser(analyser);
-        engineRef.current?.startSpeaking(cleanSpeech);
+        const request = new AbortController();
+        const cancel = () => request.abort();
+        controller.signal.addEventListener('abort', cancel, { once: true });
+        const timer = window.setTimeout(cancel, 30000);
+        try {
+          const response = await fetch('/v1/tts', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body), signal: request.signal,
+          });
+          if (!response.ok) throw new Error('Voice unavailable');
+          return await response.blob();
+        } finally {
+          window.clearTimeout(timer);
+          controller.signal.removeEventListener('abort', cancel);
+        }
       };
-      audio.onpause = () => { if (current()) { setIsSpeaking(false); engineRef.current?.stopSpeaking(); } };
-      audio.onended = () => { if (current()) { setIsVoiceLoading(false); setIsSpeaking(false); disposePlayback(); } };
-      audio.onerror = () => { if (current()) { setIsVoiceLoading(false); setIsSpeaking(false); disposePlayback(); setVoiceError('Chưa phát được âm thanh. Hãy bật âm thanh và bấm Đọc lại.'); } };
-      await audio.play();
+      const play = (blob, sentence) => new Promise((resolve, reject) => {
+        if (!current()) return reject(new DOMException('Cancelled', 'AbortError'));
+        const url = URL.createObjectURL(blob);
+        audioUrlRef.current = url;
+        const audio = new Audio(url);
+        audioRef.current = audio;
+        let source = null;
+        let analyser = null;
+        let settled = false;
+        const finish = error => {
+          if (settled) return;
+          settled = true;
+          controller.signal.removeEventListener('abort', abort);
+          audio.onplaying = audio.onended = audio.onerror = audio.onpause = null;
+          audio.pause(); audio.removeAttribute('src'); audio.load();
+          source?.disconnect(); analyser?.disconnect();
+          URL.revokeObjectURL(url);
+          if (audioRef.current === audio) audioRef.current = null;
+          if (audioUrlRef.current === url) audioUrlRef.current = null;
+          if (current()) {
+            setIsSpeaking(false); setIsVoiceLoading(true);
+            engineRef.current?.stopSpeaking();
+          }
+          error ? reject(error) : resolve();
+        };
+        const abort = () => finish(new DOMException('Cancelled', 'AbortError'));
+        controller.signal.addEventListener('abort', abort, { once: true });
+        if (audioContext) {
+          analyser = audioContext.createAnalyser(); analyser.fftSize = 512;
+          source = audioContext.createMediaElementSource(audio);
+          source.connect(analyser); analyser.connect(audioContext.destination);
+        }
+        audio.onplaying = () => {
+          if (!current()) return abort();
+          setIsVoiceLoading(false); setIsSpeaking(true);
+          engineRef.current?.setAudioAnalyser(analyser);
+          engineRef.current?.startSpeaking(sentence);
+          if (firstSound) {
+            firstSound = false;
+            const now = performance.now();
+            window.dispatchEvent(new CustomEvent('medguard:companion-latency', { detail: {
+              stage: 'first_audio', persona, ttsMs: Math.round(now - voiceStarted),
+              totalMs: queryStartedRef.current === null ? null : Math.round(now - queryStartedRef.current),
+            } }));
+          }
+        };
+        audio.onended = () => finish();
+        audio.onerror = () => finish(new Error('Audio playback failed'));
+        (async () => {
+          if (audioContext) {
+            await Promise.race([audioContext.resume(), new Promise(r => window.setTimeout(r, 300))]);
+            if (audioContext.state !== 'running') throw new DOMException('Audio needs a user gesture', 'NotAllowedError');
+          }
+          if (!current()) return abort();
+          await audio.play();
+        })().catch(finish);
+      });
+      await runSpeechQueue(splitSpeech(cleanSpeech), { synthesize, play, signal: controller.signal });
+      if (current()) { setIsVoiceLoading(false); setIsSpeaking(false); disposePlayback(); }
     } catch (error) {
-      if (requestId !== speechIdRef.current) return;
-      setIsVoiceLoading(false);
-      setIsSpeaking(false);
+      if (!current()) return;
+      setIsVoiceLoading(false); setIsSpeaking(false);
       disposePlayback();
       setVoiceError(error?.name === 'NotAllowedError'
         ? 'Trình duyệt đang chặn phát âm thanh. Hãy bấm Đọc lại để phát giọng bác sĩ.'
         : `Giọng bác sĩ chưa phát được${error?.status ? ` (HTTP ${error.status})` : ''}. Hãy kiểm tra backend và kết nối dịch vụ TTS, rồi bấm Đọc lại.`);
       onNotify?.('Giọng bác sĩ tạm thời chưa sẵn sàng. Bạn vẫn có thể đọc câu trả lời và thử lại.');
-    } finally { window.clearTimeout(timeout); }
+    }
   };
 
   // Alias for backward compatibility
@@ -300,6 +312,9 @@ export function GrokLiveCompanionPage({
   // Stop All Speech & Actions immediately
   const handleStop = () => {
     speechIdRef.current++;
+    chatAbortRef.current?.abort();
+    chatAbortRef.current = null;
+    queryStartedRef.current = null;
     disposePlayback();
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.cancel();
@@ -379,6 +394,9 @@ export function GrokLiveCompanionPage({
 
     handleStop();
     const currentSpeechId = ++speechIdRef.current;
+    const chatController = new AbortController();
+    chatAbortRef.current = chatController;
+    queryStartedRef.current = performance.now();
 
     setInputText('');
     setIsBusy(true);
@@ -400,7 +418,7 @@ export function GrokLiveCompanionPage({
           conversation_id: conversationIdRef.current,
           messages: [
             ...messagesHistoryRef.current.slice(-6),
-            { role: 'user', content: `${text} (${toneInstruction} Yêu cầu trả lời súc tích 2-3 câu trọng tâm nhất).` },
+            { role: 'user', content: `${text} (${toneInstruction} Trả lời trực tiếp, súc tích; giữ đầy đủ dấu hiệu cảnh báo, hướng xử trí và câu hỏi cần làm rõ).` },
           ],
           context: {
             patient_ref: context?.patient_ref || 'BN-LIVE',
@@ -415,6 +433,7 @@ export function GrokLiveCompanionPage({
           method: 'POST',
           body: payload,
           timeoutMs: 15000,
+          signal: chatController.signal,
         });
 
         reply =
@@ -423,6 +442,8 @@ export function GrokLiveCompanionPage({
           data?.answer?.clinical_advice ||
           'Bác sĩ đã tiếp nhận thông tin của bạn.';
 
+        if (currentSpeechId !== speechIdRef.current || chatController.signal.aborted) return;
+
         // Store chat history for natural follow-up reasoning
         messagesHistoryRef.current = [
           ...messagesHistoryRef.current.slice(-6),
@@ -430,14 +451,18 @@ export function GrokLiveCompanionPage({
           { role: 'assistant', content: reply },
         ];
       } else {
-        reply = `Cảm ơn bạn đã hỏi về "${text}". Bạn chú ý theo dõi biểu hiện cơ thể và duy trì lối sống điều độ nhé.`;
+        reply = 'Chưa kết nối được hệ thống tư vấn. Bạn vui lòng kiểm tra kết nối và gửi lại câu hỏi.';
       }
 
       // Check race condition
       if (currentSpeechId !== speechIdRef.current) return;
 
-      // ĐỊNH DẠNG CÂU TRẢ LỜI NGẮN GỌN VÀ CHÍNH XÁC (2-3 câu trọng tâm)
-      const conciseAdvice = formatShortPreciseClinicalAdvice(reply);
+      // Preserve the final answer, especially warnings and follow-up questions.
+      const conciseAdvice = normalizeMedicalSpeech(reply);
+      window.dispatchEvent(new CustomEvent('medguard:companion-latency', { detail: {
+        stage: 'safe_text', persona: doctorPersona,
+        totalMs: Math.round(performance.now() - queryStartedRef.current),
+      } }));
 
       // Cả chữ hiển thị trên màn hình và giọng đọc đều là nội dung này!
       setDialogueText(conciseAdvice);
@@ -449,13 +474,15 @@ export function GrokLiveCompanionPage({
       speakDoctorVoice(conciseAdvice, doctorPersona, currentSpeechId);
     } catch (err) {
       console.error('Companion query failed:', err);
-      if (currentSpeechId !== speechIdRef.current) return;
+      if (currentSpeechId !== speechIdRef.current || chatController.signal.aborted) return;
       const errMsg =
         'Bác sĩ đã ghi nhận câu hỏi, nhưng kết nối máy chủ tạm thời gián đoạn. Bạn vui lòng thử gửi lại nhé!';
       setDialogueText(errMsg);
       setIsBusy(false);
       engineRef.current?.applyPose('pose_idle');
       speakDoctorVoice(errMsg, doctorPersona, currentSpeechId);
+    } finally {
+      if (chatAbortRef.current === chatController) chatAbortRef.current = null;
     }
   };
 

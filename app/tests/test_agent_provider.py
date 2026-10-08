@@ -36,6 +36,9 @@ class FakeClient:
     def __init__(self, **_values) -> None:
         pass
 
+    def close(self):
+        pass
+
     def __enter__(self):
         return self
 

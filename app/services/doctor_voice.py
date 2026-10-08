@@ -2,6 +2,8 @@
 import asyncio
 import importlib
 import ssl
+from time import perf_counter
+from app.core.observability import metrics
 from functools import lru_cache
 from typing import Literal
 
@@ -51,7 +53,17 @@ async def synthesize_doctor_speech(payload: DoctorSpeechRequest) -> bytes:
 
     async def collect() -> bytes:
         speech = Communicate(payload.text, **VOICE_PROFILES[payload.persona])
-        chunks = [chunk["data"] async for chunk in speech.stream() if chunk["type"] == "audio"]
+        started = perf_counter()
+        chunks = []
+        async for chunk in speech.stream():
+            if chunk["type"] != "audio":
+                continue
+            if not chunks:
+                metrics.observe_histogram("medguard_tts_first_chunk_ms", (perf_counter() - started) * 1000,
+                                          labels={"persona": payload.persona})
+            chunks.append(chunk["data"])
+        metrics.observe_histogram("medguard_tts_complete_ms", (perf_counter() - started) * 1000,
+                                  labels={"persona": payload.persona})
         audio = b"".join(chunks)
         if not audio:
             raise RuntimeError("Speech provider returned no audio")

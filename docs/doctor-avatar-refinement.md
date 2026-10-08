@@ -79,3 +79,50 @@ A failed or blocked playback now leaves a persistent inline message and a
 “Đọc lại” button; it never silently switches to an OS default voice.
 The earlier advanced motion commits were not recovered: these are newly added
 gesture plans, not a restoration of that entire prior implementation.
+
+
+## Response latency (2026-10-08)
+
+The companion waits for the final `/v1/chat` response before starting clinical
+speech. Safety routing, Reviewer, grounding and clinical authority are unchanged.
+The UI no longer discards content after 52 words; full returned warnings remain
+visible and are read. The first sentence is synthesized separately; one following
+chunk is prepared ahead, with a maximum of two pending preparations. Later short
+sentences are grouped up to 360 characters. Both personas keep their existing
+voice/rate/pitch. Each chunk still uses complete MP3 playback, compatible with the
+existing HTML audio pipeline; this is sentence pipelining, not raw MP3 streaming.
+Sentence boundaries may introduce pauses, and first audio still depends on TTS
+provider/network latency. No claim of a guaranteed sub-second response is made.
+
+Stop, mute during speech, persona change, new question and unmount invalidate old
+turns and abort chat/TTS fetches. `/v1/tts` cancels its synthesis task when the
+browser disconnects. An already running synchronous upstream chat/model call may
+continue until its existing deadline; browser cancellation does not terminate
+that thread. API deadlines now cover response bodies and combine correctly with
+external cancellation. Superseded responses cannot update conversation history.
+No provider key, TLS verification or login protection is relaxed.
+
+AI adapters reuse a process-local HTTP pool (32 connections, 16 keepalive,
+30-second keepalive expiry per configured timeout), closed at application shutdown.
+Authorization stays on individual calls and provider cookies are rejected. No
+patient answer or audio cache is introduced. HTTP clients are thread-safe, but
+this change does not parallelize a writer with its dependent Reviewer.
+
+Latency observations contain numbers and fixed persona/stage labels only:
+- Browser `medguard:companion-latency` events: `safe_text` elapsed time and
+  `first_audio` TTS/total elapsed time. No transcript, patient ID or content.
+- Backend `medguard_tts_first_chunk_ms` and `medguard_tts_complete_ms` aggregate
+  count/sum metrics. Current metrics do not store samples or report percentiles.
+
+Additional checks:
+- `npm --prefix frontend run test:doctor-latency`
+- `python -m pytest app/tests/test_provider_transport.py app/tests/test_doctor_voice.py -q`
+- `test:doctor-web` holds the next TTS response back and verifies first audio
+  plays first, while the entire warning is subsequently read, for both doctors.
+- `test:doctor-live` reports actual first-audio latency for synthetic samples.
+
+Deployment: checkout `feature/doctor-avatar-refinement`, pull, restart backend
+with `python3 scripts/start_with_doctor_voice.py`, then open
+`http://localhost:8000/?view=companion`. Built frontend assets are committed;
+when developing instead, run `npm --prefix frontend ci` and
+`npm --prefix frontend run dev` alongside the backend.

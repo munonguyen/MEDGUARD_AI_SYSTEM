@@ -94,3 +94,33 @@ def test_tts_trust_rejects_disabled_verification(monkeypatch):
             voice.configure_tts_trust()
     finally:
         voice.configure_tts_trust.cache_clear()
+
+
+def test_disconnected_browser_cancels_upstream_synthesis(monkeypatch):
+    from fastapi import HTTPException
+    from app.api.routes import post_text_to_speech
+    cancelled = []
+
+    async def synth(payload):
+        try:
+            await asyncio.Event().wait()
+        finally:
+            cancelled.append(payload.persona)
+
+    class Disconnected:
+        async def is_disconnected(self):
+            return True
+
+    monkeypatch.setattr('app.api.routes.synthesize_doctor_speech', synth)
+    with pytest.raises(HTTPException) as error:
+        asyncio.run(post_text_to_speech(DoctorSpeechRequest(text='Xin chào.'), Disconnected()))
+    assert error.value.status_code == 499
+    assert cancelled == ['dr_tuan']
+
+
+def test_legacy_get_speech_still_works(monkeypatch):
+    async def synth(payload):
+        return b'ID3sample'
+    monkeypatch.setattr('app.api.routes.synthesize_doctor_speech', synth)
+    with TestClient(app) as client:
+        assert client.get('/v1/tts', params={'text':'Xin chào.', 'persona':'dr_mai'}).status_code == 200

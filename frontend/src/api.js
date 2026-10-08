@@ -22,43 +22,48 @@ export function createApiClient({ tenantId, apiKey, consentToken }) {
       headers['Content-Type'] = 'application/json';
     }
 
-    const controller = options.timeoutMs ? new AbortController() : null;
-    const timeoutId = controller
-      ? window.setTimeout(() => controller.abort(), options.timeoutMs)
+    const controller = new AbortController();
+    const cancel = () => controller.abort();
+    if (options.signal?.aborted) cancel();
+    else options.signal?.addEventListener('abort', cancel, { once: true });
+    let timedOut = false;
+    const timeoutId = options.timeoutMs
+      ? window.setTimeout(() => { timedOut = true; controller.abort(); }, options.timeoutMs)
       : null;
-    let response;
     try {
-      response = await fetch(path, {
+      const response = await fetch(path, {
         method,
         credentials: 'same-origin',
         headers,
         body: options.formData || (options.body !== undefined ? JSON.stringify(options.body) : undefined),
-        signal: options.signal || controller?.signal,
+        signal: controller.signal,
       });
+      const contentType = response.headers.get('content-type') || '';
+      const data = response.ok && options.responseType === 'blob'
+        ? await response.blob()
+        : contentType.includes('json') ? await response.json() : await response.text();
+      if (!response.ok) {
+        if (response.status === 401 && browserSession) window.dispatchEvent(new Event('medguard:session-expired'));
+        const error = new Error(data?.message || data?.error_code || `HTTP ${response.status}`);
+        error.status = response.status;
+        error.code = data?.error_code || 'request_failed';
+        error.requestId = data?.request_id || response.headers.get('X-Request-Id');
+        error.details = data?.details;
+        throw error;
+      }
+      return data;
     } catch (error) {
-      if (error?.name === 'AbortError') {
-        const timeoutError = new Error('MedGuard chưa thể trả lời trong 10 giây. Vui lòng thử lại.');
+      if (timedOut && !options.signal?.aborted) {
+        const timeoutError = new Error(`MedGuard chưa thể trả lời trong ${options.timeoutMs / 1000} giây. Vui lòng thử lại.`);
         timeoutError.code = 'response_timeout';
         throw timeoutError;
       }
       throw error;
     } finally {
       if (timeoutId !== null) window.clearTimeout(timeoutId);
+      options.signal?.removeEventListener('abort', cancel);
     }
-    const contentType = response.headers.get('content-type') || '';
-    const data = response.ok && options.responseType === 'blob'
-      ? await response.blob()
-      : contentType.includes('json') ? await response.json() : await response.text();
-    if (!response.ok) {
-      if (response.status === 401 && browserSession) window.dispatchEvent(new Event('medguard:session-expired'));
-      const error = new Error(data?.message || data?.error_code || `HTTP ${response.status}`);
-      error.status = response.status;
-      error.code = data?.error_code || 'request_failed';
-      error.requestId = data?.request_id || response.headers.get('X-Request-Id');
-      error.details = data?.details;
-      throw error;
-    }
-    return data;
+
   }
 
   return { request };

@@ -7,6 +7,7 @@ from time import perf_counter
 from typing import Any, Protocol, TypeVar
 
 import httpx
+from app.services.provider_transport import provider_client
 from pydantic import BaseModel
 
 
@@ -191,7 +192,7 @@ class OpenAIResponsesProvider:
             )
         start = perf_counter()
         try:
-            with httpx.Client(timeout=self._timeout_seconds) as client:
+            with provider_client(self._timeout_seconds) as client:
                 response = client.post(
                     f"{self._base_url}/responses",
                     headers={
@@ -340,7 +341,7 @@ class LiteLLMResponsesProvider(OpenAIResponsesProvider):
             body["reasoning"] = {"effort": self._reasoning_effort}
         start = perf_counter()
         try:
-            with httpx.Client(timeout=self._timeout_seconds) as client:
+            with provider_client(self._timeout_seconds) as client:
                 response = client.post(
                     f"{self._base_url}/responses",
                     headers=headers,
@@ -430,7 +431,7 @@ class LiteLLMResponsesProvider(OpenAIResponsesProvider):
         }
         start = perf_counter()
         try:
-            with httpx.Client(timeout=self._timeout_seconds) as client:
+            with provider_client(self._timeout_seconds) as client:
                 citations: tuple[str, ...] = ()
                 queries: tuple[str, ...] = ()
                 search_usage = (0, 0, 0)
@@ -589,7 +590,7 @@ class GeminiGroundedProvider:
         }
         start = perf_counter()
         try:
-            with httpx.Client(timeout=self._timeout_seconds) as client:
+            with provider_client(self._timeout_seconds) as client:
                 response = client.post(
                     f"{self._base_url}/interactions",
                     headers={"x-goog-api-key": self._api_key, "Content-Type": "application/json"},

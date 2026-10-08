@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from pathlib import Path
 import re
 from uuid import uuid4
@@ -87,8 +88,17 @@ def _security_headers(response, *, path: str) -> None:
         )
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    from app.services.provider_transport import close_provider_clients
+    try:
+        yield
+    finally:
+        await run_in_threadpool(close_provider_clients)
+
+
 def create_app() -> FastAPI:
-    app = FastAPI(title="MedGuard AI", version="0.1.0")
+    app = FastAPI(title="MedGuard AI", version="0.1.0", lifespan=lifespan)
     app.state.rate_limiter = rate_limiter
     from app.core.accounts import AccountStore
     from app.api.accounts import router as accounts_router

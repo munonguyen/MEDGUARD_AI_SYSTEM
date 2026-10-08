@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import asyncio
+from contextlib import suppress
 from hashlib import sha256
 from typing import Any
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, Response, UploadFile, status
 
 from app.core.context import RequestContext
 from app.core.security import verify_tenant_api_key, verify_tenant_credentials
@@ -641,12 +643,24 @@ def doctor_voice_profiles() -> dict[str, Any]:
 
 
 @router.post("/tts")
-async def post_text_to_speech(payload: DoctorSpeechRequest) -> Response:
+async def post_text_to_speech(payload: DoctorSpeechRequest, request: Request) -> Response:
     """Render the selected doctor's voice without logging clinical text in a URL."""
+    task = asyncio.create_task(synthesize_doctor_speech(payload))
     try:
-        audio = await synthesize_doctor_speech(payload)
+        while not task.done():
+            await asyncio.wait({task}, timeout=0.1)
+            if not task.done() and await request.is_disconnected():
+                raise HTTPException(status_code=499, detail="Speech request cancelled")
+        audio = await task
+    except HTTPException:
+        raise
     except Exception:
         raise HTTPException(status_code=503, detail="Giọng bác sĩ tạm thời chưa sẵn sàng. Vui lòng thử lại.")
+    finally:
+        if not task.done():
+            task.cancel()
+            with suppress(asyncio.CancelledError):
+                await task
     return Response(content=audio, media_type="audio/mpeg", headers={
         "Cache-Control": "no-store",
         "X-Doctor-Voice": VOICE_PROFILES[payload.persona]["voice"],
@@ -657,10 +671,10 @@ async def post_text_to_speech(payload: DoctorSpeechRequest) -> Response:
 
 
 @router.get("/tts", deprecated=True)
-async def get_text_to_speech(text: str, persona: str = "dr_tuan") -> Response:
+async def get_text_to_speech(request: Request, text: str, persona: str = "dr_tuan") -> Response:
     # Keep older consultation views compatible while they migrate to POST.
     try:
         payload = DoctorSpeechRequest(text=text, persona=persona)
     except ValueError:
         raise HTTPException(status_code=422, detail="Invalid doctor speech request")
-    return await post_text_to_speech(payload)
+    return await post_text_to_speech(payload, request)

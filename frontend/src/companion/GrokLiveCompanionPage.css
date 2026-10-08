@@ -331,6 +331,11 @@
 
 .grok-bubble-text {
   margin: 2px 0 0;
+  max-height: min(24vh, 180px);
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+  pointer-events: auto;
   font-size: 14.5px;
   line-height: 1.52;
   color: #f1f5f9;
