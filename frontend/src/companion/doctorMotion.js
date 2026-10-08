@@ -1,7 +1,8 @@
-import { Euler, Quaternion } from 'three';
+import { Euler } from 'three';
 
 const REST = {
   spine: [0, 0, 0], chest: [0, 0, 0], neck: [0, 0, 0], head: [0, 0, 0],
+  leftShoulder: [0, 0, 0], rightShoulder: [0, 0, 0],
   leftUpperArm: [.08, .04, 1.30], rightUpperArm: [.08, -.04, -1.30],
   leftLowerArm: [-.12, 0, .28], rightLowerArm: [-.12, 0, -.28],
   leftHand: [0, .04, .04], rightHand: [0, -.04, -.04],
@@ -11,20 +12,41 @@ const smoothPulse = (t, start, duration) => {
   return x > 0 && x < 1 ? Math.sin(Math.PI * x) ** 2 : 0;
 };
 
-// Time-based quaternion damping makes transitions identical at 30/60/120 fps.
+// C2 envelope: preparation, a readable hold, then a slower release.
+const ease = x => { x = Math.max(0, Math.min(1,x)); return x*x*x*(x*(x*6-15)+10); };
+const phraseEnvelope = (t, delay, duration) => {
+  const x = (t-delay)/duration;
+  return x <= 0 || x >= 1 ? 0 : ease(x/.27) * (1-ease((x-.58)/.42));
+};
+// Critically damped joints retain velocity across interruptions. Small integration
+// steps and explicit speed/acceleration limits also handle low rendering rates.
+function spring(state, target, omega, dt, maxSpeed) {
+  const count=Math.max(1,Math.ceil(dt*120)), h=dt/count;
+  const maxAcceleration=maxSpeed*5;
+  for(let i=0;i<count;i++) {
+    const acceleration=Math.max(-maxAcceleration,Math.min(maxAcceleration,
+      omega*omega*(target-state.position)-2*omega*state.velocity));
+    const velocity=Math.max(-maxSpeed,Math.min(maxSpeed,state.velocity+acceleration*h));
+    state.position+=(state.velocity+velocity)*.5*h;
+    state.velocity=velocity;
+  }
+}
+
 export class DoctorMotion {
   constructor(vrm, persona) {
     this.vrm = vrm; this.persona = persona; this.pose = 'pose_idle';
     this.tone = 'empathetic'; this.expression = 'neutral';
     this.time = 0; this.speechTime = 0; this.speechWeight = 0;
     this.bones = Object.fromEntries(Object.keys(REST).map(name => [name, vrm.humanoid?.getNormalizedBoneNode(name)]));
-    this.target = new Quaternion(); this.euler = new Euler();
+    this.euler = new Euler();
+    this.joints = Object.fromEntries(Object.entries(REST).map(([name,xyz])=>[name,xyz.map(position=>({position,velocity:0}))]));
+    this.pauseAge = 10; this.audioAccent = 0;
     this.values = {};
     this.blinkAt = 2.5 + Math.random() * 2; this.blinkStarted = -10;
     this.gesturePlan = ['explain', 'invite', 'reassure', 'explain'];
     for (const [name, xyz] of Object.entries(REST)) this.bones[name]?.quaternion.setFromEuler(this.euler.set(...xyz));
   }
-  setPose(pose) { this.pose = pose; this.poseStarted = this.time; }
+  setPose(pose) { if(this.pose !== pose) { this.pose = pose; this.poseStarted = this.time; } else if(pose === 'pose_wave') this.poseStarted = this.time; }
   setExpression(expression) { this.expression = expression; }
   startUtterance(text = '') {
     this.speechTime = 0;
@@ -40,7 +62,9 @@ export class DoctorMotion {
     const replyAge = this.time - (this.poseStarted ?? this.time);
     const responding = this.pose === 'pose_acknowledge' && replyAge < 3.8;
     const alpha = 1 - Math.exp(-dt * 7);
-    this.speechWeight += ((speaking || responding ? 1 : 0) - this.speechWeight) * alpha;
+    this.pauseAge = speaking ? 0 : this.pauseAge + dt;
+    this.audioAccent += (Math.min(1, audioLevel*5) - this.audioAccent) * (1-Math.exp(-dt*9));
+    this.speechWeight += ((speaking || responding || this.pauseAge < .18 ? 1 : 0) - this.speechWeight) * alpha;
     const targets = Object.fromEntries(Object.entries(REST).map(([k, v]) => [k, [...v]]));
     const listen = this.pose === 'pose_listening';
     const think = this.pose === 'pose_thinking';
@@ -48,37 +72,60 @@ export class DoctorMotion {
     const time = this.time;
     if (!reducedMotion) {
       targets.spine[0] = Math.sin(time * 1.35) * .004;
-      targets.chest[0] = Math.sin(time * 1.35 - .2) * .003;
-      targets.head = [-look.y * .09 + (listen ? -.025 : think ? .02 : 0), look.x * .22, listen ? .025 : 0];
-      targets.neck = [-look.y * .035, look.x * .055, 0];
+      targets.chest[0] = Math.sin(time * 1.35 - .2) * .006;
+      // Quiet asymmetric posture shifts, breathing, and loose shoulders.
+      const shift = Math.sin(time*.29)*.012 + Math.sin(time*.47+1.3)*.005;
+      targets.spine[2] = shift;
+      targets.chest[2] = -shift*.55;
+      targets.leftShoulder[2] = Math.sin(time*1.35-.35)*.004;
+      targets.rightShoulder[2] = -Math.sin(time*1.35+.1)*.004;
+      targets.leftLowerArm[2] += .035 + Math.sin(time*.41)*.012;
+      targets.rightLowerArm[2] -= .055 + Math.sin(time*.37+.8)*.012;
+      if (listen) {
+        const nod = smoothPulse((time-(this.poseStarted??time))%7.3,1.15,1.3);
+        targets.spine[0] -= .012;
+        targets.neck[0] += nod*.018;
+        targets.head[0] += nod*.035;
+      }
+      if (think) {
+        targets.leftLowerArm[2] += .25;
+        targets.rightLowerArm[2] -= .12;
+        targets.chest[1] -= .012;
+      }
+      targets.head = [targets.head[0] -look.y * .09 + (listen ? -.025 : think ? .02 : 0), look.x * .22, listen ? .025 : 0];
+      targets.neck = [targets.neck[0] -look.y * .035, look.x * .055, 0];
       targets.chest[1] = look.x * .022;
       // Smoothly alternate a phrase gesture with a quiet rest, involving the
       // shoulder, forearm, wrist, torso and head rather than moving one joint.
-      const gestureTime = speaking ? this.speechTime : responding ? replyAge : 0;
+      const gestureTime = responding ? replyAge : this.speechTime;
       const durations = [4.4, 5.2, 4.8, 5.5, 4.6, 5.0];
       const total = durations.reduce((a,b) => a+b,0);
       let phase = gestureTime % total;
       let index = 0;
       while (phase >= durations[index]) { phase -= durations[index]; index++; }
       const duration = durations[index];
-      const kind = this.gesturePlan[index % this.gesturePlan.length];
+      let kind = this.gesturePlan[index % this.gesturePlan.length];
+      if (kind === 'greeting' && gestureTime >= total) kind = 'explain';
       this.activeGesture = speaking || responding ? kind : 'idle';
       const weight = this.speechWeight * (cautious ? .65 : 1);
-      const shoulder = smoothPulse(phase, 0, duration - .25) * weight;
+      const shoulder = phraseEnvelope(phase, .10, duration - .30) * weight;
       // The elbow anticipates the shoulder; wrist arrives later. Flexion is
       // held throughout the lift instead of extending a straight arm sideways.
-      const elbow = smoothPulse(phase, 0, duration - .05) * weight;
-      const wrist = smoothPulse(phase, .25, duration - .4) * weight;
+      const elbow = phraseEnvelope(phase, 0, duration - .08) * weight;
+      const wrist = phraseEnvelope(phase, .22, duration - .30) * weight;
       const left = index % 2 === 1;
       const arm = left ? 'left' : 'right';
       const sign = left ? -1 : 1;
       const open = kind === 'invite' || kind === 'present';
+      const accent = this.audioAccent * wrist;
+      targets[arm+'Shoulder'][1] -= sign*shoulder*.025;
+      targets[arm+'Shoulder'][2] += sign*shoulder*.018;
       targets[arm + 'UpperArm'][0] += shoulder * (open ? .18 : .12);
       targets[arm + 'UpperArm'][1] -= sign * shoulder * .12;
       targets[arm + 'UpperArm'][2] += sign * shoulder * (open ? .20 : .14);
       targets[arm + 'LowerArm'][0] -= elbow * .20;
       targets[arm + 'LowerArm'][2] += sign * elbow * (open ? 1.8 : 1.55);
-      targets[arm + 'Hand'][0] += wrist * .09;
+      targets[arm + 'Hand'][0] += wrist * .09 + accent*.022;
       targets[arm + 'Hand'][1] -= sign * wrist * (open ? .26 : .15);
       targets[arm + 'Hand'][2] -= sign * wrist * .12;
       // Counterbalance the other arm and distribute rotation through the torso.
@@ -99,11 +146,11 @@ export class DoctorMotion {
         targets[arm + 'UpperArm'][1] -= sign * shoulder * .10;
       }
       if (kind === 'enumerate') targets[arm + 'Hand'][0] += Math.sin(phase * 3.5) * wrist * .035;
-      if (kind === 'caution') targets[arm + 'Hand'][0] += wrist * .09;
+      if (kind === 'caution') targets[arm + 'Hand'][0] += wrist * .09 + accent*.022;
       // Greeting is a bent-elbow wave close to the shoulder, not a lateral
       // straight-arm raise. Use the same authored pose for preview and speech.
       const waveAge = this.pose === 'pose_wave' ? time - (this.poseStarted ?? time) : phase;
-      const wave = this.pose === 'pose_wave' ? smoothPulse(waveAge,0,3.1)
+      const wave = this.pose === 'pose_wave' ? phraseEnvelope(waveAge,0,3.4)
         : kind === 'greeting' ? shoulder : 0;
       if (wave > 0) {
         targets.rightUpperArm[0] = REST.rightUpperArm[0] + wave * .18;
@@ -112,7 +159,7 @@ export class DoctorMotion {
         targets.rightLowerArm[0] = REST.rightLowerArm[0] - wave * .20;
         targets.rightLowerArm[2] = REST.rightLowerArm[2] + wave * 2.60;
         targets.rightHand[1] = REST.rightHand[1] - wave * .18;
-        targets.rightHand[2] = REST.rightHand[2] + Math.sin(waveAge * 5.5) * wave * .10;
+        targets.rightHand[2] = REST.rightHand[2] + Math.sin(waveAge * 5.5) * phraseEnvelope(waveAge,.65,1.65) * .12;
         targets.chest[1] += wave * .025;
         targets.head[2] -= wave * .015;
       }
@@ -121,13 +168,14 @@ export class DoctorMotion {
 
     }
     for (const [name, xyz] of Object.entries(targets)) {
-      this.target.setFromEuler(this.euler.set(...xyz));
-      const response = name.endsWith('Hand') ? 9 : name.endsWith('LowerArm') ? 7 : name.endsWith('UpperArm') ? 5 : 6;
-      this.bones[name]?.quaternion.slerp(this.target, 1 - Math.exp(-dt * response));
+      const response = name.endsWith('Hand') ? 15 : name.endsWith('LowerArm') ? 13 : name.endsWith('UpperArm') ? 11 : 12;
+      const joint = this.joints[name];
+      for(let axis=0;axis<3;axis++) spring(joint[axis],xyz[axis],response,dt,name.endsWith('Hand') ? 3 : name.includes('Arm') ? 2.4 : 1.2);
+      this.bones[name]?.quaternion.setFromEuler(this.euler.set(...joint.map(v=>v.position)));
     }
     if (time >= this.blinkAt) { this.blinkStarted = time; this.blinkAt = time + 3 + Math.random() * 3; }
     const blinkAge = time - this.blinkStarted;
-    const blink = blinkAge < .08 ? blinkAge / .08 : blinkAge < .22 ? 1 - (blinkAge - .08) / .14 : 0;
+    const blink = blinkAge < .075 ? ease(blinkAge/.075) : blinkAge < .23 ? 1-ease((blinkAge-.075)/.155) : 0;
     this.setValue('blink', Math.max(0, blink), 1);
     const accent = speaking ? .025 * (1 + Math.sin(this.speechTime * 1.7)) : 0;
     const happy = cautious ? 0 : accent + (this.tone === 'encouraging' ? .20 : this.tone === 'empathetic' ? .12 : .035);

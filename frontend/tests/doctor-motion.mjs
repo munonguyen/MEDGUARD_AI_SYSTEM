@@ -64,3 +64,22 @@ assert(actions.has('present')&&actions.has('enumerate'));
 assert(expressive.bones.neck.quaternion.angleTo(rest)>.02,'neck follows gaze with head');
 assert(expressive.values.lookRight>0&&expressive.values.lookUp>0);
 console.log('continuous speech clock, multi-joint gestures and facial gaze PASS');
+
+// Rapid stop / listen / greet transitions must retain finite bounded velocity.
+const interrupted=fixture();interrupted.motion.startUtterance('Xin chào bạn.');
+let maxWristStep=0, previousWrist=interrupted.bones.rightHand.quaternion.clone();
+for(let i=0;i<900;i++){
+ if(i===85)interrupted.motion.setPose('pose_listening');
+ if(i===145)interrupted.motion.setPose('pose_wave');
+ if(i===220)interrupted.motion.setPose('pose_thinking');
+ if(i===340)interrupted.motion.setPose('pose_idle');
+ interrupted.motion.update(1/60,{...sample,speaking:i<85,look:{x:Math.sin(i*.02),y:.2}});
+ const q=interrupted.bones.rightHand.quaternion;
+ maxWristStep=Math.max(maxWristStep,previousWrist.angleTo(q));previousWrist.copy(q);
+ for(const axes of Object.values(interrupted.motion.joints))for(const axis of axes){assert(Number.isFinite(axis.position)&&Number.isFinite(axis.velocity));assert(Math.abs(axis.velocity)<8,'joint speed stays bounded during interruptions');}
+}
+assert(maxWristStep<.06,'wrist does not snap during interruption');
+const shoulders=fixture();
+for(let i=0;i<120;i++)shoulders.motion.update(1/60,sample);
+assert(shoulders.bones.leftShoulder.quaternion.angleTo(rest)>0,'idle breathing includes shoulders');
+console.log('spring transition continuity, bounded joints and idle shoulder motion PASS');
