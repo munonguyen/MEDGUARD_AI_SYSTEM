@@ -9,6 +9,7 @@ from app.services.doctor_voice import DoctorSpeechRequest, synthesize_doctor_spe
 
 
 def test_profiles_have_distinct_voices_and_keep_full_text(monkeypatch):
+    monkeypatch.setattr("app.services.doctor_voice.configure_tts_trust", lambda: None)
     seen = []
     class Speech:
         def __init__(self, text, **profile): seen.append((text, profile))
@@ -62,3 +63,34 @@ def test_voice_profiles_endpoint_and_headers_match_active_configuration(monkeypa
             assert result.headers['X-Doctor-Voice-Rate']==profile['rate']
             assert result.headers['X-Doctor-Voice-Pitch']==profile['pitch']
             assert result.headers['X-Doctor-Voice-Revision']==config['revision']
+
+
+def test_tts_trust_keeps_certificate_and_hostname_checks(monkeypatch):
+    import ssl
+    import app.services.doctor_voice as voice
+    context = ssl.create_default_context()
+    before = context.cert_store_stats()['x509_ca']
+    monkeypatch.setattr(voice.importlib, 'import_module', lambda _: SimpleNamespace(_SSL_CTX=context))
+    voice.configure_tts_trust.cache_clear()
+    try:
+        voice.configure_tts_trust()
+        assert context.verify_mode == ssl.CERT_REQUIRED
+        assert context.check_hostname is True
+        assert context.cert_store_stats()['x509_ca'] >= before
+    finally:
+        voice.configure_tts_trust.cache_clear()
+
+
+def test_tts_trust_rejects_disabled_verification(monkeypatch):
+    import ssl
+    import app.services.doctor_voice as voice
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_NONE
+    monkeypatch.setattr(voice.importlib, 'import_module', lambda _: SimpleNamespace(_SSL_CTX=context))
+    voice.configure_tts_trust.cache_clear()
+    try:
+        with pytest.raises(RuntimeError, match='verification is required'):
+            voice.configure_tts_trust()
+    finally:
+        voice.configure_tts_trust.cache_clear()

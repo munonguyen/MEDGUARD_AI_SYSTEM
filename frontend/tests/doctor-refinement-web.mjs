@@ -22,7 +22,7 @@ try{
  const requests=[];let voiceFails=false; let voiceDelay=0; let profileFails=false;
  await page.route('**/v1/**',async r=>{
   const path=new URL(r.request().url()).pathname;
-  if(path==='/v1/tts/profiles')return profileFails?r.fulfill({status:404,json:{detail:'Not found'}}):r.fulfill({json:{revision:'doctor-voices-20261007',profiles:{dr_tuan:{voice:'vi-VN-NamMinhNeural',rate:'-8%',pitch:'-6Hz'},dr_mai:{voice:'vi-VN-HoaiMyNeural',rate:'-7%',pitch:'-12Hz'}}}});
+  if(path==='/v1/tts/profiles')return profileFails?r.fulfill({status:404,json:{detail:'Not found'}}):r.fulfill({json:{revision:'doctor-voices-20261008',profiles:{dr_tuan:{voice:'vi-VN-NamMinhNeural',rate:'-8%',pitch:'-6Hz'},dr_mai:{voice:'vi-VN-HoaiMyNeural',rate:'-7%',pitch:'-12Hz'}}}});
   if(path==='/v1/tts'){
    assert.equal(r.request().method(),'POST');requests.push(r.request().postDataJSON());
    if (voiceDelay) await new Promise(resolve=>setTimeout(resolve,voiceDelay));
@@ -53,6 +53,14 @@ try{
  async function preview(persona,voice) {
   await page.locator('.grok-settings-btn').click();
   await page.getByText(`Giọng đang cấu hình trên máy chủ: ${voice}`,{exact:false}).waitFor();
+  const wristBefore=await page.evaluate(()=>{const n=window.__companionEngine.currentVrm.humanoid.getRawBoneNode('rightHand');n.updateWorldMatrix(true,false);return n.matrixWorld.elements[13];});
+  await page.getByRole('button',{name:'Xem thử cử chỉ chào',exact:true}).click();
+  await page.waitForFunction(()=>window.__companionEngine.motion.pose==='pose_wave');
+  await page.waitForFunction(()=>{const m=window.__companionEngine.motion;return m.time-m.poseStarted>=1.15;});
+  const wristAfter=await page.evaluate(()=>{const n=window.__companionEngine.currentVrm.humanoid.getRawBoneNode('rightHand');n.updateWorldMatrix(true,false);return n.matrixWorld.elements[13];});
+  assert(wristAfter>wristBefore+.12,'greeting raises the real rig wrist');
+  await page.screenshot({path:new URL(`${persona}-greeting.png`,artifactDir).pathname});
+  await page.locator('.grok-settings-btn').click();
   await page.getByRole('button',{name:'Nghe thử giọng bác sĩ',exact:true}).click();
   await page.waitForFunction(()=>window.__companionEngine.isSpeaking);
   assert.equal(requests.at(-1).persona,persona);
@@ -103,7 +111,8 @@ try{
  // A failed provider must not silently change the selected voice to the OS default.
  voiceFails=true;
  await page.getByRole('textbox',{name:'Nhập câu hỏi cho bác sĩ'}).fill('Tôi muốn hỏi thêm.');await page.locator('.grok-send-action-btn').click();
- await page.getByText('Giọng bác sĩ tạm thời chưa sẵn sàng.',{exact:false}).waitFor();
+ await page.getByRole('alert').filter({hasText:'Giọng bác sĩ chưa phát được'}).waitFor();
+ assert.equal(await page.getByRole('button',{name:'Đọc lại',exact:true}).isEnabled(),true);
  assert.equal(await page.evaluate(()=>window.osSpeechCalls),0);
  assert.equal(await page.evaluate(()=>window.__companionEngine.isSpeaking),false);
  profileFails=true;

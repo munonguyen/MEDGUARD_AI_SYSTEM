@@ -20,6 +20,10 @@ unused buffers, and marks transformed assets to prevent cumulative edits.
 
 `doctorMotion.js` controls time-based quaternion damping for pose transitions,
 subtle breathing, attentive head movement and intermittent explanatory gestures.
+Utterance-aware plans alternate greeting, invitation, explanation, reassurance
+and caution gestures involving shoulder, elbow, wrist, head and torso. A brief
+written-reply acknowledgment works even when TTS is unavailable, with the mouth
+closed. The settings panel includes an independent greeting gesture preview.
 The speech envelope fades gestures in and out. Web Audio RMS drives the mouth and
 closes it during pauses. This is audio-envelope animation, not phoneme alignment.
 Reduced-motion preferences disable incidental body movement.
@@ -48,7 +52,7 @@ The settings dialog fetches `/v1/tts/profiles` and displays the running backend'
 voice, rate and pitch for the selected doctor. “Nghe thử giọng bác sĩ” plays a
 short sample through the same POST audio pipeline. Missing profile metadata
 shows an update/backend warning and disables preview. The response revision is
-`doctor-voices-20261007`; POST audio includes the revision and voice settings in
+`doctor-voices-20261008`; POST audio includes the revision and voice settings in
 response headers. Restart the updated backend as well as the frontend. These
 changes are on `feature/doctor-avatar-refinement`, not the default `develop`.
 These are general Vietnamese neural voices with calmer tempo/pitch settings;
@@ -60,10 +64,18 @@ configuration alone does not establish a clinical or professional voice quality.
 - `python -m pytest app/tests/test_ui_and_endpoints.py::test_dashboard_and_static_assets_serving -q`
 - `npm --prefix frontend run test:doctor-motion`
 - `CHROME_PATH=/path/to/chromium npm --prefix frontend run test:doctor-web`
+- Optional live provider/browser: `CHROME_PATH=/path/to/chromium npm --prefix frontend run test:doctor-live` (free port 8466, Internet; uses backend-built page, synthetic greetings, no API/audio mocks).
 - `npm --prefix frontend run build`
 
 The browser test uses real VRMs and real Web Audio analysis with a deterministic
 audio fixture. It checks both personas, silence, stop, pending-speech cancellation,
-rapid switches, provider failure, viewport overflow and runtime errors. The latest live-provider probe could not synthesize either voice because of a
-TLS certificate validation error in the test environment. The fixture does not
-verify provider availability or subjective voice quality.
+rapid switches, provider failure, viewport overflow and runtime errors. The latest live-provider probe synthesized both voices (32,256 bytes male and
+30,960 bytes female) after loading the machine's trusted CA certificates alongside
+certifi in the pinned edge-tts 7.2.8 transport context. Certificate and hostname
+verification remain enabled and are regression-tested. This compatibility adapter
+uses the pinned package's shared `_SSL_CTX`; review it when changing edge-tts.
+The fixture does not verify provider availability or subjective voice quality.
+A failed or blocked playback now leaves a persistent inline message and a
+“Đọc lại” button; it never silently switches to an OS default voice.
+The earlier advanced motion commits were not recovered: these are newly added
+gesture plans, not a restoration of that entire prior implementation.

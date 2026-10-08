@@ -21,15 +21,26 @@ export class DoctorMotion {
     this.target = new Quaternion(); this.euler = new Euler();
     this.values = {};
     this.blinkAt = 2.5 + Math.random() * 2; this.blinkStarted = -10;
+    this.gesturePlan = ['explain', 'invite', 'reassure', 'explain'];
     for (const [name, xyz] of Object.entries(REST)) this.bones[name]?.quaternion.setFromEuler(this.euler.set(...xyz));
   }
   setPose(pose) { this.pose = pose; this.poseStarted = this.time; }
   setExpression(expression) { this.expression = expression; }
+  startUtterance(text = '') {
+    this.speechTime = 0;
+    const content = text.toLocaleLowerCase('vi');
+    const greeting = /xin chào|chào bạn/.test(content);
+    const cautious = /cấp cứu|khẩn cấp|gọi 115/.test(content);
+    this.gesturePlan = [greeting ? 'greeting' : cautious ? 'caution' : 'explain',
+      content.includes('?') ? 'invite' : 'reassure', 'explain', 'invite'];
+  }
   update(dt, { speaking, look, audioLevel = 0, hasAudio = false, reducedMotion = false }) {
     dt = Math.min(dt, .05); this.time += dt;
     this.speechTime = speaking ? this.speechTime + dt : 0;
+    const replyAge = this.time - (this.poseStarted ?? this.time);
+    const responding = this.pose === 'pose_acknowledge' && replyAge < 3.8;
     const alpha = 1 - Math.exp(-dt * 7);
-    this.speechWeight += ((speaking ? 1 : 0) - this.speechWeight) * alpha;
+    this.speechWeight += ((speaking || responding ? 1 : 0) - this.speechWeight) * alpha;
     const targets = Object.fromEntries(Object.entries(REST).map(([k, v]) => [k, [...v]]));
     const listen = this.pose === 'pose_listening';
     const think = this.pose === 'pose_thinking';
@@ -39,22 +50,44 @@ export class DoctorMotion {
       targets.spine[0] = Math.sin(time * 1.35) * .004;
       targets.chest[0] = Math.sin(time * 1.35 - .2) * .003;
       targets.head = [-look.y * .09 + (listen ? -.025 : think ? .02 : 0), look.x * .15, listen ? .025 : 0];
-      // A single restrained explanatory gesture, then a quiet hold between phrases.
-      const phase = this.speechTime % 7.8;
-      const gesture = smoothPulse(phase, 1.1, 3.4) * this.speechWeight * (cautious ? .5 : 1);
-      targets.rightUpperArm[0] += gesture * .18;
-      targets.rightUpperArm[2] += gesture * .12;
-      targets.rightLowerArm[0] -= gesture * .56;
-      targets.rightHand[1] -= gesture * .12;
-      targets.rightHand[2] -= gesture * .07;
-      targets.head[0] += smoothPulse(phase, 2.3, .9) * .022 * this.speechWeight;
+      // Smoothly alternate a phrase gesture with a quiet rest, involving the
+      // shoulder, forearm, wrist, torso and head rather than moving one joint.
+      const gestureTime = speaking ? this.speechTime : responding ? replyAge : 0;
+      const phase = gestureTime % 4.8;
+      const index = Math.floor(gestureTime / 4.8) % this.gesturePlan.length;
+      const kind = this.gesturePlan[index];
+      this.activeGesture = speaking || responding ? kind : 'idle';
+      const gesture = smoothPulse(phase, 0, 3.8) * this.speechWeight * (cautious ? .65 : 1);
+      const left = index % 2 === 1;
+      const arm = left ? 'left' : 'right';
+      const sign = left ? -1 : 1;
+      targets[arm + 'UpperArm'][0] += gesture * .24;
+      targets[arm + 'UpperArm'][2] += sign * gesture * .24;
+      targets[arm + 'LowerArm'][0] -= gesture * .10;
+      targets[arm + 'LowerArm'][2] += sign * gesture * (kind === 'invite' ? 1.0 : .82);
+      targets[arm + 'Hand'][1] -= sign * gesture * .20;
+      targets[arm + 'Hand'][2] -= sign * gesture * .10;
+      targets.chest[1] += sign * gesture * .025;
+      targets.spine[2] += sign * gesture * .009;
+      targets.head[2] -= sign * gesture * .014;
+      if (kind === 'reassure') {
+        targets.head[0] -= gesture * .028;
+        targets.chest[0] -= gesture * .014;
+      }
+      if (kind === 'caution') targets[arm + 'Hand'][0] += gesture * .15;
+      if (kind === 'greeting') {
+        targets.rightUpperArm[2] += gesture * .85;
+        targets.rightLowerArm[2] += gesture * .75;
+        targets.rightHand[2] += Math.sin(this.speechTime * 7) * gesture * .12;
+      }
+      targets.head[0] += smoothPulse(phase, 1.8, 1.1) * .028 * this.speechWeight;
       targets.head[1] += Math.sin(time * .42) * .008;
       if (think) targets.head[1] += .045;
       if (this.pose === 'pose_wave') {
         const age = time - (this.poseStarted ?? time);
         const wave = smoothPulse(age, 0, 2.4);
-        targets.rightUpperArm[2] -= wave * .85;
-        targets.rightLowerArm[2] -= wave * .5;
+        targets.rightUpperArm[2] += wave * 1.0;
+        targets.rightLowerArm[2] += wave * 1.5;
         targets.rightHand[2] += Math.sin(age * 7) * wave * .12;
       }
     }

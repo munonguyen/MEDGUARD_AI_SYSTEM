@@ -1,5 +1,8 @@
 """Persona-specific Vietnamese speech profiles shared by the TTS endpoint."""
 import asyncio
+import importlib
+import ssl
+from functools import lru_cache
 from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
@@ -18,7 +21,7 @@ class DoctorSpeechRequest(BaseModel):
         return value
 
 
-VOICE_PROFILE_REVISION = "doctor-voices-20261007"
+VOICE_PROFILE_REVISION = "doctor-voices-20261008"
 
 VOICE_PROFILES = {
     "dr_tuan": {"voice": "vi-VN-NamMinhNeural", "rate": "-8%", "pitch": "-6Hz"},
@@ -26,7 +29,24 @@ VOICE_PROFILES = {
 }
 
 
+@lru_cache(maxsize=1)
+def configure_tts_trust() -> None:
+    """Keep certifi roots and add the machine's trusted CA certificates.
+
+    Compatibility adapter for pinned edge-tts 7.2.8, which uses its own shared
+    SSL context instead of the system default. Never disable verification.
+    """
+    transport = importlib.import_module('edge_tts.communicate')
+    context = getattr(transport, '_SSL_CTX', None)
+    if not isinstance(context, ssl.SSLContext):
+        raise RuntimeError('Unsupported TTS transport')
+    if context.verify_mode != ssl.CERT_REQUIRED or not context.check_hostname:
+        raise RuntimeError('TTS certificate verification is required')
+    context.load_default_certs()
+
+
 async def synthesize_doctor_speech(payload: DoctorSpeechRequest) -> bytes:
+    configure_tts_trust()
     from edge_tts import Communicate
 
     async def collect() -> bytes:

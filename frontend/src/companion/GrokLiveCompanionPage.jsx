@@ -121,6 +121,7 @@ export function GrokLiveCompanionPage({
   const [isCapturing, setIsCapturing] = useState(false);
   const [voiceConfig,setVoiceConfig] = useState(null);
   const [voiceConfigError,setVoiceConfigError] = useState('');
+  const [voiceError,setVoiceError] = useState('');
   const [modelStatus,setModelStatus] = useState({phase:'loading',error:''});
 
   const currentDoctorName = customModelName
@@ -231,6 +232,7 @@ export function GrokLiveCompanionPage({
     const cleanSpeech = normalizeMedicalSpeech(text);
     if (!cleanSpeech) return;
     setIsVoiceLoading(true);
+    setVoiceError('');
     const controller = new AbortController();
     ttsAbortRef.current = controller;
     const current = () => !mutedRef.current && !controller.signal.aborted && requestId === speechIdRef.current;
@@ -264,7 +266,8 @@ export function GrokLiveCompanionPage({
         analyser.fftSize = 512;
         const source = audioContext.createMediaElementSource(audio);
         source.connect(analyser); analyser.connect(audioContext.destination);
-        await audioContext.resume();
+        await Promise.race([audioContext.resume(), new Promise(resolve=>window.setTimeout(resolve,300))]);
+        if(audioContext.state !== 'running') throw new DOMException('Audio needs a user gesture', 'NotAllowedError');
       }
       audio.onplaying = () => {
         if (!current()) { audio.pause(); return; }
@@ -275,13 +278,16 @@ export function GrokLiveCompanionPage({
       };
       audio.onpause = () => { if (current()) { setIsSpeaking(false); engineRef.current?.stopSpeaking(); } };
       audio.onended = () => { if (current()) { setIsVoiceLoading(false); setIsSpeaking(false); disposePlayback(); } };
-      audio.onerror = () => { if (current()) { setIsVoiceLoading(false); setIsSpeaking(false); disposePlayback(); onNotify?.('Chưa phát được giọng bác sĩ. Bạn vẫn có thể đọc câu trả lời.'); } };
+      audio.onerror = () => { if (current()) { setIsVoiceLoading(false); setIsSpeaking(false); disposePlayback(); setVoiceError('Chưa phát được âm thanh. Hãy bật âm thanh và bấm Đọc lại.'); } };
       await audio.play();
     } catch (error) {
       if (requestId !== speechIdRef.current) return;
       setIsVoiceLoading(false);
       setIsSpeaking(false);
       disposePlayback();
+      setVoiceError(error?.name === 'NotAllowedError'
+        ? 'Trình duyệt đang chặn phát âm thanh. Hãy bấm Đọc lại để phát giọng bác sĩ.'
+        : `Giọng bác sĩ chưa phát được${error?.status ? ` (HTTP ${error.status})` : ''}. Hãy kiểm tra backend và kết nối dịch vụ TTS, rồi bấm Đọc lại.`);
       onNotify?.('Giọng bác sĩ tạm thời chưa sẵn sàng. Bạn vẫn có thể đọc câu trả lời và thử lại.');
     } finally { window.clearTimeout(timeout); }
   };
@@ -439,6 +445,7 @@ export function GrokLiveCompanionPage({
       engineRef.current?.applyPose('pose_idle');
 
       // Nhân vật nói trọn vẹn toàn bộ câu trả lời, không hẹn giờ ngắt
+      engineRef.current?.reactToReply(conciseAdvice);
       speakDoctorVoice(conciseAdvice, doctorPersona, currentSpeechId);
     } catch (err) {
       console.error('Companion query failed:', err);
@@ -710,6 +717,8 @@ export function GrokLiveCompanionPage({
               )}
             </div>
             <p className="grok-bubble-text">{dialogueText}</p>
+            {voiceError && <p role="alert">{voiceError}</p>}
+            <button type="button" className="grok-back-chat-btn" disabled={isMuted||isVoiceLoading||isBusy||isSpeaking} onClick={()=>speakDoctorVoice(dialogueText,doctorPersona)}>Đọc lại</button>
           </div>
         </section>
       )}
@@ -892,8 +901,9 @@ export function GrokLiveCompanionPage({
             <div className="grok-settings-group">
               <label>Chọn Bác sĩ tư vấn:</label>
               <p className="doctor-voice-description">Nam: giọng Nam Minh trầm, rõ ràng. Nữ: giọng Hoài My dịu, nhịp nói chậm vừa phải. Giọng đọc được tạo riêng cho từng nhân vật.</p>
-              <p className="doctor-voice-description" role="status">{voiceConfigError || (voiceConfig ? `Giọng đang cấu hình trên máy chủ: ${voiceConfig.profiles[doctorPersona].voice} · tốc độ ${voiceConfig.profiles[doctorPersona].rate} · cao độ ${voiceConfig.profiles[doctorPersona].pitch}` : 'Đang kiểm tra cấu hình giọng nói…')}</p>
+              <p className="doctor-voice-description" role="status">{voiceConfigError || (voiceConfig ? `Giọng đang cấu hình trên máy chủ: ${voiceConfig.profiles[doctorPersona].voice} · tốc độ ${voiceConfig.profiles[doctorPersona].rate} · cao độ ${voiceConfig.profiles[doctorPersona].pitch} · bản ${voiceConfig.revision}` : 'Đang kiểm tra cấu hình giọng nói…')}</p>
               <button type="button" className="grok-back-chat-btn" disabled={!voiceConfig||isVoiceLoading||isMuted} onClick={()=>speakDoctorVoice('Xin chào bạn. Tôi sẽ lắng nghe và giải thích rõ ràng từng thông tin, để bạn dễ theo dõi.',doctorPersona)}>Nghe thử giọng bác sĩ</button>
+              <button type="button" className="grok-back-chat-btn" disabled={modelStatus.phase!=='ready'||isSpeaking||isVoiceLoading} onClick={()=>{engineRef.current?.applyPose('pose_wave');setShowSettings(false);}}>Xem thử cử chỉ chào</button>
               <div className="doctor-preset-grid">
                 <button
                   type="button"

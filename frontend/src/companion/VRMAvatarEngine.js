@@ -463,7 +463,16 @@ export class VRMAvatarEngine {
     this.audioSamples = analyser ? new Float32Array(analyser.fftSize) : null;
   }
 
-  startSpeaking() { this.isSpeaking = true; }
+  startSpeaking(text = '') {
+    this.motion?.setPose('pose_idle');
+    this.motion?.startUtterance(text);
+    this.isSpeaking = true;
+  }
+
+  reactToReply(text = '') {
+    this.motion?.startUtterance(text);
+    this.motion?.setPose('pose_acknowledge');
+  }
 
   stopSpeaking() {
     this.isSpeaking = false;
