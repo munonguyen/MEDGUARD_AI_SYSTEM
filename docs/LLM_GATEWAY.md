@@ -4,25 +4,9 @@
 
 LiteLLM is the only LLM network boundary for MedGuard. The API process knows one virtual key and six logical role/domain aliases; provider keys, fixed physical model mappings, budgets and cost records stay in the gateway environment.
 
-The local low-latency `/v1/chat` profile does not wait for the gateway. It returns the deterministic grounded answer directly and, with `MEDGUARD_AGENT_COVERAGE_SCOPE=all`, queues every admitted response type for a background reviewer. A busy local model creates a visible backlog rather than rejecting the next question; `shadow_pending` means accepted for gateway processing, not yet verified. Emergency and crisis actions remain deterministic and immediate, but their safe output can still receive a sanitized background review. A background worker waits through a bounded gateway startup/restart window before spending model retry attempts; later gateway or structured-output failures use bounded exponential backoff and ultimately become `error`. Failures are never silently presented as successful processing. Synchronous `enforced` release is a separate production option and must not be enabled until its measured p95 fits the deployment SLO. The in-process development queue does not survive an application restart; production deployments needing delivery guarantees must use a durable worker queue.
+Non-test runtimes default to synchronous `enforced` Writer→Reviewer execution with coverage `all`. Clinical tools establish the safety floor, Writer composes from the active episode and structured evidence, and Reviewer plus the local release gates must pass before verified release. Missing configuration, capacity rejection, deadlines and quality failures return explicitly unverified safety fallback; emergency guidance remains available. Production readiness requires a proven live contract, approved clinical evidence and appropriate infrastructure. See [live release checks](live-agent-release-check.md).
 
-```text
-React UI -> FastAPI -> deterministic clinical decision
-                      -> redact and bound approved claims
-                      -> risk/cache/token policy
-                      -> pre-call input guard + exact-safe single-flight
-                      -> return deterministic answer to the patient
-                      -> coverage policy: clinical or all
-                      -> optional background verification/promotion worker
-                      -> LiteLLM virtual-key authentication
-                         -> RPM/TPM/budget checks
-                         -> fixed role alias routing and bounded retries
-                         -> centralized usage/latency/cost metrics
-                      -> allow-listed runtime evidence fetch (maximum 2 pages)
-                      -> local independent medical reviewer
-                      -> independent deterministic release gate
-                      -> verified history update or deterministic fallback
-```
+An explicitly configured background/shadow profile is available for observation. `shadow_pending` means queued, not verified; its in-process queue does not survive restart. Background review is not a substitute for enforced pre-release verification.
 
 The deployed stack is defined in `infrastructure/litellm/`:
 

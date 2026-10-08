@@ -130,9 +130,9 @@ tenant-alt  / alt-key
 
 For webhook signing, set `MEDGUARD_DELIVERY_HMAC_SECRET` before starting the service. The built-in default is intentionally development-only.
 
-Answer agents default to `disabled`. Provider credentials live only inside LiteLLM; the MedGuard process receives one budgeted virtual key, a gateway URL and two logical aliases. Start with `MEDGUARD_AGENT_MODE=shadow` so the models cannot change user-visible answers, then move to `enforced` only after live contract, citation, clinical, privacy, cost and latency evaluation. See [`docs/LLM_GATEWAY.md`](docs/LLM_GATEWAY.md).
+Non-test runtimes default to `enforced`, synchronous Writer→Reviewer processing and coverage `all`; tests retain deterministic defaults. Provider credentials live only inside LiteLLM; the MedGuard process receives one budgeted virtual key, a gateway URL and logical model aliases. A missing gateway, model error or failed quality gate produces explicitly unverified safety fallback. Production readiness requires agents by default; a live model-contract check and clinical/privacy/load evaluation are still required before release. See [`docs/LLM_GATEWAY.md`](docs/LLM_GATEWAY.md) and [`docs/clinical-episode-agent-release.md`](docs/clinical-episode-agent-release.md).
 
-Agent providers, model IDs, prompts, intermediate analysis, search queries and fallback diagnostics remain server-confidential. They are excluded from chat JSON, history and OpenAPI. The user interface exposes only a neutral verification assurance, quality scores and inspectable final sources.
+Agent providers, model IDs, prompts, intermediate analysis, search queries and raw provider errors remain server-confidential. The chat API exposes a bounded `agent_execution` summary (requested, Writer/Reviewer stage status and a safe reason code); the UI exposes verification assurance, quality scores and inspectable final sources.
 
 ## Example Request
 

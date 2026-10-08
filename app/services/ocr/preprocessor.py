@@ -119,7 +119,11 @@ def preprocess_prescription_image(data: bytes) -> PreprocessedImage:
         img = Image.open(io.BytesIO(data))
         width, height = img.size
     except ImportError:
-        pass
+        return PreprocessedImage(
+            raw_bytes=data, format=fmt, width=0, height=0, is_valid=False,
+            blur_score=0.0, deskew_angle=0.0,
+            error_message="image_validation_unavailable",
+        )
     except Exception:
         return PreprocessedImage(
             raw_bytes=data,

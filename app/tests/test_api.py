@@ -1,4 +1,5 @@
 import pytest
+from app.tests.image_fixtures import VALID_PNG
 from fastapi.testclient import TestClient
 
 from app.main import app
@@ -363,11 +364,7 @@ def test_circuit_breaker_transitions_and_recovers():
 
 
 def test_ocr_worker_fails_closed_and_job_poll_exposes_failure():
-    png_header = (
-        b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR"
-        b"\x00\x00\x00\x01\x00\x00\x00\x01"
-        b"\x08\x06\x00\x00\x00"
-    )
+    png_header = VALID_PNG
     response = client.post(
         "/v1/prescription/extract",
         headers=auth_headers(),
