@@ -3,7 +3,7 @@ import { Euler, Quaternion } from 'three';
 const REST = {
   spine: [0, 0, 0], chest: [0, 0, 0], neck: [0, 0, 0], head: [0, 0, 0],
   leftUpperArm: [.08, .04, 1.30], rightUpperArm: [.08, -.04, -1.30],
-  leftLowerArm: [-.12, 0, .12], rightLowerArm: [-.12, 0, -.12],
+  leftLowerArm: [-.12, 0, .28], rightLowerArm: [-.12, 0, -.28],
   leftHand: [0, .04, .04], rightHand: [0, -.04, -.04],
 };
 const smoothPulse = (t, start, duration) => {
@@ -55,63 +55,75 @@ export class DoctorMotion {
       // Smoothly alternate a phrase gesture with a quiet rest, involving the
       // shoulder, forearm, wrist, torso and head rather than moving one joint.
       const gestureTime = speaking ? this.speechTime : responding ? replyAge : 0;
-      const cycle = Math.floor(gestureTime / 4.8);
-      const phase = gestureTime % 4.8;
-      const index = Math.floor(gestureTime / 4.8) % this.gesturePlan.length;
-      const kind = this.gesturePlan[index];
+      const durations = [4.4, 5.2, 4.8, 5.5, 4.6, 5.0];
+      const total = durations.reduce((a,b) => a+b,0);
+      let phase = gestureTime % total;
+      let index = 0;
+      while (phase >= durations[index]) { phase -= durations[index]; index++; }
+      const duration = durations[index];
+      const kind = this.gesturePlan[index % this.gesturePlan.length];
       this.activeGesture = speaking || responding ? kind : 'idle';
-      const gesture = smoothPulse(phase, 0, 4.3) * this.speechWeight * (cautious ? .65 : 1);
-      const left = cycle % 2 === 1;
+      const weight = this.speechWeight * (cautious ? .65 : 1);
+      const shoulder = smoothPulse(phase, 0, duration - .25) * weight;
+      // The elbow anticipates the shoulder; wrist arrives later. Flexion is
+      // held throughout the lift instead of extending a straight arm sideways.
+      const elbow = smoothPulse(phase, 0, duration - .05) * weight;
+      const wrist = smoothPulse(phase, .25, duration - .4) * weight;
+      const left = index % 2 === 1;
       const arm = left ? 'left' : 'right';
       const sign = left ? -1 : 1;
-      targets[arm + 'UpperArm'][0] += gesture * .24;
-      targets[arm + 'UpperArm'][2] += sign * gesture * .24;
-      targets[arm + 'LowerArm'][0] -= gesture * .10;
-      const elbow = smoothPulse(phase, .12, 4.15) * this.speechWeight * (cautious ? .65 : 1);
-      const wrist = smoothPulse(phase, .28, 3.95) * this.speechWeight;
-      targets[arm + 'LowerArm'][2] += sign * elbow * (kind === 'invite' ? 1.0 : .82);
-      targets[arm + 'Hand'][1] -= sign * wrist * .20;
-      targets[arm + 'Hand'][2] -= sign * gesture * .10;
-      targets.chest[1] += sign * gesture * .025;
-      targets.spine[2] += sign * gesture * .009;
-      targets.head[2] -= sign * gesture * .014;
-      if (kind === 'reassure') {
-        targets.head[0] -= gesture * .028;
-        targets.chest[0] -= gesture * .014;
-      }
-      if (kind === 'present') {
-        const other = left ? 'right' : 'left';
-        targets[other + 'UpperArm'][2] -= sign * gesture * .15;
-        targets[other + 'LowerArm'][2] -= sign * elbow * .65;
-        targets[other + 'Hand'][1] += sign * wrist * .16;
-      }
-      if (kind === 'enumerate') {
-        targets[arm + 'LowerArm'][0] -= gesture * .18;
-        targets[arm + 'Hand'][0] += Math.sin(phase * 4) * wrist * .035;
-      }
-      targets.neck[0] += smoothPulse(phase, 1.6, 1.5) * .012 * this.speechWeight;
-      targets.spine[1] += Math.sin(time * .53) * .012;
+      const open = kind === 'invite' || kind === 'present';
+      targets[arm + 'UpperArm'][0] += shoulder * (open ? .18 : .12);
+      targets[arm + 'UpperArm'][1] -= sign * shoulder * .12;
+      targets[arm + 'UpperArm'][2] += sign * shoulder * (open ? .20 : .14);
+      targets[arm + 'LowerArm'][0] -= elbow * .20;
+      targets[arm + 'LowerArm'][2] += sign * elbow * (open ? 1.8 : 1.55);
+      targets[arm + 'Hand'][0] += wrist * .09;
+      targets[arm + 'Hand'][1] -= sign * wrist * (open ? .26 : .15);
+      targets[arm + 'Hand'][2] -= sign * wrist * .12;
+      // Counterbalance the other arm and distribute rotation through the torso.
+      const other = left ? 'right' : 'left';
+      targets[other + 'LowerArm'][2] -= sign * shoulder * (kind === 'present' ? .7 : .08);
+      targets[other + 'UpperArm'][0] += shoulder * .035;
+      targets.chest[1] += sign * shoulder * .035;
+      targets.spine[1] += sign * smoothPulse(phase, .12, duration - .3) * weight * .015;
+      targets.spine[2] += sign * shoulder * .012;
+      targets.head[2] -= sign * wrist * .02;
+      targets.neck[0] += smoothPulse(phase, 1.4, 1.5) * weight * .014;
+      targets.head[0] += smoothPulse(phase, 1.6, 1.4) * weight * .025;
+      targets.spine[1] += Math.sin(time * .53) * .008;
       targets.chest[2] += Math.sin(time * .53 - .3) * .006;
-      if (kind === 'caution') targets[arm + 'Hand'][0] += gesture * .15;
-      if (kind === 'greeting') {
-        targets.rightUpperArm[2] += gesture * .85;
-        targets.rightLowerArm[2] += gesture * .75;
-        targets.rightHand[2] += Math.sin(this.speechTime * 7) * gesture * .12;
+      if (kind === 'reassure') {
+        targets.chest[0] -= shoulder * .025;
+        targets.head[0] -= shoulder * .025;
+        targets[arm + 'UpperArm'][1] -= sign * shoulder * .10;
       }
-      targets.head[0] += smoothPulse(phase, 1.8, 1.1) * .028 * this.speechWeight;
+      if (kind === 'enumerate') targets[arm + 'Hand'][0] += Math.sin(phase * 3.5) * wrist * .035;
+      if (kind === 'caution') targets[arm + 'Hand'][0] += wrist * .09;
+      // Greeting is a bent-elbow wave close to the shoulder, not a lateral
+      // straight-arm raise. Use the same authored pose for preview and speech.
+      const waveAge = this.pose === 'pose_wave' ? time - (this.poseStarted ?? time) : phase;
+      const wave = this.pose === 'pose_wave' ? smoothPulse(waveAge,0,3.1)
+        : kind === 'greeting' ? shoulder : 0;
+      if (wave > 0) {
+        targets.rightUpperArm[0] = REST.rightUpperArm[0] + wave * .18;
+        targets.rightUpperArm[1] = REST.rightUpperArm[1] - wave * .12;
+        targets.rightUpperArm[2] = REST.rightUpperArm[2] + wave * .62;
+        targets.rightLowerArm[0] = REST.rightLowerArm[0] - wave * .20;
+        targets.rightLowerArm[2] = REST.rightLowerArm[2] + wave * 2.60;
+        targets.rightHand[1] = REST.rightHand[1] - wave * .18;
+        targets.rightHand[2] = REST.rightHand[2] + Math.sin(waveAge * 5.5) * wave * .10;
+        targets.chest[1] += wave * .025;
+        targets.head[2] -= wave * .015;
+      }
       targets.head[1] += Math.sin(time * .42) * .008;
       if (think) targets.head[1] += .045;
-      if (this.pose === 'pose_wave') {
-        const age = time - (this.poseStarted ?? time);
-        const wave = smoothPulse(age, 0, 2.4);
-        targets.rightUpperArm[2] += wave * 1.0;
-        targets.rightLowerArm[2] += wave * 1.5;
-        targets.rightHand[2] += Math.sin(age * 7) * wave * .12;
-      }
+
     }
     for (const [name, xyz] of Object.entries(targets)) {
       this.target.setFromEuler(this.euler.set(...xyz));
-      this.bones[name]?.quaternion.slerp(this.target, alpha);
+      const response = name.endsWith('Hand') ? 9 : name.endsWith('LowerArm') ? 7 : name.endsWith('UpperArm') ? 5 : 6;
+      this.bones[name]?.quaternion.slerp(this.target, 1 - Math.exp(-dt * response));
     }
     if (time >= this.blinkAt) { this.blinkStarted = time; this.blinkAt = time + 3 + Math.random() * 3; }
     const blinkAge = time - this.blinkStarted;

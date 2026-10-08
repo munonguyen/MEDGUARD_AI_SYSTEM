@@ -69,6 +69,8 @@ export function GrokLiveCompanionPage({
   const audioUrlRef = useRef(null);
   const fileInputRef = useRef(null);
   const recognitionRef = useRef(null);
+  const micGenerationRef = useRef(0);
+  const micStartingRef = useRef(false);
   const conversationIdRef = useRef(crypto.randomUUID ? crypto.randomUUID() : `companion-${Date.now()}`);
   const messagesHistoryRef = useRef([]);
   const speechIdRef = useRef(0);
@@ -177,6 +179,7 @@ export function GrokLiveCompanionPage({
   useEffect(() => {
     return () => {
       speechIdRef.current++;
+      micGenerationRef.current++;
       disposePlayback();
       chatAbortRef.current?.abort();
       playbackElementRef.current?.pause();
@@ -356,8 +359,13 @@ export function GrokLiveCompanionPage({
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.cancel();
     }
-    if (recognitionRef.current && isListening) {
-      recognitionRef.current.stop();
+    micGenerationRef.current++;
+    micStartingRef.current = false;
+    const recognition = recognitionRef.current;
+    recognitionRef.current = null;
+    if (recognition) {
+      recognition.onresult = recognition.onend = recognition.onerror = recognition.onstart = null;
+      try { recognition.abort(); } catch { /* already ended */ }
     }
     setIsVoiceLoading(false);
     setIsSpeaking(false);
@@ -538,113 +546,98 @@ export function GrokLiveCompanionPage({
 
   // Toggle Microphone (Hỗ trợ toàn diện Chrome, Edge, Safari macOS/iOS với getUserMedia permission request)
   const toggleMic = async () => {
+    if (isListening || micStartingRef.current) { handleStop(); return; }
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    if (isListening) {
-      try {
-        recognitionRef.current?.stop();
-      } catch (e) {
-        console.warn('Stop mic error:', e);
-      }
-      setIsListening(false);
-      engineRef.current?.applyPose('pose_idle');
-      return;
-    }
-
     if (!SpeechRecognition) {
-      onNotify?.('Trình duyệt chưa hỗ trợ Web Speech API nhận diện giọng nói. Vui lòng sử dụng Chrome, Edge hoặc Safari mới nhất.');
+      setDialogueText('Trình duyệt này chưa hỗ trợ nhận diện giọng nói. Bạn có thể nhập câu hỏi hoặc mở bằng trình duyệt hỗ trợ.');
       return;
     }
-
+    handleStop();
+    // Unlock Safari audio inside the mic click, before permission/ASR awaits.
+    primeAudio();
+    micStartingRef.current = true;
+    const generation = ++micGenerationRef.current;
+    const current = () => generation === micGenerationRef.current;
     try {
-      // 1. Dừng ngay giọng nói bác sĩ nếu đang nói
-      if (isSpeaking) {
-        handleStop();
-      }
-
-      // 2. Yêu cầu quyền Micro trực tiếp qua getUserMedia để bật popup cho phép trên Safari và Chrome
       if (navigator.mediaDevices?.getUserMedia) {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          // Dừng ngay các track stream kiểm tra để nhả mic phần cứng cho Web Speech API
-          stream.getTracks().forEach((track) => track.stop());
-        } catch (micErr) {
-          console.warn('Microphone permission check:', micErr);
-          if (micErr.name === 'NotAllowedError' || micErr.name === 'PermissionDeniedError') {
-            onNotify?.('Microphone đang bị chặn. Vui lòng nhấn vào biểu tượng ổ khóa / mic trên thanh địa chỉ để Cho phép (Allow).');
-            setDialogueText('Vui lòng cấp quyền Microphone trong cài đặt trình duyệt để nói chuyện trực tiếp với Bác sĩ.');
-            return;
-          }
-        }
+        const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+        stream.getTracks().forEach(track => track.stop());
       }
-
-      // 3. Khởi tạo phiên SpeechRecognition mới
+      if (!current()) return;
       const recognition = new SpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = true;
       recognition.lang = 'vi-VN';
       recognition.maxAlternatives = 1;
-
-      let recognizedFinal = '';
-
+      let finalText = '';
+      let submitted = false;
+      let failed = false;
+      const submit = () => {
+        if (!current() || submitted || failed || !finalText.trim()) return;
+        submitted = true;
+        recognitionRef.current = null;
+        recognition.onresult = recognition.onend = recognition.onerror = recognition.onstart = null;
+        try { recognition.abort(); } catch { /* recognizer already ended */ }
+        micStartingRef.current = false;
+        setIsListening(false);
+        handleUserQuery(finalText.trim());
+      };
       recognition.onstart = () => {
+        if (!current()) return;
+        micStartingRef.current = false;
         setIsListening(true);
         engineRef.current?.applyPose('pose_listening');
-        setDialogueText('Bác sĩ đang lắng nghe... Mời bạn nói.');
-        onNotify?.('Micro đã bật. Bác sĩ đang lắng nghe bạn nói...');
+        setDialogueText('Bác sĩ đang lắng nghe. Nói xong, câu hỏi sẽ được gửi tự động.');
       };
-
-      recognition.onresult = (event) => {
+      recognition.onresult = event => {
+        if (!current() || submitted || failed) return;
+        // Rebuild from indexed results: recognizers may repeat earlier finals.
+        finalText = '';
         let interim = '';
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-          const chunk = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            recognizedFinal += chunk;
-          } else {
-            interim += chunk;
-          }
+        for (let i = 0; i < event.results.length; i++) {
+          const result = event.results[i];
+          if (result.isFinal) finalText += ' ' + result[0].transcript;
+          else interim += ' ' + result[0].transcript;
         }
-        const liveText = recognizedFinal || interim;
-        if (liveText) {
-          setDialogueText(`"${liveText}"`);
-        }
+        setDialogueText(`“${(finalText + interim).trim()}”`);
+        // A final result is the ASR end-of-utterance signal. Do not wait for
+        // an additional click or for Safari's potentially delayed onend.
+        if (finalText.trim() && !interim.trim()) submit();
       };
-
-      recognition.onerror = (event) => {
-        console.warn('Speech recognition error event:', event.error);
+      recognition.onerror = event => {
+        if (!current() || submitted) return;
+        failed = true;
+        micStartingRef.current = false;
         setIsListening(false);
         engineRef.current?.applyPose('pose_idle');
-
-        if (event.error === 'not-allowed') {
-          onNotify?.('Quyền Micro bị từ chối. Vui lòng cho phép truy cập Micro trong cài đặt trình duyệt.');
-          setDialogueText('Trình duyệt chưa cho phép truy cập Micro. Bạn vui lòng bật quyền Micro hoặc gõ vào ô chat nhé.');
-        } else if (event.error === 'no-speech') {
-          onNotify?.('Chưa nghe rõ âm thanh. Bạn hãy nói to hơn hoặc lại gần mic nhé.');
-          setDialogueText('Bác sĩ chưa nghe rõ. Bạn có thể nhấn lại nút mic để nói hoặc nhập câu hỏi.');
-        } else if (event.error === 'network') {
-          onNotify?.('Lỗi kết nối mạng dịch vụ nhận diện giọng nói (Web Speech API).');
-        } else if (event.error !== 'aborted') {
-          onNotify?.(`Lỗi mic: ${event.error}`);
-        }
+        const errors = {
+          'not-allowed':'Bạn cần cho phép Micro trong cài đặt trình duyệt để nói chuyện.',
+          'no-speech':'Chưa nghe được câu hỏi. Bạn hãy bật mic và nói lại.',
+          network:'Dịch vụ nhận diện giọng nói mất kết nối. Bạn hãy thử lại hoặc nhập câu hỏi.',
+        };
+        if (event.error !== 'aborted') setDialogueText(errors[event.error] || 'Chưa nhận diện được giọng nói. Bạn hãy thử lại.');
       };
-
       recognition.onend = () => {
+        if (!current() || submitted) return;
+        micStartingRef.current = false;
         setIsListening(false);
-        const query = recognizedFinal.trim();
-        if (query) {
-          handleUserQuery(query);
-        } else {
+        if (finalText.trim() && !failed) submit();
+        else {
+          recognitionRef.current = null;
           engineRef.current?.applyPose('pose_idle');
+          if (!failed) setDialogueText('Chưa nhận được câu hỏi hoàn chỉnh. Bạn hãy bật mic và nói lại.');
         }
       };
-
       recognitionRef.current = recognition;
       recognition.start();
-    } catch (err) {
-      console.error('Cannot start speech recognition:', err);
+    } catch (error) {
+      if (!current()) return;
+      micStartingRef.current = false;
       setIsListening(false);
       engineRef.current?.applyPose('pose_idle');
-      onNotify?.('Không thể mở Microphone: ' + (err.message || 'Lỗi không xác định'));
+      setDialogueText(error.name === 'NotAllowedError'
+        ? 'Bạn cần cho phép Micro trong cài đặt trình duyệt.'
+        : 'Không mở được Micro. Bạn hãy kiểm tra thiết bị hoặc nhập câu hỏi.');
     }
   };
 

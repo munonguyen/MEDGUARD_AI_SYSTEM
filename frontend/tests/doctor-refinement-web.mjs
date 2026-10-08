@@ -15,12 +15,24 @@ try{
  browser=await chromium.launch({executablePath:process.env.CHROME_PATH,headless:true,args:['--no-sandbox']});
  const page=await browser.newPage({viewport:{width:1440,height:1000}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.addInitScript(()=>{
+  class Recognition {
+   start(){window.testRecognition=this;queueMicrotask(()=>this.onstart?.());}
+   abort(){this.onend?.();}
+   stop(){this.onend?.();}
+  }
+  window.SpeechRecognition=Recognition;
+  navigator.mediaDevices.getUserMedia=async()=>({getTracks:()=>[{stop(){}}]});
+  window.emitRecognition=(text,final=true)=>{
+   const r=[{transcript:text}];r.isFinal=final;
+   window.testRecognition.onresult?.({resultIndex:0,results:[r]});
+  };
   window.companionTimings=[];window.addEventListener('medguard:companion-latency',e=>window.companionTimings.push(e.detail));
   window.osSpeechCalls=0;window.speechSynthesis.speak=()=>window.osSpeechCalls++;
   const play = HTMLMediaElement.prototype.play;
   HTMLMediaElement.prototype.play = function(...args) { window.doctorTestAudio = this; return play.apply(this,args); };
  });
  let replyText='Tôi đã ghi nhận thông tin bạn cung cấp. Bạn hãy cho biết thời điểm triệu chứng bắt đầu để tôi hỗ trợ rõ ràng hơn.';
+ const chatRequests=[];
  const requests=[];let holdNext=null;let voiceFails=false; let voiceDelay=0; let profileFails=false;
  await page.route('**/v1/**',async r=>{
   const path=new URL(r.request().url()).pathname;
@@ -32,7 +44,7 @@ try{
    if (voiceDelay) await new Promise(resolve=>setTimeout(resolve,voiceDelay));
    return voiceFails?r.fulfill({status:503,json:{detail:'Voice unavailable'}}):r.fulfill({status:200,contentType:'audio/wav',body:wav});
   }
-  if(path==='/v1/chat'){assert(!r.request().postDataJSON().messages.at(-1).content.includes('Phong cách tư vấn:'));return r.fulfill({json:{reply:replyText}});}
+  if(path==='/v1/chat'){chatRequests.push(r.request().postDataJSON());assert(!r.request().postDataJSON().messages.at(-1).content.includes('Phong cách tư vấn:'));return r.fulfill({json:{reply:replyText}});}
   return r.fulfill({json:{}});
  });
  await page.goto(`http://127.0.0.1:${port}/static/?view=companion`,{waitUntil:'domcontentloaded'});
@@ -75,6 +87,15 @@ try{
   await page.waitForFunction(()=>{const m=window.__companionEngine.motion;return m.time-m.poseStarted>=1.15;});
   const wristAfter=await page.evaluate(()=>{const n=window.__companionEngine.currentVrm.humanoid.getRawBoneNode('rightHand');n.updateWorldMatrix(true,false);return n.matrixWorld.elements[13];});
   assert(wristAfter>wristBefore+.12,'greeting raises the real rig wrist');
+  const elbowBend=await page.evaluate(()=>{
+   const h=window.__companionEngine.currentVrm.humanoid;
+   const position=n=>{const b=h.getRawBoneNode(n);b.updateWorldMatrix(true,false);return [b.matrixWorld.elements[12],b.matrixWorld.elements[13],b.matrixWorld.elements[14]];};
+   const s=position('rightUpperArm'),e=position('rightLowerArm'),w=position('rightHand');
+   const u=e.map((v,i)=>v-s[i]),v=w.map((x,i)=>x-e[i]);
+   return u.reduce((sum,x,i)=>sum+x*v[i],0)/(Math.hypot(...u)*Math.hypot(...v));
+  });
+  assert(elbowBend<.7,'greeting keeps the real elbow bent rather than a straight lateral arm');
+
   await page.screenshot({path:new URL(`${persona}-greeting.png`,artifactDir).pathname});
   await page.locator('.grok-settings-btn').click();
   await page.getByRole('button',{name:'Nghe thử giọng bác sĩ',exact:true}).click();
@@ -105,6 +126,24 @@ try{
   replyText=original;
   console.log(`${persona}: first audio before next response, complete warning retained and spoken in order PASS`);
  }
+ // ASR final without onend must submit once, then play automatically.
+ await page.locator('.grok-mic-primary-btn').click();
+ await page.waitForFunction(()=>window.__companionEngine.motion.pose==='pose_listening');
+ await page.evaluate(()=>window.emitRecognition('Tôi muốn hỏi về giấc ngủ',false));
+ assert.equal(chatRequests.length,0,'interim transcription is never submitted');
+ await page.evaluate(()=>window.emitRecognition('Tôi muốn hỏi về giấc ngủ.',true));
+ await page.waitForFunction(()=>window.__companionEngine.isSpeaking);
+ assert.equal(chatRequests.length,1,'ASR final automatically sends without another click');
+ assert.equal(chatRequests[0].messages.at(-1).content,'Tôi muốn hỏi về giấc ngủ.');
+ await page.evaluate(()=>window.emitRecognition('Tôi muốn hỏi về giấc ngủ.',true));
+ assert.equal(chatRequests.length,1,'duplicate final cannot resubmit');
+ await page.locator('.grok-stop-action-btn').click();
+ await page.locator('.grok-mic-primary-btn').click();
+ await page.waitForFunction(()=>window.__companionEngine.motion.pose==='pose_listening');
+ await page.locator('.grok-stop-action-btn').click();
+ await page.evaluate(()=>window.emitRecognition('Câu nói đã hủy.',true));
+ assert.equal(chatRequests.length,1,'stop invalidates late speech callbacks');
+ console.log('MIC: interim preview, final auto-submit/play, deduplication and cancellation PASS');
  await preview('dr_tuan','vi-VN-NamMinhNeural');
  await verifyQueue('dr_tuan');
  await send();assert.equal(requests.at(-1).persona,'dr_tuan');
