@@ -307,7 +307,7 @@ export function GrokLiveCompanionPage({
           if (!current()) return abort();
           setIsVoiceLoading(false); setIsSpeaking(true);
           engineRef.current?.setAudioAnalyser(analyser);
-          engineRef.current?.startSpeaking(sentence);
+          engineRef.current?.startSpeaking(text, { continuation: !firstSound });
           if (firstSound) {
             firstSound = false;
             const now = performance.now();

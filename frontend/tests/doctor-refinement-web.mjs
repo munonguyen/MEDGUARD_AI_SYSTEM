@@ -56,6 +56,17 @@ try{
  }
  async function send(){await page.getByRole('textbox',{name:'Nhập câu hỏi cho bác sĩ'}).fill('Tôi muốn hỏi về chăm sóc sức khỏe.');await page.locator('.grok-send-action-btn').click();await page.waitForFunction(()=>window.__companionEngine?.isSpeaking);}
  async function preview(persona,voice) {
+  const gaze=await page.evaluate(()=>{
+   const e=window.__companionEngine,m=e.motion;
+   const head=e.currentVrm.humanoid.getRawBoneNode('head');
+   const sample=x=>{for(let i=0;i<180;i++)m.update(1/60,{speaking:false,look:{x,y:0}});head.updateWorldMatrix(true,false);return Array.from(head.matrixWorld.elements);};
+   const neutral=sample(0),right=sample(1),left=sample(-1);
+   const forwardSign=Math.sign(neutral[10]);
+   return {right:right[8]*forwardSign,left:left[8]*forwardSign};
+  });
+  console.log(persona,'gaze',gaze);
+  assert(gaze.right>0 && gaze.left<0,'head turns toward the screen pointer on the real rig');
+
   await page.locator('.grok-settings-btn').click();
   await page.getByText(`Giọng đang cấu hình trên máy chủ: ${voice}`,{exact:false}).waitFor();
   const wristBefore=await page.evaluate(()=>{const n=window.__companionEngine.currentVrm.humanoid.getRawBoneNode('rightHand');n.updateWorldMatrix(true,false);return n.matrixWorld.elements[13];});

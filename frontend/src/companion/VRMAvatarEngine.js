@@ -463,9 +463,9 @@ export class VRMAvatarEngine {
     this.audioSamples = analyser ? new Float32Array(analyser.fftSize) : null;
   }
 
-  startSpeaking(text = '') {
+  startSpeaking(text = '', { continuation = false } = {}) {
     this.motion?.setPose('pose_idle');
-    this.motion?.startUtterance(text);
+    if (!continuation) this.motion?.startUtterance(text);
     this.isSpeaking = true;
   }
 
@@ -480,7 +480,7 @@ export class VRMAvatarEngine {
   }
 
   onPointerMove(event) {
-    const rect = this.canvas.getBoundingClientRect();
+    const rect = (this.canvas.closest('.grok-companion-page') || this.canvas.parentElement || this.canvas).getBoundingClientRect();
     const nx = THREE.MathUtils.clamp((event.clientX - rect.left) / Math.max(rect.width, 1) * 2 - 1, -1, 1);
     const ny = THREE.MathUtils.clamp(-(event.clientY - rect.top) / Math.max(rect.height, 1) * 2 + 1, -1, 1);
     this.mouseTarget.x = nx;
@@ -517,7 +517,7 @@ export class VRMAvatarEngine {
   animate(now) {
     if (this.isDestroyed) return;
     this.rafId = requestAnimationFrame(this.animate);
-    const delta = this.lastFrameAt === null ? 0 : Math.min((now - this.lastFrameAt) / 1000, .05);
+    const delta = this.lastFrameAt === null ? 0 : Math.min((now - this.lastFrameAt) / 1000, .15);
     this.lastFrameAt = now;
     if (document.hidden || this.contextLost) return;
     const alpha = 1 - Math.exp(-delta * 5);

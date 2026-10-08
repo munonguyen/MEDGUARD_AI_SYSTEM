@@ -445,6 +445,12 @@ def _triage_answer(
             safety_notes.append("Không ở một mình lúc này; hãy nhờ người thân hoặc người bên cạnh ở cùng bạn.")
         questions = []
         clinical_hypotheses = []
+    elif urgency == "UNRESOLVED":
+        summary = "Hệ thống chưa đủ thông tin để xác định mức độ cần chăm sóc hoặc trả lời đúng câu hỏi của bạn."
+        next_steps = []
+        questions = [str(value) for value in result.get("clarifying_questions", [])]
+        safety_notes = [str(value) for value in result.get("safety_net", [])]
+        clinical_hypotheses = []
     elif urgency == "URGENT":
         summary = str(result.get("guidance_summary") or (
             "Các triệu chứng bạn mô tả cần được nhân viên y tế đánh giá trực tiếp sớm. "
