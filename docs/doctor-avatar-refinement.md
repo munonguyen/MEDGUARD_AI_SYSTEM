@@ -126,3 +126,61 @@ with `python3 scripts/start_with_doctor_voice.py`, then open
 `http://localhost:8000/?view=companion`. Built frontend assets are committed;
 when developing instead, run `npm --prefix frontend ci` and
 `npm --prefix frontend run dev` alongside the backend.
+
+
+## MacBook chat configuration and conversation repair
+
+`doctor-chat-20261008` exposes non-secret config state at
+`/v1/companion/status`. The page shows a rule-based/fallback notice instead of
+pretending that a missing, timed-out or rejected AI response is a generated one.
+Actual dialogue requires a reachable LiteLLM gateway with working upstream
+provider credentials; the voice service alone does not provide AI reasoning.
+
+1. Use Python 3.10+ and run `python3 scripts/start_with_doctor_voice.py --check`.
+2. If an existing gateway is ready, run
+   `python3 scripts/configure_doctor_chat.py --gateway-url http://127.0.0.1:4000/v1`.
+   Enter a **gateway** virtual/master key in Terminal (hidden input). Do not enter
+   the Gemini/OpenAI upstream key here. Use `--api-style responses` for a gateway
+   configured for that API rather than Chat Completions.
+3. The wizard requires all six `medguard-*` aliases and sends six small synthetic
+   non-clinical probes through Writer/Reviewer aliases. It does not claim clinical
+   validation. A failing check does not write a new configuration. `.env.doctor`
+   is private (0600), excluded from Git, and leaves `.env`/login/TLS settings intact.
+   Use `--force` only when intentionally replacing an existing doctor profile.
+4. Restart with `python3 scripts/start_with_doctor_voice.py`; the launcher loads
+   `.env.doctor` using Uvicorn's dotenv support. Explicit shell environment values
+   take priority. Open `http://localhost:8000/?view=companion` and check the AI
+   mode/revision in Settings. Existing `.env` setups remain supported.
+
+If no gateway exists, use the existing Docker Desktop gateway deployment in
+`infrastructure/litellm/docker-compose.yml` with its local `.env` and your own
+provider key/master key/database credentials. Model names must be valid for your
+provider account; aliases are logical application names, not model downloads.
+The local YAML template now reads `LITELLM_MASTER_KEY` from the environment.
+No provider key is distributed with Git. This code was tested on Linux with
+Chromium, not on physical macOS/Safari; browser autoplay still requires an initial
+click (try Settings → voice preview, or Read again).
+
+The positive goals “muốn sống khỏe” and “muốn sống lâu” no longer match the
+self-harm regex. Genuine desire to die, not wanting to live, lethal-dose queries
+and the existing dual medical/crisis handling remain regression-tested. User
+questions are sent unchanged; avatar tone instructions no longer contaminate
+clinical intent extraction. The companion reads the returned action steps,
+safety notes and follow-up questions, not only the summary. In background mode
+it polls the exact request ID for a verified promoted answer, with cancellation
+on new questions, stop, persona changes or unmount. It never speaks a draft.
+
+Desktop layout has separate left avatar/right response regions. Mobile stacks
+the response below the avatar. The full response scrolls in its own panel so
+text does not cover the model. Browser tests assert non-overlapping bounds.
+
+Additional regression commands:
+- `python -m pytest app/tests/test_companion_configuration.py app/tests/test_ood_and_crisis.py app/tests/test_dual_agent_scenarios.py -q`
+- `npm --prefix frontend run test:doctor-latency`
+
+The audio context and a reusable media element are primed in the submit/click
+handler, before network awaits. Silent priming uses a blob URL permitted by the
+existing CSP; no security policy is loosened. Successive sentence clips reuse
+one media source/context, disconnected between clips and closed on unmount.
+The doctor browser regression now uses ordinary autoplay policy, not an autoplay
+bypass launch flag. Physical Safari/macOS still needs device validation.

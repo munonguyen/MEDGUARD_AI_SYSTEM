@@ -12,7 +12,7 @@ wav.write('RIFF',0);wav.writeUInt32LE(36+n*2,4);wav.write('WAVEfmt ',8);wav.writ
 for(let i=0;i<n;i++){const t=i/sampleRate;const level=t<.9||t>2.1?.14:0;wav.writeInt16LE(Math.round(Math.sin(t*2*Math.PI*220)*level*32767),44+i*2);}
 let browser;
 try{
- browser=await chromium.launch({executablePath:process.env.CHROME_PATH,headless:true,args:['--no-sandbox','--autoplay-policy=no-user-gesture-required']});
+ browser=await chromium.launch({executablePath:process.env.CHROME_PATH,headless:true,args:['--no-sandbox']});
  const page=await browser.newPage({viewport:{width:1440,height:1000}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.addInitScript(()=>{
   window.companionTimings=[];window.addEventListener('medguard:companion-latency',e=>window.companionTimings.push(e.detail));
@@ -24,6 +24,7 @@ try{
  const requests=[];let holdNext=null;let voiceFails=false; let voiceDelay=0; let profileFails=false;
  await page.route('**/v1/**',async r=>{
   const path=new URL(r.request().url()).pathname;
+  if(path==='/v1/companion/status')return r.fulfill({json:{configured:true,mode:'enforced',synchronous:true,background:false,chat_timeout_ms:40000,revision:'doctor-chat-20261008',message:'Đã có cấu hình AI gateway.'}});
   if(path==='/v1/tts/profiles')return profileFails?r.fulfill({status:404,json:{detail:'Not found'}}):r.fulfill({json:{revision:'doctor-voices-20261008',profiles:{dr_tuan:{voice:'vi-VN-NamMinhNeural',rate:'-8%',pitch:'-6Hz'},dr_mai:{voice:'vi-VN-HoaiMyNeural',rate:'-7%',pitch:'-12Hz'}}}});
   if(path==='/v1/tts'){
    assert.equal(r.request().method(),'POST');const body=r.request().postDataJSON();requests.push(body);
@@ -31,12 +32,13 @@ try{
    if (voiceDelay) await new Promise(resolve=>setTimeout(resolve,voiceDelay));
    return voiceFails?r.fulfill({status:503,json:{detail:'Voice unavailable'}}):r.fulfill({status:200,contentType:'audio/wav',body:wav});
   }
-  if(path==='/v1/chat')return r.fulfill({json:{reply:replyText}});
+  if(path==='/v1/chat'){assert(!r.request().postDataJSON().messages.at(-1).content.includes('Phong cách tư vấn:'));return r.fulfill({json:{reply:replyText}});}
   return r.fulfill({json:{}});
  });
  await page.goto(`http://127.0.0.1:${port}/static/?view=companion`,{waitUntil:'domcontentloaded'});
  await page.waitForFunction(()=>window.__companionEngine?.isVrmLoaded);
  await page.waitForFunction(()=>window.__companionEngine.renderer.info.render.frame>=3);
+ assert(await page.evaluate(()=>{const a=document.querySelector('.grok-canvas-stage').getBoundingClientRect(),b=document.querySelector('.grok-dialogue-overlay').getBoundingClientRect();return a.right<=b.left;}),'desktop response panel is beside the avatar canvas, never covering it');
  const waitPersona=p=>page.waitForFunction(p=>{const e=window.__companionEngine;let matched=false;e?.currentVrm?.scene.traverse(n=>{const ms=Array.isArray(n.material)?n.material:[n.material];if(ms.some(m=>m?.name.includes(p==='dr_mai'?'F00_006_01_Tops':'M00_008_03_Tops')))matched=true});return e?.options.persona===p&&e.isVrmLoaded&&matched},p);
  async function captureUniform(name) {
   const data=await page.evaluate(()=>{
@@ -150,6 +152,7 @@ try{
  await page.setViewportSize({width:393,height:852});
  await page.waitForTimeout(500);
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),'no horizontal overflow');
+ assert(await page.evaluate(()=>{const a=document.querySelector('.grok-canvas-stage').getBoundingClientRect(),b=document.querySelector('.grok-dialogue-overlay').getBoundingClientRect();return a.bottom<=b.top;}),'mobile text is below the avatar canvas');
  await page.screenshot({path:new URL('doctor-mobile.png',artifactDir).pathname});
  assert.deepEqual(errors,[]);
  console.log('doctor browser: both VRMs, gender-specific audio, RMS silence, stop, rapid persona switch, provider failure, mobile PASS');

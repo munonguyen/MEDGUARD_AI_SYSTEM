@@ -642,6 +642,12 @@ def doctor_voice_profiles() -> dict[str, Any]:
     return {"revision": VOICE_PROFILE_REVISION, "profiles": VOICE_PROFILES}
 
 
+@router.get("/companion/status")
+def doctor_chat_status() -> dict[str, Any]:
+    from app.services.companion_status import companion_status
+    return companion_status()
+
+
 @router.post("/tts")
 async def post_text_to_speech(payload: DoctorSpeechRequest, request: Request) -> Response:
     """Render the selected doctor's voice without logging clinical text in a URL."""

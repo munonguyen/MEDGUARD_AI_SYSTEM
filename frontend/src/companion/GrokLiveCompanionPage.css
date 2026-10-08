@@ -29,9 +29,10 @@
 /* 3D WebGL Canvas */
 .grok-canvas-stage {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  top: 78px;
+  left: 0;
+  width: 56%;
+  height: calc(100% - 226px);
   display: block;
   z-index: 2;
   cursor: grab;
@@ -239,15 +240,19 @@
 /* FLOATING CLINICAL SUBTITLE DOCKED ABOVE BOTTOM CONTROLS (NEVER COVERS DOCTOR FACE) */
 .grok-dialogue-overlay {
   position: absolute;
-  bottom: 126px; /* Positioned neatly above the 72px dock + 24px margin */
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(92%, 640px);
+  top: 84px;
+  bottom: 148px;
+  right: 20px;
+  width: calc(44% - 28px);
+  display: flex;
   z-index: 10;
   pointer-events: none;
 }
 
 .grok-speech-bubble {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
   background: rgba(9, 20, 31, 0.84);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
@@ -282,6 +287,7 @@
 
 .grok-doctor-title-tag {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
 }
@@ -331,7 +337,8 @@
 
 .grok-bubble-text {
   margin: 2px 0 0;
-  max-height: min(24vh, 180px);
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overflow-wrap: anywhere;
   white-space: pre-line;
@@ -340,6 +347,31 @@
   line-height: 1.52;
   color: #f1f5f9;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.grok-chat-config-notice, .grok-reply-notice {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #cbd5e1;
+  overflow-wrap: anywhere;
+  user-select: text;
+  pointer-events: auto;
+}
+
+.grok-chat-config-notice { color: #fde68a; }
+
+@media (max-width: 760px) {
+  .grok-canvas-stage { top: 76px; width: 100%; height: 38%; }
+  .grok-dialogue-overlay {
+    top: calc(38% + 82px);
+    bottom: 140px;
+    left: 3%;
+    right: 3%;
+    width: 94%;
+    transform: none;
+  }
+  .grok-speech-bubble { padding: 10px 12px; }
 }
 
 /* BOTTOM FLOATING CONTROL DOCK */
@@ -759,7 +791,7 @@
   }
 
   .grok-dialogue-overlay {
-    bottom: 110px;
+    bottom: 140px;
     width: 94%;
   }
 

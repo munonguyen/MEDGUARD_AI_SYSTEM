@@ -78,4 +78,4 @@ litellm_settings:
   num_retries: 0
 
 general_settings:
-  master_key: sk-c32ad8e56c80777ce080f62104190266489b80bfd299af4321c7eae85812d579
+  master_key: os.environ/LITELLM_MASTER_KEY

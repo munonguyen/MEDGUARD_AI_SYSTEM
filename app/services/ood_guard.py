@@ -69,7 +69,8 @@ _CRISIS_SELF_HARM_PATTERNS: list[re.Pattern[str]] = [
     re.compile(p, re.IGNORECASE)
     for p in (
         # Suicidal intent (unaccented forms, disambiguated from tu van = tư vấn and tu tu = từ từ)
-        r"(?:muon|khong muon|chan)\s*(?:chet|tu\s*tu|song|song tiep|song nua)",
+        r"(?:muon|chan)\s*(?:chet|tu\s*tu)\b",
+        r"(?:khong\s+muon|chan)\s*song\b",
         r"\b(tu\s*(?:sat|hai)|tu\s+gay\s+thuong|cat\s+mach\s+mau|treo\s+co|nhay\s+(?:lau|cau))\b",
         r"(?:y\s*dinh|toan|dinh|nghi\s+den|tim\s+cach|cach|thuoc)\s+(?:de\s+)?tu\s*(?:tu|van)\b",
         r"\btu\s*(?:tu|van)\s+(?:bang|chet|tai\s+nha|thanh\s+cong|nhu\s+the\s+nao|lam\s+sao)\b",

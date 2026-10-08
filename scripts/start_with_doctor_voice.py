@@ -79,9 +79,13 @@ def prepare_environment(directory: Path) -> Path:
 
 
 def main(argv=None):
+    if sys.version_info < (3, 10):
+        print('MedGuard cần Python 3.10 trở lên. Hãy chọn bản Python mới trên MacBook.', file=sys.stderr)
+        return 1
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--venv', type=Path, default=ROOT / '.venv')
     parser.add_argument('--port', type=int, default=8000)
+    parser.add_argument('--chat-config', type=Path, default=ROOT / '.env.doctor', help='Cấu hình AI riêng tư do configure_doctor_chat.py tạo')
     parser.add_argument('--check', action='store_true', help='Cài đặt và kiểm tra, không chạy server')
     parser.add_argument('--live-check', action='store_true', help='Thử tạo âm thanh thật cho cả hai giọng bằng câu mẫu')
     args = parser.parse_args(argv)
@@ -98,10 +102,16 @@ def main(argv=None):
                 return 1
         if args.check:
             return 0
+        if args.chat_config.exists():
+            print('Đang dùng cấu hình AI từ ' + args.chat_config.name + ' (biến môi trường đang đặt vẫn có ưu tiên).', flush=True)
+        else:
+            print('Chưa có .env.doctor. Nếu chưa cấu hình gateway trong .env, AI chỉ trả lời theo quy tắc. Chạy python3 scripts/configure_doctor_chat.py.', flush=True)
         print(f'Mở http://localhost:{args.port}/?view=companion → Cài đặt → Nghe thử giọng bác sĩ.', flush=True)
         os.chdir(ROOT)
         # Replace the launcher so Ctrl+C/termination reaches the backend itself.
-        os.execv(str(python), [str(python), '-m', 'uvicorn', 'app.main:app', '--host', '127.0.0.1', '--port', str(args.port)])
+        command = [str(python), '-m', 'uvicorn', 'app.main:app', '--host', '127.0.0.1', '--port', str(args.port)]
+        if args.chat_config.exists(): command += ['--env-file', str(args.chat_config.resolve())]
+        os.execv(str(python), command)
     except (OSError, RuntimeError, subprocess.CalledProcessError) as error:
         print(f'Không khởi động được: {error}', file=sys.stderr)
         return 1
