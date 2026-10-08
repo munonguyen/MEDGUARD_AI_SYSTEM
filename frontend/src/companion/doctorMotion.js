@@ -53,8 +53,22 @@ export class DoctorMotion {
     const content = text.toLocaleLowerCase('vi');
     const greeting = /xin chào|chào bạn/.test(content);
     const cautious = /cấp cứu|khẩn cấp|gọi 115/.test(content);
-    this.gesturePlan = [greeting ? 'greeting' : cautious ? 'caution' : 'explain',
-      content.includes('?') ? 'invite' : 'reassure', 'explain', 'present', 'enumerate', 'invite'];
+    const sentences = content.match(/[^.!?]+[.!?]*/gu) || [content];
+    const classify = (sentence, index) => {
+      if (index === 0 && greeting) return 'greeting';
+      if (/cấp cứu|khẩn cấp|gọi 115|không tự|ngừng/.test(sentence)) return 'caution';
+      if (/\?|cho biết|chia sẻ|bạn có/.test(sentence)) return 'invite';
+      if (/lo lắng|khó chịu|lắng nghe|đồng hành|ghi nhận/.test(sentence)) return 'reassure';
+      if (/đầu tiên|tiếp theo|bước|thứ nhất|thứ hai/.test(sentence)) return 'enumerate';
+      return index % 3 === 2 ? 'present' : 'explain';
+    };
+    this.gesturePlan = sentences.slice(0,12).map(classify);
+    if (!this.gesturePlan.length) this.gesturePlan = [cautious ? 'caution' : 'explain'];
+    this.gesturePlan.push('explain','present','enumerate','invite');
+    // Variation is stable for the utterance; it never jitters per frame.
+    this.utteranceSeed = [...content].reduce((hash,c)=>(hash*31+c.codePointAt(0))>>>0,17);
+    this.gestureDurations = this.gesturePlan.map((_,i)=>3.8+((this.utteranceSeed >>> (i%8))%17)*.1);
+
   }
   update(dt, { speaking, look, audioLevel = 0, hasAudio = false, reducedMotion = false }) {
     dt = Math.min(Math.max(dt, 0), .15); this.time += dt;
@@ -94,11 +108,11 @@ export class DoctorMotion {
       }
       targets.head = [targets.head[0] -look.y * .09 + (listen ? -.025 : think ? .02 : 0), look.x * .22, listen ? .025 : 0];
       targets.neck = [targets.neck[0] -look.y * .035, look.x * .055, 0];
-      targets.chest[1] = look.x * .022;
+      targets.chest[1] += look.x * .022;
       // Smoothly alternate a phrase gesture with a quiet rest, involving the
       // shoulder, forearm, wrist, torso and head rather than moving one joint.
       const gestureTime = responding ? replyAge : this.speechTime;
-      const durations = [4.4, 5.2, 4.8, 5.5, 4.6, 5.0];
+      const durations = this.gestureDurations || [4.4, 5.2, 4.8, 5.5, 4.6, 5.0];
       const total = durations.reduce((a,b) => a+b,0);
       let phase = gestureTime % total;
       let index = 0;
@@ -113,20 +127,32 @@ export class DoctorMotion {
       // held throughout the lift instead of extending a straight arm sideways.
       const elbow = phraseEnvelope(phase, 0, duration - .08) * weight;
       const wrist = phraseEnvelope(phase, .22, duration - .30) * weight;
-      const left = index % 2 === 1;
+      const left = kind !== 'greeting' && ((index + ((this.utteranceSeed || 0) >>> (index%8))) % 3 === 1);
       const arm = left ? 'left' : 'right';
       const sign = left ? -1 : 1;
       const open = kind === 'invite' || kind === 'present';
+      const style = {
+        explain: {lift:.15,bend:1.50,turn:.16,lean:0},
+        invite: {lift:.20,bend:1.72,turn:.28,lean:-.012},
+        reassure: {lift:.10,bend:1.82,turn:.09,lean:-.025},
+        present: {lift:.23,bend:1.58,turn:.24,lean:.006},
+        enumerate: {lift:.16,bend:1.68,turn:.12,lean:0},
+        caution: {lift:.12,bend:1.65,turn:.08,lean:-.008},
+      }[kind] || {lift:.14,bend:1.55,turn:.15,lean:0};
+      // Small arcs keep a held hand alive without another whole-arm swing.
+      const arc = Math.sin(phase*1.9 + index*.7)*wrist;
+      targets.chest[0] += shoulder*style.lean;
       const accent = this.audioAccent * wrist;
       targets[arm+'Shoulder'][1] -= sign*shoulder*.025;
       targets[arm+'Shoulder'][2] += sign*shoulder*.018;
       targets[arm + 'UpperArm'][0] += shoulder * (open ? .18 : .12);
       targets[arm + 'UpperArm'][1] -= sign * shoulder * .12;
-      targets[arm + 'UpperArm'][2] += sign * shoulder * (open ? .20 : .14);
+      targets[arm + 'UpperArm'][2] += sign * shoulder * style.lift;
       targets[arm + 'LowerArm'][0] -= elbow * .20;
-      targets[arm + 'LowerArm'][2] += sign * elbow * (open ? 1.8 : 1.55);
-      targets[arm + 'Hand'][0] += wrist * .09 + accent*.022;
-      targets[arm + 'Hand'][1] -= sign * wrist * (open ? .26 : .15);
+      targets[arm + 'LowerArm'][2] += sign * elbow * style.bend;
+      targets[arm + 'Hand'][0] += wrist * .09 + accent*.022 + arc*.026;
+      targets[arm + 'LowerArm'][1] += sign*arc*.035;
+      targets[arm + 'Hand'][1] -= sign * wrist * style.turn;
       targets[arm + 'Hand'][2] -= sign * wrist * .12;
       // Counterbalance the other arm and distribute rotation through the torso.
       const other = left ? 'right' : 'left';
@@ -146,7 +172,8 @@ export class DoctorMotion {
         targets[arm + 'UpperArm'][1] -= sign * shoulder * .10;
       }
       if (kind === 'enumerate') targets[arm + 'Hand'][0] += Math.sin(phase * 3.5) * wrist * .035;
-      if (kind === 'caution') targets[arm + 'Hand'][0] += wrist * .09 + accent*.022;
+      if (kind === 'caution') targets[arm + 'Hand'][0] += wrist * .09 + accent*.022 + arc*.026;
+      targets[arm + 'LowerArm'][1] += sign*arc*.035;
       // Greeting is a bent-elbow wave close to the shoulder, not a lateral
       // straight-arm raise. Use the same authored pose for preview and speech.
       const waveAge = this.pose === 'pose_wave' ? time - (this.poseStarted ?? time) : phase;

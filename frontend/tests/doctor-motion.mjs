@@ -43,8 +43,9 @@ console.log('both personas: greeting, invitation, explanation and caution plans 
 
 const visual=fixture();visual.motion.startUtterance('Tôi đã ghi nhận thông tin.');visual.motion.setPose('pose_acknowledge');
 const arm=visual.bones.rightLowerArm.quaternion.clone();
+const leftArm=visual.bones.leftLowerArm.quaternion.clone();
 for(let i=0;i<90;i++)visual.motion.update(1/60,sample);
-assert(arm.angleTo(visual.bones.rightLowerArm.quaternion)>.1,'written reply reacts even without audio');
+assert(Math.max(arm.angleTo(visual.bones.rightLowerArm.quaternion),leftArm.angleTo(visual.bones.leftLowerArm.quaternion))>.1,'written reply reacts even without audio');
 assert.equal(visual.values.aa,0,'visual acknowledgment never pretends to have audible speech');
 for(let i=0;i<300;i++)visual.motion.update(1/60,sample);
 assert(visual.motion.speechWeight<.01,'visual acknowledgment settles on its own');
@@ -83,3 +84,9 @@ const shoulders=fixture();
 for(let i=0;i<120;i++)shoulders.motion.update(1/60,sample);
 assert(shoulders.bones.leftShoulder.quaternion.angleTo(rest)>0,'idle breathing includes shoulders');
 console.log('spring transition continuity, bounded joints and idle shoulder motion PASS');
+
+const semantic=fixture();semantic.motion.startUtterance('Xin chào. Đầu tiên hãy ghi lại thông tin. Không tự tăng liều. Bạn có thể chia sẻ thêm không?');
+assert.deepEqual(semantic.motion.gesturePlan.slice(0,4),['greeting','enumerate','caution','invite']);
+const same=fixture();same.motion.startUtterance('Xin chào. Đầu tiên hãy ghi lại thông tin. Không tự tăng liều. Bạn có thể chia sẻ thêm không?');
+assert.deepEqual(same.motion.gestureDurations,semantic.motion.gestureDurations,'variation is stable, never random per frame');
+console.log('sentence intent drives distinct greeting, explanation, warning and invitation gestures PASS');

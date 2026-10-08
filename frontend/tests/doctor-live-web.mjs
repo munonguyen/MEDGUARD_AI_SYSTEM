@@ -10,8 +10,8 @@ let browser;
 try{
  await mkdir(root+'.artifacts',{recursive:true});
  for(let i=0;i<100;i++){try{if((await fetch('http://127.0.0.1:8466/v1/health')).ok)break;}catch{}await new Promise(r=>setTimeout(r,100));}
- browser=await chromium.launch({executablePath:process.env.CHROME_PATH,headless:true,args:['--no-sandbox','--autoplay-policy=no-user-gesture-required']});
- const page=await browser.newPage({viewport:{width:1440,height:1000}});const errors=[];await page.addInitScript(()=>{window.companionTimings=[];window.addEventListener('medguard:companion-latency',e=>window.companionTimings.push(e.detail));});page.on('pageerror',e=>errors.push(e.message));
+ browser=await chromium.launch({executablePath:process.env.CHROME_PATH,headless:true,args:['--no-sandbox']});
+ const page=await browser.newPage({viewport:{width:1440,height:1000}});const errors=[];await page.addInitScript(()=>{const play=HTMLMediaElement.prototype.play;HTMLMediaElement.prototype.play=function(...args){window.testLiveAudio=this;return play.apply(this,args);};window.companionTimings=[];window.addEventListener('medguard:companion-latency',e=>window.companionTimings.push(e.detail));});page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:8466/?view=companion');await page.waitForFunction(()=>window.__companionEngine?.isVrmLoaded);
  for(const [persona,button] of [['dr_tuan','BS. Minh Tuấn'],['dr_mai','BS. Thanh Mai']]){
   if(persona==='dr_mai')await page.getByRole('button',{name:button,exact:true}).click();
@@ -28,7 +28,13 @@ try{
   assert.equal(timing.stage,'first_audio');assert.equal(timing.persona,persona);
   console.log(`${persona}: first audible audio ${timing.ttsMs} ms (single live sample)`);
   await page.screenshot({path:`${root}.artifacts/${persona}-live-speaking.png`});
-  await page.locator('.grok-stop-action-btn').click();console.log(`${persona}: real backend TTS 200, correct voice, real VRM speaking and greeting PASS`);
+  const playback=await page.evaluate(()=>({time:window.testLiveAudio.currentTime,muted:window.testLiveAudio.muted,paused:window.testLiveAudio.paused}));
+  assert(playback.time>0&&!playback.muted&&!playback.paused,'actual media clock advances with audible playback enabled');
+  await page.waitForFunction(()=>{const b=[...document.querySelectorAll('button')].find(b=>b.textContent==='Đọc lại');return b&&!b.disabled},null,{timeout:60000});
+  assert.equal(await page.evaluate(()=>window.__companionEngine.isSpeaking),false);
+  console.log(`${persona}: real backend TTS 200, correct voice, real VRM speaking and greeting PASS`);
  }
+ const status=await(await fetch('http://127.0.0.1:8466/v1/companion/status')).json();
+ console.log('AI gateway configured:',status.configured);
  assert.deepEqual(errors,[]);
 }finally{await browser?.close();process.kill(-server.pid,'SIGTERM');}
