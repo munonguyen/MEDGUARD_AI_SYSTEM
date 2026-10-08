@@ -2,6 +2,8 @@
 export function splitSpeech(text, maxChars = 360) {
   const clean = text.trim();
   if (!clean) return [];
+  // A short reply needs one connection, not one per sentence.
+  if (clean.length <= maxChars) return [clean];
   const sentences = typeof Intl.Segmenter === 'function'
     ? [...new Intl.Segmenter('vi', { granularity: 'sentence' }).segment(clean)].map(s => s.segment.trim())
     : clean.split(/(?<=[.!?])\s+(?=[\p{Lu}\d])/u);

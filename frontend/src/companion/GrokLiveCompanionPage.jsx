@@ -265,7 +265,13 @@ export function GrokLiveCompanionPage({
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body), signal: request.signal,
           });
-          if (!response.ok) throw new Error('Voice unavailable');
+          if (!response.ok) {
+            const data = await response.json().catch(() => ({}));
+            const error = new Error(data.message || 'Voice unavailable');
+            error.status = response.status;
+            error.code = data.error_code;
+            throw error;
+          }
           return await response.blob();
         } finally {
           window.clearTimeout(timer);
@@ -337,9 +343,16 @@ export function GrokLiveCompanionPage({
       if (!current()) return;
       setIsVoiceLoading(false); setIsSpeaking(false);
       disposePlayback();
-      setVoiceError(error?.name === 'NotAllowedError'
+      const voiceMessages = {
+        tts_certificate_error: 'Kết nối TTS không xác thực được chứng chỉ TLS. Kiểm tra chứng chỉ tin cậy trên máy chủ.',
+        tts_timeout: 'Dịch vụ TTS phản hồi quá chậm và đã hết thời gian chờ.',
+        tts_provider_busy: 'Dịch vụ TTS đang quá tải hoặc giới hạn lượt gọi.',
+        tts_connection_error: 'Máy chủ không kết nối được dịch vụ TTS.',
+        tts_empty_audio: 'Dịch vụ TTS không trả về âm thanh sau khi thử lại.',
+      };
+      setVoiceError(voiceMessages[error?.code] || (error?.name === 'NotAllowedError'
         ? 'Trình duyệt đang chặn phát âm thanh. Hãy bấm Đọc lại để phát giọng bác sĩ.'
-        : `Giọng bác sĩ chưa phát được${error?.status ? ` (HTTP ${error.status})` : ''}. Hãy kiểm tra backend và kết nối dịch vụ TTS, rồi bấm Đọc lại.`);
+        : `Giọng bác sĩ chưa phát được${error?.status ? ` (HTTP ${error.status})` : ''}. Hãy kiểm tra backend và kết nối dịch vụ TTS, rồi bấm Đọc lại.`));
       onNotify?.('Giọng bác sĩ tạm thời chưa sẵn sàng. Bạn vẫn có thể đọc câu trả lời và thử lại.');
     }
   };

@@ -660,8 +660,13 @@ async def post_text_to_speech(payload: DoctorSpeechRequest, request: Request) ->
         audio = await task
     except HTTPException:
         raise
-    except Exception:
-        raise HTTPException(status_code=503, detail="Giọng bác sĩ tạm thời chưa sẵn sàng. Vui lòng thử lại.")
+    except Exception as error:
+        from app.services.doctor_voice import SpeechProviderError
+        code = error.code if isinstance(error, SpeechProviderError) else 'tts_provider_error'
+        raise HTTPException(status_code=503, detail={
+            'error_code': code,
+            'message': 'Dịch vụ giọng nói chưa sẵn sàng. Nội dung tư vấn vẫn được giữ lại.',
+        })
     finally:
         if not task.done():
             task.cancel()

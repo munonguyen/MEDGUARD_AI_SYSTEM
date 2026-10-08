@@ -108,6 +108,7 @@ try{
   const original=replyText;
   replyText='Tôi đã ghi nhận thông tin bạn cung cấp. '+
    'Bạn hãy cho biết thời điểm bắt đầu, những thay đổi gần đây và các thông tin liên quan để tôi có thể hiểu rõ tình trạng bạn đang trao đổi. '+
+   'Bạn cũng hãy ghi lại các thông tin đã cung cấp để trao đổi khi khám, bao gồm thời gian, mức độ và những thay đổi bạn nhận thấy. '+
    'Nếu xuất hiện đau ngực kèm khó thở hoặc ngất, hãy gọi cấp cứu ngay. Không tự tăng liều thuốc đang dùng. Bạn có đang dùng thuốc nào không?';
   let release;holdNext=new Promise(r=>{release=r;});
   const start=requests.length;

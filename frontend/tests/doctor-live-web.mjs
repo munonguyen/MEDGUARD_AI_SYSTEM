@@ -33,6 +33,16 @@ try{
   await page.waitForFunction(()=>{const b=[...document.querySelectorAll('button')].find(b=>b.textContent==='Đọc lại');return b&&!b.disabled},null,{timeout:60000});
   assert.equal(await page.evaluate(()=>window.__companionEngine.isSpeaking),false);
   console.log(`${persona}: real backend TTS 200, correct voice, real VRM speaking and greeting PASS`);
+  // A second interaction must finish on the same backend/audio context.
+  await page.locator('.grok-settings-btn').click();
+  const secondResponse=page.waitForResponse(r=>r.url().endsWith('/v1/tts')&&r.request().method()==='POST');
+  await page.getByRole('button',{name:'Nghe thử giọng bác sĩ',exact:true}).click();
+  const secondAudio=await secondResponse;assert.equal(secondAudio.status(),200,'second TTS request succeeds');
+  await page.waitForFunction(()=>window.__companionEngine.isSpeaking);
+  await page.locator('.grok-settings-card button[title="Đóng"]').click();
+  await page.waitForFunction(()=>{const b=[...document.querySelectorAll('button')].find(b=>b.textContent==='Đọc lại');return b&&!b.disabled},null,{timeout:60000});
+  console.log(`${persona}: consecutive second voice interaction PASS`);
+
  }
  const status=await(await fetch('http://127.0.0.1:8466/v1/companion/status')).json();
  console.log('AI gateway configured:',status.configured);

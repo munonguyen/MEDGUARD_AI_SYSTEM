@@ -124,3 +124,44 @@ def test_legacy_get_speech_still_works(monkeypatch):
     monkeypatch.setattr('app.api.routes.synthesize_doctor_speech', synth)
     with TestClient(app) as client:
         assert client.get('/v1/tts', params={'text':'Xin chào.', 'persona':'dr_mai'}).status_code == 200
+
+
+def test_transient_connection_failure_retries_with_fresh_communicate(monkeypatch):
+    monkeypatch.setattr('app.services.doctor_voice.configure_tts_trust', lambda: None)
+    attempts = []
+    class Speech:
+        def __init__(self, text, **profile): attempts.append(text)
+        async def stream(self):
+            if len(attempts) == 1:
+                raise ConnectionError('private provider host')
+            yield {'type':'audio', 'data':b'recovered'}
+    monkeypatch.setitem(sys.modules,'edge_tts',SimpleNamespace(Communicate=Speech))
+    assert asyncio.run(synthesize_doctor_speech(DoctorSpeechRequest(text='Chào bạn.'))) == b'recovered'
+    assert len(attempts) == 2
+
+
+def test_certificate_failure_does_not_retry_or_expose_private_details(monkeypatch):
+    import ssl
+    from app.services.doctor_voice import SpeechProviderError
+    monkeypatch.setattr('app.services.doctor_voice.configure_tts_trust', lambda: None)
+    attempts=[]
+    class Speech:
+        def __init__(self,text,**profile): attempts.append(text)
+        async def stream(self):
+            raise ssl.SSLCertVerificationError('private host and credential')
+            yield
+    monkeypatch.setitem(sys.modules,'edge_tts',SimpleNamespace(Communicate=Speech))
+    with pytest.raises(SpeechProviderError,match='tts_certificate_error') as error:
+        asyncio.run(synthesize_doctor_speech(DoctorSpeechRequest(text='Chào bạn.')))
+    assert len(attempts)==1
+    assert 'private' not in str(error.value)
+
+
+def test_endpoint_preserves_specific_safe_failure_code(monkeypatch):
+    from app.services.doctor_voice import SpeechProviderError
+    async def synth(payload): raise SpeechProviderError('tts_timeout')
+    monkeypatch.setattr('app.api.routes.synthesize_doctor_speech',synth)
+    with TestClient(app) as client:
+        response=client.post('/v1/tts',json={'text':'Chào bạn.'})
+        assert response.status_code==503
+        assert response.json()['error_code']=='tts_timeout'

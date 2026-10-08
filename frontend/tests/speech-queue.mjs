@@ -8,6 +8,7 @@ assert.equal(chunks.join(' ').replace(/\s+/g, ' '), text.trim());
 assert(chunks.every(c => c.length <= 360));
 assert(chunks.some(c => c.includes('2.5 mg')));
 assert.equal(splitSpeech('')[0], undefined);
+assert.deepEqual(splitSpeech('Xin chào. Bạn cần hỗ trợ gì?'), ['Xin chào. Bạn cần hỗ trợ gì?']);
 assert.equal(splitSpeech('a'.repeat(1200)).join(''), 'a'.repeat(1200));
 
 const deferred = () => { let resolve; const promise = new Promise(r => {resolve=r;}); return {promise, resolve}; };
