@@ -289,7 +289,12 @@ export class DoctorMotion {
     // Task-space goals bring gestures in FRONT of the patient, not sideways.
     // FK still supplies preparation, articulation and wrist twist; IK gently
     // guides the upper/lower arm without straightening the elbow.
-    if(cue.intent!=='greeting') {
+    if(cue.intent==='greeting') {
+      // Compact wave in front of the upper chest, elbow below the hand.
+      const wave=envelope(phase,.55,Math.min(1.8,duration-.55));
+      Object.assign(this.armGoals[arm],{target:shoulder,tx:.145+Math.sin(phase*5.5)*wave*.009,
+        ty:.075,tz:.20,palm:'stop'});
+    } else {
       const compact=cue.intent==='caution'||cue.intent==='enumerate';
       const heart=style.id==='hand-near-heart';
       Object.assign(this.armGoals[arm],{target:shoulder,tx:heart?.065:compact?.16:cue.intent==='compare'?.25:.19,

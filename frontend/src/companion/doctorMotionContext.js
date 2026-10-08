@@ -28,9 +28,9 @@ export function phraseIntent(text, context = 'clinical') {
 // lift/bend/yaw/turn are radians in the normalized VRM T-pose; fingers are semantic.
 export const GESTURE_POOL = {
   greeting: [
-    {id:'shoulder-wave',lift:.62,bend:2.60,yaw:.12,turn:.18,lean:-.012,wave:.12,fingers:'open'},
-    {id:'small-wave',lift:.53,bend:2.48,yaw:.16,turn:.22,lean:-.018,wave:.09,fingers:'open'},
-    {id:'warm-wave',lift:.58,bend:2.56,yaw:.20,turn:.16,lean:-.025,wave:.10,fingers:'open'},
+    {id:'shoulder-wave',lift:.22,bend:1.85,yaw:.08,turn:.12,lean:-.012,wave:.065,fingers:'open'},
+    {id:'small-wave',lift:.18,bend:1.78,yaw:.10,turn:.14,lean:-.018,wave:.05,fingers:'open'},
+    {id:'warm-wave',lift:.20,bend:1.82,yaw:.09,turn:.12,lean:-.025,wave:.06,fingers:'open'},
   ],
   explain: [
     {id:'palm-arc',lift:.20,bend:1.55,yaw:.14,turn:.28,lean:-.008,arc:.065,fingers:'open'},

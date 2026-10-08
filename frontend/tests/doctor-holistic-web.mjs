@@ -68,6 +68,11 @@ try {
   report.push(result);console.log(result.persona,{variants:result.used.length,fingers:result.fingerBones,footDriftMm:result.maxFootDrift*1000,maxArmStep:result.maxArmStep,maxHeadStep:result.maxHeadStep});
   assert.equal(result.used.length,24);assert.equal(new Set(result.used).size,24);
   assert.equal(result.fingerBones,30);assert.equal(result.legs,2);
+  for(const pose of result.poses.filter(p=>['shoulder-wave','small-wave','warm-wave'].includes(p.variant))) {
+   assert(pose.shoulder[1]-pose.elbow[1]>.12,'greeting keeps upper arm down, not horizontal');
+   assert(pose.wrist[1]-pose.elbow[1]>.04,'greeting keeps elbow below the hand');
+   assert(Math.abs(pose.elbow[0]-pose.shoulder[0])<.15,'greeting elbow stays close to the torso');
+  }
   assert(result.maxFootDrift<.003,'real rig feet remain planted within 3mm');
   assert(result.maxHeadStep<.025);assert(result.minBend<.7);
   assert(result.maxArmStep<.10,'real arms/wrists stay continuous through interruption');
