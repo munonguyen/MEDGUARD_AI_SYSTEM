@@ -43,6 +43,38 @@ This repository contains an end-to-end **development implementation** of the arc
 
 ## Run
 
+For the doctor avatar page, the checkout can bootstrap its own Python environment
+and speech dependencies. From the repository root (Python 3.10+):
+
+```bash
+python3 scripts/start_with_doctor_voice.py
+```
+
+On Windows use `python` instead of `python3`. This creates `.venv` if needed,
+installs pinned `requirements.txt` dependencies, validates both bundled doctor
+voice profiles, and starts the backend on port 8000. Open
+`http://localhost:8000/?view=companion`; the built frontend is included.
+If using Vite on 5173, keep this backend running in a separate terminal. No TTS
+API key or manual voice configuration is needed: male uses NamMinhNeural (-8%,
+-6Hz), female uses HoaiMyNeural (-7%, -12Hz). The installer is rerun when the
+requirements change or the dependency/profile check fails. It does not overwrite
+authentication, Origin, or TLS settings. An invalid existing environment is
+reported instead of deleted; `--venv .venv-new` can create a separate environment.
+
+To verify local configuration or explicitly test live synthesis of both voices:
+
+```bash
+python3 scripts/start_with_doctor_voice.py --check
+python3 scripts/start_with_doctor_voice.py --check --live-check
+```
+
+The live check sends only a synthetic greeting, retains no audio files and fails
+if either voice cannot be synthesized. TTS still requires Internet and valid TLS
+trust; configuration checks alone do not establish provider availability or voice
+quality. Use “Nghe thử giọng bác sĩ” in settings to hear each character.
+
+For an already configured environment, the existing command also works:
+
 ```bash
 cd MEDGUARD_AI_SYSTEM
 .venv/bin/uvicorn app.main:app --reload
