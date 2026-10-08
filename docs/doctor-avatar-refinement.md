@@ -18,15 +18,49 @@ unused buffers, and marks transformed assets to prevent cumulative edits.
 
 ## Motion
 
-`doctorMotion.js` controls time-based quaternion damping for pose transitions,
-subtle breathing, attentive head movement and intermittent explanatory gestures.
-Utterance-aware plans alternate greeting, invitation, explanation, reassurance
-and caution gestures involving shoulder, elbow, wrist, head and torso. A brief
-written-reply acknowledgment works even when TTS is unavailable, with the mouth
-closed. The settings panel includes an independent greeting gesture preview.
-The speech envelope fades gestures in and out. Web Audio RMS drives the mouth and
-closes it during pauses. This is audio-envelope animation, not phoneme alignment.
-Reduced-motion preferences disable incidental body movement.
+`doctorMotionContext.js` plans eight intents (greeting, explanation, invitation,
+reassurance, caution, enumeration, comparison and guidance), each with three
+authored variants. Weighted selection avoids the preceding variant and penalizes
+the last six selections across turns while the same avatar remains loaded.
+Question cues and response sentences set energy/emotion; explicit HIGH/CRITICAL
+metadata and warning context take precedence over a reassuring smile. This is
+local, rule-based motion classification, not a second medical reasoning model.
+
+`doctorMotion.js` coordinates hips, spine, chest, optional upper chest, shoulders,
+neck, head, arms, wrists and all available finger bones. Arm FK supplies soft
+preparation and release; two-bone IK guides hands toward the front of the torso,
+near the chest for reassurance, or into an asymmetric comparison. Forearm
+pronation is separated from wrist deviation (bounded to 0.65 radians). Final
+quaternion speed limits also constrain IK corrections when a user interrupts.
+Critically damped springs retain velocity, with asymmetric left/right response.
+Pose changes use angle-dependent 0.3–0.8 second C2/slerp transitions.
+
+Breathing maintains a continuous phase across variable 3.5–4.5 second cycles,
+with a modest recovery after a long voiced passage. Weight transfers switch sides
+after 15–25 seconds over a 1.8 second envelope; leg IK keeps the captured feet
+planted. Finger flexion/splay uses real 60ms staggered delay lines, the VRM thumb
+Metacarpal/Proximal/Distal mapping, and geometry-derived curl axes. Optional bones
+are skipped safely. VRM0 and VRM1 pose/gaze frames are handled separately.
+
+Eyes respond before the damped head, with small saccades, reduced pointer tracking
+during thinking, and a blink on returning to the user. Bone versus expression
+gaze appliers have different sign conventions; the model's own VRM applier is
+used instead of competing blendshapes. Both screen-right and screen-up are tested.
+The built-in doctors support aggregate happy/sad/angry/relaxed/Surprised morphs;
+they **do not contain independent brow/cheek morphs**. Small aggregate changes
+provide micro-expression and an audio-linked cheek/smile contribution. Optional
+brow/cheek aliases are used only when a custom model actually provides them.
+
+Each queued TTS segment provides its script and real media clock. Sentence
+boundaries inside an audio file are estimated from text length, **not provider
+word timestamps**. Spectral low/mid/high ratios diversify approximate vowels;
+RMS gates all mouth shapes closed during silence or failed audio. FFT alone does
+not recognize Vietnamese phonemes or guarantee m/b/p lip closures. Exact visemes
+require timestamped provider output or a separate alignment model.
+
+A brief written acknowledgment still works without pretending to speak. Reduced
+motion disables incidental body/gaze motion. This release improves coordinated
+procedural movement; it does not establish photorealism or equivalence to Grok.
 
 The built-in sample models have unstable legacy spring-bone colliders after
 normalized-bone posing. Their authored hair shape is preserved with spring
@@ -64,6 +98,7 @@ configuration alone does not establish a clinical or professional voice quality.
 - `python -m pytest app/tests/test_ui_and_endpoints.py::test_dashboard_and_static_assets_serving -q`
 - `npm --prefix frontend run test:doctor-motion`
 - `CHROME_PATH=/path/to/chromium npm --prefix frontend run test:doctor-web`
+- `CHROME_PATH=/path/to/chromium npm --prefix frontend run test:doctor-holistic`
 - Optional live provider/browser: `CHROME_PATH=/path/to/chromium npm --prefix frontend run test:doctor-live` (free port 8466, Internet; uses backend-built page, synthetic greetings, no API/audio mocks).
 - `npm --prefix frontend run build`
 
@@ -79,6 +114,21 @@ A failed or blocked playback now leaves a persistent inline message and a
 “Đọc lại” button; it never silently switches to an OS default voice.
 The earlier advanced motion commits were not recovered: these are newly added
 gesture plans, not a restoration of that entire prior implementation.
+
+The holistic browser suite runs all 24 variants on each shipped doctor, checks
+all 30 finger bones and both leg chains, grounded feet, semantic warnings,
+real eye/head direction and bounded arm/wrist steps during interruption. It also
+loads the shipped VRM1 sample to check pose-frame and gaze compatibility. PNGs
+and rig metrics are written to ignored `.artifacts/holistic-motion`.
+
+Optional visual comparison:
+`CHROME_PATH=/path/to/chromium node frontend/scripts/record-doctor-motion.mjs`.
+Install Playwright's ffmpeg recorder first. `MEDGUARD_MOTION_REFERENCE` selects
+the baseline commit (default `7fc4b9c`). The video visibly labels its simulated
+audio envelope and contains no audio/AI calls or patient data; actual TTS is
+tested separately by `test:doctor-live`. Review clips are not evidence of clinical
+answer accuracy. The last live check played both configured voices twice; the
+local AI gateway was unconfigured, so clinical AI dialogue was not validated.
 
 
 ## Response latency (2026-10-08)

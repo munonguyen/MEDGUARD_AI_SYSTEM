@@ -316,7 +316,7 @@ export function GrokLiveCompanionPage({
           if (!current()) return abort();
           setIsVoiceLoading(false); setIsSpeaking(true);
           engineRef.current?.setAudioAnalyser(analyser);
-          engineRef.current?.startSpeaking(text, { continuation: !firstSound });
+          engineRef.current?.startSpeaking(cleanSpeech, { continuation: !firstSound, segmentText:sentence, media:audio });
           if (firstSound) {
             firstSound = false;
             const now = performance.now();
@@ -463,6 +463,7 @@ export function GrokLiveCompanionPage({
     setIsBusy(true);
     setIsSpeaking(false);
     setDialogueText(`"${text}" — Bác sĩ đang phân tích...`);
+    engineRef.current?.setConversationContext(text);
     engineRef.current?.applyPose('pose_thinking');
 
     try {
@@ -523,6 +524,7 @@ export function GrokLiveCompanionPage({
       engineRef.current?.applyPose('pose_idle');
 
       // Nhân vật nói trọn vẹn toàn bộ câu trả lời, không hẹn giờ ngắt
+      engineRef.current?.setConversationContext(text, {severity:responseData?.severity || responseData?.risk_level});
       engineRef.current?.reactToReply(conciseAdvice);
       speakDoctorVoice(conciseAdvice, doctorPersona, currentSpeechId);
       // Older deployments may use asynchronous Writer/Reviewer promotion.
@@ -538,7 +540,8 @@ export function GrokLiveCompanionPage({
             const updated = clinicalReply(reviewed);
             setDialogueText(normalizeMedicalSpeech(updated));
             messagesHistoryRef.current = [...messagesHistoryRef.current.slice(0,-1), {role:'assistant',content:updated}];
-            engineRef.current?.reactToReply(updated);
+            engineRef.current?.setConversationContext(text, {severity:reviewed.severity || reviewed.risk_level});
+            engineRef.current?.reactToReply(normalizeMedicalSpeech(updated));
             speakDoctorVoice(updated, doctorPersona, currentSpeechId);
           }
         }

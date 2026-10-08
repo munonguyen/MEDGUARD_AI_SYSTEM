@@ -461,21 +461,37 @@ export class VRMAvatarEngine {
   setAudioAnalyser(analyser) {
     this.audioAnalyser = analyser;
     this.audioSamples = analyser ? new Float32Array(analyser.fftSize) : null;
+    this.audioFrequencies = analyser ? new Float32Array(analyser.frequencyBinCount) : null;
+    this.audioSpectrum = {low:0,mid:0,high:0};
   }
 
-  startSpeaking(text = '', { continuation = false } = {}) {
+  setConversationContext(question, metadata = {}) {
+    this.motion?.setContext(question, metadata);
+  }
+
+  startSpeaking(text = '', { continuation = false, segmentText = text, media = null } = {}) {
     this.motion?.setPose('pose_idle');
-    if (!continuation) this.motion?.startUtterance(text);
+    if (!continuation) {
+      if (!this.replyPrepared || this.motion?.utteranceText !== text) this.motion?.startUtterance(text);
+      this.replyPrepared = false;
+    }
+    this.speechMedia = media;
+    const segmentKey=media?.currentSrc || media?.src || segmentText;
+    if(segmentKey!==this.speechSegmentKey || !this.isSpeaking)this.motion?.beginSpeechSegment(segmentText);
+    this.speechSegmentKey=segmentKey;
     this.isSpeaking = true;
   }
 
   reactToReply(text = '') {
     this.motion?.startUtterance(text);
+    this.replyPrepared = true;
     this.motion?.setPose('pose_acknowledge');
   }
 
   stopSpeaking() {
     this.isSpeaking = false;
+    this.speechMedia = null;
+    this.speechSegmentKey = null;
     this.setAudioAnalyser(null);
   }
 
@@ -520,17 +536,28 @@ export class VRMAvatarEngine {
     const delta = this.lastFrameAt === null ? 0 : Math.min((now - this.lastFrameAt) / 1000, .15);
     this.lastFrameAt = now;
     if (document.hidden || this.contextLost) return;
-    const alpha = 1 - Math.exp(-delta * 5);
-    this.currentLookAt.x += (this.mouseTarget.x - this.currentLookAt.x) * alpha;
-    this.currentLookAt.y += (this.mouseTarget.y - this.currentLookAt.y) * alpha;
     let audioLevel = 0;
     if (this.audioAnalyser && this.audioSamples) {
       this.audioAnalyser.getFloatTimeDomainData(this.audioSamples);
       audioLevel = Math.sqrt(this.audioSamples.reduce((sum, value) => sum + value * value, 0) / this.audioSamples.length);
+      this.audioAnalyser.getFloatFrequencyData(this.audioFrequencies);
+      let low=0,mid=0,high=0;
+      const binHz=this.audioAnalyser.context.sampleRate/this.audioAnalyser.fftSize;
+      for(let i=1;i<this.audioFrequencies.length;i++) {
+        const hz=i*binHz;
+        if(hz>5000)break;
+        const energy=10**(this.audioFrequencies[i]/10);
+        if(hz<650)low+=energy;else if(hz<2200)mid+=energy;else high+=energy;
+      }
+      const total=low+mid+high||1;
+      this.audioSpectrum.low=low/total;this.audioSpectrum.mid=mid/total;this.audioSpectrum.high=high/total;
     }
     this.motion?.update(delta, {
-      speaking: this.isSpeaking, look: this.currentLookAt,
+      speaking: this.isSpeaking, look: this.mouseTarget,
       audioLevel, hasAudio: !!this.audioAnalyser,
+      spectrum:this.audioSpectrum,
+      playbackTime:this.speechMedia?.currentTime,
+      playbackDuration:this.speechMedia?.duration,
       reducedMotion: this.reducedMotion.matches,
     });
     this.renderer.render(this.scene, this.camera);
