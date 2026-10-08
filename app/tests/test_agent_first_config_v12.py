@@ -49,6 +49,12 @@ def test_development_defaults_to_enforced_single_path_when_not_overridden():
     )
 
 
+def test_production_defaults_to_enforced_single_path():
+    assert _probe({"MEDGUARD_ENVIRONMENT": "production"}) == (
+        "production enforced all True 1"
+    )
+
+
 def test_explicit_agent_mode_and_execution_override_still_wins():
     assert _probe(
         {

@@ -36,8 +36,7 @@ def _default_agent_mode() -> str:
         return explicit.lower()
     if _is_test_runtime():
         return "disabled"
-    environment = getenv("MEDGUARD_ENVIRONMENT", "development").lower()
-    return "enforced" if environment == "development" else "disabled"
+    return "enforced"
 
 
 def _default_agent_coverage_scope() -> str:
@@ -158,9 +157,11 @@ class Settings:
         default_factory=lambda: getenv("MEDGUARD_VERIFIER_AGENT_PROVIDER", "litellm").lower()
     )
     agent_required_for_production: bool = field(
-        default_factory=lambda: _env_bool("MEDGUARD_AGENT_REQUIRED_FOR_PRODUCTION")
+        default_factory=lambda: _env_bool("MEDGUARD_AGENT_REQUIRED_FOR_PRODUCTION", True)
     )
     agent_sync_enabled: bool = field(default_factory=_default_agent_sync_enabled)
+    agent_workers: int = field(default_factory=lambda: _env_int("MEDGUARD_AGENT_WORKERS", 8))
+    agent_max_pending: int = field(default_factory=lambda: _env_int("MEDGUARD_AGENT_MAX_PENDING", 16))
     agent_background_enabled: bool = field(
         default_factory=lambda: _env_bool("MEDGUARD_AGENT_BACKGROUND_ENABLED")
     )
@@ -303,6 +304,8 @@ class Settings:
             raise ValueError(
                 "MEDGUARD_AGENT_SYNC_ENABLED and MEDGUARD_AGENT_BACKGROUND_ENABLED cannot both be true"
             )
+        if self.agent_workers < 1 or self.agent_max_pending < self.agent_workers:
+            raise ValueError("MEDGUARD_AGENT_MAX_PENDING must include all MEDGUARD_AGENT_WORKERS")
         if self.agent_background_max_pending < 1:
             raise ValueError("MEDGUARD_AGENT_BACKGROUND_MAX_PENDING must be at least 1")
         if self.agent_background_workers < 1:

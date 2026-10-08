@@ -23,7 +23,7 @@ from typing import Any, Literal
 
 from app.services.clinical_fact_parser import parse_semantic_clinical_facts
 from app.services.clinical_reasoning.context_router import ClinicalContextRouter
-from app.services.clinical_text import normalize_search_text
+from app.services.clinical_text import normalize_search_text, contains_affirmed_phrase
 from app.services.clinical_threat_graph import ThreatLevel, evaluate_threat_graph
 from app.services.end_organ_coupling import EndOrganCouplingAssessment, evaluate_end_organ_coupling
 from app.services.evidence_strength_scorer import score_evidence_strength
@@ -35,6 +35,17 @@ SafetyFloorDisposition = Literal["ROUTINE", "URGENT", "EMERGENCY"]
 _RANK = {"ROUTINE": 1, "URGENT": 2, "EMERGENCY": 3}
 _V28_CONTEXT_ROUTER = ClinicalContextRouter()
 _CONDITIONAL_START = re.compile(r"\b(?:neu nhu|neu|gia su|truong hop|lo may)\b")
+
+
+def reports_current_appendix_pain(text: str) -> bool:
+    """A patient report needing assessment, never a confirmed diagnosis."""
+    norm = normalize_search_text(text)
+    conditional = _CONDITIONAL_START.search(norm)
+    if conditional:
+        norm = norm[:conditional.start()]
+    return any(contains_affirmed_phrase(norm, phrase) for phrase in (
+        "dau ruot thua", "dang bi viem ruot thua", "toi bi viem ruot thua",
+    )) and not re.search(r"\b(?:doc ve|tim hieu|da khoi|nam ngoai)\b", norm)
 
 
 @dataclass(frozen=True)
@@ -162,6 +173,11 @@ def evaluate_clinical_safety_floor(
     bounded_anticoagulant_epistaxis = _anticoagulant_epistaxis_without_major_loss(detector_text)
 
     candidates: list[tuple[SafetyFloorDisposition, float, str, str]] = []
+    if reports_current_appendix_pain(detector_text):
+        candidates.append((
+            "URGENT", 0.86, "reported_appendix_pain",
+            "Người dùng báo đau/nghi viêm ruột thừa: cần đánh giá trực tiếp tại bệnh viện sớm; chưa xác nhận chẩn đoán hay chỉ định mổ.",
+        ))
 
     # V28 is an additional deterministic safety source. URGENT/EMERGENCY can
     # raise the floor. For a pure hypothetical question, a ROUTINE candidate is

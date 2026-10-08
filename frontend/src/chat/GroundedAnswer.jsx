@@ -299,7 +299,7 @@ export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQues
   const userFollowupQuestions = [
     ...new Set([
       ...(Array.isArray(answer.suggested_followups) ? answer.suggested_followups : []),
-      ...getContextualFollowups(answer, responseMeta.intent, status.tone),
+      ...(!verifiedAgentPrimary ? getContextualFollowups(answer, responseMeta.intent, status.tone) : []),
     ]),
   ].slice(0, 3);
 
@@ -329,7 +329,7 @@ export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQues
 
   return (
     <div className="grounded-answer modern-clinical-layout">
-      {showTechnicalMeta && (
+      {(showTechnicalMeta || isClinical) && (
         <div className="answer-assurance-row" aria-label="Trạng thái kiểm chứng câu trả lời">
           <span className={`verification-pill ${responseMeta.verification_status || 'not_requested'}`}>
             {responseMeta.verification_status === 'verified'
@@ -337,7 +337,7 @@ export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQues
               : <CircleHelp size={13} />}
             {verificationLabels[responseMeta.verification_status] || verificationLabels.not_requested}
           </span>
-          {responseMeta.knowledge_approval && (
+          {showTechnicalMeta && responseMeta.knowledge_approval && (
             <span className={`knowledge-pill ${responseMeta.knowledge_approval}`}>
               {knowledgeLabels[responseMeta.knowledge_approval]}
             </span>

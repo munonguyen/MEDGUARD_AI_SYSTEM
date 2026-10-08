@@ -161,6 +161,9 @@ _EPISODE_DOMAIN_MARKERS: dict[str, tuple[str, ...]] = {
         "kho tieu",
     ),
     "gastrointestinal": (
+        "ruot thua",
+        "appendicitis",
+        "ho chau phai",
         "dau bung",
         "dau thuong vi",
         "thuong vi",
@@ -308,6 +311,10 @@ def infer_episode_domain(text: str) -> str | None:
     matches: list[tuple[int, str]] = []
     for domain, markers in _EPISODE_DOMAIN_MARKERS.items():
         for marker in markers:
+            # Accent folding turns "hơi đau đầu" into "hoi dau dau".
+            # Do not mistake the first two words for "hói đầu".
+            if marker == "hoi dau" and "hoi dau dau" in norm:
+                continue
             pos = norm.find(marker)
             if pos >= 0 and contains_affirmed_phrase(norm, marker):
                 matches.append((pos, domain))
@@ -475,7 +482,8 @@ def should_start_new_episode(latest_text: str, previous_text: str | None = None)
                 for p in (
                     "toi bi", "dang bi", "moi bi", "vua bi", "bi dau",
                     "kho chiu o", "lam sao de", "cach nao de", "chua khoi",
-                    "can lam gi", "dieu tri the nao", "uong thuoc gi", "hoi ve"
+                    "can lam gi", "dieu tri the nao", "uong thuoc gi", "hoi ve",
+                    "toi dang dau", "toi dau", "toi dang nhuc",
                 )
             )
             if is_new_inquiry:

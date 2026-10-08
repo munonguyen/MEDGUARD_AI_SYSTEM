@@ -29,12 +29,12 @@ def ask(monkeypatch):
     monkeypatch.setattr(chat.background_agent_runner, "submit", lambda **kwargs: False)
     monkeypatch.setattr(chat.active_learning_store, "capture_case", lambda **kwargs: None)
     with TestClient(create_app()) as client:
-        def request(text):
+        def request(text, history=None):
             token = uuid4().hex
             response = client.post("/v1/chat", headers={"X-API-Key": "demo-key",
                 "X-Tenant-Id": "tenant-demo", "Idempotency-Key": token,
                 "X-Consent-Token": "consent-synthetic-regression"}, json={
-                "conversation_id": token, "messages": [{"role": "user", "content": text}]})
+                "conversation_id": token, "messages": [*(history or []), {"role": "user", "content": text}]})
             assert response.status_code == 200
             return response.json()
         yield request

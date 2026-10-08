@@ -441,6 +441,15 @@ def evaluate_triage(
         esi_level = 4
 
     guidance = None if hypothetical_scope and not analysis_text else knowledge.find_symptom_guidance(payload.symptoms_text)
+    from app.services.clinical_safety_floor import reports_current_appendix_pain
+    if final_urgency == "URGENT" and reports_current_appendix_pain(analysis_text):
+        guidance = {
+            "topic": "reported_appendix_pain",
+            "summary": "Bạn nên đến bệnh viện có khoa Cấp cứu/Ngoại khoa để được đánh giá ngay trong ngày, không chờ tự khỏi. Đau được gọi là 'đau ruột thừa' chưa xác nhận viêm ruột thừa. Có cần mổ và thời điểm mổ phải do bác sĩ quyết định sau thăm khám, xét nghiệm và hình ảnh học; không thể chỉ định mổ qua tin nhắn.",
+            "clarifying_questions": ["Bạn đã được bác sĩ xác nhận viêm ruột thừa hay đang tự nghi ngờ vì đau bụng?"],
+            "safety_net": ["Gọi 115 hoặc đến Cấp cứu ngay nếu đau bụng dữ dội, đau lan toàn bụng, khó thở, ngất hoặc lú lẫn; không tự lái xe."],
+            "source_references": ["https://www.nhs.uk/conditions/appendicitis/"],
+        }
     if guidance and guidance.get('topic') == 'headache' and any(
         marker in normalize_search_text(payload.symptoms_text)
         for marker in ('goc trai', 'ben trai', 'phia trai', 'nua trai')
@@ -502,7 +511,9 @@ def evaluate_triage(
             "upper_abdominal_discomfort": ("GASTROENTEROLOGY", "Tiêu hóa"),
             "headache": ("NEUROLOGY", "Thần kinh"),
         }.get(str(guidance.get("topic", "")))
-    if guidance_specialty:
+    if final_urgency == "URGENT" and reports_current_appendix_pain(analysis_text):
+        specialty = RecommendedSpecialty(code="SURGERY", label="Ngoại khoa", confidence=0.86)
+    elif guidance_specialty:
         specialty = RecommendedSpecialty(
             code=guidance_specialty[0],
             label=guidance_specialty[1],

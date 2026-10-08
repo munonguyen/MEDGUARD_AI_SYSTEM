@@ -1031,6 +1031,12 @@ def _response(
     ]
     if intent in {"triage", "safety"} or clinical_task_name:
         agent_patient_context["last_result"] = None
+        # The agent must receive the same active episode as clinical tools.
+        # Old assistant prose is not evidence and must not anchor a new topic.
+        episode_text, _, _ = _triage_episode_text(payload, payload.messages[-1].content)
+        agent_patient_context["conversation_messages"] = [
+            {"role": "user", "content": episode_text}
+        ]
     if agent_first_clinical:
         answer = answer_agent_pipeline.generate_response(
             fallback_answer=answer,
@@ -1125,6 +1131,21 @@ def _response(
     else:
         knowledge_approval = "mixed"
     answer = answer.model_copy(update={"agent_trace": None})
+    from app.models.chat import AgentExecutionSummary
+    reason = {
+        "agent_configuration_incomplete": "configuration_incomplete",
+        "agent_mode_disabled": "configuration_incomplete",
+        "agent_capacity_exhausted": "capacity_exhausted",
+        "agent_total_timeout": "timeout",
+        "model_circuit_open": "circuit_open",
+    }.get(internal_agent_trace.fallback_reason if internal_agent_trace else None)
+    if reason is None and verification_status == "rejected":
+        reason = "quality_rejected"
+    elif reason is None and verification_status == "error":
+        reason = "provider_error"
+    elif verification_status == "not_requested":
+        reason = "not_requested"
+    stage_default = "unknown" if verification_status in {"timed_out", "shadow_pending"} else "not_run"
     response = ChatResponse(
         request_id=ctx.request_id,
         conversation_id=payload.conversation_id,
@@ -1137,6 +1158,12 @@ def _response(
         result=serialized,
         answer=answer,
         suggestions=_suggestions(intent) if status == "answered" else [],
+        agent_execution=AgentExecutionSummary(
+            requested=agent_eligible,
+            writer=internal_agent_trace.generator.status if internal_agent_trace and internal_agent_trace.generator else stage_default,
+            reviewer=internal_agent_trace.verifier.status if internal_agent_trace and internal_agent_trace.verifier else stage_default,
+            reason=reason,
+        ),
         answer_origin=answer_origin,
         verification_status=verification_status,
         knowledge_approval=knowledge_approval,

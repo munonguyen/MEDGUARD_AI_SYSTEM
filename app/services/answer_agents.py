@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
+from concurrent.futures import TimeoutError as FutureTimeoutError
 from dataclasses import dataclass
 import logging
 import re
@@ -9,9 +9,13 @@ from urllib.parse import urlsplit, urlunsplit
 
 logger = logging.getLogger(__name__)
 
-_AGENT_EXECUTOR = ThreadPoolExecutor(max_workers=8, thread_name_prefix="medguard-agent")
+from app.services.bounded_agent_executor import BoundedAgentExecutor, AgentCapacityError
 
 from app.core.config import settings
+
+_AGENT_EXECUTOR = BoundedAgentExecutor(
+    max_workers=settings.agent_workers, max_pending=settings.agent_max_pending,
+)
 from app.core.observability import metrics
 from app.knowledge.loader import knowledge
 from app.models.agents import AgentDraft, AgentStageTrace, AgentVerification, AnswerAgentTrace
@@ -51,7 +55,7 @@ PROFESSIONAL CLINICAL COMMUNICATION RULES:
 8. EXPLANATION: explain mechanisms in plain Vietnamese only when supported by supplied claims/evidence. Use a calm, confident professional tone without false certainty.
 9. ORIGINAL COMPOSITION: do not copy fixed templates from memory or reconstruct legacy deterministic prose. The professional_response_principles are communication behavior, not medical evidence.
 10. V28 CONTEXT: treat explicit negative findings as absent for the current turn, never promote them to positive red flags, and obey medication_safety.allowed=false as a hard prohibition against the contraindicated action.
-11. MEDICATION & SYMPTOM INQUIRIES: when the patient asks about remedies or medications ('cách khắc phục', 'thuốc nào có thể chữa được'), address both safe physical care (chườm mát 10-15 phút, tránh cào gãi, dưỡng ẩm) and appropriate guideline-backed symptomatic/OTC drug classes (thuốc kháng histamin H1 thế hệ 2 ít buồn ngủ như Cetirizine, Loratadine; dung dịch/kem bôi làm dịu như Calamine, Panthenol, kẽm oxyd), accompanied by clear safety cautions (không tự ý bôi corticoid kéo dài hoặc dùng kháng sinh khi chưa rõ chẩn đoán). When patient reports 'càng gãi càng ngứa càng rát', explain the itch-scratch cycle (phóng thích histamin, vi tổn thương thượng bì) and how to break it.
+11. REMEDIES AND PROCEDURES: use only care options supported by the current episode and supplied evidence. Never transfer medicines, self-care steps, or procedures from a different complaint. A patient's disease label is a reported concern, not a confirmed diagnosis; distinguish evaluation from a treatment or surgical decision.
 12. Produce normally 2-4 concise narrative blocks and no more than 280 words unless locked emergency content requires more. Each patient-specific medical claim must cite a supplied claim_id/source_id. All locked claims must appear verbatim. Return structured output only."""
 
 
@@ -494,7 +498,14 @@ class AnswerAgentPipeline:
                 )
             return operation()
 
-        future = _AGENT_EXECUTOR.submit(invoke)
+        try:
+            future = _AGENT_EXECUTOR.submit(invoke)
+        except AgentCapacityError:
+            metrics.inc_counter("medguard_agent_admission_rejected_total", labels={"intent": intent})
+            result = answer.model_copy(update={"agent_trace": self._trace(
+                status="unavailable", reason="agent_capacity_exhausted")})
+            self._record_result(result, policy)
+            return result
         try:
             result = future.result(timeout=self.config.total_timeout_seconds)
         except FutureTimeoutError:
@@ -590,7 +601,14 @@ class AnswerAgentPipeline:
                 )
             return operation()
 
-        future = _AGENT_EXECUTOR.submit(invoke)
+        try:
+            future = _AGENT_EXECUTOR.submit(invoke)
+        except AgentCapacityError:
+            metrics.inc_counter("medguard_agent_admission_rejected_total", labels={"intent": intent})
+            result = fallback_answer.model_copy(update={"agent_trace": self._trace(
+                status="unavailable", reason="agent_capacity_exhausted")})
+            self._record_result(result, policy)
+            return result
         try:
             result = future.result(timeout=self.config.total_timeout_seconds)
         except FutureTimeoutError:

@@ -114,7 +114,10 @@ def build_readiness() -> ReadinessResponse:
     )
     if not agents_active or not agents_configured:
         gateway_status = "fail" if settings.agent_required_for_production else "warn"
-        gateway_detail = "gateway not required by the active deterministic execution policy"
+        gateway_detail = (
+            f"mode={settings.agent_mode}; configured={agents_configured}; "
+            "Writer/Reviewer cannot complete without an active mode, gateway URL/key and both model aliases"
+        )
     else:
         gateway_status = "pass" if gateway_healthy else "fail"
 

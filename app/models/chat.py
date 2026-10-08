@@ -154,6 +154,14 @@ class ChatSuggestion(BaseModel):
     intent: ChatIntent
 
 
+class AgentExecutionSummary(BaseModel):
+    requested: bool
+    writer: Literal["not_run", "success", "error", "circuit_open", "unknown"] = "not_run"
+    reviewer: Literal["not_run", "success", "error", "circuit_open", "unknown"] = "not_run"
+    # A public reason code, never provider error text, prompts or credentials.
+    reason: Literal["not_requested", "configuration_incomplete", "capacity_exhausted", "timeout", "circuit_open", "quality_rejected", "provider_error"] | None = None
+
+
 class ChatResponse(DisclaimerMixin):
     request_id: str
     conversation_id: str
@@ -165,6 +173,7 @@ class ChatResponse(DisclaimerMixin):
     result: dict[str, Any] | None = None
     answer: GroundedAnswer | None = None
     suggestions: list[ChatSuggestion] = Field(default_factory=list)
+    agent_execution: AgentExecutionSummary | None = None
     answer_origin: Literal[
         "deterministic",
         "gateway_verified",
