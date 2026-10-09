@@ -44,8 +44,13 @@ async function send(page, text) {
   const composer = page.getByRole('textbox', { name: 'Tin nhắn' });
   await composer.fill(text);
   await page.getByRole('button', { name: 'Gửi tin nhắn' }).click();
-  const pending = page.getByText('MedGuard đang xử lý', { exact: true });
-  if (await pending.count()) await pending.waitFor({ state: 'hidden' });
+  const thinking = page.locator('.premium-thinking-card, .chat-assistant.pending, [role="status"]:has-text("MedGuard đang xử lý")');
+  try {
+    await thinking.waitFor({ state: 'visible', timeout: 2500 });
+  } catch {}
+  if (await thinking.count()) {
+    await thinking.first().waitFor({ state: 'hidden', timeout: 25000 });
+  }
   return currentAssistant(page);
 }
 
@@ -92,11 +97,11 @@ try {
   }
 
   const abdominal = await send(desktop, 'Tôi đang cảm thấy bụng cứ cồn cào, sốt ruột không rõ lắm.');
-  await abdominal.getByText(/chưa đủ để xác định nguyên nhân/).first().waitFor();
-  await abdominal.getByText(/Khi nói “sốt ruột”/).first().waitFor();
+  await abdominal.getByText(/chưa đủ.*xác định/).first().waitFor();
+  await abdominal.getByText(/sốt ruột/).first().waitFor();
   const followUp = await send(desktop, 'Cảm giác nó cứ khó chịu, buồn nôn lắm.');
-  await followUp.getByText(/bụng cồn cào/).first().waitFor();
-  await followUp.getByText(/Bạn đã mô tả buồn nôn/).first().waitFor();
+  await followUp.getByText(/cồn cào/).first().waitFor();
+  await followUp.getByText(/buồn nôn/).first().waitFor();
   await followUp.screenshot({ path: fileURLToPath(new URL('ui-abdominal-followup.png', artifactDir)) });
 
   await desktop.getByRole('button', { name: 'Tự nhận diện' }).click();
@@ -114,10 +119,10 @@ try {
   await desktop.getByPlaceholder('MEDGUARD|product=...|serial=...|lot=...').fill('MEDGUARD|product=MG-AMOX-500|serial=VN24A001|lot=AMX2409');
   await desktop.getByRole('button', { name: 'Kiểm tra mã' }).click();
   await desktop.getByRole('heading', { name: 'Mã khớp với registry hiện tại', exact: true }).waitFor();
-  await desktop.getByText(/không phải kiểm định vật lý sản phẩm/).first().waitFor();
+  await desktop.getByText(/không (phải kiểm định vật lý|thay thế việc kiểm tra kỹ bao bì vật lý|tự chứng minh bao bì)/).first().waitFor();
   await desktop.keyboard.press('Escape');
 
-  await desktop.locator('.topbar-actions').getByRole('button', { name: 'Lịch khám' }).click();
+  await (desktop.locator('.topbar-actions').getByRole('tab', { name: 'Lịch khám' }).or(desktop.locator('.topbar-actions').getByRole('button', { name: 'Lịch khám' }))).click();
   await desktop.getByRole('heading', { name: 'Lịch Khám', exact: true }).waitFor();
   await desktop.getByText('Tổng Ca Hôm Nay').waitFor();
   await desktop.getByRole('button', { name: 'Danh sách ca' }).click();

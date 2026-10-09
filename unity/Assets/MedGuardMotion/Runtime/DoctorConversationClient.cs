@@ -15,11 +15,13 @@ namespace MedGuard.Motion
         public TurnMessage[] messages;
         public VoicePreference voice;
     }
+#pragma warning disable CS0649
     [Serializable] internal sealed class TurnResponse
     {
         public string request_id, reply, spoken_reply, verification_status;
         public PreparedVoice prepared_speech;
     }
+#pragma warning restore CS0649
 
     // Pure Unity/C# conversation adapter. A native host supplies short-lived
     // auth headers through Authorize; a WebGL host supplies its session/CSRF
