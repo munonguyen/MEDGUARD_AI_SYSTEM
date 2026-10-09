@@ -1,0 +1,1288 @@
+{
+  "schemaVersion": 3,
+  "purpose": "Unity C# authoring recipes; not finished AnimationClips",
+  "families": 32,
+  "variants": 64,
+  "actions": [
+    {
+      "id": "rest_stand",
+      "family": "Rest",
+      "label": "Nghỉ ổn định",
+      "variant": 1,
+      "physical": "Đứng thả vai, tay nghỉ cạnh thân",
+      "trigger": "Không có lượt nói; chờ user.",
+      "veto": "Không đặt tay lên bàn nếu thiếu contact đã hiệu chỉnh.",
+      "coordination": "Mặt trung tính ấm; gaze camera; thở nhỏ.",
+      "cooldownSeconds": 0,
+      "maxIntensity": 0,
+      "allowedActs": [
+        "None"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Standing",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "rest_seated",
+      "family": "Rest",
+      "label": "Nghỉ ổn định",
+      "variant": 2,
+      "physical": "Ngồi cân bằng, tay nghỉ trên đùi",
+      "trigger": "Không có lượt nói; chờ user.",
+      "veto": "Không đặt tay lên bàn nếu thiếu contact đã hiệu chỉnh.",
+      "coordination": "Mặt trung tính ấm; gaze camera; thở nhỏ.",
+      "cooldownSeconds": 0,
+      "maxIntensity": 0,
+      "allowedActs": [
+        "None"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Seated",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "listen_stand",
+      "family": "Attentive",
+      "label": "Lắng nghe tập trung",
+      "variant": 1,
+      "physical": "Đầu hướng người nói, thân ổn định",
+      "trigger": "User đang nói, kể triệu chứng hoặc cung cấp dữ kiện.",
+      "veto": "Không tự gật đồng ý; không mirror đau của user.",
+      "coordination": "Mày thư giãn; mắt tập trung; tay yên.",
+      "cooldownSeconds": 0,
+      "maxIntensity": 0,
+      "allowedActs": [
+        "None"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Standing",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "listen_seated",
+      "family": "Attentive",
+      "label": "Lắng nghe tập trung",
+      "variant": 2,
+      "physical": "Nghiêng thân rất nhẹ từ hông rồi ổn định",
+      "trigger": "User đang nói, kể triệu chứng hoặc cung cấp dữ kiện.",
+      "veto": "Không tự gật đồng ý; không mirror đau của user.",
+      "coordination": "Mày thư giãn; mắt tập trung; tay yên.",
+      "cooldownSeconds": 0,
+      "maxIntensity": 0,
+      "allowedActs": [
+        "None"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Seated",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "wait_short",
+      "family": "Wait",
+      "label": "Chờ người dùng",
+      "variant": 1,
+      "physical": "Giữ eye contact mềm sau câu hỏi",
+      "trigger": "Hệ thống đã nhường lượt, user chưa trả lời.",
+      "veto": "Không tiếp tục gesture nói hoặc nhìn đi liên tục.",
+      "coordination": "Blink tự nhiên; thở nhỏ; không cau mày.",
+      "cooldownSeconds": 0,
+      "maxIntensity": 0,
+      "allowedActs": [
+        "None"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "wait_long",
+      "family": "Wait",
+      "label": "Chờ người dùng",
+      "variant": 2,
+      "physical": "Giảm eye contact ngắn rồi nhìn lại",
+      "trigger": "Hệ thống đã nhường lượt, user chưa trả lời.",
+      "veto": "Không tiếp tục gesture nói hoặc nhìn đi liên tục.",
+      "coordination": "Blink tự nhiên; thở nhỏ; không cau mày.",
+      "cooldownSeconds": 0,
+      "maxIntensity": 0,
+      "allowedActs": [
+        "None"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "breath_quiet",
+      "family": "Breath",
+      "label": "Thở và ổn định",
+      "variant": 1,
+      "physical": "Ngực và clavicle chuyển động additive nhỏ",
+      "trigger": "Lớp nền, có pause markers và profile.",
+      "veto": "Không tăng nhịp theo độ dài text; không nâng hạ cả skeleton.",
+      "coordination": "Giữ mặt theo bối cảnh; không ép môi mở.",
+      "cooldownSeconds": 0,
+      "maxIntensity": 0,
+      "allowedActs": [
+        "None"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "breath_pause",
+      "family": "Breath",
+      "label": "Thở và ổn định",
+      "variant": 2,
+      "physical": "Giảm chuyển động khi có contact, ổn định ở khoảng nghỉ",
+      "trigger": "Lớp nền, có pause markers và profile.",
+      "veto": "Không tăng nhịp theo độ dài text; không nâng hạ cả skeleton.",
+      "coordination": "Giữ mặt theo bối cảnh; không ép môi mở.",
+      "cooldownSeconds": 0,
+      "maxIntensity": 0,
+      "allowedActs": [
+        "None"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "weight_stand",
+      "family": "WeightShift",
+      "label": "Đổi điểm tựa",
+      "variant": 1,
+      "physical": "Chuyển trọng tâm nhỏ, bàn chân giữ contact",
+      "trigger": "Nghỉ đủ lâu và trạng thái contact cho phép.",
+      "veto": "Cấm trong urgent, stroke chính hoặc khi tay đang tì.",
+      "coordination": "Đầu giữ hướng người dùng, vai theo hông.",
+      "cooldownSeconds": 20,
+      "maxIntensity": 0,
+      "allowedActs": [
+        "None"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Standing",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "weight_seated",
+      "family": "WeightShift",
+      "label": "Đổi điểm tựa",
+      "variant": 2,
+      "physical": "Điều chỉnh tư thế nhỏ nhưng không trượt hông trên ghế",
+      "trigger": "Nghỉ đủ lâu và trạng thái contact cho phép.",
+      "veto": "Cấm trong urgent, stroke chính hoặc khi tay đang tì.",
+      "coordination": "Đầu giữ hướng người dùng, vai theo hông.",
+      "cooldownSeconds": 20,
+      "maxIntensity": 0,
+      "allowedActs": [
+        "None"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Seated",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "greet_low_wave",
+      "family": "Greeting",
+      "label": "Chào mở lượt",
+      "variant": 1,
+      "physical": "Một tay lên vùng ngực, vẫy nhỏ một nhịp",
+      "trigger": "Mở phiên hoặc gặp lại sau khoảng vắng đã quy định.",
+      "veto": "Không chào mỗi câu; urgent bỏ động tác tay.",
+      "coordination": "Smile nhẹ tùy context; mắt người dùng.",
+      "cooldownSeconds": 30,
+      "maxIntensity": 0.45,
+      "allowedActs": [
+        "Greet"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "greet_head_dip",
+      "family": "Greeting",
+      "label": "Chào mở lượt",
+      "variant": 2,
+      "physical": "Gật chào ngắn, hai tay nghỉ",
+      "trigger": "Mở phiên hoặc gặp lại sau khoảng vắng đã quy định.",
+      "veto": "Không chào mỗi câu; urgent bỏ động tác tay.",
+      "coordination": "Smile nhẹ tùy context; mắt người dùng.",
+      "cooldownSeconds": 30,
+      "maxIntensity": 0.45,
+      "allowedActs": [
+        "Greet"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "ack_soft_dip",
+      "family": "Acknowledgement",
+      "label": "Ghi nhận dữ kiện",
+      "variant": 1,
+      "physical": "Hạ đầu nhỏ một lần sau khi user kết thúc",
+      "trigger": "Lượt kết thúc; xác nhận đã nghe mà không khẳng định chẩn đoán.",
+      "veto": "Không gật trong câu sai hoặc lúc chưa hiểu ASR.",
+      "coordination": "Trung tính; không smile khi user đau hoặc báo nặng.",
+      "cooldownSeconds": 8,
+      "maxIntensity": 0.2,
+      "allowedActs": [
+        "None"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "ack_blink_settle",
+      "family": "Acknowledgement",
+      "label": "Ghi nhận dữ kiện",
+      "variant": 2,
+      "physical": "Blink ở ranh giới lượt, thân giữ yên",
+      "trigger": "Lượt kết thúc; xác nhận đã nghe mà không khẳng định chẩn đoán.",
+      "veto": "Không gật trong câu sai hoặc lúc chưa hiểu ASR.",
+      "coordination": "Trung tính; không smile khi user đau hoặc báo nặng.",
+      "cooldownSeconds": 8,
+      "maxIntensity": 0.2,
+      "allowedActs": [
+        "None"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "thanks_low_open",
+      "family": "Thanks",
+      "label": "Cảm ơn",
+      "variant": 1,
+      "physical": "Mở một lòng bàn tay thấp rồi thu về",
+      "trigger": "Lời cảm ơn thực sự trong câu trả lời của bác sĩ.",
+      "veto": "Không dùng khi báo nguy cơ hoặc tin buồn.",
+      "coordination": "Eye contact ngắn; vai mềm.",
+      "cooldownSeconds": 12,
+      "maxIntensity": 0.3,
+      "allowedActs": [
+        "Thank"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "thanks_soft_smile",
+      "family": "Thanks",
+      "label": "Cảm ơn",
+      "variant": 2,
+      "physical": "Smile nhẹ với đầu hướng thẳng",
+      "trigger": "Lời cảm ơn thực sự trong câu trả lời của bác sĩ.",
+      "veto": "Không dùng khi báo nguy cơ hoặc tin buồn.",
+      "coordination": "Eye contact ngắn; vai mềm.",
+      "cooldownSeconds": 12,
+      "maxIntensity": 0.3,
+      "allowedActs": [
+        "Thank"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "farewell_small_wave",
+      "family": "Farewell",
+      "label": "Kết thúc phiên",
+      "variant": 1,
+      "physical": "Vẫy thấp một nhịp, thu tay hoàn toàn",
+      "trigger": "Đóng hội thoại có chủ đích và user đã sẵn sàng.",
+      "veto": "Không đóng phiên khi vẫn chờ dữ kiện hoặc hỗ trợ khẩn.",
+      "coordination": "Mặt theo mức nghiêm túc; tránh smile quá rộng.",
+      "cooldownSeconds": 30,
+      "maxIntensity": 0.4,
+      "allowedActs": [
+        "Close"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "farewell_head_dip",
+      "family": "Farewell",
+      "label": "Kết thúc phiên",
+      "variant": 2,
+      "physical": "Cúi đầu nhỏ thay cho vẫy",
+      "trigger": "Đóng hội thoại có chủ đích và user đã sẵn sàng.",
+      "veto": "Không đóng phiên khi vẫn chờ dữ kiện hoặc hỗ trợ khẩn.",
+      "coordination": "Mặt theo mức nghiêm túc; tránh smile quá rộng.",
+      "cooldownSeconds": 30,
+      "maxIntensity": 0.4,
+      "allowedActs": [
+        "Close"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "think_gaze_down",
+      "family": "Thinking",
+      "label": "Đang xử lý",
+      "variant": 1,
+      "physical": "Nhìn xuống bên trong khoảng ngắn rồi nhìn lại",
+      "trigger": "Chờ backend sau lượt user, không phải đoạn text nói ra.",
+      "veto": "Không chống cằm hoặc gãi đầu theo timer; không dựng lo âu.",
+      "coordination": "Mày trung tính; gaze trở lại trước khi nói.",
+      "cooldownSeconds": 5,
+      "maxIntensity": 0.15,
+      "allowedActs": [
+        "None"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "think_still_focus",
+      "family": "Thinking",
+      "label": "Đang xử lý",
+      "variant": 2,
+      "physical": "Giữ thân và tay ổn định, blink nhỏ",
+      "trigger": "Chờ backend sau lượt user, không phải đoạn text nói ra.",
+      "veto": "Không chống cằm hoặc gãi đầu theo timer; không dựng lo âu.",
+      "coordination": "Mày trung tính; gaze trở lại trước khi nói.",
+      "cooldownSeconds": 5,
+      "maxIntensity": 0.15,
+      "allowedActs": [
+        "None"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "clarify_open_palm",
+      "family": "Clarify",
+      "label": "Hỏi làm rõ",
+      "variant": 1,
+      "physical": "Mở một tay thấp mời cung cấp thông tin",
+      "trigger": "Response act là hỏi lại vì dữ kiện chưa đủ.",
+      "veto": "Không diễn cảnh báo từ ASR mơ hồ; không nhíu mày phán xét.",
+      "coordination": "Mày nâng nhẹ; eye contact; cuối câu nhường lượt.",
+      "cooldownSeconds": 8,
+      "maxIntensity": 0.35,
+      "allowedActs": [
+        "AskClarification"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "clarify_small_tilt",
+      "family": "Clarify",
+      "label": "Hỏi làm rõ",
+      "variant": 2,
+      "physical": "Nghiêng đầu nhỏ rồi về trung tính",
+      "trigger": "Response act là hỏi lại vì dữ kiện chưa đủ.",
+      "veto": "Không diễn cảnh báo từ ASR mơ hồ; không nhíu mày phán xét.",
+      "coordination": "Mày nâng nhẹ; eye contact; cuối câu nhường lượt.",
+      "cooldownSeconds": 8,
+      "maxIntensity": 0.35,
+      "allowedActs": [
+        "AskClarification"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "invite_one_palm",
+      "family": "Invite",
+      "label": "Mời trả lời",
+      "variant": 1,
+      "physical": "Một tay mở hướng vùng người đối thoại",
+      "trigger": "Một câu hỏi đã được quyết định, stroke ở cụm hỏi.",
+      "veto": "Không dùng index finger chĩa vào người xem.",
+      "coordination": "Mắt hướng camera; tay thu trước lượt user.",
+      "cooldownSeconds": 6,
+      "maxIntensity": 0.4,
+      "allowedActs": [
+        "AskQuestion"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "invite_two_low",
+      "family": "Invite",
+      "label": "Mời trả lời",
+      "variant": 2,
+      "physical": "Hai tay mở thấp, biên độ nhỏ khác nhau",
+      "trigger": "Một câu hỏi đã được quyết định, stroke ở cụm hỏi.",
+      "veto": "Không dùng index finger chĩa vào người xem.",
+      "coordination": "Mắt hướng camera; tay thu trước lượt user.",
+      "cooldownSeconds": 6,
+      "maxIntensity": 0.4,
+      "allowedActs": [
+        "AskQuestion"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "empathy_low_open",
+      "family": "Empathy",
+      "label": "Ghi nhận khó chịu",
+      "variant": 1,
+      "physical": "Mở tay thấp, thân ổn định hướng người dùng",
+      "trigger": "User thể hiện đau, lo hoặc khó chịu được nhận diện đủ chắc.",
+      "veto": "Không diễn đau trên thân bác sĩ; không cười hoặc đặt tay lên ngực máy móc.",
+      "coordination": "Mặt quan tâm vừa phải; không bi kịch hóa.",
+      "cooldownSeconds": 10,
+      "maxIntensity": 0.3,
+      "allowedActs": [
+        "Empathize"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "empathy_still_attend",
+      "family": "Empathy",
+      "label": "Ghi nhận khó chịu",
+      "variant": 2,
+      "physical": "Giảm gesture, mắt tập trung và mày mềm",
+      "trigger": "User thể hiện đau, lo hoặc khó chịu được nhận diện đủ chắc.",
+      "veto": "Không diễn đau trên thân bác sĩ; không cười hoặc đặt tay lên ngực máy móc.",
+      "coordination": "Mặt quan tâm vừa phải; không bi kịch hóa.",
+      "cooldownSeconds": 10,
+      "maxIntensity": 0.3,
+      "allowedActs": [
+        "Empathize"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "reassure_soft_offer",
+      "family": "Reassure",
+      "label": "Hỗ trợ bình tĩnh",
+      "variant": 1,
+      "physical": "Lòng bàn tay thấp hướng lên, thu chậm",
+      "trigger": "Response đang hỗ trợ tinh thần, không hứa kết quả y khoa.",
+      "veto": "Không gật bảo đảm an toàn; không thumbs up.",
+      "coordination": "Mặt bình tĩnh; gaze ổn định; không smile nếu alert cao.",
+      "cooldownSeconds": 10,
+      "maxIntensity": 0.3,
+      "allowedActs": [
+        "Reassure"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "reassure_steady",
+      "family": "Reassure",
+      "label": "Hỗ trợ bình tĩnh",
+      "variant": 2,
+      "physical": "Giữ thân ổn định, giảm cường độ và tốc độ",
+      "trigger": "Response đang hỗ trợ tinh thần, không hứa kết quả y khoa.",
+      "veto": "Không gật bảo đảm an toàn; không thumbs up.",
+      "coordination": "Mặt bình tĩnh; gaze ổn định; không smile nếu alert cao.",
+      "cooldownSeconds": 10,
+      "maxIntensity": 0.3,
+      "allowedActs": [
+        "Reassure"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "explain_one_arc",
+      "family": "Explain",
+      "label": "Giải thích nguyên lý",
+      "variant": 1,
+      "physical": "Một tay đi cung nhỏ phía trước thân",
+      "trigger": "Response giải thích, có mệnh đề và từ nhấn xác định.",
+      "veto": "Không lặp beat mỗi từ; không nâng tay ngang vai kéo dài.",
+      "coordination": "Gaze patient; vai và ngực chuẩn bị nhẹ.",
+      "cooldownSeconds": 5,
+      "maxIntensity": 0.55,
+      "allowedActs": [
+        "Explain"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "explain_two_low",
+      "family": "Explain",
+      "label": "Giải thích nguyên lý",
+      "variant": 2,
+      "physical": "Hai tay hỗ trợ cùng ý, lệch vai trò và biên độ",
+      "trigger": "Response giải thích, có mệnh đề và từ nhấn xác định.",
+      "veto": "Không lặp beat mỗi từ; không nâng tay ngang vai kéo dài.",
+      "coordination": "Gaze patient; vai và ngực chuẩn bị nhẹ.",
+      "cooldownSeconds": 5,
+      "maxIntensity": 0.55,
+      "allowedActs": [
+        "Explain"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "emphasis_small_beat",
+      "family": "Emphasize",
+      "label": "Nhấn ý chính",
+      "variant": 1,
+      "physical": "Một nhịp tay ngắn ở từ quan trọng",
+      "trigger": "Có emphasis marker đáng tin và nội dung cần nhấn.",
+      "veto": "Không nhấn mọi câu; không vung tay khi chưa có audio.",
+      "coordination": "Đầu ổn định; mặt theo ý nghĩa chứ không theo âm lượng.",
+      "cooldownSeconds": 4,
+      "maxIntensity": 0.35,
+      "allowedActs": [
+        "Emphasize"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "emphasis_palm_hold",
+      "family": "Emphasize",
+      "label": "Nhấn ý chính",
+      "variant": 2,
+      "physical": "Giữ lòng bàn tay nhỏ ở điểm nhấn rồi thu",
+      "trigger": "Có emphasis marker đáng tin và nội dung cần nhấn.",
+      "veto": "Không nhấn mọi câu; không vung tay khi chưa có audio.",
+      "coordination": "Đầu ổn định; mặt theo ý nghĩa chứ không theo âm lượng.",
+      "cooldownSeconds": 4,
+      "maxIntensity": 0.35,
+      "allowedActs": [
+        "Emphasize"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "enumerate_one",
+      "family": "Enumerate",
+      "label": "Liệt kê",
+      "variant": 1,
+      "physical": "Một ngón hoặc palm beat cho mục đầu",
+      "trigger": "Response có danh sách thật, thứ tự rõ.",
+      "veto": "Không suy số từ liều thuốc; không dùng ngón tượng trưng sai văn hóa.",
+      "coordination": "Cổ tay mềm; ngón đến đúng marker.",
+      "cooldownSeconds": 6,
+      "maxIntensity": 0.45,
+      "allowedActs": [
+        "Enumerate"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "enumerate_two",
+      "family": "Enumerate",
+      "label": "Liệt kê",
+      "variant": 2,
+      "physical": "Hai ngón hoặc nhịp thứ hai theo profile",
+      "trigger": "Response có danh sách thật, thứ tự rõ.",
+      "veto": "Không suy số từ liều thuốc; không dùng ngón tượng trưng sai văn hóa.",
+      "coordination": "Cổ tay mềm; ngón đến đúng marker.",
+      "cooldownSeconds": 6,
+      "maxIntensity": 0.45,
+      "allowedActs": [
+        "Enumerate"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "sequence_step_offer",
+      "family": "Sequence",
+      "label": "Hướng dẫn trình tự",
+      "variant": 1,
+      "physical": "Mỗi bước một palm offer, có khoảng nghỉ",
+      "trigger": "Response đưa các bước đã được duyệt.",
+      "veto": "Không làm động tác thao tác y khoa nếu không có asset được duyệt.",
+      "coordination": "Eye contact; một bước một ý, tay nghỉ giữa bước.",
+      "cooldownSeconds": 6,
+      "maxIntensity": 0.45,
+      "allowedActs": [
+        "GuideSteps"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "sequence_forward_arc",
+      "family": "Sequence",
+      "label": "Hướng dẫn trình tự",
+      "variant": 2,
+      "physical": "Cung ngắn phía trước cho bước tiếp theo",
+      "trigger": "Response đưa các bước đã được duyệt.",
+      "veto": "Không làm động tác thao tác y khoa nếu không có asset được duyệt.",
+      "coordination": "Eye contact; một bước một ý, tay nghỉ giữa bước.",
+      "cooldownSeconds": 6,
+      "maxIntensity": 0.45,
+      "allowedActs": [
+        "GuideSteps"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "compare_two_sides",
+      "family": "Compare",
+      "label": "So sánh hai lựa chọn",
+      "variant": 1,
+      "physical": "Hai tay mở hai vùng tượng trưng nhỏ",
+      "trigger": "Response so sánh hai mục có quan hệ rõ.",
+      "veto": "Không dùng hai phía nếu câu chỉ có một mục; không gán tốt xấu bằng trái phải.",
+      "coordination": "Gaze không quét máy móc giữa tay.",
+      "cooldownSeconds": 8,
+      "maxIntensity": 0.55,
+      "allowedActs": [
+        "Compare"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "compare_alternate",
+      "family": "Compare",
+      "label": "So sánh hai lựa chọn",
+      "variant": 2,
+      "physical": "Một tay rồi tay kia ở hai mệnh đề tương ứng",
+      "trigger": "Response so sánh hai mục có quan hệ rõ.",
+      "veto": "Không dùng hai phía nếu câu chỉ có một mục; không gán tốt xấu bằng trái phải.",
+      "coordination": "Gaze không quét máy móc giữa tay.",
+      "cooldownSeconds": 8,
+      "maxIntensity": 0.55,
+      "allowedActs": [
+        "Compare"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "contrast_small_turn",
+      "family": "Contrast",
+      "label": "Phân biệt ngoại lệ",
+      "variant": 1,
+      "physical": "Một tay chuyển hướng nhỏ khi đổi mệnh đề",
+      "trigger": "Response có nhưng hoặc ngoại lệ đã được phân tích ngữ nghĩa.",
+      "veto": "Không dùng với phủ định đơn giản của triệu chứng.",
+      "coordination": "Mặt trung tính; không lắc đầu phủ nhận người dùng.",
+      "cooldownSeconds": 8,
+      "maxIntensity": 0.4,
+      "allowedActs": [
+        "Contrast"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "contrast_low_separator",
+      "family": "Contrast",
+      "label": "Phân biệt ngoại lệ",
+      "variant": 2,
+      "physical": "Palm thấp phân tách hai ý mà không stop mạnh",
+      "trigger": "Response có nhưng hoặc ngoại lệ đã được phân tích ngữ nghĩa.",
+      "veto": "Không dùng với phủ định đơn giản của triệu chứng.",
+      "coordination": "Mặt trung tính; không lắc đầu phủ nhận người dùng.",
+      "cooldownSeconds": 8,
+      "maxIntensity": 0.4,
+      "allowedActs": [
+        "Contrast"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "uncertain_palm_pause",
+      "family": "Uncertainty",
+      "label": "Diễn đạt giới hạn",
+      "variant": 1,
+      "physical": "Palm mở nhỏ và giữ ngắn",
+      "trigger": "Response nói chưa đủ dữ kiện hoặc chưa thể kết luận.",
+      "veto": "Không nhún vai bất lực; không gật khẳng định.",
+      "coordination": "Mày thư giãn; giữ sự chú ý.",
+      "cooldownSeconds": 8,
+      "maxIntensity": 0.25,
+      "allowedActs": [
+        "StateUncertainty"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "uncertain_still",
+      "family": "Uncertainty",
+      "label": "Diễn đạt giới hạn",
+      "variant": 2,
+      "physical": "Thân ổn định, gaze người dùng, không gesture lớn",
+      "trigger": "Response nói chưa đủ dữ kiện hoặc chưa thể kết luận.",
+      "veto": "Không nhún vai bất lực; không gật khẳng định.",
+      "coordination": "Mày thư giãn; giữ sự chú ý.",
+      "cooldownSeconds": 8,
+      "maxIntensity": 0.25,
+      "allowedActs": [
+        "StateUncertainty"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "correct_soft_open",
+      "family": "Correct",
+      "label": "Sửa hiểu nhầm",
+      "variant": 1,
+      "physical": "Mở tay nhỏ giải thích lại",
+      "trigger": "Bác sĩ sửa nội dung đã xác minh; không phán xét user.",
+      "veto": "Không chĩa ngón, lắc đầu mạnh hoặc khoanh tay.",
+      "coordination": "Mặt điềm tĩnh; thân không lùi xa user.",
+      "cooldownSeconds": 10,
+      "maxIntensity": 0.3,
+      "allowedActs": [
+        "CorrectMisunderstanding"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "correct_small_turn",
+      "family": "Correct",
+      "label": "Sửa hiểu nhầm",
+      "variant": 2,
+      "physical": "Đổi hướng palm nhẹ giữa ý cũ và ý đúng",
+      "trigger": "Bác sĩ sửa nội dung đã xác minh; không phán xét user.",
+      "veto": "Không chĩa ngón, lắc đầu mạnh hoặc khoanh tay.",
+      "coordination": "Mặt điềm tĩnh; thân không lùi xa user.",
+      "cooldownSeconds": 10,
+      "maxIntensity": 0.3,
+      "allowedActs": [
+        "CorrectMisunderstanding"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "caution_compact_palm",
+      "family": "Caution",
+      "label": "Nhắc thận trọng",
+      "variant": 1,
+      "physical": "Palm hướng người dùng ở vùng ngực thấp",
+      "trigger": "Alert verified mức Caution hoặc act thận trọng rõ.",
+      "veto": "Không diễn hoảng hốt; không smile hoặc dùng gesture ăn mừng.",
+      "coordination": "Mày tập trung nhẹ; tay ngắn, đầu yên.",
+      "cooldownSeconds": 5,
+      "maxIntensity": 0.35,
+      "allowedActs": [
+        "Caution"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "caution_precise_beat",
+      "family": "Caution",
+      "label": "Nhắc thận trọng",
+      "variant": 2,
+      "physical": "Một nhịp nhỏ rõ ở điểm lưu ý",
+      "trigger": "Alert verified mức Caution hoặc act thận trọng rõ.",
+      "veto": "Không diễn hoảng hốt; không smile hoặc dùng gesture ăn mừng.",
+      "coordination": "Mày tập trung nhẹ; tay ngắn, đầu yên.",
+      "cooldownSeconds": 5,
+      "maxIntensity": 0.35,
+      "allowedActs": [
+        "Caution"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "urgent_steady",
+      "family": "Urgent",
+      "label": "Ưu tiên hỗ trợ khẩn",
+      "variant": 1,
+      "physical": "Đầu và thân ổn định, tay nghỉ, nhìn thẳng",
+      "trigger": "Alert verified mức Urgent đang có hiệu lực.",
+      "veto": "Cấm wave, shrug, grin, celebratory; không chờ clip xong mới phát hướng dẫn.",
+      "coordination": "Giọng và UI do subsystem riêng; mặt nghiêm nhưng không hoảng.",
+      "cooldownSeconds": 0,
+      "maxIntensity": 0.2,
+      "allowedActs": [
+        "UrgentInstruction"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "urgent_low_emphasis",
+      "family": "Urgent",
+      "label": "Ưu tiên hỗ trợ khẩn",
+      "variant": 2,
+      "physical": "Một nhịp palm thấp, không trì hoãn nội dung",
+      "trigger": "Alert verified mức Urgent đang có hiệu lực.",
+      "veto": "Cấm wave, shrug, grin, celebratory; không chờ clip xong mới phát hướng dẫn.",
+      "coordination": "Giọng và UI do subsystem riêng; mặt nghiêm nhưng không hoảng.",
+      "cooldownSeconds": 0,
+      "maxIntensity": 0.2,
+      "allowedActs": [
+        "UrgentInstruction"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "prevent_low_palm",
+      "family": "Prevent",
+      "label": "Không làm một hành vi",
+      "variant": 1,
+      "physical": "Palm nhỏ tại mệnh đề không làm đã được duyệt",
+      "trigger": "Response có chỉ dẫn tránh một hành vi cụ thể.",
+      "veto": "Không suy ra từ user nói không đau; không giơ stop như đe dọa.",
+      "coordination": "Cường độ thấp; không phủ nhận lời kể của user.",
+      "cooldownSeconds": 8,
+      "maxIntensity": 0.3,
+      "allowedActs": [
+        "ProhibitAction"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "prevent_still_emphasis",
+      "family": "Prevent",
+      "label": "Không làm một hành vi",
+      "variant": 2,
+      "physical": "Nhấn bằng mắt và ngắt nhịp, tay nghỉ",
+      "trigger": "Response có chỉ dẫn tránh một hành vi cụ thể.",
+      "veto": "Không suy ra từ user nói không đau; không giơ stop như đe dọa.",
+      "coordination": "Cường độ thấp; không phủ nhận lời kể của user.",
+      "cooldownSeconds": 8,
+      "maxIntensity": 0.3,
+      "allowedActs": [
+        "ProhibitAction"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "followup_offer",
+      "family": "FollowUp",
+      "label": "Theo dõi và quay lại",
+      "variant": 1,
+      "physical": "Một tay mở thấp đưa bước tiếp theo",
+      "trigger": "Response có kế hoạch theo dõi hoặc hỏi tiếp đã duyệt.",
+      "veto": "Không tự tạo hạn thời gian, lịch tái khám hoặc hành động y tế.",
+      "coordination": "Mặt điềm tĩnh; mắt trở lại người dùng.",
+      "cooldownSeconds": 8,
+      "maxIntensity": 0.35,
+      "allowedActs": [
+        "FollowUp"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "followup_small_beat",
+      "family": "FollowUp",
+      "label": "Theo dõi và quay lại",
+      "variant": 2,
+      "physical": "Một nhịp nhỏ ở mốc theo dõi đã nói",
+      "trigger": "Response có kế hoạch theo dõi hoặc hỏi tiếp đã duyệt.",
+      "veto": "Không tự tạo hạn thời gian, lịch tái khám hoặc hành động y tế.",
+      "coordination": "Mặt điềm tĩnh; mắt trở lại người dùng.",
+      "cooldownSeconds": 8,
+      "maxIntensity": 0.35,
+      "allowedActs": [
+        "FollowUp"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "refer_open_direction",
+      "family": "Refer",
+      "label": "Giới thiệu hỗ trợ",
+      "variant": 1,
+      "physical": "Palm mở về đối tượng có thật trong scene",
+      "trigger": "Response giới thiệu kênh hoặc bước hỗ trợ hợp lệ.",
+      "veto": "Không chỉ vào điện thoại, bệnh viện hay bác sĩ vô hình.",
+      "coordination": "Gaze chỉ chuyển nếu target đã đăng ký.",
+      "cooldownSeconds": 10,
+      "maxIntensity": 0.35,
+      "allowedActs": [
+        "Refer"
+      ],
+      "requiresTarget": true,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "refer_patient_offer",
+      "family": "Refer",
+      "label": "Giới thiệu hỗ trợ",
+      "variant": 2,
+      "physical": "Không có đối tượng thì palm thấp hướng patient",
+      "trigger": "Response giới thiệu kênh hoặc bước hỗ trợ hợp lệ.",
+      "veto": "Không chỉ vào điện thoại, bệnh viện hay bác sĩ vô hình.",
+      "coordination": "Gaze chỉ chuyển nếu target đã đăng ký.",
+      "cooldownSeconds": 10,
+      "maxIntensity": 0.35,
+      "allowedActs": [
+        "Refer"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "show_ui_open",
+      "family": "ShowTarget",
+      "label": "Giải thích hình hiển thị",
+      "variant": 1,
+      "physical": "Palm mở phía thẻ UI đã gắn world target",
+      "trigger": "Có targetId tồn tại, nhìn thấy và nội dung khớp.",
+      "veto": "Không có target thì fallback Explain; không suy tọa độ từ text.",
+      "coordination": "Mắt tới target trước, đầu theo sau, rồi nhìn lại.",
+      "cooldownSeconds": 6,
+      "maxIntensity": 0.45,
+      "allowedActs": [
+        "ShowTarget"
+      ],
+      "requiresTarget": true,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "show_model_open",
+      "family": "ShowTarget",
+      "label": "Giải thích hình hiển thị",
+      "variant": 2,
+      "physical": "Palm mở phía mô hình minh họa đã duyệt",
+      "trigger": "Có targetId tồn tại, nhìn thấy và nội dung khớp.",
+      "veto": "Không có target thì fallback Explain; không suy tọa độ từ text.",
+      "coordination": "Mắt tới target trước, đầu theo sau, rồi nhìn lại.",
+      "cooldownSeconds": 6,
+      "maxIntensity": 0.45,
+      "allowedActs": [
+        "ShowTarget"
+      ],
+      "requiresTarget": true,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "yield_hands_rest",
+      "family": "TurnYield",
+      "label": "Nhường lượt",
+      "variant": 1,
+      "physical": "Thu tay về nghỉ trước khi user bắt đầu",
+      "trigger": "Kết thúc câu hỏi hoặc lượt bác sĩ.",
+      "veto": "Không giữ tay chỉ hoặc mouth nói trong im lặng.",
+      "coordination": "Face quan tâm; không gật liên tục.",
+      "cooldownSeconds": 0,
+      "maxIntensity": 0.15,
+      "allowedActs": [
+        "None"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "yield_gaze_return",
+      "family": "TurnYield",
+      "label": "Nhường lượt",
+      "variant": 2,
+      "physical": "Gaze trở lại camera, miệng đóng khi audio hết",
+      "trigger": "Kết thúc câu hỏi hoặc lượt bác sĩ.",
+      "veto": "Không giữ tay chỉ hoặc mouth nói trong im lặng.",
+      "coordination": "Face quan tâm; không gật liên tục.",
+      "cooldownSeconds": 0,
+      "maxIntensity": 0.15,
+      "allowedActs": [
+        "None"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "interrupt_from_stroke",
+      "family": "Interrupt",
+      "label": "Phản ứng ngắt lời",
+      "variant": 1,
+      "physical": "Giảm stroke từ trạng thái hiện tại rồi thu tay",
+      "trigger": "Barge in hoặc cancel generation hiện tại.",
+      "veto": "Không reset Quaternion hoặc vận tốc về 0; không phát lại cue cũ.",
+      "coordination": "Đóng môi theo audio stop; gaze patient.",
+      "cooldownSeconds": 0,
+      "maxIntensity": 0.15,
+      "allowedActs": [
+        "None"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "interrupt_from_hold",
+      "family": "Interrupt",
+      "label": "Phản ứng ngắt lời",
+      "variant": 2,
+      "physical": "Nhả hold hoặc contact có thứ tự rồi về listen",
+      "trigger": "Barge in hoặc cancel generation hiện tại.",
+      "veto": "Không reset Quaternion hoặc vận tốc về 0; không phát lại cue cũ.",
+      "coordination": "Đóng môi theo audio stop; gaze patient.",
+      "cooldownSeconds": 0,
+      "maxIntensity": 0.15,
+      "allowedActs": [
+        "None"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "recover_to_listen",
+      "family": "Recover",
+      "label": "Phục hồi sau gián đoạn",
+      "variant": 1,
+      "physical": "Về rest được hiệu chỉnh từ pose hiện tại",
+      "trigger": "Sau interrupt, lỗi TTS hoặc retarget.",
+      "veto": "Không tự resume audio cũ; không vượt contact hoặc rig limits.",
+      "coordination": "Mặt trung tính; gesture tiếp theo cần cue mới.",
+      "cooldownSeconds": 0,
+      "maxIntensity": 0.15,
+      "allowedActs": [
+        "None"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "recover_to_ready",
+      "family": "Recover",
+      "label": "Phục hồi sau gián đoạn",
+      "variant": 2,
+      "physical": "Ổn định trước generation mới, chưa gesture nói",
+      "trigger": "Sau interrupt, lỗi TTS hoặc retarget.",
+      "veto": "Không tự resume audio cũ; không vượt contact hoặc rig limits.",
+      "coordination": "Mặt trung tính; gesture tiếp theo cần cue mới.",
+      "cooldownSeconds": 0,
+      "maxIntensity": 0.15,
+      "allowedActs": [
+        "None"
+      ],
+      "requiresTarget": false,
+      "requiresContact": false,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "contact_desk",
+      "family": "Contact",
+      "label": "Tay có điểm tựa",
+      "variant": 1,
+      "physical": "Tay tì nhẹ trên bàn đã hiệu chỉnh",
+      "trigger": "Posture, target và contact asset đã được QA.",
+      "veto": "Không áp noise vào tay đang khóa; phải release trước gesture.",
+      "coordination": "Torso thở bù bằng kênh khác; gaze patient.",
+      "cooldownSeconds": 0,
+      "maxIntensity": 0,
+      "allowedActs": [
+        "None"
+      ],
+      "requiresTarget": false,
+      "requiresContact": true,
+      "posture": "Any",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    },
+    {
+      "id": "contact_lap",
+      "family": "Contact",
+      "label": "Tay có điểm tựa",
+      "variant": 2,
+      "physical": "Tay nghỉ trên đùi ở tư thế ngồi",
+      "trigger": "Posture, target và contact asset đã được QA.",
+      "veto": "Không áp noise vào tay đang khóa; phải release trước gesture.",
+      "coordination": "Torso thở bù bằng kênh khác; gaze patient.",
+      "cooldownSeconds": 0,
+      "maxIntensity": 0,
+      "allowedActs": [
+        "None"
+      ],
+      "requiresTarget": false,
+      "requiresContact": true,
+      "posture": "Seated",
+      "status": "DesignOnly",
+      "clipAssigned": false
+    }
+  ]
+}

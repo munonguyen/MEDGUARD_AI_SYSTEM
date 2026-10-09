@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { VRMAvatarEngine } from './VRMAvatarEngine';
 import { splitSpeech, runSpeechQueue } from './speechQueue';
+import { preparedSpeechPlan, validateSpeechBlob, optionalAudioContext, optionalLipSync } from './preparedSpeech';
 import { readSpeechTiming } from './speechTimeline.js';
 import { clinicalReply, verificationNotice, awaitReviewedReply } from './clinicalReply';
 import './GrokLiveCompanionPage.css';
@@ -221,7 +222,7 @@ export function GrokLiveCompanionPage({
   // submit/click gesture, before chat or TTS awaits (important for Safari).
   const primeAudio = () => {
     const Context = window.AudioContext || window.webkitAudioContext;
-    if (Context && !audioContextRef.current) audioContextRef.current = new Context();
+    if (Context && !audioContextRef.current) audioContextRef.current = optionalAudioContext(() => new Context());
     audioContextRef.current?.resume().catch(() => {});
     if (!playbackElementRef.current) playbackElementRef.current = new Audio();
     const audio = playbackElementRef.current;
@@ -235,7 +236,7 @@ export function GrokLiveCompanionPage({
     return audioContextRef.current;
   };
 
-  const speakDoctorVoice = async (text, persona = doctorPersona, reqSpeechId = null) => {
+  const speakDoctorVoice = async (text, persona = doctorPersona, reqSpeechId = null, preparedSpeech = null) => {
     if (mutedRef.current || typeof window === 'undefined') return;
     if (reqSpeechId !== null && reqSpeechId !== speechIdRef.current) return;
     disposePlayback();
@@ -250,11 +251,26 @@ export function GrokLiveCompanionPage({
     const current = () => !mutedRef.current && !controller.signal.aborted && requestId === speechIdRef.current;
     const audioContext = primeAudio();
     // Warm up in parallel with TTS, never await classifier loading before sound.
-    void engineRef.current?.prepareLipSync(audioContext);
+    void optionalLipSync(engineRef.current, audioContext);
     const voiceStarted = performance.now();
     let firstSound = true;
     try {
+      const plan = preparedSpeechPlan(cleanSpeech, persona, preparedSpeech, splitSpeech);
+      let firstRequest = true;
       const synthesize = async sentence => {
+        const ticket = firstRequest ? plan.ticket : null;
+        firstRequest = false;
+        if (ticket && api) {
+          try {
+            return validateSpeechBlob(await api.request(`/v1/chat/speech/${ticket}`, {
+              method: 'GET', responseType: 'blob', signal: controller.signal, timeoutMs: 30000,
+            }));
+          } catch (error) {
+            if (controller.signal.aborted || error?.name === 'AbortError') throw error;
+            if (error?.status !== 404) throw error;
+            // Expiry or a different worker: use ordinary TTS once.
+          }
+        }
         const body = { text: sentence, persona };
         if (api) return api.request('/v1/tts', {
           method: 'POST', body, responseType: 'blob', signal: controller.signal, timeoutMs: 30000,
@@ -285,6 +301,7 @@ export function GrokLiveCompanionPage({
       };
       const play = (blob, sentence) => new Promise((resolve, reject) => {
         if (!current()) return reject(new DOMException('Cancelled', 'AbortError'));
+        validateSpeechBlob(blob);
         const url = URL.createObjectURL(blob);
         audioUrlRef.current = url;
         const audio = playbackElementRef.current;
@@ -317,7 +334,7 @@ export function GrokLiveCompanionPage({
           source = playbackSourceRef.current || audioContext.createMediaElementSource(audio);
           playbackSourceRef.current = source;
           source.connect(analyser); analyser.connect(audioContext.destination);
-          void engineRef.current?.prepareLipSync(audioContext).then(()=>{
+          void optionalLipSync(engineRef.current, audioContext).then(()=>{
             if(current()&&!settled)engineRef.current?.connectLipSync(source);
           });
         }
@@ -346,7 +363,7 @@ export function GrokLiveCompanionPage({
           await audio.play();
         })().catch(finish);
       });
-      await runSpeechQueue(splitSpeech(cleanSpeech), { synthesize, play, signal: controller.signal });
+      await runSpeechQueue(plan.chunks, { synthesize, play, signal: controller.signal });
       if (current()) { setIsVoiceLoading(false); setIsSpeaking(false); disposePlayback(); }
     } catch (error) {
       if (!current()) return;
@@ -492,6 +509,7 @@ export function GrokLiveCompanionPage({
           },
           intent_hint: 'auto',
           locale: 'vi-VN',
+          voice: mutedRef.current ? undefined : {persona: doctorPersona},
         };
 
         const data = await api.request('/v1/chat', {
@@ -535,7 +553,7 @@ export function GrokLiveCompanionPage({
       // Nhân vật nói trọn vẹn toàn bộ câu trả lời, không hẹn giờ ngắt
       engineRef.current?.setConversationContext(text, {severity:responseData?.severity || responseData?.risk_level});
       engineRef.current?.reactToReply(conciseAdvice);
-      speakDoctorVoice(conciseAdvice, doctorPersona, currentSpeechId);
+      speakDoctorVoice(conciseAdvice, doctorPersona, currentSpeechId, responseData?.prepared_speech);
       // Older deployments may use asynchronous Writer/Reviewer promotion.
       // Follow the final stored response instead of remaining on its baseline.
       if (responseData?.verification_status === 'shadow_pending' && api) {

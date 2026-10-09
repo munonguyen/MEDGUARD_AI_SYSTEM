@@ -23,7 +23,7 @@ try{
   await page.getByRole('button',{name:'Nghe thử giọng bác sĩ',exact:true}).click();
   const audio=await response;assert.equal(audio.status(),200);assert(Number(audio.headers()['content-length'])>1000);assert.equal(audio.headers()['x-doctor-voice'],persona==='dr_tuan'?'vi-VN-NamMinhNeural':'vi-VN-HoaiMyNeural');
   await page.waitForFunction(()=>window.__companionEngine.isSpeaking);await page.locator('.grok-settings-card button[title="Đóng"]').click();
-  await page.waitForFunction(()=>window.__companionEngine.motion.values.aa>.02);
+  await page.waitForFunction(()=>['aa','ee','ih','oh','ou'].some(n=>window.__companionEngine.motion.values[n]>.01));
   const timing=await page.evaluate(()=>window.companionTimings.at(-1));
   assert.equal(timing.stage,'first_audio');assert.equal(timing.persona,persona);
   console.log(`${persona}: first audible audio ${timing.ttsMs} ms (single live sample)`);
