@@ -46,9 +46,9 @@ function orthonormalizePole(dir, pole) {
 const REST = {
   hips:[0,0,0], spine:[0,0,0], chest:[0,0,0], upperChest:[0,0,0], neck:[0,0,0], head:[0,0,0],
   leftShoulder:[0,0,0], rightShoulder:[0,0,0],
-  leftUpperArm:[.08,.04,1.30], rightUpperArm:[.08,-.04,-1.30],
-  leftLowerArm:[-.12,0,.28], rightLowerArm:[-.12,0,-.28],
-  leftHand:[0,.04,.04], rightHand:[0,-.04,-.04],
+  leftUpperArm:[.10,.04,1.26], rightUpperArm:[.10,-.04,-1.26],
+  leftLowerArm:[.18,0,.14], rightLowerArm:[.18,0,-.14],
+  leftHand:[.04,.03,.02], rightHand:[.04,-.03,-.02],
 };
 const clamp = (v,min=0,max=1) => Math.max(min,Math.min(max,v));
 const damp = (rate,dt) => 1-Math.exp(-rate*dt);
@@ -326,7 +326,25 @@ export class DoctorMotion {
       targets.spine[0]+=swaySagittal;
       targets.head[0]-=Math.sin(this.breathPhase)*.004*breathScale;
       if(listen){const nod=pulse((time-this.poseStarted)%7.3,1.15,1.3);targets.spine[0]-=.013;targets.neck[0]+=.018*nod;targets.head[0]+=.035*nod;}
-      if(think){targets.leftLowerArm[2]+=.22;targets.rightLowerArm[2]-=.10;targets.chest[1]-=.012;targets.head[1]+=this.thinkSide*.042;targets.head[2]+=this.thinkSide*.022;}
+      if(think){
+        const thinkArm = this.thinkSide === 1 ? 'right' : 'left';
+        const otherArm = this.thinkSide === 1 ? 'left' : 'right';
+        const tSign = thinkArm === 'left' ? -1 : 1;
+        targets[thinkArm+'UpperArm'][0] += .38;
+        targets[thinkArm+'UpperArm'][1] -= tSign * .14;
+        targets[thinkArm+'UpperArm'][2] -= tSign * .38;
+        targets[thinkArm+'LowerArm'][0] += .85;
+        targets[thinkArm+'LowerArm'][1] += tSign * .18;
+        targets[thinkArm+'LowerArm'][2] += tSign * .22;
+        targets[thinkArm+'Hand'][0] += .08;
+        targets[thinkArm+'Hand'][1] -= tSign * .08;
+        targets[otherArm+'UpperArm'][0] += .06;
+        targets[otherArm+'LowerArm'][0] += .12;
+        targets.chest[1] -= tSign * .014;
+        targets.head[1] += this.thinkSide * .042;
+        targets.head[2] += this.thinkSide * .022;
+        this.handStates[thinkArm] = { openness: 0.15, pose: 'soft' };
+      }
       if(responding){const ack=pulse(replyAge,.1,1.3);targets.head[0]+=ack*.042;targets.neck[0]+=ack*.020;targets.chest[0]+=ack*.015;}
       targets.head[0]+=this.headLook.y*.09+(listen?-.025:think?.02:0);
       targets.head[1]+=this.headLook.x*.22;targets.head[2]+=listen?.022:0;
@@ -516,19 +534,13 @@ export class DoctorMotion {
       arm.palm.addScaledVector(direction,-arm.palm.dot(direction)).normalize();
       arm.axisY.copy(arm.normal).addScaledVector(direction,-arm.normal.dot(direction)).normalize();
       arm.axisZ.crossVectors(arm.palm,arm.axisY);
-      const twistTarget=clamp(Math.atan2(direction.dot(arm.axisZ),arm.palm.dot(arm.axisY)),-.45,.45);
-      spring(goal.twist,twistTarget,9,dt,2.1);
+      const twistTarget=clamp(Math.atan2(direction.dot(arm.axisZ),arm.palm.dot(arm.axisY)),-.22,.22);
+      spring(goal.twist,twistTarget,7,dt,1.5);
       const twist=goal.twist.position*weight;
       delta.setFromAxisAngle(direction,twist);lower.parent.getWorldQuaternion(parentQ).invert();
       lower.quaternion.copy(parentQ.multiply(delta.multiply(worldQ)));lower.updateWorldMatrix(true,true);
-      // Align the palm semantically while bounding wrist deviation to 37°.
-      arm.axisX.copy(direction).addScaledVector(arm.normal,-direction.dot(arm.normal)).normalize().multiplyScalar(arm.fingerSign);
-      if(arm.axisX.lengthSq()>.01) {
-        arm.axisY.copy(arm.normal).negate();arm.axisZ.crossVectors(arm.axisX,arm.axisY).normalize();arm.axisY.crossVectors(arm.axisZ,arm.axisX).normalize();
-        worldQ.setFromRotationMatrix(arm.matrix.makeBasis(arm.axisX,arm.axisY,arm.axisZ));
-        hand.parent.getWorldQuaternion(parentQ).invert();parentQ.multiply(worldQ);
-        from.copy(hand.quaternion);from.rotateTowards(parentQ,.65);hand.quaternion.slerp(from,weight);
-      }
+      // Hand naturally extends from forearm following authored gesture Euler targets;
+      // never override with inverted coordinate basis to prevent unnatural 180° twists.
     }
   }
   updateFace(dt,{speaking,hasAudio,audioLevel,spectrum,visemes,cautious,empathetic,think,listen,reducedMotion,gazeX,gazeY}) {

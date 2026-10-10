@@ -1,8 +1,8 @@
 {
   "_meta": {
     "version": "1.0.0",
-    "updated_at": "2026-10-07T04:45:19.609743+00:00",
-    "total_captured": 2975
+    "updated_at": "2026-10-10T09:45:39.365058+00:00",
+    "total_captured": 2980
   },
   "cases": [
     {
@@ -133639,6 +133639,136 @@
         {
           "kind": "paragraph",
           "text": "Chào bạn! Bạn có thể chia sẻ cụ thể hơn về triệu chứng, vị trí khó chịu hoặc băn khoăn sức khỏe của bạn không?",
+          "emphasis": []
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261010-2DD7D587",
+      "timestamp": "2026-10-10T09:42:45.219512+00:00",
+      "tenant_id": "user-e0959166d33142e0960e6ef4e3eef49f",
+      "conversation_id": "b7aa7b92-6189-4c67-b196-27229f768023",
+      "request_id": "ui-4d776875-12df-460c-b8b7-d39ec52e92a3",
+      "user_query": "Chào bạn nhá",
+      "detected_intent": "general",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Mình chưa có đủ thông tin y tế để đưa ra hướng dẫn an toàn. Bạn hãy mô tả triệu chứng và vị trí khó chịu, thời điểm bắt đầu, mức độ, dấu hiệu kèm theo; hoặc gửi tên thuốc/chỉ số sức khỏe cần kiểm tra.",
+      "narrative": [
+        {
+          "kind": "paragraph",
+          "text": "Chào bạn, tôi sẵn sàng hỗ trợ bạn. Bạn có thể chia sẻ cụ thể hơn về triệu chứng, vị trí khó chịu hoặc băn khoăn sức khỏe của bạn không?",
+          "emphasis": []
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261010-BF73DFFC",
+      "timestamp": "2026-10-10T09:43:15.327615+00:00",
+      "tenant_id": "user-e0959166d33142e0960e6ef4e3eef49f",
+      "conversation_id": "b7aa7b92-6189-4c67-b196-27229f768023",
+      "request_id": "ui-f1888e4f-af88-48c6-82d4-1c3331cf250b",
+      "user_query": "Chào bạn nhá",
+      "detected_intent": "general",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Mình chưa có đủ thông tin y tế để đưa ra hướng dẫn an toàn. Bạn hãy mô tả triệu chứng và vị trí khó chịu, thời điểm bắt đầu, mức độ, dấu hiệu kèm theo; hoặc gửi tên thuốc/chỉ số sức khỏe cần kiểm tra.",
+      "narrative": [
+        {
+          "kind": "paragraph",
+          "text": "Chào bạn! Bạn có thể chia sẻ cụ thể hơn về triệu chứng, vị trí khó chịu hoặc băn khoăn sức khỏe của bạn không?",
+          "emphasis": []
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261010-7579D6B3",
+      "timestamp": "2026-10-10T09:43:26.450643+00:00",
+      "tenant_id": "user-e0959166d33142e0960e6ef4e3eef49f",
+      "conversation_id": "b7aa7b92-6189-4c67-b196-27229f768023",
+      "request_id": "ui-6a9f4745-13c2-489c-9ba5-0df0cc5639f2",
+      "user_query": "Chào bạn nhá",
+      "detected_intent": "general",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Mình chưa có đủ thông tin y tế để đưa ra hướng dẫn an toàn. Bạn hãy mô tả triệu chứng và vị trí khó chịu, thời điểm bắt đầu, mức độ, dấu hiệu kèm theo; hoặc gửi tên thuốc/chỉ số sức khỏe cần kiểm tra.",
+      "narrative": [
+        {
+          "kind": "paragraph",
+          "text": "Chào bạn, tôi có thể hỗ trợ gì cho bạn hôm nay? Bạn có thể chia sẻ cụ thể hơn về triệu chứng, vị trí khó chịu hoặc băn khoăn sức khỏe của bạn không?",
+          "emphasis": []
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261010-6ECDFD1A",
+      "timestamp": "2026-10-10T09:43:48.951612+00:00",
+      "tenant_id": "user-e0959166d33142e0960e6ef4e3eef49f",
+      "conversation_id": "b7aa7b92-6189-4c67-b196-27229f768023",
+      "request_id": "ui-50436e8c-b4d3-4dcc-a02d-2d6fe685f8fe",
+      "user_query": "Chào bạn nhá",
+      "detected_intent": "general",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Mình chưa có đủ thông tin y tế để đưa ra hướng dẫn an toàn. Bạn hãy mô tả triệu chứng và vị trí khó chịu, thời điểm bắt đầu, mức độ, dấu hiệu kèm theo; hoặc gửi tên thuốc/chỉ số sức khỏe cần kiểm tra.",
+      "narrative": [
+        {
+          "kind": "paragraph",
+          "text": "Chào bạn, tôi sẵn sàng hỗ trợ bạn. Bạn có thể chia sẻ cụ thể hơn về triệu chứng, vị trí khó chịu hoặc băn khoăn sức khỏe của bạn không?",
+          "emphasis": []
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261010-BD5230F9",
+      "timestamp": "2026-10-10T09:45:39.284217+00:00",
+      "tenant_id": "user-e0959166d33142e0960e6ef4e3eef49f",
+      "conversation_id": "b7aa7b92-6189-4c67-b196-27229f768023",
+      "request_id": "ui-cd4d8d4b-b78d-46a7-b33a-35550ef3648b",
+      "user_query": "Tôi đang bị ốm ấy thì có cách nào để chữa khỏi ốm không",
+      "detected_intent": "triage",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Với các dữ kiện hiện có, bệnh cảnh đang ở mức theo dõi thường quy. Chưa thể xác định nguyên nhân chỉ từ tin nhắn; hãy làm theo hướng chăm sóc và dấu hiệu cảnh báo bên dưới.",
+      "narrative": [
+        {
+          "kind": "paragraph",
+          "text": "Để giúp cải thiện tình trạng ốm, việc chăm sóc ban đầu phụ thuộc vào các triệu chứng cụ thể mà bạn đang gặp phải. Hiện tại dữ liệu chưa đủ để xác định nguyên nhân chính xác, vì vậy bạn nên nghỉ ngơi đầy đủ, giữ ấm và uống đủ nước.",
+          "emphasis": []
+        },
+        {
+          "kind": "paragraph",
+          "text": "Triệu chứng xuất hiện từ từ hay khởi phát đột ngột và đạt mức nặng trong vài phút?",
           "emphasis": []
         }
       ],
