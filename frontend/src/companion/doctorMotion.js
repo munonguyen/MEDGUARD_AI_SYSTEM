@@ -50,8 +50,10 @@ export class DoctorMotion {
     this.pendingTransition=false;this.transitionAt=-10;this.transitionDuration=.3;
     for(const [n,xyz] of Object.entries(this.rest)) this.bones[n]?.quaternion.setFromEuler(this.euler.set(...xyz));
     this.armOutput=Object.fromEntries(Object.entries(this.bones).filter(([n,b])=>b&&(n.includes('Arm')||n.endsWith('Hand'))).map(([n,b])=>[n,b.quaternion.clone()]));
-    this.blinkAt=2.5+random()*2;this.blinkStarted=-10;
+    this.blinkAt=2.2+random()*2;this.blinkStarted=-10;
+    this.doubleBlinkAt=0;this.pendingDoubleBlink=false;this.wasThinking=false;
     this.eye={x:0,y:0};this.headLook={x:0,y:0};this.saccade={x:0,y:0};this.saccadeAt=0;
+    this.glanceOffset={x:0,y:0};this.glanceNext=3.5+random()*2.5;this.glanceTimer=0;
     this.thinkSide=random()<.5?-1:1;
     this.weight=state(0);this.weightFrom=0;this.weightTarget=.6;this.weightAt=0;this.weightNext=15+random()*10;
     this.breathRecovery=0;this.quietFor=0;this.speakingFor=0;this.previousAudible=false;this.beatAt=-10;
@@ -79,6 +81,11 @@ export class DoctorMotion {
     this.armGoals=Object.fromEntries(['left','right'].map(side=>[side,{weight:0,target:0,x:.2,y:.04,z:.21,tx:.2,ty:.04,tz:.21,ny:1,nz:.12,twist:state(0)}]));
     this.hipRest=this.bones.hips?.position.clone();
     this.startUtterance('');
+  }
+  samplePoissonBlinkInterval(cautious,think){
+    const mean=cautious?4.4:think?4.8:3.4;
+    const u=clamp(this.random(),.02,.98);
+    return clamp(-Math.log(1-u)*mean,2.0,6.2);
   }
   captureLegs() {
     const legs=[];
@@ -218,11 +225,25 @@ export class DoctorMotion {
     const targets=this.targets;
     this.armGoals.left.target=this.armGoals.right.target=0;
     for(const [n,xyz] of Object.entries(REST))for(let i=0;i<3;i++)targets[n][i]=xyz[i];
-    const eyeTarget={x:clamp(look.x,-1,1),y:clamp(look.y,-1,1)};
+    if(this.glanceTimer>0){
+      this.glanceTimer-=dt;
+      if(this.glanceTimer<=0){this.glanceOffset.x=0;this.glanceOffset.y=0;this.glanceNext=time+3.8+this.random()*3.0;}
+    } else if(time>=this.glanceNext&&!think&&!listen&&Math.abs(look.x)<0.35){
+      this.glanceOffset.x=(this.random()<.5?-1:1)*(0.11+this.random()*0.07);
+      this.glanceOffset.y=(this.random()-.25)*0.08;
+      this.glanceTimer=0.75+this.random()*0.40;
+      if(time-this.blinkStarted>1.8&&this.random()<.55){
+        this.blinkStarted=time;
+        this.blinkAt=time+this.samplePoissonBlinkInterval(cautious,think);
+      }
+    }
+    const glanceX=(!think&&!listen&&Math.abs(look.x)<0.35)?this.glanceOffset.x:0;
+    const glanceY=(!think&&!listen&&Math.abs(look.y)<0.35)?this.glanceOffset.y:0;
+    const eyeTarget={x:clamp(look.x+glanceX,-1,1),y:clamp(look.y+glanceY,-1,1)};
     if(think){eyeTarget.x=eyeTarget.x*.35+this.thinkSide*.34;eyeTarget.y=eyeTarget.y*.35+.25;}
     this.eye.x+=(eyeTarget.x-this.eye.x)*damp(22,dt);this.eye.y+=(eyeTarget.y-this.eye.y)*damp(22,dt);
     this.headLook.x+=(this.eye.x-this.headLook.x)*damp(4,dt);this.headLook.y+=(this.eye.y-this.headLook.y)*damp(4,dt);
-    if(time>=this.saccadeAt){this.saccade={x:(this.random()-.5)*.018,y:(this.random()-.5)*.012};this.saccadeAt=time+.25+this.random()*.25;}
+    if(time>=this.saccadeAt){this.saccade={x:(this.random()-.5)*.018,y:(this.random()-.5)*.012};this.saccadeAt=time+.28+this.random()*.32;}
     const gazeX=this.eye.x,gazeY=this.eye.y;
     if(!reducedMotion) {
       const breath=Math.sin(this.breathPhase),breathScale=1+this.breathRecovery+(speaking?clamp(this.utteranceText.length/800)*.1:0);
@@ -233,14 +254,25 @@ export class DoctorMotion {
       targets.hips[2]=shift*.007;targets.spine[2]=-shift*.012;targets.chest[2]=shift*.006;
       targets.spine[0]=breath*.004*breathScale;targets.chest[0]=breath*.007*breathScale;
       targets.upperChest[0]=Math.sin(this.breathPhase-.13)*.003*breathScale;
+      // AIRI natural clavicle rise during inhalation
+      targets.leftShoulder[0]=Math.sin(this.breathPhase-.2)*.0035*breathScale;
+      targets.rightShoulder[0]=Math.sin(this.breathPhase-.2)*.0035*breathScale;
       targets.leftShoulder[2]=Math.sin(this.breathPhase-.3)*.005*breathScale-shift*.004;
       targets.rightShoulder[2]=-Math.sin(this.breathPhase-.1)*.005*breathScale-shift*.004;
       targets.leftLowerArm[2]+=.035+Math.sin(time*.41)*.012;
       targets.rightLowerArm[2]-=.055+Math.sin(time*.37+.8)*.012;
+      // AIRI living subconscious postural micro-sway and respiratory head bob
+      const swayCoronal=Math.sin(time*1.38)*.0022;
+      const swaySagittal=Math.cos(time*1.07)*.0018;
+      targets.spine[1]+=swayCoronal;
+      targets.head[1]+=swayCoronal*1.15;
+      targets.spine[0]+=swaySagittal;
+      targets.head[0]-=Math.sin(this.breathPhase)*.004*breathScale;
       if(listen){const nod=pulse((time-this.poseStarted)%7.3,1.15,1.3);targets.spine[0]-=.013;targets.neck[0]+=.018*nod;targets.head[0]+=.035*nod;}
-      if(think){targets.leftLowerArm[2]+=.22;targets.rightLowerArm[2]-=.10;targets.chest[1]-=.012;}
+      if(think){targets.leftLowerArm[2]+=.22;targets.rightLowerArm[2]-=.10;targets.chest[1]-=.012;targets.head[1]+=this.thinkSide*.042;targets.head[2]+=this.thinkSide*.022;}
+      if(responding){const ack=pulse(replyAge,.1,1.3);targets.head[0]+=ack*.042;targets.neck[0]+=ack*.020;targets.chest[0]+=ack*.015;}
       targets.head[0]+=this.headLook.y*.09+(listen?-.025:think?.02:0);
-      targets.head[1]+=this.headLook.x*.22;targets.head[2]+=listen?.018:0;
+      targets.head[1]+=this.headLook.x*.22;targets.head[2]+=listen?.022:0;
       targets.neck[0]+=this.headLook.y*.035;targets.neck[1]+=this.headLook.x*.055;
       targets.chest[1]+=this.headLook.x*.022;
       const {cue,phase,duration}=action;
@@ -441,10 +473,35 @@ export class DoctorMotion {
   }
   updateFace(dt,{speaking,hasAudio,audioLevel,spectrum,visemes,cautious,empathetic,think,listen,reducedMotion,gazeX,gazeY}) {
     const alpha=damp(7,dt),time=this.time;
-    if(time>=this.blinkAt){this.blinkStarted=time;this.blinkAt=time+(cautious?4:3)+this.random()*3;}
-    if(this.wasThinking&&!think){this.blinkStarted=time;this.blinkAt=time+3+this.random()*3;}
+    // AIRI Stochastic Poisson Auto-Blink Engine with Double-Blink & Asymmetric Kinetics
+    if(time>=this.blinkAt){
+      this.blinkStarted=time;
+      this.pendingDoubleBlink=this.random()<0.14;
+      this.blinkAt=time+this.samplePoissonBlinkInterval(cautious,think);
+    }
+    if(this.wasThinking&&!think){
+      this.blinkStarted=time;
+      this.pendingDoubleBlink=false;
+      this.blinkAt=time+this.samplePoissonBlinkInterval(cautious,think);
+    }
     this.wasThinking=think;
-    const age=time-this.blinkStarted,blink=age<.075?ease(age/.075):age<.23?1-ease((age-.075)/.155):0;
+    const age=time-this.blinkStarted;
+    const closeDur=0.065,openDur=0.145,totalDur=closeDur+openDur;
+    let blink=0;
+    if(age>=0&&age<totalDur){
+      blink=age<closeDur?ease(age/closeDur):1-ease((age-closeDur)/openDur);
+    } else if(this.pendingDoubleBlink&&age>=totalDur+0.08){
+      this.doubleBlinkAt=time;
+      this.pendingDoubleBlink=false;
+    }
+    if(this.doubleBlinkAt&&time>=this.doubleBlinkAt){
+      const dAge=time-this.doubleBlinkAt;
+      if(dAge>=0&&dAge<totalDur){
+        blink=Math.max(blink,dAge<closeDur?ease(dAge/closeDur):1-ease((dAge-closeDur)/openDur));
+      } else if(dAge>=totalDur){
+        this.doubleBlinkAt=0;
+      }
+    }
     this.setValue('blink',Math.max(0,blink),1);
     const noise=reducedMotion?0:(Math.sin(time*.73+.4)+Math.sin(time*1.13))*.005;
     const happy=cautious?0:think?.018:this.activeGesture==='greeting'?.12:empathetic?.075:this.contextState==='encouraging'?.17:.028;
@@ -454,7 +511,8 @@ export class DoctorMotion {
     this.setValue('angry',cautious?.045+Math.abs(noise):think?.015:0,alpha);
     this.setValue('relaxed',(think?.045:listen?.06:.025)+noise*.4,alpha);
     this.setValue(this.surpriseName,this.expression==='surprised'&&!cautious?.06:!cautious&&think?Math.max(0,noise)*.5:0,alpha);
-    for(const n of this.faceDetails.browUp)this.setValue(n,(empathetic?.035:think?.02:0)+Math.max(0,noise),alpha);
+    const browAccent=speaking&&hasAudio?this.audioAccent*.018:0;
+    for(const n of this.faceDetails.browUp)this.setValue(n,(empathetic?.035:think?.02:0)+Math.max(0,noise)+browAccent,alpha);
     for(const n of this.faceDetails.browDown)this.setValue(n,(cautious?.04:0)+Math.max(0,-noise),alpha);
     const ex=reducedMotion?0:gazeX*.13+this.saccade.x,ey=reducedMotion?0:gazeY*.09+this.saccade.y;
     if(this.vrm.lookAt){
