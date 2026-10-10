@@ -1,8 +1,47 @@
-import { Euler, Matrix4, Quaternion, Vector3 } from 'three';
+import { Euler, Matrix4, Quaternion, Vector3, Object3D } from 'three';
 import { GesturePlanner, motionContext, phraseIntent, splitMotionPhrases } from './doctorMotionContext.js';
 import { choreograph } from './gestureChoreography.js';
 import { normalizeSpeechTiming, activeSpeechCue } from './speechTimeline.js';
 import { MOUTH_CHANNELS } from './doctorLipSync.js';
+
+// AIRI Eye Saccade Interval Distribution Matrix
+const EYE_SACCADE_INT_STEP = 400;
+const EYE_SACCADE_INT_P = [
+  [0.075, 800],
+  [0.110, 0],
+  [0.125, 0],
+  [0.140, 0],
+  [0.125, 0],
+  [0.050, 0],
+  [0.040, 0],
+  [0.030, 0],
+  [0.020, 0],
+  [1.000, 0],
+];
+for (let i = 1; i < EYE_SACCADE_INT_P.length; i++) {
+  EYE_SACCADE_INT_P[i][0] += EYE_SACCADE_INT_P[i - 1][0];
+  EYE_SACCADE_INT_P[i][1] = EYE_SACCADE_INT_P[i - 1][1] + EYE_SACCADE_INT_STEP;
+}
+
+export function randomSaccadeInterval(rng = Math.random) {
+  const r = rng();
+  for (let i = 0; i < EYE_SACCADE_INT_P.length; i++) {
+    if (r <= EYE_SACCADE_INT_P[i][0]) {
+      return EYE_SACCADE_INT_P[i][1] + rng() * EYE_SACCADE_INT_STEP;
+    }
+  }
+  return EYE_SACCADE_INT_P.at(-1)[1] + rng() * EYE_SACCADE_INT_STEP;
+}
+
+// AIRI Cubic Easing for facial expressions
+const easeInOutCubic = t => t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
+
+// AIRI Orthonormal Pole Vector
+function orthonormalizePole(dir, pole) {
+  const poleOrtho = pole.clone().addScaledVector(dir, -pole.dot(dir));
+  if (poleOrtho.lengthSq() <= 1e-12) return null;
+  return poleOrtho.normalize();
+}
 
 const REST = {
   hips:[0,0,0], spine:[0,0,0], chest:[0,0,0], upperChest:[0,0,0], neck:[0,0,0], head:[0,0,0],
@@ -53,6 +92,9 @@ export class DoctorMotion {
     this.blinkAt=2.2+random()*2;this.blinkStarted=-10;
     this.doubleBlinkAt=0;this.pendingDoubleBlink=false;this.wasThinking=false;
     this.eye={x:0,y:0};this.headLook={x:0,y:0};this.saccade={x:0,y:0};this.saccadeAt=0;
+    this.nextSaccadeAfter=randomSaccadeInterval(random)/1000;
+    this.timeSinceLastSaccade=0;
+    this.fixationTarget=new Vector3();
     this.glanceOffset={x:0,y:0};this.glanceNext=3.5+random()*2.5;this.glanceTimer=0;
     this.thinkSide=random()<.5?-1:1;
     this.weight=state(0);this.weightFrom=0;this.weightTarget=.6;this.weightAt=0;this.weightNext=15+random()*10;
@@ -74,8 +116,11 @@ export class DoctorMotion {
     }
     // Use the model's gaze applier (bone or expression) instead of competing
     // look blendshapes that VRM.update may overwrite. Public angles are degrees.
-    if(vrm.lookAt)vrm.lookAt.autoUpdate=false;
-    this.forward=vrm.lookAt?.faceFront.clone() || new Vector3(0,0,vrm.meta?.metaVersion==='0'?-1:1);
+    if(vrm.lookAt){
+      vrm.lookAt.autoUpdate=false;
+      if(!vrm.lookAt.target) vrm.lookAt.target = new Object3D();
+    }
+    this.forward=vrm.lookAt?.faceFront?.clone() || new Vector3(0,0,vrm.meta?.metaVersion==='0'?-1:1);
     this.legs=this.captureLegs();
     this.arms=this.captureArms();
     this.armGoals=Object.fromEntries(['left','right'].map(side=>[side,{weight:0,target:0,x:.2,y:.04,z:.21,tx:.2,ty:.04,tz:.21,ny:1,nz:.12,twist:state(0)}]));
@@ -243,7 +288,19 @@ export class DoctorMotion {
     if(think){eyeTarget.x=eyeTarget.x*.35+this.thinkSide*.34;eyeTarget.y=eyeTarget.y*.35+.25;}
     this.eye.x+=(eyeTarget.x-this.eye.x)*damp(22,dt);this.eye.y+=(eyeTarget.y-this.eye.y)*damp(22,dt);
     this.headLook.x+=(this.eye.x-this.headLook.x)*damp(4,dt);this.headLook.y+=(this.eye.y-this.headLook.y)*damp(4,dt);
-    if(time>=this.saccadeAt){this.saccade={x:(this.random()-.5)*.018,y:(this.random()-.5)*.012};this.saccadeAt=time+.28+this.random()*.32;}
+    this.timeSinceLastSaccade+=dt;
+    if(this.timeSinceLastSaccade>=this.nextSaccadeAfter||time>=this.saccadeAt){
+      this.saccade={x:(this.random()-.5)*.018,y:(this.random()-.5)*.012};
+      this.timeSinceLastSaccade=0;
+      this.nextSaccadeAfter=randomSaccadeInterval(this.random)/1000;
+      this.saccadeAt=time+this.nextSaccadeAfter;
+    }
+    if(this.vrm.lookAt?.target){
+      const headNode=this.bones.head||this.vrm.humanoid?.getNormalizedBoneNode('head');
+      const headPos=headNode?headNode.getWorldPosition(new Vector3()):new Vector3(0,1.35,0);
+      this.fixationTarget.set(headPos.x+this.eye.x*.8+this.saccade.x*2,headPos.y+this.eye.y*.6+this.saccade.y*2,headPos.z+(this.forward.z<0?-1.5:1.5));
+      this.vrm.lookAt.target.position.lerp(this.fixationTarget,1);
+    }
     const gazeX=this.eye.x,gazeY=this.eye.y;
     if(!reducedMotion) {
       const breath=Math.sin(this.breathPhase),breathScale=1+this.breathRecovery+(speaking?clamp(this.utteranceText.length/800)*.1:0);
@@ -438,9 +495,12 @@ export class DoctorMotion {
       target.copy(arm.chest);target.x+=side*goal.x;target.y+=goal.y;target.z+=goal.z;
       direction.subVectors(target,a);
       const distance=clamp(direction.length(),Math.abs(l1-l2)+.003,l1+l2-.025);direction.normalize();
+      if(arm.lastDirection&&arm.lastDirection.dot(direction)<-0.2)return;
+      arm.lastDirection=direction.clone();
       // Elbow stays naturally close to the ribcage and lower than the hand, pointing down-backwards
       pole.set(side*.20,-.88,-.16);
-      pole.addScaledVector(direction,-pole.dot(direction)).normalize();
+      const poleOrtho=orthonormalizePole(direction,pole);
+      if(poleOrtho)pole.copy(poleOrtho);
       const along=(l1*l1-l2*l2+distance*distance)/(2*distance),height=Math.sqrt(Math.max(0,l1*l1-along*along));
       elbow.copy(a).addScaledVector(direction,along).addScaledVector(pole,height);
       lower.getWorldPosition(b);delta.setFromUnitVectors(b.sub(a).normalize(),c.subVectors(elbow,a).normalize());
@@ -520,6 +580,7 @@ export class DoctorMotion {
       // The bone applier itself compensates for VRM0's authored faceFront.
       const sign=this.vrm.lookAt.applier?.constructor?.type==='expression'?-1:1;
       this.vrm.lookAt.yaw=sign*ex*180/Math.PI;this.vrm.lookAt.pitch=-ey*180/Math.PI;
+      try{this.vrm.lookAt.update(dt);}catch{}
     }
     else for(const [n,v] of Object.entries({lookRight:ex,lookLeft:-ex,lookUp:ey,lookDown:-ey}))this.setValue(n,Math.max(0,v),damp(22,dt));
     // Spectral band ratios diversify vowels only. They do not identify phonemes,

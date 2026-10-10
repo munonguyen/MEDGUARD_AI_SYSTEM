@@ -197,6 +197,9 @@ export class VRMAvatarEngine {
           this.mouthExpressions=Object.keys(vrm.expressionManager?.expressionMap||{});
           const animationLayer=new DoctorAnimationLayer(vrm);
           this.motion.animationLayer=animationLayer;
+          // Load AIRI organic mocap idle loop
+          animationLayer.loadIdle(import.meta.env.BASE_URL+'animations/airi-idle.vrma')
+            .catch(err=>console.warn('AIRI idle animation optional load:', err?.message));
           // Nonblocking: avatar and speech can start before optional clips load.
           animationLayer.load(import.meta.env.BASE_URL+'animations/doctor-gestures.vrma')
             .catch(error=>{if(!animationLayer.destroyed){animationLayer.error=error.message;animationLayer.destroy();}});
@@ -577,6 +580,10 @@ export class VRMAvatarEngine {
       playbackDuration:this.speechMedia?.duration,
       reducedMotion: this.reducedMotion.matches,
     });
+    // AIRI MToon material per-frame uniform updates
+    if (this.currentVrm?.materials) {
+      for (const m of this.currentVrm.materials) m.update?.(delta);
+    }
     this.renderer.render(this.scene, this.camera);
   }
 
