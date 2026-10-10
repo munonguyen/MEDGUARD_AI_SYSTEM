@@ -46,9 +46,9 @@ function orthonormalizePole(dir, pole) {
 const REST = {
   hips:[0,0,0], spine:[0,0,0], chest:[0,0,0], upperChest:[0,0,0], neck:[0,0,0], head:[0,0,0],
   leftShoulder:[0,0,0], rightShoulder:[0,0,0],
-  leftUpperArm:[.10,.04,1.26], rightUpperArm:[.10,-.04,-1.26],
-  leftLowerArm:[.18,0,.14], rightLowerArm:[.18,0,-.14],
-  leftHand:[.04,.03,.02], rightHand:[.04,-.03,-.02],
+  leftUpperArm:[.06,.02,1.42], rightUpperArm:[.06,-.02,-1.42],
+  leftLowerArm:[.08,0,0], rightLowerArm:[.08,0,0],
+  leftHand:[.02,0,0], rightHand:[.02,0,0],
 };
 const clamp = (v,min=0,max=1) => Math.max(min,Math.min(max,v));
 const damp = (rate,dt) => 1-Math.exp(-rate*dt);
@@ -110,7 +110,7 @@ export class DoctorMotion {
         const direction=child?.position.clone() || bone.position.clone();
         if(direction.lengthSq()<1e-8)direction.set(side==='left'?1:-1,0,0);
         const axis=direction.normalize().cross(new Vector3(0,-1,0)).normalize();
-        const idle=(finger==='Thumb'?.16:.16+index*.095)*(segment===0?1:segment===1?.65:.4);
+        const idle=(finger==='Thumb'?.28:.32+index*.055)*(segment===0?1:segment===1?.72:.5);
         this.fingers.push({name,bone,finger,index,segment,side,axis,idle,curl:state(idle),splay:state(0),q:new Quaternion()});
       }
     }
@@ -316,8 +316,8 @@ export class DoctorMotion {
       targets.rightShoulder[0]=Math.sin(this.breathPhase-.2)*.0035*breathScale;
       targets.leftShoulder[2]=Math.sin(this.breathPhase-.3)*.005*breathScale-shift*.004;
       targets.rightShoulder[2]=-Math.sin(this.breathPhase-.1)*.005*breathScale-shift*.004;
-      targets.leftLowerArm[2]+=.035+Math.sin(time*.41)*.012;
-      targets.rightLowerArm[2]-=.055+Math.sin(time*.37+.8)*.012;
+      targets.leftLowerArm[2]+=Math.sin(time*.41)*.008;
+      targets.rightLowerArm[2]-=Math.sin(time*.37+.8)*.008;
       // AIRI living subconscious postural micro-sway and respiratory head bob
       const swayCoronal=Math.sin(time*1.38)*.0022;
       const swaySagittal=Math.cos(time*1.07)*.0018;
@@ -327,23 +327,13 @@ export class DoctorMotion {
       targets.head[0]-=Math.sin(this.breathPhase)*.004*breathScale;
       if(listen){const nod=pulse((time-this.poseStarted)%7.3,1.15,1.3);targets.spine[0]-=.013;targets.neck[0]+=.018*nod;targets.head[0]+=.035*nod;}
       if(think){
-        const thinkArm = this.thinkSide === 1 ? 'right' : 'left';
-        const otherArm = this.thinkSide === 1 ? 'left' : 'right';
-        const tSign = thinkArm === 'left' ? -1 : 1;
-        targets[thinkArm+'UpperArm'][0] += .38;
-        targets[thinkArm+'UpperArm'][1] -= tSign * .14;
-        targets[thinkArm+'UpperArm'][2] -= tSign * .38;
-        targets[thinkArm+'LowerArm'][0] += .85;
-        targets[thinkArm+'LowerArm'][1] += tSign * .18;
-        targets[thinkArm+'LowerArm'][2] += tSign * .22;
-        targets[thinkArm+'Hand'][0] += .08;
-        targets[thinkArm+'Hand'][1] -= tSign * .08;
-        targets[otherArm+'UpperArm'][0] += .06;
-        targets[otherArm+'LowerArm'][0] += .12;
-        targets.chest[1] -= tSign * .014;
-        targets.head[1] += this.thinkSide * .042;
+        // Thoughtful contemplative posture: head tilt + subtle chest shift, arms stay naturally relaxed
+        targets.chest[1] -= this.thinkSide * .014;
+        targets.head[1] += this.thinkSide * .045;
         targets.head[2] += this.thinkSide * .022;
-        this.handStates[thinkArm] = { openness: 0.15, pose: 'soft' };
+        targets.head[0] -= .015;
+        this.handStates.left = { openness: 0, pose: 'soft' };
+        this.handStates.right = { openness: 0, pose: 'soft' };
       }
       if(responding){const ack=pulse(replyAge,.1,1.3);targets.head[0]+=ack*.042;targets.neck[0]+=ack*.020;targets.chest[0]+=ack*.015;}
       targets.head[0]+=this.headLook.y*.09+(listen?-.025:think?.02:0);
