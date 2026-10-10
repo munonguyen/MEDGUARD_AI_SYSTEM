@@ -1,8 +1,8 @@
 {
   "_meta": {
     "version": "1.0.0",
-    "updated_at": "2026-10-10T09:45:39.365058+00:00",
-    "total_captured": 2980
+    "updated_at": "2026-10-10T10:20:07.250722+00:00",
+    "total_captured": 2982
   },
   "cases": [
     {
@@ -133770,6 +133770,74 @@
           "kind": "paragraph",
           "text": "Triệu chứng xuất hiện từ từ hay khởi phát đột ngột và đạt mức nặng trong vài phút?",
           "emphasis": []
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261010-A767944D",
+      "timestamp": "2026-10-10T10:01:44.859859+00:00",
+      "tenant_id": "user-e0959166d33142e0960e6ef4e3eef49f",
+      "conversation_id": "10fea893-9c7a-4fa9-8c22-49e694c3cafe",
+      "request_id": "ui-c31b3c78-1e74-4b66-9740-ae970e86febc",
+      "user_query": "Chào bạn",
+      "detected_intent": "general",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Mình chưa có đủ thông tin y tế để đưa ra hướng dẫn an toàn. Bạn hãy mô tả triệu chứng và vị trí khó chịu, thời điểm bắt đầu, mức độ, dấu hiệu kèm theo; hoặc gửi tên thuốc/chỉ số sức khỏe cần kiểm tra.",
+      "narrative": [
+        {
+          "kind": "paragraph",
+          "text": "Cần thêm thông tin để hỗ trợ bạn. Mình chưa có đủ thông tin y tế để đưa ra hướng dẫn an toàn. Bạn hãy mô tả triệu chứng và vị trí khó chịu, thời điểm bắt đầu, mức độ, dấu hiệu kèm theo; hoặc gửi tên thuốc/chỉ số sức khỏe cần kiểm tra.",
+          "emphasis": [
+            "Cần thêm thông tin để hỗ trợ bạn"
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Bạn cho mình biết thêm: Bạn có thể chia sẻ cụ thể hơn về triệu chứng, vị trí khó chịu hoặc băn khoăn sức khỏe của bạn không?",
+          "emphasis": [
+            "Bạn cho mình biết thêm"
+          ]
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261010-E2DF0CE7",
+      "timestamp": "2026-10-10T10:20:07.162345+00:00",
+      "tenant_id": "user-e0959166d33142e0960e6ef4e3eef49f",
+      "conversation_id": "1b55fcc8-057a-471a-b7ed-daf15107d8ae",
+      "request_id": "ui-91504ee5-2e18-43ba-9cf3-ab926b6b1da0",
+      "user_query": "Chào bạn",
+      "detected_intent": "general",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Mình chưa có đủ thông tin y tế để đưa ra hướng dẫn an toàn. Bạn hãy mô tả triệu chứng và vị trí khó chịu, thời điểm bắt đầu, mức độ, dấu hiệu kèm theo; hoặc gửi tên thuốc/chỉ số sức khỏe cần kiểm tra.",
+      "narrative": [
+        {
+          "kind": "paragraph",
+          "text": "Cần thêm thông tin để hỗ trợ bạn. Mình chưa có đủ thông tin y tế để đưa ra hướng dẫn an toàn. Bạn hãy mô tả triệu chứng và vị trí khó chịu, thời điểm bắt đầu, mức độ, dấu hiệu kèm theo; hoặc gửi tên thuốc/chỉ số sức khỏe cần kiểm tra.",
+          "emphasis": [
+            "Cần thêm thông tin để hỗ trợ bạn"
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Bạn cho mình biết thêm: Bạn có thể chia sẻ cụ thể hơn về triệu chứng, vị trí khó chịu hoặc băn khoăn sức khỏe của bạn không?",
+          "emphasis": [
+            "Bạn cho mình biết thêm"
+          ]
         }
       ],
       "verifier_status": "deterministic",
