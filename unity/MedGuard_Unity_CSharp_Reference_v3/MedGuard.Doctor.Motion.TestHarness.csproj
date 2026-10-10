@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net9.0</TargetFramework>
@@ -7,9 +7,4 @@
     <LangVersion>latest</LangVersion>
     <NoWarn>CS8618;CS8603;CS0649;CS8602</NoWarn>
   </PropertyGroup>
-  <ItemGroup>
-    <Content Include="Data\**\*.*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
 </Project>

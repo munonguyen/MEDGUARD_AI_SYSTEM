@@ -297,7 +297,10 @@ export class DoctorMotion {
     targets.spine[2]+=sign*shoulder*.010;targets.head[2]-=sign*wrist*.016;
     targets.head[0]+=pulse(phase,.9,Math.max(.8,duration*.4))*strength*.022;
     if(cue.intent==='greeting') {
-      targets[arm+'Hand'][2]+=Math.sin(phase*5.5)*envelope(phase,.55,Math.min(1.8,duration-.55))*strength*style.wave;
+      // AIRI dignified clinical greeting: polite subtle head/chest bow + soft hand gesture
+      targets.head[0] += pulse(phase, 0.2, 1.4) * strength * 0.038;
+      targets.chest[0] += pulse(phase, 0.2, 1.4) * strength * 0.016;
+      targets[arm+'Hand'][2]+=Math.sin(phase*4.2)*envelope(phase,.55,Math.min(1.8,duration-.55))*strength*(style.wave * 0.6);
       targets.head[2]-=shoulder*.012;
     }
     this.handStates[arm]={openness:wrist,pose:style.fingers};
@@ -306,17 +309,17 @@ export class DoctorMotion {
     // FK still supplies preparation, articulation and wrist twist; IK gently
     // guides the upper/lower arm without straightening the elbow.
     if(cue.intent==='greeting') {
-      // Compact wave in front of the upper chest, elbow below the hand.
+      // Compact gesture in front of the upper chest, elbow below the hand.
       const wave=envelope(phase,.55,Math.min(1.8,duration-.55));
-      Object.assign(this.armGoals[arm],{target:shoulder,tx:.145+Math.sin(phase*5.5)*wave*.009,
-        ty:.075,tz:.20,palm:'stop'});
+      Object.assign(this.armGoals[arm],{target:shoulder,tx:.135+Math.sin(phase*4.2)*wave*.007,
+        ty:.065,tz:.21,palm:'offer'});
     } else {
       const compact=cue.intent==='caution'||cue.intent==='enumerate';
       const heart=style.id==='hand-near-heart';
-      Object.assign(this.armGoals[arm],{target:shoulder,tx:heart?.065:compact?.16:cue.intent==='compare'?.25:.19,
-        ty:heart?.04:compact?.075:cue.intent==='reassure'?.015:.04,
-        tz:heart?.17:compact?.19:.23+(style.arc||0)*Math.sin(phase*1.3),palm:heart?'heart':style.id==='compact-stop'?'stop':'offer'});
-      if(style.secondary)Object.assign(this.armGoals[other],{target:secondary,tx:cue.intent==='compare'?.24:.18,ty:.015,tz:.20,palm:'offer'});
+      Object.assign(this.armGoals[arm],{target:shoulder,tx:heart?.065:compact?.15:cue.intent==='compare'?.23:.18,
+        ty:heart?.04:compact?.065:cue.intent==='reassure'?.015:.035,
+        tz:heart?.17:compact?.19:.22+(style.arc||0)*Math.sin(phase*1.3),palm:heart?'heart':style.id==='compact-stop'?'stop':'offer'});
+      if(style.secondary)Object.assign(this.armGoals[other],{target:secondary,tx:cue.intent==='compare'?.22:.17,ty:.015,tz:.20,palm:'offer'});
     }
     const point=choreograph(cue.intent,phase,duration,style);
     // Scale adult reference-space paths for a different-sized custom rig.
@@ -357,11 +360,12 @@ export class DoctorMotion {
       const before=this.time-f.index*.06;
       while(f.history.length>2&&f.history[1].time<=before)f.history.shift();
       const delayed=f.history[0].open;
-      let curl=f.idle*(1-delayed*.86);
-      if(hand.pose==='point'&&f.finger!=='Thumb')curl=f.finger==='Index'?.025:f.idle+delayed*.48;
-      if(hand.pose==='two'&&f.finger!=='Thumb')curl=['Index','Middle'].includes(f.finger)?.025:f.idle+delayed*.42;
+      // AIRI natural relaxed curvature: fingers retain gentle human flex, avoiding flat claw rigidity
+      let curl=f.idle*(1-delayed*.42);
+      if(hand.pose==='point'&&f.finger!=='Thumb')curl=f.finger==='Index'?.035:f.idle+delayed*.45;
+      if(hand.pose==='two'&&f.finger!=='Thumb')curl=['Index','Middle'].includes(f.finger)?.035:f.idle+delayed*.40;
       curl=clamp(curl,0,f.segment===0?.85:.65);
-      const splay=(f.finger==='Thumb'?.08:(2.5-f.index)*.018)*delayed*(f.side==='left'?-1:1);
+      const splay=(f.finger==='Thumb'?.04:(1.8-f.index)*.008)*delayed*(f.side==='left'?-1:1);
       spring(f.curl,curl,10*(f.side==='left'?.94:1.02),dt,1.8);spring(f.splay,splay,8,dt,.65);
       f.q.setFromAxisAngle(f.axis,f.curl.position);
       if(f.segment===0)f.q.multiply(this.q.setFromAxisAngle(SPLAY_AXIS,f.splay.position));
@@ -402,9 +406,8 @@ export class DoctorMotion {
       target.copy(arm.chest);target.x+=side*goal.x;target.y+=goal.y;target.z+=goal.z;
       direction.subVectors(target,a);
       const distance=clamp(direction.length(),Math.abs(l1-l2)+.003,l1+l2-.025);direction.normalize();
-      // Elbow stays outside the ribs and lower than the hand. The pole is
-      // deliberately asymmetric so two-handed explanations never mirror.
-      pole.set(side*.55,-.9,arm.side==='left'?.19:.12);
+      // Elbow stays naturally close to the ribcage and lower than the hand, pointing down-backwards
+      pole.set(side*.20,-.88,-.16);
       pole.addScaledVector(direction,-pole.dot(direction)).normalize();
       const along=(l1*l1-l2*l2+distance*distance)/(2*distance),height=Math.sqrt(Math.max(0,l1*l1-along*along));
       elbow.copy(a).addScaledVector(direction,along).addScaledVector(pole,height);
@@ -414,14 +417,14 @@ export class DoctorMotion {
       lower.getWorldPosition(b);hand.getWorldPosition(c);delta.setFromUnitVectors(c.sub(b).normalize(),a.subVectors(target,b).normalize());
       lower.getWorldQuaternion(worldQ);lower.parent.getWorldQuaternion(parentQ).invert();
       from.copy(lower.quaternion);lower.quaternion.copy(from.slerp(parentQ.multiply(delta.multiply(worldQ)),weight));lower.updateWorldMatrix(true,true);
-      // Pronation belongs mostly to the forearm, not a sharply bent wrist.
+      // Pronation belongs mostly to the forearm, constrained to natural human range
       lower.getWorldPosition(b);hand.getWorldPosition(c);direction.subVectors(c,b).normalize();
       arm.normal.set(0,goal.ny,goal.nz).normalize();
       lower.getWorldQuaternion(worldQ);arm.palm.set(0,-1,0).applyQuaternion(worldQ);
       arm.palm.addScaledVector(direction,-arm.palm.dot(direction)).normalize();
       arm.axisY.copy(arm.normal).addScaledVector(direction,-arm.normal.dot(direction)).normalize();
       arm.axisZ.crossVectors(arm.palm,arm.axisY);
-      const twistTarget=clamp(Math.atan2(direction.dot(arm.axisZ),arm.palm.dot(arm.axisY)),-1.15,1.15);
+      const twistTarget=clamp(Math.atan2(direction.dot(arm.axisZ),arm.palm.dot(arm.axisY)),-.45,.45);
       spring(goal.twist,twistTarget,9,dt,2.1);
       const twist=goal.twist.position*weight;
       delta.setFromAxisAngle(direction,twist);lower.parent.getWorldQuaternion(parentQ).invert();
