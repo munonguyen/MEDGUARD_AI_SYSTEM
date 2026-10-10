@@ -1,15 +1,54 @@
-import { Euler, Matrix4, Quaternion, Vector3 } from 'three';
+import { Euler, Matrix4, Quaternion, Vector3, Object3D } from 'three';
 import { GesturePlanner, motionContext, phraseIntent, splitMotionPhrases } from './doctorMotionContext.js';
 import { choreograph } from './gestureChoreography.js';
 import { normalizeSpeechTiming, activeSpeechCue } from './speechTimeline.js';
 import { MOUTH_CHANNELS } from './doctorLipSync.js';
 
+// AIRI Eye Saccade Interval Distribution Matrix
+const EYE_SACCADE_INT_STEP = 400;
+const EYE_SACCADE_INT_P = [
+  [0.075, 800],
+  [0.110, 0],
+  [0.125, 0],
+  [0.140, 0],
+  [0.125, 0],
+  [0.050, 0],
+  [0.040, 0],
+  [0.030, 0],
+  [0.020, 0],
+  [1.000, 0],
+];
+for (let i = 1; i < EYE_SACCADE_INT_P.length; i++) {
+  EYE_SACCADE_INT_P[i][0] += EYE_SACCADE_INT_P[i - 1][0];
+  EYE_SACCADE_INT_P[i][1] = EYE_SACCADE_INT_P[i - 1][1] + EYE_SACCADE_INT_STEP;
+}
+
+export function randomSaccadeInterval(rng = Math.random) {
+  const r = rng();
+  for (let i = 0; i < EYE_SACCADE_INT_P.length; i++) {
+    if (r <= EYE_SACCADE_INT_P[i][0]) {
+      return EYE_SACCADE_INT_P[i][1] + rng() * EYE_SACCADE_INT_STEP;
+    }
+  }
+  return EYE_SACCADE_INT_P.at(-1)[1] + rng() * EYE_SACCADE_INT_STEP;
+}
+
+// AIRI Cubic Easing for facial expressions
+const easeInOutCubic = t => t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
+
+// AIRI Orthonormal Pole Vector
+function orthonormalizePole(dir, pole) {
+  const poleOrtho = pole.clone().addScaledVector(dir, -pole.dot(dir));
+  if (poleOrtho.lengthSq() <= 1e-12) return null;
+  return poleOrtho.normalize();
+}
+
 const REST = {
   hips:[0,0,0], spine:[0,0,0], chest:[0,0,0], upperChest:[0,0,0], neck:[0,0,0], head:[0,0,0],
   leftShoulder:[0,0,0], rightShoulder:[0,0,0],
-  leftUpperArm:[.08,.04,1.30], rightUpperArm:[.08,-.04,-1.30],
-  leftLowerArm:[-.12,0,.28], rightLowerArm:[-.12,0,-.28],
-  leftHand:[0,.04,.04], rightHand:[0,-.04,-.04],
+  leftUpperArm:[.06,.02,1.42], rightUpperArm:[.06,-.02,-1.42],
+  leftLowerArm:[.08,0,0], rightLowerArm:[.08,0,0],
+  leftHand:[.02,0,0], rightHand:[.02,0,0],
 };
 const clamp = (v,min=0,max=1) => Math.max(min,Math.min(max,v));
 const damp = (rate,dt) => 1-Math.exp(-rate*dt);
@@ -50,8 +89,13 @@ export class DoctorMotion {
     this.pendingTransition=false;this.transitionAt=-10;this.transitionDuration=.3;
     for(const [n,xyz] of Object.entries(this.rest)) this.bones[n]?.quaternion.setFromEuler(this.euler.set(...xyz));
     this.armOutput=Object.fromEntries(Object.entries(this.bones).filter(([n,b])=>b&&(n.includes('Arm')||n.endsWith('Hand'))).map(([n,b])=>[n,b.quaternion.clone()]));
-    this.blinkAt=2.5+random()*2;this.blinkStarted=-10;
+    this.blinkAt=2.2+random()*2;this.blinkStarted=-10;
+    this.doubleBlinkAt=0;this.pendingDoubleBlink=false;this.wasThinking=false;
     this.eye={x:0,y:0};this.headLook={x:0,y:0};this.saccade={x:0,y:0};this.saccadeAt=0;
+    this.nextSaccadeAfter=randomSaccadeInterval(random)/1000;
+    this.timeSinceLastSaccade=0;
+    this.fixationTarget=new Vector3();
+    this.glanceOffset={x:0,y:0};this.glanceNext=3.5+random()*2.5;this.glanceTimer=0;
     this.thinkSide=random()<.5?-1:1;
     this.weight=state(0);this.weightFrom=0;this.weightTarget=.6;this.weightAt=0;this.weightNext=15+random()*10;
     this.breathRecovery=0;this.quietFor=0;this.speakingFor=0;this.previousAudible=false;this.beatAt=-10;
@@ -66,19 +110,27 @@ export class DoctorMotion {
         const direction=child?.position.clone() || bone.position.clone();
         if(direction.lengthSq()<1e-8)direction.set(side==='left'?1:-1,0,0);
         const axis=direction.normalize().cross(new Vector3(0,-1,0)).normalize();
-        const idle=(finger==='Thumb'?.16:.16+index*.095)*(segment===0?1:segment===1?.65:.4);
+        const idle=(finger==='Thumb'?.28:.32+index*.055)*(segment===0?1:segment===1?.72:.5);
         this.fingers.push({name,bone,finger,index,segment,side,axis,idle,curl:state(idle),splay:state(0),q:new Quaternion()});
       }
     }
     // Use the model's gaze applier (bone or expression) instead of competing
     // look blendshapes that VRM.update may overwrite. Public angles are degrees.
-    if(vrm.lookAt)vrm.lookAt.autoUpdate=false;
-    this.forward=vrm.lookAt?.faceFront.clone() || new Vector3(0,0,vrm.meta?.metaVersion==='0'?-1:1);
+    if(vrm.lookAt){
+      vrm.lookAt.autoUpdate=false;
+      if(!vrm.lookAt.target) vrm.lookAt.target = new Object3D();
+    }
+    this.forward=vrm.lookAt?.faceFront?.clone() || new Vector3(0,0,vrm.meta?.metaVersion==='0'?-1:1);
     this.legs=this.captureLegs();
     this.arms=this.captureArms();
     this.armGoals=Object.fromEntries(['left','right'].map(side=>[side,{weight:0,target:0,x:.2,y:.04,z:.21,tx:.2,ty:.04,tz:.21,ny:1,nz:.12,twist:state(0)}]));
     this.hipRest=this.bones.hips?.position.clone();
     this.startUtterance('');
+  }
+  samplePoissonBlinkInterval(cautious,think){
+    const mean=cautious?4.4:think?4.8:3.4;
+    const u=clamp(this.random(),.02,.98);
+    return clamp(-Math.log(1-u)*mean,2.0,6.2);
   }
   captureLegs() {
     const legs=[];
@@ -218,11 +270,37 @@ export class DoctorMotion {
     const targets=this.targets;
     this.armGoals.left.target=this.armGoals.right.target=0;
     for(const [n,xyz] of Object.entries(REST))for(let i=0;i<3;i++)targets[n][i]=xyz[i];
-    const eyeTarget={x:clamp(look.x,-1,1),y:clamp(look.y,-1,1)};
+    if(this.glanceTimer>0){
+      this.glanceTimer-=dt;
+      if(this.glanceTimer<=0){this.glanceOffset.x=0;this.glanceOffset.y=0;this.glanceNext=time+3.8+this.random()*3.0;}
+    } else if(time>=this.glanceNext&&!think&&!listen&&Math.abs(look.x)<0.35){
+      this.glanceOffset.x=(this.random()<.5?-1:1)*(0.11+this.random()*0.07);
+      this.glanceOffset.y=(this.random()-.25)*0.08;
+      this.glanceTimer=0.75+this.random()*0.40;
+      if(time-this.blinkStarted>1.8&&this.random()<.55){
+        this.blinkStarted=time;
+        this.blinkAt=time+this.samplePoissonBlinkInterval(cautious,think);
+      }
+    }
+    const glanceX=(!think&&!listen&&Math.abs(look.x)<0.35)?this.glanceOffset.x:0;
+    const glanceY=(!think&&!listen&&Math.abs(look.y)<0.35)?this.glanceOffset.y:0;
+    const eyeTarget={x:clamp(look.x+glanceX,-1,1),y:clamp(look.y+glanceY,-1,1)};
     if(think){eyeTarget.x=eyeTarget.x*.35+this.thinkSide*.34;eyeTarget.y=eyeTarget.y*.35+.25;}
     this.eye.x+=(eyeTarget.x-this.eye.x)*damp(22,dt);this.eye.y+=(eyeTarget.y-this.eye.y)*damp(22,dt);
     this.headLook.x+=(this.eye.x-this.headLook.x)*damp(4,dt);this.headLook.y+=(this.eye.y-this.headLook.y)*damp(4,dt);
-    if(time>=this.saccadeAt){this.saccade={x:(this.random()-.5)*.018,y:(this.random()-.5)*.012};this.saccadeAt=time+.25+this.random()*.25;}
+    this.timeSinceLastSaccade+=dt;
+    if(this.timeSinceLastSaccade>=this.nextSaccadeAfter||time>=this.saccadeAt){
+      this.saccade={x:(this.random()-.5)*.018,y:(this.random()-.5)*.012};
+      this.timeSinceLastSaccade=0;
+      this.nextSaccadeAfter=randomSaccadeInterval(this.random)/1000;
+      this.saccadeAt=time+this.nextSaccadeAfter;
+    }
+    if(this.vrm.lookAt?.target){
+      const headNode=this.bones.head||this.vrm.humanoid?.getNormalizedBoneNode('head');
+      const headPos=headNode?headNode.getWorldPosition(new Vector3()):new Vector3(0,1.35,0);
+      this.fixationTarget.set(headPos.x+this.eye.x*.8+this.saccade.x*2,headPos.y+this.eye.y*.6+this.saccade.y*2,headPos.z+(this.forward.z<0?-1.5:1.5));
+      this.vrm.lookAt.target.position.lerp(this.fixationTarget,1);
+    }
     const gazeX=this.eye.x,gazeY=this.eye.y;
     if(!reducedMotion) {
       const breath=Math.sin(this.breathPhase),breathScale=1+this.breathRecovery+(speaking?clamp(this.utteranceText.length/800)*.1:0);
@@ -233,14 +311,33 @@ export class DoctorMotion {
       targets.hips[2]=shift*.007;targets.spine[2]=-shift*.012;targets.chest[2]=shift*.006;
       targets.spine[0]=breath*.004*breathScale;targets.chest[0]=breath*.007*breathScale;
       targets.upperChest[0]=Math.sin(this.breathPhase-.13)*.003*breathScale;
+      // AIRI natural clavicle rise during inhalation
+      targets.leftShoulder[0]=Math.sin(this.breathPhase-.2)*.0035*breathScale;
+      targets.rightShoulder[0]=Math.sin(this.breathPhase-.2)*.0035*breathScale;
       targets.leftShoulder[2]=Math.sin(this.breathPhase-.3)*.005*breathScale-shift*.004;
       targets.rightShoulder[2]=-Math.sin(this.breathPhase-.1)*.005*breathScale-shift*.004;
-      targets.leftLowerArm[2]+=.035+Math.sin(time*.41)*.012;
-      targets.rightLowerArm[2]-=.055+Math.sin(time*.37+.8)*.012;
+      targets.leftLowerArm[2]+=Math.sin(time*.41)*.008;
+      targets.rightLowerArm[2]-=Math.sin(time*.37+.8)*.008;
+      // AIRI living subconscious postural micro-sway and respiratory head bob
+      const swayCoronal=Math.sin(time*1.38)*.0022;
+      const swaySagittal=Math.cos(time*1.07)*.0018;
+      targets.spine[1]+=swayCoronal;
+      targets.head[1]+=swayCoronal*1.15;
+      targets.spine[0]+=swaySagittal;
+      targets.head[0]-=Math.sin(this.breathPhase)*.004*breathScale;
       if(listen){const nod=pulse((time-this.poseStarted)%7.3,1.15,1.3);targets.spine[0]-=.013;targets.neck[0]+=.018*nod;targets.head[0]+=.035*nod;}
-      if(think){targets.leftLowerArm[2]+=.22;targets.rightLowerArm[2]-=.10;targets.chest[1]-=.012;}
+      if(think){
+        // Thoughtful contemplative posture: head tilt + subtle chest shift, arms stay naturally relaxed
+        targets.chest[1] -= this.thinkSide * .014;
+        targets.head[1] += this.thinkSide * .045;
+        targets.head[2] += this.thinkSide * .022;
+        targets.head[0] -= .015;
+        this.handStates.left = { openness: 0, pose: 'soft' };
+        this.handStates.right = { openness: 0, pose: 'soft' };
+      }
+      if(responding){const ack=pulse(replyAge,.1,1.3);targets.head[0]+=ack*.042;targets.neck[0]+=ack*.020;targets.chest[0]+=ack*.015;}
       targets.head[0]+=this.headLook.y*.09+(listen?-.025:think?.02:0);
-      targets.head[1]+=this.headLook.x*.22;targets.head[2]+=listen?.018:0;
+      targets.head[1]+=this.headLook.x*.22;targets.head[2]+=listen?.022:0;
       targets.neck[0]+=this.headLook.y*.035;targets.neck[1]+=this.headLook.x*.055;
       targets.chest[1]+=this.headLook.x*.022;
       const {cue,phase,duration}=action;
@@ -297,7 +394,10 @@ export class DoctorMotion {
     targets.spine[2]+=sign*shoulder*.010;targets.head[2]-=sign*wrist*.016;
     targets.head[0]+=pulse(phase,.9,Math.max(.8,duration*.4))*strength*.022;
     if(cue.intent==='greeting') {
-      targets[arm+'Hand'][2]+=Math.sin(phase*5.5)*envelope(phase,.55,Math.min(1.8,duration-.55))*strength*style.wave;
+      // AIRI dignified clinical greeting: polite subtle head/chest bow + soft hand gesture
+      targets.head[0] += pulse(phase, 0.2, 1.4) * strength * 0.038;
+      targets.chest[0] += pulse(phase, 0.2, 1.4) * strength * 0.016;
+      targets[arm+'Hand'][2]+=Math.sin(phase*4.2)*envelope(phase,.55,Math.min(1.8,duration-.55))*strength*(style.wave * 0.6);
       targets.head[2]-=shoulder*.012;
     }
     this.handStates[arm]={openness:wrist,pose:style.fingers};
@@ -306,17 +406,17 @@ export class DoctorMotion {
     // FK still supplies preparation, articulation and wrist twist; IK gently
     // guides the upper/lower arm without straightening the elbow.
     if(cue.intent==='greeting') {
-      // Compact wave in front of the upper chest, elbow below the hand.
+      // Compact gesture in front of the upper chest, elbow below the hand.
       const wave=envelope(phase,.55,Math.min(1.8,duration-.55));
-      Object.assign(this.armGoals[arm],{target:shoulder,tx:.145+Math.sin(phase*5.5)*wave*.009,
-        ty:.075,tz:.20,palm:'stop'});
+      Object.assign(this.armGoals[arm],{target:shoulder,tx:.135+Math.sin(phase*4.2)*wave*.007,
+        ty:.065,tz:.21,palm:'offer'});
     } else {
       const compact=cue.intent==='caution'||cue.intent==='enumerate';
       const heart=style.id==='hand-near-heart';
-      Object.assign(this.armGoals[arm],{target:shoulder,tx:heart?.065:compact?.16:cue.intent==='compare'?.25:.19,
-        ty:heart?.04:compact?.075:cue.intent==='reassure'?.015:.04,
-        tz:heart?.17:compact?.19:.23+(style.arc||0)*Math.sin(phase*1.3),palm:heart?'heart':style.id==='compact-stop'?'stop':'offer'});
-      if(style.secondary)Object.assign(this.armGoals[other],{target:secondary,tx:cue.intent==='compare'?.24:.18,ty:.015,tz:.20,palm:'offer'});
+      Object.assign(this.armGoals[arm],{target:shoulder,tx:heart?.065:compact?.15:cue.intent==='compare'?.23:.18,
+        ty:heart?.04:compact?.065:cue.intent==='reassure'?.015:.035,
+        tz:heart?.17:compact?.19:.22+(style.arc||0)*Math.sin(phase*1.3),palm:heart?'heart':style.id==='compact-stop'?'stop':'offer'});
+      if(style.secondary)Object.assign(this.armGoals[other],{target:secondary,tx:cue.intent==='compare'?.22:.17,ty:.015,tz:.20,palm:'offer'});
     }
     const point=choreograph(cue.intent,phase,duration,style);
     // Scale adult reference-space paths for a different-sized custom rig.
@@ -357,11 +457,12 @@ export class DoctorMotion {
       const before=this.time-f.index*.06;
       while(f.history.length>2&&f.history[1].time<=before)f.history.shift();
       const delayed=f.history[0].open;
-      let curl=f.idle*(1-delayed*.86);
-      if(hand.pose==='point'&&f.finger!=='Thumb')curl=f.finger==='Index'?.025:f.idle+delayed*.48;
-      if(hand.pose==='two'&&f.finger!=='Thumb')curl=['Index','Middle'].includes(f.finger)?.025:f.idle+delayed*.42;
+      // AIRI natural relaxed curvature: fingers retain gentle human flex, avoiding flat claw rigidity
+      let curl=f.idle*(1-delayed*.42);
+      if(hand.pose==='point'&&f.finger!=='Thumb')curl=f.finger==='Index'?.035:f.idle+delayed*.45;
+      if(hand.pose==='two'&&f.finger!=='Thumb')curl=['Index','Middle'].includes(f.finger)?.035:f.idle+delayed*.40;
       curl=clamp(curl,0,f.segment===0?.85:.65);
-      const splay=(f.finger==='Thumb'?.08:(2.5-f.index)*.018)*delayed*(f.side==='left'?-1:1);
+      const splay=(f.finger==='Thumb'?.04:(1.8-f.index)*.008)*delayed*(f.side==='left'?-1:1);
       spring(f.curl,curl,10*(f.side==='left'?.94:1.02),dt,1.8);spring(f.splay,splay,8,dt,.65);
       f.q.setFromAxisAngle(f.axis,f.curl.position);
       if(f.segment===0)f.q.multiply(this.q.setFromAxisAngle(SPLAY_AXIS,f.splay.position));
@@ -402,10 +503,12 @@ export class DoctorMotion {
       target.copy(arm.chest);target.x+=side*goal.x;target.y+=goal.y;target.z+=goal.z;
       direction.subVectors(target,a);
       const distance=clamp(direction.length(),Math.abs(l1-l2)+.003,l1+l2-.025);direction.normalize();
-      // Elbow stays outside the ribs and lower than the hand. The pole is
-      // deliberately asymmetric so two-handed explanations never mirror.
-      pole.set(side*.55,-.9,arm.side==='left'?.19:.12);
-      pole.addScaledVector(direction,-pole.dot(direction)).normalize();
+      if(arm.lastDirection&&arm.lastDirection.dot(direction)<-0.2)return;
+      arm.lastDirection=direction.clone();
+      // Elbow stays naturally close to the ribcage and lower than the hand, pointing down-backwards
+      pole.set(side*.20,-.88,-.16);
+      const poleOrtho=orthonormalizePole(direction,pole);
+      if(poleOrtho)pole.copy(poleOrtho);
       const along=(l1*l1-l2*l2+distance*distance)/(2*distance),height=Math.sqrt(Math.max(0,l1*l1-along*along));
       elbow.copy(a).addScaledVector(direction,along).addScaledVector(pole,height);
       lower.getWorldPosition(b);delta.setFromUnitVectors(b.sub(a).normalize(),c.subVectors(elbow,a).normalize());
@@ -414,34 +517,53 @@ export class DoctorMotion {
       lower.getWorldPosition(b);hand.getWorldPosition(c);delta.setFromUnitVectors(c.sub(b).normalize(),a.subVectors(target,b).normalize());
       lower.getWorldQuaternion(worldQ);lower.parent.getWorldQuaternion(parentQ).invert();
       from.copy(lower.quaternion);lower.quaternion.copy(from.slerp(parentQ.multiply(delta.multiply(worldQ)),weight));lower.updateWorldMatrix(true,true);
-      // Pronation belongs mostly to the forearm, not a sharply bent wrist.
+      // Pronation belongs mostly to the forearm, constrained to natural human range
       lower.getWorldPosition(b);hand.getWorldPosition(c);direction.subVectors(c,b).normalize();
       arm.normal.set(0,goal.ny,goal.nz).normalize();
       lower.getWorldQuaternion(worldQ);arm.palm.set(0,-1,0).applyQuaternion(worldQ);
       arm.palm.addScaledVector(direction,-arm.palm.dot(direction)).normalize();
       arm.axisY.copy(arm.normal).addScaledVector(direction,-arm.normal.dot(direction)).normalize();
       arm.axisZ.crossVectors(arm.palm,arm.axisY);
-      const twistTarget=clamp(Math.atan2(direction.dot(arm.axisZ),arm.palm.dot(arm.axisY)),-1.15,1.15);
-      spring(goal.twist,twistTarget,9,dt,2.1);
+      const twistTarget=clamp(Math.atan2(direction.dot(arm.axisZ),arm.palm.dot(arm.axisY)),-.22,.22);
+      spring(goal.twist,twistTarget,7,dt,1.5);
       const twist=goal.twist.position*weight;
       delta.setFromAxisAngle(direction,twist);lower.parent.getWorldQuaternion(parentQ).invert();
       lower.quaternion.copy(parentQ.multiply(delta.multiply(worldQ)));lower.updateWorldMatrix(true,true);
-      // Align the palm semantically while bounding wrist deviation to 37°.
-      arm.axisX.copy(direction).addScaledVector(arm.normal,-direction.dot(arm.normal)).normalize().multiplyScalar(arm.fingerSign);
-      if(arm.axisX.lengthSq()>.01) {
-        arm.axisY.copy(arm.normal).negate();arm.axisZ.crossVectors(arm.axisX,arm.axisY).normalize();arm.axisY.crossVectors(arm.axisZ,arm.axisX).normalize();
-        worldQ.setFromRotationMatrix(arm.matrix.makeBasis(arm.axisX,arm.axisY,arm.axisZ));
-        hand.parent.getWorldQuaternion(parentQ).invert();parentQ.multiply(worldQ);
-        from.copy(hand.quaternion);from.rotateTowards(parentQ,.65);hand.quaternion.slerp(from,weight);
-      }
+      // Hand naturally extends from forearm following authored gesture Euler targets;
+      // never override with inverted coordinate basis to prevent unnatural 180° twists.
     }
   }
   updateFace(dt,{speaking,hasAudio,audioLevel,spectrum,visemes,cautious,empathetic,think,listen,reducedMotion,gazeX,gazeY}) {
     const alpha=damp(7,dt),time=this.time;
-    if(time>=this.blinkAt){this.blinkStarted=time;this.blinkAt=time+(cautious?4:3)+this.random()*3;}
-    if(this.wasThinking&&!think){this.blinkStarted=time;this.blinkAt=time+3+this.random()*3;}
+    // AIRI Stochastic Poisson Auto-Blink Engine with Double-Blink & Asymmetric Kinetics
+    if(time>=this.blinkAt){
+      this.blinkStarted=time;
+      this.pendingDoubleBlink=this.random()<0.14;
+      this.blinkAt=time+this.samplePoissonBlinkInterval(cautious,think);
+    }
+    if(this.wasThinking&&!think){
+      this.blinkStarted=time;
+      this.pendingDoubleBlink=false;
+      this.blinkAt=time+this.samplePoissonBlinkInterval(cautious,think);
+    }
     this.wasThinking=think;
-    const age=time-this.blinkStarted,blink=age<.075?ease(age/.075):age<.23?1-ease((age-.075)/.155):0;
+    const age=time-this.blinkStarted;
+    const closeDur=0.065,openDur=0.145,totalDur=closeDur+openDur;
+    let blink=0;
+    if(age>=0&&age<totalDur){
+      blink=age<closeDur?ease(age/closeDur):1-ease((age-closeDur)/openDur);
+    } else if(this.pendingDoubleBlink&&age>=totalDur+0.08){
+      this.doubleBlinkAt=time;
+      this.pendingDoubleBlink=false;
+    }
+    if(this.doubleBlinkAt&&time>=this.doubleBlinkAt){
+      const dAge=time-this.doubleBlinkAt;
+      if(dAge>=0&&dAge<totalDur){
+        blink=Math.max(blink,dAge<closeDur?ease(dAge/closeDur):1-ease((dAge-closeDur)/openDur));
+      } else if(dAge>=totalDur){
+        this.doubleBlinkAt=0;
+      }
+    }
     this.setValue('blink',Math.max(0,blink),1);
     const noise=reducedMotion?0:(Math.sin(time*.73+.4)+Math.sin(time*1.13))*.005;
     const happy=cautious?0:think?.018:this.activeGesture==='greeting'?.12:empathetic?.075:this.contextState==='encouraging'?.17:.028;
@@ -451,7 +573,8 @@ export class DoctorMotion {
     this.setValue('angry',cautious?.045+Math.abs(noise):think?.015:0,alpha);
     this.setValue('relaxed',(think?.045:listen?.06:.025)+noise*.4,alpha);
     this.setValue(this.surpriseName,this.expression==='surprised'&&!cautious?.06:!cautious&&think?Math.max(0,noise)*.5:0,alpha);
-    for(const n of this.faceDetails.browUp)this.setValue(n,(empathetic?.035:think?.02:0)+Math.max(0,noise),alpha);
+    const browAccent=speaking&&hasAudio?this.audioAccent*.018:0;
+    for(const n of this.faceDetails.browUp)this.setValue(n,(empathetic?.035:think?.02:0)+Math.max(0,noise)+browAccent,alpha);
     for(const n of this.faceDetails.browDown)this.setValue(n,(cautious?.04:0)+Math.max(0,-noise),alpha);
     const ex=reducedMotion?0:gazeX*.13+this.saccade.x,ey=reducedMotion?0:gazeY*.09+this.saccade.y;
     if(this.vrm.lookAt){
@@ -459,6 +582,7 @@ export class DoctorMotion {
       // The bone applier itself compensates for VRM0's authored faceFront.
       const sign=this.vrm.lookAt.applier?.constructor?.type==='expression'?-1:1;
       this.vrm.lookAt.yaw=sign*ex*180/Math.PI;this.vrm.lookAt.pitch=-ey*180/Math.PI;
+      try{this.vrm.lookAt.update(dt);}catch{}
     }
     else for(const [n,v] of Object.entries({lookRight:ex,lookLeft:-ex,lookUp:ey,lookDown:-ey}))this.setValue(n,Math.max(0,v),damp(22,dt));
     // Spectral band ratios diversify vowels only. They do not identify phonemes,

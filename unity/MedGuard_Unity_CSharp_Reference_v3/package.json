@@ -1,0 +1,10 @@
+{
+  "name": "com.medguard.doctor.motion",
+  "displayName": "MedGuard Doctor Motion System (C# Native)",
+  "version": "3.0.0",
+  "unity": "2022.3",
+  "description": "Hệ thống điều khiển chuyển động tự nhiên cho avatar bác sĩ MedGuard bằng Unity C# thuần túy, tích hợp bộ phân tích bối cảnh lâm sàng 64 cử chỉ.",
+  "author": {
+    "name": "MedGuard AI Engineering Team"
+  }
+}

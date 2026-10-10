@@ -1,0 +1,226 @@
+[
+  {
+    "id": "CTX01",
+    "input": "Tôi đau ngực lan tay trái và khó thở",
+    "interpretation": "Backend verified Urgent; user đang nói",
+    "expected": "Attentive rồi Urgent",
+    "forbidden": "Wave, smile, shrug; không tự xác định nguyên nhân"
+  },
+  {
+    "id": "CTX02",
+    "input": "Tôi không khó thở",
+    "interpretation": "Triệu chứng phủ định trong mệnh đề này",
+    "expected": "Attentive; act trả lời do backend",
+    "forbidden": "Caution chỉ vì gặp từ khó thở"
+  },
+  {
+    "id": "CTX03",
+    "input": "Nếu sau này bị khó thở thì sao",
+    "interpretation": "Giả định tương lai, không assertion hiện tại",
+    "expected": "Invite hoặc Explain theo response",
+    "forbidden": "Urgent chỉ từ câu giả định"
+  },
+  {
+    "id": "CTX04",
+    "input": "Mẹ tôi từng khó thở tháng trước",
+    "interpretation": "Người khác, quá khứ; mức nguy cơ do backend",
+    "expected": "Attentive rồi Clarify nếu cần",
+    "forbidden": "Gán symptom cho user hoặc urgent từ khóa"
+  },
+  {
+    "id": "CTX05",
+    "input": "Bạn nói “khó thở” nghĩa là gì",
+    "interpretation": "Trích dẫn thuật ngữ, hỏi kiến thức",
+    "expected": "Explain",
+    "forbidden": "Diễn bệnh nhân đang khó thở"
+  },
+  {
+    "id": "CTX06",
+    "input": "Tôi đỡ hơn nhưng vẫn đau",
+    "interpretation": "Diễn biến tích cực không xóa dữ kiện còn tồn tại",
+    "expected": "Empathy rồi act đã duyệt",
+    "forbidden": "Thanks, thumbs up hoặc kết luận an toàn"
+  },
+  {
+    "id": "CTX07",
+    "input": "Tôi từng đau nhưng hôm nay không đau",
+    "interpretation": "Temporality và phủ định có scope riêng",
+    "expected": "Clarify hoặc Explain theo response",
+    "forbidden": "Xóa mọi episode hoặc diễn Caution từ đau"
+  },
+  {
+    "id": "CTX08",
+    "input": "Tôi không chỉ đau đầu mà còn buồn nôn",
+    "interpretation": "Không chỉ là cấu trúc khẳng định bổ sung",
+    "expected": "Attentive; policy theo backend",
+    "forbidden": "Coi không là phủ định toàn câu"
+  },
+  {
+    "id": "CTX09",
+    "input": "Chưa bao giờ tôi bị như thế này",
+    "interpretation": "Phủ định quá khứ, không phủ định hiện tại",
+    "expected": "Attentive; Clarify nếu cần",
+    "forbidden": "Kết luận hiện tại không có triệu chứng"
+  },
+  {
+    "id": "CTX10",
+    "input": "Tôi lo quá, liệu có sao không",
+    "interpretation": "Affect lo lắng; severity độc lập",
+    "expected": "Empathy rồi Uncertainty hoặc Reassure hợp lệ",
+    "forbidden": "Smile lớn, cam kết mọi thứ ổn"
+  },
+  {
+    "id": "CTX11",
+    "input": "Tôi sợ nhưng không muốn kể thêm",
+    "interpretation": "User không đồng ý tiếp tục cung cấp",
+    "expected": "Attentive và Wait",
+    "forbidden": "Gesture thúc giục hoặc finger point"
+  },
+  {
+    "id": "CTX12",
+    "input": "Tôi rất buồn vì kết quả này",
+    "interpretation": "Distress có confidence đủ",
+    "expected": "Empathy still",
+    "forbidden": "Greeting vui, grin, hand near heart tự động"
+  },
+  {
+    "id": "CTX13",
+    "input": "Cảm ơn bác sĩ, tôi hiểu rồi",
+    "interpretation": "Thanks hoặc Close nếu phiên thực sự kết thúc",
+    "expected": "Thanks; Farewell chỉ khi Close",
+    "forbidden": "Tự đóng phiên chỉ vì cảm ơn"
+  },
+  {
+    "id": "CTX14",
+    "input": "Xin chào bác sĩ",
+    "interpretation": "Phiên mới, routine verified hoặc nonclinical",
+    "expected": "Greeting low wave",
+    "forbidden": "Chào lại mỗi audio chunk"
+  },
+  {
+    "id": "CTX15",
+    "input": "Bước một làm gì, bước hai làm gì",
+    "interpretation": "Response có chuỗi bước rõ",
+    "expected": "Sequence; Enumerate khi đúng mục",
+    "forbidden": "Dùng count gesture theo số bất kỳ trong text"
+  },
+  {
+    "id": "CTX16",
+    "input": "Hai cách này khác nhau thế nào",
+    "interpretation": "Response so sánh hai mục thật",
+    "expected": "Compare và Contrast",
+    "forbidden": "Tay trái mặc định xấu tay phải tốt"
+  },
+  {
+    "id": "CTX17",
+    "input": "Tôi không nên tự làm việc đó đúng không",
+    "interpretation": "Câu hỏi; response act ProhibitAction đã duyệt",
+    "expected": "Prevent",
+    "forbidden": "Stop trước khi response xác minh nội dung"
+  },
+  {
+    "id": "CTX18",
+    "input": "Cái nào trong hình là phần bạn nói",
+    "interpretation": "Có targetId UI đúng và thấy được",
+    "expected": "ShowTarget rồi gaze return",
+    "forbidden": "Chỉ vào vùng trống khi target mất"
+  },
+  {
+    "id": "CTX19",
+    "input": "Tôi nghe không rõ, bạn nói lại được không",
+    "interpretation": "User yêu cầu lặp; generation mới",
+    "expected": "Clarify hoặc Explain đã lập lại",
+    "forbidden": "Replay cue cũ bất kể speechId"
+  },
+  {
+    "id": "CTX20",
+    "input": "ASR ghi “khó thở” với confidence thấp",
+    "interpretation": "Nội dung chưa xác nhận; giữ backend alert đang có",
+    "expected": "Attentive rồi Clarify",
+    "forbidden": "Chuyển từ keyword thành emergency; xóa urgent đã verified"
+  },
+  {
+    "id": "CTX21",
+    "input": "User chen ngang giữa câu",
+    "interpretation": "Barge in event ưu tiên cao",
+    "expected": "Interrupt rồi Recover rồi Attentive",
+    "forbidden": "Chờ clip kết thúc hoặc giữ mouth nói"
+  },
+  {
+    "id": "CTX22",
+    "input": "Audio bị pause ở stroke",
+    "interpretation": "Speech clock paused",
+    "expected": "Giữ phase ngắn, settle theo policy",
+    "forbidden": "Time.time làm gesture tiếp tục chạy trước audio"
+  },
+  {
+    "id": "CTX23",
+    "input": "TTS lỗi, câu trả lời vẫn có trên UI",
+    "interpretation": "No speech available",
+    "expected": "Recover rồi Attentive",
+    "forbidden": "Mouth nói không âm, gesture theo câu chưa phát"
+  },
+  {
+    "id": "CTX24",
+    "input": "Packet gesture đến sau endAt",
+    "interpretation": "Cue quá hạn",
+    "expected": "Skip rồi giữ current recovery",
+    "forbidden": "Tua nhanh để kịp gesture"
+  },
+  {
+    "id": "CTX25",
+    "input": "Hai packet eventId giống nhau",
+    "interpretation": "Duplicate cùng generation",
+    "expected": "Chỉ một cue",
+    "forbidden": "Hai stroke liên tiếp cho cùng ý"
+  },
+  {
+    "id": "CTX26",
+    "input": "Callback audio lượt cũ quay lại",
+    "interpretation": "Generation đã cancel",
+    "expected": "Reject, giữ current generation",
+    "forbidden": "Hồi sinh gesture cũ"
+  },
+  {
+    "id": "CTX27",
+    "input": "User hỏi tiếp chủ đề mới",
+    "interpretation": "Episode mới do backend; context thay đổi",
+    "expected": "Attentive rồi response act mới",
+    "forbidden": "Mang alert hoặc biểu cảm cũ sang vô hạn"
+  },
+  {
+    "id": "CTX28",
+    "input": "Bác sĩ đang tì tay trên bàn rồi giải thích",
+    "interpretation": "Contact valid; request gesture",
+    "expected": "Release contact rồi Explain",
+    "forbidden": "Tay trượt vì additive breath hoặc arm IK"
+  },
+  {
+    "id": "CTX29",
+    "input": "Bác sĩ ngồi nhưng chỉ có clip đứng",
+    "interpretation": "Posture mismatch",
+    "expected": "Rest seated fallback",
+    "forbidden": "Dùng clip đứng rồi sửa bằng tay IK"
+  },
+  {
+    "id": "CTX30",
+    "input": "Thiếu finger bones hoặc blendshape",
+    "interpretation": "Capability thiếu",
+    "expected": "Bỏ pose ngón; gesture còn tương thích",
+    "forbidden": "Crash hoặc quaternion NaN"
+  },
+  {
+    "id": "CTX31",
+    "input": "User yêu cầu ít cử động",
+    "interpretation": "ReducedMotion preference",
+    "expected": "Attentive; face/gaze tối thiểu tùy cấu hình",
+    "forbidden": "Noise và vẫy tay vẫn chạy"
+  },
+  {
+    "id": "CTX32",
+    "input": "Mức urgent đã verified rồi ASR bị lỗi",
+    "interpretation": "Alert có hiệu lực cho episode hiện tại",
+    "expected": "Urgent steady vẫn giữ",
+    "forbidden": "Confidence thấp tự hạ severity"
+  }
+]

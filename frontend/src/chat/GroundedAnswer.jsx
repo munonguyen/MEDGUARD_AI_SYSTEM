@@ -149,7 +149,7 @@ function ClinicalClarifyingNotes({ questions }) {
     <div className="clinical-clarifying-notes" role="note" aria-label="Thông tin lâm sàng cần làm rõ">
       <div className="clarifying-notes-header">
         <ClipboardList size={15} className="clarifying-notes-icon" />
-        <span>Thông tin lâm sàng cần làm rõ thêm:</span>
+        <span>Thông tin cần biết thêm</span>
       </div>
       <ul className="clarifying-notes-list">
         {questions.map((q, idx) => (
@@ -375,6 +375,16 @@ export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQues
             ))}
           </div>
 
+          {safetyNotes.length > 0 && (
+            <ClinicalSection
+              title={status.tone === 'emergency' ? 'Hành động và dấu hiệu khẩn cấp' : 'Khi nào cần đi khám / cấp cứu'}
+              icon={ShieldAlert}
+              items={safetyNotes}
+              tone={status.tone === 'emergency' ? 'danger' : 'warning'}
+              className="clinical-section-wide"
+            />
+          )}
+
           {!hasNarrativeClarifying && systemClarifyingQuestions.length > 0 && (
             <ClinicalClarifyingNotes questions={systemClarifyingQuestions} />
           )}
@@ -418,6 +428,16 @@ export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQues
             tone={status.tone === 'emergency' ? 'danger' : 'warning'}
             className="clinical-section-wide"
           />
+
+          {hasNarrativeClarifying && (
+            <div className="clinical-clarifying-direct-wrap">
+              {narrativeBlocks
+                .filter((b) => b.text?.startsWith('Bạn cho mình biết thêm:') || b.text?.startsWith('Thông tin cần báo nhân viên y tế'))
+                .map((block, i) => (
+                  <NarrativeBlock key={`clarifying-direct-${i}`} block={block} sourcesById={sourcesById} />
+                ))}
+            </div>
+          )}
 
           {!hasNarrativeClarifying && systemClarifyingQuestions.length > 0 && (
             <ClinicalClarifyingNotes questions={systemClarifyingQuestions} />
@@ -465,21 +485,23 @@ export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQues
         </div>
       )}
 
-      {!verifiedAgentPrimary && (isBrief || isFocused || (hasNarrative && hasStructuredContent && narrativeBlocks.length > 0)) && (
+      {(isBrief || isFocused || (hasNarrative && narrativeBlocks.length > 0)) && (
         <details className="clinical-detail-panel">
           <summary>
             <span><Stethoscope size={15} /> {isClinical ? 'Giải thích chi tiết' : 'Chi tiết xử lý'}</span>
             <ChevronDown size={14} className="panel-chevron" />
           </summary>
           <div className="clinical-detail-content">
-            {narrativeBlocks.length > 0 ? (
-              narrativeBlocks.map((block, index) => (
-                <NarrativeBlock
-                  key={`detail-${index}`}
-                  block={block}
-                  sourcesById={sourcesById}
-                />
-              ))
+            {narrativeBlocks.filter((b) => !hasNarrativeClarifying || (!b.text?.startsWith('Bạn cho mình biết thêm:') && !b.text?.startsWith('Thông tin cần báo nhân viên y tế'))).length > 0 ? (
+              narrativeBlocks
+                .filter((b) => !hasNarrativeClarifying || (!b.text?.startsWith('Bạn cho mình biết thêm:') && !b.text?.startsWith('Thông tin cần báo nhân viên y tế')))
+                .map((block, index) => (
+                  <NarrativeBlock
+                    key={`detail-${index}`}
+                    block={block}
+                    sourcesById={sourcesById}
+                  />
+                ))
             ) : (
               <p>{answer.summary}</p>
             )}
@@ -501,7 +523,7 @@ function NarrativeBlock({ block, sourcesById }) {
       <div className="narrative-clarifying-block">
         <div className="clarifying-block-header">
           <ClipboardList size={14} className="clarifying-block-icon" />
-          <span>Thông tin cần làm rõ thêm để hỗ trợ tư vấn:</span>
+          <span>Thông tin cần biết thêm</span>
         </div>
         <p className="clarifying-block-text">
           <HighlightedText text={cleanPrompt} emphasis={block.emphasis} />

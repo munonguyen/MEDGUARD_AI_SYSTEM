@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>MedGuard Doctor 3D Avatar (Unity C# WebGL)</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body, html { width: 100%; height: 100%; overflow: hidden; background: #0c1421; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    #unity-container { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; }
+    #unity-canvas { width: 100%; height: 100%; display: block; background: transparent; }
+    #unity-loading-bar { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: none; text-align: center; color: #fff; z-index: 10; }
+    #unity-progress-bar-empty { width: 220px; height: 10px; background: rgba(255,255,255,0.2); border-radius: 5px; margin-top: 10px; overflow: hidden; }
+    #unity-progress-bar-full { height: 100%; width: 0%; background: #00d2b4; transition: width 0.2s; }
+    #unity-fallback-notice { display: none; position: absolute; text-align: center; color: #cbd5e0; padding: 24px; max-width: 480px; background: rgba(18, 28, 45, 0.92); border: 1px solid rgba(0, 210, 180, 0.3); border-radius: 12px; }
+    #unity-fallback-notice h3 { color: #00d2b4; margin-bottom: 12px; }
+    #unity-fallback-notice p { font-size: 13px; line-height: 1.6; margin-bottom: 16px; }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 6px; background: rgba(0, 210, 180, 0.15); color: #00d2b4; font-size: 11px; font-weight: 600; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+  <div id="unity-container">
+    <canvas id="unity-canvas" tabindex="-1"></canvas>
+    
+    <div id="unity-loading-bar">
+      <div class="badge">UNITY C# ENGINE</div>
+      <div>Đang khởi động Avatar Bác sĩ MedGuard C#...</div>
+      <div id="unity-progress-bar-empty">
+        <div id="unity-progress-bar-full"></div>
+      </div>
+    </div>
+
+    <div id="unity-fallback-notice">
+      <div class="badge">HỆ THỐNG C# NATIVE (CÁCH 2)</div>
+      <h3>Sẵn sàng kết nối Unity WebGL</h3>
+      <p>Mã nguồn C# v3 (32 nhóm hành động, 64 biến thể cử chỉ) đã được chuẩn bị đầy đủ tại <code>unity/MedGuard_Unity_CSharp_Reference_v3</code>.</p>
+      <p>Sau khi Build WebGL từ Unity Editor vào thư mục này, nhân vật sẽ chạy trực tiếp bằng WebAssembly C# với đồ họa và IK mượt mà nhất.</p>
+    </div>
+  </div>
+
+  <script>
+    var container = document.querySelector("#unity-container");
+    var canvas = document.querySelector("#unity-canvas");
+    var loadingBar = document.querySelector("#unity-loading-bar");
+    var progressBarFull = document.querySelector("#unity-progress-bar-full");
+    var fallbackNotice = document.querySelector("#unity-fallback-notice");
+
+    var buildUrl = "Build";
+    var loaderUrl = buildUrl + "/unity-companion.loader.js";
+    var config = {
+      dataUrl: buildUrl + "/unity-companion.data",
+      frameworkUrl: buildUrl + "/unity-companion.framework.js",
+      codeUrl: buildUrl + "/unity-companion.wasm",
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: "MedGuard",
+      productName: "MedGuard Doctor Motion",
+      productVersion: "3.0.0",
+    };
+
+    window.unityInstance = null;
+
+    fetch(loaderUrl, { method: "HEAD" })
+      .then(function(res) {
+        if (res.ok) {
+          loadingBar.style.display = "block";
+          var script = document.createElement("script");
+          script.src = loaderUrl;
+          script.onload = function() {
+            createUnityInstance(canvas, config, function(progress) {
+              progressBarFull.style.width = (100 * progress) + "%";
+            }).then(function(instance) {
+              loadingBar.style.display = "none";
+              window.unityInstance = instance;
+              window.parent.postMessage({ type: "UNITY_READY" }, "*");
+            }).catch(function(err) {
+              console.warn("Lỗi khởi tạo Unity:", err);
+              fallbackNotice.style.display = "block";
+            });
+          };
+          document.body.appendChild(script);
+        } else {
+          fallbackNotice.style.display = "block";
+        }
+      })
+      .catch(function() {
+        fallbackNotice.style.display = "block";
+      });
+
+    window.addEventListener("message", function(event) {
+      if (!event.data) return;
+      if (event.data.type === "HANDLE_USER_MESSAGE" && window.unityInstance) {
+        window.unityInstance.SendMessage("DoctorMotionController", "HandleUserMessage", event.data.text || "");
+      }
+      if (event.data.type === "ON_USER_BARGE_IN" && window.unityInstance) {
+        window.unityInstance.SendMessage("DoctorMotionController", "OnUserBargeIn");
+      }
+    });
+  </script>
+</body>
+</html>

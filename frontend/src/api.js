@@ -17,6 +17,8 @@ export function createApiClient({ tenantId, apiKey, consentToken }) {
 
     if (method !== 'GET') {
       headers['Idempotency-Key'] = options.idempotencyKey || crypto.randomUUID();
+    }
+    if (method !== 'GET' || path.startsWith('/v1/chat/speech/')) {
       headers['X-Consent-Token'] = consentToken;
     }
     if (options.body !== undefined) {

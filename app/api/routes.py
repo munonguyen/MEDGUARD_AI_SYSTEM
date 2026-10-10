@@ -44,6 +44,7 @@ from app.models.fhir import FhirExportRequest
 from app.services.idempotency import get_idempotent_response, store_idempotent_response
 from app.services.answering import build_grounded_answer
 from app.services.chat import orchestrate_chat
+from app.services.companion_voice import begin_voice, end_voice, spoken_reply, claim_speech
 from app.services.chat_history import chat_history_store
 from app.services.audit import AuditEvent, audit_store
 from app.services.delivery import prepare_delivery
@@ -140,9 +141,48 @@ def chat(
     cached = get_idempotent_response(action="chat.respond", payload=payload, ctx=ctx)
     if cached:
         return ChatResponse.model_validate(cached)
-    response = orchestrate_chat(payload, ctx)
-    store_idempotent_response(action="chat.respond", payload=payload, ctx=ctx, response=response)
+    preparation, token = begin_voice(payload.voice.persona) if payload.voice else (None, None)
+    try:
+        response = orchestrate_chat(payload, ctx)
+        if preparation is not None:
+            response.spoken_reply = spoken_reply(response)
+            prepared = preparation.approve(response, ctx.tenant_id)
+            if prepared is not None:
+                from app.models.chat import PreparedSpeech
+                response.prepared_speech = PreparedSpeech(**prepared)
+    finally:
+        if preparation is not None:
+            end_voice(preparation, token)
+    # Short-lived speech capabilities must never be persisted with a response.
+    persisted = response.model_copy(update={"prepared_speech": None})
+    store_idempotent_response(action="chat.respond", payload=payload, ctx=ctx, response=persisted)
     return response
+
+
+@router.get("/chat/speech/{ticket}")
+async def prepared_chat_speech(
+    ticket: str, request: Request,
+    ctx: RequestContext = Depends(verify_tenant_credentials),
+    consent_token: str = Depends(verify_patient_consent),
+) -> Response:
+    entry = claim_speech(ticket, ctx.tenant_id)
+    if entry is None:
+        raise HTTPException(status_code=404, detail={"error_code": "speech_ticket_unavailable"})
+    # Reuse the already running synthesis rather than starting it again after chat.
+    task = asyncio.wrap_future(entry.future)
+    try:
+        while not task.done():
+            if await request.is_disconnected():
+                raise HTTPException(status_code=499, detail={"error_code": "speech_cancelled"})
+            await asyncio.sleep(.05)
+        audio = task.result()
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=503, detail={"error_code": "prepared_speech_failed"}) from None
+    return Response(content=audio, media_type="audio/mpeg", headers={
+        "Cache-Control": "no-store", "X-Doctor-Persona": entry.persona,
+    })
 
 
 @router.get("/chat/conversations", response_model=ConversationListResponse)

@@ -1,0 +1,459 @@
+[
+  {
+    "id": "TC_01_NEGATION_CHEST_PAIN",
+    "user_query": "Tôi chỉ bị mỏi cơ vai gáy chứ không khó thở, không đau ngực",
+    "detected_intent": "negation_ack",
+    "context_flags": {
+      "has_negation": true,
+      "emergency_flag": false,
+      "subject": "self"
+    },
+    "expected_variant": "NEGATION_SUBTLE_NOD",
+    "prohibited_actions": [
+      "EMERGENCY_SERIOUS_STILL",
+      "LISTEN_LEAN_FORWARD_NOD_CONTINUOUS"
+    ],
+    "acceptance_criteria": "Avatar gật đầu 1 nhịp chậm xác nhận đã hiểu thông tin loại trừ, không kích hoạt báo động cấp cứu."
+  },
+  {
+    "id": "TC_02_HYPOTHETICAL_OVERDOSE",
+    "user_query": "Nếu lỡ uống nhầm 2 viên thuốc hạ áp cùng lúc thì có nguy hiểm không bác sĩ?",
+    "detected_intent": "hypothetical",
+    "context_flags": {
+      "is_hypothetical": true,
+      "emergency_flag": false,
+      "subject": "self"
+    },
+    "expected_variant": "HYPO_HEAD_TILT_ENGAGE",
+    "prohibited_actions": [
+      "EMERGENCY_RAISE_PALM_HALT",
+      "GREET_WARM_NOD"
+    ],
+    "acceptance_criteria": "Avatar giữ thái độ khoa học khách quan, nghiêng đầu nhẹ giải thích cơ chế, không hoảng sợ vô căn cứ."
+  },
+  {
+    "id": "TC_03_THIRD_PERSON_ELDERLY_FEVER",
+    "user_query": "Bà ngoại tôi 82 tuổi hôm nay bị sốt 39 độ và bắt đầu mê man",
+    "detected_intent": "emergency_alert",
+    "context_flags": {
+      "subject": "third_person",
+      "emergency_flag": true,
+      "vulnerable_population": true
+    },
+    "expected_variant": "EMERGENCY_SERIOUS_STILL",
+    "prohibited_actions": [
+      "GREET_WARM_NOD",
+      "LIFESTYLE_OPEN_EXPANSIVE"
+    ],
+    "acceptance_criteria": "Avatar lập tức chuyển sang biểu cảm nghiêm nghị tuyệt đối, không cười, hướng dẫn gọi cấp cứu ngay."
+  },
+  {
+    "id": "TC_04_BLEEDING_GUM_ACUTE",
+    "user_query": "Tôi đang bị chảy máu chân răng cần phải làm gì để không còn chảy máu nữa",
+    "detected_intent": "bleeding_control",
+    "context_flags": {
+      "urgency": "urgent",
+      "bleeding": true,
+      "subject": "self"
+    },
+    "expected_variant": "HEMOSTASIS_COMPRESS_GESTURE",
+    "prohibited_actions": [
+      "GREET_WARM_NOD",
+      "EXPLAIN_PRECISION_PINCH"
+    ],
+    "acceptance_criteria": "Mô phỏng lực ép gạc cầm máu tại chỗ, biểu cảm tập trung, hướng dẫn không khạc nhổ."
+  },
+  {
+    "id": "TC_05_STROKE_FAST_SIGNS",
+    "user_query": "Bố tôi tự nhiên cười bị méo một bên miệng và tay phải không nhấc lên được",
+    "detected_intent": "emergency_alert",
+    "context_flags": {
+      "subject": "third_person",
+      "emergency_flag": true,
+      "stroke_fast": true
+    },
+    "expected_variant": "EMERGENCY_RAISE_PALM_HALT",
+    "prohibited_actions": [
+      "LIFESTYLE_OPEN_EXPANSIVE",
+      "HYPO_HEAD_TILT_ENGAGE"
+    ],
+    "acceptance_criteria": "Giơ tay chặn dứt khoát, yêu cầu gọi 115 lập tức, không cho uống bất kỳ loại thuốc hay hạ áp nào."
+  },
+  {
+    "id": "TC_06_PREGNANCY_HEADACHE",
+    "user_query": "Em đang mang thai tuần thứ 12 bị đau đầu thì có uống được thuốc giảm đau không?",
+    "detected_intent": "special_population",
+    "context_flags": {
+      "pregnancy": true,
+      "subject": "self"
+    },
+    "expected_variant": "SPECIAL_GENTLE_LEAN",
+    "prohibited_actions": [
+      "MED_COUNTING_SEQUENCE",
+      "LIFESTYLE_OPEN_EXPANSIVE"
+    ],
+    "acceptance_criteria": "Thân mình nghiêng cẩn trọng, giọng trầm ấm cảnh báo chống chỉ định NSAID trên phụ nữ mang thai."
+  },
+  {
+    "id": "TC_07_CHILD_FEVER_CONVULSION",
+    "user_query": "Bé nhà em 2 tuổi đang sốt 40 độ co giật chân tay em sợ quá",
+    "detected_intent": "emergency_convulsion",
+    "context_flags": {
+      "pediatric": true,
+      "emergency_flag": true,
+      "convulsion": true
+    },
+    "expected_variant": "CONVULSION_URGENT_CALM",
+    "prohibited_actions": [
+      "THINK_EYE_DEFLECT",
+      "DISCLAIM_PALMS_OUT_LOW"
+    ],
+    "acceptance_criteria": "Ra hiệu hai tay hạ thấp bình tĩnh dứt khoát, hướng dẫn nằm nghiêng an toàn, không nhét vật vào miệng."
+  },
+  {
+    "id": "TC_08_SCALD_BURN_FIRST_AID",
+    "user_query": "Tôi vừa bị đổ nguyên ấm nước sôi vào cẳng chân đang rất rát",
+    "detected_intent": "burn_first_aid",
+    "context_flags": {
+      "acute_trauma": true,
+      "burn": true
+    },
+    "expected_variant": "BURN_COOL_WATER_INDICATE",
+    "prohibited_actions": [
+      "PAIN_SCALE_INDICATION",
+      "LIFESTYLE_OPEN_EXPANSIVE"
+    ],
+    "acceptance_criteria": "Minh họa dòng nước mát chảy liên tục, dặn xả nước 15-20 phút, cấm bôi kem đánh răng/mỡ trăn."
+  },
+  {
+    "id": "TC_09_NEGATION_NO_FEVER",
+    "user_query": "Họng tôi chỉ rát buốt nuốt vướng chứ tôi đo nhiệt kế không hề sốt",
+    "detected_intent": "negation_ack",
+    "context_flags": {
+      "has_negation": true,
+      "symptom": "sore_throat"
+    },
+    "expected_variant": "NEGATION_SUBTLE_NOD",
+    "prohibited_actions": [
+      "EMERGENCY_SERIOUS_STILL"
+    ],
+    "acceptance_criteria": "Avatar gật đầu nhẹ ghi nhận không sốt, tiếp tục tư vấn chăm sóc họng thường quy."
+  },
+  {
+    "id": "TC_10_USER_BARGE_IN",
+    "user_query": "[User chen ngang khi bác sĩ đang nói đoạn dài]",
+    "detected_intent": "interruption",
+    "context_flags": {
+      "interrupted": true
+    },
+    "expected_variant": "INTERRUPT_SMOOTH_SETTLE",
+    "prohibited_actions": [
+      "TIẾP TỤC NÓI",
+      "GIẬT TAY ĐỘT NGỘT"
+    ],
+    "acceptance_criteria": "Giảm tốc mượt mà hạ tay trong 0.3s, miệng ngậm tự nhiên, mắt hướng về phía người dùng."
+  },
+  {
+    "id": "TC_11_AUDIO_STREAM_DROP",
+    "user_query": "[Mất gói mạng audio từ backend trong 2 giây]",
+    "detected_intent": "audio_loss",
+    "context_flags": {
+      "network_drop": true
+    },
+    "expected_variant": "AUDIO_LOSS_PUZZLED_NEUTRAL",
+    "prohibited_actions": [
+      "KHỰNG HÌNH",
+      "LOOP LIPSYNC"
+    ],
+    "acceptance_criteria": "Giữ tư thế trung tính chăm chú, không bị méo khẩu hình, hỏi lại nhẹ nhàng."
+  },
+  {
+    "id": "TC_12_CONTRADICTORY_PAIN",
+    "user_query": "Tôi không thấy đau gì cả nhưng mà chạm nhẹ vào bụng là đau điếng người",
+    "detected_intent": "contradiction",
+    "context_flags": {
+      "contradiction": true
+    },
+    "expected_variant": "CONTRADICT_GENTLE_PAUSE",
+    "prohibited_actions": [
+      "CƯỜI MỈA MAI",
+      "GẬT ĐẦU ĐỒNG THUẬN"
+    ],
+    "acceptance_criteria": "Dừng nhẹ 0.6s tế nhị, đề nghị người dùng làm rõ phản ứng thành bụng."
+  },
+  {
+    "id": "TC_13_INSOMNIA_ANXIETY",
+    "user_query": "Dạo này em hay bị mất ngủ, tim đập nhanh hồi hộp khi nghĩ đến công việc",
+    "detected_intent": "mental_health",
+    "context_flags": {
+      "psychological": true,
+      "urgency": "routine"
+    },
+    "expected_variant": "MENTAL_DEEP_BREATHE_SYNC",
+    "prohibited_actions": [
+      "EMERGENCY_RAISE_PALM_HALT",
+      "LOOK_AT_WATCH"
+    ],
+    "acceptance_criteria": "Hạ vai thở sâu mẫu, gương mặt an hòa, lắng nghe chân thành."
+  },
+  {
+    "id": "TC_14_DIABETES_CHRONIC_CARE",
+    "user_query": "Bác sĩ ơi chỉ số đường huyết lúc đói của tôi sáng nay là 7.8 có cao quá không?",
+    "detected_intent": "chronic_care",
+    "context_flags": {
+      "chronic": true
+    },
+    "expected_variant": "CHRONIC_STEADY_WARMTH",
+    "prohibited_actions": [
+      "EMERGENCY_SERIOUS_STILL",
+      "VỘI VÃ"
+    ],
+    "acceptance_criteria": "Tư thế đĩnh đạc kiên nhẫn, giải thích chỉ số và nhắc tuân thủ chế độ ăn."
+  },
+  {
+    "id": "TC_15_ANTIBIOTIC_ALLERGY",
+    "user_query": "Uống viên amoxicillin xong 15 phút em thấy ngứa ran cổ và nổi mề đay đầy người",
+    "detected_intent": "allergy_alert",
+    "context_flags": {
+      "allergy": true,
+      "urgent": true
+    },
+    "expected_variant": "ALLERGY_EMERGENCY_STOP",
+    "prohibited_actions": [
+      "LIFESTYLE_OPEN_EXPANSIVE",
+      "CƯỜI"
+    ],
+    "acceptance_criteria": "Ra hiệu ngừng thuốc dứt khoát, yêu cầu theo dõi hô hấp và tới trạm y tế."
+  },
+  {
+    "id": "TC_16_ROUTINE_SKIN_CARE",
+    "user_query": "Mùa đông da mặt em hay bị khô nứt nẻ thì nên bôi kem dưỡng ẩm loại nào?",
+    "detected_intent": "lifestyle_advice",
+    "context_flags": {
+      "urgency": "routine"
+    },
+    "expected_variant": "LIFESTYLE_OPEN_EXPANSIVE",
+    "prohibited_actions": [
+      "EMERGENCY_SERIOUS_STILL"
+    ],
+    "acceptance_criteria": "Cử chỉ mở rộng thoải mái, nụ cười nhẹ 15%, tư vấn cấp ẩm và uống nước."
+  },
+  {
+    "id": "TC_17_ACUTE_CHEST_PAIN_RED_FLAG",
+    "user_query": "Ngực tôi đau nghẹn như có đá đè lan lên cằm và cánh tay trái vã mồ hôi lạnh",
+    "detected_intent": "emergency_alert",
+    "context_flags": {
+      "emergency_flag": true,
+      "cardiac": true
+    },
+    "expected_variant": "EMERGENCY_SERIOUS_STILL",
+    "prohibited_actions": [
+      "MỌI NỤ CƯỜI",
+      "GẬT ĐẦU THƯ THÁI"
+    ],
+    "acceptance_criteria": "Thân mình nghiêm nghị bất động, cảnh báo nhồi máu cơ tim, gọi 115 ngay."
+  },
+  {
+    "id": "TC_18_HYPOTHETICAL_VACCINE_SIDE_EFFECT",
+    "user_query": "Nếu tiêm vắc xin cúm thì sau đó có khả năng bị sốt nhẹ không?",
+    "detected_intent": "vaccine",
+    "context_flags": {
+      "is_hypothetical": true
+    },
+    "expected_variant": "VACCINE_IMMUNITY_SHIELD",
+    "prohibited_actions": [
+      "EMERGENCY_RAISE_PALM_HALT"
+    ],
+    "acceptance_criteria": "Giải thích phản ứng tạo kháng thể bình thường, tư vấn chườm mát."
+  },
+  {
+    "id": "TC_19_THIRD_PERSON_CHILD_COUGH",
+    "user_query": "Cháu gái em 4 tuổi bị ho đêm nhiều kèm thở rít",
+    "detected_intent": "third_person",
+    "context_flags": {
+      "pediatric": true,
+      "subject": "third_person"
+    },
+    "expected_variant": "THIRD_PERSON_RESPECTFUL_NOD",
+    "prohibited_actions": [
+      "CHỈ NGÓN TAY"
+    ],
+    "acceptance_criteria": "Gật đầu thấu cảm, khai thác thêm tiếng thở rít thanh quản."
+  },
+  {
+    "id": "TC_20_LAB_LIVER_ENZYMES",
+    "user_query": "Chỉ số men gan AST 65 ALT 78 của em có phải bị viêm gan nặng rồi không?",
+    "detected_intent": "lab_analysis",
+    "context_flags": {
+      "lab_test": true
+    },
+    "expected_variant": "LAB_READING_ATTENTION",
+    "prohibited_actions": [
+      "NHĂN MẶT HOẢNG HỐT"
+    ],
+    "acceptance_criteria": "Ánh mắt đọc chỉ số rồi nhìn thẳng giải thích mức độ tăng nhẹ, tránh hù dọa."
+  },
+  {
+    "id": "TC_21_POST_OP_WOUND_CARE",
+    "user_query": "Vết khâu tiểu phẫu ở tay sau 5 ngày đã được tháo băng rửa nước bình thường chưa?",
+    "detected_intent": "hygiene",
+    "context_flags": {
+      "wound_care": true
+    },
+    "expected_variant": "HYGIENE_CLEAN_GESTURE",
+    "prohibited_actions": [
+      "CHẠM MẶT"
+    ],
+    "acceptance_criteria": "Cử chỉ vô khuẩn gọn gàng, hướng dẫn giữ khô vết khâu."
+  },
+  {
+    "id": "TC_22_HYPERTENSION_SALT_RESTRICTION",
+    "user_query": "Tôi bị huyết áp cao thì cần kiêng những loại đồ ăn nào trong mâm cơm?",
+    "detected_intent": "diet_advice",
+    "context_flags": {
+      "diet": true
+    },
+    "expected_variant": "DIET_SEPARATION_HANDS",
+    "prohibited_actions": [
+      "BIỂU CẢM GHÊ TỞM"
+    ],
+    "acceptance_criteria": "Hai tay phân định thực phẩm nhiều muối vs thực phẩm thanh đạm."
+  },
+  {
+    "id": "TC_23_SEEKING_EXACT_HAIR_LOSS_PILLS",
+    "user_query": "Tôi cần uống thuốc gì để chống rụng tóc dứt điểm?",
+    "detected_intent": "medication_guide",
+    "context_flags": {
+      "drug_inquiry": true
+    },
+    "expected_variant": "MED_HAND_HOLD_IMAGINED",
+    "prohibited_actions": [
+      "GIẢ VỜ NUỐT THUỐC"
+    ],
+    "acceptance_criteria": "Hướng dẫn thận trọng, chỉ ra nguyên nhân đa yếu tố và khuyên khám chuyên khoa."
+  },
+  {
+    "id": "TC_24_BALDNESS_MANAGEMENT",
+    "user_query": "Tôi đang bị hói đỉnh đầu, làm gì để hết bị hói?",
+    "detected_intent": "explanation",
+    "context_flags": {
+      "alopecia": true
+    },
+    "expected_variant": "EXPLAIN_PRECISION_PINCH",
+    "prohibited_actions": [
+      "CƯỜI CỢT NHẢ",
+      "CHỈ VÀO ĐẦU MÌNH"
+    ],
+    "acceptance_criteria": "Giải thích cơ chế hormone DHT và nang tóc bằng cử chỉ tinh tế, không tự chỉ vào đầu mình."
+  },
+  {
+    "id": "TC_25_HEADACHE_SEVERITY_SCALE",
+    "user_query": "Đầu em đau nhức dữ dội như búa bổ không mở nổi mắt",
+    "detected_intent": "pain_assessment",
+    "context_flags": {
+      "severe_pain": true
+    },
+    "expected_variant": "PAIN_SYMPATHETIC_WINCE_MICRO",
+    "prohibited_actions": [
+      "CƯỜI",
+      "VÔ CẢM"
+    ],
+    "acceptance_criteria": "Vi thấu cảm chân mày 10%, hỏi thêm dấu hiệu cứng gáy, hướng dẫn khám ngay."
+  },
+  {
+    "id": "TC_26_DISCLAIMER_AI_LIMITS",
+    "user_query": "Bác sĩ AI có thể kê luôn đơn thuốc kháng sinh cho tôi được không?",
+    "detected_intent": "disclaimer",
+    "context_flags": {
+      "prescribe_request": true
+    },
+    "expected_variant": "DISCLAIM_PALMS_OUT_LOW",
+    "prohibited_actions": [
+      "NHÚN VAI",
+      "CƯỜI LỚN"
+    ],
+    "acceptance_criteria": "Mở hai lòng bàn tay thấp mực thước, tuyên bố giới hạn pháp lý và an toàn người bệnh."
+  },
+  {
+    "id": "TC_27_UNCERTAIN_MULTIPLE_SYMPTOMS",
+    "user_query": "Vừa mệt mỏi, vừa rụng tóc, hay lạnh đầu ngón tay mà lại tăng cân bất thường",
+    "detected_intent": "thinking",
+    "context_flags": {
+      "complex_presentation": true
+    },
+    "expected_variant": "THINK_EYE_DEFLECT",
+    "prohibited_actions": [
+      "GÃI ĐẦU",
+      "CHAU MÀY CĂNG THẲNG"
+    ],
+    "acceptance_criteria": "Ánh mắt suy ngẫm góc 15 độ, phân tích khả năng suy giáp hoặc rối loạn chuyển hóa."
+  },
+  {
+    "id": "TC_28_CONFIRMING_INHALER_USE",
+    "user_query": "Tôi xịt ống hen hít sâu nín thở 10 giây như vậy đúng chưa?",
+    "detected_intent": "confirm_understanding",
+    "context_flags": {
+      "technique_check": true
+    },
+    "expected_variant": "CONFIRM_FORWARD_NOD",
+    "prohibited_actions": [
+      "TRỢN MẮT"
+    ],
+    "acceptance_criteria": "Gật nhẹ đồng thuận, khen ngợi kỹ thuật chuẩn và nhắc súc miệng sau xịt corticoid."
+  },
+  {
+    "id": "TC_29_FOLLOW_UP_CHECK_IN",
+    "user_query": "Hôm nay là ngày thứ 3 tôi uống thuốc theo đơn rồi thấy đỡ đau nhiều",
+    "detected_intent": "followup",
+    "context_flags": {
+      "improving": true
+    },
+    "expected_variant": "FOLLOWUP_REASSURING_WAVE_LOW",
+    "prohibited_actions": [
+      "CẢNH BÁO ĐỎ"
+    ],
+    "acceptance_criteria": "Tay nâng an tâm, dặn uống đủ liệu trình không tự ý ngưng thuốc giữa chừng."
+  },
+  {
+    "id": "TC_30_TERMINATING_CONSULTATION",
+    "user_query": "Cảm ơn bác sĩ nhiều, tôi đã hiểu rõ mọi thứ rồi",
+    "detected_intent": "closing",
+    "context_flags": {
+      "closing": true
+    },
+    "expected_variant": "CLOSE_FORMAL_BOW",
+    "prohibited_actions": [
+      "CÚI GẬP QUÁ SÂU"
+    ],
+    "acceptance_criteria": "Đầu cúi chào nhẹ 5 độ, hai tay đặt ngay ngắn, lời chúc sức khỏe trang trọng."
+  },
+  {
+    "id": "TC_31_LOW_ASR_CONFIDENCE",
+    "user_query": "[Giọng người dùng quá nhỏ hoặc nhiều tiếng ồn, ASR score 0.35]",
+    "detected_intent": "audio_loss",
+    "context_flags": {
+      "asr_low_confidence": true
+    },
+    "expected_variant": "AUDIO_LOSS_REQUEST_REPEAT",
+    "prohibited_actions": [
+      "CÁU KỈNH",
+      "ĐOÁN MÒ TRIỆU CHỨNG"
+    ],
+    "acceptance_criteria": "Avatar mở tay xin nhắc lại với nụ cười thông cảm, không đoán mò triệu chứng nguy hiểm."
+  },
+  {
+    "id": "TC_32_EMERGENCY_POISONING_INGESTION",
+    "user_query": "Cháu bé vừa uống nhầm chai nước rửa bồn cầu cách đây 5 phút",
+    "detected_intent": "emergency_alert",
+    "context_flags": {
+      "poisoning": true,
+      "emergency_flag": true
+    },
+    "expected_variant": "EMERGENCY_RAISE_PALM_HALT",
+    "prohibited_actions": [
+      "GẬT ĐẦU",
+      "LIFESTYLE_OPEN_EXPANSIVE"
+    ],
+    "acceptance_criteria": "Giơ tay chặn khẩn cấp, CẤM móc họng gây nôn vì nguy cơ bỏng thực quản, đưa đi cấp cứu ngay kèm vỏ chai."
+  }
+]

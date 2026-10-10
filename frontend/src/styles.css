@@ -1700,11 +1700,15 @@ body { overflow: hidden; background: var(--canvas); color: var(--text); }
 }
 
 @media (max-width: 640px) {
-  .chat-topbar { height: 58px; flex-basis: 58px; padding: 0 9px; gap: 8px; }
-  .chat-topbar .topbar-title { gap: 3px; }
-  .chat-topbar .topbar-title h1 { max-width: 33vw; font-size: 13px; }
-  .chat-topbar .topbar-title span { display: block; max-width: 33vw; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 8px; }
-  .topbar-actions { gap: 2px; }
+  .chat-topbar { height: 58px; flex-basis: 58px; padding: 0 9px; gap: 8px; overflow: hidden; }
+  .chat-topbar .topbar-title { gap: 6px; min-width: 0; flex: 1 1 auto; overflow: hidden; }
+  .chat-topbar .topbar-title > div { min-width: 0; overflow: hidden; }
+  .chat-topbar .topbar-title h1 { max-width: 100%; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chat-topbar .topbar-title span { display: block; max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 8px; }
+  .topbar-actions { gap: 2px; flex-shrink: 0; }
+  .topbar-view-tabs { display: none; }
+  .account-pill-text, .account-topbar-pill > svg { display: none; }
+  .account-topbar-pill { width: 34px; height: 34px; padding: 2px; justify-content: center; }
   .readiness-button { width: 32px; height: 34px; justify-content: center; padding: 0; border-color: transparent; background: transparent; font-size: 0; }
   .patient-button { width: 34px; height: 34px; padding: 2px; }
   .patient-button > span { width: 28px; height: 28px; }

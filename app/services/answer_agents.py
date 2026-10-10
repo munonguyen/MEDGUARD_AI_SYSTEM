@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from concurrent.futures import TimeoutError as FutureTimeoutError
+from contextvars import copy_context
 from dataclasses import dataclass
 import logging
 import re
@@ -26,6 +27,7 @@ from app.services.agent_provider import (
     StructuredModelProvider,
 )
 from app.services.agent_graph import MedicalAgentGraph, MedicalAgentState
+from app.services.companion_voice import prepare_writer_voice
 from app.services.circuit import CircuitBreaker, model_circuit
 from app.services.knowledge_retriever import knowledge_retriever, resolve_domain
 from app.services.jury_evaluator import MedicalSafetyGate, QAGEvaluator
@@ -135,7 +137,7 @@ class AnswerAgentConfig:
     max_input_tokens: int = 12_000
     research_max_output_tokens: int = 2_400
     verifier_max_output_tokens: int = 1_800
-    prompt_version: str = "2026-09-09"
+    prompt_version: str = "2026-10-09-companion"
     web_search_required: bool = True
     verifier_search_required: bool = True
     max_iterations: int = 1
@@ -499,7 +501,8 @@ class AnswerAgentPipeline:
             return operation()
 
         try:
-            future = _AGENT_EXECUTOR.submit(invoke)
+            invocation_context = copy_context()
+            future = _AGENT_EXECUTOR.submit(lambda: invocation_context.run(invoke))
         except AgentCapacityError:
             metrics.inc_counter("medguard_agent_admission_rejected_total", labels={"intent": intent})
             result = answer.model_copy(update={"agent_trace": self._trace(
@@ -602,7 +605,8 @@ class AnswerAgentPipeline:
             return operation()
 
         try:
-            future = _AGENT_EXECUTOR.submit(invoke)
+            invocation_context = copy_context()
+            future = _AGENT_EXECUTOR.submit(lambda: invocation_context.run(invoke))
         except AgentCapacityError:
             metrics.inc_counter("medguard_agent_admission_rejected_total", labels={"intent": intent})
             result = fallback_answer.model_copy(update={"agent_trace": self._trace(
@@ -704,7 +708,9 @@ class AnswerAgentPipeline:
             "\nAdapt length to the bounded presentation contract: "
             + ("brief: one direct paragraph, normally at most 80 words; no repeated title, boilerplate or invented follow-up questions. "
                if answer.presentation == "brief" else
-               "focused: direct answer and necessary actions first; avoid repeating fields and listing speculative diagnoses. "
+               "focused: answer only the patient's current concern; normally 80-160 Vietnamese words, one or two short paragraphs. "
+               "Put the specific answer in the opening sentence. Ask at most one high-information question. "
+               "Do not add unrelated diseases, repeat advice, recap the conversation, or list speculative diagnoses. "
                if answer.presentation == "focused" else
                "detailed: explain reasoning and relevant context in readable sections. ")
             + "Preserve every locked safety claim verbatim regardless of length."
@@ -729,6 +735,10 @@ class AnswerAgentPipeline:
                 )
                 if not writer_ok:
                     break
+
+                # Preparation overlaps review; drafts cannot receive a ticket.
+                if state.draft is not None:
+                    prepare_writer_voice(" ".join(block.text for block in state.draft.narrative))
 
                 self.graph.node_reviewer(
                     state,
