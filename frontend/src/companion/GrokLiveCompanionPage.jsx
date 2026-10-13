@@ -1020,7 +1020,22 @@ export function GrokLiveCompanionPage({
               <p className="doctor-voice-description" role="status">{voiceConfigError || (voiceConfig ? `Giọng đang cấu hình trên máy chủ: ${voiceConfig.profiles[doctorPersona].voice} · tốc độ ${voiceConfig.profiles[doctorPersona].rate} · cao độ ${voiceConfig.profiles[doctorPersona].pitch} · bản ${voiceConfig.revision}` : 'Đang kiểm tra cấu hình giọng nói…')}</p>
               <div className="grok-chat-config-notice"><strong>Kết nối AI hội thoại</strong><p>{chatStatus?.message || 'Chưa nhận được cấu hình AI từ máy chủ. Hãy cập nhật và khởi động lại backend.'}</p>{chatStatus && <p>Chế độ: {chatStatus.mode} · {chatStatus.synchronous ? 'Trả lời trực tiếp' : 'Xử lý nền'} · {chatStatus.revision}</p>}<p>Cấu hình trên MacBook: <code>python3 scripts/configure_doctor_chat.py</code>, rồi khởi động lại backend.</p></div>
             <button type="button" className="grok-back-chat-btn" disabled={!voiceConfig||isVoiceLoading||isMuted} onClick={()=>speakDoctorVoice('Xin chào bạn. Tôi sẽ lắng nghe và giải thích rõ ràng từng thông tin, để bạn dễ theo dõi.',doctorPersona)}>Nghe thử giọng bác sĩ</button>
-              <button type="button" className="grok-back-chat-btn" disabled={modelStatus.phase!=='ready'||isSpeaking||isVoiceLoading} onClick={()=>{engineRef.current?.applyPose('pose_wave');setShowSettings(false);}}>Xem thử cử chỉ chào</button>
+            <div style={{ marginTop: '14px', marginBottom: '14px' }}>
+              <label style={{ fontSize: '13px', fontWeight: 600, color: '#94a3b8', display: 'block', marginBottom: '8px' }}>
+                Thử nghiệm cử chỉ giao tiếp lâm sàng (Chuẩn VRoid / VRMA):
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '8px' }}>
+                <button type="button" className="grok-back-chat-btn" style={{ padding: '8px 10px', fontSize: '13px', margin: 0 }} disabled={modelStatus.phase!=='ready'} onClick={()=>{engineRef.current?.applyPose('pose_wave');setShowSettings(false);}}>👋 Vẫy tay chào</button>
+                <button type="button" className="grok-back-chat-btn" style={{ padding: '8px 10px', fontSize: '13px', margin: 0 }} disabled={modelStatus.phase!=='ready'} onClick={()=>{engineRef.current?.applyPose('pose_bow');setShowSettings(false);}}>🙇 Cúi đầu chào</button>
+                <button type="button" className="grok-back-chat-btn" style={{ padding: '8px 10px', fontSize: '13px', margin: 0 }} disabled={modelStatus.phase!=='ready'} onClick={()=>{engineRef.current?.applyPose('pose_thinking');setShowSettings(false);}}>🤔 Bác sĩ suy nghĩ</button>
+                <button type="button" className="grok-back-chat-btn" style={{ padding: '8px 10px', fontSize: '13px', margin: 0 }} disabled={modelStatus.phase!=='ready'} onClick={()=>{engineRef.current?.applyPose('pose_listening');setShowSettings(false);}}>👂 Lắng nghe</button>
+                <button type="button" className="grok-back-chat-btn" style={{ padding: '8px 10px', fontSize: '13px', margin: 0 }} disabled={modelStatus.phase!=='ready'} onClick={()=>{engineRef.current?.applyPose('pose_explaining');setShowSettings(false);}}>👐 Giải thích</button>
+                <button type="button" className="grok-back-chat-btn" style={{ padding: '8px 10px', fontSize: '13px', margin: 0 }} disabled={modelStatus.phase!=='ready'} onClick={()=>{engineRef.current?.applyPose('pose_reassure');setShowSettings(false);}}>❤️ Trấn an</button>
+                <button type="button" className="grok-back-chat-btn" style={{ padding: '8px 10px', fontSize: '13px', margin: 0 }} disabled={modelStatus.phase!=='ready'} onClick={()=>{engineRef.current?.applyPose('pose_note_taking');setShowSettings(false);}}>📝 Ghi chép</button>
+                <button type="button" className="grok-back-chat-btn" style={{ padding: '8px 10px', fontSize: '13px', margin: 0 }} disabled={modelStatus.phase!=='ready'} onClick={()=>{engineRef.current?.applyPose('pose_farewell');setShowSettings(false);}}>✨ Tạm biệt</button>
+                <button type="button" className="grok-back-chat-btn" style={{ padding: '8px 10px', fontSize: '13px', margin: 0 }} disabled={modelStatus.phase!=='ready'} onClick={()=>{engineRef.current?.applyPose('pose_idle');setShowSettings(false);}}>🧍 Đứng chờ (Idle)</button>
+              </div>
+            </div>
               <div className="doctor-preset-grid">
                 <button
                   type="button"

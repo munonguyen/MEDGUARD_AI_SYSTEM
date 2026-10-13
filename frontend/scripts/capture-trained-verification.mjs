@@ -76,6 +76,28 @@ async function capture() {
     const thinkPath = path.join(ARTIFACT_DIR, `trained-${p.id}-thinking.png`);
     await page.screenshot({ path: thinkPath });
     console.log(`[CAPTURED] Tư thế Thinking: ${thinkPath}`);
+
+    // 4. Chụp tư thế Cúi đầu chào lịch sự (Polite Bow)
+    await page.evaluate(() => {
+      const e = window.__companionEngine;
+      e.applyPose('pose_bow');
+      e.stopSpeaking();
+    });
+    await page.waitForTimeout(1400);
+    const bowPath = path.join(ARTIFACT_DIR, `trained-${p.id}-bow.png`);
+    await page.screenshot({ path: bowPath });
+    console.log(`[CAPTURED] Tư thế Bow: ${bowPath}`);
+
+    // 5. Chụp tư thế Ghi chép bệnh án (Note Taking)
+    await page.evaluate(() => {
+      const e = window.__companionEngine;
+      e.applyPose('pose_note_taking');
+      e.stopSpeaking();
+    });
+    await page.waitForTimeout(1400);
+    const notePath = path.join(ARTIFACT_DIR, `trained-${p.id}-notes.png`);
+    await page.screenshot({ path: notePath });
+    console.log(`[CAPTURED] Tư thế Note Taking: ${notePath}`);
   }
 
   await browser.close();

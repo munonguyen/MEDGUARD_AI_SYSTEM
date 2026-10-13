@@ -163,10 +163,16 @@ export class DoctorMotion {
     return arms;
   }
   setPose(pose) {
-    if(pose===this.pose&&pose!=='pose_wave')return;
+    const isRepeatableGesture = ['pose_wave', 'pose_bow', 'pose_farewell', 'pose_explaining', 'pose_reassure', 'pose_note_taking'].includes(pose);
+    if(pose===this.pose&&!isRepeatableGesture)return;
     this.pose=pose;this.poseStarted=this.time;this.pendingTransition=true;
     if(pose==='pose_thinking')this.thinkSide=this.random()<.5?-1:1;
     if(pose==='pose_wave')this.previewCue=this.planner.select('greeting',this.tone);
+    if(pose==='pose_bow')this.previewCue={...this.planner.select('greeting',this.tone),variant:{id:'polite-bow',lift:.16,bend:1.80,yaw:.08,turn:.12,lean:-.045,wave:.02,fingers:'soft'}};
+    if(pose==='pose_farewell')this.previewCue={...this.planner.select('greeting',this.tone),variant:{id:'farewell-wave',lift:.22,bend:1.82,yaw:.10,turn:.15,lean:-.022,wave:.07,fingers:'open'}};
+    if(pose==='pose_explaining')this.previewCue=this.planner.select('explain',this.tone);
+    if(pose==='pose_reassure')this.previewCue=this.planner.select('reassure',this.tone);
+    if(pose==='pose_note_taking')this.previewCue={...this.planner.select('guide',this.tone),variant:{id:'note-taking',lift:.14,bend:1.75,yaw:.09,turn:.15,lean:-.015,fingers:'point'}};
   }
   setExpression(expression) {this.expression=expression;}
   setContext(question='',metadata={}) {
@@ -197,7 +203,8 @@ export class DoctorMotion {
     this.segmentOffset+=phrases.length;this.segmentTime=0;this.currentCueKey='';
   }
   cueAt(speaking,responding,playbackTime,playbackDuration) {
-    if(this.pose==='pose_wave')return {cue:this.previewCue,phase:this.time-this.poseStarted,duration:3.4,key:'preview-'+this.poseStarted};
+    const isExplicitGesture = ['pose_wave', 'pose_bow', 'pose_farewell', 'pose_explaining', 'pose_reassure', 'pose_note_taking'].includes(this.pose);
+    if(isExplicitGesture && this.previewCue)return {cue:this.previewCue,phase:this.time-this.poseStarted,duration:this.previewCue.duration||3.4,key:'preview-'+this.poseStarted};
     const plan=this.segmentPlan||this.utterancePlan;
     if(speaking&&this.segmentTiming?.phrases.length) {
       const phrase=activeSpeechCue(this.segmentTiming.phrases,playbackTime);
@@ -262,9 +269,10 @@ export class DoctorMotion {
     const action=this.cueAt(speaking,responding,playbackTime??this.segmentTime,playbackDuration);
     if(action.key!==this.lastActionKey){this.lastActionKey=action.key;this.pendingTransition=true;}
     this.currentCue=action.cue;
-    this.activeGesture=speaking||responding||this.pose==='pose_wave'?action.cue.intent:'idle';
+    const isExplicitGesture = ['pose_wave', 'pose_bow', 'pose_farewell', 'pose_explaining', 'pose_reassure', 'pose_note_taking'].includes(this.pose);
+    this.activeGesture=speaking||responding||isExplicitGesture?action.cue.intent:'idle';
     this.activeVariant=action.cue.variant.id;
-    const emotion=this.severe?'cautious':(speaking||responding||this.pose==='pose_wave')?action.cue.emotion:this.questionContext||this.tone;
+    const emotion=this.severe?'cautious':(speaking||responding||isExplicitGesture)?action.cue.emotion:this.questionContext||this.tone;
     this.contextState=think?'thinking':listen?'listening':emotion;
     const cautious=emotion==='cautious',empathetic=emotion==='empathetic';
     const targets=this.targets;
@@ -326,6 +334,8 @@ export class DoctorMotion {
       targets.spine[0]+=swaySagittal;
       targets.head[0]-=Math.sin(this.breathPhase)*.004*breathScale;
       if(listen){const nod=pulse((time-this.poseStarted)%7.3,1.15,1.3);targets.spine[0]-=.013;targets.neck[0]+=.018*nod;targets.head[0]+=.035*nod;}
+      if(this.pose==='pose_bow'){targets.spine[0]-=.045;targets.chest[0]-=.065;targets.head[0]+=.020;}
+      if(this.pose==='pose_note_taking'){targets.head[0]+=.055;targets.neck[0]+=.030;}
       if(think){
         // Thoughtful contemplative posture: head tilt + subtle chest shift, arms stay naturally relaxed
         targets.chest[1] -= this.thinkSide * .014;
@@ -341,8 +351,8 @@ export class DoctorMotion {
       targets.neck[0]+=this.headLook.y*.035;targets.neck[1]+=this.headLook.x*.055;
       targets.chest[1]+=this.headLook.x*.022;
       const {cue,phase,duration}=action;
-      const active=!action.rest&&(speaking||responding||this.pose==='pose_wave');
-      const weight=(this.pose==='pose_wave'?1:this.speechWeight)*cue.energy;
+      const active=!action.rest&&(speaking||responding||isExplicitGesture);
+      const weight=(isExplicitGesture?1:this.speechWeight)*cue.energy;
       const strength=active?weight:0;
       this.applyGesture(targets,cue,phase,duration,strength);
       const beat=pulse(time-this.beatAt,.06,.55)*strength;
@@ -352,7 +362,7 @@ export class DoctorMotion {
       targets.spine[1]+=Math.sin(time*.53)*.005;targets.head[1]+=Math.sin(time*.42)*.005;
     }
     this.applyJoints(dt,reducedMotion);
-    this.animationLayer?.apply(dt,{...action,active:!action.rest&&(speaking||responding||this.pose==='pose_wave'),reducedMotion});
+    this.animationLayer?.apply(dt,{...action,active:!action.rest&&(speaking||responding||isExplicitGesture),reducedMotion});
     if(this.hipRest&&this.legs.length) {
       // Millimetre-scale weight transfer plus two-bone IK preserves planted feet.
       const hip=this.bones.hips;
