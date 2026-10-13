@@ -267,8 +267,7 @@ export function GrokLiveCompanionPage({
             }));
           } catch (error) {
             if (controller.signal.aborted || error?.name === 'AbortError') throw error;
-            if (error?.status !== 404) throw error;
-            // Expiry or a different worker: use ordinary TTS once.
+            // Any ticket error (401, 404, network error): fall back to ordinary TTS once
           }
         }
         const body = { text: sentence, persona };
@@ -330,13 +329,21 @@ export function GrokLiveCompanionPage({
         const abort = () => finish(new DOMException('Cancelled', 'AbortError'));
         controller.signal.addEventListener('abort', abort, { once: true });
         if (audioContext) {
-          analyser = audioContext.createAnalyser(); analyser.fftSize = 512;
-          source = playbackSourceRef.current || audioContext.createMediaElementSource(audio);
-          playbackSourceRef.current = source;
-          source.connect(analyser); analyser.connect(audioContext.destination);
-          void optionalLipSync(engineRef.current, audioContext).then(()=>{
-            if(current()&&!settled)engineRef.current?.connectLipSync(source);
-          });
+          try {
+            analyser = audioContext.createAnalyser(); analyser.fftSize = 512;
+            if (!playbackSourceRef.current || playbackSourceRef.current.context !== audioContext) {
+              playbackSourceRef.current = audioContext.createMediaElementSource(audio);
+            }
+            source = playbackSourceRef.current;
+            source.connect(analyser); analyser.connect(audioContext.destination);
+            void optionalLipSync(engineRef.current, audioContext).then(()=>{
+              if(current()&&!settled)engineRef.current?.connectLipSync(source);
+            });
+          } catch (ctxErr) {
+            console.warn('[AudioContext] Analyser routing fallback:', ctxErr);
+            source = null;
+            analyser = null;
+          }
         }
         audio.onplaying = () => {
           if (!current()) return abort();
@@ -355,9 +362,12 @@ export function GrokLiveCompanionPage({
         audio.onended = () => finish();
         audio.onerror = () => finish(new Error('Audio playback failed'));
         (async () => {
-          if (audioContext) {
-            await Promise.race([audioContext.resume(), new Promise(r => window.setTimeout(r, 300))]);
-            if (audioContext.state !== 'running') throw new DOMException('Audio needs a user gesture', 'NotAllowedError');
+          if (audioContext && audioContext.state !== 'running') {
+            try {
+              await Promise.race([audioContext.resume(), new Promise(r => window.setTimeout(r, 400))]);
+            } catch {
+              // resume attempt
+            }
           }
           if (!current()) return abort();
           await audio.play();
