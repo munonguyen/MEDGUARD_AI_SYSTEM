@@ -88,7 +88,7 @@ export class DoctorMotion {
     this.transitionFrom=Object.fromEntries(Object.keys(REST).map(n=>[n,new Quaternion()]));
     this.pendingTransition=false;this.transitionAt=-10;this.transitionDuration=.3;
     for(const [n,xyz] of Object.entries(this.rest)) this.bones[n]?.quaternion.setFromEuler(this.euler.set(...xyz));
-    this.armOutput=Object.fromEntries(Object.entries(this.bones).filter(([n,b])=>b&&(n.includes('Arm')||n.endsWith('Hand'))).map(([n,b])=>[n,b.quaternion.clone()]));
+    this.armOutput=Object.fromEntries(Object.entries(this.bones).filter(([n,b])=>b&&(n.includes('Arm')||n.endsWith('Hand')||n.includes('Shoulder'))).map(([n,b])=>[n,b.quaternion.clone()]));
     this.blinkAt=2.2+random()*2;this.blinkStarted=-10;
     this.doubleBlinkAt=0;this.pendingDoubleBlink=false;this.wasThinking=false;
     this.eye={x:0,y:0};this.headLook={x:0,y:0};this.saccade={x:0,y:0};this.saccadeAt=0;
@@ -378,7 +378,7 @@ export class DoctorMotion {
     // IK corrections obey the same final angular speed budget as authored
     // gestures, including an interruption halfway through a held hand pose.
     for(const [name,previous] of Object.entries(this.armOutput)) {
-      const bone=this.bones[name];previous.rotateTowards(bone.quaternion,dt*(name.endsWith('Hand')?2.1:3.2));bone.quaternion.copy(previous);
+      const bone=this.bones[name];const speed=name.endsWith('Hand')?2.1:name.includes('Shoulder')?2.8:3.2;previous.rotateTowards(bone.quaternion,dt*speed);bone.quaternion.copy(previous);
     }
     this.updateFingers(dt,reducedMotion);
     this.updateFace(dt,{speaking,hasAudio,audioLevel,spectrum,visemes,cautious,empathetic,think,listen,reducedMotion,gazeX,gazeY});
@@ -390,14 +390,16 @@ export class DoctorMotion {
     const elbow=envelope(phase,0,Math.max(.8,duration-.08))*strength;
     const wrist=envelope(phase,.17,Math.max(.8,duration-.25))*strength;
     const arc=Math.sin(phase*1.6+.4)*wrist*(style.arc||.016);
-    // Dynamic scapular rhythm: natural clavicle elevation, protraction and roll
-    targets[arm+'Shoulder'][0]+=shoulder*.042;
-    targets[arm+'Shoulder'][1]-=sign*shoulder*(.035+(style.yaw||.1)*.18);
-    targets[arm+'Shoulder'][2]+=sign*shoulder*.046;
-    targets[arm+'UpperArm'][0]+=shoulder*.19;
-    targets[arm+'UpperArm'][1]-=sign*shoulder*(style.yaw||.1);
+    // Dynamic scapular rhythm & thoracic co-activation:
+    // Natural clavicle elevation, protraction and axial rotation as arm extends
+    const liftScale=(style.lift||.15);
+    targets[arm+'Shoulder'][0]+=shoulder*(.048+liftScale*.12);
+    targets[arm+'Shoulder'][1]-=sign*shoulder*(.038+(style.yaw||.1)*.20);
+    targets[arm+'Shoulder'][2]+=sign*shoulder*(.050+liftScale*.08);
+    targets[arm+'UpperArm'][0]+=shoulder*.21;
+    targets[arm+'UpperArm'][1]-=sign*shoulder*(style.yaw||.12);
     targets[arm+'UpperArm'][2]+=sign*shoulder*style.lift;
-    targets[arm+'LowerArm'][0]-=elbow*.20;
+    targets[arm+'LowerArm'][0]-=elbow*.22;
     targets[arm+'LowerArm'][2]+=sign*elbow*style.bend;
     targets[arm+'LowerArm'][1]+=sign*arc*.6;
     targets[arm+'Hand'][0]+=wrist*.09+arc+this.audioAccent*wrist*.018;
@@ -405,6 +407,7 @@ export class DoctorMotion {
     targets[arm+'Hand'][2]-=sign*wrist*.10;
     const secondary=envelope(phase,.28,Math.max(.8,duration-.4))*strength*(style.secondary||.065);
     targets[other+'Shoulder'][0]+=secondary*.020;
+    targets[other+'Shoulder'][1]+=sign*secondary*.018;
     targets[other+'Shoulder'][2]-=sign*secondary*.016;
     targets[other+'UpperArm'][0]+=secondary*.11;
     targets[other+'UpperArm'][1]+=sign*secondary*.10;
@@ -413,8 +416,10 @@ export class DoctorMotion {
     targets[other+'LowerArm'][0]-=secondary*.13;
     targets[other+'Hand'][1]+=sign*secondary*style.turn*.8;
     targets[other+'Hand'][0]+=secondary*.07;
-    targets.hips[1]-=sign*shoulder*.009;targets.spine[1]-=sign*shoulder*.012;
-    targets.chest[1]+=sign*shoulder*.026;targets.chest[0]+=shoulder*style.lean;
+    // Thorax twists subtly towards the active gesturing arm, bringing the lab coat to life
+    targets.hips[1]-=sign*shoulder*.009;targets.spine[1]-=sign*shoulder*.014;
+    targets.chest[1]+=sign*shoulder*.048;targets.upperChest[1]+=sign*shoulder*.035;
+    targets.chest[0]+=shoulder*style.lean;
     targets.spine[2]+=sign*shoulder*.010;targets.head[2]-=sign*wrist*.016;
     targets.head[0]+=pulse(phase,.9,Math.max(.8,duration*.4))*strength*.022;
     if(cue.intent==='greeting') {
@@ -437,15 +442,15 @@ export class DoctorMotion {
     } else {
       const compact=cue.intent==='caution'||cue.intent==='enumerate';
       const heart=style.id==='hand-near-heart';
-      Object.assign(this.armGoals[arm],{target:shoulder,tx:heart?.065:compact?.15:cue.intent==='compare'?.23:.18,
-        ty:heart?.04:compact?.065:cue.intent==='reassure'?.015:.035,
-        tz:heart?.17:compact?.19:.22+(style.arc||0)*Math.sin(phase*1.3),palm:heart?'heart':style.id==='compact-stop'?'stop':'offer'});
-      if(style.secondary)Object.assign(this.armGoals[other],{target:secondary,tx:cue.intent==='compare'?.22:.17,ty:.015,tz:.20,palm:'offer'});
+      Object.assign(this.armGoals[arm],{target:shoulder,tx:heart?.065:compact?.19:cue.intent==='compare'?.27:.24,
+        ty:heart?.04:compact?.075:cue.intent==='reassure'?.015:.038,
+        tz:heart?.17:compact?.21:.24+(style.arc||0)*Math.sin(phase*1.3),palm:heart?'heart':style.id==='compact-stop'?'stop':'offer'});
+      if(style.secondary)Object.assign(this.armGoals[other],{target:secondary,tx:cue.intent==='compare'?.26:.21,ty:.015,tz:.22,palm:'offer'});
     }
     const point=choreograph(cue.intent,phase,duration,style);
-    // Scale adult reference-space paths for a different-sized custom rig.
+    // Scale reference-space paths gently according to arm length, preserving comfortable shoulder abduction
     const chain=this.arms.find(a=>a.side===arm);
-    const scale=chain?clamp((chain.l1+chain.l2)/.52,.65,1.3):1;
+    const scale=chain?clamp((chain.l1+chain.l2)/.46,.82,1.25):1;
     Object.assign(this.armGoals[arm],{tx:point[0]*scale,ty:point[1]*scale,tz:point[2]*scale});
     if(style.secondary){const secondaryPoint=choreograph(cue.intent,Math.max(0,phase-.2),duration,style);Object.assign(this.armGoals[other],{tx:secondaryPoint[0]*.94*scale,ty:secondaryPoint[1]*.6*scale,tz:secondaryPoint[2]*.9*scale});}
   }
@@ -530,12 +535,24 @@ export class DoctorMotion {
       const distance=clamp(direction.length(),Math.abs(l1-l2)+.003,l1+l2-.025);direction.normalize();
       if(arm.lastDirection&&arm.lastDirection.dot(direction)<-0.2)return;
       arm.lastDirection=direction.clone();
-      // Dynamic elbow clearance: creates natural space for clothing sleeves
-      // without pinning the upper arm flat against the ribcage
+      // Hybrid FK/IK Elbow Clearance & Scapulohumeral compliance:
+      // Prevents clothing sleeves from penetrating the ribcage while keeping
+      // the upper arm alive, natural, and responsive to authored gesture angles.
       const heart=goal.palm==='heart';
-      const poleSpread=heart?side*.20:side*(.24+clamp(goal.x,0,.25)*.28);
-      const poleBack=heart?-.14:-.17-Math.max(0,goal.z)*.10;
-      pole.set(poleSpread,-.86,poleBack);
+      const isGreeting=this.activeGesture==='greeting'||this.pose==='pose_wave';
+      const poleSpread=heart?side*.20:isGreeting?side*.24:side*(.28+clamp(goal.x,0,.35)*.32);
+      const poleElev=heart?-.82:isGreeting?-.85:-.70+clamp(goal.y,-.05,.15)*.38;
+      const poleBack=heart?-.14:isGreeting?-.16:-.08+clamp(goal.z,0,.30)*.18;
+      pole.set(poleSpread,poleElev,poleBack);
+      const baseOrtho=orthonormalizePole(direction,pole);
+      if(baseOrtho)pole.copy(baseOrtho);
+      lower.getWorldPosition(b);
+      c.subVectors(b,a).normalize();
+      const fkPole=orthonormalizePole(direction,c);
+      if(fkPole){
+        const fkBlend=heart?0.12:isGreeting?0.22:0.42;
+        pole.lerp(fkPole,fkBlend).normalize();
+      }
       const poleOrtho=orthonormalizePole(direction,pole);
       if(poleOrtho)pole.copy(poleOrtho);
       const along=(l1*l1-l2*l2+distance*distance)/(2*distance),height=Math.sqrt(Math.max(0,l1*l1-along*along));
