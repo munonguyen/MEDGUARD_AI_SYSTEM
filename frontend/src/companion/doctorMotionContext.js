@@ -5,22 +5,22 @@ export const splitMotionPhrases = text => String(text || '').match(/[^.!?\n]+[.!
 
 export function motionContext(text, fallback = 'clinical') {
   const s = normalize(text);
-  if (/cấp cứu|khẩn cấp|gọi\s*115|chống chỉ định|không (?:được |nên )?tự|không tự|ngừng (?:thuốc|dùng)|quá liều|cảnh báo/.test(s)) return 'cautious';
-  if (/lo lắng|sợ|hoang mang|buồn|đau đớn|khó chịu|thấu hiểu|lắng nghe|đồng hành|ghi nhận/.test(s)) return 'empathetic';
+  if (/cấp cứu|khẩn cấp|gọi\s*115|chống chỉ định|không (?:được |nên )?tự|không tự|ngừng (?:thuốc|dùng)|quá liều|cảnh báo|tránh|hạn chế|tuyệt đối không|nguy hiểm/.test(s)) return 'cautious';
+  if (/lo lắng|sợ|hoang mang|buồn|đau|ê buốt|khó chịu|thấu hiểu|lắng nghe|đồng hành|ghi nhận|yên tâm|giảm đau|tạm thời/.test(s)) return 'empathetic';
   if (/tiến bộ|cải thiện|khích lệ|cố gắng|tốt hơn/.test(s)) return 'encouraging';
   return fallback;
 }
 
 export function phraseIntent(text, context = 'clinical') {
   const s = normalize(text);
-  if (motionContext(s, '') === 'cautious') return 'caution';
   if (/xin chào|chào bạn|chào anh|chào chị/.test(s)) return 'greeting';
-  if (/\?|cho biết|chia sẻ|bạn có|kể thêm/.test(s)) return 'invite';
+  if (/\?|cho biết|chia sẻ|bạn có (?!thể)|kể thêm|có bị|chảy mủ|chảy máu|há miệng|nổi mẩn|sốt/.test(s)) return 'invite';
   if (/đầu tiên|tiếp theo|bước|thứ nhất|thứ hai|cuối cùng|\b\d+[.)]/.test(s)) return 'enumerate';
-  if (motionContext(s, '') === 'empathetic') return 'reassure';
-  if (/so sánh|khác nhau|hai (?:loại|nhóm)|trong khi/.test(s)) return 'compare';
-  if (/hướng dẫn|theo dõi|ghi lại|ghi chép|thực hiện|kiểm tra/.test(s)) return 'guide';
-  if (/giải thích|cơ chế|thành phần|dược lý|tác dụng|nguyên nhân/.test(s)) return 'explain';
+  if (/súc miệng|nước muối|bàn chải|vệ sinh|chườm|hướng dẫn|theo dõi|ghi lại|ghi chép|thực hiện|kiểm tra|chăm sóc/.test(s)) return 'guide';
+  if (/cấp cứu|khẩn cấp|chống chỉ định|tránh|không (?:được |nên )?tự|tuyệt đối không|ngừng|cảnh báo|hạn chế|ngọt gắt|quá nóng|quá lạnh/.test(s)) return 'caution';
+  if (/so sánh|khác nhau|hai (?:loại|nhóm)|trong khi|hoặc là|ngược lại/.test(s)) return 'compare';
+  if (/giải thích|cơ chế|thành phần|dược lý|tác dụng|nguyên nhân|do|tủy răng|men răng|xuất hiện do|kích thích|viêm|nhiễm trùng/.test(s)) return 'explain';
+  if (motionContext(s, '') === 'empathetic' || /đau|ê buốt|khó chịu|yên tâm|giảm đau|tạm thời/.test(s)) return 'reassure';
   return context === 'empathetic' ? 'reassure' : 'explain';
 }
 

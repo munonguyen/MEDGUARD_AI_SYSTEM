@@ -321,21 +321,22 @@ export class DoctorMotion {
       spring(this.weight,weightTarget,5,dt,1);
       const shift=this.weight.position;
       targets.hips[2]=shift*.007;targets.spine[2]=-shift*.012;targets.chest[2]=shift*.006;
-      targets.spine[0]=breath*.004*breathScale;targets.chest[0]=breath*.007*breathScale;
-      targets.upperChest[0]=Math.sin(this.breathPhase-.13)*.003*breathScale;
-      // AIRI natural clavicle rise during inhalation
-      targets.leftShoulder[0]=Math.sin(this.breathPhase-.2)*.0035*breathScale;
-      targets.rightShoulder[0]=Math.sin(this.breathPhase-.2)*.0035*breathScale;
-      targets.leftShoulder[2]=Math.sin(this.breathPhase-.3)*.005*breathScale-shift*.004;
-      targets.rightShoulder[2]=-Math.sin(this.breathPhase-.1)*.005*breathScale-shift*.004;
-      targets.leftLowerArm[2]+=Math.sin(time*.41)*.008;
-      targets.rightLowerArm[2]-=Math.sin(time*.37+.8)*.008;
       // AIRI living subconscious postural micro-sway and respiratory head bob
       const swayCoronal=Math.sin(time*1.38)*.0022;
       const swaySagittal=Math.cos(time*1.07)*.0018;
+      const voiceAccent=speaking&&hasAudio?clamp((audioLevel-.015)*.15,0,.014):0;
+      targets.spine[0]=breath*.008*breathScale+swaySagittal+voiceAccent*.4;
+      targets.chest[0]=breath*.014*breathScale+voiceAccent;
+      targets.upperChest[0]=Math.sin(this.breathPhase-.13)*.009*breathScale+voiceAccent*.7;
+      // AIRI natural clavicle rise during inhalation and dynamic respiration
+      targets.leftShoulder[0]=Math.sin(this.breathPhase-.2)*.006*breathScale;
+      targets.rightShoulder[0]=Math.sin(this.breathPhase-.2)*.006*breathScale;
+      targets.leftShoulder[2]=Math.sin(this.breathPhase-.3)*.008*breathScale-shift*.004;
+      targets.rightShoulder[2]=-Math.sin(this.breathPhase-.1)*.008*breathScale-shift*.004;
+      targets.leftLowerArm[2]+=Math.sin(time*.41)*.008;
+      targets.rightLowerArm[2]-=Math.sin(time*.37+.8)*.008;
       targets.spine[1]+=swayCoronal;
       targets.head[1]+=swayCoronal*1.15;
-      targets.spine[0]+=swaySagittal;
       targets.head[0]-=Math.sin(this.breathPhase)*.004*breathScale;
       if(listen){const nod=pulse((time-this.poseStarted)%7.3,1.15,1.3);targets.spine[0]-=.013;targets.neck[0]+=.018*nod;targets.head[0]+=.035*nod;}
       if(this.pose==='pose_bow'){targets.spine[0]-=.045;targets.chest[0]-=.065;targets.head[0]+=.020;}
@@ -389,15 +390,24 @@ export class DoctorMotion {
     const elbow=envelope(phase,0,Math.max(.8,duration-.08))*strength;
     const wrist=envelope(phase,.17,Math.max(.8,duration-.25))*strength;
     const arc=Math.sin(phase*1.6+.4)*wrist*(style.arc||.016);
-    targets[arm+'Shoulder'][1]-=sign*shoulder*.025;targets[arm+'Shoulder'][2]+=sign*shoulder*.018;
-    targets[arm+'UpperArm'][0]+=shoulder*.17;targets[arm+'UpperArm'][1]-=sign*shoulder*style.yaw;
+    // Dynamic scapular rhythm: natural clavicle elevation, protraction and roll
+    targets[arm+'Shoulder'][0]+=shoulder*.042;
+    targets[arm+'Shoulder'][1]-=sign*shoulder*(.035+(style.yaw||.1)*.18);
+    targets[arm+'Shoulder'][2]+=sign*shoulder*.046;
+    targets[arm+'UpperArm'][0]+=shoulder*.19;
+    targets[arm+'UpperArm'][1]-=sign*shoulder*(style.yaw||.1);
     targets[arm+'UpperArm'][2]+=sign*shoulder*style.lift;
-    targets[arm+'LowerArm'][0]-=elbow*.20;targets[arm+'LowerArm'][2]+=sign*elbow*style.bend;
+    targets[arm+'LowerArm'][0]-=elbow*.20;
+    targets[arm+'LowerArm'][2]+=sign*elbow*style.bend;
     targets[arm+'LowerArm'][1]+=sign*arc*.6;
     targets[arm+'Hand'][0]+=wrist*.09+arc+this.audioAccent*wrist*.018;
-    targets[arm+'Hand'][1]-=sign*wrist*style.turn;targets[arm+'Hand'][2]-=sign*wrist*.10;
+    targets[arm+'Hand'][1]-=sign*wrist*style.turn;
+    targets[arm+'Hand'][2]-=sign*wrist*.10;
     const secondary=envelope(phase,.28,Math.max(.8,duration-.4))*strength*(style.secondary||.065);
-    targets[other+'UpperArm'][0]+=secondary*.11;targets[other+'UpperArm'][1]+=sign*secondary*.10;
+    targets[other+'Shoulder'][0]+=secondary*.020;
+    targets[other+'Shoulder'][2]-=sign*secondary*.016;
+    targets[other+'UpperArm'][0]+=secondary*.11;
+    targets[other+'UpperArm'][1]+=sign*secondary*.10;
     targets[other+'UpperArm'][2]-=sign*secondary*style.lift*.78;
     targets[other+'LowerArm'][2]-=sign*secondary*(style.bend*.83);
     targets[other+'LowerArm'][0]-=secondary*.13;
@@ -520,8 +530,12 @@ export class DoctorMotion {
       const distance=clamp(direction.length(),Math.abs(l1-l2)+.003,l1+l2-.025);direction.normalize();
       if(arm.lastDirection&&arm.lastDirection.dot(direction)<-0.2)return;
       arm.lastDirection=direction.clone();
-      // Elbow stays naturally close to the ribcage and lower than the hand, pointing down-backwards
-      pole.set(side*.20,-.88,-.16);
+      // Dynamic elbow clearance: creates natural space for clothing sleeves
+      // without pinning the upper arm flat against the ribcage
+      const heart=goal.palm==='heart';
+      const poleSpread=heart?side*.20:side*(.24+clamp(goal.x,0,.25)*.28);
+      const poleBack=heart?-.14:-.17-Math.max(0,goal.z)*.10;
+      pole.set(poleSpread,-.86,poleBack);
       const poleOrtho=orthonormalizePole(direction,pole);
       if(poleOrtho)pole.copy(poleOrtho);
       const along=(l1*l1-l2*l2+distance*distance)/(2*distance),height=Math.sqrt(Math.max(0,l1*l1-along*along));
