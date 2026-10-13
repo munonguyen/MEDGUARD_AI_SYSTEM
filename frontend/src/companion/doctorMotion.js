@@ -168,11 +168,11 @@ export class DoctorMotion {
     this.pose=pose;this.poseStarted=this.time;this.pendingTransition=true;
     if(pose==='pose_thinking')this.thinkSide=this.random()<.5?-1:1;
     if(pose==='pose_wave')this.previewCue=this.planner.select('greeting',this.tone);
-    if(pose==='pose_bow')this.previewCue={...this.planner.select('greeting',this.tone),variant:{id:'polite-bow',lift:.16,bend:1.80,yaw:.08,turn:.12,lean:-.045,wave:.02,fingers:'soft'}};
+    if(pose==='pose_bow')this.previewCue={...this.planner.select('reassure',this.tone),side:'right',variant:{id:'hand-near-heart',lift:.10,bend:1.93,yaw:.27,turn:.10,lean:-.038,arc:.012,fingers:'soft'}};
     if(pose==='pose_farewell')this.previewCue={...this.planner.select('greeting',this.tone),variant:{id:'farewell-wave',lift:.22,bend:1.82,yaw:.10,turn:.15,lean:-.022,wave:.07,fingers:'open'}};
     if(pose==='pose_explaining')this.previewCue=this.planner.select('explain',this.tone);
     if(pose==='pose_reassure')this.previewCue=this.planner.select('reassure',this.tone);
-    if(pose==='pose_note_taking')this.previewCue={...this.planner.select('guide',this.tone),variant:{id:'note-taking',lift:.14,bend:1.75,yaw:.09,turn:.15,lean:-.015,fingers:'point'}};
+    if(pose==='pose_note_taking')this.previewCue={...this.planner.select('guide',this.tone),side:'right',variant:{id:'note-taking',lift:.14,bend:1.75,yaw:.09,turn:.15,lean:-.015,secondary:.75,fingers:'pen'}};
   }
   setExpression(expression) {this.expression=expression;}
   setContext(question='',metadata={}) {
@@ -204,7 +204,11 @@ export class DoctorMotion {
   }
   cueAt(speaking,responding,playbackTime,playbackDuration) {
     const isExplicitGesture = ['pose_wave', 'pose_bow', 'pose_farewell', 'pose_explaining', 'pose_reassure', 'pose_note_taking'].includes(this.pose);
-    if(isExplicitGesture && this.previewCue)return {cue:this.previewCue,phase:this.time-this.poseStarted,duration:this.previewCue.duration||3.4,key:'preview-'+this.poseStarted};
+    if(isExplicitGesture && this.previewCue) {
+      const isHold = ['pose_bow', 'pose_note_taking'].includes(this.pose);
+      const phase = isHold ? Math.min(this.time - this.poseStarted, 1.25) : this.time - this.poseStarted;
+      return { cue: this.previewCue, phase, duration: this.previewCue.duration || 3.4, key: 'preview-' + this.poseStarted };
+    }
     const plan=this.segmentPlan||this.utterancePlan;
     if(speaking&&this.segmentTiming?.phrases.length) {
       const phrase=activeSpeechCue(this.segmentTiming.phrases,playbackTime);
@@ -471,6 +475,7 @@ export class DoctorMotion {
       let curl=f.idle*(1-delayed*.42);
       if(hand.pose==='point'&&f.finger!=='Thumb')curl=f.finger==='Index'?.035:f.idle+delayed*.45;
       if(hand.pose==='two'&&f.finger!=='Thumb')curl=['Index','Middle'].includes(f.finger)?.035:f.idle+delayed*.40;
+      if(hand.pose==='pen')curl=['Thumb','Index'].includes(f.finger)?0.20:0.45;
       curl=clamp(curl,0,f.segment===0?.85:.65);
       const splay=(f.finger==='Thumb'?.04:(1.8-f.index)*.008)*delayed*(f.side==='left'?-1:1);
       spring(f.curl,curl,10*(f.side==='left'?.94:1.02),dt,1.8);spring(f.splay,splay,8,dt,.65);
@@ -527,18 +532,18 @@ export class DoctorMotion {
       lower.getWorldPosition(b);hand.getWorldPosition(c);delta.setFromUnitVectors(c.sub(b).normalize(),a.subVectors(target,b).normalize());
       lower.getWorldQuaternion(worldQ);lower.parent.getWorldQuaternion(parentQ).invert();
       from.copy(lower.quaternion);lower.quaternion.copy(from.slerp(parentQ.multiply(delta.multiply(worldQ)),weight));lower.updateWorldMatrix(true,true);
-      // Pronation belongs mostly to the forearm, constrained to natural human range
+      // Natural clinical forearm supination/pronation:
+      // When raising hands in front of the patient, forearms naturally supinate
+      // so the thumb points UPWARD and medial (+angle for right arm, -angle for left arm).
       lower.getWorldPosition(b);hand.getWorldPosition(c);direction.subVectors(c,b).normalize();
-      arm.normal.set(0,goal.ny,goal.nz).normalize();
-      lower.getWorldQuaternion(worldQ);arm.palm.set(0,-1,0).applyQuaternion(worldQ);
-      arm.palm.addScaledVector(direction,-arm.palm.dot(direction)).normalize();
-      arm.axisY.copy(arm.normal).addScaledVector(direction,-arm.normal.dot(direction)).normalize();
-      arm.axisZ.crossVectors(arm.palm,arm.axisY);
-      const twistTarget=clamp(Math.atan2(direction.dot(arm.axisZ),arm.palm.dot(arm.axisY)),-.22,.22);
-      spring(goal.twist,twistTarget,7,dt,1.5);
-      const twist=goal.twist.position*weight;
-      delta.setFromAxisAngle(direction,twist);lower.parent.getWorldQuaternion(parentQ).invert();
-      lower.quaternion.copy(parentQ.multiply(delta.multiply(worldQ)));lower.updateWorldMatrix(true,true);
+      const supinationTarget = (arm.side === 'right' ? 2.65 : -2.65);
+      spring(goal.twist, supinationTarget, 8, dt, 2.5);
+      const twist = goal.twist.position * weight;
+      delta.setFromAxisAngle(direction, twist);
+      lower.getWorldQuaternion(worldQ);
+      lower.parent.getWorldQuaternion(parentQ).invert();
+      lower.quaternion.copy(parentQ.multiply(delta.multiply(worldQ)));
+      lower.updateWorldMatrix(true, true);
       // Hand naturally extends from forearm following authored gesture Euler targets;
       // never override with inverted coordinate basis to prevent unnatural 180° twists.
     }
