@@ -46,9 +46,9 @@ function orthonormalizePole(dir, pole) {
 const REST = {
   hips:[0,0,0], spine:[0,0,0], chest:[0,0,0], upperChest:[0,0,0], neck:[0,0,0], head:[0,0,0],
   leftShoulder:[0,0,0], rightShoulder:[0,0,0],
-  leftUpperArm:[.06,.02,1.42], rightUpperArm:[.06,-.02,-1.42],
-  leftLowerArm:[.08,0,0], rightLowerArm:[.08,0,0],
-  leftHand:[.02,0,0], rightHand:[.02,0,0],
+  leftUpperArm:[.08,.02,1.38], rightUpperArm:[.08,-.02,-1.38],
+  leftLowerArm:[.20,0,-0.08], rightLowerArm:[.20,0,0.08],
+  leftHand:[.05,0,-0.02], rightHand:[.05,0,0.02],
 };
 const clamp = (v,min=0,max=1) => Math.max(min,Math.min(max,v));
 const damp = (rate,dt) => 1-Math.exp(-rate*dt);
@@ -212,7 +212,7 @@ export class DoctorMotion {
     const plan=this.segmentPlan||this.utterancePlan;
     if(speaking&&this.segmentTiming?.phrases.length) {
       const phrase=activeSpeechCue(this.segmentTiming.phrases,playbackTime);
-      if(!phrase)return {cue:plan[0],phase:0,duration:1,key:'timed-rest',rest:true};
+      if(!phrase)return {cue:this.freeCue||plan[0],phase:0,duration:1,key:this.currentCueKey||'timed-hold',rest:true};
       const key='timed-'+phrase.start;
       if(this.currentCueKey!==key){
         const context=this.severe?'cautious':motionContext(phrase.text,this.questionContext||this.tone);
@@ -378,7 +378,7 @@ export class DoctorMotion {
     // IK corrections obey the same final angular speed budget as authored
     // gestures, including an interruption halfway through a held hand pose.
     for(const [name,previous] of Object.entries(this.armOutput)) {
-      const bone=this.bones[name];const speed=name.endsWith('Hand')?2.1:name.includes('Shoulder')?2.8:3.2;previous.rotateTowards(bone.quaternion,dt*speed);bone.quaternion.copy(previous);
+      const bone=this.bones[name];const speed=name.endsWith('Hand')?3.6:name.includes('Shoulder')?3.2:3.8;previous.rotateTowards(bone.quaternion,dt*speed);bone.quaternion.copy(previous);
     }
     this.updateFingers(dt,reducedMotion);
     this.updateFace(dt,{speaking,hasAudio,audioLevel,spectrum,visemes,cautious,empathetic,think,listen,reducedMotion,gazeX,gazeY});
@@ -472,7 +472,7 @@ export class DoctorMotion {
       if(blend<1){this.q2.copy(this.transitionFrom[n]).slerp(this.q,blend);this.euler.setFromQuaternion(this.q2);xyz[0]=this.euler.x;xyz[1]=this.euler.y;xyz[2]=this.euler.z;}
       const hand=n.endsWith('Hand'),arm=n.includes('Arm');
       const response=(hand?10:n.endsWith('LowerArm')?12:n.endsWith('UpperArm')?10:11)*(n.startsWith('left')?.94:1.02);
-      const speed=hand?2.1:arm?2.4:1.2;
+      const speed=hand?2.4:arm?2.7:1.3;
       for(let i=0;i<3;i++)spring(this.joints[n][i],xyz[i],response,dt,speed);
       this.bones[n]?.quaternion.setFromEuler(this.euler.set(...this.joints[n].map(v=>v.position)));
     }
@@ -522,19 +522,19 @@ export class DoctorMotion {
     const chest=this.bones.chest||this.bones.spine;
     if(!chest)return;
     for(const arm of this.arms) {
-      const goal=this.armGoals[arm.side];goal.weight+=((reducedMotion?0:goal.target)-goal.weight)*damp(9,dt);
-      for(const axis of ['x','y','z'])goal[axis]+=(goal['t'+axis]-goal[axis])*damp(6,dt);
+      const goal=this.armGoals[arm.side];goal.weight+=((reducedMotion?0:goal.target)-goal.weight)*damp(8,dt);
+      for(const axis of ['x','y','z'])goal[axis]+=(goal['t'+axis]-goal[axis])*damp(8,dt);
       goal.ny+=((goal.palm==='stop'||goal.palm==='heart'?.06:1)-goal.ny)*damp(6,dt);
       goal.nz+=((goal.palm==='heart'?-1:goal.palm==='stop'?1:.12)-goal.nz)*damp(6,dt);
       const weight=ease(clamp(goal.weight));if(weight<.0001)continue;
       const {upper,lower,hand,l1,l2,a,b,c,target,direction,pole,elbow,delta,worldQ,parentQ,from}=arm;
       chest.getWorldPosition(arm.chest);upper.getWorldPosition(a);
       const side=Math.sign(a.x-arm.chest.x)|| (arm.side==='left'?1:-1);
-      target.copy(arm.chest);target.x+=side*goal.x;target.y+=goal.y;target.z+=goal.z;
+      const safeX=Math.max(0.16,goal.x),safeZ=Math.max(0.10,goal.z);
+      target.copy(arm.chest);target.x+=side*safeX;target.y+=goal.y;target.z+=safeZ;
       direction.subVectors(target,a);
+      if(direction.lengthSq()<1e-6)continue;
       const distance=clamp(direction.length(),Math.abs(l1-l2)+.003,l1+l2-.025);direction.normalize();
-      if(arm.lastDirection&&arm.lastDirection.dot(direction)<-0.2)return;
-      arm.lastDirection=direction.clone();
       // Hybrid FK/IK Elbow Clearance & Scapulohumeral compliance:
       // Prevents clothing sleeves from penetrating the ribcage while keeping
       // the upper arm alive, natural, and responsive to authored gesture angles.
