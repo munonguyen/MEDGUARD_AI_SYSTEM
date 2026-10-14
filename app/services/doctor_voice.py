@@ -37,7 +37,7 @@ VOICE_PROFILES = {
 def configure_tts_trust() -> None:
     """Keep certifi roots and add the machine's trusted CA certificates.
 
-    Compatibility adapter for pinned edge-tts 7.2.8, which uses its own shared
+    Compatibility adapter for pinned edge-tts 7.3.1, which uses its own shared
     SSL context instead of the system default. Never disable verification.
     """
     transport = importlib.import_module('edge_tts.communicate')
