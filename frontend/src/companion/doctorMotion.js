@@ -111,7 +111,10 @@ export class DoctorMotion {
         if(direction.lengthSq()<1e-8)direction.set(side==='left'?1:-1,0,0);
         const axis=direction.normalize().cross(new Vector3(0,-1,0)).normalize();
         const idle=(finger==='Thumb'?.28:.32+index*.055)*(segment===0?1:segment===1?.72:.5);
-        this.fingers.push({name,bone,finger,index,segment,side,axis,idle,curl:state(idle),splay:state(0),q:new Quaternion()});
+        const item={name,bone,finger,index,segment,side,axis,idle,curl:state(idle),splay:state(0),q:new Quaternion()};
+        item.q.setFromAxisAngle(axis, idle);
+        bone.quaternion.copy(item.q);
+        this.fingers.push(item);
       }
     }
     // Use the model's gaze applier (bone or expression) instead of competing
@@ -378,7 +381,15 @@ export class DoctorMotion {
     // IK corrections obey the same final angular speed budget as authored
     // gestures, including an interruption halfway through a held hand pose.
     for(const [name,previous] of Object.entries(this.armOutput)) {
-      const bone=this.bones[name];const speed=name.endsWith('Hand')?3.6:name.includes('Shoulder')?3.2:3.8;previous.rotateTowards(bone.quaternion,dt*speed);bone.quaternion.copy(previous);
+      const bone=this.bones[name];const speed=name.endsWith('Hand')?3.6:name.includes('Shoulder')?3.2:3.8;
+      const angle=previous.angleTo(bone.quaternion);
+      if(angle>1e-5){
+        const maxStep=dt*speed;
+        const desiredStep=angle*damp(14,dt);
+        const step=Math.min(maxStep,Math.max(0,desiredStep));
+        previous.slerp(bone.quaternion,step/angle);
+        bone.quaternion.copy(previous);
+      }
     }
     this.updateFingers(dt,reducedMotion);
     this.updateFace(dt,{speaking,hasAudio,audioLevel,spectrum,visemes,cautious,empathetic,think,listen,reducedMotion,gazeX,gazeY});
@@ -426,7 +437,7 @@ export class DoctorMotion {
       // AIRI dignified clinical greeting: polite subtle head/chest bow + soft hand gesture
       targets.head[0] += pulse(phase, 0.2, 1.4) * strength * 0.038;
       targets.chest[0] += pulse(phase, 0.2, 1.4) * strength * 0.016;
-      targets[arm+'Hand'][2]+=Math.sin(phase*4.2)*envelope(phase,.55,Math.min(1.8,duration-.55))*strength*(style.wave * 0.6);
+      targets[arm+'Hand'][2]+=Math.sin(phase*2.4)*envelope(phase,.55,Math.min(1.8,duration-.55))*strength*(style.wave * 0.35);
       targets.head[2]-=shoulder*.012;
     }
     this.handStates[arm]={openness:wrist,pose:style.fingers};
@@ -437,7 +448,7 @@ export class DoctorMotion {
     if(cue.intent==='greeting') {
       // Compact gesture in front of the upper chest, elbow below the hand.
       const wave=envelope(phase,.55,Math.min(1.8,duration-.55));
-      Object.assign(this.armGoals[arm],{target:shoulder,tx:.135+Math.sin(phase*4.2)*wave*.007,
+      Object.assign(this.armGoals[arm],{target:shoulder,tx:.135+Math.sin(phase*2.4)*wave*.004,
         ty:.065,tz:.21,palm:'offer'});
     } else {
       const compact=cue.intent==='caution'||cue.intent==='enumerate';
@@ -445,7 +456,11 @@ export class DoctorMotion {
       Object.assign(this.armGoals[arm],{target:shoulder,tx:heart?.065:compact?.19:cue.intent==='compare'?.27:.24,
         ty:heart?.04:compact?.075:cue.intent==='reassure'?.015:.038,
         tz:heart?.17:compact?.21:.24+(style.arc||0)*Math.sin(phase*1.3),palm:heart?'heart':style.id==='compact-stop'?'stop':'offer'});
-      if(style.secondary)Object.assign(this.armGoals[other],{target:secondary,tx:cue.intent==='compare'?.26:.21,ty:.015,tz:.22,palm:'offer'});
+      if(style.secondary){
+        Object.assign(this.armGoals[other],{target:secondary,tx:cue.intent==='compare'?.26:.21,ty:.015,tz:.22,palm:'offer'});
+      } else {
+        Object.assign(this.armGoals[other],{target:0,tx:.20,ty:-.15,tz:.08});
+      }
     }
     const point=choreograph(cue.intent,phase,duration,style);
     // Scale reference-space paths gently according to arm length, preserving comfortable shoulder abduction
@@ -466,7 +481,8 @@ export class DoctorMotion {
       }
       this.transitionDuration=clamp(.3+angle*.18,.3,.8);this.transitionAt=this.time;this.pendingTransition=false;
     }
-    const blend=ease((this.time-this.transitionAt)/this.transitionDuration);
+    const t=clamp((this.time-this.transitionAt)/this.transitionDuration);
+    const blend=t*t*(3-2*t);
     for(const [n,xyz] of Object.entries(this.targets)) {
       this.q.setFromEuler(this.euler.set(...xyz));
       if(blend<1){this.q2.copy(this.transitionFrom[n]).slerp(this.q,blend);this.euler.setFromQuaternion(this.q2);xyz[0]=this.euler.x;xyz[1]=this.euler.y;xyz[2]=this.euler.z;}
@@ -563,13 +579,13 @@ export class DoctorMotion {
       lower.getWorldPosition(b);hand.getWorldPosition(c);delta.setFromUnitVectors(c.sub(b).normalize(),a.subVectors(target,b).normalize());
       lower.getWorldQuaternion(worldQ);lower.parent.getWorldQuaternion(parentQ).invert();
       from.copy(lower.quaternion);lower.quaternion.copy(from.slerp(parentQ.multiply(delta.multiply(worldQ)),weight));lower.updateWorldMatrix(true,true);
-      // Natural clinical forearm supination/pronation:
+      // Natural physiological forearm supination/pronation:
       // When raising hands in front of the patient, forearms naturally supinate
-      // so the thumb points UPWARD and medial (+angle for right arm, -angle for left arm).
+      // comfortably with thumb pointing up and inward (+angle for right arm, -angle for left arm).
       lower.getWorldPosition(b);hand.getWorldPosition(c);direction.subVectors(c,b).normalize();
-      const supinationTarget = (arm.side === 'right' ? 2.65 : -2.65);
+      const supinationTarget = goal.target > 0 ? (arm.side === 'right' ? 0.65 : -0.65) : 0;
       spring(goal.twist, supinationTarget, 8, dt, 2.5);
-      const twist = goal.twist.position * weight;
+      const twist = goal.twist.position;
       delta.setFromAxisAngle(direction, twist);
       lower.getWorldQuaternion(worldQ);
       lower.parent.getWorldQuaternion(parentQ).invert();

@@ -18,7 +18,7 @@ export function choreograph(intent,phase,duration,variant={}) {
  let i=0;while(i<times.length-2&&t>times[i+1])i++;
  const a=ease(Math.max(0,Math.min(1,(t-times[i])/(times[i+1]-times[i]))));
  const point=points[i].map((v,k)=>v+(points[i+1][k]-v)*a);
- if(intent==='greeting')point[0]+=Math.sin(Math.max(0,t-.25)*Math.PI*8)*Math.sin(Math.PI*Math.max(0,Math.min(1,(t-.25)/.45)))**2*.008;
+ if(intent==='greeting')point[0]+=Math.sin(Math.max(0,t-.25)*Math.PI*3.2)*Math.sin(Math.PI*Math.max(0,Math.min(1,(t-.25)/.50)))**2*.005;
  if(variant.id==='hand-near-heart')return [.065,point[1]*.4+.025,.17];
  // Differences in range preserve the meaning of the gesture.
  const range=(variant.id?.includes('small')||variant.id?.includes('gentle')) ? .88 : variant.id?.includes('spatial') ? 1.15 : variant.id==='two-sides' ? 1.12 : 1;

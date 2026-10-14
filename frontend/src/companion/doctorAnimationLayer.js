@@ -100,14 +100,11 @@ export class DoctorAnimationLayer {
   }
 
   apply(dt, { cue, phase, duration, active, reducedMotion } = {}) {
-    if (this.destroyed) return;
-    if (this.idleLoaded && this.idleMixer && !reducedMotion) {
-      this.idleMixer.update(dt);
-    }
-    if (!this.loaded) return;
+    if (this.destroyed || !this.loaded) return;
     const action = this.actions[cue?.intent];
     const target = active && !reducedMotion && action ? .35 : 0;
     this.weight += (target - this.weight) * (1 - Math.exp(-dt * 8));
+    if (this.weight < 0.001) return;
     for (const sample of this.samples) sample.saved.copy(sample.bone.quaternion);
     for (const a of Object.values(this.actions)) a.enabled = a === action;
     if (action) {
