@@ -264,7 +264,7 @@ _INTENT_KEYWORDS: dict[ChatIntent, tuple[str, ...]] = {
     "delivery": ("webhook", "gui ket qua", "delivery", "notification", "sse"),
     "ocr": ("ocr", "doc don thuoc", "anh don thuoc", "quet don thuoc"),
     "schedule": ("lich uong thuoc", "nhac uong", "dat lich uong", "#lichthuoc", "hen gio uong"),
-    "authenticity": ("hang gia", "hang nhai", "chinh hang", "quet qr", "kiem tra qr", "xac thuc thuoc"),
+    "authenticity": ("hang gia", "hang nhai", "chinh hang", "quet qr", "kiem tra qr", "xac thuc thuoc", "ma vach", "barcode", "quet ma", "kiem tra ma"),
 }
 
 # V14 treats ``all`` as the single-path response contract: every public response
@@ -1390,7 +1390,7 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
         latest = payload.messages[-1].content
         # Remove common chat / prompt prefixes
         clean_code = re.sub(
-            r"^(kiểm tra qr( hàng giả)?|quét qr|xác thực qr|mã qr|qr code)[\s:]*",
+            r"^(kiểm tra (qr|mã vạch|mã)( hàng giả)?|quét (qr|mã vạch|mã)|xác thực (qr|mã vạch|mã)|mã qr|qr code|mã vạch|barcode)[\s:]*",
             "",
             latest,
             flags=re.IGNORECASE,

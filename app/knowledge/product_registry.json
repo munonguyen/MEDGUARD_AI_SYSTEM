@@ -65,6 +65,22 @@
       "lots": ["RCL2301"],
       "expires_on": "2026-12-31",
       "status": "recalled"
+    },
+    {
+      "product_code": "ENTEROBIFINA",
+      "gtin": "8936151980798",
+      "name": "EnteroBifina 2.5 tỷ bào tử Bacillus clausii (Hộp 20 ống x 5ml Mediphar)",
+      "manufacturer": "Công ty Cổ phần Dược phẩm Liên Doanh Mediphar",
+      "authorized_serials": [],
+      "lots": ["000106"],
+      "registration_number": "6520/2019/ĐKSP",
+      "mfg_date": "2025-02-08",
+      "expires_on": "2028-02-08",
+      "status": "active",
+      "category": "dietary_supplement",
+      "standard": "TCCS",
+      "address": "KCN Phú Nghĩa, Huyện Chương Mỹ, TP. Hà Nội",
+      "regulatory_note": "Thực phẩm bảo vệ sức khỏe (ĐKSP: 6520/2019/ĐKSP). Lưu ý: Đây là thực phẩm bảo vệ sức khỏe bổ sung lợi khuẩn đường ruột, không phải thuốc điều trị và cần phân biệt với biệt dược gốc Enterogermina (Sanofi)."
     }
   ]
 }

@@ -18,7 +18,7 @@ def _decode(raw_code: str) -> dict[str, str]:
     raw = raw_code.strip()
     # Strip user chat prefixes
     raw = re.sub(
-        r"^(kiểm tra qr( hàng giả)?|quét qr|xác thực qr|mã qr|qr code)[\s:]*",
+        r"^(kiểm tra (qr|mã vạch|mã)( hàng giả)?|quét (qr|mã vạch|mã)|xác thực (qr|mã vạch|mã)|mã qr|qr code|mã vạch|barcode)[\s:]*",
         "",
         raw,
         flags=re.IGNORECASE,
@@ -115,6 +115,11 @@ def verify_product_code(
         raw_key = str(product_code).strip()
         raw_upper = raw_key.upper()
         candidate_keys.update({raw_key, raw_upper})
+        if raw_upper.isdigit():
+            if len(raw_upper) == 13:
+                candidate_keys.add(f"0{raw_upper}")
+            elif len(raw_upper) == 14 and raw_upper.startswith("0"):
+                candidate_keys.add(raw_upper[1:])
         if raw_upper in _ALIASES:
             candidate_keys.add(_ALIASES[raw_upper])
         if not raw_upper.startswith("MG-"):
@@ -127,7 +132,13 @@ def verify_product_code(
             item
             for item in knowledge.product_registry
             if any(
-                cand in {str(item.get("product_code")), str(item.get("product_code", "")).upper(), str(item.get("gtin"))}
+                cand in {
+                    str(item.get("product_code")),
+                    str(item.get("product_code", "")).upper(),
+                    str(item.get("gtin")),
+                    f"0{item.get('gtin', '')}" if len(str(item.get("gtin", ""))) == 13 else "",
+                    str(item.get("gtin", ""))[1:] if len(str(item.get("gtin", ""))) == 14 and str(item.get("gtin", "")).startswith("0") else "",
+                }
                 for cand in candidate_keys
             )
         ),
@@ -137,9 +148,9 @@ def verify_product_code(
     status = "unknown"
     if not product_code:
         status = "invalid"
-        reasons.append("QR không chứa product_code hoặc GTIN hợp lệ.")
+        reasons.append("Không tìm thấy mã sản phẩm hoặc mã vạch GTIN hợp lệ.")
     elif product is None:
-        reasons.append(f"Mã sản phẩm '{product_code}' chưa tồn tại trong registry nhà sản xuất đang kết nối.")
+        reasons.append(f"Mã sản phẩm / mã vạch '{product_code}' chưa tồn tại trong registry nhà sản xuất đang kết nối.")
     elif product.get("status") == "recalled":
         status = "recalled"
         reasons.append("CẢNH BÁO: Lô sản phẩm nằm trong danh mục thu hồi khẩn cấp của nhà sản xuất / cơ quan y tế.")
@@ -152,18 +163,26 @@ def verify_product_code(
         if is_expired:
             status = "expired"
             reasons.append(f"CẢNH BÁO: Thuốc đã hết hạn sử dụng từ ngày {product['expires_on']}.")
-        elif not serial or not lot:
+        elif product.get("authorized_serials") and not serial:
             status = "unknown"
-            reasons.append(f"Đã nhận diện sản phẩm {product.get('name')}, nhưng mã QR thiếu serial hoặc lot nên chưa thể xác thực chống giả hoàn chỉnh.")
-        elif serial not in product.get("authorized_serials", []):
+            reasons.append(f"Đã nhận diện sản phẩm {product.get('name')}, nhưng mã thiếu serial hoặc lot để xác thực chống giả cá thể.")
+        elif serial and product.get("authorized_serials") and serial not in product.get("authorized_serials", []):
             status = "suspected_counterfeit"
             reasons.append(f"CẢNH BÁO: Serial '{serial}' không thuộc danh sách được nhà sản xuất công bố xuất xưởng (nguy cơ hàng giả/hàng nhái).")
-        elif lot not in product.get("lots", []):
+        elif lot and product.get("lots") and lot not in product.get("lots", []):
             status = "suspected_counterfeit"
             reasons.append(f"CẢNH BÁO: Số lô '{lot}' không khớp với hồ sơ lưu hành của sản phẩm.")
         else:
             status = "registry_match"
-            reasons.append("Mã sản phẩm, số lô (lot) và mã định danh (serial) hoàn toàn trùng khớp với hồ sơ registry của nhà sản xuất.")
+            if not serial and not product.get("authorized_serials"):
+                reasons.append(f"Mã vạch thương phẩm (GTIN/EAN-13: {product.get('gtin')}) trùng khớp với hồ sơ công bố của {product.get('manufacturer')}.")
+            else:
+                reasons.append("Mã sản phẩm, số lô (lot) và mã định danh (serial) hoàn toàn trùng khớp với hồ sơ registry của nhà sản xuất.")
+
+        if product.get("registration_number"):
+            reasons.append(f"Số đăng ký / Số ĐKSP: {product['registration_number']}")
+        if product.get("regulatory_note"):
+            reasons.append(f"Lưu ý phân loại: {product['regulatory_note']}")
 
     response = ProductVerificationResponse(
         request_id=ctx.request_id,

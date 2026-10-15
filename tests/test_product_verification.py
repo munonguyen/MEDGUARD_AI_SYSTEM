@@ -152,3 +152,23 @@ def test_chat_authenticity_intent_integration():
     assert data2["intent"] == "authenticity"
     assert "CẢNH BÁO" in data2["reply"] or "giả" in data2["reply"].lower()
     assert data2["result"]["verification_status"] == "suspected_counterfeit"
+
+    # 3. EnteroBifina EAN-13 barcode scan (8936151980798)
+    headers["Idempotency-Key"] = "test-chat-auth-03"
+    resp3 = client.post(
+        "/v1/chat",
+        json={
+            "conversation_id": "conv-test-auth-3",
+            "messages": [{"role": "user", "content": "Kiểm tra mã vạch: 8936151980798"}],
+            "intent_hint": "authenticity",
+            "locale": "vi-VN",
+        },
+        headers=headers,
+    )
+    assert resp3.status_code == 200
+    data3 = resp3.json()
+    assert data3["intent"] == "authenticity"
+    assert data3["result"]["verification_status"] == "registry_match"
+    assert "EnteroBifina" in data3["result"]["product"]["name"]
+    assert "Mediphar" in data3["result"]["product"]["manufacturer"]
+    assert any("6520/2019/ĐKSP" in r for r in data3["result"]["reasons"])

@@ -18,11 +18,18 @@ import {
 } from 'lucide-react';
 
 async function createReader() {
-  const { BrowserQRCodeReader } = await import('@zxing/browser');
-  return new BrowserQRCodeReader();
+  const { BrowserMultiFormatReader } = await import('@zxing/browser');
+  return new BrowserMultiFormatReader();
 }
 
 const SAMPLE_CODES = [
+  {
+    id: 'entero-ok',
+    label: 'EnteroBifina 2.5B',
+    badge: 'Mã vạch EAN-13',
+    tone: 'success',
+    code: '8936151980798',
+  },
   {
     id: 'amox-ok',
     label: 'Amoxicillin 500mg',
@@ -155,10 +162,92 @@ export function QrScanner({ open, onClose, onDetected }) {
     const url = URL.createObjectURL(file);
     try {
       const reader = await createReader();
-      const result = await reader.decodeFromImageUrl(url);
-      finish(result.getText());
+
+      // 1. Direct full-image scan
+      let detectedText = null;
+      try {
+        const result = await reader.decodeFromImageUrl(url);
+        if (result?.getText()) {
+          detectedText = result.getText();
+        }
+      } catch {
+        // Fallback to multi-region canvas scanning
+      }
+
+      // 2. Multi-region & angle scan if direct full-image failed
+      // Medicine packages often have barcodes tilted or positioned in specific quadrants
+      if (!detectedText) {
+        const img = new Image();
+        img.src = url;
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = () => reject(new Error('Không thể tải file hình ảnh.'));
+        });
+
+        const w = img.naturalWidth || img.width;
+        const h = img.naturalHeight || img.height;
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Focused crops where barcodes / QR codes typically sit on medicine packaging:
+        const candidateRegions = [
+          // Bottom half (standard for box barcodes like EnteroBifina, blisters)
+          { x: 0, y: Math.floor(h * 0.35), w: w, h: Math.floor(h * 0.65) },
+          // Bottom-right quadrant (EAN-13 location on EnteroBifina)
+          { x: Math.floor(w * 0.35), y: Math.floor(h * 0.45), w: Math.floor(w * 0.65), h: Math.floor(h * 0.55) },
+          // Center 70%
+          { x: Math.floor(w * 0.15), y: Math.floor(h * 0.15), w: Math.floor(w * 0.7), h: Math.floor(h * 0.7) },
+          // Bottom-left quadrant
+          { x: 0, y: Math.floor(h * 0.45), w: Math.floor(w * 0.65), h: Math.floor(h * 0.55) },
+          // Top half (bottle caps and ampoule labels)
+          { x: 0, y: 0, w: w, h: Math.floor(h * 0.6) },
+        ];
+
+        for (const reg of candidateRegions) {
+          canvas.width = reg.w;
+          canvas.height = reg.h;
+          ctx.clearRect(0, 0, reg.w, reg.h);
+          ctx.drawImage(img, reg.x, reg.y, reg.w, reg.h, 0, 0, reg.w, reg.h);
+          try {
+            const res = await reader.decodeFromCanvas(canvas);
+            if (res?.getText()) {
+              detectedText = res.getText();
+              break;
+            }
+          } catch {}
+        }
+
+        // 3. Tilted package rotation scan (for hand-held or slanted packages)
+        if (!detectedText) {
+          const angles = [10, -10, 15, -15, 90, 270];
+          for (const angle of angles) {
+            const regW = Math.floor(w * 0.85);
+            const regH = Math.floor(h * 0.65);
+            canvas.width = regW;
+            canvas.height = regH;
+            ctx.save();
+            ctx.translate(regW / 2, regH / 2);
+            ctx.rotate((angle * Math.PI) / 180);
+            ctx.drawImage(img, -w / 2, -h / 2);
+            ctx.restore();
+            try {
+              const res = await reader.decodeFromCanvas(canvas);
+              if (res?.getText()) {
+                detectedText = res.getText();
+                break;
+              }
+            } catch {}
+          }
+        }
+      }
+
+      if (detectedText) {
+        finish(detectedText);
+      } else {
+        setError('Không nhận diện được mã QR hoặc mã vạch từ ảnh này. Đối với các hộp thuốc như EnteroBifina (mã vạch 8936151980798), bạn có thể chụp cận cảnh mã hơn hoặc dùng tab "Nhập Mã Chuỗi" để đối chiếu.');
+      }
     } catch {
-      setError('Không tìm thấy mã QR hợp lệ trong ảnh này. Hãy thử ảnh chụp cận cảnh và đủ sáng hơn.');
+      setError('Lỗi khi xử lý ảnh. Hãy thử ảnh chụp cận cảnh và đủ sáng hơn hoặc nhập mã chuỗi trực tiếp.');
     } finally {
       URL.revokeObjectURL(url);
       setBusy(false);
@@ -192,8 +281,8 @@ export function QrScanner({ open, onClose, onDetected }) {
               <QrCode size={20} />
             </span>
             <div>
-              <h2 id="qr-title">Xác thực QR Chống Hàng Giả</h2>
-              <p>Đối chiếu tức thì với Registry Dược phẩm Chính hãng</p>
+              <h2 id="qr-title">Xác thực QR & Mã Vạch Thuốc</h2>
+              <p>Hỗ trợ QR Code 2D & Barcode 1D (EAN-13, UPC, GS1 DataMatrix)</p>
             </div>
           </div>
           <button className="icon-button dialog-close-btn" type="button" title="Đóng" aria-label="Đóng" onClick={onClose}>
@@ -248,7 +337,7 @@ export function QrScanner({ open, onClose, onDetected }) {
               setTab('image');
             }}
           >
-            <ImagePlus size={15} /> Tải Ảnh QR
+            <ImagePlus size={15} /> Tải Ảnh QR / Mã Vạch
           </button>
           <button
             type="button"
@@ -275,7 +364,7 @@ export function QrScanner({ open, onClose, onDetected }) {
               <span className="hud-corner bottom-left" />
               <span className="hud-corner bottom-right" />
               <div className="scanner-laser-bar" />
-              <span className="scanner-hud-hint">Đặt mã QR hoặc DataMatrix vào giữa khung hình</span>
+              <span className="scanner-hud-hint">Đặt mã QR hoặc mã vạch 1D vào giữa khung hình</span>
             </div>
 
             {hasTorch && cameraActive && (
@@ -295,8 +384,8 @@ export function QrScanner({ open, onClose, onDetected }) {
                 <div className="scanner-camera-icon-glow">
                   <Camera size={32} />
                 </div>
-                <strong>Quét mã QR trên bao bì thuốc</strong>
-                <p>Hỗ trợ camera điện thoại, webcam máy tính và mã DataMatrix GS1</p>
+                <strong>Quét mã QR hoặc mã vạch trên bao bì thuốc</strong>
+                <p>Hỗ trợ camera điện thoại, webcam, mã vạch EAN-13 và mã QR DataMatrix GS1</p>
                 <button
                   className="camera-start modern-camera-start"
                   type="button"
@@ -327,8 +416,8 @@ export function QrScanner({ open, onClose, onDetected }) {
                 {busy ? <LoaderCircle className="spin" size={32} /> : <UploadCloud size={32} />}
               </div>
               <div className="qr-upload-text">
-                <strong>{busy ? 'Đang giải mã QR từ ảnh…' : 'Bấm để chọn ảnh hoặc kéo thả vào đây'}</strong>
-                <p>Hỗ trợ ảnh chụp nhãn hộp thuốc, vỉ thuốc hoặc hóa đơn (PNG, JPG, WebP)</p>
+                <strong>{busy ? 'Đang giải mã QR / Mã vạch từ ảnh…' : 'Bấm để chọn ảnh hoặc kéo thả vào đây'}</strong>
+                <p>Hỗ trợ mã QR, DataMatrix và mã vạch 1D EAN-13 (PNG, JPG, WebP)</p>
               </div>
               <span className="qr-upload-browse-btn">Chọn tệp từ thiết bị</span>
               <input
