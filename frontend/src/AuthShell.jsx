@@ -99,22 +99,6 @@ export default function AuthShell(){
  if(!user && isGuest && mode!=='reset' && mode!=='verify'){
   return (
    <div className="authenticated-shell guest-shell">
-    <div className="account-bar guest-account-bar">
-     <span className="guest-badge-text">
-      👋 Chế độ khách dùng thử · <strong>{guestRemaining}/{GUEST_MAX_QUESTIONS} lượt hỏi</strong>
-     </span>
-     <button
-      type="button"
-      className="guest-login-nav-btn"
-      onClick={() => {
-       setIsGuest(false);
-       try { localStorage.removeItem('medguard.guest_mode'); } catch {}
-       setMode('login');
-      }}
-     >
-      Đăng nhập / Đăng ký
-     </button>
-    </div>
     <App
      key="guest-app"
      account={null}
