@@ -404,18 +404,18 @@ export class DoctorMotion {
     // Dynamic scapular rhythm & thoracic co-activation:
     // Natural clavicle elevation, protraction and axial rotation as arm extends
     const liftScale=(style.lift||.15);
-    targets[arm+'Shoulder'][0]+=shoulder*(.048+liftScale*.12);
-    targets[arm+'Shoulder'][1]-=sign*shoulder*(.038+(style.yaw||.1)*.20);
-    targets[arm+'Shoulder'][2]+=sign*shoulder*(.050+liftScale*.08);
-    targets[arm+'UpperArm'][0]+=shoulder*.21;
+    targets[arm+'Shoulder'][0]+=shoulder*(.065+liftScale*.14);
+    targets[arm+'Shoulder'][1]-=sign*shoulder*(.035+(style.yaw||.1)*.15);
+    targets[arm+'Shoulder'][2]+=sign*shoulder*(.060+liftScale*.10);
+    targets[arm+'UpperArm'][0]+=shoulder*(.32+liftScale*.20);
     targets[arm+'UpperArm'][1]-=sign*shoulder*(style.yaw||.12);
-    targets[arm+'UpperArm'][2]+=sign*shoulder*style.lift;
-    targets[arm+'LowerArm'][0]-=elbow*.22;
-    targets[arm+'LowerArm'][2]+=sign*elbow*style.bend;
+    targets[arm+'UpperArm'][2]+=sign*shoulder*(style.lift*.95);
+    targets[arm+'LowerArm'][0]-=elbow*.20;
+    targets[arm+'LowerArm'][2]+=sign*elbow*(style.bend*.92);
     targets[arm+'LowerArm'][1]+=sign*arc*.6;
-    targets[arm+'Hand'][0]+=wrist*.09+arc+this.audioAccent*wrist*.018;
-    targets[arm+'Hand'][1]-=sign*wrist*style.turn;
-    targets[arm+'Hand'][2]-=sign*wrist*.10;
+    targets[arm+'Hand'][0]+=wrist*.06+arc+this.audioAccent*wrist*.018;
+    targets[arm+'Hand'][1]-=sign*wrist*(style.turn*.5);
+    targets[arm+'Hand'][2]+=sign*wrist*.02;
     const secondary=envelope(phase,.28,Math.max(.8,duration-.4))*strength*(style.secondary||.065);
     targets[other+'Shoulder'][0]+=secondary*.020;
     targets[other+'Shoulder'][1]+=sign*secondary*.018;
@@ -502,13 +502,21 @@ export class DoctorMotion {
       const before=this.time-f.index*.06;
       while(f.history.length>2&&f.history[1].time<=before)f.history.shift();
       const delayed=f.history[0].open;
-      // AIRI natural relaxed curvature: fingers retain gentle human flex, avoiding flat claw rigidity
-      let curl=f.idle*(1-delayed*.42);
-      if(hand.pose==='point'&&f.finger!=='Thumb')curl=f.finger==='Index'?.035:f.idle+delayed*.45;
-      if(hand.pose==='two'&&f.finger!=='Thumb')curl=['Index','Middle'].includes(f.finger)?.035:f.idle+delayed*.40;
-      if(hand.pose==='pen')curl=['Thumb','Index'].includes(f.finger)?0.20:0.45;
+      // Anatomical extension cascade: Index leads, Thumb abducts, Pinky trails
+      const extendRate = f.finger === 'Thumb' ? .45 :
+                         f.finger === 'Index' ? .75 :
+                         f.finger === 'Middle' ? .62 :
+                         f.finger === 'Ring' ? .44 : .35;
+      let curl = f.idle * (1 - delayed * extendRate);
+      if(hand.pose==='point'&&f.finger!=='Thumb')curl=f.finger==='Index'?.035:f.idle*1.35;
+      if(hand.pose==='two'&&f.finger!=='Thumb')curl=['Index','Middle'].includes(f.finger)?.035:f.idle*1.30;
+      if(hand.pose==='pen')curl=['Thumb','Index'].includes(f.finger)?0.18:0.42;
       curl=clamp(curl,0,f.segment===0?.85:.65);
-      const splay=(f.finger==='Thumb'?.04:(1.8-f.index)*.008)*delayed*(f.side==='left'?-1:1);
+      // Natural finger fan (splay) radiating outward
+      const splay=(f.finger==='Thumb'?.11:
+                   f.finger==='Index'?.045:
+                   f.finger==='Middle'?.012:
+                   f.finger==='Ring'?-.025:-.055)*delayed*(f.side==='left'?-1:1);
       spring(f.curl,curl,10*(f.side==='left'?.94:1.02),dt,1.8);spring(f.splay,splay,8,dt,.65);
       f.q.setFromAxisAngle(f.axis,f.curl.position);
       if(f.segment===0)f.q.multiply(this.q.setFromAxisAngle(SPLAY_AXIS,f.splay.position));
@@ -546,7 +554,7 @@ export class DoctorMotion {
       const {upper,lower,hand,l1,l2,a,b,c,target,direction,pole,elbow,delta,worldQ,parentQ,from}=arm;
       chest.getWorldPosition(arm.chest);upper.getWorldPosition(a);
       const side=Math.sign(a.x-arm.chest.x)|| (arm.side==='left'?1:-1);
-      const safeX=Math.max(0.16,goal.x),safeZ=Math.max(0.10,goal.z);
+      const safeX=Math.max(0.16,goal.x),safeZ=Math.max(0.12,goal.z);
       target.copy(arm.chest);target.x+=side*safeX;target.y+=goal.y;target.z+=safeZ;
       direction.subVectors(target,a);
       if(direction.lengthSq()<1e-6)continue;
@@ -556,17 +564,17 @@ export class DoctorMotion {
       // the upper arm alive, natural, and responsive to authored gesture angles.
       const heart=goal.palm==='heart';
       const isGreeting=this.activeGesture==='greeting'||this.pose==='pose_wave';
-      const poleSpread=heart?side*.20:isGreeting?side*.24:side*(.28+clamp(goal.x,0,.35)*.32);
-      const poleElev=heart?-.82:isGreeting?-.85:-.70+clamp(goal.y,-.05,.15)*.38;
-      const poleBack=heart?-.14:isGreeting?-.16:-.08+clamp(goal.z,0,.30)*.18;
-      pole.set(poleSpread,poleElev,poleBack);
+      const poleSpread=heart?side*.20:isGreeting?side*.22:side*(.24+goal.x*.20);
+      const poleElev=heart?-.78:isGreeting?-.66:-.48+goal.y*.20;
+      const poleFwd=heart?-.04:isGreeting?.05:(.18+goal.z*.20);
+      pole.set(poleSpread,poleElev,poleFwd);
       const baseOrtho=orthonormalizePole(direction,pole);
       if(baseOrtho)pole.copy(baseOrtho);
       lower.getWorldPosition(b);
       c.subVectors(b,a).normalize();
       const fkPole=orthonormalizePole(direction,c);
       if(fkPole){
-        const fkBlend=heart?0.12:isGreeting?0.22:0.42;
+        const fkBlend=heart?0.25:isGreeting?0.40:0.65;
         pole.lerp(fkPole,fkBlend).normalize();
       }
       const poleOrtho=orthonormalizePole(direction,pole);
@@ -583,7 +591,7 @@ export class DoctorMotion {
       // When raising hands in front of the patient, forearms naturally supinate
       // comfortably with thumb pointing up and inward (+angle for right arm, -angle for left arm).
       lower.getWorldPosition(b);hand.getWorldPosition(c);direction.subVectors(c,b).normalize();
-      const supinationTarget = goal.target > 0 ? (arm.side === 'right' ? 0.65 : -0.65) : 0;
+      const supinationTarget = goal.target > 0 ? (arm.side === 'right' ? 0.60 : -0.60) : 0;
       spring(goal.twist, supinationTarget, 8, dt, 2.5);
       const twist = goal.twist.position;
       delta.setFromAxisAngle(direction, twist);
