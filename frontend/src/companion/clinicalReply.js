@@ -1,5 +1,6 @@
 // Render the existing safety-checked response contract, never invent a reply.
 export function clinicalReply(data) {
+  if (typeof data?.spoken_reply === 'string' && data.spoken_reply.trim()) return data.spoken_reply.trim();
   const answer = data?.answer;
   const narrative = answer?.narrative?.map(b => b.text).filter(Boolean) || [];
   const base = data?.verification_status === 'verified' && narrative.length

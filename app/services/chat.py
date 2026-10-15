@@ -264,7 +264,7 @@ _INTENT_KEYWORDS: dict[ChatIntent, tuple[str, ...]] = {
     "delivery": ("webhook", "gui ket qua", "delivery", "notification", "sse"),
     "ocr": ("ocr", "doc don thuoc", "anh don thuoc", "quet don thuoc"),
     "schedule": ("lich uong thuoc", "nhac uong", "dat lich uong", "#lichthuoc", "hen gio uong"),
-    "authenticity": ("hang gia", "hang nhai", "chinh hang", "quet qr", "kiem tra qr", "xac thuc thuoc"),
+    "authenticity": ("hang gia", "hang nhai", "chinh hang", "quet qr", "kiem tra qr", "xac thuc thuoc", "ma vach", "barcode", "quet ma", "kiem tra ma"),
 }
 
 # V14 treats ``all`` as the single-path response contract: every public response
@@ -1388,23 +1388,41 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
 
     if intent == "authenticity":
         latest = payload.messages[-1].content
+        # Remove common chat / prompt prefixes
+        clean_code = re.sub(
+            r"^(kiểm tra (qr|mã vạch|mã)( hàng giả)?|quét (qr|mã vạch|mã)|xác thực (qr|mã vạch|mã)|mã qr|qr code|mã vạch|barcode)[\s:]*",
+            "",
+            latest,
+            flags=re.IGNORECASE,
+        ).strip()
         raw_match = re.search(r"MEDGUARD\|[^\s]+", latest, re.IGNORECASE)
-        if not raw_match:
+        code_to_verify = raw_match.group(0) if raw_match else clean_code
+        if not code_to_verify or len(code_to_verify) < 3:
             return _response(
                 payload,
                 ctx,
                 status="needs_information",
                 intent=intent,
-                reply="Hãy quét QR trên bao bì hoặc gửi nguyên nội dung mã để đối chiếu registry.",
+                reply="Hãy quét QR trên bao bì sản phẩm hoặc gửi nội dung mã/serial để đối chiếu registry chống hàng giả.",
                 required_fields=["qr_payload"],
             )
-        result = verify_product_code(ProductVerificationRequest(raw_code=raw_match.group(0)), ctx)
+        result = verify_product_code(ProductVerificationRequest(raw_code=code_to_verify), ctx)
+        status_labels = {
+            "registry_match": "Chính hãng (Mã khớp hồ sơ nhà sản xuất)",
+            "suspected_counterfeit": "CẢNH BÁO: Nghi ngờ hàng giả / Mã không khớp hồ sơ",
+            "recalled": "CẢNH BÁO NGUY HIỂM: Sản phẩm nằm trong danh mục thu hồi",
+            "expired": "CẢNH BÁO: Sản phẩm đã hết hạn sử dụng",
+            "unknown": "Chưa tìm thấy mã trong registry hoặc cần bổ sung serial/lô",
+            "invalid": "Mã QR không đúng định dạng chuẩn",
+        }
+        prod_name = result.product.get("name") if result.product else "sản phẩm y tế"
+        st_label = status_labels.get(result.verification_status, result.verification_status)
         return _response(
             payload,
             ctx,
             status="answered",
             intent=intent,
-            reply=f"Đã đối chiếu mã sản phẩm. Trạng thái: {result.verification_status}.",
+            reply=f"Đã đối chiếu dữ liệu mã QR cho {prod_name}. Kết quả xác thực: {st_label}.",
             extracted={"verification_status": result.verification_status},
             result=result,
         )

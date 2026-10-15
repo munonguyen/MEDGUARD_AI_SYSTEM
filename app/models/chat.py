@@ -98,6 +98,16 @@ class ChatContext(BaseModel):
     last_result: dict[str, Any] | None = None
 
 
+class CompanionVoicePreference(BaseModel):
+    persona: Literal["dr_tuan", "dr_mai"] = "dr_tuan"
+
+
+class PreparedSpeech(BaseModel):
+    ticket: str
+    text: str
+    persona: Literal["dr_tuan", "dr_mai"]
+
+
 class ChatRequest(BaseModel):
     conversation_id: str = Field(min_length=1, max_length=128)
     messages: list[ChatMessage] = Field(min_length=1, max_length=20)
@@ -117,6 +127,7 @@ class ChatRequest(BaseModel):
         "authenticity",
     ] = "auto"
     locale: str = "vi-VN"
+    voice: CompanionVoicePreference | None = None
     original_latest_content: SkipJsonSchema[str | None] = Field(default=None, exclude=True)
     continuation_reason: SkipJsonSchema[str | None] = Field(default=None, exclude=True)
 
@@ -168,6 +179,8 @@ class ChatResponse(DisclaimerMixin):
     status: Literal["answered", "needs_information", "unsupported"]
     intent: ChatIntent
     reply: str
+    spoken_reply: str | None = None
+    prepared_speech: PreparedSpeech | None = None
     required_fields: list[str] = Field(default_factory=list)
     extracted: dict[str, Any] = Field(default_factory=dict)
     result: dict[str, Any] | None = None

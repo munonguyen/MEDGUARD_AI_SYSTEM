@@ -9,6 +9,7 @@ from app.models.triage import RecommendedSpecialty, TriageRequest, TriageRespons
 from app.knowledge.loader import knowledge
 from app.services.audit import AuditEvent, audit_store
 from app.services.clinical_text import (
+    build_contextual_clarifying_questions,
     contains_affirmed_phrase,
     extract_clinical_facts,
     filter_known_clarifying_questions,
@@ -487,11 +488,29 @@ def evaluate_triage(
             guidance_summary.rstrip()
             + " Do mức độ triệu chứng hiện tại, bạn nên được nhân viên y tế đánh giá trực tiếp sớm trong ngày."
         )
-    clarifying_questions = guidance_questions if has_guidance else rule.clarifying_questions
+    clarifying_questions = guidance_questions if (has_guidance and guidance_questions) else rule.clarifying_questions
     if emergency_flag:
         clarifying_questions = []
     else:
         clarifying_questions = filter_known_clarifying_questions(clarifying_questions, facts)
+        has_generic_q = any(
+            "co sot hoac dau tang dan" in normalize_search_text(q)
+            for q in clarifying_questions
+        )
+        if has_generic_q or not clarifying_questions:
+            routed_spec = rule.specialty_code or (rule.recommended_specialty[0] if rule.recommended_specialty else "GENERAL")
+            contextual_qs = build_contextual_clarifying_questions(analysis_text, routed_spec, facts)
+            if has_generic_q:
+                clarifying_questions = [
+                    q for q in clarifying_questions
+                    if "co sot hoac dau tang dan" not in normalize_search_text(q)
+                ]
+                for cq in contextual_qs:
+                    if cq not in clarifying_questions:
+                        clarifying_questions.append(cq)
+            elif not clarifying_questions:
+                clarifying_questions = contextual_qs
+            clarifying_questions = filter_known_clarifying_questions(clarifying_questions, facts)
 
     clinical_hypotheses = (
         [str(item) for item in guidance.get("clinical_hypotheses", [])]

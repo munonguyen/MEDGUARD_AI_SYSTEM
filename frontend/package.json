@@ -13,7 +13,7 @@
     "test:doctor-web": "node tests/doctor-refinement-web.mjs",
     "test:auth-proxy": "node tests/auth-proxy-web.mjs",
     "test:doctor-live": "node tests/doctor-live-web.mjs",
-    "test:doctor-latency": "node tests/speech-queue.mjs && node tests/api-cancellation.mjs && node tests/clinical-reply.mjs",
+    "test:doctor-latency": "node tests/speech-queue.mjs && node tests/api-cancellation.mjs && node tests/clinical-reply.mjs && node tests/prepared-speech.mjs",
     "test:doctor-animation": "node tests/doctor-animation.mjs && node tests/doctor-audio-core.mjs",
     "build:doctor-vrma": "node scripts/build-doctor-vrma.mjs",
     "test:doctor-rigs": "node tests/doctor-real-rigs.mjs"

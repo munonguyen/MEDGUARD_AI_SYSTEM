@@ -16,4 +16,12 @@ const cancelled=api.request('/v1/tts',{responseType:'blob',timeoutMs:1000,signal
 controller.abort();await assert.rejects(cancelled,{name:'AbortError'});
 globalThis.fetch=async(_,o)=>{assert.equal(o.credentials,'same-origin');return {ok:true,headers:new Headers({'content-type':'application/json'}),json:async()=>({reply:'safe'})};};
 assert.deepEqual(await api.request('/v1/chat',{timeoutMs:1000}),{reply:'safe'});
+globalThis.fetch=async(path,o)=>{
+  assert(path.startsWith('/v1/chat/speech/'));
+  assert.equal(o.headers['X-Tenant-Id'],'test');
+  assert.equal(o.headers['X-Consent-Token'],'test');
+  assert.equal(o.headers['Idempotency-Key'],undefined);
+  return {ok:true,headers:new Headers({'content-type':'audio/mpeg'}),blob:async()=>new Blob(['ID3'],{type:'audio/mpeg'})};
+};
+assert.equal((await api.request('/v1/chat/speech/'+'a'.repeat(32),{responseType:'blob',timeoutMs:1000})).size,3);
 console.log('API: combined cancellation/deadline, response body timeout, credentials retained PASS');

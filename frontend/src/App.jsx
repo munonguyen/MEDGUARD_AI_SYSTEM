@@ -71,19 +71,56 @@ const tools = [
 ];
 
 const starterPrompts = [
-  { icon: Stethoscope, title: 'Tôi bị đau ngực và khó thở', text: 'Tôi bị đau ngực lan tay trái và khó thở, cần hỗ trợ ngay.' },
-  { icon: ShieldCheck, title: 'Kiểm tra hai loại thuốc', text: 'Tôi đang dùng warfarin, dự định dùng aspirin. Kiểm tra an toàn thuốc.' },
-  { icon: AlarmClock, title: 'Đặt lịch uống thuốc', text: '#lichthuoc uống amoxicillin lúc 8h và 20h mỗi ngày.' },
-  { icon: HeartPulse, title: 'Đọc chỉ số tại nhà', text: 'SpO2 của tôi là 94%, huyết áp 150/90, nhịp tim 105.' },
+  {
+    icon: Stethoscope,
+    tag: 'Cấp cứu & Phân luồng',
+    title: 'Tôi bị đau ngực và khó thở',
+    desc: 'Đánh giá nguy cơ tim mạch và phản ứng sơ cấp cứu khẩn cấp',
+    text: 'Tôi bị đau ngực lan tay trái và khó thở, cần hỗ trợ ngay.',
+  },
+  {
+    icon: QrCode,
+    tag: 'Chống hàng giả',
+    title: 'Quét QR chống thuốc giả',
+    desc: 'Đối chiếu mã số lô & serial với registry dược phẩm chính hãng',
+    text: 'Kiểm tra QR hàng giả: product=MG-AMOX-500|lot=AMX2409|serial=VN24A001',
+  },
+  {
+    icon: ShieldCheck,
+    tag: 'An toàn dược học',
+    title: 'Kiểm tra hai loại thuốc',
+    desc: 'Rà soát nguy cơ tương tác, xuất huyết và đối kháng hoạt chất',
+    text: 'Tôi đang dùng warfarin, dự định dùng aspirin. Kiểm tra an toàn thuốc.',
+  },
+  {
+    icon: AlarmClock,
+    tag: 'Nhắc lịch dùng thuốc',
+    title: 'Đặt lịch uống thuốc',
+    desc: 'Thiết lập thời khóa biểu nhắc liều dùng cá nhân hóa theo ca',
+    text: '#lichthuoc uống amoxicillin lúc 8h và 20h mỗi ngày.',
+  },
+  {
+    icon: HeartPulse,
+    tag: 'Chỉ số sinh tồn',
+    title: 'Đọc chỉ số tại nhà',
+    desc: 'Phân tích SpO2, huyết áp, nhịp tim và cảnh báo dấu hiệu sớm',
+    text: 'SpO2 của tôi là 94%, huyết áp 150/90, nhịp tim 105.',
+  },
 ];
 
 function Brand() {
   return (
     <div className="brand">
-      <img src="/static/brand-mark.svg" alt="Biểu trưng MedGuard AI" width="32" height="32" />
-      <div>
-        <strong>MedGuard AI</strong>
-        <span>Clinical assistant</span>
+      <div className="brand-logo-wrap">
+        <img src="/static/brand-mark.svg" alt="Biểu trưng MedGuard AI" width="34" height="34" />
+        <span className="brand-live-pulse" />
+      </div>
+      <div className="brand-text">
+        <div className="brand-title-row">
+          <strong>MedGuard AI</strong>
+          <span className="brand-pro-tag">PRO</span>
+        </div>
+        <span>Clinical Assistant</span>
       </div>
     </div>
   );
@@ -152,7 +189,7 @@ function Sidebar({ open, close, collapse, conversations, activeId, onSelect, onN
     {open && <button className="sidebar-scrim" type="button" aria-label="Đóng menu" onClick={close} />}
     <aside className={`sidebar ${open ? 'open' : ''}`}>
       <div className="sidebar-top"><Brand /><button className="icon-button sidebar-collapse" type="button" onClick={collapse} title="Thu gọn thanh bên" aria-label="Thu gọn thanh bên"><PanelLeftClose size={18} /></button><button className="icon-button sidebar-close" type="button" onClick={close} title="Đóng" aria-label="Đóng menu"><X size={18} /></button></div>
-      <button className="new-chat" type="button" onClick={() => { onNew(); close(); }}><Plus size={17} /><span>Cuộc trò chuyện mới</span></button>
+      <button className="new-chat" type="button" onClick={() => { onNew(); close(); }}><Plus size={17} /><span>Cuộc trò chuyện mới</span><span className="shortcut-badge">⌘K</span></button>
       <div className="history-search">
         <Search size={15} />
         <input
@@ -172,6 +209,7 @@ function Sidebar({ open, close, collapse, conversations, activeId, onSelect, onN
         <button type="button" className={`nav-link-btn companion-nav-btn ${activeView === 'companion' ? 'active' : ''}`} onClick={() => { onCompanionPage?.(); close(); }}>
           <Sparkles size={17} />
           <span>Bác sĩ 3D Live</span>
+          <span className="sidebar-live-tag">LIVE</span>
         </button>
         <button type="button" className={`nav-link-btn ${activeView === 'schedule' ? 'active' : ''}`} onClick={() => { onSchedulePage(); close(); }}><CalendarClock size={17} /><span>Lịch khám</span></button>
         <button type="button" className={`nav-link-btn ${activeView === 'medication' ? 'active' : ''}`} onClick={() => { onMedicationPage(); close(); }}><CalendarDays size={17} /><span>Lịch uống thuốc</span></button>
@@ -192,16 +230,41 @@ function ToolMenu({ open, selected, onSelect }) {
 function Welcome({ onPrompt }) {
   return (
     <div className="welcome-view">
-      <img src="/static/brand-mark.svg" alt="Biểu trưng MedGuard AI" width="56" height="56" />
+      <div className="welcome-hero-badge">
+        <div className="welcome-avatar-aura">
+          <img src="/static/brand-mark.svg" alt="Biểu trưng MedGuard AI" width="56" height="56" />
+          <span className="welcome-aura-ring" />
+        </div>
+        <span className="welcome-pill-kicker">
+          <Sparkles size={13} /> TRỢ LÝ Y KHOA LÂM SÀNG THÔNG MINH
+        </span>
+      </div>
       <h1>Bạn cần hỗ trợ gì hôm nay?</h1>
+      <p className="welcome-subtitle">
+        Phân luồng triệu chứng khẩn cấp, rà soát an toàn dược học và đối chiếu mã vạch chống thuốc giả theo chuẩn Bộ Y tế.
+      </p>
       <div className="starter-grid">
         {starterPrompts.map((item) => {
           const Icon = item.icon;
           return (
-            <button type="button" key={item.title} onClick={() => onPrompt(item.text)}>
-              <Icon size={18} />
-              <span>{item.title}</span>
-              <Send size={14} />
+            <button
+              type="button"
+              className="starter-card"
+              key={item.title}
+              onClick={() => onPrompt(item.text)}
+              aria-label={item.title}
+            >
+              <div className="starter-card-icon-wrap">
+                <Icon size={19} />
+              </div>
+              <div className="starter-card-content">
+                <span className="starter-card-tag">{item.tag}</span>
+                <strong className="starter-card-title">{item.title}</strong>
+                <span className="starter-card-desc">{item.desc}</span>
+              </div>
+              <div className="starter-card-arrow" aria-hidden="true">
+                <Send size={14} />
+              </div>
             </button>
           );
         })}
@@ -403,9 +466,23 @@ function Conversation({
             ref={index === entries.length - 1 ? latestRef : null}
             key={key}
           >
-            <img className="assistant-avatar" src="/static/brand-mark.svg" alt="MedGuard AI" width="28" height="28" />
+            <div className="assistant-avatar-wrap">
+              <img className="assistant-avatar" src="/static/brand-mark.svg" alt="MedGuard AI" width="30" height="30" />
+              <span className="avatar-online-dot" title="Hệ thống trực tuyến" />
+            </div>
             <div className="assistant-content">
-              <strong>MedGuard AI</strong>
+              <div className="assistant-header-meta">
+                <div className="assistant-identity">
+                  <strong>MedGuard AI</strong>
+                  <span className="assistant-version-badge">Clinical v14</span>
+                  {entry.verification_status === 'verified' && (
+                    <span className="assistant-verified-badge" title="Đã qua kiểm định an toàn lâm sàng">
+                      <ShieldCheck size={12} />
+                      Đã kiểm chứng
+                    </span>
+                  )}
+                </div>
+              </div>
               {entry.answer ? (
                 <GroundedAnswer
                   answer={entry.answer}
@@ -453,7 +530,15 @@ function Conversation({
                   aria-label="Nghe đọc to"
                   onClick={() => handleSpeak(entry, key)}
                 >
-                  <Volume2 size={14} />
+                  {speakingKey === key ? (
+                    <span className="speaking-wave-bars" aria-hidden="true">
+                      <span className="wave-bar" />
+                      <span className="wave-bar" />
+                      <span className="wave-bar" />
+                    </span>
+                  ) : (
+                    <Volume2 size={14} />
+                  )}
                 </button>
               </div>
             </div>
@@ -655,6 +740,7 @@ export default function App({
   });
   const [historySearch, setHistorySearch] = useState('');
   const [toast, setToast] = useState(null);
+  const [chatTimeoutMs, setChatTimeoutMs] = useState(35000);
   const toastTimerRef = useRef(null);
   const api = useMemo(() => createApiClient({ tenantId, apiKey, consentToken }), [tenantId, apiKey, consentToken]);
   const hasPendingGatewayReview = entries.some(
@@ -713,10 +799,17 @@ export default function App({
 
   useEffect(() => {
     let mounted = true;
-    Promise.allSettled([api.request('/v1/health/readiness'), api.request('/v1/chat/conversations')]).then(([health, history]) => {
+    Promise.allSettled([
+      api.request('/v1/health/readiness'),
+      api.request('/v1/chat/conversations'),
+      api.request('/v1/companion/status', { timeoutMs: 5000 }),
+    ]).then(([health, history, compStatus]) => {
       if (!mounted) return;
       setReadiness(health.status === 'fulfilled' ? health.value : null);
       setConversations(history.status === 'fulfilled' ? history.value.conversations || [] : []);
+      if (compStatus.status === 'fulfilled' && compStatus.value?.chat_timeout_ms) {
+        setChatTimeoutMs(Math.max(compStatus.value.chat_timeout_ms, 35000));
+      }
     });
     return () => { mounted = false; };
   }, [api]);
@@ -911,7 +1004,7 @@ export default function App({
         const data = await api.request('/v1/chat', {
           method: 'POST',
           body: { conversation_id: conversationId, messages, context: clinicalContext(context), intent_hint: effectiveIntent, locale: 'vi-VN' },
-          timeoutMs: 9500,
+          timeoutMs: chatTimeoutMs || 35000,
         });
         responseEntry = { role: 'assistant', requestId: data.request_id, text: data.reply, intent: data.intent, status: data.status, result: data.result, answer: data.answer, suggestions: data.suggestions, answer_origin: data.answer_origin, verification_status: data.verification_status, knowledge_approval: data.knowledge_approval };
         if (data.extracted?.patient_ref) setContext((current) => ({ ...current, patient_ref: data.extracted.patient_ref }));

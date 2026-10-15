@@ -148,7 +148,9 @@ try{
  await preview('dr_tuan','vi-VN-NamMinhNeural');
  await verifyQueue('dr_tuan');
  await send();assert.equal(requests.at(-1).persona,'dr_tuan');
- await page.waitForFunction(()=>window.__companionEngine.motion.values.aa>.05);
+ // A generated tone does not imply one specific vowel. When the native
+ // classifier loads, verify opening across the mouth channels rather than aa.
+ await page.waitForFunction(()=>['aa','ee','ih','oh','ou'].some(n=>window.__companionEngine.motion.values[n]>.025));
  // Check inside the WAV's silent segment, using media time instead of a wall-clock delay.
  await page.waitForFunction(()=>{
   const t=window.doctorTestAudio?.currentTime;

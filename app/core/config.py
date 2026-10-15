@@ -260,7 +260,7 @@ class Settings:
         default_factory=lambda: _env_int("MEDGUARD_VERIFIER_MAX_OUTPUT_TOKENS", 300)
     )
     agent_prompt_version: str = field(
-        default_factory=lambda: getenv("MEDGUARD_AGENT_PROMPT_VERSION", "2026-09-09")
+        default_factory=lambda: getenv("MEDGUARD_AGENT_PROMPT_VERSION", "2026-10-09-companion")
     )
     safe_cache_ttl_seconds: int = field(
         default_factory=lambda: _env_int("MEDGUARD_SAFE_CACHE_TTL_SECONDS", 300)

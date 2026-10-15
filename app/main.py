@@ -76,9 +76,9 @@ def _security_headers(response, *, path: str) -> None:
     )
     if path in {"/", "/dashboard"} or path.startswith("/static/"):
         response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; base-uri 'self'; connect-src 'self' blob:; "
+            "default-src 'self'; base-uri 'self'; connect-src 'self' blob: data:; "
             "font-src 'self'; frame-ancestors 'none'; img-src 'self' data: blob:; "
-            "media-src 'self' blob:; object-src 'none'; script-src 'self'; style-src 'self'"
+            "media-src 'self' blob: data:; object-src 'none'; script-src 'self'; style-src 'self'"
         )
     if path.startswith("/v1/"):
         response.headers["Cache-Control"] = "no-store"

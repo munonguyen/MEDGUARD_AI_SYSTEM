@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { VRMAvatarEngine } from './VRMAvatarEngine';
 import { splitSpeech, runSpeechQueue } from './speechQueue';
+import { preparedSpeechPlan, validateSpeechBlob, optionalAudioContext, optionalLipSync } from './preparedSpeech';
 import { readSpeechTiming } from './speechTimeline.js';
 import { clinicalReply, verificationNotice, awaitReviewedReply } from './clinicalReply';
 import './GrokLiveCompanionPage.css';
@@ -221,7 +222,7 @@ export function GrokLiveCompanionPage({
   // submit/click gesture, before chat or TTS awaits (important for Safari).
   const primeAudio = () => {
     const Context = window.AudioContext || window.webkitAudioContext;
-    if (Context && !audioContextRef.current) audioContextRef.current = new Context();
+    if (Context && !audioContextRef.current) audioContextRef.current = optionalAudioContext(() => new Context());
     audioContextRef.current?.resume().catch(() => {});
     if (!playbackElementRef.current) playbackElementRef.current = new Audio();
     const audio = playbackElementRef.current;
@@ -235,7 +236,7 @@ export function GrokLiveCompanionPage({
     return audioContextRef.current;
   };
 
-  const speakDoctorVoice = async (text, persona = doctorPersona, reqSpeechId = null) => {
+  const speakDoctorVoice = async (text, persona = doctorPersona, reqSpeechId = null, preparedSpeech = null) => {
     if (mutedRef.current || typeof window === 'undefined') return;
     if (reqSpeechId !== null && reqSpeechId !== speechIdRef.current) return;
     disposePlayback();
@@ -250,11 +251,25 @@ export function GrokLiveCompanionPage({
     const current = () => !mutedRef.current && !controller.signal.aborted && requestId === speechIdRef.current;
     const audioContext = primeAudio();
     // Warm up in parallel with TTS, never await classifier loading before sound.
-    void engineRef.current?.prepareLipSync(audioContext);
+    void optionalLipSync(engineRef.current, audioContext);
     const voiceStarted = performance.now();
     let firstSound = true;
     try {
+      const plan = preparedSpeechPlan(cleanSpeech, persona, preparedSpeech, splitSpeech);
+      let firstRequest = true;
       const synthesize = async sentence => {
+        const ticket = firstRequest ? plan.ticket : null;
+        firstRequest = false;
+        if (ticket && api) {
+          try {
+            return validateSpeechBlob(await api.request(`/v1/chat/speech/${ticket}`, {
+              method: 'GET', responseType: 'blob', signal: controller.signal, timeoutMs: 30000,
+            }));
+          } catch (error) {
+            if (controller.signal.aborted || error?.name === 'AbortError') throw error;
+            // Any ticket error (401, 404, network error): fall back to ordinary TTS once
+          }
+        }
         const body = { text: sentence, persona };
         if (api) return api.request('/v1/tts', {
           method: 'POST', body, responseType: 'blob', signal: controller.signal, timeoutMs: 30000,
@@ -285,6 +300,7 @@ export function GrokLiveCompanionPage({
       };
       const play = (blob, sentence) => new Promise((resolve, reject) => {
         if (!current()) return reject(new DOMException('Cancelled', 'AbortError'));
+        validateSpeechBlob(blob);
         const url = URL.createObjectURL(blob);
         audioUrlRef.current = url;
         const audio = playbackElementRef.current;
@@ -313,13 +329,21 @@ export function GrokLiveCompanionPage({
         const abort = () => finish(new DOMException('Cancelled', 'AbortError'));
         controller.signal.addEventListener('abort', abort, { once: true });
         if (audioContext) {
-          analyser = audioContext.createAnalyser(); analyser.fftSize = 512;
-          source = playbackSourceRef.current || audioContext.createMediaElementSource(audio);
-          playbackSourceRef.current = source;
-          source.connect(analyser); analyser.connect(audioContext.destination);
-          void engineRef.current?.prepareLipSync(audioContext).then(()=>{
-            if(current()&&!settled)engineRef.current?.connectLipSync(source);
-          });
+          try {
+            analyser = audioContext.createAnalyser(); analyser.fftSize = 512;
+            if (!playbackSourceRef.current || playbackSourceRef.current.context !== audioContext) {
+              playbackSourceRef.current = audioContext.createMediaElementSource(audio);
+            }
+            source = playbackSourceRef.current;
+            source.connect(analyser); analyser.connect(audioContext.destination);
+            void optionalLipSync(engineRef.current, audioContext).then(()=>{
+              if(current()&&!settled)engineRef.current?.connectLipSync(source);
+            });
+          } catch (ctxErr) {
+            console.warn('[AudioContext] Analyser routing fallback:', ctxErr);
+            source = null;
+            analyser = null;
+          }
         }
         audio.onplaying = () => {
           if (!current()) return abort();
@@ -338,15 +362,18 @@ export function GrokLiveCompanionPage({
         audio.onended = () => finish();
         audio.onerror = () => finish(new Error('Audio playback failed'));
         (async () => {
-          if (audioContext) {
-            await Promise.race([audioContext.resume(), new Promise(r => window.setTimeout(r, 300))]);
-            if (audioContext.state !== 'running') throw new DOMException('Audio needs a user gesture', 'NotAllowedError');
+          if (audioContext && audioContext.state !== 'running') {
+            try {
+              await Promise.race([audioContext.resume(), new Promise(r => window.setTimeout(r, 400))]);
+            } catch {
+              // resume attempt
+            }
           }
           if (!current()) return abort();
           await audio.play();
         })().catch(finish);
       });
-      await runSpeechQueue(splitSpeech(cleanSpeech), { synthesize, play, signal: controller.signal });
+      await runSpeechQueue(plan.chunks, { synthesize, play, signal: controller.signal });
       if (current()) { setIsVoiceLoading(false); setIsSpeaking(false); disposePlayback(); }
     } catch (error) {
       if (!current()) return;
@@ -492,6 +519,7 @@ export function GrokLiveCompanionPage({
           },
           intent_hint: 'auto',
           locale: 'vi-VN',
+          voice: mutedRef.current ? undefined : {persona: doctorPersona},
         };
 
         const data = await api.request('/v1/chat', {
@@ -535,7 +563,7 @@ export function GrokLiveCompanionPage({
       // Nhân vật nói trọn vẹn toàn bộ câu trả lời, không hẹn giờ ngắt
       engineRef.current?.setConversationContext(text, {severity:responseData?.severity || responseData?.risk_level});
       engineRef.current?.reactToReply(conciseAdvice);
-      speakDoctorVoice(conciseAdvice, doctorPersona, currentSpeechId);
+      speakDoctorVoice(conciseAdvice, doctorPersona, currentSpeechId, responseData?.prepared_speech);
       // Older deployments may use asynchronous Writer/Reviewer promotion.
       // Follow the final stored response instead of remaining on its baseline.
       if (responseData?.verification_status === 'shadow_pending' && api) {
@@ -1002,7 +1030,22 @@ export function GrokLiveCompanionPage({
               <p className="doctor-voice-description" role="status">{voiceConfigError || (voiceConfig ? `Giọng đang cấu hình trên máy chủ: ${voiceConfig.profiles[doctorPersona].voice} · tốc độ ${voiceConfig.profiles[doctorPersona].rate} · cao độ ${voiceConfig.profiles[doctorPersona].pitch} · bản ${voiceConfig.revision}` : 'Đang kiểm tra cấu hình giọng nói…')}</p>
               <div className="grok-chat-config-notice"><strong>Kết nối AI hội thoại</strong><p>{chatStatus?.message || 'Chưa nhận được cấu hình AI từ máy chủ. Hãy cập nhật và khởi động lại backend.'}</p>{chatStatus && <p>Chế độ: {chatStatus.mode} · {chatStatus.synchronous ? 'Trả lời trực tiếp' : 'Xử lý nền'} · {chatStatus.revision}</p>}<p>Cấu hình trên MacBook: <code>python3 scripts/configure_doctor_chat.py</code>, rồi khởi động lại backend.</p></div>
             <button type="button" className="grok-back-chat-btn" disabled={!voiceConfig||isVoiceLoading||isMuted} onClick={()=>speakDoctorVoice('Xin chào bạn. Tôi sẽ lắng nghe và giải thích rõ ràng từng thông tin, để bạn dễ theo dõi.',doctorPersona)}>Nghe thử giọng bác sĩ</button>
-              <button type="button" className="grok-back-chat-btn" disabled={modelStatus.phase!=='ready'||isSpeaking||isVoiceLoading} onClick={()=>{engineRef.current?.applyPose('pose_wave');setShowSettings(false);}}>Xem thử cử chỉ chào</button>
+            <div style={{ marginTop: '14px', marginBottom: '14px' }}>
+              <label style={{ fontSize: '13px', fontWeight: 600, color: '#94a3b8', display: 'block', marginBottom: '8px' }}>
+                Thử nghiệm cử chỉ giao tiếp lâm sàng (Chuẩn VRoid / VRMA):
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '8px' }}>
+                <button type="button" className="grok-back-chat-btn" style={{ padding: '8px 10px', fontSize: '13px', margin: 0 }} disabled={modelStatus.phase!=='ready'} onClick={()=>{engineRef.current?.applyPose('pose_wave');setShowSettings(false);}}>👋 Vẫy tay chào</button>
+                <button type="button" className="grok-back-chat-btn" style={{ padding: '8px 10px', fontSize: '13px', margin: 0 }} disabled={modelStatus.phase!=='ready'} onClick={()=>{engineRef.current?.applyPose('pose_bow');setShowSettings(false);}}>🙇 Cúi đầu chào</button>
+                <button type="button" className="grok-back-chat-btn" style={{ padding: '8px 10px', fontSize: '13px', margin: 0 }} disabled={modelStatus.phase!=='ready'} onClick={()=>{engineRef.current?.applyPose('pose_thinking');setShowSettings(false);}}>🤔 Bác sĩ suy nghĩ</button>
+                <button type="button" className="grok-back-chat-btn" style={{ padding: '8px 10px', fontSize: '13px', margin: 0 }} disabled={modelStatus.phase!=='ready'} onClick={()=>{engineRef.current?.applyPose('pose_listening');setShowSettings(false);}}>👂 Lắng nghe</button>
+                <button type="button" className="grok-back-chat-btn" style={{ padding: '8px 10px', fontSize: '13px', margin: 0 }} disabled={modelStatus.phase!=='ready'} onClick={()=>{engineRef.current?.applyPose('pose_explaining');setShowSettings(false);}}>👐 Giải thích</button>
+                <button type="button" className="grok-back-chat-btn" style={{ padding: '8px 10px', fontSize: '13px', margin: 0 }} disabled={modelStatus.phase!=='ready'} onClick={()=>{engineRef.current?.applyPose('pose_reassure');setShowSettings(false);}}>❤️ Trấn an</button>
+                <button type="button" className="grok-back-chat-btn" style={{ padding: '8px 10px', fontSize: '13px', margin: 0 }} disabled={modelStatus.phase!=='ready'} onClick={()=>{engineRef.current?.applyPose('pose_note_taking');setShowSettings(false);}}>📝 Ghi chép</button>
+                <button type="button" className="grok-back-chat-btn" style={{ padding: '8px 10px', fontSize: '13px', margin: 0 }} disabled={modelStatus.phase!=='ready'} onClick={()=>{engineRef.current?.applyPose('pose_farewell');setShowSettings(false);}}>✨ Tạm biệt</button>
+                <button type="button" className="grok-back-chat-btn" style={{ padding: '8px 10px', fontSize: '13px', margin: 0 }} disabled={modelStatus.phase!=='ready'} onClick={()=>{engineRef.current?.applyPose('pose_idle');setShowSettings(false);}}>🧍 Đứng chờ (Idle)</button>
+              </div>
+            </div>
               <div className="doctor-preset-grid">
                 <button
                   type="button"

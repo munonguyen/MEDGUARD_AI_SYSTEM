@@ -115,12 +115,12 @@ export class VRMAvatarEngine {
   }
 
   setupLighting() {
-    // 1. Ambient: ánh sáng tán xạ dịu nhẹ giúp giữ chi tiết khối và màu da tự nhiên
-    const ambientLight = new THREE.AmbientLight(0xffffff, .70);
+    // 1. Ambient: Ánh sáng tán xạ mềm trong trẻo chuẩn AnimeVRM, nâng tông da và vạt áo
+    const ambientLight = new THREE.AmbientLight(0xffffff, .76);
     this.scene.add(ambientLight);
 
-    // 2. Key Light: ánh sáng chính ấm áp nhẹ nhàng từ phía trên góc 40 độ
-    const keyLight = new THREE.DirectionalLight(0xfff5ea, 1.0);
+    // 2. Key Light: Ánh sáng chính ấm áp nhẹ nhàng từ phía trên góc 40 độ
+    const keyLight = new THREE.DirectionalLight(0xfff6ec, 1.05);
     keyLight.position.set(1.0, 1.8, 1.6);
     keyLight.castShadow = true;
     keyLight.shadow.mapSize.set(1024, 1024);
@@ -132,17 +132,17 @@ export class VRMAvatarEngine {
     this.scene.add(keyLight.target);
     this.scene.add(keyLight);
 
-    // 3. Fill Light: bù bóng màu xanh y tế dịu từ bên trái
-    const fillLight = new THREE.DirectionalLight(0xe2e8f0, 0.6);
+    // 3. Fill Light: Bù bóng màu xanh lam dịu mát tạo độ tương phản phong cách anime
+    const fillLight = new THREE.DirectionalLight(0xe6f0fa, 0.62);
     fillLight.position.set(-1.2, 1.0, 1.2);
     this.scene.add(fillLight);
 
-    // 4. Rim Lights: viền sáng tóc và vai nhẹ nhàng, tạo chiều sâu không gian
-    const rimCyan = new THREE.DirectionalLight(0x38bdf8, 0.22);
+    // 4. Rim Lights (AnimeVRM LightWrap): Viền sáng tóc và bờ vai, làm nổi bật nhân vật trên nền tối
+    const rimCyan = new THREE.DirectionalLight(0x38bdf8, 0.28);
     rimCyan.position.set(0, 1.6, -1.8);
     this.scene.add(rimCyan);
 
-    const rimEmerald = new THREE.DirectionalLight(0x34d399, 0.12);
+    const rimEmerald = new THREE.DirectionalLight(0x34d399, 0.16);
     rimEmerald.position.set(-1.0, 1.2, -1.5);
     this.scene.add(rimEmerald);
   }
@@ -197,6 +197,9 @@ export class VRMAvatarEngine {
           this.mouthExpressions=Object.keys(vrm.expressionManager?.expressionMap||{});
           const animationLayer=new DoctorAnimationLayer(vrm);
           this.motion.animationLayer=animationLayer;
+          // Load AIRI organic mocap idle loop
+          animationLayer.loadIdle(import.meta.env.BASE_URL+'animations/airi-idle.vrma')
+            .catch(err=>console.warn('AIRI idle animation optional load:', err?.message));
           // Nonblocking: avatar and speech can start before optional clips load.
           animationLayer.load(import.meta.env.BASE_URL+'animations/doctor-gestures.vrma')
             .catch(error=>{if(!animationLayer.destroyed){animationLayer.error=error.message;animationLayer.destroy();}});
@@ -213,12 +216,45 @@ export class VRMAvatarEngine {
               mats.forEach((m) => {
                 const name = (m.name || '').toLowerCase();
                 if (m.isMToonMaterial) {
-                  m.shadingToonyFactor = .25;
-                  m.shadingShiftFactor = -.12;
-                  m.giEqualizationFactor = .55;
-                  if (name.includes('cloth')) m.shadeColorFactor.setRGB(.82, .86, .88);
-                  if (name.includes('skin')) m.shadeColorFactor.setRGB(.94, .83, .78);
-                  m.outlineWidthFactor = Math.min(m.outlineWidthFactor, .0004);
+                  // AnimeVRM ToonShader calibration
+                  if (name.includes('eyehighlight')) {
+                    m.outlineWidthFactor = 0;
+                    m.giEqualizationFactor = 1.0;
+                    m.shadingToonyFactor = 1.0;
+                  } else if (name.includes('eyeiris') || name.includes('iris')) {
+                    m.outlineWidthFactor = 0;
+                    if ('parametricRimColorFactor' in m) m.parametricRimColorFactor?.setRGB(.25, .32, .40);
+                    if ('parametricRimFresnelPowerFactor' in m) m.parametricRimFresnelPowerFactor = 4.0;
+                    if ('parametricRimLiftFactor' in m) m.parametricRimLiftFactor = 0.20;
+                  } else if (name.includes('eyewhite')) {
+                    m.outlineWidthFactor = 0;
+                    m.shadingShiftFactor = -.06;
+                    m.shadeColorFactor?.setRGB(.88, .91, .95);
+                  } else if (name.includes('skin') || name.includes('face')) {
+                    // Warm, clean anime skin shading (AnimeVRM normal averaging palette)
+                    m.shadingToonyFactor = .82;
+                    m.shadingShiftFactor = -.08;
+                    m.giEqualizationFactor = .55;
+                    m.shadeColorFactor?.setRGB(.96, .86, .82);
+                    m.outlineWidthFactor = Math.min(m.outlineWidthFactor || .001, .00028);
+                  } else if (name.includes('hair')) {
+                    // Angel ring highlight on hair
+                    m.shadingToonyFactor = .88;
+                    m.shadingShiftFactor = -.06;
+                    if ('parametricRimColorFactor' in m) m.parametricRimColorFactor?.setRGB(.35, .42, .50);
+                    if ('parametricRimFresnelPowerFactor' in m) m.parametricRimFresnelPowerFactor = 3.5;
+                    m.outlineWidthFactor = Math.min(m.outlineWidthFactor || .001, .00035);
+                  } else if (name.includes('cloth') || name.includes('tops') || name.includes('bottoms')) {
+                    // Clean medical coat shading without dark black outlines piercing fabric
+                    m.shadingToonyFactor = .45;
+                    m.shadingShiftFactor = -.10;
+                    m.shadeColorFactor?.setRGB(.88, .91, .94);
+                    m.outlineWidthFactor = Math.min(m.outlineWidthFactor || .001, .00020);
+                  } else {
+                    m.shadingToonyFactor = .35;
+                    m.shadingShiftFactor = -.10;
+                    m.outlineWidthFactor = Math.min(m.outlineWidthFactor || .001, .00030);
+                  }
                 }
                 if (name.includes('hair') || name.includes('brow')) {
                   m.color?.set(hairColor);
@@ -577,6 +613,10 @@ export class VRMAvatarEngine {
       playbackDuration:this.speechMedia?.duration,
       reducedMotion: this.reducedMotion.matches,
     });
+    // AIRI MToon material per-frame uniform updates
+    if (this.currentVrm?.materials) {
+      for (const m of this.currentVrm.materials) m.update?.(delta);
+    }
     this.renderer.render(this.scene, this.camera);
   }
 

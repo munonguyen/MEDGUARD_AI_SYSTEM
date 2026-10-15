@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
 import {mkdir} from 'node:fs/promises';
 import {chromium} from 'playwright-core';
-const root=new URL('../../',import.meta.url).pathname;
+import {fileURLToPath} from 'node:url';
+const root=fileURLToPath(new URL('../../',import.meta.url));
 const server=spawn(process.env.MEDGUARD_TEST_PYTHON||root+'.venv/bin/python',['-m','uvicorn','app.main:app','--host','127.0.0.1','--port','8466'],{cwd:root,stdio:'pipe',detached:true});
 // Opt-in live TTS check: synthetic greetings only; requires Internet, no mocks.
 // Backend port 8466 must be free. Screenshots contain no clinical conversation.
@@ -10,7 +11,8 @@ let browser;
 try{
  await mkdir(root+'.artifacts',{recursive:true});
  for(let i=0;i<100;i++){try{if((await fetch('http://127.0.0.1:8466/v1/health')).ok)break;}catch{}await new Promise(r=>setTimeout(r,100));}
- browser=await chromium.launch({executablePath:process.env.CHROME_PATH,headless:true,args:['--no-sandbox']});
+ const chromePath = process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+ browser=await chromium.launch({executablePath:chromePath,headless:true,args:['--no-sandbox']});
  const page=await browser.newPage({viewport:{width:1440,height:1000}});const errors=[];await page.addInitScript(()=>{const play=HTMLMediaElement.prototype.play;HTMLMediaElement.prototype.play=function(...args){window.testLiveAudio=this;return play.apply(this,args);};window.companionTimings=[];window.addEventListener('medguard:companion-latency',e=>window.companionTimings.push(e.detail));});page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:8466/?view=companion');await page.waitForFunction(()=>window.__companionEngine?.isVrmLoaded);
  for(const [persona,button] of [['dr_tuan','BS. Minh Tuấn'],['dr_mai','BS. Thanh Mai']]){
@@ -23,7 +25,7 @@ try{
   await page.getByRole('button',{name:'Nghe thử giọng bác sĩ',exact:true}).click();
   const audio=await response;assert.equal(audio.status(),200);assert(Number(audio.headers()['content-length'])>1000);assert.equal(audio.headers()['x-doctor-voice'],persona==='dr_tuan'?'vi-VN-NamMinhNeural':'vi-VN-HoaiMyNeural');
   await page.waitForFunction(()=>window.__companionEngine.isSpeaking);await page.locator('.grok-settings-card button[title="Đóng"]').click();
-  await page.waitForFunction(()=>window.__companionEngine.motion.values.aa>.02);
+  await page.waitForFunction(()=>['aa','ee','ih','oh','ou'].some(n=>window.__companionEngine.motion.values[n]>.01));
   const timing=await page.evaluate(()=>window.companionTimings.at(-1));
   assert.equal(timing.stage,'first_audio');assert.equal(timing.persona,persona);
   console.log(`${persona}: first audible audio ${timing.ttsMs} ms (single live sample)`);
@@ -47,4 +49,4 @@ try{
  const status=await(await fetch('http://127.0.0.1:8466/v1/companion/status')).json();
  console.log('AI gateway configured:',status.configured);
  assert.deepEqual(errors,[]);
-}finally{await browser?.close();process.kill(-server.pid,'SIGTERM');}
+}finally{await browser?.close();try{process.kill(-server.pid,'SIGTERM');}catch{try{server.kill('SIGTERM');}catch{}}}
