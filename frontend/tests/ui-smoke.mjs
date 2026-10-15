@@ -87,7 +87,7 @@ try {
     throw new Error('Final emergency response became visible before processing completed');
   }
   await desktop.screenshot({ path: fileURLToPath(new URL('ui-processing-desktop.png', artifactDir)) });
-  await desktop.getByText('MedGuard đang xử lý', { exact: true }).waitFor({ state: 'hidden' });
+  await desktop.getByText('MedGuard đang xử lý', { exact: true }).waitFor({ state: 'hidden', timeout: 30000 });
   const emergency = currentAssistant(desktop);
   await emergency.locator('.clinical-summary-card.status-emergency').waitFor();
   await emergency.getByText('Cấp cứu ngay', { exact: true }).waitFor();
@@ -115,11 +115,11 @@ try {
   await desktop.getByRole('button', { name: 'Về phòng Chat' }).click();
 
   await desktop.getByRole('button', { name: 'Quét QR' }).click();
-  await desktop.getByRole('button', { name: 'Nhập mã' }).click();
-  await desktop.getByPlaceholder('MEDGUARD|product=...|serial=...|lot=...').fill('MEDGUARD|product=MG-AMOX-500|serial=VN24A001|lot=AMX2409');
-  await desktop.getByRole('button', { name: 'Kiểm tra mã' }).click();
-  await desktop.getByRole('heading', { name: 'Mã khớp với registry hiện tại', exact: true }).waitFor();
-  await desktop.getByText(/không (phải kiểm định vật lý|thay thế việc kiểm tra kỹ bao bì vật lý|tự chứng minh bao bì)/).first().waitFor();
+  await (desktop.getByRole('tab', { name: /Nhập mã/i }).or(desktop.getByRole('button', { name: /Nhập mã/i }))).click();
+  await (desktop.locator('#manual-qr-input').or(desktop.getByPlaceholder(/product=/i))).fill('MEDGUARD|product=MG-AMOX-500|serial=VN24A001|lot=AMX2409');
+  await (desktop.getByRole('button', { name: /Đối Chiếu Registry|Kiểm tra mã/i })).click();
+  await (desktop.getByText(/KHỚP HỒ SƠ REGISTRY|Mã khớp với registry/i)).first().waitFor({ timeout: 25000 });
+  await desktop.getByText(/không (phải kiểm định vật lý|thay thế việc kiểm tra kỹ bao bì vật lý|tự chứng minh bao bì|thay thế kiểm định lý hóa)/i).first().waitFor();
   await desktop.keyboard.press('Escape');
 
   await (desktop.locator('.topbar-actions').getByRole('tab', { name: 'Lịch khám' }).or(desktop.locator('.topbar-actions').getByRole('button', { name: 'Lịch khám' }))).click();
@@ -151,7 +151,7 @@ try {
   await assertLayout(mobile, 'mobile');
   await mobile.screenshot({ path: fileURLToPath(new URL('ui-answer-mobile-direct.png', artifactDir)) });
   await mobile.getByRole('button', { name: 'Quét QR' }).click();
-  await mobile.getByRole('heading', { name: 'Xác thực sản phẩm' }).waitFor();
+  await (mobile.getByRole('heading', { name: /Xác thực (QR|sản phẩm)/i })).waitFor();
   await mobile.getByRole('button', { name: 'Đóng', exact: true }).click();
 
   const agentUi = await browser.newPage({ viewport: { width: 1440, height: 1000 } });

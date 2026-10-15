@@ -656,6 +656,7 @@ export default function App({
   });
   const [historySearch, setHistorySearch] = useState('');
   const [toast, setToast] = useState(null);
+  const [chatTimeoutMs, setChatTimeoutMs] = useState(35000);
   const toastTimerRef = useRef(null);
   const api = useMemo(() => createApiClient({ tenantId, apiKey, consentToken }), [tenantId, apiKey, consentToken]);
   const hasPendingGatewayReview = entries.some(
@@ -714,10 +715,17 @@ export default function App({
 
   useEffect(() => {
     let mounted = true;
-    Promise.allSettled([api.request('/v1/health/readiness'), api.request('/v1/chat/conversations')]).then(([health, history]) => {
+    Promise.allSettled([
+      api.request('/v1/health/readiness'),
+      api.request('/v1/chat/conversations'),
+      api.request('/v1/companion/status', { timeoutMs: 5000 }),
+    ]).then(([health, history, compStatus]) => {
       if (!mounted) return;
       setReadiness(health.status === 'fulfilled' ? health.value : null);
       setConversations(history.status === 'fulfilled' ? history.value.conversations || [] : []);
+      if (compStatus.status === 'fulfilled' && compStatus.value?.chat_timeout_ms) {
+        setChatTimeoutMs(Math.max(compStatus.value.chat_timeout_ms, 35000));
+      }
     });
     return () => { mounted = false; };
   }, [api]);
@@ -912,7 +920,7 @@ export default function App({
         const data = await api.request('/v1/chat', {
           method: 'POST',
           body: { conversation_id: conversationId, messages, context: clinicalContext(context), intent_hint: effectiveIntent, locale: 'vi-VN' },
-          timeoutMs: 9500,
+          timeoutMs: chatTimeoutMs || 35000,
         });
         responseEntry = { role: 'assistant', requestId: data.request_id, text: data.reply, intent: data.intent, status: data.status, result: data.result, answer: data.answer, suggestions: data.suggestions, answer_origin: data.answer_origin, verification_status: data.verification_status, knowledge_approval: data.knowledge_approval };
         if (data.extracted?.patient_ref) setContext((current) => ({ ...current, patient_ref: data.extracted.patient_ref }));
