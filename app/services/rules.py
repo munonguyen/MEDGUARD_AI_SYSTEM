@@ -21,6 +21,7 @@ from app.knowledge.loader import knowledge
 from app.models.safety import SafetyRequest
 from app.models.triage import VitalSigns
 from app.services.clinical_text import (
+    build_contextual_clarifying_questions,
     contains_affirmed_phrase,
     extract_clinical_facts,
     is_anticoagulant_no_trauma,
@@ -1015,19 +1016,18 @@ def triage_rules(symptoms_text: str, vitals: VitalSigns | None = None) -> Triage
                 if configured_specialty
                 else (routed[0], routed[1]) if routed else ("GENERAL", "Nội tổng quát")
             )
+            if u_pat.get("clarifying_questions"):
+                urgent_questions = [str(value) for value in u_pat["clarifying_questions"]]
+            else:
+                facts = extract_clinical_facts(text)
+                urgent_questions = build_contextual_clarifying_questions(text, specialty[0], facts)
             return TriageRuleResult(
                 urgency="URGENT",
                 emergency_flag=False,
                 red_flags=[str(u_pat["label_vi"])] if u_pat.get("label_vi") else [],
                 esi_level=int(u_pat.get("esi_level", 3)),
                 recommended_specialty=specialty,
-                clarifying_questions=[str(value) for value in u_pat.get(
-                    "clarifying_questions",
-                    [
-                        "Triệu chứng bắt đầu từ bao giờ và mức độ tăng hay giảm?",
-                        "Có kèm theo sốt cao hay nôn ói không?",
-                    ],
-                )],
+                clarifying_questions=urgent_questions,
                 advice=str(u_pat.get(
                     "advice",
                     "Nên được thăm khám lâm sàng sớm trong ngày để được chẩn đoán và điều trị kịp thời.",
@@ -1055,16 +1055,8 @@ def triage_rules(symptoms_text: str, vitals: VitalSigns | None = None) -> Triage
     # Phase 7: No explicit rule matched -> UNRESOLVED (fail closed, never default to ROUTINE)
     routed = _route_specialty(text)
     specialty = (routed[0], routed[1]) if routed else ("GENERAL", "Tổng quát")
-    if specialty[0] == "DERMATOLOGY":
-        unresolved_questions = [
-            "Ban đỏ mẩn ngứa xuất hiện ở vùng nào (khu trú hay lan toàn thân), có phồng rộp hay mụn nước không?",
-            "Ngay trước khi nổi ban bạn có tiếp xúc hóa mỹ phẩm, thuốc mới hay thực phẩm lạ không?",
-        ]
-    else:
-        unresolved_questions = [
-            "Triệu chứng xuất hiện từ khi nào?",
-            "Có sốt hoặc đau tăng dần không?",
-        ]
+    facts = extract_clinical_facts(text)
+    unresolved_questions = build_contextual_clarifying_questions(text, specialty[0], facts)
 
     return TriageRuleResult(
         urgency="UNRESOLVED",

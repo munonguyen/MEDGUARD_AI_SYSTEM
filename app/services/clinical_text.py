@@ -109,6 +109,12 @@ def normalize_search_text(value: str) -> str:
     text = re.sub(r'([a-zA-Z])\1{2,}', r'\1', text)
     text = re.sub(r'([b-df-hj-np-tv-z])\1+\b', r'\1', text)
 
+    # Pass 0.6: Deduplicate symptom reduplications before accent stripping (e.g. đau đau -> đau)
+    text = re.sub(r"\b(?:đau|dau)\s+(?:đau|dau)\b", "đau", text, flags=re.IGNORECASE)
+    text = re.sub(r"\b(?:nhức|nhuc)\s+(?:nhức|nhuc)\b", "nhức", text, flags=re.IGNORECASE)
+    text = re.sub(r"\b(?:mỏi|moi)\s+(?:mỏi|moi)\b", "mỏi", text, flags=re.IGNORECASE)
+    text = re.sub(r"\b(?:buốt|buot)\s+(?:buốt|buot)\b", "buốt", text, flags=re.IGNORECASE)
+
     # Pass 1: Raw teencode correction
     for pattern, repl in _RAW_TYPO_MAP:
         text = pattern.sub(repl, text)
@@ -425,8 +431,13 @@ def filter_known_clarifying_questions(
         ):
             continue
         # Fever already known
-        if ("sốt" in facts.confirmed_symptoms or "khong sot" in facts.negative_findings) and any(
-            k in norm_q for k in ("co kem theo sot", "sot cao kem")
+        has_fever_info = (
+            "sốt" in facts.confirmed_symptoms
+            or "khong sot" in facts.negative_findings
+            or any(f in facts.raw_text.lower() for f in ("sot", "sốt", "nhiet do", "nhiệt độ", "nong sot", "nóng sốt", "sot nhe", "sốt nhẹ"))
+        )
+        if has_fever_info and any(
+            k in norm_q for k in ("co sot", "co bi sot", "co kem theo sot", "sot cao kem", "kem theo sot", "sot khong")
         ):
             continue
         # Vomiting already known
@@ -436,6 +447,168 @@ def filter_known_clarifying_questions(
             continue
         filtered.append(q)
     return filtered
+
+
+def build_contextual_clarifying_questions(
+    text: str,
+    specialty_code: str = "GENERAL",
+    facts: ExtractedClinicalFacts | None = None,
+) -> list[str]:
+    """Generate symptom-specific, context-aware clarifying questions based on the user's input.
+    Eliminates robotic/unrelated default questions (such as 'Có sốt hoặc đau tăng dần không?').
+    """
+    norm = normalize_search_text(text)
+    raw = text.lower()
+    if facts is None:
+        facts = extract_clinical_facts(text)
+
+    # 0. Greeting / Non-symptomatic chit-chat
+    if any(g in norm for g in ("xin chao", "chao ban", "chao bac si", "hello", "hi", "alo")) and len(norm.split()) <= 4:
+        return ["Bạn đang gặp phải triệu chứng bất thường hoặc băn khoăn sức khỏe nào cần bác sĩ hỗ trợ tư vấn hôm nay?"]
+
+    # 1. Lower limb / Leg / Calf / Knee / Foot
+    if any(k in norm for k in (
+        "bap chan", "cang chan", "dau chan", "dau bap chan", "dau goi", "khop goi",
+        "co chan", "mat ca", "ban chan", "got chan", "chuot rut", "kho di", "khong di duoc", "dau o bap"
+    )):
+        return [
+            "Vị trí đau cụ thể ở bắp chân, khớp hay bàn chân; có sưng nề, nóng đỏ hay bầm tím không?",
+            "Cơn đau xuất hiện sau chấn thương, vận động gắng sức hay tự nhiên xuất hiện; bạn có đi lại hoặc tỳ đè bình thường được không?",
+        ]
+
+    # 2. Eye / Ophthalmology
+    eye_keywords = (
+        "mat do", "dau mat", "ngua mat", "com mat", "chay nuoc mat", "do mat",
+        "nhin mo", "du mat", "ghen mat", "chot mat", "viem ket mac", "do hai mat",
+        "dau nhuc mat", "sung mi mat", "kho mat", "nhin doi"
+    )
+    if any(k in norm for k in eye_keywords) or specialty_code == "OPHTHALMOLOGY" or (
+        re.search(r"\bmat\b", norm) and not any(k in norm for k in ("mat ca", "mat xa", "mat mat"))
+    ):
+        return [
+            "Mắt có bị nhìn mờ, giảm thị lực rõ rệt, chói mắt sợ ánh sáng hay đau nhức sâu trong nhãn cầu không?",
+            "Mắt có tiết nhiều dử ghèn mủ vàng đục hay xanh làm dính mi mắt vào buổi sáng không, và bị ở một bên hay cả hai mắt?",
+        ]
+
+    # 2.5 Ear symptoms
+    if any(k in norm for k in ("dau tai", "u tai", "chay nuoc tai", "chay mu tai", "chay dich tai", "viem tai", "ngua tai")):
+        return [
+            "Tai có bị giảm thính lực, ù tai, chảy dịch hoặc mủ vàng hôi hay đau nhói sâu trong tai không?",
+            "Cơn đau tai có lan lên thái dương, hàm hay sau gáy không và bạn có kèm theo sốt không?",
+        ]
+
+    # 3. ENT / Throat / Cough / Voice
+    if any(k in norm for k in (
+        "hong", "dau hong", "rat hong", "ho", "ho co dom", "ho khan", "nghet mui",
+        "chay mui", "so mui", "khan giong", "khan tieng", "viem hong"
+    )) or specialty_code in ("OTORHINOLARYNGOLOGY", "RESPIRATORY"):
+        has_fever = "sốt" in facts.confirmed_symptoms or any(f in raw for f in ("sot", "sốt", "nhiệt độ", "nong", "sot nhe"))
+        if has_fever:
+            return [
+                "Cơn đau họng có khiến bạn nuốt đau buốt nhiều, nuốt nghẹn, khó há miệng hay sưng đau hạch ở cổ không?",
+                "Triệu chứng ho có kèm theo đờm đặc đổi màu (vàng/xanh), ho ra máu hay cảm giác tức ngực khó thở không?",
+            ]
+        return [
+            "Cơn đau rát họng có khiến bạn nuốt nghẹn, khó nuốt, khàn tiếng hay khó thở không?",
+            "Triệu chứng đã kéo dài bao nhiêu ngày và bạn có dùng thuốc súc họng hay hạ sốt nào chưa?",
+        ]
+
+    # 4. Musculoskeletal / Neck / Back / Spine / Joint
+    if any(k in norm for k in (
+        "co vai gay", "vai gay", "moi co", "dau lung", "moi lung", "cang co",
+        "dau khop", "cot song", "thoat vi", "dau vai", "moi gay", "dau bap tay"
+    )) or specialty_code in ("ORTHOPEDICS", "MUSCULOSKELETAL"):
+        return [
+            "Cơn đau xuất hiện sau vận động sai tư thế hay âm ỉ kéo dài do tính chất công việc ngồi nhiều?",
+            "Đau có lan xuống vai, cánh tay, bàn tay hoặc lan xuống mông và chân không; có kèm tê bì hay yếu sức cơ không?",
+        ]
+
+    # 5. Gastroenterology / Abdominal / Stomach
+    if any(k in norm for k in (
+        "bung", "dau bung", "day hoi", "chuong bung", "kho tieu", "buon non",
+        "non", "tieu chay", "tao bon", "o chua", "thuong vi", "da day", "ruot"
+    )) or specialty_code == "GASTROENTEROLOGY":
+        return [
+            "Vị trí đau cụ thể ở vùng nào (thượng vị, quanh rốn hay bụng dưới) và đau âm ỉ hay quặn từng cơn?",
+            "Bạn có kèm buồn nôn, nôn ói, sốt, tiêu chảy nhiều lần hay đi ngoài ra máu không?",
+        ]
+
+    # 6. Neurology / Dizziness / Headache
+    if any(k in norm for k in (
+        "chong mat", "hoa mat", "choang vang", "dau dau", "nhuc dau", "nang dau", "te bi"
+    )) or specialty_code == "NEUROLOGY":
+        if any(k in norm for k in ("chong mat", "hoa mat", "choang vang")):
+            return [
+                "Cảm giác chóng mặt xuất hiện theo cơn khi thay đổi tư thế hay kéo dài liên tục; có cảm giác đồ vật xung quanh quay cuồng không?",
+                "Có kèm theo yếu tê một bên người, méo miệng, nói khó, nhìn đôi, ù tai hay mất thăng bằng không?",
+            ]
+        return [
+            "Cơn đau đầu bắt đầu từ khi nào, mức độ từ 0 đến 10; có xuất hiện đột ngột dữ dội, đau nửa đầu hay kèm cứng cổ không?",
+            "Có kèm theo yếu hoặc tê một bên người, méo miệng, nói khó, lú lẫn hay nhìn mờ không?",
+        ]
+
+    # 7. Dermatology / Rash / Allergy
+    if specialty_code in ("DERMATOLOGY", "ALLERGY_IMMUNOLOGY") or any(k in norm for k in (
+        "da", "ngua", "man ngua", "ban do", "noi man", "me day", "phong rop", "mun nuoc"
+    )):
+        return [
+            "Ban đỏ mẩn ngứa xuất hiện ở vùng nào (khu trú hay lan toàn thân), có nổi sẩn phù mày đay, phồng rộp hay mụn nước không?",
+            "Trước khi nổi ban bạn có dùng thuốc mới, ăn thực phẩm lạ, tiếp xúc hóa mỹ phẩm hay bị côn trùng đốt không?",
+        ]
+
+    # 8. Nephrology / Urology / Urinary
+    if specialty_code == "NEPHROLOGY" or any(k in norm for k in (
+        "tieu buot", "tieu rat", "tieu mau", "tieu duc", "tieu dem", "tieu nhieu", "kho tieu", "bi tieu"
+    )):
+        return [
+            "Nước tiểu có màu đỏ, đục, có cặn hay nhiều bọt bất thường không?",
+            "Bạn có bị sốt kèm rét run, đau quặn hông lưng lan xuống bẹn hay cảm giác mót tiểu buốt rát liên tục không?",
+        ]
+
+    # 9. Dental
+    if specialty_code == "DENTAL" or any(k in norm for k in (
+        "rang", "dau rang", "nhuc rang", "e buot rang", "nuou", "loi"
+    )):
+        return [
+            "Răng ê buốt khi ăn uống đồ nóng/lạnh/ngọt hay đau nhức tự nhiên kéo dài cả khi không kích thích?",
+            "Vùng răng đau có kèm theo sưng nướu, chảy mủ, lung lay răng hay sưng phù vùng má/hàm không?",
+        ]
+
+    # 9.5 Chest / Cardiology
+    if specialty_code == "CARDIOLOGY" or any(k in norm for k in (
+        "nguc", "dau nguc", "tuc nguc", "nhoi nguc", "hoi hop", "danh trong nguc"
+    )):
+        return [
+            "Cảm giác đau tức ngực có lan lên cổ, hàm, vai hay cánh tay trái không, và xuất hiện khi gắng sức hay lúc nghỉ ngơi?",
+            "Cơn đau kéo dài trong bao lâu, có giảm khi bạn ngồi nghỉ không và có kèm theo khó thở, vã mồ hôi hay choáng váng không?",
+        ]
+
+    # 10. General / Fallback
+    has_pain = any(p in raw for p in ("đau", "dau", "nhức", "nhuc", "mỏi", "moi", "buốt", "buot", "rát", "rat"))
+    has_fever = (
+        "sốt" in facts.confirmed_symptoms
+        or "khong sot" in facts.negative_findings
+        or any(f in raw for f in ("sot", "sốt", "nhiệt độ", "nong", "sot nhe", "sốt nhẹ"))
+    )
+    if has_pain and not has_fever:
+        return [
+            "Cảm giác đau hoặc khó chịu này bắt đầu từ khi nào và mức độ đang tăng lên hay có thuyên giảm?",
+            "Ngoài ra bạn có nhận thấy dấu hiệu bất thường nào khác đi kèm không?",
+        ]
+    if has_fever and not has_pain:
+        return [
+            "Nhiệt độ sốt đo được bao nhiêu độ, sốt liên tục hay theo cơn và bạn đã uống thuốc hạ sốt chưa?",
+            "Ngoài sốt ra bạn có cảm thấy mệt mỏi nhiều, ớn lạnh hay kèm theo triệu chứng nào khác không?",
+        ]
+    if has_pain and has_fever:
+        return [
+            "Cơn đau và sốt bắt đầu từ khi nào, nhiệt độ sốt cao nhất là bao nhiêu và bạn đã dùng thuốc hạ sốt/giảm đau chưa?",
+            "Ngoài ra bạn có cảm thấy mệt mỏi nhiều, ớn lạnh hay có dấu hiệu bất thường nào khác không?",
+        ]
+    return [
+        "Triệu chứng này bắt đầu xuất hiện từ khi nào và diễn tiến liên tục hay từng cơn?",
+        "Hiện tại bạn có cảm thấy mệt mỏi nhiều hay kèm theo dấu hiệu bất thường nào khác không?",
+    ]
 
 
 def is_reproducible_musculoskeletal_chest_pain(text: str) -> bool:
