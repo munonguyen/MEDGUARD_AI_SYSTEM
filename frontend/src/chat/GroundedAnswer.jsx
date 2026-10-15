@@ -2,14 +2,21 @@ import {
   Activity,
   AlertCircle,
   AlertTriangle,
+  Barcode,
+  Building2,
+  Calendar,
   CheckCircle2,
   ChevronDown,
   CircleHelp,
   ClipboardList,
   ExternalLink,
+  Hash,
   ListChecks,
+  PackageCheck,
+  QrCode,
   Send,
   ShieldAlert,
+  ShieldCheck,
   Sparkles,
   Stethoscope,
 } from 'lucide-react';
@@ -42,6 +49,205 @@ const knowledgeLabels = {
 };
 
 const clinicalIntents = new Set(['triage', 'safety', 'monitoring', 'followup', 'pharmacy']);
+
+/**
+ * Render specialized authenticity check card for anti-counterfeit QR verification.
+ */
+function ProductVerificationCard({ result, answer }) {
+  if (!result || !result.verification_status) return null;
+  const status = result.verification_status;
+  const product = result.product || {};
+  const decoded = result.decoded || {};
+  const reasons = result.reasons || [];
+
+  const isMatch = status === 'registry_match';
+  const isCounterfeit = status === 'suspected_counterfeit';
+  const isRecalled = status === 'recalled';
+  const isExpired = status === 'expired';
+
+  const badgeConfig = isMatch
+    ? {
+        tone: 'match',
+        icon: ShieldCheck,
+        badgeText: 'CHÍNH HÃNG — KHỚP HỒ SƠ REGISTRY DƯỢC PHẨM',
+        subText: 'Mã QR và thông tin xuất xưởng trùng khớp hoàn toàn với registry của nhà sản xuất.',
+      }
+    : isCounterfeit
+    ? {
+        tone: 'danger',
+        icon: ShieldAlert,
+        badgeText: 'CẢNH BÁO: PHÁT HIỆN DẤU HIỆU HÀNG GIẢ / NHÁI',
+        subText: 'Mã serial hoặc số lô không thuộc danh mục xuất xưởng của nhà sản xuất. TUYỆT ĐỐI KHÔNG DÙNG THUỐC!',
+      }
+    : isRecalled
+    ? {
+        tone: 'recalled',
+        icon: AlertTriangle,
+        badgeText: 'CẢNH BÁO: LÔ SẢN PHẨM BỊ THU HỒI',
+        subText: 'Sản phẩm thuộc lô có quyết định thu hồi khẩn cấp từ cơ quan quản lý y tế hoặc nhà sản xuất.',
+      }
+    : isExpired
+    ? {
+        tone: 'expired',
+        icon: AlertTriangle,
+        badgeText: 'CẢNH BÁO: THUỐC ĐÃ QUÁ HẠN DÙNG',
+        subText: 'Hạn sử dụng ghi nhận trong hồ sơ registry đã hết hạn. Ngưng dùng sản phẩm ngay!',
+      }
+    : {
+        tone: 'unknown',
+        icon: AlertCircle,
+        badgeText: 'CHƯA ĐỐI CHIẾU ĐƯỢC HOÀN CHỈNH',
+        subText: 'Chưa tìm thấy mã trong registry hoặc mã QR thiếu serial/số lô cần thiết.',
+      };
+
+  const BadgeIcon = badgeConfig.icon;
+
+  return (
+    <div className={`product-verify-card verify-${badgeConfig.tone}`}>
+      <div className="verify-card-header">
+        <div className="verify-badge-wrap">
+          <span className={`verify-status-badge ${badgeConfig.tone}`}>
+            <BadgeIcon size={16} />
+            <strong>{badgeConfig.badgeText}</strong>
+          </span>
+          <p className="verify-status-sub">{badgeConfig.subText}</p>
+        </div>
+      </div>
+
+      <div className="verify-specs-grid">
+        <div className="verify-spec-item">
+          <span className="spec-label"><PackageCheck size={13} /> Tên sản phẩm</span>
+          <strong className="spec-value">{product.name || decoded.product || 'Chưa xác định'}</strong>
+        </div>
+        <div className="verify-spec-item">
+          <span className="spec-label"><Building2 size={13} /> Nhà sản xuất</span>
+          <strong className="spec-value">{product.manufacturer || 'Đang cập nhật'}</strong>
+        </div>
+        <div className="verify-spec-item">
+          <span className="spec-label"><Hash size={13} /> Số lô (Lot)</span>
+          <strong className={`spec-value ${isMatch ? 'text-success' : isCounterfeit ? 'text-danger' : ''}`}>
+            {decoded.lot || (product.lots ? product.lots[0] : 'N/A')}
+          </strong>
+        </div>
+        <div className="verify-spec-item">
+          <span className="spec-label"><Barcode size={13} /> Serial Number</span>
+          <strong className={`spec-value ${isMatch ? 'text-success' : isCounterfeit ? 'text-danger' : ''}`}>
+            {decoded.serial || 'N/A'}
+          </strong>
+        </div>
+        {product.gtin && (
+          <div className="verify-spec-item">
+            <span className="spec-label"><QrCode size={13} /> Mã GTIN</span>
+            <span className="spec-value mono">{product.gtin}</span>
+          </div>
+        )}
+        {product.expires_on && (
+          <div className="verify-spec-item">
+            <span className="spec-label"><Calendar size={13} /> Hạn dùng (Exp)</span>
+            <strong className={`spec-value ${isExpired ? 'text-danger' : ''}`}>{product.expires_on}</strong>
+          </div>
+        )}
+      </div>
+
+      {reasons.length > 0 && (
+        <div className="verify-reasons-box">
+          <span className="reasons-title">Căn cứ đối chiếu & phân tích:</span>
+          <ul>
+            {reasons.map((r, i) => (
+              <li key={i}>{r}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {(isCounterfeit || isRecalled) && (
+        <div className="verify-urgent-callout">
+          <ShieldAlert size={18} />
+          <div>
+            <strong>Khuyến cáo an toàn khẩn cấp:</strong>
+            <p>
+              Tuyệt đối không uống hoặc tiêm/truyền sản phẩm này. Hãy giữ nguyên vỏ hộp, hóa đơn mua hàng và thông báo ngay cho nhà thuốc hoặc đường dây nóng Cục Quản lý Dược để được hỗ trợ điều tra xử lý.
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function statusConfig({ urgency, overallRisk, isClinical, intent, verificationStatus }) {
+  if (intent === 'authenticity' || verificationStatus) {
+    if (verificationStatus === 'registry_match') {
+      return {
+        tone: 'routine',
+        label: 'Xác thực chính hãng',
+        helper: 'Mã QR và thông tin xuất xưởng trùng khớp với registry nhà sản xuất',
+        icon: ShieldCheck,
+      };
+    }
+    if (verificationStatus === 'suspected_counterfeit') {
+      return {
+        tone: 'emergency',
+        label: 'CẢNH BÁO: Nghi ngờ hàng giả',
+        helper: 'Serial hoặc mã lô không thuộc danh mục xuất xưởng của nhà sản xuất. Tuyệt đối không dùng thuốc!',
+        icon: ShieldAlert,
+      };
+    }
+    if (verificationStatus === 'recalled') {
+      return {
+        tone: 'emergency',
+        label: 'CẢNH BÁO: Thuốc bị thu hồi',
+        helper: 'Lô sản phẩm nằm trong danh mục thu hồi khẩn cấp từ cơ quan quản lý dược!',
+        icon: AlertTriangle,
+      };
+    }
+    if (verificationStatus === 'expired') {
+      return {
+        tone: 'urgent',
+        label: 'CẢNH BÁO: Thuốc hết hạn dùng',
+        helper: 'Hạn sử dụng ghi nhận trong registry đã hết hạn. Ngưng dùng sản phẩm!',
+        icon: AlertTriangle,
+      };
+    }
+    return {
+      tone: 'workflow',
+      label: 'Kiểm tra mã QR sản phẩm',
+      helper: 'Kết quả đối chiếu mã sản phẩm với cơ sở dữ liệu registry',
+      icon: CheckCircle2,
+    };
+  }
+
+  if (!isClinical) {
+    return {
+      tone: 'workflow',
+      label: 'Yêu cầu đã được xử lý',
+      helper: 'Trạng thái và kết quả thao tác được trình bày bên dưới',
+      icon: CheckCircle2,
+    };
+  }
+  if (urgency === 'EMERGENCY') {
+    return {
+      tone: 'emergency',
+      label: 'Cấp cứu ngay',
+      helper: 'Ưu tiên hành động khẩn cấp trước khi tiếp tục trao đổi',
+      icon: ShieldAlert,
+    };
+  }
+  if (urgency === 'URGENT' || ['HIGH', 'MODERATE'].includes(overallRisk)) {
+    return {
+      tone: 'urgent',
+      label: 'Cần đánh giá sớm',
+      helper: 'Nên được nhân viên y tế đánh giá trong thời gian phù hợp',
+      icon: AlertTriangle,
+    };
+  }
+  return {
+    tone: 'routine',
+    label: 'Theo dõi / chăm sóc thông thường',
+    helper: 'Chưa ghi nhận tiêu chí cấp cứu từ dữ kiện hiện có',
+    icon: CheckCircle2,
+  };
+}
 
 /**
  * Generate contextual user follow-up questions to ask the AI assistant.
@@ -223,39 +429,6 @@ function ResearchedSourcesFootnote({ sources }) {
   );
 }
 
-function statusConfig({ urgency, overallRisk, isClinical }) {
-  if (!isClinical) {
-    return {
-      tone: 'workflow',
-      label: 'Yêu cầu đã được xử lý',
-      helper: 'Trạng thái và kết quả thao tác được trình bày bên dưới',
-      icon: CheckCircle2,
-    };
-  }
-  if (urgency === 'EMERGENCY') {
-    return {
-      tone: 'emergency',
-      label: 'Cấp cứu ngay',
-      helper: 'Ưu tiên hành động khẩn cấp trước khi tiếp tục trao đổi',
-      icon: ShieldAlert,
-    };
-  }
-  if (urgency === 'URGENT' || ['HIGH', 'MODERATE'].includes(overallRisk)) {
-    return {
-      tone: 'urgent',
-      label: 'Cần đánh giá sớm',
-      helper: 'Nên được nhân viên y tế đánh giá trong thời gian phù hợp',
-      icon: AlertTriangle,
-    };
-  }
-  return {
-    tone: 'routine',
-    label: 'Theo dõi / chăm sóc thông thường',
-    helper: 'Chưa ghi nhận tiêu chí cấp cứu từ dữ kiện hiện có',
-    icon: CheckCircle2,
-  };
-}
-
 export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQuestion }) {
   if (!answer) return null;
 
@@ -284,6 +457,8 @@ export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQues
     urgency: structuredUrgency,
     overallRisk: result?.overall_risk,
     isClinical,
+    intent: responseMeta?.intent,
+    verificationStatus: result?.verification_status,
   });
   const StatusIcon = status.icon;
 
@@ -366,6 +541,11 @@ export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQues
           {!isBrief && <small>{status.helper}</small>}
         </div>
       </section>
+
+      {/* Anti-counterfeit / Product Registry Verification Card */}
+      {(responseMeta.intent === 'authenticity' || result?.verification_status) && (
+        <ProductVerificationCard result={result} answer={answer} />
+      )}
 
       {verifiedAgentPrimary ? (
         <>

@@ -110,7 +110,8 @@ def normalize_search_text(value: str) -> str:
     text = re.sub(r'([b-df-hj-np-tv-z])\1+\b', r'\1', text)
 
     # Pass 0.6: Deduplicate symptom reduplications before accent stripping (e.g. đau đau -> đau)
-    text = re.sub(r"\b(?:đau|dau)\s+(?:đau|dau)\b", "đau", text, flags=re.IGNORECASE)
+    # Note: Preserve unaccented 'dau dau' because in diacritic-less Vietnamese it represents 'đau đầu' (headache).
+    text = re.sub(r"\bđau\s+đau\b", "đau", text, flags=re.IGNORECASE)
     text = re.sub(r"\b(?:nhức|nhuc)\s+(?:nhức|nhuc)\b", "nhức", text, flags=re.IGNORECASE)
     text = re.sub(r"\b(?:mỏi|moi)\s+(?:mỏi|moi)\b", "mỏi", text, flags=re.IGNORECASE)
     text = re.sub(r"\b(?:buốt|buot)\s+(?:buốt|buot)\b", "buốt", text, flags=re.IGNORECASE)
@@ -314,7 +315,8 @@ def extract_clinical_facts(raw_text: str) -> ExtractedClinicalFacts:
         ("yếu liệt", ("yeu liet", "meo mieng", "noi ngong")),
     ]
     for sym_label, patterns in symptom_checks:
-        if any(contains_affirmed_phrase(normalized, p) for p in patterns):
+        check_norm = re.sub(r"\bsot\s+ruot\b", "bon_chon", normalized) if sym_label == "sốt" else normalized
+        if any(contains_affirmed_phrase(check_norm, p) for p in patterns):
             confirmed.append(sym_label)
 
     # 8. Gradual onset vs. sudden onset and duration
@@ -431,10 +433,11 @@ def filter_known_clarifying_questions(
         ):
             continue
         # Fever already known
+        raw_fever_text = re.sub(r"\b(?:sot|sốt)\s+ruột\b", "", facts.raw_text.lower())
         has_fever_info = (
             "sốt" in facts.confirmed_symptoms
             or "khong sot" in facts.negative_findings
-            or any(f in facts.raw_text.lower() for f in ("sot", "sốt", "nhiet do", "nhiệt độ", "nong sot", "nóng sốt", "sot nhe", "sốt nhẹ"))
+            or any(f in raw_fever_text for f in ("sot", "sốt", "nhiet do", "nhiệt độ", "nong sot", "nóng sốt", "sot nhe", "sốt nhẹ"))
         )
         if has_fever_info and any(
             k in norm_q for k in ("co sot", "co bi sot", "co kem theo sot", "sot cao kem", "kem theo sot", "sot khong")

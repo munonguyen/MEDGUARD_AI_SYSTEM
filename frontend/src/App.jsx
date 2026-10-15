@@ -72,6 +72,7 @@ const tools = [
 
 const starterPrompts = [
   { icon: Stethoscope, title: 'Tôi bị đau ngực và khó thở', text: 'Tôi bị đau ngực lan tay trái và khó thở, cần hỗ trợ ngay.' },
+  { icon: QrCode, title: 'Quét QR chống thuốc giả', text: 'Kiểm tra QR hàng giả: product=MG-AMOX-500|lot=AMX2409|serial=VN24A001' },
   { icon: ShieldCheck, title: 'Kiểm tra hai loại thuốc', text: 'Tôi đang dùng warfarin, dự định dùng aspirin. Kiểm tra an toàn thuốc.' },
   { icon: AlarmClock, title: 'Đặt lịch uống thuốc', text: '#lichthuoc uống amoxicillin lúc 8h và 20h mỗi ngày.' },
   { icon: HeartPulse, title: 'Đọc chỉ số tại nhà', text: 'SpO2 của tôi là 94%, huyết áp 150/90, nhịp tim 105.' },

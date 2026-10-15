@@ -688,12 +688,20 @@ def _monitoring_answer(result: dict[str, Any], sources: list[ChatEvidenceSource]
 def _authenticity_answer(result: dict[str, Any], sources: list[ChatEvidenceSource]) -> GroundedAnswer:
     status = str(result.get("verification_status", "unknown"))
     product = result.get("product") or {}
+    summaries = {
+        "registry_match": "Xác thực CHÍNH HÃNG: Mã sản phẩm, số lô và số serial hoàn toàn trùng khớp với hồ sơ xuất xưởng của nhà sản xuất.",
+        "suspected_counterfeit": "CẢNH BÁO NGUY CƠ HÀNG GIẢ: Dữ liệu mã QR (serial hoặc số lô) không khớp với hồ sơ xuất xưởng được nhà sản xuất công bố.",
+        "recalled": "CẢNH BÁO NGUY HIỂM: Sản phẩm nằm trong danh mục thu hồi khẩn cấp của cơ quan y tế / nhà sản xuất. Tuyệt đối không sử dụng.",
+        "expired": "CẢNH BÁO: Sản phẩm đã hết hạn sử dụng theo hồ sơ đăng ký lưu hành.",
+        "unknown": "Chưa tìm thấy mã trong registry nhà sản xuất hoặc cần quét lại rõ nét hơn.",
+        "invalid": "Mã QR không đúng định dạng chuẩn của hệ thống y tế.",
+    }
     titles = {
-        "registry_match": "Mã khớp với registry hiện tại",
-        "suspected_counterfeit": "Mã có dấu hiệu không khớp",
-        "recalled": "Sản phẩm nằm trong danh sách thu hồi",
-        "expired": "Sản phẩm đã hết hạn theo registry",
-        "unknown": "Chưa tìm thấy mã trong registry",
+        "registry_match": "Xác thực: Sản phẩm chính hãng",
+        "suspected_counterfeit": "CẢNH BÁO: Nghi ngờ hàng giả",
+        "recalled": "CẢNH BÁO: Thu hồi thuốc khẩn cấp",
+        "expired": "CẢNH BÁO: Thuốc đã hết hạn",
+        "unknown": "Chưa xác thực được mã QR",
         "invalid": "Mã QR không hợp lệ",
     }
     points = [str(reason) for reason in result.get("reasons", [])]
@@ -701,7 +709,7 @@ def _authenticity_answer(result: dict[str, Any], sources: list[ChatEvidenceSourc
         points.insert(0, f"Sản phẩm đối chiếu: {product['name']}")
     return GroundedAnswer(
         title=titles.get(status, "Kết quả đối chiếu mã"),
-        summary="Kết quả phản ánh việc đối chiếu dữ liệu trong mã với registry đang kết nối, không phải kiểm định vật lý sản phẩm.",
+        summary=summaries.get(status, "Kết quả phản ánh việc đối chiếu dữ liệu trong mã với registry đang kết nối."),
         key_points=points,
         next_steps=["Không sử dụng sản phẩm và liên hệ nhà thuốc, nhà sản xuất hoặc cơ quan quản lý để xác minh."] if status != "registry_match" else [],
         decision_basis="registry_record",
@@ -709,7 +717,7 @@ def _authenticity_answer(result: dict[str, Any], sources: list[ChatEvidenceSourc
         rule_version=_trace_rule_version(result),
         sources=sources,
         limitations=[
-            "Mã khớp registry không tự chứng minh bao bì và thuốc bên trong là hàng thật.",
+            "Mã khớp registry là bằng chứng đối chiếu dữ liệu, không thay thế kiểm định lý hóa sản phẩm thực tế.",
             *_approval_limitations(sources),
         ],
         requires_human_review=status != "registry_match",
