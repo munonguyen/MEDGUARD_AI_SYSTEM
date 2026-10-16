@@ -32,16 +32,34 @@ _STOPWORDS = {
 }
 
 _BODY_REGION_TERMS: dict[str, tuple[str, ...]] = {
-    "head": ("đầu", "sọ", "mặt", "răng", "nướu", "lợi", "hàm", "mắt", "head", "headache", "face", "tooth", "dental", "eye"),
+    "head": ("đầu", "sọ", "mặt", "head", "headache", "face"),
+    "dental": ("răng", "nướu", "lợi", "hàm", "sâu răng", "viêm tủy", "tooth", "dental", "nhức răng", "buốt răng", "ê buốt"),
+    "eye": ("mắt", "kết mạc", "cộm mắt", "đỏ mắt", "ghèn mắt", "dử mắt", "giác mạc", "nhãn cầu", "eye", "vision"),
+    "skin": ("ghẻ", "mẩn ngứa", "mày đay", "dị ứng da", "nổi ban", "phát ban", "trầy xước", "bệnh da", "da liễu", "scabies", "skin", "rash"),
     "neck": ("cổ", "gáy", "neck"),
     "chest": ("ngực", "tim", "phổi", "chest", "heart", "lung"),
-    "abdomen": ("bụng", "dạ dày", "ruột", "phân", "abdomen", "stomach", "bowel"),
+    "abdomen": ("bụng", "dạ dày", "ruột", "phân", "tiêu hóa", "đại tiện", "nôn", "buồn nôn", "abdomen", "stomach", "bowel"),
     "upper_limb": ("cánh tay", "khuỷu tay", "cổ tay", "bàn tay", "ngón tay", "arm", "wrist", "hand"),
     "lower_limb": (
         "chân", "đùi", "đầu gối", "bắp chân", "cẳng chân", "cổ chân", "mắt cá chân", "bàn chân",
         "leg", "lower limb", "thigh", "knee", "calf", "ankle", "foot",
     ),
+    "respiratory_cold": (
+        "ốm", "bị ốm", "cảm", "cúm", "cảm cúm", "cảm lạnh", "sốt siêu vi", "nhiễm siêu vi",
+        "kháng sinh", "nghẹt mũi", "chảy mũi", "rát họng", "đau họng", "ho", "viêm đường hô hấp",
+        "cold", "flu", "fever", "cough"
+    ),
 }
+
+_SPECIALTY_REQUIRED_TERMS: list[tuple[tuple[str, ...], tuple[str, ...]]] = [
+    (("dental", "rang ham mat", "toothache", "sau rang", "viem tuy"), ("rang", "nuou", "loi", "ham", "tooth", "dental")),
+    (("scabies", "benh ghe", "cai ghe"), ("ghe", "mun nuoc", "scabies")),
+    (("acute_burn", "vet bong"), ("bong", "nuoc soi", "lua", "burn")),
+    (("red_eye", "viem ket mac", "benh ve mat", "conjunctivitis"), ("mat", "ket mac", "com mat", "do mat", "eye")),
+    (("back_pain", "dau lung"), ("lung", "that lung", "cot song", "back")),
+    (("insect_bite", "vet dot"), ("ong", "kien", "dot", "can", "sting", "bite")),
+    (("ankle_sprain", "bong gan"), ("mat ca", "co chan", "bong gan", "sprain")),
+]
 
 
 def _body_regions(text: str) -> set[str]:
@@ -461,6 +479,17 @@ class KnowledgeRetriever:
                 if allowed_docs and chunk.doc_name not in allowed_docs:
                     continue
 
+                chunk_text_low = (chunk.chunk_id + " " + chunk.title).lower()
+                chunk_norm = _normalize(chunk_text_low)
+                excluded_by_specialty = False
+                for id_patterns, required_terms in _SPECIALTY_REQUIRED_TERMS:
+                    if any(pat in chunk_norm or pat in chunk_text_low for pat in id_patterns):
+                        if not any(re.search(rf"\b{re.escape(term)}\b", query_norm) for term in required_terms):
+                            excluded_by_specialty = True
+                            break
+                if excluded_by_specialty:
+                    continue
+
                 chunk_regions = regions[idx]
                 if query_regions and chunk_regions and query_regions.isdisjoint(chunk_regions):
                     continue
@@ -485,6 +514,11 @@ class KnowledgeRetriever:
                 # Exact phrase matching
                 if query_norm in chunk_content_norm or query_norm in chunk_title_norm:
                     score += 10.0
+
+                # Clinical keyword alignment boost
+                for kw in ("om", "bi om", "cam cum", "khang sinh", "khi nao", "di kham", "kham truc tiep", "dau dau", "dau bung", "dau nguc"):
+                    if kw in query_norm and kw in chunk_content_norm:
+                        score += 6.0
 
                 scores[idx] = score
 

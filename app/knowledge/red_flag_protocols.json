@@ -5547,6 +5547,108 @@
       "source_title": "Hướng dẫn Chẩn đoán và Điều trị các bệnh về Mắt & Viêm kết mạc (QĐ 3906/QĐ-BYT)",
       "source_publisher": "Bộ Y tế — Cục Quản lý Khám, chữa bệnh",
       "source_url": "https://kcb.vn/van-ban/quyet-dinh-so-3906-qd-byt-huong-dan-chan-doan-va-dieu-tri-cac-benh-ve-mat.html"
+    },
+    {
+      "topic": "common_cold_flu",
+      "keywords": [
+        "bị ốm",
+        "bi om",
+        "ốm",
+        "om",
+        "cảm cúm",
+        "cam cum",
+        "cảm lạnh",
+        "cam lanh",
+        "cảm sốt",
+        "cam sot",
+        "ốm sốt",
+        "om sot",
+        "uống thuốc gì để khỏi ốm",
+        "thuốc khỏi ốm",
+        "không cần tới kháng sinh",
+        "không dùng kháng sinh",
+        "khong dung khang sinh",
+        "kháng sinh",
+        "khang sinh",
+        "sốt siêu vi",
+        "sot sieu vi",
+        "nhiễm siêu vi",
+        "nhiem sieu vi",
+        "viêm đường hô hấp trên",
+        "nghẹt mũi",
+        "chảy nước mũi",
+        "ho khan",
+        "đau rát họng",
+        "rat hong"
+      ],
+      "summary": "Tình trạng bị ốm với các triệu chứng như sốt nhẹ, mệt mỏi, đau rát họng, nghẹt mũi hoặc hắt hơi thường do nhiễm virus đường hô hấp (như virus cúm, rhinovirus). Các bệnh do virus không đáp ứng với kháng sinh vì kháng sinh chỉ có tác dụng tiêu diệt vi khuẩn. Điều trị chủ yếu là chăm sóc hỗ trợ, nghỉ ngơi, bù đủ nước và dùng thuốc giảm triệu chứng an toàn.",
+      "clinical_hypotheses": [
+        "Cảm lạnh thông thường hoặc Cảm cúm mùa do virus: Sốt nhẹ hoặc vừa, mệt mỏi, đau họng, chảy mũi, tự giới hạn sau 5-7 ngày với chăm sóc hỗ trợ.",
+        "Viêm đường hô hấp trên cấp tính: Kích ứng niêm mạc mũi họng do thay đổi thời tiết hoặc virus, không có dấu hiệu nhiễm khuẩn nặng.",
+        "Nhiễm khuẩn hô hấp thứ phát (bội nhiễm): Cần loại trừ nếu sốt cao liên tục trên 3 ngày, đờm đặc xanh/vàng, khó thở hoặc đau ngực."
+      ],
+      "clarifying_questions": [
+        "Triệu chứng ốm của bạn xuất hiện được mấy ngày rồi và có kèm sốt cao, rét run không?",
+        "Bạn có bị khó thở, thở rít, đau tức ngực hoặc ho ra đờm đặc màu xanh/vàng không?",
+        "Bạn đã tự dùng loại thuốc nào chưa (như thuốc hạ sốt, giảm đau hay siro ho)?"
+      ],
+      "self_care": [
+        "Nghỉ ngơi và bù nước tích cực: Dành thời gian nghỉ ngơi hoàn toàn, giữ ấm cơ thể, uống nhiều nước ấm (2-2.5 lít/ngày), có thể uống nước oresol, nước trái cây hoặc chanh mật ong ấm.",
+        "Thuốc hỗ trợ triệu chứng an toàn: Khi sốt từ 38.5°C hoặc đau nhức người, có thể dùng Paracetamol (10-15mg/kg mỗi 4-6 giờ, không quá 3-4g/ngày đối với người lớn) theo hướng dẫn của dược sĩ/bác sĩ; tuyệt đối không tự ý dùng thuốc kháng sinh khi chưa có chỉ định.",
+        "Vệ sinh đường thở: Súc họng bằng nước muối sinh lý 0.9% 2-3 lần/ngày, nhỏ hoặc rửa mũi nhẹ nhàng để thông thoáng đường thở và giảm nghẹt mũi."
+      ],
+      "advice": "Các bệnh cảm cúm thông thường do virus không cần dùng kháng sinh và sẽ tự hồi phục khi được chăm sóc, nghỉ ngơi hợp lý và giữ ấm.",
+      "safety_net": [
+        "Cần đi khám bác sĩ hoặc cơ sở y tế ngay nếu: Xuất hiện khó thở, thở gấp, đau tức ngực; sốt cao liên tục trên 39°C không hạ sau khi dùng hạ sốt; ho ra máu hoặc đờm đục; li bì, mê sảng hoặc triệu chứng kéo dài quá 7 ngày không thuyên giảm."
+      ],
+      "source_title": "Hướng dẫn Chẩn đoán và Điều trị Cúm mùa & Nhiễm trùng hô hấp (QĐ 4845/QĐ-BYT)",
+      "source_publisher": "Bộ Y tế — Cục Quản lý Khám, chữa bệnh",
+      "source_url": "https://kcb.vn/van-ban/quyet-dinh-so-4845-qd-byt-huong-dan-chan-doan-va-dieu-tri-cum-mua.html"
+    },
+    {
+      "topic": "general_medical_consultation",
+      "keywords": [
+        "khi nào tôi cần đi khám",
+        "khi nao toi can di kham",
+        "khi nào cần đi khám",
+        "khi nao can di kham",
+        "khi nào đi khám bác sĩ trực tiếp",
+        "khi nao di kham bac si truc tiep",
+        "khi nào cần đi khám bác sĩ",
+        "khi nao can di kham bac si",
+        "đi khám bác sĩ trực tiếp",
+        "di kham bac si truc tiep",
+        "khám trực tiếp",
+        "kham truc tiep",
+        "tiêu chuẩn đi khám",
+        "tieu chuan di kham",
+        "khi nào nên đến bệnh viện",
+        "khi nao nen den benh vien",
+        "thời điểm cần đi khám",
+        "thoi diem can di kham"
+      ],
+      "summary": "Người bệnh nên sắp xếp đi khám bác sĩ trực tiếp tại cơ sở y tế khi triệu chứng kéo dài không cải thiện sau 2-3 ngày tự chăm sóc tại nhà, mức độ đau nhức tăng dần, sốt cao khó hạ, hoặc xuất hiện bất kỳ dấu hiệu báo động bất thường nào cản trở sinh hoạt và chức năng sống.",
+      "clinical_hypotheses": [
+        "Bệnh cảnh cần đánh giá trực tiếp để chẩn đoán xác định: Các triệu chứng dai dẳng hoặc tiến triển cần được bác sĩ thăm khám lâm sàng, đo sinh hiệu và chỉ định cận lâm sàng phù hợp.",
+        "Dấu hiệu cảnh báo tiến triển bệnh: Cần loại trừ các biến chứng cấp tính hoặc bệnh lý nền tiềm ẩn."
+      ],
+      "clarifying_questions": [
+        "Triệu chứng hiện tại bạn đang băn khoăn là gì và đã kéo dài bao nhiêu ngày?",
+        "Bạn có đang mắc các bệnh lý nền (như đái tháo đường, tim mạch, huyết áp) hoặc đang mang thai không?",
+        "Mức độ ảnh hưởng đến sinh hoạt, ăn uống hoặc giấc ngủ của bạn như thế nào?"
+      ],
+      "self_care": [
+        "Chuẩn bị thông tin trước khi đi khám: Ghi lại thời điểm bắt đầu triệu chứng, diễn biến tăng giảm, danh sách các loại thuốc/thực phẩm chức năng đang uống hoặc đã dùng trong những ngày qua.",
+        "Mang theo hồ sơ sức khỏe: Đơn thuốc cũ, kết quả xét nghiệm, chẩn đoán hình ảnh trước đây (nếu có) và thẻ BHYT hoặc giấy tờ tùy thân.",
+        "Tuân thủ hướng dẫn phòng ngừa: Đeo khẩu trang, tránh gắng sức trong khi di chuyển đến cơ sở y tế."
+      ],
+      "advice": "Đánh giá từ xa qua tin nhắn không thể thay thế cho việc thăm khám lâm sàng, nghe tim phổi và các xét nghiệm chuyên sâu tại viện khi tình trạng sức khỏe có dấu hiệu bất thường.",
+      "safety_net": [
+        "Cần chuyển đến khoa Cấp cứu hoặc gọi 115 ngay lập tức nếu có: Khó thở dữ dội, đau thắt ngực, sốt cao co giật, yếu liệt chân tay, méo miệng, nôn liên tục hoặc rối loạn tri giác (lơ mơ, mê sảng)."
+      ],
+      "source_title": "Hướng dẫn Quy trình khám bệnh & Tiêu chuẩn phân loại khám chữa bệnh (QĐ 1313/QĐ-BYT)",
+      "source_publisher": "Bộ Y tế — Cục Quản lý Khám, chữa bệnh",
+      "source_url": "https://kcb.vn/van-ban/quyet-dinh-so-1313-qd-byt-ve-viec-ban-hanh-huong-dan-quy-trinh-kham-benh.html"
     }
   ],
   "specialty_routing": [

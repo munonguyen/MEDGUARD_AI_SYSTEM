@@ -398,33 +398,60 @@ function InteractiveFollowupPrompts({ questions, onSelectQuestion }) {
 }
 
 /**
- * Authoritative Ministry of Health Guideline References Footnote.
+ * Authoritative Ministry of Health Guideline References Footnote with Premium Clinical Styling.
  */
 function ResearchedSourcesFootnote({ sources }) {
   if (!sources?.length) return null;
   return (
     <section className="answer-sources-footnote" aria-label="Tài liệu tham khảo chuyên môn">
       <div className="sources-footnote-header">
-        <span className="sources-footnote-title">Tài liệu tham khảo chuyên môn & văn bản quy chuẩn (Bộ Y tế):</span>
+        <div className="sources-footnote-header-left">
+          <div className="sources-header-icon-box">
+            <Building2 size={15} className="sources-header-icon" />
+          </div>
+          <div>
+            <span className="sources-footnote-title">Tài liệu tham khảo & Văn bản quy chuẩn</span>
+            <span className="sources-footnote-subtitle">Cơ sở dữ liệu phác đồ điều trị Bộ Y tế Việt Nam</span>
+          </div>
+        </div>
+        <div className="sources-verified-badge" title="Đã đối chiếu phác đồ chính thức">
+          <CheckCircle2 size={12} className="verified-badge-icon" />
+          <span>Văn bản chính thức</span>
+        </div>
       </div>
-      <ol className="sources-footnote-list">
+      <div className="sources-footnote-cards" role="list">
         {sources.map((src, idx) => (
-          <li key={`src-${src.source_id || idx}`}>
+          <div key={`src-${src.source_id || idx}`} className="source-reference-card" role="listitem">
+            <div className="source-card-badge-wrap">
+              <span className="source-card-index">[{idx + 1}]</span>
+            </div>
+            <div className="source-card-content">
+              <div className="source-card-title-row">
+                <h4 className="source-card-name">{src.title}</h4>
+              </div>
+              <div className="source-card-meta">
+                <span className="source-card-publisher-badge">
+                  <ShieldCheck size={12} className="meta-shield-icon" />
+                  {src.publisher || "Bộ Y tế — Cục Quản lý Khám, chữa bệnh"}
+                </span>
+                {src.authority_tier === "government_health" || src.authority_tier === "guideline_or_regulator" ? (
+                  <span className="source-tier-pill">Cấp phép lưu hành & hướng dẫn lâm sàng</span>
+                ) : null}
+              </div>
+            </div>
             <a
               href={src.url}
               target="_blank"
               rel="noreferrer"
-              className="source-footnote-link"
-              title={`${src.publisher}: ${src.title}`}
+              className="source-card-action-btn"
+              title={`Mở tài liệu: ${src.title}`}
             >
-              <span className="source-footnote-index">[{idx + 1}]</span>
-              <strong className="source-footnote-name">{src.title}</strong>
-              {src.publisher ? <span className="source-footnote-publisher"> — {src.publisher}</span> : null}
-              <ExternalLink size={11} className="source-footnote-external" />
+              <span>Xem văn bản</span>
+              <ExternalLink size={13} className="source-card-ext-icon" />
             </a>
-          </li>
+          </div>
         ))}
-      </ol>
+      </div>
     </section>
   );
 }
