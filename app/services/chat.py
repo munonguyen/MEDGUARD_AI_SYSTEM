@@ -59,6 +59,7 @@ from app.services.risk_memory import (
 from app.services.dose_reasoning import evaluate_dose_reasoning
 from app.services.semantic_risk import safe_semantic_evaluate, semantic_risk_evaluator
 from app.services.ood_guard import evaluate as ood_evaluate, OODResult
+from app.services.dual_crisis_policy import evaluate_dual_crisis
 
 
 _INTENT_KEYWORDS: dict[ChatIntent, tuple[str, ...]] = {
@@ -1145,14 +1146,135 @@ def _response(
         reason = "provider_error"
     elif verification_status == "not_requested":
         reason = "not_requested"
+    # === Output Quality Governance Gate (ROG & Output Verifier) ===
+    output_quality_meta: dict[str, Any] = {"checked": False}
+    candidate_reply = (
+        "\n\n".join(block.text for block in answer.narrative)
+        if verification_status == "verified" and answer.narrative
+        else answer.summary
+    )
+
+    if intent in {"triage", "safety", "monitoring", "general"} or (
+        isinstance(serialized, dict) and "triage_level" in serialized
+    ):
+        from app.services.response_obligation import build_response_obligations
+        from app.services.output_quality_verifier import (
+            verify_output_quality,
+            get_deterministic_template_repair,
+        )
+        from app.models.chat import AnswerNarrativeBlock
+
+        # Determine clinical policy tier
+        tier = "ROUTINE"
+        if isinstance(serialized, dict):
+            urgency = (
+                serialized.get("urgency")
+                or serialized.get("triage_level")
+                or serialized.get("tier")
+                or (serialized.get("safety_floor") if serialized.get("safety_floor") else None)
+            )
+            if urgency:
+                tier = str(urgency).upper()
+            elif serialized.get("emergency_flag"):
+                tier = "EMERGENCY"
+            elif any(
+                isinstance(item, dict) and item.get("action") == "HARD_STOP"
+                for item in serialized.get("interactions", [])
+            ):
+                tier = "EMERGENCY"
+            elif any(
+                isinstance(item, dict) and item.get("action") == "SOFT_STOP"
+                for item in serialized.get("interactions", [])
+            ):
+                tier = "URGENT"
+            elif any(
+                isinstance(item, dict) and item.get("tier") == "HARD_STOP"
+                for item in serialized.get("warnings", [])
+            ):
+                tier = "EMERGENCY"
+            elif any(
+                isinstance(item, dict) and item.get("tier") == "SOFT_STOP"
+                for item in serialized.get("warnings", [])
+            ):
+                tier = "URGENT"
+
+        if tier == "ROUTINE" and isinstance(extracted, dict):
+            if extracted.get("medical_emergency_flag") or extracted.get("clinical_safety_floor") == "EMERGENCY":
+                tier = "EMERGENCY"
+            elif extracted.get("clinical_safety_floor") == "URGENT":
+                tier = "URGENT"
+
+        if status == "needs_information":
+            tier = "UNRESOLVED"
+
+        # Check dual crisis condition
+        is_crisis = False
+        if isinstance(serialized, dict) and serialized.get("is_dual_crisis"):
+            is_crisis = True
+        elif isinstance(extracted, dict) and extracted.get("crisis_support_flag"):
+            is_crisis = True
+        else:
+            crisis_eval = evaluate_dual_crisis(payload.messages[-1].content)
+            is_crisis = crisis_eval.is_dual_crisis
+
+        obligations = build_response_obligations(
+            triage_level=tier,
+            clinical_state=None,
+            is_dual_crisis=is_crisis,
+            topic=intent,
+        )
+
+        visible_blocks = [answer.title, answer.summary, candidate_reply]
+        if answer.next_steps:
+            visible_blocks.extend(answer.next_steps)
+        if answer.safety_notes:
+            visible_blocks.extend(answer.safety_notes)
+        full_visible_text = "\n".join(b for b in visible_blocks if b)
+        quality_check = verify_output_quality(full_visible_text, obligations)
+
+        output_quality_meta = {
+            "checked": True,
+            "policy_tier": obligations.policy_tier,
+            "is_valid": quality_check.is_valid,
+            "missing": list(quality_check.missing_obligations),
+            "violated": list(quality_check.violated_forbidden),
+            "repaired": not quality_check.is_valid,
+        }
+
+        if not quality_check.is_valid:
+            logger.warning(
+                "OUTPUT QUALITY GATE REJECTED RESPONSE: missing=%s violated=%s contradiction=%s. Activating deterministic repair.",
+                quality_check.missing_obligations,
+                quality_check.violated_forbidden,
+                quality_check.contains_contradiction,
+            )
+            repaired_text = get_deterministic_template_repair(obligations)
+            candidate_reply = repaired_text
+            answer = answer.model_copy(
+                update={
+                    "summary": repaired_text,
+                    "narrative": [
+                        AnswerNarrativeBlock(
+                            kind="urgent" if tier == "EMERGENCY" else "paragraph",
+                            text=repaired_text,
+                            emphasis=["115", "CẤP CỨU", "NGAY LẬP TỨC"]
+                            if tier == "EMERGENCY"
+                            else [],
+                        )
+                    ],
+                }
+            )
+            answer_origin = "deterministic_fallback"
+            verification_status = "rejected"
+            reason = "quality_rejected"
+
     stage_default = "unknown" if verification_status in {"timed_out", "shadow_pending"} else "not_run"
     response = ChatResponse(
         request_id=ctx.request_id,
         conversation_id=payload.conversation_id,
         status=status,
         intent=intent,
-        reply=("\n\n".join(block.text for block in answer.narrative)
-               if verification_status == "verified" and answer.narrative else answer.summary),
+        reply=candidate_reply,
         required_fields=fields,
         extracted=extracted or {},
         result=serialized,
@@ -1183,6 +1305,7 @@ def _response(
                 "agent_status": agent_status,
                 "agent_fallback_reason": internal_agent_trace.fallback_reason if internal_agent_trace else None,
                 "answer_assurance": "source_verified" if agent_status == "verified" else "baseline",
+                "output_quality": output_quality_meta,
             },
         )
     )

@@ -9,16 +9,16 @@ import unicodedata
 
 _NEGATION_PREFIX = re.compile(
     r"(?:^|[\s,;:.!?])"
-    r"(?:không|khong|ko|k|chưa|chua|phủ\s+nhận|phu\s+nhan|khg|hổng|hong|tuyệt\s+đối\s+không|tuyet\s+doi\s+khong)"
-    r"(?:\s+(?:có|co|hề|he|bị|bi|thấy|thay|từng|tung|triệu\s+chứng|trieu\s+chung|được|duoc|tự\s+ý|tu\s+y|nên|nen|phải|phai|uống|uong|tiêm|tiem|dùng|dung|sử\s+dụng|su\s+dung))*"
+    r"(?:không|khong|ko|k|chưa|chua|phủ\s+nhận|phu\s+nhan|khg|hổng|hong|tuyệt\s+đối\s+không|tuyet\s+doi\s+khong|thay\s+vì|thay\s+vi|tránh|tranh|đừng|dung)"
+    r"(?:\s+(?:có|co|hề|he|bị|bi|thấy|thay|từng|tung|triệu\s+chứng|trieu\s+chung|được|duoc|tự\s+ý|tu\s+y|tự|tu|tiếp\s+tục|tiep\s+tuc|ở|o|tại|tai|nên|nen|phải|phai|uống|uong|tiêm|tiem|dùng|dung|sử\s+dụng|su\s+dung))*"
     r"\s*$",
     re.IGNORECASE,
 )
 
 _NEGATION_TOKEN = re.compile(
     r"(?:^|[\s,;:.!?])"
-    r"(?:không|khong|ko|k|chưa|chua|phủ\s+nhận|phu\s+nhan|khg|hổng|hong|tuyệt\s+đối\s+không|tuyet\s+doi\s+khong)"
-    r"(?:\s+(?:có|co|hề|he|bị|bi|thấy|thay|từng|tung|triệu\s+chứng|trieu\s+chung|được|duoc|tự\s+ý|tu\s+y|nên|nen|phải|phai|uống|uong|tiêm|tiem|dùng|dung|sử\s+dụng|su\s+dung))*\s+",
+    r"(?:không|khong|ko|k|chưa|chua|phủ\s+nhận|phu\s+nhan|khg|hổng|hong|tuyệt\s+đối\s+không|tuyet\s+doi\s+khong|thay\s+vì|thay\s+vi|tránh|tranh|đừng|dung)"
+    r"(?:\s+(?:có|co|hề|he|bị|bi|thấy|thay|từng|tung|triệu\s+chứng|trieu\s+chung|được|duoc|tự\s+ý|tu\s+y|tự|tu|tiếp\s+tục|tiep\s+tuc|ở|o|tại|tai|nên|nen|phải|phai|uống|uong|tiêm|tiem|dùng|dung|sử\s+dụng|su\s+dung))*\s+",
     re.IGNORECASE,
 )
 _NEGATION_COORDINATOR = re.compile(

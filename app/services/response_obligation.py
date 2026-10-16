@@ -74,12 +74,17 @@ def build_response_obligations(
 
     elif level == "URGENT":
         tier = "URGENT"
-        req.extend([
-            "prompt_evaluation_timeframe",
-            "red_flag_warning",
-            "specialty_consultation",
-            "seek_care_within_12_24h",
-        ])
+        if topic in {"general", "safety", "lab", "pharmacy", "monitoring"}:
+            req.extend([
+                "specialty_consultation",
+            ])
+        else:
+            req.extend([
+                "prompt_evaluation_timeframe",
+                "red_flag_warning",
+                "specialty_consultation",
+                "seek_care_within_12_24h",
+            ])
         forb.extend([
             "false_reassurance",
             "dismissive_language",
@@ -87,11 +92,14 @@ def build_response_obligations(
 
     elif level == "ROUTINE":
         tier = "ROUTINE"
-        req.extend([
-            "supportive_care",
-            "when_to_seek_care",
-            "progression_monitoring",
-        ])
+        if topic in {"general", "safety", "lab", "pharmacy", "monitoring"}:
+            req.extend([])
+        else:
+            req.extend([
+                "supportive_care",
+                "when_to_seek_care",
+                "progression_monitoring",
+            ])
         forb.extend([
             "excessive_emergency_alarm",
             "unsupported_diagnosis",
