@@ -1314,6 +1314,7 @@ def _response(
     from app.services.emergency_transit import build_emergency_transit_plan
     from app.services.enroute_triage import evaluate_enroute_physical_signs, is_en_route_statement
     from app.services.medication_suitability import evaluate_medication_suitability
+    from app.services.traffic_routing_agent import geo_routing_agent
 
     latest_user_text = payload.messages[-1].content
     raw_urgency = (
@@ -1368,11 +1369,46 @@ def _response(
         )
         med_suitability_data = med_suit.to_dict()
 
+    # Geo Routing Agent: Real-time POI discovery, operating hours check, traffic congestion, and bypass optimization
+    geo_routing_data = None
+    asks_for_location_or_routing = any(
+        k in normalize_search_text(latest_user_text)
+        for k in (
+            "dia diem", "cho ban thuoc", "nha thuoc gan nhat", "hieu thuoc gan nhat",
+            "cho xu ly cap cuu", "cap cuu gan nhat", "benh vien gan nhat", "chi duong",
+            "ban do", "tac duong", "ket xe", "tuyen duong", "google map", "maps",
+            "tim nha thuoc", "tim benh vien", "o dau", "di duong nao"
+        )
+    )
+
+    if (
+        is_emergency_case
+        or asks_for_location_or_routing
+        or (asks_about_medicine and med_suitability_data and med_suitability_data.get("state") == "ELIGIBLE_OTC")
+    ):
+        target_poi_type = (
+            "emergency"
+            if is_emergency_case
+            or any(k in normalize_search_text(latest_user_text) for k in ("cap cuu", "benh vien", "115", "nguy kich"))
+            else "pharmacy"
+        )
+        try:
+            geo_plan = geo_routing_agent.plan_destination_routing(
+                query=latest_user_text,
+                location_hint=payload.context.patient_ref,
+                patient_age=payload.context.age,
+                forced_poi_type=target_poi_type,
+            )
+            geo_routing_data = geo_plan.to_dict()
+        except Exception:
+            pass
+
     answer = answer.model_copy(
         update={
             "emergency_transit": emergency_transit_data,
             "enroute_triage": enroute_data,
             "medication_suitability": med_suitability_data,
+            "geo_routing": geo_routing_data,
         }
     )
 

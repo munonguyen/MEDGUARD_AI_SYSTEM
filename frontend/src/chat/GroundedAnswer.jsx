@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import {
   Activity,
   AlertCircle,
@@ -19,6 +20,7 @@ import {
   PhoneCall,
   Pill,
   QrCode,
+  Route,
   Send,
   ShieldAlert,
   ShieldCheck,
@@ -460,6 +462,8 @@ function ResearchedSourcesFootnote({ sources }) {
       </div>
     </section>
   );
+}
+
 /**
  * Emergency Transit & Real-time Turn-by-Turn Navigation Card.
  */
@@ -726,6 +730,278 @@ function MedicationSuitabilityCard({ suitability }) {
   );
 }
 
+/**
+ * Real-Time Geo Routing, POI Operating Hours & Traffic Optimization Card.
+ */
+function RealTimeGeoMapCard({ geoRouting }) {
+  if (!geoRouting?.selected_poi) return null;
+  const poi = geoRouting.selected_poi;
+  const op = poi.operating_status;
+  const primary = geoRouting.primary_route;
+  const alternative = geoRouting.alternative_route;
+  const [selectedRouteType, setSelectedRouteType] = useState(
+    geoRouting.recommended_route_type || 'PRIMARY_DIRECT'
+  );
+
+  const activeRoute = selectedRouteType === 'OPTIMAL_BYPASS' && alternative ? alternative : primary;
+  const isEmergency = geoRouting.query_type === 'emergency';
+
+  return (
+    <section
+      className={`geo-routing-card type-${geoRouting.query_type}`}
+      aria-label="Bản đồ và tuyến đường tối ưu thời gian thực"
+    >
+      {/* Header */}
+      <div className="geo-card-header">
+        <div className="geo-header-title-wrap">
+          <div className="geo-header-icon-box">
+            <Route size={18} className="geo-icon" />
+          </div>
+          <div>
+            <span className="geo-kicker">
+              {isEmergency
+                ? 'ĐIỀU PHỐI CẤP CỨU & TỐI ƯU TUYẾN ĐƯỜNG TRÁNH KẸT XE'
+                : 'ĐIỂM BÁN THUỐC GPP GẦN NHẤT & CHỈ ĐƯỜNG REAL-TIME'}
+            </span>
+            <h3 className="geo-poi-name">{poi.name}</h3>
+            <p className="geo-poi-address">
+              <MapPin size={13} className="inline-map-pin" />
+              {poi.address}
+            </p>
+          </div>
+        </div>
+
+        {/* Operating status badge */}
+        <div className={`geo-operating-badge badge-${op?.status_badge?.toLowerCase()}`}>
+          <Clock size={14} />
+          <div className="badge-text-col">
+            <span className="badge-main-label">{op?.status_label}</span>
+            <small className="badge-sub-label">{op?.detail_text}</small>
+          </div>
+        </div>
+      </div>
+
+      {/* Traffic Alert Banner if rush hour / congestion */}
+      {geoRouting.is_rush_hour && (
+        <div className="geo-traffic-banner alert-warning">
+          <AlertTriangle size={16} className="traffic-warning-icon" />
+          <div>
+            <strong>{geoRouting.rush_hour_name || 'Giờ cao điểm'}:</strong> {geoRouting.traffic_overview}
+          </div>
+        </div>
+      )}
+
+      {/* Interactive Visual Map Canvas (SVG Vector Map with Real-Time Traffic Coloring) */}
+      <div className="geo-interactive-map-canvas" role="region" aria-label="Bản đồ đường đi trực quan">
+        <div className="map-canvas-top-bar">
+          <span className="map-badge-live">
+            <span className="live-dot" /> LIVE TRAFFIC RADAR
+          </span>
+          <span className="map-location-tag">
+            Vị trí của bạn: {geoRouting.user_location?.address || 'Khu vực trung tâm'}
+          </span>
+        </div>
+
+        {/* SVG Route Visualizer */}
+        <div className="svg-map-wrapper">
+          <svg viewBox="0 0 540 220" className="route-vector-svg" preserveAspectRatio="xMidYMid meet">
+            {/* Grid background lines */}
+            <defs>
+              <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+                <path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(255, 255, 255, 0.04)" strokeWidth="1" />
+              </pattern>
+              <linearGradient id="primaryRouteGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor={primary.traffic_level === 'SEVERELY_CONGESTED' ? '#ef4444' : '#f59e0b'} />
+                <stop offset="100%" stopColor="#f97316" />
+              </linearGradient>
+              <linearGradient id="bypassRouteGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#10b981" />
+                <stop offset="100%" stopColor="#06b6d4" />
+              </linearGradient>
+              <filter id="glowGreen" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="4" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+              </filter>
+            </defs>
+            <rect width="100%" height="100%" fill="rgba(10, 16, 28, 0.85)" />
+            <rect width="100%" height="100%" fill="url(#grid)" />
+
+            {/* City road grid mockup */}
+            <path d="M 40 110 L 500 110" stroke="rgba(255,255,255,0.08)" strokeWidth="6" strokeLinecap="round" />
+            <path d="M 180 30 L 180 190" stroke="rgba(255,255,255,0.06)" strokeWidth="4" />
+            <path d="M 360 30 L 360 190" stroke="rgba(255,255,255,0.06)" strokeWidth="4" />
+
+            {/* Primary Direct Route Path */}
+            <path
+              d="M 60 110 Q 200 110, 270 120 T 480 110"
+              fill="none"
+              stroke="url(#primaryRouteGrad)"
+              strokeWidth={selectedRouteType === 'PRIMARY_DIRECT' ? '6' : '3'}
+              strokeDasharray={primary.traffic_level === 'SEVERELY_CONGESTED' ? '6,4' : 'none'}
+              strokeOpacity={selectedRouteType === 'PRIMARY_DIRECT' ? '1' : '0.4'}
+              className="route-path-primary"
+            />
+
+            {/* Alternative Bypass Route Path if exists */}
+            {alternative && (
+              <path
+                d="M 60 110 C 120 40, 380 40, 480 110"
+                fill="none"
+                stroke="url(#bypassRouteGrad)"
+                strokeWidth={selectedRouteType === 'OPTIMAL_BYPASS' ? '6' : '3'}
+                strokeOpacity={selectedRouteType === 'OPTIMAL_BYPASS' ? '1' : '0.4'}
+                filter={selectedRouteType === 'OPTIMAL_BYPASS' ? 'url(#glowGreen)' : 'none'}
+                className="route-path-bypass"
+              />
+            )}
+
+            {/* Start Node (User GPS Location) */}
+            <circle cx="60" cy="110" r="14" fill="rgba(59, 130, 246, 0.2)" className="pulse-radar-ring" />
+            <circle cx="60" cy="110" r="8" fill="#3b82f6" stroke="#ffffff" strokeWidth="2" />
+            <text x="60" y="145" textAnchor="middle" fill="#93c5fd" fontSize="11" fontWeight="bold">Bạn (Bắt đầu)</text>
+
+            {/* Destination Node (Hospital or Pharmacy) */}
+            <circle cx="480" cy="110" r="14" fill={isEmergency ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)'} className="pulse-radar-ring" />
+            <circle cx="480" cy="110" r="9" fill={isEmergency ? '#ef4444' : '#10b981'} stroke="#ffffff" strokeWidth="2" />
+            <text x="480" y="145" textAnchor="middle" fill={isEmergency ? '#f87171' : '#6ee7b7'} fontSize="11" fontWeight="bold">
+              {isEmergency ? 'Cấp cứu' : 'Nhà thuốc'}
+            </text>
+
+            {/* Badges on Route */}
+            {alternative && (
+              <g transform="translate(200, 32)">
+                <rect x="0" y="0" width="140" height="24" rx="12" fill="#065f46" stroke="#10b981" strokeWidth="1" />
+                <text x="70" y="16" textAnchor="middle" fill="#6ee7b7" fontSize="11" fontWeight="bold">
+                  ⚡ Tuyến tránh: Nhanh hơn {alternative.time_saved_minutes}p
+                </text>
+              </g>
+            )}
+
+            <g transform="translate(195, 132)">
+              <rect x="0" y="0" width="150" height="24" rx="12" fill="#7f1d1d" stroke="#ef4444" strokeWidth="1" />
+              <text x="75" y="16" textAnchor="middle" fill="#fca5a5" fontSize="11" fontWeight="bold">
+                ⚠️ Trục chính: Chậm +{primary.congestion_delay_minutes}p
+              </text>
+            </g>
+          </svg>
+        </div>
+
+        {/* Route Selector Tabs / Buttons */}
+        <div className="route-selector-grid">
+          <button
+            type="button"
+            className={`route-tab-btn ${selectedRouteType === 'PRIMARY_DIRECT' ? 'active' : ''}`}
+            onClick={() => setSelectedRouteType('PRIMARY_DIRECT')}
+          >
+            <div className="route-tab-title-row">
+              <span className="route-tab-name">Tuyến 1: Đường Trực Tiếp</span>
+              {primary.traffic_level === 'SEVERELY_CONGESTED' && (
+                <span className="traffic-pill-tag traffic-danger">Kẹt xe {primary.traffic_density_percent}%</span>
+              )}
+            </div>
+            <div className="route-tab-stats">
+              <span className="route-stat-eta">~{primary.eta_minutes} phút</span>
+              <span className="route-stat-dist">{primary.distance_km} km</span>
+            </div>
+            <p className="route-tab-desc">{primary.corridor_description}</p>
+          </button>
+
+          {alternative && (
+            <button
+              type="button"
+              className={`route-tab-btn recommended ${selectedRouteType === 'OPTIMAL_BYPASS' ? 'active' : ''}`}
+              onClick={() => setSelectedRouteType('OPTIMAL_BYPASS')}
+            >
+              <div className="route-tab-title-row">
+                <span className="route-tab-name">Tuyến 2: Tuyến Tránh Tối Ưu</span>
+                <span className="traffic-pill-tag traffic-success">Tiết kiệm {alternative.time_saved_minutes} phút</span>
+              </div>
+              <div className="route-tab-stats">
+                <span className="route-stat-eta optimal">~{alternative.eta_minutes} phút</span>
+                <span className="route-stat-dist">{alternative.distance_km} km</span>
+              </div>
+              <p className="route-tab-desc">{alternative.corridor_description}</p>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Turn-by-Turn Step Directions */}
+      {activeRoute?.steps?.length > 0 && (
+        <div className="geo-steps-container">
+          <h4 className="geo-steps-title">
+            <Navigation size={14} />
+            <span>Chỉ dẫn chặng rẽ ({activeRoute.route_name}):</span>
+          </h4>
+          <ol className="geo-steps-list">
+            {activeRoute.steps.map((step) => (
+              <li key={`step-${step.step_number}`} className="geo-step-item">
+                <span className="step-num">{step.step_number}</span>
+                <div className="step-body">
+                  <p className="step-inst">{step.instruction}</p>
+                  <span className="step-meta">
+                    {step.road_name} &bull; {step.distance_km} km
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+
+      {/* Action Buttons: 1-Tap Google Maps Navigation & Direct Phone Calls */}
+      <div className="geo-action-buttons-row">
+        <a
+          href={geoRouting.google_maps_turn_by_turn_url}
+          target="_blank"
+          rel="noreferrer"
+          className="geo-btn-primary-nav"
+        >
+          <Navigation size={16} />
+          <span>BẬT DẪN ĐƯỜNG GOOGLE MAPS (TURN-BY-TURN)</span>
+          <ExternalLink size={13} />
+        </a>
+
+        {poi.emergency_or_direct_phone && (
+          <a
+            href={`tel:${poi.emergency_or_direct_phone}`}
+            className="geo-btn-phone"
+          >
+            <PhoneCall size={15} />
+            <span>Gọi Trực Tiếp ({poi.emergency_or_direct_phone})</span>
+          </a>
+        )}
+      </div>
+
+      {/* Alternative POIs near the area */}
+      {geoRouting.alternative_pois?.length > 0 && (
+        <div className="geo-alt-pois-box">
+          <span className="alt-pois-title">Các địa điểm dự phòng khác lân cận:</span>
+          <div className="alt-pois-grid">
+            {geoRouting.alternative_pois.map((alt) => (
+              <div key={alt.id} className="alt-poi-item">
+                <div className="alt-poi-info">
+                  <strong>{alt.name}</strong>
+                  <p className="alt-poi-addr">{alt.address}</p>
+                  <span className={`alt-poi-status ${alt.is_open ? 'status-open' : 'status-closed'}`}>
+                    {alt.status_label}
+                  </span>
+                </div>
+                {alt.phone && (
+                  <a href={`tel:${alt.phone}`} className="alt-poi-call">
+                    <PhoneCall size={12} />
+                    <span>{alt.phone}</span>
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQuestion }) {
   if (!answer) return null;
 
@@ -848,6 +1124,11 @@ export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQues
       {/* Emergency Transit & Real-time Turn-by-Turn Navigation Card */}
       {answer.emergency_transit && (
         <EmergencyTransitCard transit={answer.emergency_transit} />
+      )}
+
+      {/* Real-time Hybrid Geo Routing & Traffic Optimization Card */}
+      {answer.geo_routing && (
+        <RealTimeGeoMapCard geoRouting={answer.geo_routing} />
       )}
 
       {/* Pre-hospital En-Route Physical Signs Triage Card */}
