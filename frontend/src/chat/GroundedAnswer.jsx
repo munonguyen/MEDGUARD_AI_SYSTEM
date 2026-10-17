@@ -9,16 +9,22 @@ import {
   ChevronDown,
   CircleHelp,
   ClipboardList,
+  Clock,
   ExternalLink,
   Hash,
   ListChecks,
+  MapPin,
+  Navigation,
   PackageCheck,
+  PhoneCall,
+  Pill,
   QrCode,
   Send,
   ShieldAlert,
   ShieldCheck,
   Sparkles,
   Stethoscope,
+  Truck,
 } from 'lucide-react';
 import './GroundedAnswer.css';
 
@@ -454,6 +460,270 @@ function ResearchedSourcesFootnote({ sources }) {
       </div>
     </section>
   );
+/**
+ * Emergency Transit & Real-time Turn-by-Turn Navigation Card.
+ */
+function EmergencyTransitCard({ transit }) {
+  if (!transit?.is_emergency) return null;
+  const facility = transit.recommended_facility;
+  const gw = transit.golden_window;
+
+  return (
+    <section className="emergency-transit-card" aria-label="Điều phối cấp cứu khẩn cấp">
+      <div className="emergency-transit-header">
+        <div className="emergency-header-badge">
+          <ShieldAlert size={18} className="emergency-siren-icon" />
+          <span>ĐIỀU PHỐI CẤP CỨU & BẢN ĐỒ CHỈ ĐƯỜNG REAL-TIME</span>
+        </div>
+        {gw && (
+          <span className="golden-window-pill" title={gw.risk_rationale}>
+            <Clock size={13} />
+            <span>Giờ vàng: &le; {gw.golden_window_hours}h</span>
+          </span>
+        )}
+      </div>
+
+      {facility && (
+        <div className="emergency-facility-box">
+          <div className="facility-top-row">
+            <div className="facility-info">
+              <span className="facility-type-tag">Cơ sở tiếp nhận phù hợp gần nhất</span>
+              <h3 className="facility-name">{facility.name}</h3>
+              <p className="facility-address">
+                <MapPin size={13} className="inline-map-icon" />
+                {facility.address}
+              </p>
+            </div>
+            <div className="facility-distance-eta">
+              <span className="facility-distance">{facility.distance_km} km</span>
+              <span className="facility-eta">~{facility.eta_minutes} phút</span>
+            </div>
+          </div>
+
+          <div className="emergency-actions-grid">
+            <a href="tel:115" className="emergency-call-btn national-115">
+              <PhoneCall size={15} />
+              <span>GỌI CẤP CỨU 115</span>
+            </a>
+            {facility.emergency_hotline && (
+              <a href={transit.hospital_phone_call_url || `tel:${facility.emergency_hotline}`} className="emergency-call-btn hospital-hotline">
+                <PhoneCall size={14} />
+                <span>Gọi Cấp cứu Viện ({facility.emergency_hotline})</span>
+              </a>
+            )}
+            <a
+              href={facility.navigation_url || transit.navigation_url}
+              target="_blank"
+              rel="noreferrer"
+              className="emergency-nav-btn"
+            >
+              <Navigation size={15} />
+              <span>Chỉ đường Real-time (Google Maps)</span>
+              <ExternalLink size={12} />
+            </a>
+          </div>
+        </div>
+      )}
+
+      {gw && (
+        <div className="golden-window-risk-box">
+          <div className="risk-heading">
+            <Clock size={14} />
+            <strong>Phân tích rủi ro thời gian di chuyển ("Giờ vàng" {gw.syndrome_name}):</strong>
+          </div>
+          <p className="risk-text">{gw.risk_rationale}</p>
+          <p className="transit-mode-note">
+            <strong>Phương tiện di chuyển:</strong> {gw.transit_mode_recommendation}
+          </p>
+        </div>
+      )}
+
+      {transit.vehicle_safety_rules?.length > 0 && (
+        <div className="vehicle-safety-rules">
+          <span className="safety-rules-title">5 Nguyên tắc an toàn sinh tồn khi di chuyển:</span>
+          <ul>
+            {transit.vehicle_safety_rules.map((rule, idx) => (
+              <li key={`rule-${idx}`}>{rule}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </section>
+  );
+}
+
+/**
+ * Pre-hospital En-Route Physical Inspection and Rapid Triage Card.
+ */
+function EnRouteTriageCard({ enroute }) {
+  if (!enroute?.detected_signs?.length && !enroute?.is_en_route) return null;
+  return (
+    <section className="enroute-triage-card" aria-label="Theo dõi lâm sàng tiền viện trên xe">
+      <div className="enroute-header">
+        <div className="enroute-title-wrap">
+          <div className="enroute-icon-box">
+            <Truck size={17} className="enroute-icon" />
+          </div>
+          <div>
+            <span className="enroute-badge">THEO DÕI LÂM SÀNG TIỀN VIỆN (ĐANG TRÊN XE CẤP CỨU / TAXI)</span>
+            <h4 className="enroute-subheading">{enroute.pre_hospital_impression}</h4>
+          </div>
+        </div>
+        <div className="avpu-badge-pill" title="Thang đo mức độ tri giác tiền viện">
+          <span>Ý thức: <strong>{enroute.consciousness_avpu}</strong></span>
+        </div>
+      </div>
+
+      {enroute.detected_signs?.length > 0 && (
+        <div className="enroute-signs-grid">
+          {enroute.detected_signs.map((sign, idx) => (
+            <div key={`sign-${idx}`} className={`enroute-sign-item severity-${sign.severity?.toLowerCase()}`}>
+              <div className="sign-name-row">
+                <AlertCircle size={13} />
+                <strong>{sign.sign_name}</strong>
+              </div>
+              <p className="sign-meaning">{sign.clinical_meaning}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {enroute.immediate_actions_in_vehicle?.length > 0 && (
+        <div className="enroute-actions-box">
+          <strong className="box-label">Hành động cần làm ngay trên xe:</strong>
+          <ul>
+            {enroute.immediate_actions_in_vehicle.map((act, idx) => (
+              <li key={`act-${idx}`}>{act}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {enroute.prohibited_actions_in_vehicle?.length > 0 && (
+        <div className="enroute-prohibitions-box">
+          <strong className="box-label">CẤM THỰC HIỆN TRÊN XE (Tránh nguy hiểm tính mạng):</strong>
+          <ul>
+            {enroute.prohibited_actions_in_vehicle.map((pro, idx) => (
+              <li key={`pro-${idx}`}>{pro}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </section>
+  );
+}
+
+/**
+ * 3-State Medication Suitability & GPP Pharmacy Card.
+ */
+function MedicationSuitabilityCard({ suitability }) {
+  if (!suitability) return null;
+  const isEligible = suitability.state === 'ELIGIBLE_OTC';
+  const isContraindicated = suitability.state === 'CONTRAINDICATED';
+  const isEmergency = suitability.state === 'EMERGENCY_RED_FLAG';
+
+  return (
+    <section className={`medication-suitability-card state-${suitability.state?.toLowerCase()}`} aria-label="Đánh giá an toàn thuốc và điểm bán">
+      <div className="med-suitability-header">
+        <div className="med-header-left">
+          <div className="med-icon-box">
+            <Pill size={16} />
+          </div>
+          <div>
+            <span className="med-card-title">Đánh giá An toàn Dược học & Điểm cung cấp thuốc</span>
+            <span className="med-card-subtitle">Đối chiếu dược thư và quy chuẩn an toàn Bộ Y tế</span>
+          </div>
+        </div>
+        <span className={`med-state-badge state-${suitability.state?.toLowerCase()}`}>
+          {suitability.state_label}
+        </span>
+      </div>
+
+      <p className="med-clinical-rationale">{suitability.clinical_rationale}</p>
+
+      {isContraindicated && suitability.contraindication_reasons?.length > 0 && (
+        <div className="med-contraindications-box">
+          <strong className="contra-title">Lý do chống chỉ định cụ thể:</strong>
+          <ul>
+            {suitability.contraindication_reasons.map((reason, idx) => (
+              <li key={`contra-${idx}`}>{reason}</li>
+            ))}
+          </ul>
+          {suitability.safe_alternatives?.length > 0 && (
+            <div className="med-safe-alternatives">
+              <strong>Giải pháp an toàn thay thế:</strong>
+              <ul>
+                {suitability.safe_alternatives.map((alt, idx) => (
+                  <li key={`alt-${idx}`}>{alt}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
+      {isEligible && suitability.recommended_medications?.length > 0 && (
+        <div className="med-recommendations-list">
+          <span className="recs-title">Danh mục hoạt chất OTC an toàn được đề xuất:</span>
+          {suitability.recommended_medications.map((med, idx) => (
+            <div key={`med-${idx}`} className="med-item-card">
+              <div className="med-item-top">
+                <h4 className="med-generic-name">{med.generic_name}</h4>
+                <div className="med-brand-tags">
+                  {med.brand_names?.map((brand, bIdx) => (
+                    <span key={`brand-${bIdx}`} className="med-brand-tag">{brand}</span>
+                  ))}
+                </div>
+              </div>
+              <p className="med-dosage"><strong>Liều dùng chuẩn:</strong> {med.dosage_guideline}</p>
+              <p className="med-admin"><strong>Cách dùng:</strong> {med.administration}</p>
+              <p className="med-warning"><strong>Cảnh báo an toàn:</strong> {med.warning_and_monitoring}</p>
+              {med.certified_gpp_online_links?.length > 0 && (
+                <div className="med-gpp-links-row">
+                  <span className="gpp-label">Đặt mua trực tuyến (Nhà thuốc chuẩn GPP):</span>
+                  <div className="gpp-buttons">
+                    {med.certified_gpp_online_links.map((link, lIdx) => (
+                      <a
+                        key={`gpp-${lIdx}`}
+                        href={link.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="gpp-link-btn"
+                        title={link.type}
+                      >
+                        <ShieldCheck size={12} className="gpp-check-icon" />
+                        <span>{link.name}</span>
+                        <ExternalLink size={10} />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {!isEmergency && suitability.nearest_pharmacy_maps_url && (
+        <div className="nearest-pharmacy-footer">
+          <div className="pharmacy-footer-copy">
+            <MapPin size={15} className="map-pin-icon" />
+            <span>Cần mua thuốc trực tiếp? Xem danh sách các hiệu thuốc đạt chuẩn GPP gần bạn nhất:</span>
+          </div>
+          <a
+            href={suitability.nearest_pharmacy_maps_url}
+            target="_blank"
+            rel="noreferrer"
+            className="find-pharmacy-maps-btn"
+          >
+            <Navigation size={14} />
+            <span>Tìm nhà thuốc gần nhất trên Google Maps</span>
+            <ExternalLink size={12} />
+          </a>
+        </div>
+      )}
+    </section>
+  );
 }
 
 export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQuestion }) {
@@ -574,6 +844,21 @@ export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQues
           {!isBrief && <small>{status.helper}</small>}
         </div>
       </section>
+
+      {/* Emergency Transit & Real-time Turn-by-Turn Navigation Card */}
+      {answer.emergency_transit && (
+        <EmergencyTransitCard transit={answer.emergency_transit} />
+      )}
+
+      {/* Pre-hospital En-Route Physical Signs Triage Card */}
+      {answer.enroute_triage && (
+        <EnRouteTriageCard enroute={answer.enroute_triage} />
+      )}
+
+      {/* 3-State Medication Suitability & GPP Pharmacy Card */}
+      {answer.medication_suitability && (
+        <MedicationSuitabilityCard suitability={answer.medication_suitability} />
+      )}
 
       {/* Anti-counterfeit / Product Registry Verification Card */}
       {(responseMeta.intent === 'authenticity' || result?.verification_status) && (

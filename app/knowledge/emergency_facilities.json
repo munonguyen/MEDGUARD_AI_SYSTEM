@@ -1,0 +1,167 @@
+{
+  "version": "2026.1",
+  "facilities": [
+    {
+      "id": "EMERGENCY-CR-HCM",
+      "name": "Bệnh viện Chợ Rẫy — Trung tâm Cấp cứu 115 & Đột quỵ",
+      "address": "201B Nguyễn Chí Thanh, Phường 12, Quận 5, TP. Hồ Chí Minh",
+      "city": "hcm",
+      "hotline": "028 3855 4137",
+      "emergency_hotline": "028 3855 4138",
+      "lat": 10.7578,
+      "lng": 106.6596,
+      "capabilities": ["emergency_department", "stroke_unit", "cath_lab_pci", "trauma_center", "toxicology", "icu"],
+      "golden_hour_support": {
+        "stroke": true,
+        "acute_coronary": true,
+        "polytrauma": true
+      },
+      "navigation_url": "https://www.google.com/maps/dir/?api=1&destination=Benh+Vien+Cho+Ray+TPHCM"
+    },
+    {
+      "id": "EMERGENCY-115-HCM",
+      "name": "Bệnh viện Nhân dân 115 — Trung tâm Đột quỵ & Tim mạch can thiệp",
+      "address": "527 Sư Vạn Hạnh, Phường 12, Quận 10, TP. Hồ Chí Minh",
+      "city": "hcm",
+      "hotline": "028 3865 2368",
+      "emergency_hotline": "028 3865 4249",
+      "lat": 10.7756,
+      "lng": 106.6667,
+      "capabilities": ["emergency_department", "stroke_unit", "cath_lab_pci", "neurology", "icu"],
+      "golden_hour_support": {
+        "stroke": true,
+        "acute_coronary": true
+      },
+      "navigation_url": "https://www.google.com/maps/dir/?api=1&destination=Benh+Vien+Nhan+Dan+115+TPHCM"
+    },
+    {
+      "id": "EMERGENCY-DHYD-HCM",
+      "name": "Bệnh viện Đại học Y Dược TP.HCM — Khoa Cấp cứu",
+      "address": "215 Hồng Bàng, Phường 11, Quận 5, TP. Hồ Chí Minh",
+      "city": "hcm",
+      "hotline": "028 3855 4269",
+      "emergency_hotline": "028 3952 5353",
+      "lat": 10.7554,
+      "lng": 106.6601,
+      "capabilities": ["emergency_department", "cath_lab_pci", "internal_medicine", "surgery", "icu"],
+      "golden_hour_support": {
+        "stroke": true,
+        "acute_coronary": true
+      },
+      "navigation_url": "https://www.google.com/maps/dir/?api=1&destination=Benh+Vien+Dai+Hoc+Y+Duoc+TPHCM"
+    },
+    {
+      "id": "EMERGENCY-ND1-HCM",
+      "name": "Bệnh viện Nhi Đồng 1 — Cấp cứu Hồi sức Nhi",
+      "address": "341 Sư Vạn Hạnh, Phường 10, Quận 10, TP. Hồ Chí Minh",
+      "city": "hcm",
+      "hotline": "028 3927 1119",
+      "emergency_hotline": "028 3927 1119",
+      "lat": 10.7689,
+      "lng": 106.6712,
+      "capabilities": ["pediatric_emergency", "pediatric_icu", "neonatal_emergency"],
+      "golden_hour_support": {
+        "pediatric_respiratory": true,
+        "pediatric_sepsis": true
+      },
+      "navigation_url": "https://www.google.com/maps/dir/?api=1&destination=Benh+Vien+Nhi+Dong+1+TPHCM"
+    },
+    {
+      "id": "EMERGENCY-BM-HN",
+      "name": "Bệnh viện Bạch Mai — Trung tâm Cấp cứu A9 & Đột quỵ",
+      "address": "78 Giải Phóng, Phương Mai, Đống Đa, Hà Nội",
+      "city": "hanoi",
+      "hotline": "024 3869 3731",
+      "emergency_hotline": "024 3869 3731",
+      "lat": 20.9996,
+      "lng": 105.8415,
+      "capabilities": ["emergency_department", "stroke_unit", "cath_lab_pci", "toxicology", "icu", "trauma_center"],
+      "golden_hour_support": {
+        "stroke": true,
+        "acute_coronary": true,
+        "toxicology": true,
+        "polytrauma": true
+      },
+      "navigation_url": "https://www.google.com/maps/dir/?api=1&destination=Benh+Vien+Bach+Mai+Ha+Noi"
+    },
+    {
+      "id": "EMERGENCY-108-HN",
+      "name": "Bệnh viện Trung ương Quân đội 108 — Khoa Cấp cứu & Can thiệp Tim mạch",
+      "address": "Số 1 Trần Hưng Đạo, Bạch Đằng, Hai Bà Trưng, Hà Nội",
+      "city": "hanoi",
+      "hotline": "069 572 400",
+      "emergency_hotline": "024 6278 4115",
+      "lat": 21.0186,
+      "lng": 105.8601,
+      "capabilities": ["emergency_department", "stroke_unit", "cath_lab_pci", "trauma_center", "icu"],
+      "golden_hour_support": {
+        "stroke": true,
+        "acute_coronary": true,
+        "polytrauma": true
+      },
+      "navigation_url": "https://www.google.com/maps/dir/?api=1&destination=Benh+Vien+108+Ha+Noi"
+    },
+    {
+      "id": "EMERGENCY-VD-HN",
+      "name": "Bệnh viện Hữu nghị Việt Đức — Trung tâm Cấp cứu Ngoại khoa & Chấn thương",
+      "address": "40 Tràng Thi, Hàng Bông, Hoàn Kiếm, Hà Nội",
+      "city": "hanoi",
+      "hotline": "024 3825 3531",
+      "emergency_hotline": "024 3825 3535",
+      "lat": 21.0289,
+      "lng": 105.8489,
+      "capabilities": ["trauma_center", "emergency_surgery", "emergency_department", "icu"],
+      "golden_hour_support": {
+        "polytrauma": true,
+        "surgical_emergency": true
+      },
+      "navigation_url": "https://www.google.com/maps/dir/?api=1&destination=Benh+Vien+Viet+Duc+Ha+Noi"
+    },
+    {
+      "id": "EMERGENCY-DN-CEN",
+      "name": "Bệnh viện Đà Nẵng — Trung tâm Cấp cứu Đa khoa & Đột quỵ",
+      "address": "124 Hải Phòng, Thạch Thang, Hải Châu, Đà Nẵng",
+      "city": "danang",
+      "hotline": "0236 3821 118",
+      "emergency_hotline": "0236 3821 118",
+      "lat": 16.0718,
+      "lng": 108.2141,
+      "capabilities": ["emergency_department", "stroke_unit", "cath_lab_pci", "trauma_center", "icu"],
+      "golden_hour_support": {
+        "stroke": true,
+        "acute_coronary": true
+      },
+      "navigation_url": "https://www.google.com/maps/dir/?api=1&destination=Benh+Vien+Da+Nang"
+    }
+  ],
+  "transit_risk_standards": {
+    "stroke": {
+      "name": "Đột quỵ não cấp (Tai biến mạch máu não)",
+      "golden_window_hours": 4.5,
+      "critical_delay_threshold_minutes": 60,
+      "risk_rationale": "Cửa sổ giờ vàng tiêu sợi huyết đường tĩnh mạch (rTPA) là dưới 4.5 giờ tính từ khi khởi phát triệu chứng đầu tiên; can thiệp lấy huyết khối cơ học dưới 6 giờ. Mỗi phút chậm trễ có khoảng 1.9 triệu tế bào thần kinh chết vĩnh viễn.",
+      "mode_recommendation": "Ưu tiên xe cấp cứu 115 có nhân viên y tế duy trì huyết áp và đường thở. Nếu tự đi, người nhà phải lái xe ô tô/taxi, tuyệt đối KHÔNG đi xe máy vì nguy cơ té ngã và tụt tri giác."
+    },
+    "acute_coronary": {
+      "name": "Hội chứng vành cấp / Nhồi máu cơ tim cấp",
+      "golden_window_hours": 2.0,
+      "critical_delay_threshold_minutes": 45,
+      "risk_rationale": "Thời gian vàng tái thông mạch vành (Door-to-Balloon) là dưới 90-120 phút. Trì hoãn làm tăng nguy cơ rung thất, ngừng tim đột ngột và hoại tử cơ tim không hồi phục.",
+      "mode_recommendation": "Gọi 115 ngay lập tức để được hỗ trợ sốc điện khử rung tim và thở oxy trên xe. Tuyệt đối không để bệnh nhân tự lái xe hoặc gắng sức đi bộ."
+    },
+    "anaphylaxis": {
+      "name": "Sốc phản vệ nặng (Độ 2-4)",
+      "golden_window_hours": 0.5,
+      "critical_delay_threshold_minutes": 15,
+      "risk_rationale": "Phản vệ có thể dẫn tới phù nề thanh quản nghẹt thở và trụy tim mạch trong vòng 15-30 phút. Cần tiêm bắp Adrenaline càng sớm càng tốt.",
+      "mode_recommendation": "Chuyển ngay tới cơ sở y tế gần nhất có cấp cứu (bất kể bệnh viện hay trạm y tế phường) để được tiêm Adrenaline cấp cứu kịp thời."
+    },
+    "severe_trauma": {
+      "name": "Đa chấn thương / Xuất huyết nội tạng",
+      "golden_window_hours": 1.0,
+      "critical_delay_threshold_minutes": 30,
+      "risk_rationale": "Giờ vàng chấn thương (Golden Hour) là 60 phút đầu tiên nhằm ngăn chặn sốc mất máu và suy đa cơ quan.",
+      "mode_recommendation": "Bất động cột sống cổ và vùng chấn thương, không bốc vác gập người khi di chuyển."
+    }
+  }
+}

@@ -1310,6 +1310,72 @@ def _response(
             verification_status = "rejected"
             reason = "quality_rejected"
 
+    # Finalize clinical enrichments on answer: Emergency Transit, En-route Physical Signs, and Medication Suitability
+    from app.services.emergency_transit import build_emergency_transit_plan
+    from app.services.enroute_triage import evaluate_enroute_physical_signs, is_en_route_statement
+    from app.services.medication_suitability import evaluate_medication_suitability
+
+    latest_user_text = payload.messages[-1].content
+    raw_urgency = (
+        serialized.get("urgency")
+        if isinstance(serialized, dict) and serialized.get("urgency")
+        else getattr(result, "urgency", "ROUTINE")
+    )
+    is_emergency_case = (
+        raw_urgency == "EMERGENCY"
+        or "cấp cứu" in answer.title.lower()
+        or any(b.kind == "urgent" and ("115" in b.text or "cấp cứu" in b.text.lower()) for b in answer.narrative)
+    )
+
+    emergency_transit_data = None
+    if is_emergency_case:
+        transit_plan = build_emergency_transit_plan(
+            symptoms_text=agent_question or latest_user_text,
+            location_hint=payload.context.patient_ref,
+            patient_age=payload.context.age,
+        )
+        emergency_transit_data = transit_plan.to_dict()
+
+    enroute_data = None
+    is_enroute = is_en_route_statement(latest_user_text) or any(
+        is_en_route_statement(m.content) for m in payload.messages[-3:] if m.role == "user"
+    )
+    if is_enroute or (is_emergency_case and any(k in normalize_search_text(latest_user_text) for k in ("tren xe", "sui bot mep", "co giat", "tim moi", "bat tinh", "dang cho"))):
+        enroute_assessment = evaluate_enroute_physical_signs(latest_user_text)
+        enroute_data = enroute_assessment.to_dict()
+
+    med_suitability_data = None
+    asks_about_medicine = any(
+        k in normalize_search_text(latest_user_text)
+        for k in (
+            "uong thuoc gi", "dung thuoc gi", "nen uong thuoc", "co uong duoc", "co dung duoc",
+            "thuoc khoi om", "thuoc tri", "thuoc chua", "uong paracetamol", "uong panadol",
+            "uong efferalgan", "mua thuoc", "hieu thuoc", "nha thuoc", "de xuat thuoc", "ke don",
+            "thuoc gi de khoi", "khang sinh", "thuoc khang sinh"
+        )
+    ) or intent == "safety" or (intent == "triage" and "thuoc" in normalize_search_text(latest_user_text))
+
+    if asks_about_medicine:
+        med_suit = evaluate_medication_suitability(
+            query=latest_user_text,
+            symptoms_text=agent_question or latest_user_text,
+            known_conditions=payload.context.conditions,
+            current_medications=payload.context.current_medications,
+            allergies=payload.context.allergies,
+            patient_age=payload.context.age,
+            patient_sex=payload.context.sex,
+            urgency=raw_urgency,
+        )
+        med_suitability_data = med_suit.to_dict()
+
+    answer = answer.model_copy(
+        update={
+            "emergency_transit": emergency_transit_data,
+            "enroute_triage": enroute_data,
+            "medication_suitability": med_suitability_data,
+        }
+    )
+
     stage_default = "unknown" if verification_status in {"timed_out", "shadow_pending"} else "not_run"
     response = ChatResponse(
         request_id=ctx.request_id,

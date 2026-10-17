@@ -943,4 +943,701 @@
   }
 }
 
+/* =====================================================================
+   EMERGENCY TRANSIT & REAL-TIME NAVIGATION CARD
+   ===================================================================== */
+.emergency-transit-card {
+  position: relative;
+  overflow: hidden;
+  padding: 18px 20px;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #fff5f5 0%, #ffffff 100%);
+  border: 1.5px solid #fecaca;
+  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.08);
+}
+
+.emergency-transit-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #dc2626 0%, #ef4444 50%, #b91c1c 100%);
+}
+
+.emergency-transit-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.emergency-header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #b91c1c;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.emergency-siren-icon {
+  color: #dc2626;
+  animation: pulse-danger 1.5s infinite;
+}
+
+.golden-window-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #991b1b;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.emergency-facility-box {
+  background: #ffffff;
+  border: 1px solid #fee2e2;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.facility-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.facility-type-tag {
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #dc2626;
+  letter-spacing: 0.03em;
+  margin-bottom: 4px;
+}
+
+.facility-name {
+  margin: 0 0 6px 0;
+  font-size: 15px;
+  font-weight: 750;
+  color: #1e293b;
+  line-height: 1.4;
+}
+
+.facility-address {
+  margin: 0;
+  font-size: 12px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.inline-map-icon {
+  color: #dc2626;
+  flex-shrink: 0;
+}
+
+.facility-distance-eta {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.facility-distance {
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.facility-eta {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #dc2626;
+}
+
+.emergency-actions-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.emergency-call-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 750;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.emergency-call-btn.national-115 {
+  background: #dc2626;
+  color: #ffffff;
+  border: 1px solid #b91c1c;
+  box-shadow: 0 3px 8px rgba(220, 38, 38, 0.35);
+}
+
+.emergency-call-btn.national-115:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+}
+
+.emergency-call-btn.hospital-hotline {
+  background: #fff1f2;
+  color: #be123c;
+  border: 1px solid #fecdd3;
+}
+
+.emergency-call-btn.hospital-hotline:hover {
+  background: #ffe4e6;
+}
+
+.emergency-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 16px;
+  border-radius: 8px;
+  background: #0284c7;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  border: 1px solid #0369a1;
+  box-shadow: 0 3px 8px rgba(2, 132, 199, 0.3);
+  transition: all 0.2s ease;
+}
+
+.emergency-nav-btn:hover {
+  background: #0369a1;
+  transform: translateY(-1px);
+}
+
+.golden-window-risk-box {
+  background: #fff8f8;
+  border: 1px dashed #fca5a5;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+
+.risk-heading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #991b1b;
+  font-size: 12.5px;
+  margin-bottom: 6px;
+}
+
+.risk-text {
+  margin: 0 0 6px 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: #475569;
+}
+
+.transit-mode-note {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #991b1b;
+}
+
+.vehicle-safety-rules {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.safety-rules-title {
+  display: block;
+  font-size: 12px;
+  font-weight: 750;
+  color: #334155;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.vehicle-safety-rules ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 12px;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.vehicle-safety-rules li {
+  margin-bottom: 4px;
+}
+
+/* =====================================================================
+   PRE-HOSPITAL EN-ROUTE PHYSICAL SIGNS TRIAGE CARD
+   ===================================================================== */
+.enroute-triage-card {
+  position: relative;
+  overflow: hidden;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #fffbeb 0%, #ffffff 100%);
+  border: 1.5px solid #fde68a;
+  box-shadow: 0 6px 20px rgba(217, 119, 6, 0.08);
+}
+
+.enroute-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.enroute-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.enroute-icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(217, 119, 6, 0.12);
+  color: #d97706;
+}
+
+.enroute-badge {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #b45309;
+  letter-spacing: 0.03em;
+}
+
+.enroute-subheading {
+  margin: 2px 0 0 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.avpu-badge-pill {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  color: #92400e;
+  font-size: 11.5px;
+}
+
+.enroute-signs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.enroute-sign-item {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #f1f5f9;
+}
+
+.enroute-sign-item.severity-critical {
+  border-left: 3.5px solid #dc2626;
+  background: #fff5f5;
+}
+
+.enroute-sign-item.severity-high {
+  border-left: 3.5px solid #f59e0b;
+  background: #fffdf5;
+}
+
+.sign-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.sign-meaning {
+  margin: 0;
+  font-size: 11.5px;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.enroute-actions-box {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 10px;
+  padding: 11px 13px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: #065f46;
+}
+
+.enroute-actions-box .box-label {
+  display: block;
+  font-weight: 750;
+  margin-bottom: 6px;
+  color: #047857;
+}
+
+.enroute-actions-box ul {
+  margin: 0;
+  padding-left: 18px;
+  line-height: 1.55;
+}
+
+.enroute-prohibitions-box {
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  border-radius: 10px;
+  padding: 11px 13px;
+  font-size: 12px;
+  color: #9f1239;
+}
+
+.enroute-prohibitions-box .box-label {
+  display: block;
+  font-weight: 750;
+  margin-bottom: 6px;
+  color: #be123c;
+}
+
+.enroute-prohibitions-box ul {
+  margin: 0;
+  padding-left: 18px;
+  line-height: 1.55;
+}
+
+/* =====================================================================
+   3-STATE MEDICATION SUITABILITY & PHARMACY CARD
+   ===================================================================== */
+.medication-suitability-card {
+  position: relative;
+  overflow: hidden;
+  padding: 18px 20px;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+}
+
+.medication-suitability-card.state-eligible_otc {
+  border-color: #a7f3d0;
+  background: linear-gradient(145deg, #f0fdf4 0%, #ffffff 100%);
+}
+
+.medication-suitability-card.state-contraindicated {
+  border-color: #fed7aa;
+  background: linear-gradient(145deg, #fff7ed 0%, #ffffff 100%);
+}
+
+.medication-suitability-card.state-emergency_red_flag {
+  border-color: #fecaca;
+  background: linear-gradient(145deg, #fef2f2 0%, #ffffff 100%);
+}
+
+.med-suitability-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.med-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.med-icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(13, 148, 136, 0.1);
+  color: #0d9488;
+}
+
+.med-card-title {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 750;
+  color: #0f172a;
+}
+
+.med-card-subtitle {
+  display: block;
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 1px;
+}
+
+.med-state-badge {
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+}
+
+.med-state-badge.state-eligible_otc {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.med-state-badge.state-contraindicated {
+  background: #ffedd5;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+}
+
+.med-state-badge.state-emergency_red_flag {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+}
+
+.med-clinical-rationale {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: #334155;
+  margin: 0 0 14px 0;
+}
+
+.med-contraindications-box {
+  background: #fff7ed;
+  border: 1px solid #ffedd5;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 12px;
+  color: #9a3412;
+  margin-bottom: 14px;
+}
+
+.contra-title {
+  display: block;
+  font-weight: 750;
+  margin-bottom: 6px;
+}
+
+.med-contraindications-box ul {
+  margin: 0 0 10px 0;
+  padding-left: 18px;
+  line-height: 1.55;
+}
+
+.med-safe-alternatives {
+  border-top: 1px dashed #fed7aa;
+  padding-top: 8px;
+  margin-top: 8px;
+}
+
+.med-safe-alternatives ul {
+  margin: 6px 0 0 0;
+  color: #065f46;
+}
+
+.med-recommendations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.recs-title {
+  font-size: 12px;
+  font-weight: 750;
+  color: #065f46;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.med-item-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.med-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.med-generic-name {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 750;
+  color: #0f172a;
+}
+
+.med-brand-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.med-brand-tag {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.med-item-card p {
+  margin: 0 0 5px 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #475569;
+}
+
+.med-item-card p strong {
+  color: #1e293b;
+}
+
+.med-gpp-links-row {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.gpp-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 650;
+  color: #0d9488;
+  margin-bottom: 6px;
+}
+
+.gpp-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gpp-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.gpp-link-btn:hover {
+  background: #15803d;
+  color: #ffffff;
+  border-color: #15803d;
+}
+
+.gpp-check-icon {
+  color: #16a34a;
+}
+
+.gpp-link-btn:hover .gpp-check-icon {
+  color: #ffffff;
+}
+
+.nearest-pharmacy-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.pharmacy-footer-copy {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #334155;
+  font-weight: 500;
+}
+
+.map-pin-icon {
+  color: #0284c7;
+  flex-shrink: 0;
+}
+
+.find-pharmacy-maps-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  background: #0284c7;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
+  transition: all 0.2s ease;
+}
+
+.find-pharmacy-maps-btn:hover {
+  background: #0369a1;
+  transform: translateY(-1px);
+}
+
+
 

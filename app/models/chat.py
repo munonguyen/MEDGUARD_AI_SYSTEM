@@ -80,6 +80,9 @@ class GroundedAnswer(BaseModel):
     narrative: list[AnswerNarrativeBlock] = Field(default_factory=list)
     researched_sources: list[AgentEvidenceSource] = Field(default_factory=list)
     answer_assurance: AnswerAssurance | None = None
+    emergency_transit: dict[str, Any] | None = None
+    enroute_triage: dict[str, Any] | None = None
+    medication_suitability: dict[str, Any] | None = None
     agent_trace: SkipJsonSchema[AnswerAgentTrace | None] = Field(default=None, exclude=True)
 
 
