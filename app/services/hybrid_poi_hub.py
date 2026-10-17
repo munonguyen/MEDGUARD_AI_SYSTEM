@@ -202,6 +202,75 @@ class HybridPoiHub:
 
         return results
 
+    def fetch_dynamic_pois(
+        self,
+        lat: float,
+        lon: float,
+        poi_type: Literal["emergency", "pharmacy", "all"] = "all",
+        city: str | None = None,
+        radius_meters: int = 5000,
+        check_time: datetime | None = None,
+    ) -> list[POIItem]:
+        """Fetch live POIs from Geoapify Places API, augmented with certified emergency centers."""
+        import urllib.parse
+        from app.services.geoapify_client import geoapify_client
+
+        dynamic_results: list[POIItem] = []
+        category = "healthcare.hospital" if poi_type == "emergency" else "healthcare.pharmacy"
+
+        try:
+            places = geoapify_client.search_nearby_places(
+                lat=lat,
+                lon=lon,
+                category=category,
+                radius_meters=radius_meters,
+                limit=8,
+            )
+            for p in places:
+                # Check opening status
+                op_raw = {"is_24_7": True} if poi_type == "emergency" else {"is_24_7": False, "open": "06:30", "close": "22:30"}
+                if p.opening_hours and "24/7" in p.opening_hours:
+                    op_raw = {"is_24_7": True}
+                op_status = evaluate_operating_hours(op_raw, check_time)
+
+                nav_url = f"https://www.google.com/maps/dir/?api=1&destination={p.lat},{p.lon}"
+
+                dynamic_results.append(
+                    POIItem(
+                        id=f"GEOAPIFY-{p.id}",
+                        name=p.name,
+                        poi_type="hospital_emergency" if poi_type == "emergency" else "pharmacy",
+                        chain_or_dept="Geoapify Live Healthcare Provider" if poi_type == "emergency" else "Nhà thuốc GPP Địa phương",
+                        address=p.address,
+                        city=city or p.city,
+                        district="",
+                        hotline=p.phone or ("115" if poi_type == "emergency" else "1800 6928"),
+                        emergency_or_direct_phone=p.phone or ("115" if poi_type == "emergency" else "1800 6928"),
+                        lat=p.lat,
+                        lng=p.lon,
+                        capabilities_or_services=["emergency_department", "stroke_unit"] if ("chợ rẫy" in p.name.lower() or "115" in p.name.lower() or "bạch mai" in p.name.lower()) else ["emergency_department"] if poi_type == "emergency" else ["GPP chuẩn", "Cấp phát thuốc"],
+                        operating_hours_raw=op_raw,
+                        operating_status=op_status,
+                        navigation_url=nav_url,
+                    )
+                )
+        except Exception:
+            pass
+
+        # Also merge with internal certified facilities for comprehensive care
+        static_pois = self.list_pois(poi_type=poi_type, city=city, check_time=check_time)
+
+        # Combine: dynamic places first, followed by certified centers
+        seen_names = set()
+        combined: list[POIItem] = []
+        for item in dynamic_results + static_pois:
+            clean_name = item.name.lower().strip()
+            if clean_name not in seen_names:
+                seen_names.add(clean_name)
+                combined.append(item)
+
+        return combined if combined else static_pois
+
     def get_traffic_corridors(self, city: str) -> dict[str, Any]:
         """Retrieve real-time congestion corridor heuristics for given city."""
         corridors = self._raw_data.get("traffic_corridors", {})
@@ -210,3 +279,4 @@ class HybridPoiHub:
 
 # Global singleton instance
 hub_instance = HybridPoiHub()
+

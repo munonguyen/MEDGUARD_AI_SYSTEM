@@ -272,7 +272,7 @@ class TrafficRoutingAgent:
             )
             poi_type = "emergency" if is_emergency else "pharmacy"
 
-        # 2. Determine city
+        # 2. Determine city and resolve user coordinates using Geoapify Geocoding
         loc_str = normalize_search_text(f"{location_hint or ''} {query}")
         if any(k in loc_str for k in ("ha noi", "hanoi", "hoan kiem", "dong da", "hai ba trung", "bach mai")):
             city = "hanoi"
@@ -282,6 +282,15 @@ class TrafficRoutingAgent:
             city = "hcm"
 
         user_lat, user_lng, user_loc_name = _resolve_user_coordinates(location_hint, city)
+
+        from app.services.geoapify_client import geoapify_client
+        if location_hint and len(location_hint.strip()) >= 3:
+            geo_resolved = geoapify_client.geocode(location_hint)
+            if geo_resolved:
+                dist_to_city = _calculate_haversine_km(user_lat, user_lng, geo_resolved[0], geo_resolved[1])
+                if dist_to_city <= 35.0:
+                    user_lat, user_lng, user_loc_name = geo_resolved
+
         user_location_info = {
             "address": user_loc_name,
             "lat": user_lat,
@@ -295,8 +304,15 @@ class TrafficRoutingAgent:
         # Detect child age
         is_child = (patient_age is not None and patient_age <= 14) or any(k in norm_q for k in ("be ", "tre em", "tre con", "so sinh", "thang tuoi", "con toi"))
 
-        # 3. Retrieve POIs and filter
-        all_pois = self.hub.list_pois(poi_type=poi_type, city=city, check_time=check_time)
+        # 3. Retrieve POIs dynamically via Geoapify Places API (with certified fallback)
+        all_pois = self.hub.fetch_dynamic_pois(
+            lat=user_lat,
+            lon=user_lng,
+            poi_type=poi_type,
+            city=city,
+            radius_meters=6000,
+            check_time=check_time,
+        )
         if not all_pois:
             all_pois = self.hub.list_pois(poi_type="emergency", city=city, check_time=check_time)
 
@@ -330,49 +346,70 @@ class TrafficRoutingAgent:
         selected_poi = sorted_pois[0]
         alternatives = sorted_pois[1:3]
 
-        # 4. Calculate Distance & Tortuosity
+        # 4. Calculate Distance & Real-Time Route via Geoapify Routing API
+        geo_route = geoapify_client.calculate_routing(
+            start_lat=user_lat,
+            start_lon=user_lng,
+            dest_lat=selected_poi.lat,
+            dest_lon=selected_poi.lng,
+            mode="drive",
+        )
+
         base_haversine = _calculate_haversine_km(user_lat, user_lng, selected_poi.lat, selected_poi.lng)
-        # Real-world driving distance has a tortuosity factor of ~1.25 to 1.35
-        direct_driving_dist = max(0.8, round(base_haversine * 1.3, 1))
+        if geo_route:
+            direct_driving_dist = geo_route.distance_km
+            free_flow_eta = max(4, geo_route.eta_minutes)
+        else:
+            direct_driving_dist = max(0.8, round(base_haversine * 1.3, 1))
+            base_speed_kmh = 30.0
+            free_flow_eta = max(5, int((direct_driving_dist / base_speed_kmh) * 60))
 
         # 5. Traffic Congestion Evaluation
         is_rush, rush_name, congestion_idx, traffic_level, density = _evaluate_traffic_density(city, check_time)
 
-        # Baseline speed without traffic: ~30 km/h in urban Vietnam
-        base_speed_kmh = 30.0
-        free_flow_eta = max(5, int((direct_driving_dist / base_speed_kmh) * 60))
-
-        # Primary route calculation
-        primary_eta = max(5, int(free_flow_eta * congestion_idx))
+        primary_eta = max(free_flow_eta, int(free_flow_eta * congestion_idx))
         congestion_delay = max(0, primary_eta - free_flow_eta)
 
         corridor_data = self.hub.get_traffic_corridors(city)
         congested_artery = corridor_data.get("congested_arteries", ["Trục đường chính"])[0]
         bypass_artery = corridor_data.get("bypass_arteries", ["Đại lộ thông thoáng"])[0]
 
-        primary_steps = [
-            RouteStep(
-                step_number=1,
-                instruction=f"Xuất phát từ {user_loc_name}, đi về hướng trục đường chính {congested_artery}.",
-                distance_km=round(direct_driving_dist * 0.25, 1),
-                road_name=congested_artery,
-                traffic_level="MODERATE" if not is_rush else "HEAVY",
-            ),
-            RouteStep(
-                step_number=2,
-                instruction=f"Di chuyển thẳng trên {congested_artery} (Đoạn này đang có mật độ giao thông {density}%).",
-                distance_km=round(direct_driving_dist * 0.55, 1),
-                road_name=congested_artery,
-                traffic_level=traffic_level,
-            ),
-            RouteStep(
-                step_number=3,
-                instruction=f"Rẽ vào cổng {selected_poi.name} tại {selected_poi.address}.",
-                distance_km=round(direct_driving_dist * 0.2, 1),
-                road_name=selected_poi.address,
-                traffic_level="LOW",
-            ),
-        ]
+        # Construct primary turn-by-turn steps from Geoapify or fallback
+        if geo_route and geo_route.steps:
+            primary_steps = [
+                RouteStep(
+                    step_number=s.step_number,
+                    instruction=s.instruction,
+                    distance_km=round(s.distance_meters / 1000.0, 2),
+                    road_name=s.road_name or congested_artery,
+                    traffic_level=traffic_level if s.step_number <= 2 and is_rush else "LOW",
+                )
+                for s in geo_route.steps[:5]
+            ]
+        else:
+            primary_steps = [
+                RouteStep(
+                    step_number=1,
+                    instruction=f"Xuất phát từ {user_loc_name}, đi về hướng trục đường chính {congested_artery}.",
+                    distance_km=round(direct_driving_dist * 0.25, 1),
+                    road_name=congested_artery,
+                    traffic_level="MODERATE" if not is_rush else "HEAVY",
+                ),
+                RouteStep(
+                    step_number=2,
+                    instruction=f"Di chuyển thẳng trên {congested_artery} (Đoạn này đang có mật độ giao thông {density}%).",
+                    distance_km=round(direct_driving_dist * 0.55, 1),
+                    road_name=congested_artery,
+                    traffic_level=traffic_level,
+                ),
+                RouteStep(
+                    step_number=3,
+                    instruction=f"Rẽ vào cổng {selected_poi.name} tại {selected_poi.address}.",
+                    distance_km=round(direct_driving_dist * 0.2, 1),
+                    road_name=selected_poi.address,
+                    traffic_level="LOW",
+                ),
+            ]
 
         primary_polyline = [
             (user_lat, user_lng),
