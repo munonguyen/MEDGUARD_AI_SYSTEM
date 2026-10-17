@@ -212,6 +212,26 @@ _INTENT_KEYWORDS: dict[ChatIntent, tuple[str, ...]] = {
         "con go",
         "sinh",
         "de",
+        "bi om",
+        "dang bi om",
+        "cam cum",
+        "cam lanh",
+        "cam sot",
+        "om sot",
+        "sot sieu vi",
+        "nhiem sieu vi",
+        "khi nao di kham",
+        "khi nao can di kham",
+        "khi nao can gap bac si",
+        "khi nao phai di vien",
+        "khi nao can nhap vien",
+        "khi nao nen di kham",
+        "kham bac si truc tiep",
+        "kham truc tiep",
+        "dau hieu can kham",
+        "tieu chuan di kham",
+        "theo doi tai nha",
+        "cham soc tai nha",
     ),
     "safety": (
         "tuong tac thuoc",
@@ -536,6 +556,28 @@ def _detect_intent(payload: ChatRequest, normalized_text: str) -> ChatIntent:
             )
             if prev_has_triage:
                 scores["triage"] += 30
+
+            is_clinical_followup = any(
+                p in normalized_text
+                for p in (
+                    "khi nao di kham",
+                    "khi nao can di kham",
+                    "khi nao can gap bac si",
+                    "khi nao phai di vien",
+                    "khi nao can nhap vien",
+                    "kham bac si truc tiep",
+                    "kham truc tiep",
+                    "dau hieu can kham",
+                    "theo doi them",
+                    "theo doi tai nha",
+                    "cham soc tai nha",
+                    "an uong the nao",
+                    "kieng gi khong",
+                    "co can kieng",
+                )
+            )
+            if is_clinical_followup:
+                scores["triage"] += 25
 
             if not is_explicit_correction(normalized_text):
                 comb_ep = "\n".join(prev_user_texts[-3:] + [normalized_text])

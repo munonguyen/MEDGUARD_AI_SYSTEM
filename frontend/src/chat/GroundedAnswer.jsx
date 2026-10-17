@@ -517,16 +517,22 @@ export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQues
 
   // Narrative blocks: preserve all clinical context, system clarifying questions are printed in document
   const narrativeBlocks = hasNarrative ? answer.narrative : [];
+  const narrativeFullText = narrativeBlocks.map((b) => b.text || '').join(' ').toLowerCase();
   const hasNarrativeClarifying = narrativeBlocks.some((b) =>
     b.text?.startsWith('Bạn cho mình biết thêm:') || b.text?.startsWith('Thông tin cần báo nhân viên y tế')
   );
+  // Deduplicate clarifying questions: exclude questions already present in narrative text
+  const unmentionedClarifyingQuestions = systemClarifyingQuestions.filter((q) => {
+    const qNorm = (q || '').trim().toLowerCase();
+    return qNorm && !narrativeFullText.includes(qNorm);
+  });
 
   const hasStructuredContent = Boolean(
     keyPoints.length
     || hypotheses.length
     || nextSteps.length
     || safetyNotes.length
-    || systemClarifyingQuestions.length,
+    || unmentionedClarifyingQuestions.length,
   );
 
   return (
@@ -592,8 +598,8 @@ export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQues
             />
           )}
 
-          {!hasNarrativeClarifying && systemClarifyingQuestions.length > 0 && (
-            <ClinicalClarifyingNotes questions={systemClarifyingQuestions} />
+          {!hasNarrativeClarifying && unmentionedClarifyingQuestions.length > 0 && (
+            <ClinicalClarifyingNotes questions={unmentionedClarifyingQuestions} />
           )}
 
           <ResearchedSourcesFootnote sources={researchedSources} />
@@ -646,8 +652,8 @@ export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQues
             </div>
           )}
 
-          {!hasNarrativeClarifying && systemClarifyingQuestions.length > 0 && (
-            <ClinicalClarifyingNotes questions={systemClarifyingQuestions} />
+          {!hasNarrativeClarifying && unmentionedClarifyingQuestions.length > 0 && (
+            <ClinicalClarifyingNotes questions={unmentionedClarifyingQuestions} />
           )}
 
           <ResearchedSourcesFootnote sources={researchedSources} />
