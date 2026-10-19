@@ -2998,4 +2998,151 @@
   box-shadow: 0 2px 6px rgba(2, 132, 199, 0.4);
 }
 
+/* ==========================================================================
+   Health Twin Update Card (Embedded in Chat)
+   ========================================================================== */
+.health-twin-update-card {
+  margin-top: 16px;
+  padding: 16px 20px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: fadeInTwin 0.3s ease;
+}
+
+.health-twin-update-card.adr-alert {
+  border-color: rgba(239, 68, 68, 0.5);
+  background: rgba(239, 68, 68, 0.08);
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.15);
+}
+
+.health-twin-update-card.recovery-good {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.update-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.header-left-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+}
+
+.twin-icon-alert { color: #ef4444; }
+.twin-icon-good { color: #10b981; }
+.twin-icon-neutral { color: #00e5ff; }
+
+.health-score-pill {
+  padding: 3px 10px;
+  border-radius: 12px;
+  border: 1px solid;
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.update-ai-analysis {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #cbd5e1;
+}
+
+.halt-previous-callout {
+  padding: 12px 14px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-left: 4px solid #ef4444;
+  border-radius: 8px;
+}
+
+.halt-previous-callout .callout-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #fca5a5;
+  margin-bottom: 4px;
+}
+
+.halt-previous-callout p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: #fecaca;
+}
+
+.halt-previous-callout strong {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.update-action-plan-box {
+  padding: 10px 14px;
+  background: rgba(30, 41, 59, 0.6);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.plan-label {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin-bottom: 4px;
+}
+
+.plan-text {
+  margin: 0;
+  font-size: 12.5px;
+  color: #e2e8f0;
+  white-space: pre-line;
+  line-height: 1.45;
+}
+
+.update-footer-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.open-twin-page-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(0, 229, 255, 0.12);
+  border: 1px solid rgba(0, 229, 255, 0.35);
+  border-radius: 8px;
+  color: #00e5ff;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.open-twin-page-btn:hover {
+  background: rgba(0, 229, 255, 0.22);
+  border-color: #00e5ff;
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.3);
+  transform: translateY(-1px);
+}
+
 

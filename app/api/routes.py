@@ -953,3 +953,62 @@ def post_calculate_route(
         "google_maps_turn_by_turn_url": gmaps_url,
     }
 
+
+# ---------------------------------------------------------------------------
+# Patient Health Twin & Anatomical Recovery Tracker Endpoints
+# ---------------------------------------------------------------------------
+from app.models.health_twin import (
+    EvaluateProgressRequest,
+    EvaluateProgressResponse,
+    PatientHealthProfile,
+    ScenarioSwitchRequest,
+)
+from app.services.patient_health_twin import patient_health_twin_service
+
+
+@router.get("/health-twin/profile", response_model=PatientHealthProfile)
+async def get_patient_health_profile(
+    ctx: RequestContext = Depends(verify_tenant_credentials),
+) -> PatientHealthProfile:
+    """Returns the patient's active anatomical health twin profile,
+    recovery score, vitals, and safe guardrail alerts."""
+    return patient_health_twin_service.get_profile()
+
+
+@router.post("/health-twin/evaluate-symptom-update", response_model=EvaluateProgressResponse)
+async def evaluate_patient_symptom_update(
+    payload: EvaluateProgressRequest,
+    ctx: RequestContext = Depends(verify_tenant_credentials),
+) -> EvaluateProgressResponse:
+    """Evaluates user progress (recovery vs deterioration vs adverse drug reaction).
+    Enforces AI directives to immediately halt harmful previous treatments."""
+    res = patient_health_twin_service.evaluate_progress(
+        message=payload.message,
+        current_medications=payload.current_medications,
+        vital_updates=payload.vital_updates,
+    )
+    return EvaluateProgressResponse(**res)
+
+
+@router.post("/health-twin/scenario", response_model=PatientHealthProfile)
+async def switch_patient_scenario(
+    payload: ScenarioSwitchRequest,
+    ctx: RequestContext = Depends(verify_tenant_credentials),
+) -> PatientHealthProfile:
+    """Switches the anatomical twin to a specific clinical scenario for testing:
+    - initial_flu: Flu onset with fever, headache, runny nose
+    - recovered_headache: Successful recovery with resolved symptoms
+    - adr_stomach_nsaid: NSAID-induced acute gastritis requiring immediate cessation
+    - severe_fever_progression: 39.5C fever progression requiring hospital referral
+    - healthy_baseline: Completely healthy 98/100 profile
+    """
+    return patient_health_twin_service.switch_scenario(payload.scenario_id)
+
+
+@router.post("/health-twin/reset", response_model=PatientHealthProfile)
+async def reset_patient_health_profile(
+    ctx: RequestContext = Depends(verify_tenant_credentials),
+) -> PatientHealthProfile:
+    """Resets patient health profile back to default initial flu episode."""
+    return patient_health_twin_service.switch_scenario("initial_flu")
+

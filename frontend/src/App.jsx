@@ -58,6 +58,7 @@ import { MedicationPage } from './schedule/MedicationPage';
 import { SettingsModal } from './settings/SettingsModal';
 import { GrokLiveCompanionPage } from './companion/GrokLiveCompanionPage';
 import { NavigationPage } from './navigation/NavigationPage';
+import { HealthTwinPage } from './health/HealthTwinPage';
 import {
   getSavedUserLocation,
   saveUserLocation,
@@ -197,7 +198,7 @@ function ProfileEditor({ context, onSave, onClear, close }) {
   </form>;
 }
 
-function Sidebar({ open, close, collapse, conversations, activeId, onSelect, onNew, onDelete, onSchedule, onSchedulePage, onMedicationPage, onCompanionPage, onNavigationPage, onSettings, onSystem, activeView, search, setSearch }) {
+function Sidebar({ open, close, collapse, conversations, activeId, onSelect, onNew, onDelete, onSchedule, onSchedulePage, onMedicationPage, onCompanionPage, onNavigationPage, onHealthPage, onSettings, onSystem, activeView, search, setSearch }) {
   return <>
     {open && <button className="sidebar-scrim" type="button" aria-label="Đóng menu" onClick={close} />}
     <aside className={`sidebar ${open ? 'open' : ''}`}>
@@ -219,6 +220,10 @@ function Sidebar({ open, close, collapse, conversations, activeId, onSelect, onN
         {conversations.length ? conversations.map((item) => <div className={`history-row ${activeId === item.conversation_id && activeView === 'chat' ? 'active' : ''}`} key={item.conversation_id}><button type="button" onClick={() => { onSelect(item.conversation_id); close(); }}><MessageSquare size={15} /><span>{item.title}</span></button><button className="history-delete" type="button" title="Xóa cuộc trò chuyện" aria-label={`Xóa cuộc trò chuyện: ${item.title}`} onClick={() => onDelete(item.conversation_id)}><Trash2 size={14} /></button></div>) : <p className="history-empty">Chưa có cuộc trò chuyện</p>}
       </nav></div>
       <div className="sidebar-actions">
+        <button type="button" className={`nav-link-btn ${activeView === 'health' ? 'active' : ''}`} onClick={() => { onHealthPage?.(); close(); }}>
+          <HeartPulse size={17} />
+          <span>Cơ thể & Sức khoẻ</span>
+        </button>
         <button type="button" className={`nav-link-btn companion-nav-btn ${activeView === 'companion' ? 'active' : ''}`} onClick={() => { onCompanionPage?.(); close(); }}>
           <Sparkles size={17} />
           <span>Bác sĩ 3D Live</span>
@@ -766,7 +771,7 @@ export default function App({
     const handleCustomNavigate = (e) => {
       const detail = e.detail;
       const target = typeof detail === 'string' ? detail : detail?.view;
-      if (['chat', 'companion', 'schedule', 'medication', 'navigation', 'system'].includes(target)) {
+      if (['chat', 'companion', 'schedule', 'medication', 'navigation', 'health', 'system'].includes(target)) {
         if (detail && typeof detail === 'object' && detail.navigationContext) {
           setNavigationContext(detail.navigationContext);
         }
@@ -1149,7 +1154,7 @@ export default function App({
   const filteredConversations = conversations.filter((item) => item.title.toLowerCase().includes(historySearch.toLowerCase()));
   return <div className={`app-shell chat-shell ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
     <a href="#main-content" className="skip-link">Chuyển đến nội dung chính</a>
-    <Sidebar open={sidebarOpen} close={() => setSidebarOpen(false)} collapse={() => { setSidebarCollapsed(true); setSidebarOpen(false); }} conversations={filteredConversations} activeId={conversationId} onSelect={selectConversation} onNew={startNew} onDelete={deleteConversation} onSchedule={() => setView('medication')} onSchedulePage={() => setView('schedule')} onMedicationPage={() => setView('medication')} onCompanionPage={() => setView('companion')} onNavigationPage={() => setView('navigation')} onSettings={() => { setSettingsInitialTab('general'); setSettingsOpen(true); }} onSystem={() => { if (!account || account.role === 'admin') setView('system'); }} activeView={view} search={historySearch} setSearch={setHistorySearch} />
+    <Sidebar open={sidebarOpen} close={() => setSidebarOpen(false)} collapse={() => { setSidebarCollapsed(true); setSidebarOpen(false); }} conversations={filteredConversations} activeId={conversationId} onSelect={selectConversation} onNew={startNew} onDelete={deleteConversation} onSchedule={() => setView('medication')} onSchedulePage={() => setView('schedule')} onMedicationPage={() => setView('medication')} onCompanionPage={() => setView('companion')} onNavigationPage={() => setView('navigation')} onHealthPage={() => setView('health')} onSettings={() => { setSettingsInitialTab('general'); setSettingsOpen(true); }} onSystem={() => { if (!account || account.role === 'admin') setView('system'); }} activeView={view} search={historySearch} setSearch={setHistorySearch} />
     <main className="main-shell chat-main" id="main-content" tabIndex={-1}>
       <header className="topbar chat-topbar">
         <div className="topbar-title">
@@ -1201,6 +1206,17 @@ export default function App({
             >
               <Route size={14} />
               <span>Chỉ đường</span>
+            </button>
+            <button
+              role="tab"
+              aria-selected={view === "health"}
+              className={`view-tab-btn ${view === "health" ? "active" : ""}`}
+              type="button"
+              onClick={() => setView(view === "health" ? "chat" : "health")}
+              title="Chuẩn đoán & Bản đồ Cơ thể Giải phẫu Real-time"
+            >
+              <HeartPulse size={14} />
+              <span>Cơ thể & Sức khoẻ</span>
             </button>
             <button
               role="tab"
@@ -1473,6 +1489,13 @@ export default function App({
             onNotify={notify}
           />
         </div>
+      ) : view === 'health' ? (
+        <HealthTwinPage
+          api={api}
+          onBackToChat={() => setView('chat')}
+          onNavigate={(target) => setView(target)}
+          onNotify={notify}
+        />
       ) : view === 'companion' ? (
         <GrokLiveCompanionPage
           api={api}

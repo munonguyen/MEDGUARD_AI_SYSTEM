@@ -84,6 +84,7 @@ class GroundedAnswer(BaseModel):
     enroute_triage: dict[str, Any] | None = None
     medication_suitability: dict[str, Any] | None = None
     geo_routing: dict[str, Any] | None = None
+    health_twin_update: dict[str, Any] | None = None
     agent_trace: SkipJsonSchema[AnswerAgentTrace | None] = Field(default=None, exclude=True)
 
 
