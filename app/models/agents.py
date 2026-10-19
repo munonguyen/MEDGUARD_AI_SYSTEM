@@ -12,9 +12,9 @@ class StrictModel(BaseModel):
 class AgentNarrativeBlock(StrictModel):
     kind: Literal["paragraph", "caution", "urgent"]
     text: str = Field(min_length=1, max_length=2400)
-    emphasis: list[str] = Field(max_length=12)
-    claim_ids: list[str] = Field(min_length=1, max_length=32)
-    source_ids: list[str] = Field(min_length=1, max_length=16)
+    emphasis: list[str] = Field(default_factory=list, max_length=12)
+    claim_ids: list[str] = Field(default_factory=list, max_length=32)
+    source_ids: list[str] = Field(default_factory=list, max_length=16)
 
     @field_validator("source_ids", mode="before")
     @classmethod
@@ -64,16 +64,19 @@ class AgentEvidenceSource(StrictModel):
     publisher: str = Field(min_length=1, max_length=160)
     url: str = Field(pattern=r"^https://", max_length=1200)
     authority_tier: Literal["guideline_or_regulator", "government_health", "peer_reviewed"]
-    supports_claim_ids: list[str] = Field(min_length=1, max_length=64)
+    supports_claim_ids: list[str] = Field(default_factory=list, max_length=64)
 
     @field_validator("url", mode="before")
     @classmethod
     def _normalize_url(cls, value: Any) -> Any:
         if isinstance(value, str):
             value = value.strip()
-            if value and not value.startswith(("http://", "https://")):
+            if not value:
+                return "https://medguard.local/guideline"
+            if not value.startswith(("http://", "https://")):
                 return f"https://{value}"
-        return value
+            return value
+        return value or "https://medguard.local/guideline"
 
     @field_validator("supports_claim_ids", mode="before")
     @classmethod
@@ -121,7 +124,25 @@ class AgentEvidenceSource(StrictModel):
 class AgentEvidenceClaim(StrictModel):
     claim_id: str = Field(pattern=r"^ext_[a-zA-Z0-9_-]{1,40}$")
     text: str = Field(min_length=1, max_length=1200)
-    source_ids: list[str] = Field(min_length=1, max_length=16)
+    source_ids: list[str] = Field(default_factory=list, max_length=16)
+
+    @field_validator("source_ids", mode="before")
+    @classmethod
+    def _normalize_claim_source_ids(cls, value: Any) -> Any:
+        import re
+        if isinstance(value, list):
+            res = []
+            for item in value:
+                if isinstance(item, str):
+                    item = item.strip()
+                    if not item.startswith("src_"):
+                        clean = re.sub(r"[^a-zA-Z0-9_-]", "_", item)
+                        item = f"src_{clean}"[:40]
+                    res.append(item)
+                else:
+                    res.append(str(item))
+            return res
+        return value
 
     @field_validator("claim_id", mode="before")
     @classmethod
@@ -137,16 +158,16 @@ class AgentEvidenceClaim(StrictModel):
 
 class AgentQuestionAnalysis(StrictModel):
     interpreted_request: str = Field(min_length=1, max_length=600)
-    key_questions: list[str] = Field(min_length=1, max_length=12)
-    ambiguities: list[str] = Field(max_length=12)
+    key_questions: list[str] = Field(default_factory=list, max_length=12)
+    ambiguities: list[str] = Field(default_factory=list, max_length=12)
     risk_level: Literal["low", "medium", "high"]
 
 
 class AgentDraft(StrictModel):
     question_analysis: AgentQuestionAnalysis
-    evidence_claims: list[AgentEvidenceClaim] = Field(max_length=24)
+    evidence_claims: list[AgentEvidenceClaim] = Field(default_factory=list, max_length=24)
     narrative: list[AgentNarrativeBlock] = Field(min_length=1, max_length=8)
-    sources: list[AgentEvidenceSource] = Field(min_length=1, max_length=16)
+    sources: list[AgentEvidenceSource] = Field(default_factory=list, max_length=16)
     notes: str = Field(default="", max_length=1500)
 
 

@@ -10,8 +10,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 from typing import Any
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(BASE_DIR))
 
 from scripts.generate_release_evidence import validate_release_evidence
 
@@ -60,6 +64,8 @@ def verify_production_promotion(
         errors.append("medical_response_quality_not_passed")
     if (quality.get("professional_response") or {}).get("gate_passed") is not True:
         errors.append("professional_response_quality_not_passed")
+    if (quality.get('public_output') or {}).get('gate_passed') is not True:
+        errors.append('public_output_quality_not_passed')
 
     return not errors, sorted(set(errors))
 

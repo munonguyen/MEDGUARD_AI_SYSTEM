@@ -1,6 +1,11 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
+import json
+import subprocess
+import sys
+from pathlib import Path
+from app.tests.public_output_fixture import passing_public_output
 
 from scripts.generate_release_evidence import build_release_evidence, evidence_digest
 from scripts.verify_production_promotion import verify_production_promotion
@@ -87,6 +92,7 @@ def _eligible_payload(*, sha: str = "candidate123") -> dict:
         },
         external_evidence=_external(),
         git_sha=sha,
+        public_output_audit=passing_public_output(sha),
         generated_at="2026-09-29T00:00:00+00:00",
         model_configuration=_models(),
     )
@@ -99,6 +105,18 @@ def test_fully_bound_candidate_is_allowed() -> None:
 
     assert passed is True
     assert errors == []
+
+
+def test_promotion_cli_runs_as_a_script_outside_the_repository(tmp_path) -> None:
+    evidence = tmp_path / 'synthetic-unit-evidence.json'
+    evidence.write_text(json.dumps(_eligible_payload()))
+    script = Path(__file__).resolve().parents[2] / 'scripts/verify_production_promotion.py'
+    for sha, expected in [('candidate123', 0), ('other', 1)]:
+        result = subprocess.run([sys.executable, str(script), str(evidence), '--expected-code-sha', sha],
+                                cwd=tmp_path, capture_output=True, text=True)
+        assert result.returncode == expected, result.stderr
+        assert 'production_promotion=' in result.stdout
+        assert 'Traceback' not in result.stderr
 
 
 def test_candidate_sha_mismatch_blocks_promotion() -> None:
@@ -121,6 +139,7 @@ def test_current_repository_state_cannot_self_authorize_with_blockers() -> None:
         },
         external_evidence=_external(valid=False),
         git_sha="candidate123",
+        public_output_audit=passing_public_output("candidate123"),
         generated_at="2026-09-29T00:00:00+00:00",
         model_configuration=_models(),
     )

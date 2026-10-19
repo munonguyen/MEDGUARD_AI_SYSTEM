@@ -14,6 +14,9 @@ from typing import Any, Sequence
 
 from app.services.clinical_text import normalize_search_text
 from app.services.clinical_text import contains_affirmed_phrase
+from app.services.clinical_reasoning.negation_engine import NegationEngine
+
+_negation_engine = NegationEngine()
 
 
 class ToxicityDimension(str, Enum):
@@ -156,7 +159,12 @@ def route_by_toxicity_signature(text: str) -> ToxicitySignatureResult:
 
     for dim, patterns in _DIMENSION_PATTERNS.items():
         for pat in patterns:
-            if re.search(pat, norm):
+            if any(
+                not _negation_engine.is_negated_at(norm, match.start(), scope_chars=None)
+                if dim == ToxicityDimension.EXPOSURE_EVENT
+                else contains_affirmed_phrase(norm, match.group(0))
+                for match in re.finditer(pat, norm)
+            ):
                 # If exposure pattern matched on generic 'vien thuoc' but it's benign therapeutic dose without overdose flag
                 if dim == ToxicityDimension.EXPOSURE_EVENT and is_benign_intake and not has_overdose_flag:
                     continue

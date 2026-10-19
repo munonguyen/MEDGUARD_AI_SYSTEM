@@ -67,12 +67,20 @@ def _prescription_request_summary(symptoms_text: str) -> str | None:
     dose/prescription requests receive the same bounded refusal principle.
     """
     normalized = normalize_search_text(symptoms_text)
-    if not any(marker in normalized for marker in _PRESCRIPTION_REQUEST_MARKERS):
+    antibiotic_question = "khang sinh" in normalized and any(marker in normalized for marker in (
+        "co can uong", "co nen uong", "can dung", "nen dung", "can khang sinh",
+    ))
+    if not antibiotic_question and not any(marker in normalized for marker in _PRESCRIPTION_REQUEST_MARKERS):
         return None
 
     if "khang sinh" in normalized or "antibiotic" in normalized:
-        return (
+        refusal = (
             "MedGuard không kê đơn kháng sinh hoặc xác định liều dùng cá nhân hóa từ hội thoại. "
+            if any(marker in normalized for marker in _PRESCRIPTION_REQUEST_MARKERS) else ""
+        )
+        return refusal + (
+            "Không tự dùng kháng sinh khi chưa có chỉ định. Kháng sinh không điều trị nhiễm virus; "
+            "ho có đờm đơn độc không đủ để xác định nhiễm khuẩn cần kháng sinh. "
             "Việc dùng kháng sinh cần dựa trên đánh giá nguyên nhân và chỉ định của bác sĩ; "
             "tự dùng có thể không phù hợp và làm tăng nguy cơ tác dụng không mong muốn hoặc kháng kháng sinh. "
             "Trong lúc chờ đánh giá, bạn có thể ưu tiên chăm sóc triệu chứng an toàn như nghỉ ngơi, uống đủ nước "
@@ -234,6 +242,19 @@ def build_contextual_triage_plan(
             reasoning=None,
             applied=True,
             reason="prescription_request_refusal",
+        )
+
+    normalized = normalize_search_text(symptoms_text)
+    if "tieu chay" in normalized and any(x in normalized for x in ("an uong", "uong nhu", "an nhu", "bu nuoc")):
+        return ContextualTriagePlan(
+            summary=("Tiêu chảy có thể gây mất nước; ưu tiên uống từng ngụm nhỏ thường xuyên. "
+                     "Có thể hỏi dược sĩ về dung dịch bù nước điện giải oresol và pha đúng lượng nước ghi trên gói; "
+                     "không tự pha đặc hoặc loãng hơn. Ăn theo khả năng dung nạp, không cần nhịn ăn. "
+                     "Chưa thể xác định nguyên nhân qua tin nhắn. Đi khám sớm nếu không uống được, tiểu ít, "
+                     "choáng, sốt cao, phân có máu, đau bụng nhiều hoặc tiêu chảy kéo dài; "
+                     "nếu có bệnh tim/thận hoặc hạn chế dịch, hỏi nhân viên y tế về cách bù nước phù hợp."),
+            hypotheses=(), questions=("Bạn có uống được và vẫn tiểu bình thường không; có sốt, máu trong phân hoặc đau bụng nhiều không?",),
+            episode=None, reasoning=None, applied=True, reason="diarrhea_hydration_education",
         )
 
     try:

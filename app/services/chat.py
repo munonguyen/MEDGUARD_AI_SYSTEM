@@ -4,9 +4,12 @@ from __future__ import annotations
 
 from datetime import date, datetime, time as datetime_time, timedelta, timezone
 from hashlib import sha256
+import logging
 import re
 from typing import Any
 from zoneinfo import ZoneInfo
+
+logger = logging.getLogger(__name__)
 
 from app.core.config import settings
 from app.core.context import RequestContext
@@ -56,6 +59,7 @@ from app.services.risk_memory import (
 from app.services.dose_reasoning import evaluate_dose_reasoning
 from app.services.semantic_risk import safe_semantic_evaluate, semantic_risk_evaluator
 from app.services.ood_guard import evaluate as ood_evaluate, OODResult
+from app.services.dual_crisis_policy import evaluate_dual_crisis
 
 
 _INTENT_KEYWORDS: dict[ChatIntent, tuple[str, ...]] = {
@@ -208,6 +212,26 @@ _INTENT_KEYWORDS: dict[ChatIntent, tuple[str, ...]] = {
         "con go",
         "sinh",
         "de",
+        "bi om",
+        "dang bi om",
+        "cam cum",
+        "cam lanh",
+        "cam sot",
+        "om sot",
+        "sot sieu vi",
+        "nhiem sieu vi",
+        "khi nao di kham",
+        "khi nao can di kham",
+        "khi nao can gap bac si",
+        "khi nao phai di vien",
+        "khi nao can nhap vien",
+        "khi nao nen di kham",
+        "kham bac si truc tiep",
+        "kham truc tiep",
+        "dau hieu can kham",
+        "tieu chuan di kham",
+        "theo doi tai nha",
+        "cham soc tai nha",
     ),
     "safety": (
         "tuong tac thuoc",
@@ -261,7 +285,7 @@ _INTENT_KEYWORDS: dict[ChatIntent, tuple[str, ...]] = {
     "delivery": ("webhook", "gui ket qua", "delivery", "notification", "sse"),
     "ocr": ("ocr", "doc don thuoc", "anh don thuoc", "quet don thuoc"),
     "schedule": ("lich uong thuoc", "nhac uong", "dat lich uong", "#lichthuoc", "hen gio uong"),
-    "authenticity": ("hang gia", "hang nhai", "chinh hang", "quet qr", "kiem tra qr", "xac thuc thuoc"),
+    "authenticity": ("hang gia", "hang nhai", "chinh hang", "quet qr", "kiem tra qr", "xac thuc thuoc", "ma vach", "barcode", "quet ma", "kiem tra ma"),
 }
 
 # V14 treats ``all`` as the single-path response contract: every public response
@@ -488,6 +512,8 @@ def _detect_intent(payload: ChatRequest, normalized_text: str) -> ChatIntent:
         return "schedule"
 
     def contains(keyword: str) -> bool:
+        if keyword == "nang" and re.search(r"\bnang\s+\d+(?:[.,]\d+)?\s*(?:kg|kilogram)\b", normalized_text):
+            return False
         if " " not in keyword and len(keyword) <= 3:
             return any(
                 contains_affirmed_phrase(normalized_text, match.group(0))
@@ -530,6 +556,28 @@ def _detect_intent(payload: ChatRequest, normalized_text: str) -> ChatIntent:
             )
             if prev_has_triage:
                 scores["triage"] += 30
+
+            is_clinical_followup = any(
+                p in normalized_text
+                for p in (
+                    "khi nao di kham",
+                    "khi nao can di kham",
+                    "khi nao can gap bac si",
+                    "khi nao phai di vien",
+                    "khi nao can nhap vien",
+                    "kham bac si truc tiep",
+                    "kham truc tiep",
+                    "dau hieu can kham",
+                    "theo doi them",
+                    "theo doi tai nha",
+                    "cham soc tai nha",
+                    "an uong the nao",
+                    "kieng gi khong",
+                    "co can kieng",
+                )
+            )
+            if is_clinical_followup:
+                scores["triage"] += 25
 
             if not is_explicit_correction(normalized_text):
                 comb_ep = "\n".join(prev_user_texts[-3:] + [normalized_text])
@@ -577,6 +625,10 @@ def _detect_intent(payload: ChatRequest, normalized_text: str) -> ChatIntent:
             "co nguy hiem",
             "co sao khong",
             "co on khong",
+            "co the uong",
+            "co the dung",
+            "co nen uong",
+            "co nen dung",
         )
     ) or bool(
         re.search(
@@ -585,6 +637,11 @@ def _detect_intent(payload: ChatRequest, normalized_text: str) -> ChatIntent:
         )
     )
     if has_known_medication and asks_medication_safety:
+        # A symptom explaining why a medicine is requested must not displace
+        # the explicit medication question. Acute emergencies are still forced
+        # to triage by the safety floor in evaluate_chat.
+        if not has_non_vital_red_flags and sem_intent.urgency != "EMERGENCY":
+            return "safety"
         scores["safety"] += 8
     if has_known_medication and _requests_personalized_dose(normalized_text):
         scores["safety"] += 14
@@ -647,11 +704,19 @@ def _detect_intent(payload: ChatRequest, normalized_text: str) -> ChatIntent:
             "dang bi",
             "bi benh",
             "mac benh",
+            "dang om",
+            "bi om",
+            "can phai mua thuoc",
+            "mua thuoc gi",
+            "uong thuoc gi",
+            "thuoc gi de khoi",
+            "om can mua",
+            "om uong thuoc",
         )
     ):
         return "triage"
     if "thuoc" in normalized_text and any(
-        marker in normalized_text for marker in ("uong", "dung", "lieu", "tac dung", "phan ung")
+        marker in normalized_text for marker in ("uong", "dung", "lieu", "tac dung", "phan ung", "mua", "ke don")
     ):
         return "safety"
     return "general"
@@ -979,6 +1044,9 @@ def _response(
         required_fields=fields,
         result=serialized,
     )
+    from app.services.response_presentation import select_presentation
+    answer = select_presentation(answer, question=agent_question or payload.messages[-1].content,
+                                 intent=intent, result=serialized if isinstance(serialized, dict) else None)
     agent_status: str | None = None
     agent_submitted = False
     clinical_task_name = (
@@ -1009,8 +1077,17 @@ def _response(
         and intent in _active_research_agent_intents()
     )
     agent_patient_context = payload.context.model_dump(mode="json")
+    agent_patient_context["conversation_messages"] = [
+        msg.model_dump(mode="json") for msg in payload.messages
+    ]
     if intent in {"triage", "safety"} or clinical_task_name:
         agent_patient_context["last_result"] = None
+        # The agent must receive the same active episode as clinical tools.
+        # Old assistant prose is not evidence and must not anchor a new topic.
+        episode_text, _, _ = _triage_episode_text(payload, payload.messages[-1].content)
+        agent_patient_context["conversation_messages"] = [
+            {"role": "user", "content": episode_text}
+        ]
     if agent_first_clinical:
         answer = answer_agent_pipeline.generate_response(
             fallback_answer=answer,
@@ -1046,8 +1123,13 @@ def _response(
             patient_context=agent_patient_context,
         )
     internal_agent_trace = answer.agent_trace
+    logger.warning("CHAT AGENT TRACE: status=%s reason=%s", getattr(internal_agent_trace, "status", None), getattr(internal_agent_trace, "fallback_reason", None))
     if internal_agent_trace:
         agent_status = internal_agent_trace.status
+        # A disabled pipeline can coexist with an enabled chat configuration
+        # during startup/reconfiguration. Preserve the fallback API contract.
+        if agent_status == "disabled":
+            agent_status = "unavailable" if agent_eligible else "not_requested"
     elif agent_submitted:
         agent_status = "shadow_pending"
     orchestrator = {
@@ -1100,17 +1182,281 @@ def _response(
     else:
         knowledge_approval = "mixed"
     answer = answer.model_copy(update={"agent_trace": None})
+    from app.models.chat import AgentExecutionSummary
+    reason = {
+        "agent_configuration_incomplete": "configuration_incomplete",
+        "agent_mode_disabled": "configuration_incomplete",
+        "agent_capacity_exhausted": "capacity_exhausted",
+        "agent_total_timeout": "timeout",
+        "model_circuit_open": "circuit_open",
+    }.get(internal_agent_trace.fallback_reason if internal_agent_trace else None)
+    if reason is None and verification_status == "rejected":
+        reason = "quality_rejected"
+    elif reason is None and verification_status == "error":
+        reason = "provider_error"
+    elif verification_status == "not_requested":
+        reason = "not_requested"
+    # === Output Quality Governance Gate (ROG & Output Verifier) ===
+    output_quality_meta: dict[str, Any] = {"checked": False}
+    candidate_reply = (
+        "\n\n".join(block.text for block in answer.narrative)
+        if verification_status == "verified" and answer.narrative
+        else answer.summary
+    )
+
+    if intent in {"triage", "safety", "monitoring", "general"} or (
+        isinstance(serialized, dict) and "triage_level" in serialized
+    ):
+        from app.services.response_obligation import build_response_obligations
+        from app.services.output_quality_verifier import (
+            verify_output_quality,
+            get_deterministic_template_repair,
+        )
+        from app.models.chat import AnswerNarrativeBlock
+
+        # Determine clinical policy tier
+        tier = "ROUTINE"
+        if isinstance(serialized, dict):
+            urgency = (
+                serialized.get("urgency")
+                or serialized.get("triage_level")
+                or serialized.get("tier")
+                or (serialized.get("safety_floor") if serialized.get("safety_floor") else None)
+            )
+            if urgency:
+                tier = str(urgency).upper()
+            elif serialized.get("emergency_flag"):
+                tier = "EMERGENCY"
+            elif any(
+                isinstance(item, dict) and item.get("action") == "HARD_STOP"
+                for item in serialized.get("interactions", [])
+            ):
+                tier = "EMERGENCY"
+            elif any(
+                isinstance(item, dict) and item.get("action") == "SOFT_STOP"
+                for item in serialized.get("interactions", [])
+            ):
+                tier = "URGENT"
+            elif any(
+                isinstance(item, dict) and item.get("tier") == "HARD_STOP"
+                for item in serialized.get("warnings", [])
+            ):
+                tier = "EMERGENCY"
+            elif any(
+                isinstance(item, dict) and item.get("tier") == "SOFT_STOP"
+                for item in serialized.get("warnings", [])
+            ):
+                tier = "URGENT"
+
+        if tier == "ROUTINE" and isinstance(extracted, dict):
+            if extracted.get("medical_emergency_flag") or extracted.get("clinical_safety_floor") == "EMERGENCY":
+                tier = "EMERGENCY"
+            elif extracted.get("clinical_safety_floor") == "URGENT":
+                tier = "URGENT"
+
+        if status == "needs_information":
+            tier = "UNRESOLVED"
+
+        # Check dual crisis condition
+        is_crisis = False
+        if isinstance(serialized, dict) and serialized.get("is_dual_crisis"):
+            is_crisis = True
+        elif isinstance(extracted, dict) and extracted.get("crisis_support_flag"):
+            is_crisis = True
+        else:
+            crisis_eval = evaluate_dual_crisis(payload.messages[-1].content)
+            is_crisis = crisis_eval.is_dual_crisis
+
+        obligations = build_response_obligations(
+            triage_level=tier,
+            clinical_state=None,
+            is_dual_crisis=is_crisis,
+            topic=intent,
+        )
+
+        visible_blocks = [answer.title, answer.summary, candidate_reply]
+        if answer.next_steps:
+            visible_blocks.extend(answer.next_steps)
+        if answer.safety_notes:
+            visible_blocks.extend(answer.safety_notes)
+        full_visible_text = "\n".join(b for b in visible_blocks if b)
+        quality_check = verify_output_quality(full_visible_text, obligations)
+
+        output_quality_meta = {
+            "checked": True,
+            "policy_tier": obligations.policy_tier,
+            "is_valid": quality_check.is_valid,
+            "missing": list(quality_check.missing_obligations),
+            "violated": list(quality_check.violated_forbidden),
+            "repaired": not quality_check.is_valid,
+        }
+
+        if not quality_check.is_valid:
+            logger.warning(
+                "OUTPUT QUALITY GATE REJECTED RESPONSE: missing=%s violated=%s contradiction=%s. Activating deterministic repair.",
+                quality_check.missing_obligations,
+                quality_check.violated_forbidden,
+                quality_check.contains_contradiction,
+            )
+            repaired_text = get_deterministic_template_repair(obligations)
+            candidate_reply = repaired_text
+            answer = answer.model_copy(
+                update={
+                    "summary": repaired_text,
+                    "narrative": [
+                        AnswerNarrativeBlock(
+                            kind="urgent" if tier == "EMERGENCY" else "paragraph",
+                            text=repaired_text,
+                            emphasis=["115", "CẤP CỨU", "NGAY LẬP TỨC"]
+                            if tier == "EMERGENCY"
+                            else [],
+                        )
+                    ],
+                }
+            )
+            answer_origin = "deterministic_fallback"
+            verification_status = "rejected"
+            reason = "quality_rejected"
+
+    # Finalize clinical enrichments on answer: Emergency Transit, En-route Physical Signs, and Medication Suitability
+    from app.services.emergency_transit import build_emergency_transit_plan
+    from app.services.enroute_triage import evaluate_enroute_physical_signs, is_en_route_statement
+    from app.services.medication_suitability import evaluate_medication_suitability
+    from app.services.traffic_routing_agent import geo_routing_agent
+
+    latest_user_text = payload.messages[-1].content
+    raw_urgency = (
+        serialized.get("urgency")
+        if isinstance(serialized, dict) and serialized.get("urgency")
+        else getattr(result, "urgency", "ROUTINE")
+    )
+    is_emergency_case = (
+        raw_urgency == "EMERGENCY"
+        or "cấp cứu" in answer.title.lower()
+        or any(b.kind == "urgent" and ("115" in b.text or "cấp cứu" in b.text.lower()) for b in answer.narrative)
+    )
+
+    emergency_transit_data = None
+    if is_emergency_case:
+        transit_plan = build_emergency_transit_plan(
+            symptoms_text=agent_question or latest_user_text,
+            location_hint=payload.context.patient_ref,
+            patient_age=payload.context.age,
+        )
+        emergency_transit_data = transit_plan.to_dict()
+
+    enroute_data = None
+    is_enroute = is_en_route_statement(latest_user_text) or any(
+        is_en_route_statement(m.content) for m in payload.messages[-3:] if m.role == "user"
+    )
+    if is_enroute or (is_emergency_case and any(k in normalize_search_text(latest_user_text) for k in ("tren xe", "sui bot mep", "co giat", "tim moi", "bat tinh", "dang cho"))):
+        enroute_assessment = evaluate_enroute_physical_signs(latest_user_text)
+        enroute_data = enroute_assessment.to_dict()
+
+    med_suitability_data = None
+    asks_about_medicine = any(
+        k in normalize_search_text(latest_user_text)
+        for k in (
+            "uong thuoc gi", "dung thuoc gi", "nen uong thuoc", "co uong duoc", "co dung duoc",
+            "thuoc khoi om", "thuoc tri", "thuoc chua", "uong paracetamol", "uong panadol",
+            "uong efferalgan", "mua thuoc", "hieu thuoc", "nha thuoc", "de xuat thuoc", "ke don",
+            "thuoc gi de khoi", "khang sinh", "thuoc khang sinh"
+        )
+    ) or intent == "safety" or (intent == "triage" and "thuoc" in normalize_search_text(latest_user_text))
+
+    if asks_about_medicine:
+        med_suit = evaluate_medication_suitability(
+            query=latest_user_text,
+            symptoms_text=agent_question or latest_user_text,
+            known_conditions=payload.context.conditions,
+            current_medications=payload.context.current_medications,
+            allergies=payload.context.allergies,
+            patient_age=payload.context.age,
+            patient_sex=payload.context.sex,
+            urgency=raw_urgency,
+        )
+        med_suitability_data = med_suit.to_dict()
+
+    # Geo Routing Agent: Real-time POI discovery, operating hours check, traffic congestion, and bypass optimization
+    geo_routing_data = None
+    asks_for_location_or_routing = any(
+        k in normalize_search_text(latest_user_text)
+        for k in (
+            "dia diem", "cho ban thuoc", "nha thuoc gan nhat", "hieu thuoc gan nhat",
+            "cho xu ly cap cuu", "cap cuu gan nhat", "benh vien gan nhat", "chi duong",
+            "ban do", "tac duong", "ket xe", "tuyen duong", "google map", "maps",
+            "tim nha thuoc", "tim benh vien", "o dau", "di duong nao"
+        )
+    )
+
+    if (
+        is_emergency_case
+        or asks_for_location_or_routing
+        or (asks_about_medicine and med_suitability_data and med_suitability_data.get("state") == "ELIGIBLE_OTC")
+    ):
+        target_poi_type = (
+            "emergency"
+            if is_emergency_case
+            or any(k in normalize_search_text(latest_user_text) for k in ("cap cuu", "benh vien", "115", "nguy kich"))
+            else "pharmacy"
+        )
+        try:
+            u_coords = None
+            u_name = None
+            u_city = None
+            if payload.context.user_location:
+                u_lat = payload.context.user_location.get("lat")
+                u_lng = payload.context.user_location.get("lng")
+                if u_lat is not None and u_lng is not None:
+                    u_coords = (float(u_lat), float(u_lng))
+                u_name = (
+                    payload.context.user_location.get("address")
+                    or payload.context.user_location.get("name")
+                )
+                u_city = payload.context.user_location.get("city")
+
+            geo_plan = geo_routing_agent.plan_destination_routing(
+                query=latest_user_text,
+                location_hint=payload.context.patient_ref,
+                patient_age=payload.context.age,
+                forced_poi_type=target_poi_type,
+                user_coordinates=u_coords,
+                location_name=u_name,
+                city_override=u_city,
+            )
+            geo_routing_data = geo_plan.to_dict()
+            if med_suitability_data and geo_routing_data:
+                med_suitability_data["nearest_pharmacy_maps_url"] = geo_routing_data.get("google_maps_turn_by_turn_url", "")
+        except Exception:
+            pass
+
+    answer = answer.model_copy(
+        update={
+            "emergency_transit": emergency_transit_data,
+            "enroute_triage": enroute_data,
+            "medication_suitability": med_suitability_data,
+            "geo_routing": geo_routing_data,
+        }
+    )
+
+    stage_default = "unknown" if verification_status in {"timed_out", "shadow_pending"} else "not_run"
     response = ChatResponse(
         request_id=ctx.request_id,
         conversation_id=payload.conversation_id,
         status=status,
         intent=intent,
-        reply=answer.summary,
+        reply=candidate_reply,
         required_fields=fields,
         extracted=extracted or {},
         result=serialized,
         answer=answer,
         suggestions=_suggestions(intent) if status == "answered" else [],
+        agent_execution=AgentExecutionSummary(
+            requested=agent_eligible,
+            writer=internal_agent_trace.generator.status if internal_agent_trace and internal_agent_trace.generator else stage_default,
+            reviewer=internal_agent_trace.verifier.status if internal_agent_trace and internal_agent_trace.verifier else stage_default,
+            reason=reason,
+        ),
         answer_origin=answer_origin,
         verification_status=verification_status,
         knowledge_approval=knowledge_approval,
@@ -1130,6 +1476,7 @@ def _response(
                 "agent_status": agent_status,
                 "agent_fallback_reason": internal_agent_trace.fallback_reason if internal_agent_trace else None,
                 "answer_assurance": "source_verified" if agent_status == "verified" else "baseline",
+                "output_quality": output_quality_meta,
             },
         )
     )
@@ -1322,27 +1669,95 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
         intent = "triage"
     patient_ref = _patient_ref(payload, latest_text)
 
+    # Explicit educational questions have a bounded answer even without the
+    # model gateway. Do not replace acute red flags or ongoing clinical history.
+    if (payload.intent_hint == "auto" and len(payload.messages) == 1
+            and pre_ood_safety_floor.disposition == "ROUTINE"
+            and not _check_red_flag_patterns(normalize_clinical_concepts(latest_text))):
+        from app.services.health_education import request_guidance
+        education = request_guidance(latest_text)
+        if education:
+            return _response(payload, ctx, status="answered", intent=education["intent"],
+                             reply=education["summary"], result={"education": education})
+
     if intent == "authenticity":
         latest = payload.messages[-1].content
+        # Remove common chat / prompt prefixes
+        clean_code = re.sub(
+            r"^(kiểm tra (qr|mã vạch|mã)( hàng giả)?|quét (qr|mã vạch|mã)|xác thực (qr|mã vạch|mã)|mã qr|qr code|mã vạch|barcode)[\s:]*",
+            "",
+            latest,
+            flags=re.IGNORECASE,
+        ).strip()
         raw_match = re.search(r"MEDGUARD\|[^\s]+", latest, re.IGNORECASE)
-        if not raw_match:
+        code_to_verify = raw_match.group(0) if raw_match else clean_code
+        if not code_to_verify or len(code_to_verify) < 3:
             return _response(
                 payload,
                 ctx,
                 status="needs_information",
                 intent=intent,
-                reply="Hãy quét QR trên bao bì hoặc gửi nguyên nội dung mã để đối chiếu registry.",
+                reply="Hãy quét QR trên bao bì sản phẩm hoặc gửi nội dung mã/serial để đối chiếu registry chống hàng giả.",
                 required_fields=["qr_payload"],
             )
-        result = verify_product_code(ProductVerificationRequest(raw_code=raw_match.group(0)), ctx)
+        result = verify_product_code(ProductVerificationRequest(raw_code=code_to_verify), ctx)
+        status_labels = {
+            "registry_match": "Chính hãng (Mã khớp hồ sơ nhà sản xuất)",
+            "suspected_counterfeit": "CẢNH BÁO: Nghi ngờ hàng giả / Mã không khớp hồ sơ",
+            "recalled": "CẢNH BÁO NGUY HIỂM: Sản phẩm nằm trong danh mục thu hồi",
+            "expired": "CẢNH BÁO: Sản phẩm đã hết hạn sử dụng",
+            "unknown": "Chưa tìm thấy mã trong registry hoặc cần bổ sung serial/lô",
+            "invalid": "Mã QR không đúng định dạng chuẩn",
+        }
+        prod_name = result.product.get("name") if result.product else "sản phẩm y tế"
+        st_label = status_labels.get(result.verification_status, result.verification_status)
         return _response(
             payload,
             ctx,
             status="answered",
             intent=intent,
-            reply=f"Đã đối chiếu mã sản phẩm. Trạng thái: {result.verification_status}.",
+            reply=f"Đã đối chiếu dữ liệu mã QR cho {prod_name}. Kết quả xác thực: {st_label}.",
             extracted={"verification_status": result.verification_status},
             result=result,
+        )
+
+    # General illness & safe OTC consultation clinical handling
+    is_general_illness_medication = (
+        any(k in normalized for k in (
+            "dang om", "bi om", "cam cum", "cam lanh", "khoi om",
+            "uong thuoc gi", "mua thuoc gi", "can mua thuoc", "thuoc gi de khoi",
+            "uong gi cho khoi", "chua khoi om", "thuoc tri om", "bi om uong thuoc",
+            "om can mua thuoc", "dang bi om", "thuoc gi khi bi om", "can phai mua thuoc",
+            "toi dang om", "bi om can", "om uong gi"
+        ))
+        and any(w in normalized for w in ("thuoc", "mua", "uong", "dung", "khoi", "chua", "om"))
+    )
+    if is_general_illness_medication:
+        reply_msg = (
+            "MedGuard AI đã phân tích tình trạng của bạn. Khi cơ thể mệt mỏi, có biểu hiện 'ốm' hoặc cảm cúm, "
+            "nguyên tắc an toàn là điều trị hỗ trợ giảm nhẹ triệu chứng bằng thuốc không kê đơn (OTC), "
+            "tuyệt đối không tự ý mua kháng sinh và theo dõi sát các dấu hiệu cần đến cơ sở y tế. "
+            "Dưới đây là hướng dẫn chăm sóc, danh mục thuốc OTC đề xuất và nhà thuốc GPP gần bạn nhất."
+        )
+        return _response(
+            payload,
+            ctx,
+            status="answered",
+            intent="triage",
+            reply=reply_msg,
+            extracted={
+                "patient_ref": patient_ref,
+                "clinical_task": "GENERAL_ILLNESS_OTC",
+                "medical_emergency_flag": False,
+            },
+            result={
+                "urgency": "ROUTINE",
+                "clinical_task": "GENERAL_ILLNESS_OTC",
+                "clinical_state": "general_illness_otc_consultation",
+                "eligible_otc": True,
+            },
+            agent_question=latest_text,
+            allow_agent=True,
         )
 
     if intent == "general":

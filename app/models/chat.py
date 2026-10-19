@@ -51,12 +51,16 @@ class AnswerAssurance(BaseModel):
 class GroundedAnswer(BaseModel):
     title: str
     summary: str
+    presentation: Literal["brief", "focused", "detailed"] = "detailed"
+    display_summary: str | None = None
+    display_next_steps: list[str] | None = None
     clinical_hypotheses: list[str] = Field(default_factory=list)
     key_points: list[str] = Field(default_factory=list)
     next_steps: list[str] = Field(default_factory=list)
     safety_notes: list[str] = Field(default_factory=list)
     questions: list[str] = Field(default_factory=list)
     display_questions: list[str] | None = None
+    suggested_followups: list[str] = Field(default_factory=list)
     decision_basis: Literal[
         "versioned_rules",
         "registry_record",
@@ -76,6 +80,10 @@ class GroundedAnswer(BaseModel):
     narrative: list[AnswerNarrativeBlock] = Field(default_factory=list)
     researched_sources: list[AgentEvidenceSource] = Field(default_factory=list)
     answer_assurance: AnswerAssurance | None = None
+    emergency_transit: dict[str, Any] | None = None
+    enroute_triage: dict[str, Any] | None = None
+    medication_suitability: dict[str, Any] | None = None
+    geo_routing: dict[str, Any] | None = None
     agent_trace: SkipJsonSchema[AnswerAgentTrace | None] = Field(default=None, exclude=True)
 
 
@@ -92,6 +100,17 @@ class ChatContext(BaseModel):
     allergies: list[str] = Field(default_factory=list, max_length=50)
     conditions: list[str] = Field(default_factory=list, max_length=50)
     last_result: dict[str, Any] | None = None
+    user_location: dict[str, Any] | None = None
+
+
+class CompanionVoicePreference(BaseModel):
+    persona: Literal["dr_tuan", "dr_mai"] = "dr_tuan"
+
+
+class PreparedSpeech(BaseModel):
+    ticket: str
+    text: str
+    persona: Literal["dr_tuan", "dr_mai"]
 
 
 class ChatRequest(BaseModel):
@@ -113,6 +132,7 @@ class ChatRequest(BaseModel):
         "authenticity",
     ] = "auto"
     locale: str = "vi-VN"
+    voice: CompanionVoicePreference | None = None
     original_latest_content: SkipJsonSchema[str | None] = Field(default=None, exclude=True)
     continuation_reason: SkipJsonSchema[str | None] = Field(default=None, exclude=True)
 
@@ -150,17 +170,28 @@ class ChatSuggestion(BaseModel):
     intent: ChatIntent
 
 
+class AgentExecutionSummary(BaseModel):
+    requested: bool
+    writer: Literal["not_run", "success", "error", "circuit_open", "unknown"] = "not_run"
+    reviewer: Literal["not_run", "success", "error", "circuit_open", "unknown"] = "not_run"
+    # A public reason code, never provider error text, prompts or credentials.
+    reason: Literal["not_requested", "configuration_incomplete", "capacity_exhausted", "timeout", "circuit_open", "quality_rejected", "provider_error"] | None = None
+
+
 class ChatResponse(DisclaimerMixin):
     request_id: str
     conversation_id: str
     status: Literal["answered", "needs_information", "unsupported"]
     intent: ChatIntent
     reply: str
+    spoken_reply: str | None = None
+    prepared_speech: PreparedSpeech | None = None
     required_fields: list[str] = Field(default_factory=list)
     extracted: dict[str, Any] = Field(default_factory=dict)
     result: dict[str, Any] | None = None
     answer: GroundedAnswer | None = None
     suggestions: list[ChatSuggestion] = Field(default_factory=list)
+    agent_execution: AgentExecutionSummary | None = None
     answer_origin: Literal[
         "deterministic",
         "gateway_verified",
@@ -273,12 +304,16 @@ class ChatResponse(DisclaimerMixin):
                     normalized_questions.append(question)
             replacement = f"{prompt_label}: {' '.join(normalized_questions)}"
 
+        narrative_has_embedded_question = any(
+            "?" in b.text and not b.text.strip().startswith(prompt_label)
+            for b in self.answer.narrative
+        )
         updated: list[AnswerNarrativeBlock] = []
         found_question_block = False
         for block in self.answer.narrative:
             if block.text.strip().startswith(prompt_label):
                 found_question_block = True
-                if replacement:
+                if replacement and not narrative_has_embedded_question:
                     updated.append(
                         block.model_copy(
                             update={
@@ -290,7 +325,7 @@ class ChatResponse(DisclaimerMixin):
                 continue
             updated.append(block)
 
-        if replacement and not found_question_block:
+        if replacement and not found_question_block and not narrative_has_embedded_question:
             updated.append(
                 AnswerNarrativeBlock(
                     kind="paragraph",

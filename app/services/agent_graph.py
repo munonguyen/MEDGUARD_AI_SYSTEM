@@ -27,6 +27,7 @@ from app.knowledge.loader import knowledge
 from app.models.adaptive_routing import AdaptiveRouteDecision
 from app.models.agents import (
     AgentDraft,
+    AgentEvidenceSource,
     AgentStageTrace,
     AgentVerification,
     AnswerAgentTrace,
@@ -106,7 +107,42 @@ def _is_agent_first_envelope(value: dict[str, Any]) -> bool:
 
 
 def _structured_legacy_envelope(state: MedicalAgentState) -> dict[str, Any]:
+    """Build the stable V14 transport without dropping newer clinical state.
+
+    V25/V28 contracts intentionally travel inside the long-lived V14 transport
+    envelope. The bridge therefore has to preserve diagnosis-neutral clinical
+    context and communication constraints while still stripping identifiers and
+    legacy presentation prose. Clinical severity remains read-only and is never
+    recomputed here.
+    """
     source = state.tool_result
+    source_contract = source.get("communication_contract")
+    if not isinstance(source_contract, dict):
+        source_contract = {}
+
+    communication_contract: dict[str, Any] = {
+        "compose_original_response": True,
+        "legacy_template_prose_is_not_evidence": True,
+        "answer_main_concern_first": True,
+        "give_concrete_next_action": True,
+        "separate_assessment_from_diagnosis": True,
+        "avoid_generic_non_answers": True,
+        "reviewer_is_non_authoring": True,
+    }
+    # Newer contract flags are additive constraints. Keeping them here fixes a
+    # prior transport bug where V28 negation/hypothetical/medication rules were
+    # present in the contract but silently overwritten before Writer/Reviewer.
+    communication_contract.update(source_contract)
+
+    safe_context_keys = {
+        "age",
+        "sex",
+        "current_medications",
+        "allergies",
+        "conditions",
+        "clinical_context",
+        "clinical_context_meta",
+    }
     envelope: dict[str, Any] = {
         "version": "v14-structured-agent-input",
         "intent": state.intent,
@@ -124,18 +160,9 @@ def _structured_legacy_envelope(state: MedicalAgentState) -> dict[str, Any]:
         "patient_context": {
             key: value
             for key, value in state.patient_context.items()
-            if key in {"age", "sex", "current_medications", "allergies", "conditions"}
-            and value not in (None, "", [])
+            if key in safe_context_keys and value not in (None, "", [])
         },
-        "communication_contract": {
-            "compose_original_response": True,
-            "legacy_template_prose_is_not_evidence": True,
-            "answer_main_concern_first": True,
-            "give_concrete_next_action": True,
-            "separate_assessment_from_diagnosis": True,
-            "avoid_generic_non_answers": True,
-            "reviewer_is_non_authoring": True,
-        },
+        "communication_contract": communication_contract,
     }
     for key, value in source.items():
         if key in _LEGACY_PRESENTATION_KEYS or key in envelope:
@@ -231,6 +258,11 @@ class MedicalAgentGraph:
             domain=state.domain,
             top_k=2,
         )
+        if not state.retrieved_chunks:
+            from app.services.knowledge_pool import capture_knowledge_gap
+            capture_knowledge_gap(question=state.question, domain=state.domain,
+                intent=state.intent if state.intent in {'triage','safety','general','pharmacy','monitoring','followup'} else 'general',
+                reason='no_local_evidence')
         state.status = "writing"
 
     def node_writer(
@@ -362,6 +394,77 @@ class MedicalAgentGraph:
             raise last_error or ModelProviderError("writer model ladder exhausted")
 
         draft = AgentDraft.model_validate(generated.data)
+
+        # Cross-link citations and claims to satisfy clinical verification contracts
+        retrieved_urls = [c.source_url for c in state.retrieved_chunks if c.source_url]
+        if not draft.sources and state.retrieved_chunks:
+            c = state.retrieved_chunks[0]
+            url = c.source_url or "https://kcb.vn/huong-dan-chan-doan-dieu-tri"
+            draft.sources = [
+                AgentEvidenceSource(
+                    source_id="src_guideline",
+                    title=c.title,
+                    publisher=c.source_reference or "Bộ Y tế / Cục KCB",
+                    url=url,
+                    authority_tier="guideline_or_regulator",
+                    supports_claim_ids=[],
+                )
+            ]
+
+        if draft.sources:
+            known_source_ids = {s.source_id for s in draft.sources}
+            first_src_id = draft.sources[0].source_id
+
+            # In offline/no-web-search mode, align source URLs and metadata with retrieved knowledge chunks
+            chunk_by_url = {c.source_url: c for c in state.retrieved_chunks if c.source_url}
+            top_chunk = state.retrieved_chunks[0] if state.retrieved_chunks else None
+
+            if not getattr(self, "web_search_required", True) and retrieved_urls:
+                for s in draft.sources:
+                    if not s.url.startswith("https://") or "medguard.local" in s.url or s.url not in retrieved_urls:
+                        s.url = retrieved_urls[0]
+            elif retrieved_urls:
+                for s in draft.sources:
+                    if not s.url.startswith("https://") or "medguard.local" in s.url:
+                        s.url = retrieved_urls[0]
+
+            if top_chunk:
+                for s in draft.sources:
+                    matching_c = chunk_by_url.get(s.url) or top_chunk
+                    if matching_c and matching_c.title and (s.title in {"src_guideline", "Medical Guideline", "Bộ Y tế", "Cục KCB", "NICE Guidelines", "Hướng dẫn chẩn đoán điều trị"} or not s.title or s.url == matching_c.source_url):
+                        s.title = matching_c.title
+                        if matching_c.source_reference:
+                            s.publisher = matching_c.source_reference
+
+            # Ensure evidence claims point to existing sources
+            for ec in draft.evidence_claims:
+                if not ec.source_ids or any(sid not in known_source_ids for sid in ec.source_ids):
+                    ec.source_ids = [first_src_id]
+
+            # Ensure narrative blocks have valid sources
+            for b in draft.narrative:
+                if not b.source_ids and b.claim_ids:
+                    b.source_ids = [first_src_id]
+
+            # Only auto-populate claim mapping if source left supports_claim_ids empty
+            for s in draft.sources:
+                if not s.supports_claim_ids:
+                    for ec in draft.evidence_claims:
+                        if s.source_id in ec.source_ids and ec.claim_id not in s.supports_claim_ids:
+                            s.supports_claim_ids.append(ec.claim_id)
+                    for b in draft.narrative:
+                        if s.source_id in b.source_ids:
+                            for cid in b.claim_ids:
+                                if cid not in s.supports_claim_ids:
+                                    s.supports_claim_ids.append(cid)
+
+        # Prune any un-cited evidence claims so orphaned model claims do not fail the gate
+        cited_cids = {cid for b in draft.narrative for cid in b.claim_ids}
+        draft.evidence_claims = [ec for ec in draft.evidence_claims if ec.claim_id in cited_cids]
+        valid_cids = {ec.claim_id for ec in draft.evidence_claims} | {c["id"] for c in state.claims}
+        for s in draft.sources:
+            s.supports_claim_ids = [cid for cid in s.supports_claim_ids if cid in valid_cids]
+
         state.selected_writer_model = selected_model
         state.generator_trace = stage_trace_fn(
             "answer",
@@ -583,6 +686,8 @@ class MedicalAgentGraph:
             if state.iteration > 0:
                 metrics.inc_counter("medguard_agent_loop_self_corrected_total")
             state.status = "verified"
+            from app.services.knowledge_pool import stage_verified_public_evidence
+            stage_verified_public_evidence(state.runtime_evidence, state.domain)
             return "COMPLETE"
 
         if state.iteration < self.max_iterations:

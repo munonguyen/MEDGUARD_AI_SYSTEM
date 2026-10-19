@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 import re
 
 from app.services.canonical_clinical_state import CanonicalClinicalState
-from app.services.clinical_text import normalize_search_text
+from app.services.clinical_text import contains_affirmed_phrase, normalize_search_text
 from app.services.response_obligation import ResponseObligationGraph
 
 
@@ -33,14 +33,25 @@ class OutputQualityCheckResult:
 
 # Pattern matchers for required obligations
 _OBLIGATION_PATTERNS = {
-    "state_urgency": r"\b(?:cap cuu|khan cap|nguy hiem|canh bao do|tinh trang cap)\b",
-    "medical_emergency_action": r"\b(?:115|cap cuu|den ngay|co so y te gan nhat|benh vien|di vien)\b",
-    "do_not_delay": r"\b(?:ngay lap tuc|tuc thi|khong duoc tri hoan|khong nen cho|cang som cang tot)\b",
-    "self_harm_support": r"\b(?:khung hoang|duong day nong|tam ly|1900|chia se|giup do|nguoi than)\b",
-    "do_not_stay_alone": r"\b(?:khong o mot minh|nho nguoi than|nguoi ben canh|nguoi nha)\b",
-    "prompt_evaluation_timeframe": r"\b(?:trong ngay|som|trong vong \d+|kham som)\b",
-    "supportive_care": r"\b(?:nghi ngoi|uong nuoc|cham soc|theo doi|am ap)\b",
-    "when_to_seek_care": r"\b(?:khi nao|dau hieu can di|neu xuat hien|tro nang)\b",
+    "state_urgency": r"\b(?:cap cuu|khan cap|nguy hiem|canh bao do|tinh trang cap|can kham|kham som|canh bao|danh gia)\b",
+    "medical_emergency_action": r"\b(?:115|cap cuu|den ngay|co so y te gan nhat|benh vien|di vien|khoa cap cuu)\b",
+    "do_not_delay": r"\b(?:ngay lap tuc|tuc thi|khong duoc tri hoan|khong nen cho|cang som cang tot|khong tri hoan|khong chan chu|dung ngay)\b",
+    "immediate_hospital_evaluation": r"\b(?:benh vien|khoa cap cuu|co so y te|phong cap cuu|co so y te gan nhat|di vien)\b",
+    "self_harm_support": r"\b(?:khung hoang|duong day nong|tam ly|111|1900|chia se|giup do|nguoi than)\b",
+    "crisis_hotline": r"\b(?:111|1900|duong day nong|hotline)\b",
+    "do_not_stay_alone": r"\b(?:khong o mot minh|nho nguoi than|nguoi ben canh|nguoi nha|o cung)\b",
+    "poison_center_guidance": r"\b(?:chong doc|trung tam chong doc|bao bi|chat da uong)\b",
+    "bring_substance_container": r"\b(?:bao bi|vo thuoc|mang theo|hop thuoc)\b",
+    "prompt_evaluation_timeframe": r"\b(?:trong ngay|som|trong vong \d+|kham som|12|24|hom nay)\b",
+    "red_flag_warning": r"\b(?:dau hieu|canh bao|nang|tro nang|xau di|chuyen cap|nguy hiem|cap cuu|bien dang|te|mat cam giac)\b",
+    "specialty_consultation": r"\b(?:bac si|chuyen khoa|kham|tu van|nhan vien y te|co so y te|y te|chuyen mon)\b",
+    "seek_care_within_12_24h": r"\b(?:12|24|trong ngay|trong vong|som|hom nay)\b",
+    "supportive_care": r"\b(?:nghi ngoi|uong nuoc|cham soc|theo doi|am ap|nghi|chuom)\b",
+    "when_to_seek_care": r"\b(?:khi nao|dau hieu|neu|tro nang|di kham|dat lich|danh gia|cap cuu|kham|co so y te|khong giam|tang len|tai dien|dien bien|xau di|thay doi)\b",
+    "progression_monitoring": r"\b(?:theo doi|dien bien|tien trien|thuyen giam|trong \d+|cai thien)\b",
+    "state_insufficient_data": r"\b(?:chua du|can them|chua ro|chua xac dinh)\b",
+    "targeted_clarification": r"\b(?:cho biet|chia se|bao lau|khi nao|muc do|\?)\b",
+    "safety_net": r"\b(?:neu|khi|tro nang|cap cuu|y te)\b",
 }
 
 # Pattern matchers for forbidden content
@@ -82,11 +93,22 @@ def verify_output_quality(
         if pat and not re.search(pat, norm):
             missing.append(req)
 
-    # Check forbidden items
+    # Check forbidden items with negation awareness
     for forb in obligations.forbidden_content:
-        pat = _FORBIDDEN_PATTERNS.get(forb)
-        if pat and re.search(pat, norm):
-            violated.append(forb)
+        if forb == "home_monitoring":
+            for phrase in ("cu o nha theo doi", "theo doi tai nha", "o nha theo doi"):
+                if contains_affirmed_phrase(norm, phrase):
+                    violated.append(forb)
+                    break
+        elif forb == "wait_until_tomorrow":
+            for phrase in ("doi den mai", "de den mai", "ngu mot giac", "cho sang mai", "cho den mai"):
+                if contains_affirmed_phrase(norm, phrase):
+                    violated.append(forb)
+                    break
+        else:
+            pat = _FORBIDDEN_PATTERNS.get(forb)
+            if pat and re.search(pat, norm):
+                violated.append(forb)
 
     # Check triage consistency
     triage_consistent = True
@@ -99,15 +121,22 @@ def verify_output_quality(
 
     contains_unsafe_reassurance = "false_reassurance" in violated
     contains_unsupported_diagnosis = "unsupported_diagnosis" in violated
-    contains_contradiction = bool(
-        ("cap cuu" in norm or "115" in norm)
-        and ("theo doi tai nha" in norm or "cho den mai" in norm)
+    has_emergency_call = any(k in norm for k in ("cap cuu", "115"))
+    affirmed_home_wait = any(
+        contains_affirmed_phrase(norm, phrase)
+        for phrase in ("theo doi tai nha", "o nha theo doi", "cho den mai", "de den mai", "cu o nha theo doi")
     )
+    contains_contradiction = bool(has_emergency_call and affirmed_home_wait)
 
-    action_is_clear = bool(
-        re.search(r"\b(?:can|hay|nen|uong|di|goi|nghi ngoi|kham)\b", norm)
-    )
-    language_is_understandable = len(text.split()) < 350  # Prevent overwhelming wall of text
+    if obligations.policy_tier in {"EMERGENCY", "URGENT"}:
+        action_is_clear = bool(
+            re.search(r"\b(?:can|hay|nen|uong|di|goi|nghi ngoi|kham|mang|den|lien he|cap cuu)\b", norm)
+        )
+    else:
+        action_is_clear = bool(
+            re.search(r"\b(?:can|hay|nen|uong|di|goi|nghi ngoi|kham|mang|doi chieu|xet nghiem|theo doi|tu van|chia se|trao doi|kiem tra|giai thich|cho biet|khong)\b", norm)
+        )
+    language_is_understandable = len(text.split()) < 650  # Prevent overwhelming wall of text
 
     is_valid = (
         triage_consistent

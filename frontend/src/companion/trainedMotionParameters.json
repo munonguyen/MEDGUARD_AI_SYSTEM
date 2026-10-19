@@ -1,0 +1,745 @@
+{
+  "version": "2.0-trained",
+  "training_device": "Apple Silicon MPS (Metal Acceleration)",
+  "timestamp": "2026-10-11T02:56:19Z",
+  "total_variants": 24,
+  "all_qa_passed": true,
+  "styles": {
+    "greeting": {
+      "shoulder-wave": {
+        "torso": {
+          "lean": -0.0115,
+          "yaw": 0.0168,
+          "roll": 0.0094
+        },
+        "arm": {
+          "lift": -0.0047,
+          "yaw": 0.0042,
+          "bend": -0.0036,
+          "torsion": -0.0021
+        },
+        "clearance": {
+          "tx": 0.1562,
+          "ty": 0.0378,
+          "tz": 0.2206
+        },
+        "fingers": {
+          "thumb": 0.443,
+          "index": 0.518,
+          "middle": 0.487,
+          "ring": 0.621,
+          "little": 0.691
+        },
+        "qa_status": {
+          "torsion_safe": true,
+          "clearance_safe": true,
+          "fingers_natural": true
+        }
+      },
+      "small-wave": {
+        "torso": {
+          "lean": -0.0099,
+          "yaw": 0.017,
+          "roll": 0.0074
+        },
+        "arm": {
+          "lift": -0.0007,
+          "yaw": 0.0,
+          "bend": 0.0005,
+          "torsion": 0.0035
+        },
+        "clearance": {
+          "tx": 0.1557,
+          "ty": 0.0618,
+          "tz": 0.2462
+        },
+        "fingers": {
+          "thumb": 0.446,
+          "index": 0.515,
+          "middle": 0.464,
+          "ring": 0.578,
+          "little": 0.647
+        },
+        "qa_status": {
+          "torsion_safe": true,
+          "clearance_safe": true,
+          "fingers_natural": true
+        }
+      },
+      "warm-wave": {
+        "torso": {
+          "lean": -0.0083,
+          "yaw": 0.0155,
+          "roll": 0.0128
+        },
+        "arm": {
+          "lift": -0.0007,
+          "yaw": 0.0034,
+          "bend": 0.0004,
+          "torsion": -0.0026
+        },
+        "clearance": {
+          "tx": 0.1633,
+          "ty": 0.0411,
+          "tz": 0.2486
+        },
+        "fingers": {
+          "thumb": 0.436,
+          "index": 0.512,
+          "middle": 0.463,
+          "ring": 0.611,
+          "little": 0.684
+        },
+        "qa_status": {
+          "torsion_safe": true,
+          "clearance_safe": true,
+          "fingers_natural": true
+        }
+      }
+    },
+    "explain": {
+      "palm-arc": {
+        "torso": {
+          "lean": -0.012,
+          "yaw": 0.0172,
+          "roll": 0.0066
+        },
+        "arm": {
+          "lift": 0.0011,
+          "yaw": 0.0022,
+          "bend": 0.0003,
+          "torsion": 0.0013
+        },
+        "clearance": {
+          "tx": 0.1468,
+          "ty": 0.0414,
+          "tz": 0.185
+        },
+        "fingers": {
+          "thumb": 0.418,
+          "index": 0.476,
+          "middle": 0.451,
+          "ring": 0.575,
+          "little": 0.642
+        },
+        "qa_status": {
+          "torsion_safe": true,
+          "clearance_safe": true,
+          "fingers_natural": true
+        }
+      },
+      "measured-beat": {
+        "torso": {
+          "lean": -0.0105,
+          "yaw": 0.0189,
+          "roll": 0.0118
+        },
+        "arm": {
+          "lift": -0.0011,
+          "yaw": -0.0007,
+          "bend": 0.0008,
+          "torsion": -0.0009
+        },
+        "clearance": {
+          "tx": 0.1579,
+          "ty": 0.0558,
+          "tz": 0.2114
+        },
+        "fingers": {
+          "thumb": 0.433,
+          "index": 0.473,
+          "middle": 0.443,
+          "ring": 0.54,
+          "little": 0.626
+        },
+        "qa_status": {
+          "torsion_safe": true,
+          "clearance_safe": true,
+          "fingers_natural": true
+        }
+      },
+      "spatial-explain": {
+        "torso": {
+          "lean": -0.0093,
+          "yaw": 0.0165,
+          "roll": 0.0087
+        },
+        "arm": {
+          "lift": -0.0041,
+          "yaw": 0.0073,
+          "bend": -0.0026,
+          "torsion": 0.0004
+        },
+        "clearance": {
+          "tx": 0.168,
+          "ty": 0.0476,
+          "tz": 0.2241
+        },
+        "fingers": {
+          "thumb": 0.438,
+          "index": 0.497,
+          "middle": 0.463,
+          "ring": 0.605,
+          "little": 0.665
+        },
+        "qa_status": {
+          "torsion_safe": true,
+          "clearance_safe": true,
+          "fingers_natural": true
+        }
+      }
+    },
+    "invite": {
+      "one-palm-invite": {
+        "torso": {
+          "lean": -0.0119,
+          "yaw": 0.0179,
+          "roll": 0.0075
+        },
+        "arm": {
+          "lift": -0.004,
+          "yaw": 0.0031,
+          "bend": -0.0009,
+          "torsion": -0.0022
+        },
+        "clearance": {
+          "tx": 0.1556,
+          "ty": 0.0353,
+          "tz": 0.2129
+        },
+        "fingers": {
+          "thumb": 0.413,
+          "index": 0.485,
+          "middle": 0.423,
+          "ring": 0.542,
+          "little": 0.6
+        },
+        "qa_status": {
+          "torsion_safe": true,
+          "clearance_safe": true,
+          "fingers_natural": true
+        }
+      },
+      "two-palm-invite": {
+        "torso": {
+          "lean": -0.0091,
+          "yaw": 0.0191,
+          "roll": 0.012
+        },
+        "arm": {
+          "lift": -0.0018,
+          "yaw": 0.005,
+          "bend": -0.0033,
+          "torsion": 0.0044
+        },
+        "clearance": {
+          "tx": 0.158,
+          "ty": 0.0539,
+          "tz": 0.2444
+        },
+        "fingers": {
+          "thumb": 0.401,
+          "index": 0.49,
+          "middle": 0.402,
+          "ring": 0.517,
+          "little": 0.587
+        },
+        "qa_status": {
+          "torsion_safe": true,
+          "clearance_safe": true,
+          "fingers_natural": true
+        }
+      },
+      "gentle-invite": {
+        "torso": {
+          "lean": -0.0096,
+          "yaw": 0.0156,
+          "roll": 0.0104
+        },
+        "arm": {
+          "lift": -0.001,
+          "yaw": 0.0029,
+          "bend": 0.0003,
+          "torsion": -0.0015
+        },
+        "clearance": {
+          "tx": 0.1585,
+          "ty": 0.0374,
+          "tz": 0.2439
+        },
+        "fingers": {
+          "thumb": 0.415,
+          "index": 0.497,
+          "middle": 0.428,
+          "ring": 0.575,
+          "little": 0.623
+        },
+        "qa_status": {
+          "torsion_safe": true,
+          "clearance_safe": true,
+          "fingers_natural": true
+        }
+      }
+    },
+    "reassure": {
+      "low-open-palms": {
+        "torso": {
+          "lean": -0.007,
+          "yaw": 0.0166,
+          "roll": 0.011
+        },
+        "arm": {
+          "lift": 0.0008,
+          "yaw": 0.0006,
+          "bend": -0.002,
+          "torsion": 0.0043
+        },
+        "clearance": {
+          "tx": 0.1564,
+          "ty": 0.0386,
+          "tz": 0.1898
+        },
+        "fingers": {
+          "thumb": 0.431,
+          "index": 0.479,
+          "middle": 0.448,
+          "ring": 0.556,
+          "little": 0.628
+        },
+        "qa_status": {
+          "torsion_safe": true,
+          "clearance_safe": true,
+          "fingers_natural": true
+        }
+      },
+      "hand-near-heart": {
+        "torso": {
+          "lean": -0.0081,
+          "yaw": 0.0183,
+          "roll": 0.0124
+        },
+        "arm": {
+          "lift": -0.0065,
+          "yaw": 0.0053,
+          "bend": 0.0017,
+          "torsion": -0.0054
+        },
+        "clearance": {
+          "tx": 0.1616,
+          "ty": 0.0572,
+          "tz": 0.2196
+        },
+        "fingers": {
+          "thumb": 0.442,
+          "index": 0.458,
+          "middle": 0.409,
+          "ring": 0.499,
+          "little": 0.596
+        },
+        "qa_status": {
+          "torsion_safe": true,
+          "clearance_safe": true,
+          "fingers_natural": true
+        }
+      },
+      "gentle-offer": {
+        "torso": {
+          "lean": -0.0168,
+          "yaw": 0.0167,
+          "roll": 0.0063
+        },
+        "arm": {
+          "lift": 0.0029,
+          "yaw": -0.0022,
+          "bend": 0.0015,
+          "torsion": 0.0024
+        },
+        "clearance": {
+          "tx": 0.1666,
+          "ty": 0.0435,
+          "tz": 0.2196
+        },
+        "fingers": {
+          "thumb": 0.431,
+          "index": 0.461,
+          "middle": 0.417,
+          "ring": 0.541,
+          "little": 0.617
+        },
+        "qa_status": {
+          "torsion_safe": true,
+          "clearance_safe": true,
+          "fingers_natural": true
+        }
+      }
+    },
+    "caution": {
+      "compact-stop": {
+        "torso": {
+          "lean": -0.01,
+          "yaw": 0.0203,
+          "roll": 0.0118
+        },
+        "arm": {
+          "lift": -0.0026,
+          "yaw": 0.0066,
+          "bend": -0.0043,
+          "torsion": 0.0028
+        },
+        "clearance": {
+          "tx": 0.1579,
+          "ty": 0.0268,
+          "tz": 0.2095
+        },
+        "fingers": {
+          "thumb": 0.421,
+          "index": 0.497,
+          "middle": 0.469,
+          "ring": 0.587,
+          "little": 0.622
+        },
+        "qa_status": {
+          "torsion_safe": true,
+          "clearance_safe": true,
+          "fingers_natural": true
+        }
+      },
+      "precise-warning": {
+        "torso": {
+          "lean": -0.0139,
+          "yaw": 0.0147,
+          "roll": 0.0083
+        },
+        "arm": {
+          "lift": 0.0013,
+          "yaw": -0.0001,
+          "bend": -0.0007,
+          "torsion": -0.0027
+        },
+        "clearance": {
+          "tx": 0.1685,
+          "ty": 0.0511,
+          "tz": 0.2334
+        },
+        "fingers": {
+          "thumb": 0.392,
+          "index": 0.481,
+          "middle": 0.433,
+          "ring": 0.552,
+          "little": 0.572
+        },
+        "qa_status": {
+          "torsion_safe": true,
+          "clearance_safe": true,
+          "fingers_natural": true
+        }
+      },
+      "controlled-beat": {
+        "torso": {
+          "lean": -0.0085,
+          "yaw": 0.0153,
+          "roll": 0.0061
+        },
+        "arm": {
+          "lift": 0.001,
+          "yaw": -0.0016,
+          "bend": 0.001,
+          "torsion": -0.0003
+        },
+        "clearance": {
+          "tx": 0.1665,
+          "ty": 0.0401,
+          "tz": 0.2391
+        },
+        "fingers": {
+          "thumb": 0.413,
+          "index": 0.507,
+          "middle": 0.454,
+          "ring": 0.591,
+          "little": 0.624
+        },
+        "qa_status": {
+          "torsion_safe": true,
+          "clearance_safe": true,
+          "fingers_natural": true
+        }
+      }
+    },
+    "enumerate": {
+      "count-one": {
+        "torso": {
+          "lean": -0.0073,
+          "yaw": 0.014,
+          "roll": 0.0104
+        },
+        "arm": {
+          "lift": -0.0024,
+          "yaw": 0.0029,
+          "bend": 0.0019,
+          "torsion": 0.0011
+        },
+        "clearance": {
+          "tx": 0.1399,
+          "ty": 0.0352,
+          "tz": 0.2159
+        },
+        "fingers": {
+          "thumb": 0.42,
+          "index": 0.48,
+          "middle": 0.444,
+          "ring": 0.563,
+          "little": 0.606
+        },
+        "qa_status": {
+          "torsion_safe": true,
+          "clearance_safe": true,
+          "fingers_natural": true
+        }
+      },
+      "count-two": {
+        "torso": {
+          "lean": -0.0139,
+          "yaw": 0.0209,
+          "roll": 0.0039
+        },
+        "arm": {
+          "lift": 0.0035,
+          "yaw": 0.001,
+          "bend": 0.0052,
+          "torsion": 0.0009
+        },
+        "clearance": {
+          "tx": 0.1421,
+          "ty": 0.0621,
+          "tz": 0.2202
+        },
+        "fingers": {
+          "thumb": 0.402,
+          "index": 0.419,
+          "middle": 0.371,
+          "ring": 0.466,
+          "little": 0.533
+        },
+        "qa_status": {
+          "torsion_safe": true,
+          "clearance_safe": true,
+          "fingers_natural": true
+        }
+      },
+      "sequence-beat": {
+        "torso": {
+          "lean": -0.007,
+          "yaw": 0.0178,
+          "roll": 0.0127
+        },
+        "arm": {
+          "lift": 0.0003,
+          "yaw": 0.0025,
+          "bend": -0.0081,
+          "torsion": 0.0012
+        },
+        "clearance": {
+          "tx": 0.1527,
+          "ty": 0.0394,
+          "tz": 0.2589
+        },
+        "fingers": {
+          "thumb": 0.445,
+          "index": 0.496,
+          "middle": 0.443,
+          "ring": 0.58,
+          "little": 0.635
+        },
+        "qa_status": {
+          "torsion_safe": true,
+          "clearance_safe": true,
+          "fingers_natural": true
+        }
+      }
+    },
+    "compare": {
+      "two-sides": {
+        "torso": {
+          "lean": -0.0101,
+          "yaw": 0.0137,
+          "roll": 0.0076
+        },
+        "arm": {
+          "lift": 0.0007,
+          "yaw": 0.0009,
+          "bend": -0.003,
+          "torsion": 0.0029
+        },
+        "clearance": {
+          "tx": 0.1539,
+          "ty": 0.0172,
+          "tz": 0.1864
+        },
+        "fingers": {
+          "thumb": 0.407,
+          "index": 0.451,
+          "middle": 0.431,
+          "ring": 0.531,
+          "little": 0.589
+        },
+        "qa_status": {
+          "torsion_safe": true,
+          "clearance_safe": true,
+          "fingers_natural": true
+        }
+      },
+      "alternate-palm": {
+        "torso": {
+          "lean": -0.0107,
+          "yaw": 0.0176,
+          "roll": 0.0091
+        },
+        "arm": {
+          "lift": -0.0041,
+          "yaw": 0.0057,
+          "bend": -0.0032,
+          "torsion": -0.0027
+        },
+        "clearance": {
+          "tx": 0.1607,
+          "ty": 0.0382,
+          "tz": 0.222
+        },
+        "fingers": {
+          "thumb": 0.416,
+          "index": 0.477,
+          "middle": 0.42,
+          "ring": 0.524,
+          "little": 0.602
+        },
+        "qa_status": {
+          "torsion_safe": true,
+          "clearance_safe": true,
+          "fingers_natural": true
+        }
+      },
+      "small-range": {
+        "torso": {
+          "lean": -0.0116,
+          "yaw": 0.0186,
+          "roll": 0.0136
+        },
+        "arm": {
+          "lift": -0.0024,
+          "yaw": 0.0013,
+          "bend": 0.004,
+          "torsion": 0.0002
+        },
+        "clearance": {
+          "tx": 0.1712,
+          "ty": 0.0344,
+          "tz": 0.2284
+        },
+        "fingers": {
+          "thumb": 0.42,
+          "index": 0.477,
+          "middle": 0.436,
+          "ring": 0.562,
+          "little": 0.629
+        },
+        "qa_status": {
+          "torsion_safe": true,
+          "clearance_safe": true,
+          "fingers_natural": true
+        }
+      }
+    },
+    "guide": {
+      "offer-step": {
+        "torso": {
+          "lean": -0.013,
+          "yaw": 0.0189,
+          "roll": 0.0101
+        },
+        "arm": {
+          "lift": -0.0027,
+          "yaw": 0.0053,
+          "bend": 0.0,
+          "torsion": -0.0017
+        },
+        "clearance": {
+          "tx": 0.1633,
+          "ty": 0.019,
+          "tz": 0.2058
+        },
+        "fingers": {
+          "thumb": 0.427,
+          "index": 0.486,
+          "middle": 0.468,
+          "ring": 0.578,
+          "little": 0.639
+        },
+        "qa_status": {
+          "torsion_safe": true,
+          "clearance_safe": true,
+          "fingers_natural": true
+        }
+      },
+      "precise-step": {
+        "torso": {
+          "lean": -0.0072,
+          "yaw": 0.0173,
+          "roll": 0.0159
+        },
+        "arm": {
+          "lift": -0.0008,
+          "yaw": 0.0058,
+          "bend": -0.0016,
+          "torsion": 0.0024
+        },
+        "clearance": {
+          "tx": 0.1717,
+          "ty": 0.0392,
+          "tz": 0.2447
+        },
+        "fingers": {
+          "thumb": 0.441,
+          "index": 0.518,
+          "middle": 0.472,
+          "ring": 0.565,
+          "little": 0.642
+        },
+        "qa_status": {
+          "torsion_safe": true,
+          "clearance_safe": true,
+          "fingers_natural": true
+        }
+      },
+      "support-step": {
+        "torso": {
+          "lean": -0.0097,
+          "yaw": 0.0184,
+          "roll": 0.0045
+        },
+        "arm": {
+          "lift": -0.0051,
+          "yaw": 0.0005,
+          "bend": -0.0049,
+          "torsion": -0.0002
+        },
+        "clearance": {
+          "tx": 0.1752,
+          "ty": 0.0283,
+          "tz": 0.2407
+        },
+        "fingers": {
+          "thumb": 0.437,
+          "index": 0.488,
+          "middle": 0.457,
+          "ring": 0.566,
+          "little": 0.644
+        },
+        "qa_status": {
+          "torsion_safe": true,
+          "clearance_safe": true,
+          "fingers_natural": true
+        }
+      }
+    }
+  }
+}

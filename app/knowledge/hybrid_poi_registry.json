@@ -1,0 +1,436 @@
+{
+  "version": "2026.2",
+  "registry_description": "Trung tâm dữ liệu địa điểm Y tế & Dược phẩm Hybrid (Bệnh viện Cấp cứu & Nhà thuốc GPP Toàn quốc)",
+  "emergency_facilities": [
+    {
+      "id": "EMERGENCY-CR-HCM",
+      "name": "Bệnh viện Chợ Rẫy — Trung tâm Cấp cứu 115 & Đột quỵ",
+      "type": "hospital_emergency",
+      "address": "201B Nguyễn Chí Thanh, Phường 12, Quận 5, TP. Hồ Chí Minh",
+      "city": "hcm",
+      "district": "Quận 5",
+      "hotline": "028 3855 4137",
+      "emergency_hotline": "028 3855 4138",
+      "lat": 10.7578,
+      "lng": 106.6596,
+      "capabilities": ["emergency_department", "stroke_unit", "cath_lab_pci", "trauma_center", "toxicology", "icu"],
+      "operating_hours": {
+        "is_24_7": true,
+        "open": "00:00",
+        "close": "23:59",
+        "note": "Cấp cứu 24/7/365 — Luôn có bác sĩ trực hồi sức cấp cứu"
+      },
+      "navigation_url": "https://www.google.com/maps/dir/?api=1&destination=Benh+Vien+Cho+Ray+TPHCM"
+    },
+    {
+      "id": "EMERGENCY-115-HCM",
+      "name": "Bệnh viện Nhân dân 115 — Trung tâm Đột quỵ & Can thiệp Tim mạch",
+      "type": "hospital_emergency",
+      "address": "527 Sư Vạn Hạnh, Phường 12, Quận 10, TP. Hồ Chí Minh",
+      "city": "hcm",
+      "district": "Quận 10",
+      "hotline": "028 3865 2368",
+      "emergency_hotline": "028 3865 4249",
+      "lat": 10.7756,
+      "lng": 106.6667,
+      "capabilities": ["emergency_department", "stroke_unit", "cath_lab_pci", "neurology", "icu"],
+      "operating_hours": {
+        "is_24_7": true,
+        "open": "00:00",
+        "close": "23:59",
+        "note": "Cấp cứu 24/7/365 — Trung tâm Đột quỵ Đạt chuẩn Kim cương Angels"
+      },
+      "navigation_url": "https://www.google.com/maps/dir/?api=1&destination=Benh+Vien+Nhan+Dan+115+TPHCM"
+    },
+    {
+      "id": "EMERGENCY-DHYD-HCM",
+      "name": "Bệnh viện Đại học Y Dược TP.HCM — Khoa Cấp cứu",
+      "type": "hospital_emergency",
+      "address": "215 Hồng Bàng, Phường 11, Quận 5, TP. Hồ Chí Minh",
+      "city": "hcm",
+      "district": "Quận 5",
+      "hotline": "028 3855 4269",
+      "emergency_hotline": "028 3952 5353",
+      "lat": 10.7554,
+      "lng": 106.6601,
+      "capabilities": ["emergency_department", "cath_lab_pci", "internal_medicine", "surgery", "icu"],
+      "operating_hours": {
+        "is_24_7": true,
+        "open": "00:00",
+        "close": "23:59",
+        "note": "Cấp cứu 24/7 — Đầy đủ trang thiết bị hồi sức hiện đại"
+      },
+      "navigation_url": "https://www.google.com/maps/dir/?api=1&destination=Benh+Vien+Dai+Hoc+Y+Duoc+TPHCM"
+    },
+    {
+      "id": "EMERGENCY-ND1-HCM",
+      "name": "Bệnh viện Nhi Đồng 1 — Cấp cứu Hồi sức Nhi",
+      "type": "hospital_emergency",
+      "address": "341 Sư Vạn Hạnh, Phường 10, Quận 10, TP. Hồ Chí Minh",
+      "city": "hcm",
+      "district": "Quận 10",
+      "hotline": "028 3927 1119",
+      "emergency_hotline": "028 3927 1119",
+      "lat": 10.7689,
+      "lng": 106.6712,
+      "capabilities": ["pediatric_emergency", "pediatric_icu", "neonatal_emergency"],
+      "operating_hours": {
+        "is_24_7": true,
+        "open": "00:00",
+        "close": "23:59",
+        "note": "Cấp cứu Nhi 24/7/365 — Chuyên khoa hồi sức cấp cứu trẻ em tuyến cuối"
+      },
+      "navigation_url": "https://www.google.com/maps/dir/?api=1&destination=Benh+Vien+Nhi+Dong+1+TPHCM"
+    },
+    {
+      "id": "EMERGENCY-BM-HN",
+      "name": "Bệnh viện Bạch Mai — Trung tâm Cấp cứu A9 & Đột quỵ",
+      "type": "hospital_emergency",
+      "address": "78 Giải Phóng, Phương Mai, Đống Đa, Hà Nội",
+      "city": "hanoi",
+      "district": "Đống Đa",
+      "hotline": "024 3869 3731",
+      "emergency_hotline": "024 3869 3731",
+      "lat": 20.9996,
+      "lng": 105.8415,
+      "capabilities": ["emergency_department", "stroke_unit", "cath_lab_pci", "toxicology", "icu", "trauma_center"],
+      "operating_hours": {
+        "is_24_7": true,
+        "open": "00:00",
+        "close": "23:59",
+        "note": "Cấp cứu A9 24/7/365 — Trung tâm hồi sức cấp cứu tuyến cao nhất miền Bắc"
+      },
+      "navigation_url": "https://www.google.com/maps/dir/?api=1&destination=Benh+Vien+Bach+Mai+Ha+Noi"
+    },
+    {
+      "id": "EMERGENCY-108-HN",
+      "name": "Bệnh viện Trung ương Quân đội 108 — Cấp cứu & Can thiệp Tim mạch",
+      "type": "hospital_emergency",
+      "address": "Số 1 Trần Hưng Đạo, Bạch Đằng, Hai Bà Trưng, Hà Nội",
+      "city": "hanoi",
+      "district": "Hai Bà Trưng",
+      "hotline": "069 572 400",
+      "emergency_hotline": "024 6278 4115",
+      "lat": 21.0186,
+      "lng": 105.8601,
+      "capabilities": ["emergency_department", "stroke_unit", "cath_lab_pci", "trauma_center", "icu"],
+      "operating_hours": {
+        "is_24_7": true,
+        "open": "00:00",
+        "close": "23:59",
+        "note": "Cấp cứu 24/7 — Trung tâm tim mạch & can thiệp mạch máu hiện đại"
+      },
+      "navigation_url": "https://www.google.com/maps/dir/?api=1&destination=Benh+Vien+108+Ha+Noi"
+    },
+    {
+      "id": "EMERGENCY-VD-HN",
+      "name": "Bệnh viện Hữu nghị Việt Đức — Cấp cứu Ngoại khoa & Chấn thương",
+      "type": "hospital_emergency",
+      "address": "40 Tràng Thi, Hàng Bông, Hoàn Kiếm, Hà Nội",
+      "city": "hanoi",
+      "district": "Hoàn Kiếm",
+      "hotline": "024 3825 3531",
+      "emergency_hotline": "024 3825 3535",
+      "lat": 21.0289,
+      "lng": 105.8489,
+      "capabilities": ["trauma_center", "emergency_surgery", "emergency_department", "icu"],
+      "operating_hours": {
+        "is_24_7": true,
+        "open": "00:00",
+        "close": "23:59",
+        "note": "Cấp cứu Ngoại khoa 24/7 — Tuyến đầu về phẫu thuật cấp cứu & đa chấn thương"
+      },
+      "navigation_url": "https://www.google.com/maps/dir/?api=1&destination=Benh+Vien+Viet+Duc+Ha+Noi"
+    },
+    {
+      "id": "EMERGENCY-DN-CEN",
+      "name": "Bệnh viện Đà Nẵng — Trung tâm Cấp cứu Đa khoa & Đột quỵ",
+      "type": "hospital_emergency",
+      "address": "124 Hải Phòng, Thạch Thang, Hải Châu, Đà Nẵng",
+      "city": "danang",
+      "district": "Hải Châu",
+      "hotline": "0236 3821 118",
+      "emergency_hotline": "0236 3821 118",
+      "lat": 16.0718,
+      "lng": 108.2141,
+      "capabilities": ["emergency_department", "stroke_unit", "cath_lab_pci", "trauma_center", "icu"],
+      "operating_hours": {
+        "is_24_7": true,
+        "open": "00:00",
+        "close": "23:59",
+        "note": "Cấp cứu 24/7/365 — Bệnh viện tuyến cuối khu vực miền Trung"
+      },
+      "navigation_url": "https://www.google.com/maps/dir/?api=1&destination=Benh+Vien+Da+Nang"
+    }
+  ],
+  "pharmacies": [
+    {
+      "id": "PHARM-LC-Q1-01",
+      "name": "Nhà thuốc FPT Long Châu — Hai Bà Trưng (24/7)",
+      "chain": "FPT Long Châu",
+      "address": "375 Hai Bà Trưng, Phường 8, Quận 3, TP. Hồ Chí Minh",
+      "city": "hcm",
+      "district": "Quận 3",
+      "hotline": "1800 6928",
+      "direct_phone": "028 7302 6928",
+      "lat": 10.7892,
+      "lng": 106.6908,
+      "services": ["GPP chuẩn", "Trực đêm 24/7", "Giao hỏa tốc 2h", "Dược sĩ tư vấn chuyên sâu"],
+      "operating_hours": {
+        "is_24_7": true,
+        "open": "00:00",
+        "close": "23:59",
+        "note": "Mở cửa xuyên đêm 24/7 — Có dược sĩ trực quầy liên tục"
+      },
+      "google_maps_url": "https://www.google.com/maps/search/Nha+Thuoc+Long+Chau+375+Hai+Ba+Trung+TPHCM"
+    },
+    {
+      "id": "PHARM-PMC-Q1-24H",
+      "name": "Nhà thuốc Pharmacity 24H — Cống Quỳnh",
+      "chain": "Pharmacity",
+      "address": "189 Cống Quỳnh, Phường Nguyễn Cư Trinh, Quận 1, TP. Hồ Chí Minh",
+      "city": "hcm",
+      "district": "Quận 1",
+      "hotline": "1800 6821",
+      "direct_phone": "028 7300 6821",
+      "lat": 10.7651,
+      "lng": 106.6874,
+      "services": ["Chuỗi chuẩn GPP", "Mở cửa 24/24", "Thuốc kê đơn & OTC", "Giao hàng qua app"],
+      "operating_hours": {
+        "is_24_7": true,
+        "open": "00:00",
+        "close": "23:59",
+        "note": "Mở cửa 24/7 xuyên đêm phục vụ cấp phát thuốc khẩn"
+      },
+      "google_maps_url": "https://www.google.com/maps/search/Pharmacity+189+Cong+Quynh+Quan+1+TPHCM"
+    },
+    {
+      "id": "PHARM-LC-Q10-02",
+      "name": "Nhà thuốc FPT Long Châu — Tô Hiến Thành",
+      "chain": "FPT Long Châu",
+      "address": "260 Tô Hiến Thành, Phường 15, Quận 10, TP. Hồ Chí Minh",
+      "city": "hcm",
+      "district": "Quận 10",
+      "hotline": "1800 6928",
+      "direct_phone": "028 7306 6928",
+      "lat": 10.7781,
+      "lng": 106.6612,
+      "services": ["GPP chuẩn", "Gần Bệnh viện 115", "Đầy đủ biệt dược", "Giao hàng 2h"],
+      "operating_hours": {
+        "is_24_7": false,
+        "open": "06:30",
+        "close": "22:30",
+        "note": "Mở cửa 06:30 - 22:30 hàng ngày"
+      },
+      "google_maps_url": "https://www.google.com/maps/search/Nha+Thuoc+Long+Chau+260+To+Hien+Thanh+Quan+10+TPHCM"
+    },
+    {
+      "id": "PHARM-AK-Q5-01",
+      "name": "Nhà thuốc An Khang — Nguyễn Trãi Quận 5",
+      "chain": "An Khang",
+      "address": "428 Nguyễn Trãi, Phường 8, Quận 5, TP. Hồ Chí Minh",
+      "city": "hcm",
+      "district": "Quận 5",
+      "hotline": "1900 1572",
+      "direct_phone": "028 3923 1572",
+      "lat": 10.7538,
+      "lng": 106.6685,
+      "services": ["Chuỗi Thế Giới Di Động", "Chuẩn GPP", "Đo huyết áp miễn phí"],
+      "operating_hours": {
+        "is_24_7": false,
+        "open": "07:00",
+        "close": "22:00",
+        "note": "Mở cửa 07:00 - 22:00 hàng ngày"
+      },
+      "google_maps_url": "https://www.google.com/maps/search/Nha+Thuoc+An+Khang+Nguyen+Trai+Quan+5+TPHCM"
+    },
+    {
+      "id": "PHARM-BV-CR-24H",
+      "name": "Nhà thuốc Bệnh viện Chợ Rẫy (Khu Cấp Cứu 24/7)",
+      "chain": "Nhà thuốc Bệnh viện",
+      "address": "201B Nguyễn Chí Thanh, Phường 12, Quận 5, TP. Hồ Chí Minh",
+      "city": "hcm",
+      "district": "Quận 5",
+      "hotline": "028 3855 4137",
+      "direct_phone": "028 3855 4138",
+      "lat": 10.7579,
+      "lng": 106.6599,
+      "services": ["Cấp phát 24/7", "Biệt dược hiếm", "Thuốc cấp cứu chuyên sâu", "Thanh toán viện phí"],
+      "operating_hours": {
+        "is_24_7": true,
+        "open": "00:00",
+        "close": "23:59",
+        "note": "Mở cửa 24/7 phục vụ bệnh nhân cấp cứu và xuất viện"
+      },
+      "google_maps_url": "https://www.google.com/maps/search/Nha+Thuoc+Benh+Vien+Cho+Ray+TPHCM"
+    },
+    {
+      "id": "PHARM-LC-HN-24H",
+      "name": "Nhà thuốc FPT Long Châu 24H — Tràng Thi Hà Nội",
+      "chain": "FPT Long Châu",
+      "address": "32 Tràng Thi, Hàng Bông, Hoàn Kiếm, Hà Nội",
+      "city": "hanoi",
+      "district": "Hoàn Kiếm",
+      "hotline": "1800 6928",
+      "direct_phone": "024 7300 6928",
+      "lat": 21.0285,
+      "lng": 105.8495,
+      "services": ["Trực đêm 24/7", "Gần Bệnh viện Việt Đức", "Giao thuốc tận nhà", "Tư vấn dược sĩ"],
+      "operating_hours": {
+        "is_24_7": true,
+        "open": "00:00",
+        "close": "23:59",
+        "note": "Phục vụ 24/7 xuyên đêm"
+      },
+      "google_maps_url": "https://www.google.com/maps/search/Nha+Thuoc+Long+Chau+Trang+Thi+Ha+Noi"
+    },
+    {
+      "id": "PHARM-PMC-HN-GP",
+      "name": "Nhà thuốc Pharmacity — Giải Phóng Đống Đa",
+      "chain": "Pharmacity",
+      "address": "120 Giải Phóng, Phương Mai, Đống Đa, Hà Nội",
+      "city": "hanoi",
+      "district": "Đống Đa",
+      "hotline": "1800 6821",
+      "direct_phone": "024 7302 6821",
+      "lat": 20.9985,
+      "lng": 105.8428,
+      "services": ["Gần Bệnh viện Bạch Mai", "Chuẩn GPP", "Đầy đủ dụng cụ y tế"],
+      "operating_hours": {
+        "is_24_7": false,
+        "open": "06:30",
+        "close": "22:30",
+        "note": "Mở cửa 06:30 - 22:30 hàng ngày"
+      },
+      "google_maps_url": "https://www.google.com/maps/search/Pharmacity+Giai+Phong+Dong+Da+Ha+Noi"
+    },
+    {
+      "id": "PHARM-HA-HN-LUB",
+      "name": "Nhà thuốc Hà Anh — Lương Ngọc Quyến (Cạnh Đại học Hà Nội)",
+      "chain": "Nhà thuốc Hà Anh",
+      "address": "3 Đường Lương Ngọc Quyến, Phường Văn Quán, Thanh Xuân, Hà Nội",
+      "city": "hanoi",
+      "district": "Thanh Xuân",
+      "hotline": "097 356 2136",
+      "direct_phone": "097 356 2136",
+      "lat": 20.9858,
+      "lng": 105.7928,
+      "services": ["Chuẩn GPP", "Gần Đại học Hà Nội", "Thuốc kê đơn & OTC", "Dược sĩ thường trực"],
+      "operating_hours": {
+        "is_24_7": false,
+        "open": "07:00",
+        "close": "22:00",
+        "note": "Mở cửa từ 07:00 - 22:00 hàng ngày"
+      },
+      "google_maps_url": "https://www.google.com/maps/search/Nha+Thuoc+Ha+Anh+Luong+Ngoc+Quyen+Ha+Noi"
+    },
+    {
+      "id": "PHARM-MK-HN-LUB",
+      "name": "Nhà thuốc Phòng Khám Minh Khuê",
+      "chain": "Phòng Khám Minh Khuê",
+      "address": "10 Đường Lương Ngọc Quyến, Thanh Xuân, Hà Nội",
+      "city": "hanoi",
+      "district": "Thanh Xuân",
+      "hotline": "098 584 5169",
+      "direct_phone": "098 584 5169",
+      "lat": 20.9862,
+      "lng": 105.7932,
+      "services": ["Chuẩn GPP", "Tư vấn khám lâm sàng", "Thuốc chính hãng"],
+      "operating_hours": {
+        "is_24_7": false,
+        "open": "07:00",
+        "close": "22:30",
+        "note": "Mở cửa từ 07:00 - 22:30 hàng ngày"
+      },
+      "google_maps_url": "https://www.google.com/maps/search/Nha+Thuoc+Minh+Khue+Luong+Ngoc+Quyen+Ha+Noi"
+    },
+    {
+      "id": "PHARM-LC-HN-LTV",
+      "name": "Nhà thuốc FPT Long Châu — Lương Thế Vinh / Nguyễn Trãi",
+      "chain": "FPT Long Châu",
+      "address": "421 Nguyễn Trãi, Thanh Xuân, Hà Nội (Gần Đại học Hà Nội)",
+      "city": "hanoi",
+      "district": "Thanh Xuân",
+      "hotline": "1800 6928",
+      "direct_phone": "024 7300 6928",
+      "lat": 20.9918,
+      "lng": 105.7975,
+      "services": ["Chuẩn GPP Quốc tế", "Mở cửa 24/7", "Đầy đủ thuốc đặc trị", "Giao hàng 1h"],
+      "operating_hours": {
+        "is_24_7": true,
+        "open": "00:00",
+        "close": "23:59",
+        "note": "Mở cửa 24/7 xuyên đêm"
+      },
+      "google_maps_url": "https://www.google.com/maps/search/Nha+Thuoc+Long+Chau+Nguyen+Trai+Ha+Noi"
+    },
+    {
+      "id": "PHARM-PMC-HN-NQD",
+      "name": "Nhà thuốc Pharmacity — Nguyễn Quý Đức",
+      "chain": "Pharmacity",
+      "address": "29 Nguyễn Quý Đức, Thanh Xuân, Hà Nội",
+      "city": "hanoi",
+      "district": "Thanh Xuân",
+      "hotline": "1800 6821",
+      "direct_phone": "024 7300 6821",
+      "lat": 20.9928,
+      "lng": 105.7980,
+      "services": ["Chuẩn GPP", "Đo huyết áp miễn phí", "Thuốc OTC & Kê đơn"],
+      "operating_hours": {
+        "is_24_7": false,
+        "open": "06:30",
+        "close": "22:30",
+        "note": "Mở cửa 06:30 - 22:30 hàng ngày"
+      },
+      "google_maps_url": "https://www.google.com/maps/search/Pharmacity+Nguyen+Quy+Duc+Thanh+Xuan+Ha+Noi"
+    },
+    {
+      "id": "PHARM-LC-DN-24H",
+      "name": "Nhà thuốc FPT Long Châu 24H — Hải Châu Đà Nẵng",
+      "chain": "FPT Long Châu",
+      "address": "118 Hải Phòng, Thạch Thang, Hải Châu, Đà Nẵng",
+      "city": "danang",
+      "district": "Hải Châu",
+      "hotline": "1800 6928",
+      "direct_phone": "0236 730 6928",
+      "lat": 16.0715,
+      "lng": 108.2145,
+      "services": ["Trực 24/7 cạnh Bệnh viện Đà Nẵng", "Thuốc chính hãng GPP", "Giao hàng hỏa tốc"],
+      "operating_hours": {
+        "is_24_7": true,
+        "open": "00:00",
+        "close": "23:59",
+        "note": "Mở cửa liên tục 24/7"
+      },
+      "google_maps_url": "https://www.google.com/maps/search/Nha+Thuoc+Long+Chau+Hai+Phong+Da+Nang"
+    }
+  ],
+  "traffic_corridors": {
+    "hcm": {
+      "congested_arteries": ["Cách Mạng Tháng 8", "Cộng Hòa", "Xô Viết Nghệ Tĩnh", "Nguyễn Trãi", "Nam Kỳ Khởi Nghĩa", "Lý Thường Kiệt"],
+      "bypass_arteries": ["Đại lộ Võ Văn Kiệt", "Đại lộ Phạm Văn Đồng", "Tuyến ven kênh Hoàng Sa - Trường Sa", "Đường Vành Đai 2"],
+      "rush_hours": [
+        {"name": "Giờ cao điểm sáng", "start": "07:00", "end": "08:45", "congestion_index": 2.2, "traffic_level": "HEAVY"},
+        {"name": "Giờ tan tầm trưa", "start": "11:30", "end": "12:45", "congestion_index": 1.4, "traffic_level": "MODERATE"},
+        {"name": "Giờ cao điểm chiều/tối", "start": "17:00", "end": "19:30", "congestion_index": 2.6, "traffic_level": "SEVERELY_CONGESTED"}
+      ]
+    },
+    "hanoi": {
+      "congested_arteries": ["Giải Phóng", "Nguyễn Trãi", "Đường Láng", "Cầu Giấy", "Trường Chinh", "Đê La Thành"],
+      "bypass_arteries": ["Vành đai 2 trên cao", "Vành đai 3 trên cao", "Đường ven Hồ Tây", "Đại lộ Thăng Long"],
+      "rush_hours": [
+        {"name": "Giờ cao điểm sáng", "start": "07:00", "end": "08:45", "congestion_index": 2.3, "traffic_level": "HEAVY"},
+        {"name": "Giờ tan tầm trưa", "start": "11:30", "end": "12:45", "congestion_index": 1.3, "traffic_level": "MODERATE"},
+        {"name": "Giờ cao điểm chiều/tối", "start": "17:00", "end": "19:30", "congestion_index": 2.7, "traffic_level": "SEVERELY_CONGESTED"}
+      ]
+    },
+    "danang": {
+      "congested_arteries": ["Điện Biên Phủ", "Hùng Vương", "Nguyễn Tri Phương", "Cầu Rồng"],
+      "bypass_arteries": ["Đường Như Nguyệt - Bạch Đằng ven sông", "Đường Nguyễn Tất Thành ven biển"],
+      "rush_hours": [
+        {"name": "Giờ cao điểm sáng", "start": "07:15", "end": "08:30", "congestion_index": 1.6, "traffic_level": "MODERATE"},
+        {"name": "Giờ cao điểm chiều/tối", "start": "17:15", "end": "18:45", "congestion_index": 1.9, "traffic_level": "HEAVY"}
+      ]
+    }
+  }
+}

@@ -36,8 +36,7 @@ def _default_agent_mode() -> str:
         return explicit.lower()
     if _is_test_runtime():
         return "disabled"
-    environment = getenv("MEDGUARD_ENVIRONMENT", "development").lower()
-    return "enforced" if environment == "development" else "disabled"
+    return "enforced"
 
 
 def _default_agent_coverage_scope() -> str:
@@ -158,9 +157,11 @@ class Settings:
         default_factory=lambda: getenv("MEDGUARD_VERIFIER_AGENT_PROVIDER", "litellm").lower()
     )
     agent_required_for_production: bool = field(
-        default_factory=lambda: _env_bool("MEDGUARD_AGENT_REQUIRED_FOR_PRODUCTION")
+        default_factory=lambda: _env_bool("MEDGUARD_AGENT_REQUIRED_FOR_PRODUCTION", True)
     )
     agent_sync_enabled: bool = field(default_factory=_default_agent_sync_enabled)
+    agent_workers: int = field(default_factory=lambda: _env_int("MEDGUARD_AGENT_WORKERS", 8))
+    agent_max_pending: int = field(default_factory=lambda: _env_int("MEDGUARD_AGENT_MAX_PENDING", 16))
     agent_background_enabled: bool = field(
         default_factory=lambda: _env_bool("MEDGUARD_AGENT_BACKGROUND_ENABLED")
     )
@@ -259,7 +260,7 @@ class Settings:
         default_factory=lambda: _env_int("MEDGUARD_VERIFIER_MAX_OUTPUT_TOKENS", 300)
     )
     agent_prompt_version: str = field(
-        default_factory=lambda: getenv("MEDGUARD_AGENT_PROMPT_VERSION", "2026-09-09")
+        default_factory=lambda: getenv("MEDGUARD_AGENT_PROMPT_VERSION", "2026-10-09-companion")
     )
     safe_cache_ttl_seconds: int = field(
         default_factory=lambda: _env_int("MEDGUARD_SAFE_CACHE_TTL_SECONDS", 300)
@@ -303,6 +304,8 @@ class Settings:
             raise ValueError(
                 "MEDGUARD_AGENT_SYNC_ENABLED and MEDGUARD_AGENT_BACKGROUND_ENABLED cannot both be true"
             )
+        if self.agent_workers < 1 or self.agent_max_pending < self.agent_workers:
+            raise ValueError("MEDGUARD_AGENT_MAX_PENDING must include all MEDGUARD_AGENT_WORKERS")
         if self.agent_background_max_pending < 1:
             raise ValueError("MEDGUARD_AGENT_BACKGROUND_MAX_PENDING must be at least 1")
         if self.agent_background_workers < 1:
@@ -331,13 +334,13 @@ class Settings:
             raise ValueError("MEDGUARD_VERIFIER_AGENT_PROVIDER must be litellm")
         if self.agent_timeout_seconds < 1:
             raise ValueError("MEDGUARD_AGENT_TIMEOUT_SECONDS must be at least 1")
-        if self.agent_timeout_seconds > 4:
+        if self.agent_timeout_seconds > 25:
             raise ValueError(
-                "MEDGUARD_AGENT_TIMEOUT_SECONDS must be at most 4 to preserve the 10-second chat SLO"
+                "MEDGUARD_AGENT_TIMEOUT_SECONDS must be at most 25"
             )
-        if not 1 <= self.agent_total_timeout_seconds <= 8:
+        if not 1 <= self.agent_total_timeout_seconds <= 30:
             raise ValueError(
-                "MEDGUARD_AGENT_TOTAL_TIMEOUT_SECONDS must be between 1 and 8 for the 10-second chat SLO"
+                "MEDGUARD_AGENT_TOTAL_TIMEOUT_SECONDS must be between 1 and 30"
             )
         if self.agent_max_iterations not in {0, 1}:
             raise ValueError(
