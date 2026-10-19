@@ -752,7 +752,7 @@ export default function App({
       const sp = new URLSearchParams(window.location.search);
       const hash = window.location.hash.replace(/^#\/?/, '');
       const initial = sp.get('view') || hash;
-      if (['chat', 'companion', 'schedule', 'medication', 'navigation', 'system'].includes(initial)) {
+      if (['chat', 'companion', 'schedule', 'medication', 'navigation', 'health', 'system'].includes(initial)) {
         return initial;
       }
     } catch {}
