@@ -20,7 +20,7 @@ export default function AuthShell(){
  const [isGuest, setIsGuest] = useState(() => {
   try {
    const q = new URLSearchParams(location.hash.slice(1) || location.search);
-   if (q.has('guest') || q.get('view') === 'companion' || location.hash.includes('companion')) return true;
+   if (q.has('guest') || q.get('view') === 'companion' || q.get('view') === 'health' || q.get('view') === 'navigation' || location.hash.includes('companion') || location.hash.includes('health')) return true;
    return localStorage.getItem('medguard.guest_mode') === 'true';
   } catch { return false; }
  });
