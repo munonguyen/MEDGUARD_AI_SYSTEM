@@ -1430,12 +1430,36 @@ def _response(
         except Exception:
             pass
 
+    # Patient Health Twin Progress Tracking
+    health_twin_data = None
+    try:
+        from app.services.patient_health_twin import patient_health_twin_service
+        health_eval = patient_health_twin_service.evaluate_progress(
+            message=latest_user_text,
+            current_medications=payload.context.current_medications,
+        )
+        if health_eval.get("detected_event") in {"recovery", "adverse_reaction", "deterioration"}:
+            prof = health_eval["profile"]
+            health_twin_data = {
+                "detected_event": health_eval.get("detected_event"),
+                "ai_analysis": health_eval.get("ai_analysis"),
+                "action_plan": health_eval.get("action_plan"),
+                "must_discontinue_previous": health_eval.get("must_discontinue_previous"),
+                "discontinued_items": health_eval.get("discontinued_items", []),
+                "overall_health_score": prof.overall_health_score,
+                "health_trend": prof.health_trend,
+                "safe_guardrail_alert": prof.safe_guardrail_alert.model_dump() if prof.safe_guardrail_alert else None,
+            }
+    except Exception:
+        pass
+
     answer = answer.model_copy(
         update={
             "emergency_transit": emergency_transit_data,
             "enroute_triage": enroute_data,
             "medication_suitability": med_suitability_data,
             "geo_routing": geo_routing_data,
+            "health_twin_update": health_twin_data,
         }
     )
 

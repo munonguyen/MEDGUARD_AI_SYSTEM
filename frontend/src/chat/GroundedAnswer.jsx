@@ -13,6 +13,7 @@ import {
   Calendar,
   CheckCircle2,
   ChevronDown,
+  ChevronRight,
   CircleHelp,
   ClipboardList,
   Clock,
@@ -21,6 +22,7 @@ import {
   CornerUpRight,
   ExternalLink,
   Hash,
+  HeartPulse,
   Layers,
   ListChecks,
   MapPin,
@@ -37,6 +39,7 @@ import {
   Sparkles,
   Stethoscope,
   Truck,
+  X,
 } from 'lucide-react';
 import './GroundedAnswer.css';
 
@@ -1469,6 +1472,82 @@ function RealTimeGeoMapCard({ geoRouting }) {
   );
 }
 
+function HealthTwinUpdateCard({ update }) {
+  if (!update) return null;
+  const isAdr = update.detected_event === 'adverse_reaction';
+  const isRecovery = update.detected_event === 'recovery';
+  const isDeterioration = update.detected_event === 'deterioration';
+
+  const badgeColor = isAdr ? '#ef4444' : isRecovery ? '#10b981' : isDeterioration ? '#dc2626' : '#f59e0b';
+  const title = isAdr
+    ? 'CẢNH BÁO PHẢN ỨNG PHỤ CỦA THUỐC (ADR)'
+    : isRecovery
+    ? 'GHI NHẬN HỒI PHỤC SỨC KHOẺ'
+    : isDeterioration
+    ? 'CẢNH BÁO TIẾN TRIỂN TĂNG NẶNG'
+    : 'CẬP NHẬT DIỄN TIẾN LÂM SÀNG';
+
+  return (
+    <div className={`health-twin-update-card ${isAdr ? 'adr-alert' : isRecovery ? 'recovery-good' : ''}`}>
+      <div className="update-card-header">
+        <div className="header-left-title">
+          {isAdr ? (
+            <ShieldAlert size={18} className="twin-icon-alert" />
+          ) : isRecovery ? (
+            <CheckCircle2 size={18} className="twin-icon-good" />
+          ) : (
+            <Activity size={18} className="twin-icon-neutral" />
+          )}
+          <strong>{title}</strong>
+        </div>
+        <span className="health-score-pill" style={{ borderColor: badgeColor, color: badgeColor }}>
+          Sức khoẻ: {update.overall_health_score}/100
+        </span>
+      </div>
+
+      <p className="update-ai-analysis">{update.ai_analysis}</p>
+
+      {update.must_discontinue_previous && (
+        <div className="halt-previous-callout">
+          <div className="callout-title">
+            <X size={15} />
+            <strong>CHỈ THỊ AN TOÀN: HẠN CHẾ VÀ DỪNG NGAY CÁCH CŨ</strong>
+          </div>
+          <p>
+            Ngừng ngay các thuốc/phương pháp: <strong>{update.discontinued_items?.join(', ') || 'Thuốc gây kích ứng'}</strong>.
+            Tuyệt đối không tiếp tục liều kế tiếp để tránh tổn thương thêm!
+          </p>
+        </div>
+      )}
+
+      {update.action_plan && (
+        <div className="update-action-plan-box">
+          <span className="plan-label">Lời khuyên kế tiếp:</span>
+          <p className="plan-text">{update.action_plan}</p>
+        </div>
+      )}
+
+      <div className="update-footer-actions">
+        <button
+          type="button"
+          className="open-twin-page-btn"
+          onClick={() => {
+            window.dispatchEvent(
+              new CustomEvent('medguard:navigate', {
+                detail: { view: 'health' },
+              })
+            );
+          }}
+        >
+          <HeartPulse size={15} />
+          <span>Xem trên Bản đồ Cơ thể & Sức khoẻ Giải phẫu</span>
+          <ChevronRight size={14} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQuestion }) {
   if (!answer) return null;
 
@@ -1710,6 +1789,10 @@ export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQues
       ) : null}
 
       {/* 3. TÌM VỊ TRÍ, NHÀ THUỐC GPP & BẢN ĐỒ CHỈ ĐƯỜNG (Đặt ở sau phần giải thích và nội dung đề xuất theo đúng yêu cầu) */}
+      {answer.health_twin_update && (
+        <HealthTwinUpdateCard update={answer.health_twin_update} />
+      )}
+
       {answer.medication_suitability && (
         <MedicationSuitabilityCard suitability={answer.medication_suitability} />
       )}
