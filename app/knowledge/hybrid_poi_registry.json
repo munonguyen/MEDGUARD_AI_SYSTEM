@@ -305,6 +305,86 @@
       "google_maps_url": "https://www.google.com/maps/search/Pharmacity+Giai+Phong+Dong+Da+Ha+Noi"
     },
     {
+      "id": "PHARM-HA-HN-LUB",
+      "name": "Nhà thuốc Hà Anh — Lương Ngọc Quyến (Cạnh Đại học Hà Nội)",
+      "chain": "Nhà thuốc Hà Anh",
+      "address": "3 Đường Lương Ngọc Quyến, Phường Văn Quán, Thanh Xuân, Hà Nội",
+      "city": "hanoi",
+      "district": "Thanh Xuân",
+      "hotline": "097 356 2136",
+      "direct_phone": "097 356 2136",
+      "lat": 20.9858,
+      "lng": 105.7928,
+      "services": ["Chuẩn GPP", "Gần Đại học Hà Nội", "Thuốc kê đơn & OTC", "Dược sĩ thường trực"],
+      "operating_hours": {
+        "is_24_7": false,
+        "open": "07:00",
+        "close": "22:00",
+        "note": "Mở cửa từ 07:00 - 22:00 hàng ngày"
+      },
+      "google_maps_url": "https://www.google.com/maps/search/Nha+Thuoc+Ha+Anh+Luong+Ngoc+Quyen+Ha+Noi"
+    },
+    {
+      "id": "PHARM-MK-HN-LUB",
+      "name": "Nhà thuốc Phòng Khám Minh Khuê",
+      "chain": "Phòng Khám Minh Khuê",
+      "address": "10 Đường Lương Ngọc Quyến, Thanh Xuân, Hà Nội",
+      "city": "hanoi",
+      "district": "Thanh Xuân",
+      "hotline": "098 584 5169",
+      "direct_phone": "098 584 5169",
+      "lat": 20.9862,
+      "lng": 105.7932,
+      "services": ["Chuẩn GPP", "Tư vấn khám lâm sàng", "Thuốc chính hãng"],
+      "operating_hours": {
+        "is_24_7": false,
+        "open": "07:00",
+        "close": "22:30",
+        "note": "Mở cửa từ 07:00 - 22:30 hàng ngày"
+      },
+      "google_maps_url": "https://www.google.com/maps/search/Nha+Thuoc+Minh+Khue+Luong+Ngoc+Quyen+Ha+Noi"
+    },
+    {
+      "id": "PHARM-LC-HN-LTV",
+      "name": "Nhà thuốc FPT Long Châu — Lương Thế Vinh / Nguyễn Trãi",
+      "chain": "FPT Long Châu",
+      "address": "421 Nguyễn Trãi, Thanh Xuân, Hà Nội (Gần Đại học Hà Nội)",
+      "city": "hanoi",
+      "district": "Thanh Xuân",
+      "hotline": "1800 6928",
+      "direct_phone": "024 7300 6928",
+      "lat": 20.9918,
+      "lng": 105.7975,
+      "services": ["Chuẩn GPP Quốc tế", "Mở cửa 24/7", "Đầy đủ thuốc đặc trị", "Giao hàng 1h"],
+      "operating_hours": {
+        "is_24_7": true,
+        "open": "00:00",
+        "close": "23:59",
+        "note": "Mở cửa 24/7 xuyên đêm"
+      },
+      "google_maps_url": "https://www.google.com/maps/search/Nha+Thuoc+Long+Chau+Nguyen+Trai+Ha+Noi"
+    },
+    {
+      "id": "PHARM-PMC-HN-NQD",
+      "name": "Nhà thuốc Pharmacity — Nguyễn Quý Đức",
+      "chain": "Pharmacity",
+      "address": "29 Nguyễn Quý Đức, Thanh Xuân, Hà Nội",
+      "city": "hanoi",
+      "district": "Thanh Xuân",
+      "hotline": "1800 6821",
+      "direct_phone": "024 7300 6821",
+      "lat": 20.9928,
+      "lng": 105.7980,
+      "services": ["Chuẩn GPP", "Đo huyết áp miễn phí", "Thuốc OTC & Kê đơn"],
+      "operating_hours": {
+        "is_24_7": false,
+        "open": "06:30",
+        "close": "22:30",
+        "note": "Mở cửa 06:30 - 22:30 hàng ngày"
+      },
+      "google_maps_url": "https://www.google.com/maps/search/Pharmacity+Nguyen+Quy+Duc+Thanh+Xuan+Ha+Noi"
+    },
+    {
       "id": "PHARM-LC-DN-24H",
       "name": "Nhà thuốc FPT Long Châu 24H — Hải Châu Đà Nẵng",
       "chain": "FPT Long Châu",

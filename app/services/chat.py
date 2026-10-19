@@ -704,11 +704,19 @@ def _detect_intent(payload: ChatRequest, normalized_text: str) -> ChatIntent:
             "dang bi",
             "bi benh",
             "mac benh",
+            "dang om",
+            "bi om",
+            "can phai mua thuoc",
+            "mua thuoc gi",
+            "uong thuoc gi",
+            "thuoc gi de khoi",
+            "om can mua",
+            "om uong thuoc",
         )
     ):
         return "triage"
     if "thuoc" in normalized_text and any(
-        marker in normalized_text for marker in ("uong", "dung", "lieu", "tac dung", "phan ung")
+        marker in normalized_text for marker in ("uong", "dung", "lieu", "tac dung", "phan ung", "mua", "ke don")
     ):
         return "safety"
     return "general"
@@ -1393,13 +1401,32 @@ def _response(
             else "pharmacy"
         )
         try:
+            u_coords = None
+            u_name = None
+            u_city = None
+            if payload.context.user_location:
+                u_lat = payload.context.user_location.get("lat")
+                u_lng = payload.context.user_location.get("lng")
+                if u_lat is not None and u_lng is not None:
+                    u_coords = (float(u_lat), float(u_lng))
+                u_name = (
+                    payload.context.user_location.get("address")
+                    or payload.context.user_location.get("name")
+                )
+                u_city = payload.context.user_location.get("city")
+
             geo_plan = geo_routing_agent.plan_destination_routing(
                 query=latest_user_text,
                 location_hint=payload.context.patient_ref,
                 patient_age=payload.context.age,
                 forced_poi_type=target_poi_type,
+                user_coordinates=u_coords,
+                location_name=u_name,
+                city_override=u_city,
             )
             geo_routing_data = geo_plan.to_dict()
+            if med_suitability_data and geo_routing_data:
+                med_suitability_data["nearest_pharmacy_maps_url"] = geo_routing_data.get("google_maps_turn_by_turn_url", "")
         except Exception:
             pass
 
@@ -1692,6 +1719,45 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
             reply=f"Đã đối chiếu dữ liệu mã QR cho {prod_name}. Kết quả xác thực: {st_label}.",
             extracted={"verification_status": result.verification_status},
             result=result,
+        )
+
+    # General illness & safe OTC consultation clinical handling
+    is_general_illness_medication = (
+        any(k in normalized for k in (
+            "dang om", "bi om", "cam cum", "cam lanh", "khoi om",
+            "uong thuoc gi", "mua thuoc gi", "can mua thuoc", "thuoc gi de khoi",
+            "uong gi cho khoi", "chua khoi om", "thuoc tri om", "bi om uong thuoc",
+            "om can mua thuoc", "dang bi om", "thuoc gi khi bi om", "can phai mua thuoc",
+            "toi dang om", "bi om can", "om uong gi"
+        ))
+        and any(w in normalized for w in ("thuoc", "mua", "uong", "dung", "khoi", "chua", "om"))
+    )
+    if is_general_illness_medication:
+        reply_msg = (
+            "MedGuard AI đã phân tích tình trạng của bạn. Khi cơ thể mệt mỏi, có biểu hiện 'ốm' hoặc cảm cúm, "
+            "nguyên tắc an toàn là điều trị hỗ trợ giảm nhẹ triệu chứng bằng thuốc không kê đơn (OTC), "
+            "tuyệt đối không tự ý mua kháng sinh và theo dõi sát các dấu hiệu cần đến cơ sở y tế. "
+            "Dưới đây là hướng dẫn chăm sóc, danh mục thuốc OTC đề xuất và nhà thuốc GPP gần bạn nhất."
+        )
+        return _response(
+            payload,
+            ctx,
+            status="answered",
+            intent="triage",
+            reply=reply_msg,
+            extracted={
+                "patient_ref": patient_ref,
+                "clinical_task": "GENERAL_ILLNESS_OTC",
+                "medical_emergency_flag": False,
+            },
+            result={
+                "urgency": "ROUTINE",
+                "clinical_task": "GENERAL_ILLNESS_OTC",
+                "clinical_state": "general_illness_otc_consultation",
+                "eligible_otc": True,
+            },
+            agent_question=latest_text,
+            allow_agent=True,
         )
 
     if intent == "general":

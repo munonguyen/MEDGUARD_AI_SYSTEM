@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import urllib.parse
 from dataclasses import dataclass, field
 from typing import Any, Literal
@@ -51,6 +52,70 @@ class GeoapifyRouteResult:
     eta_minutes: int
     steps: list[GeoapifyRouteStep]
     coordinates: list[tuple[float, float]]  # (lat, lon)
+
+
+def translate_step_instruction(text: str, road: str | None = None) -> str:
+    """Translates raw routing instructions into natural Vietnamese instructions."""
+    if not text:
+        return f"Đi tiếp vào {road}" if road else "Tiếp tục di chuyển."
+    t = text.strip()
+
+    if "destination is on the left" in t.lower():
+        return "Bạn đã đến nơi. Quầy thuốc GPP nằm ở bên trái của bạn."
+    if "destination is on the right" in t.lower():
+        return "Bạn đã đến nơi. Quầy thuốc GPP nằm ở bên phải của bạn."
+    if "destination" in t.lower():
+        return "Điểm đến (Quầy thuốc GPP) ở ngay phía trước."
+    if "arrive" in t.lower():
+        return f"Bạn đã đến nơi: {road or 'Quầy thuốc GPP'}."
+
+    m_round = re.search(r"take the (\d+)(?:st|nd|rd|th)? exit onto (.+)", t, re.IGNORECASE)
+    if m_round:
+        return f"Đi vào vòng xuyến, theo lối ra thứ {m_round.group(1)} vào {m_round.group(2).rstrip('.')}."
+    if "enter the roundabout" in t.lower():
+        return f"Đi vào vòng xuyến theo hướng {road or 'tuyến đường'}."
+    if "exit the roundabout" in t.lower():
+        return f"Rời vòng xuyến vào {road or 'tuyến đường tiếp theo'}."
+
+    m_uturn = re.search(r"make a (?:left|right)?\s*u-turn at (.+?)(?: to stay on (.+))?$", t, re.IGNORECASE)
+    if m_uturn:
+        at_st = m_uturn.group(1).rstrip(".")
+        stay_st = m_uturn.group(2)
+        return f"Quay đầu xe (chữ U) tại {at_st} để tiếp tục trên {stay_st.rstrip('.')}." if stay_st else f"Quay đầu xe (chữ U) tại {at_st}."
+
+    m_tr = re.search(r"turn right onto (.+)", t, re.IGNORECASE)
+    if m_tr:
+        return f"Rẽ phải vào {m_tr.group(1).rstrip('.')}."
+    m_tl = re.search(r"turn left onto (.+)", t, re.IGNORECASE)
+    if m_tl:
+        return f"Rẽ trái vào {m_tl.group(1).rstrip('.')}."
+
+    m_kr = re.search(r"keep right(?: onto (.+))?", t, re.IGNORECASE)
+    if m_kr:
+        return f"Đi chếch sang phải vào {m_kr.group(1).rstrip('.')}." if m_kr.group(1) else "Đi chếch sang phải."
+    m_kl = re.search(r"keep left(?: onto (.+))?", t, re.IGNORECASE)
+    if m_kl:
+        return f"Đi chếch sang trái vào {m_kl.group(1).rstrip('.')}." if m_kl.group(1) else "Đi chếch sang trái."
+
+    m_drive = re.search(r"drive (northeast|northwest|southeast|southwest|north|south|east|west)", t, re.IGNORECASE)
+    if m_drive:
+        dirs = {
+            "northeast": "hướng Đông Bắc", "northwest": "hướng Tây Bắc",
+            "southeast": "hướng Đông Nam", "southwest": "hướng Tây Nam",
+            "north": "phía Bắc", "south": "phía Nam", "east": "phía Đông", "west": "phía Tây"
+        }
+        dn = dirs.get(m_drive.group(1).lower(), m_drive.group(1))
+        return f"Đi thẳng về {dn}{(' trên ' + road) if road else ''}."
+
+    m_cont = re.search(r"continue onto (.+)", t, re.IGNORECASE)
+    if m_cont:
+        return f"Tiếp tục đi thẳng trên {m_cont.group(1).rstrip('.')}."
+
+    m_ramp = re.search(r"stay straight to take the (.+) ramp", t, re.IGNORECASE)
+    if m_ramp:
+        return f"Đi thẳng lên đường dẫn {m_ramp.group(1).rstrip('.')}."
+
+    return t
 
 
 class GeoapifyClient:
@@ -140,6 +205,12 @@ class GeoapifyClient:
                             street = props.get("street")
                             if "pharmacy" in category:
                                 name = f"Nhà thuốc {street}" if street else f"Nhà thuốc ({formatted_addr[:30]}...)"
+                            elif "fuel" in category:
+                                name = f"Cây xăng {street}" if street else f"Cây xăng ({formatted_addr[:30]}...)"
+                            elif "cafe" in category:
+                                name = f"Quán Cà phê {street}" if street else f"Quán Cà phê ({formatted_addr[:30]}...)"
+                            elif "restaurant" in category:
+                                name = f"Quán Ăn {street}" if street else f"Quán Ăn ({formatted_addr[:30]}...)"
                             else:
                                 name = f"Cơ sở Y tế {street}" if street else f"Cơ sở Y tế ({formatted_addr[:30]}...)"
 
@@ -183,12 +254,20 @@ class GeoapifyClient:
         dest_lat: float,
         dest_lon: float,
         mode: str = "drive",
+        avoid: str | None = None,
     ) -> GeoapifyRouteResult | None:
         """Calculate real-time turn-by-turn road route between waypoints."""
+        geo_mode = (
+            "motorcycle"
+            if mode in ("motorcycle", "two_wheeler", "scooter")
+            else ("walk" if mode in ("walk", "walking") else "drive")
+        )
+        avoid_param = f"&avoid={avoid}" if avoid else ""
         url = (
             f"https://api.geoapify.com/v1/routing"
             f"?waypoints={start_lat},{start_lon}|{dest_lat},{dest_lon}"
-            f"&mode={mode}"
+            f"&mode={geo_mode}"
+            f"{avoid_param}"
             f"&details=instruction_details"
             f"&apiKey={self.api_key}"
         )
@@ -217,11 +296,20 @@ class GeoapifyClient:
                             inst_text = inst_obj.get("text", "")
                             s_dist = float(s.get("distance", 0.0))
                             s_time = float(s.get("time", 0.0))
-                            road = inst_obj.get("road")
+                            road = inst_obj.get("road") or inst_obj.get("street")
+                            if not road and inst_text:
+                                m = re.search(r'\b(?:on|onto)\s+([^.]+)', inst_text, re.IGNORECASE)
+                                if m:
+                                    road = m.group(1).strip()
+                                elif "destination" in inst_text.lower():
+                                    road = "Điểm đến (Quầy thuốc GPP)"
+                            if road and road.lower() in ("the left", "the right", "left", "right"):
+                                road = "Điểm đến (Quầy thuốc GPP)"
+                            vi_instruction = translate_step_instruction(inst_text, road)
                             steps.append(
                                 GeoapifyRouteStep(
                                     step_number=step_idx,
-                                    instruction=inst_text,
+                                    instruction=vi_instruction,
                                     distance_meters=s_dist,
                                     time_seconds=s_time,
                                     road_name=road,
@@ -259,6 +347,21 @@ class GeoapifyClient:
         except Exception as e:
             logger.warning(f"Geoapify routing API failed: {e}")
 
+        return None
+
+    def reverse_geocode(self, lat: float, lon: float) -> str | None:
+        """Reverse geocode coordinates to human-readable street address."""
+        url = f"https://api.geoapify.com/v1/geocode/reverse?lat={lat}&lon={lon}&apiKey={self.api_key}"
+        try:
+            with httpx.Client(timeout=self.timeout) as client:
+                res = client.get(url)
+                if res.status_code == 200:
+                    data = res.json()
+                    features = data.get("features", [])
+                    if features:
+                        return features[0].get("properties", {}).get("formatted")
+        except Exception as e:
+            logger.warning(f"Geoapify reverse geocode failed for ({lat}, {lon}): {e}")
         return None
 
 

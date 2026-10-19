@@ -33,7 +33,7 @@ class MedicationSuitabilityResult:
     contraindication_reasons: list[str] = field(default_factory=list)
     recommended_medications: list[MedicationRecommendation] = field(default_factory=list)
     safe_alternatives: list[str] = field(default_factory=list)
-    nearest_pharmacy_maps_url: str = "https://www.google.com/maps/search/nha+thuoc+gan+nhat/"
+    nearest_pharmacy_maps_url: str = ""
     pharmacy_chain_links: list[dict[str, str]] = field(default_factory=list)
     requires_prescription: bool = False
     emergency_transfer_required: bool = False
@@ -189,8 +189,12 @@ def evaluate_medication_suitability(
         )
 
     # 3. State 1: ELIGIBLE_OTC (Symptomatic self-care safe)
-    # Acute upper respiratory / viral cold / fever
-    is_cold_flu = any(k in norm for k in ("bi om", "cam cum", "cam lanh", "cam sot", "sot nhe", "rat hong", "chay mui", "nghet mui", "met moi toan than"))
+    # Acute upper respiratory / viral cold / fever / general illness
+    is_cold_flu = any(k in norm for k in (
+        "dang om", "bi om", "om", "cam cum", "cam lanh", "cam sot", "sot nhe",
+        "rat hong", "chay mui", "nghet mui", "so mui", "met moi toan than", "khoi om",
+        "uong thuoc gi", "mua thuoc", "thuoc gi", "uong gi"
+    ))
     recs: list[MedicationRecommendation] = []
 
     if is_cold_flu or "sot" in norm or "dau dau" in norm or "dau hong" in norm:
@@ -249,7 +253,7 @@ def evaluate_medication_suitability(
         state_label="ĐƯỢC PHÉP UỐNG (THUỐC OTC HỖ TRỢ AN TOÀN)",
         clinical_rationale=clinical_rationale,
         recommended_medications=recs,
-        nearest_pharmacy_maps_url="https://www.google.com/maps/search/nha+thuoc+gan+nhat/",
+        nearest_pharmacy_maps_url="",
         pharmacy_chain_links=_build_gpp_links("Thuốc hạ sốt cảm cúm"),
         requires_prescription=False,
     )

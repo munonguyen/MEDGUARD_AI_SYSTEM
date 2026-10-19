@@ -768,6 +768,52 @@ def build_grounded_answer(
             decision_basis="versioned_rules", evidence_state="bounded_result",
             rule_version="health-education@1.2.0", requires_human_review=education.get("requires_human_review", True),
         ), intent)
+    if result.get("clinical_task") == "GENERAL_ILLNESS_OTC" or result.get("clinical_state") == "general_illness_otc_consultation":
+        return _with_narrative(GroundedAnswer(
+            title="Tư vấn lâm sàng: Hướng dẫn chăm sóc & dùng thuốc an toàn khi bị ốm",
+            summary=(
+                "Chào bạn, khi bạn đang có biểu hiện ốm (mệt mỏi, cảm cúm, sốt nhẹ hoặc đau nhức), "
+                "nguyên tắc an toàn là điều trị hỗ trợ giảm nhẹ triệu chứng bằng thuốc không kê đơn (OTC), "
+                "tuyệt đối không tự ý mua kháng sinh và theo dõi sát các dấu hiệu cần đến cơ sở y tế."
+            ),
+            presentation="detailed",
+            key_points=[
+                "Dùng Paracetamol 500mg (1 viên mỗi 4-6 giờ khi sốt ≥ 38.5°C hoặc đau mỏi người, tối đa 3-4 viên/24h)",
+                "Bù nước và điện giải bằng gói Oresol 245 (pha đúng thể tích nước quy định) hoặc uống nhiều nước ấm",
+                "Súc miệng và rửa mũi bằng nước muối sinh lý NaCl 0.9% ngày 3-4 lần để giảm viêm niêm mạc",
+                "Tuyệt đối KHÔNG tự ý mua và dùng kháng sinh khi bị cảm cúm hoặc ốm thông thường do virus",
+                "Nghỉ ngơi tại nơi thoáng khí, ăn cháo súp ấm dễ tiêu, bổ sung vitamin C từ trái cây",
+            ],
+            safety_notes=[
+                "Cảnh báo độc tính gan: Không dùng chung các chế phẩm khác cùng chứa Paracetamol (như Decolgen, Tiffy, Panadol Extra) để tránh quá liều tích lũy.",
+                "Người có bệnh lý viêm loét dạ dày, suy gan, suy thận hoặc hen phế quản không được tự ý dùng các thuốc kháng viêm NSAIDs (Ibuprofen, Aspirin).",
+                "DẤU HIỆU CỜ ĐỎ CẦN ĐI VIỆN NGAY: Sốt cao liên tục > 39°C không hạ sau 2 giờ uống thuốc, khó thở, tức ngực, đau đầu dữ dội, lơ mơ hoặc nôn liên tục.",
+            ],
+            next_steps=[
+                "Đo lại nhiệt độ cơ thể bằng nhiệt kế để xác định chính xác mức độ sốt.",
+                "Uống 1 viên Paracetamol 500mg sau ăn nếu sốt từ 38.5°C trở lên hoặc đau nhức người nhiều.",
+                "Xem bản đồ và địa chỉ nhà thuốc GPP gần bạn nhất bên dưới để mua thuốc đúng tiêu chuẩn chất lượng.",
+                "Nếu sau 48-72 giờ triệu chứng không thuyên giảm hoặc tăng nặng, cần đến cơ sở y tế khám trực tiếp.",
+            ],
+            questions=[
+                "Bạn đang sốt bao nhiêu độ và bắt đầu bị ốm từ khi nào?",
+                "Bạn có kèm theo triệu chứng ho, đau rát họng, nghẹt mũi hay khó thở không?",
+                "Bạn có tiền sử bệnh gan, thận, đau dạ dày hay dị ứng với thuốc nào không?",
+            ],
+            suggested_followups=[
+                "Tôi bị đau họng và sốt 38.5 độ thì uống thuốc gì?",
+                "Nhà thuốc GPP gần nhất quanh tôi ở đâu?",
+                "Khi nào cần phải đi bệnh viện khám ngay?",
+            ],
+            limitations=[
+                "Tư vấn thuốc OTC chỉ áp dụng cho người lớn bị cảm sốt thông thường không có bệnh lý nền nặng.",
+                "Không thay thế cho đơn thuốc hoặc thăm khám trực tiếp của bác sĩ chuyên khoa.",
+            ],
+            decision_basis="versioned_rules",
+            evidence_state="bounded_result",
+            rule_version="otc-consultation@1.0.0",
+            requires_human_review=False,
+        ), intent)
     if intent == "triage":
         return _with_narrative(_triage_answer(result, sources, reply=reply), intent)
     if intent == "safety":

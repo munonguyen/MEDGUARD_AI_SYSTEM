@@ -39,6 +39,10 @@ training/raw/
 training/processed/
 training/compiled/
 training/runs/
+training/models/
+
+test-assets/
+frontend/scripts/*.png
 
 # Local databases and archives
 *.db

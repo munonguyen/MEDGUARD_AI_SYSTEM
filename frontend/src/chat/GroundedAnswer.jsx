@@ -1,8 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import {
   Activity,
   AlertCircle,
   AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
   Barcode,
   Building2,
   Calendar,
@@ -11,8 +16,12 @@ import {
   CircleHelp,
   ClipboardList,
   Clock,
+  Compass,
+  CornerUpLeft,
+  CornerUpRight,
   ExternalLink,
   Hash,
+  Layers,
   ListChecks,
   MapPin,
   Navigation,
@@ -20,6 +29,7 @@ import {
   PhoneCall,
   Pill,
   QrCode,
+  RotateCcw,
   Route,
   Send,
   ShieldAlert,
@@ -515,6 +525,61 @@ function EmergencyTransitCard({ transit }) {
                 <span>Gọi Cấp cứu Viện ({facility.emergency_hotline})</span>
               </a>
             )}
+            <button
+              type="button"
+              className="emergency-nav-btn emergency-inapp-direct"
+              onClick={() => {
+                window.dispatchEvent(
+                  new CustomEvent('medguard:navigate', {
+                    detail: {
+                      view: 'navigation',
+                      navigationContext: {
+                        fromChat: true,
+                        chatKicker: 'ĐIỀU PHỐI CẤP CỨU & TUYẾN ĐƯỜNG TRÁNH KẸT XE',
+                        selectedPoi: {
+                          id: facility.id || 'emergency_hospital',
+                          name: facility.name,
+                          address: facility.address,
+                          lat: Number(facility.latitude || facility.lat || 21.0028),
+                          lng: Number(facility.longitude || facility.lng || 105.8428),
+                          type: 'hospital_emergency',
+                          phone: facility.emergency_hotline || '115',
+                          hotline: facility.emergency_hotline || '115',
+                          distance_km: facility.distance_km,
+                          operating_status: {
+                            is_open: true,
+                            status_label: 'Cấp cứu 24/7',
+                            status_badge: 'OPEN_24_7',
+                            detail_text: 'Trực cấp cứu liên tục 24/7',
+                          },
+                          google_maps_turn_by_turn_url: facility.navigation_url || transit.navigation_url,
+                        },
+                        activeRoute: {
+                          distance_km: facility.distance_km,
+                          eta_minutes: facility.eta_minutes,
+                          corridor_description: transit.optimal_corridor || 'Tuyến cấp cứu ưu tiên',
+                          coordinates: transit.route_coordinates || [],
+                          steps: transit.turn_by_turn_steps || [],
+                          traffic_level: transit.traffic_level || 'FAST',
+                          google_maps_turn_by_turn_url: facility.navigation_url || transit.navigation_url,
+                        },
+                        userLocation: {
+                          lat: Number(transit.user_lat) || 20.9858,
+                          lng: Number(transit.user_lng) || 105.7928,
+                          name: 'Vị trí của bạn',
+                          address: 'Hà Nội',
+                          is_gps: true,
+                        },
+                        poiType: 'emergency',
+                      },
+                    },
+                  })
+                );
+              }}
+            >
+              <Route size={15} />
+              <span>Chỉ đường Real-time trong App</span>
+            </button>
             <a
               href={facility.navigation_url || transit.navigation_url}
               target="_blank"
@@ -714,16 +779,39 @@ function MedicationSuitabilityCard({ suitability }) {
             <MapPin size={15} className="map-pin-icon" />
             <span>Cần mua thuốc trực tiếp? Xem danh sách các hiệu thuốc đạt chuẩn GPP gần bạn nhất:</span>
           </div>
-          <a
-            href={suitability.nearest_pharmacy_maps_url}
-            target="_blank"
-            rel="noreferrer"
-            className="find-pharmacy-maps-btn"
-          >
-            <Navigation size={14} />
-            <span>Tìm nhà thuốc gần nhất trên Google Maps</span>
-            <ExternalLink size={12} />
-          </a>
+          <div className="pharmacy-footer-btn-group">
+            <button
+              type="button"
+              className="find-pharmacy-inapp-btn"
+              onClick={() => {
+                window.dispatchEvent(
+                  new CustomEvent('medguard:navigate', {
+                    detail: {
+                      view: 'navigation',
+                      navigationContext: {
+                        fromChat: true,
+                        chatKicker: 'ĐIỂM BÁN THUỐC GPP ĐỀ XUẤT TỪ CA TƯ VẤN',
+                        poiType: 'pharmacy',
+                      },
+                    },
+                  })
+                );
+              }}
+            >
+              <Route size={14} />
+              <span>Chỉ Đường Real-time trong App</span>
+            </button>
+            <a
+              href={suitability.nearest_pharmacy_maps_url}
+              target="_blank"
+              rel="noreferrer"
+              className="find-pharmacy-maps-btn"
+            >
+              <Navigation size={14} />
+              <span>Google Maps</span>
+              <ExternalLink size={12} />
+            </a>
+          </div>
         </div>
       )}
     </section>
@@ -733,6 +821,170 @@ function MedicationSuitabilityCard({ suitability }) {
 /**
  * Real-Time Geo Routing, POI Operating Hours & Traffic Optimization Card.
  */
+function getTurnDirectionIcon(instruction = '') {
+  const norm = instruction.toLowerCase();
+  if (norm.includes('trái') || norm.includes('left')) {
+    return <CornerUpLeft size={22} className="turn-direction-icon turn-left" />;
+  }
+  if (norm.includes('phải') || norm.includes('right')) {
+    return <CornerUpRight size={22} className="turn-direction-icon turn-right" />;
+  }
+  if (norm.includes('vòng xuyến') || norm.includes('bùng binh') || norm.includes('roundabout')) {
+    return <RotateCcw size={22} className="turn-direction-icon turn-roundabout" />;
+  }
+  return <ArrowUp size={22} className="turn-direction-icon turn-straight" />;
+}
+
+function LeafletRouteMap({ geoRouting, activeRoute }) {
+  const mapContainerRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const [mapTheme, setMapTheme] = useState('voyager'); // 'voyager' (sáng, rõ nét từng con đường) hoặc 'dark' (nền tối)
+
+  const userLat = Number(geoRouting.user_location?.lat) || 20.9858;
+  const userLng = Number(geoRouting.user_location?.lng) || 105.7928;
+  const destLat = Number(geoRouting.selected_poi?.lat) || 20.9858;
+  const destLng = Number(geoRouting.selected_poi?.lng) || 105.7928;
+
+  const startCoords = [userLat, userLng];
+  const destCoords = [destLat, destLng];
+  const polylineCoords = activeRoute?.canvas_polyline || [];
+
+  // Auto-resize observer to prevent blank/gray tiles
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+    const ro = new ResizeObserver(() => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    });
+    ro.observe(mapContainerRef.current);
+    return () => ro.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.remove();
+      mapInstanceRef.current = null;
+    }
+
+    try {
+      const map = L.map(mapContainerRef.current, {
+        center: startCoords,
+        zoom: 15,
+        zoomControl: true,
+        attributionControl: false,
+      });
+
+      // Licensed HD tiles from Geoapify (zero watermark, crystal clear Vietnamese labels, zero account needed)
+      const brightUrl =
+        'https://maps.geoapify.com/v1/tile/osm-bright/{z}/{x}/{y}.png?apiKey=224447c8da3b4555a5380f31ddb56bf3';
+      const darkUrl =
+        'https://maps.geoapify.com/v1/tile/dark-matter-dark-grey/{z}/{x}/{y}.png?apiKey=224447c8da3b4555a5380f31ddb56bf3';
+      const tileUrl = mapTheme === 'dark' ? darkUrl : brightUrl;
+
+      const tileLayer = L.tileLayer(tileUrl, {
+        maxZoom: 20,
+        attribution: '© OpenStreetMap, © Geoapify',
+      }).addTo(map);
+
+      tileLayer.on('tileerror', () => {
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '© OpenStreetMap contributors',
+        }).addTo(map);
+      });
+
+      // Điểm A: Điểm xuất phát (Vị trí của bạn)
+      const startIcon = L.divIcon({
+        className: 'leaflet-pin-wrapper',
+        html: `<div class="marker-pin pin-start"><span class="pin-badge">A</span><span class="pin-title">Bạn</span></div>`,
+        iconSize: [36, 44],
+        iconAnchor: [18, 40],
+      });
+
+      // Điểm B: Điểm đến (Nhà thuốc GPP / Cấp cứu)
+      const isEmergency = geoRouting.query_type === 'emergency';
+      const destIcon = L.divIcon({
+        className: 'leaflet-pin-wrapper',
+        html: `<div class="marker-pin ${isEmergency ? 'pin-emergency' : 'pin-dest'}"><span class="pin-badge">B</span><span class="pin-title">${isEmergency ? 'Cấp cứu' : 'Quầy thuốc'}</span></div>`,
+        iconSize: [36, 44],
+        iconAnchor: [18, 40],
+      });
+
+      const startMarker = L.marker(startCoords, { icon: startIcon }).addTo(map);
+      startMarker.bindPopup(`<b>Điểm xuất phát:</b><br/>${geoRouting.user_location?.address || 'Vị trí của bạn'}`);
+
+      const destMarker = L.marker(destCoords, { icon: destIcon }).addTo(map);
+      destMarker.bindPopup(`<b>${geoRouting.selected_poi?.name}</b><br/>${geoRouting.selected_poi?.address}`);
+
+      // Vẽ sợi chỉ đường (Polyline)
+      const routePoints = polylineCoords.length > 0 ? polylineCoords : [startCoords, destCoords];
+
+      // Lớp viền phản quang
+      L.polyline(routePoints, {
+        color: mapTheme === 'dark' ? '#00e5ff' : '#60a5fa',
+        weight: 10,
+        opacity: mapTheme === 'dark' ? 0.45 : 0.4,
+        lineCap: 'round',
+      }).addTo(map);
+
+      // Sợi chỉ đường chính
+      const polyline = L.polyline(routePoints, {
+        color: mapTheme === 'dark' ? '#00e5ff' : '#2563eb',
+        weight: 6,
+        opacity: 0.95,
+        lineCap: 'round',
+        lineJoin: 'round',
+      }).addTo(map);
+
+      // Căn chỉnh khung nhìn tự động
+      const group = L.featureGroup([startMarker, destMarker, polyline]);
+      map.fitBounds(group.getBounds(), { padding: [35, 35] });
+
+      mapInstanceRef.current = map;
+
+      setTimeout(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize();
+        }
+      }, 250);
+    } catch (e) {
+      console.warn('Leaflet map error:', e);
+    }
+
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, [geoRouting, activeRoute, mapTheme]);
+
+  return (
+    <div className="leaflet-map-canvas-wrapper">
+      <div className="leaflet-floating-theme-bar">
+        <button
+          type="button"
+          className={`btn-leaflet-theme ${mapTheme === 'voyager' ? 'active' : ''}`}
+          onClick={() => setMapTheme('voyager')}
+        >
+          Bản đồ Rõ nét
+        </button>
+        <button
+          type="button"
+          className={`btn-leaflet-theme ${mapTheme === 'dark' ? 'active' : ''}`}
+          onClick={() => setMapTheme('dark')}
+        >
+          Nền tối
+        </button>
+      </div>
+      <div ref={mapContainerRef} className="leaflet-map-element" style={{ width: '100%', height: '360px' }} />
+    </div>
+  );
+}
+
 function RealTimeGeoMapCard({ geoRouting }) {
   if (!geoRouting?.selected_poi) return null;
   const poi = geoRouting.selected_poi;
@@ -742,9 +994,64 @@ function RealTimeGeoMapCard({ geoRouting }) {
   const [selectedRouteType, setSelectedRouteType] = useState(
     geoRouting.recommended_route_type || 'PRIMARY_DIRECT'
   );
+  const [mapMode, setMapMode] = useState('leaflet'); // 'leaflet', 'street', or 'osm'
+  const [activeStepIndex, setActiveStepIndex] = useState(0);
 
   const activeRoute = selectedRouteType === 'OPTIMAL_BYPASS' && alternative ? alternative : primary;
   const isEmergency = geoRouting.query_type === 'emergency';
+  const steps = activeRoute?.steps || [];
+  const currentStep = steps[activeStepIndex] || steps[0] || {};
+
+  const handleOpenDirectNavigation = () => {
+    window.dispatchEvent(
+      new CustomEvent('medguard:navigate', {
+        detail: {
+          view: 'navigation',
+          navigationContext: {
+            fromChat: true,
+            chatKicker: isEmergency
+              ? 'ĐIỀU PHỐI CẤP CỨU & TUYẾN ĐƯỜNG TRÁNH KẸT XE'
+              : 'ĐIỂM BÁN THUỐC GPP ĐỀ XUẤT TỪ CA TƯ VẤN',
+            selectedPoi: {
+              id: poi.id,
+              name: poi.name,
+              address: poi.address,
+              lat: Number(poi.lat),
+              lng: Number(poi.lng),
+              type: poi.type || (isEmergency ? 'hospital_emergency' : 'pharmacy'),
+              chain: poi.chain || '',
+              district: poi.district || '',
+              city: poi.city || '',
+              hotline: poi.hotline || '',
+              phone: poi.phone || '',
+              operating_status: poi.operating_status,
+              distance_km: activeRoute?.distance_km || poi.distance_km,
+              google_maps_turn_by_turn_url: geoRouting.google_maps_turn_by_turn_url,
+              services: poi.services || ['Chuẩn GPP', 'Sẵn có thuốc theo đơn tư vấn'],
+            },
+            activeRoute: {
+              distance_km: activeRoute?.distance_km,
+              eta_minutes: activeRoute?.eta_minutes,
+              corridor_description: activeRoute?.corridor_description,
+              canvas_polyline: activeRoute?.canvas_polyline,
+              coordinates: activeRoute?.canvas_polyline || activeRoute?.coordinates,
+              steps: steps,
+              traffic_level: activeRoute?.traffic_level,
+              google_maps_turn_by_turn_url: geoRouting.google_maps_turn_by_turn_url,
+            },
+            userLocation: {
+              lat: Number(geoRouting.user_location?.lat) || 20.9858,
+              lng: Number(geoRouting.user_location?.lng) || 105.7928,
+              name: geoRouting.user_location?.name || 'Vị trí của bạn',
+              address: geoRouting.user_location?.address || 'Hà Nội',
+              is_gps: true,
+            },
+            poiType: isEmergency ? 'emergency' : 'pharmacy',
+          },
+        },
+      })
+    );
+  };
 
   return (
     <section
@@ -791,99 +1098,95 @@ function RealTimeGeoMapCard({ geoRouting }) {
         </div>
       )}
 
-      {/* Interactive Visual Map Canvas (SVG Vector Map with Real-Time Traffic Coloring) */}
+      {/* Interactive Visual Map Canvas with Real Map Tiles */}
       <div className="geo-interactive-map-canvas" role="region" aria-label="Bản đồ đường đi trực quan">
         <div className="map-canvas-top-bar">
           <span className="map-badge-live">
             <span className="live-dot" /> LIVE TRAFFIC RADAR
           </span>
           <span className="map-location-tag">
-            Vị trí của bạn: {geoRouting.user_location?.address || 'Khu vực trung tâm'}
+            Vị trí của bạn: <strong>{geoRouting.user_location?.name || 'Vị trí của bạn'}</strong> ({geoRouting.user_location?.address || 'Đang cập nhật...'})
           </span>
         </div>
 
-        {/* SVG Route Visualizer */}
-        <div className="svg-map-wrapper">
-          <svg viewBox="0 0 540 220" className="route-vector-svg" preserveAspectRatio="xMidYMid meet">
-            {/* Grid background lines */}
-            <defs>
-              <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
-                <path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(255, 255, 255, 0.04)" strokeWidth="1" />
-              </pattern>
-              <linearGradient id="primaryRouteGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor={primary.traffic_level === 'SEVERELY_CONGESTED' ? '#ef4444' : '#f59e0b'} />
-                <stop offset="100%" stopColor="#f97316" />
-              </linearGradient>
-              <linearGradient id="bypassRouteGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#10b981" />
-                <stop offset="100%" stopColor="#06b6d4" />
-              </linearGradient>
-              <filter id="glowGreen" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="4" result="blur" />
-                <feComposite in="SourceGraphic" in2="blur" operator="over" />
-              </filter>
-            </defs>
-            <rect width="100%" height="100%" fill="rgba(10, 16, 28, 0.85)" />
-            <rect width="100%" height="100%" fill="url(#grid)" />
+        {/* Map View Toggle Tabs */}
+        <div className="geo-map-display-area">
+          <div className="map-view-toggle-bar">
+            <div className="map-toggle-tabs">
+              <button
+                type="button"
+                className={`map-toggle-btn ${mapMode === 'leaflet' ? 'active' : ''}`}
+                onClick={() => setMapMode('leaflet')}
+              >
+                <Compass size={13} />
+                <span>Bản đồ Tương tác Leaflet (Sợi chỉ đường)</span>
+              </button>
+              {geoRouting.static_map_url && (
+                <button
+                  type="button"
+                  className={`map-toggle-btn ${mapMode === 'street' ? 'active' : ''}`}
+                  onClick={() => setMapMode('street')}
+                >
+                  <Layers size={13} />
+                  <span>Bản đồ Đường phố Thực tế</span>
+                </button>
+              )}
+              {geoRouting.interactive_map_url && (
+                <button
+                  type="button"
+                  className={`map-toggle-btn ${mapMode === 'osm' ? 'active' : ''}`}
+                  onClick={() => setMapMode('osm')}
+                >
+                  <Navigation size={13} />
+                  <span>Bản đồ Toàn cầu (OSM)</span>
+                </button>
+              )}
+            </div>
+            <span className="map-realtime-indicator">
+              <span className="live-dot" /> Định vị & Lộ trình chuẩn
+            </span>
+          </div>
 
-            {/* City road grid mockup */}
-            <path d="M 40 110 L 500 110" stroke="rgba(255,255,255,0.08)" strokeWidth="6" strokeLinecap="round" />
-            <path d="M 180 30 L 180 190" stroke="rgba(255,255,255,0.06)" strokeWidth="4" />
-            <path d="M 360 30 L 360 190" stroke="rgba(255,255,255,0.06)" strokeWidth="4" />
-
-            {/* Primary Direct Route Path */}
-            <path
-              d="M 60 110 Q 200 110, 270 120 T 480 110"
-              fill="none"
-              stroke="url(#primaryRouteGrad)"
-              strokeWidth={selectedRouteType === 'PRIMARY_DIRECT' ? '6' : '3'}
-              strokeDasharray={primary.traffic_level === 'SEVERELY_CONGESTED' ? '6,4' : 'none'}
-              strokeOpacity={selectedRouteType === 'PRIMARY_DIRECT' ? '1' : '0.4'}
-              className="route-path-primary"
-            />
-
-            {/* Alternative Bypass Route Path if exists */}
-            {alternative && (
-              <path
-                d="M 60 110 C 120 40, 380 40, 480 110"
-                fill="none"
-                stroke="url(#bypassRouteGrad)"
-                strokeWidth={selectedRouteType === 'OPTIMAL_BYPASS' ? '6' : '3'}
-                strokeOpacity={selectedRouteType === 'OPTIMAL_BYPASS' ? '1' : '0.4'}
-                filter={selectedRouteType === 'OPTIMAL_BYPASS' ? 'url(#glowGreen)' : 'none'}
-                className="route-path-bypass"
+          {/* Render Selected Map Mode */}
+          {mapMode === 'leaflet' ? (
+            <LeafletRouteMap geoRouting={geoRouting} activeRoute={activeRoute} />
+          ) : mapMode === 'street' && geoRouting.static_map_url ? (
+            <div className="geo-static-map-wrapper">
+              <img
+                src={geoRouting.static_map_url}
+                alt={`Bản đồ lộ trình đến ${poi.name}`}
+                className="geo-static-street-img"
+                loading="eager"
               />
-            )}
-
-            {/* Start Node (User GPS Location) */}
-            <circle cx="60" cy="110" r="14" fill="rgba(59, 130, 246, 0.2)" className="pulse-radar-ring" />
-            <circle cx="60" cy="110" r="8" fill="#3b82f6" stroke="#ffffff" strokeWidth="2" />
-            <text x="60" y="145" textAnchor="middle" fill="#93c5fd" fontSize="11" fontWeight="bold">Bạn (Bắt đầu)</text>
-
-            {/* Destination Node (Hospital or Pharmacy) */}
-            <circle cx="480" cy="110" r="14" fill={isEmergency ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)'} className="pulse-radar-ring" />
-            <circle cx="480" cy="110" r="9" fill={isEmergency ? '#ef4444' : '#10b981'} stroke="#ffffff" strokeWidth="2" />
-            <text x="480" y="145" textAnchor="middle" fill={isEmergency ? '#f87171' : '#6ee7b7'} fontSize="11" fontWeight="bold">
-              {isEmergency ? 'Cấp cứu' : 'Nhà thuốc'}
-            </text>
-
-            {/* Badges on Route */}
-            {alternative && (
-              <g transform="translate(200, 32)">
-                <rect x="0" y="0" width="140" height="24" rx="12" fill="#065f46" stroke="#10b981" strokeWidth="1" />
-                <text x="70" y="16" textAnchor="middle" fill="#6ee7b7" fontSize="11" fontWeight="bold">
-                  ⚡ Tuyến tránh: Nhanh hơn {alternative.time_saved_minutes}p
-                </text>
-              </g>
-            )}
-
-            <g transform="translate(195, 132)">
-              <rect x="0" y="0" width="150" height="24" rx="12" fill="#7f1d1d" stroke="#ef4444" strokeWidth="1" />
-              <text x="75" y="16" textAnchor="middle" fill="#fca5a5" fontSize="11" fontWeight="bold">
-                ⚠️ Trục chính: Chậm +{primary.congestion_delay_minutes}p
-              </text>
-            </g>
-          </svg>
+              <div className="geo-map-overlay-card start-overlay">
+                <span className="overlay-badge pin-a">A</span>
+                <div className="overlay-text">
+                  <span className="overlay-role">Điểm xuất phát:</span>
+                  <strong className="overlay-address">{geoRouting.user_location?.address || 'Vị trí của bạn'}</strong>
+                </div>
+              </div>
+              <div className="geo-map-overlay-card dest-overlay">
+                <span className="overlay-badge pin-b">B</span>
+                <div className="overlay-text">
+                  <span className="overlay-role">{isEmergency ? 'Cơ sở cấp cứu:' : 'Điểm bán thuốc GPP:'}</span>
+                  <strong className="overlay-address">{poi.name} ({activeRoute.distance_km} km)</strong>
+                </div>
+              </div>
+            </div>
+          ) : geoRouting.interactive_map_url ? (
+            <div className="geo-osm-iframe-wrapper">
+              <iframe
+                src={geoRouting.interactive_map_url}
+                className="geo-osm-iframe"
+                title="Bản đồ tương tác OpenStreetMap"
+                loading="lazy"
+              />
+            </div>
+          ) : (
+            <div className="geo-map-placeholder">
+              <span>Đang tải dữ liệu bản đồ thời gian thực...</span>
+            </div>
+          )}
         </div>
 
         {/* Route Selector Tabs / Buttons */}
@@ -891,7 +1194,10 @@ function RealTimeGeoMapCard({ geoRouting }) {
           <button
             type="button"
             className={`route-tab-btn ${selectedRouteType === 'PRIMARY_DIRECT' ? 'active' : ''}`}
-            onClick={() => setSelectedRouteType('PRIMARY_DIRECT')}
+            onClick={() => {
+              setSelectedRouteType('PRIMARY_DIRECT');
+              setActiveStepIndex(0);
+            }}
           >
             <div className="route-tab-title-row">
               <span className="route-tab-name">Tuyến 1: Đường Trực Tiếp</span>
@@ -910,7 +1216,10 @@ function RealTimeGeoMapCard({ geoRouting }) {
             <button
               type="button"
               className={`route-tab-btn recommended ${selectedRouteType === 'OPTIMAL_BYPASS' ? 'active' : ''}`}
-              onClick={() => setSelectedRouteType('OPTIMAL_BYPASS')}
+              onClick={() => {
+                setSelectedRouteType('OPTIMAL_BYPASS');
+                setActiveStepIndex(0);
+              }}
             >
               <div className="route-tab-title-row">
                 <span className="route-tab-name">Tuyến 2: Tuyến Tránh Tối Ưu</span>
@@ -924,32 +1233,190 @@ function RealTimeGeoMapCard({ geoRouting }) {
             </button>
           )}
         </div>
+
+        {/* Dual Navigation Choice Console: Google Maps Deep Link vs In-App Real-Time */}
+        <div className="geo-dual-navigation-console">
+          <div className="nav-choices-header">
+            <Navigation size={16} className="nav-console-icon" />
+            <div className="nav-console-title-wrap">
+              <strong>CƠ CHẾ 2 LỰA CHỌN ĐIỀU HƯỚNG</strong>
+              <small>Điểm xuất phát ({geoRouting.user_location?.name || geoRouting.user_location?.address || 'Vị trí hiện tại của bạn'}) và điểm đến ({poi.name}) đã được thiết lập sẵn</small>
+            </div>
+          </div>
+
+          <div className="nav-choices-grid">
+            {/* Lựa chọn 1: Deep Link sang Google Maps */}
+            <a
+              href={geoRouting.google_maps_turn_by_turn_url}
+              target="_blank"
+              rel="noreferrer"
+              className="nav-choice-card choice-gmaps"
+            >
+              <div className="choice-top-row">
+                <span className="choice-tag-pill tag-gmaps">LỰA CHỌN 1</span>
+                <span className="choice-hint">Ứng dụng ngoài</span>
+              </div>
+              <h4 className="choice-title">
+                <Navigation size={15} />
+                <span>Mở Google Maps (Deep Link)</span>
+                <ExternalLink size={13} />
+              </h4>
+              <p className="choice-desc">
+                Chuyển thẳng sang Google Maps trên máy bạn. Tọa độ xuất phát và đích đến đã được nạp sẵn, hiển thị kẹt xe thời gian thực của Google.
+              </p>
+              <div className="choice-action-bar">
+                <span>Bật dẫn đường trên Google Maps</span>
+                <ArrowRight size={14} />
+              </div>
+            </a>
+
+            {/* Lựa chọn 2: Tự xử lý Real-time trực tiếp trong ứng dụng */}
+            <button
+              type="button"
+              className="nav-choice-card choice-inapp selected clickable-choice"
+              onClick={handleOpenDirectNavigation}
+              title="Nhấn để chuyển sang trang Chỉ Đường Real-Time & Trạm Y Tế GPP toàn màn hình với lộ trình này"
+            >
+              <div className="choice-top-row">
+                <span className="choice-tag-pill tag-inapp">LỰA CHỌN 2 (MẶC ĐỊNH)</span>
+                <span className="choice-hint">Chuyển sang trang riêng</span>
+              </div>
+              <h4 className="choice-title">
+                <Compass size={15} />
+                <span>Chỉ đường Real-time trên MedGuard AI</span>
+                <ArrowRight size={13} className="choice-arrow-icon" />
+              </h4>
+              <p className="choice-desc">
+                Chuyển sang trang "Chỉ Đường Real-Time & Trạm Y Tế GPP" để theo dõi bản đồ toàn màn hình, bám sát GPS và chỉ dẫn rẽ từng bước (Turn-by-turn).
+              </p>
+              <div className="choice-action-bar inapp-active">
+                <span>Mở trang chỉ đường toàn màn hình</span>
+                <ArrowRight size={14} />
+              </div>
+            </button>
+          </div>
+
+          <button
+            type="button"
+            className="nav-open-dedicated-page-btn"
+            onClick={handleOpenDirectNavigation}
+          >
+            <Route size={15} />
+            <span>Mở Trang Chỉ Đường Real-Time & Trạm Y Tế GPP Toàn Màn Hình</span>
+            <ArrowRight size={14} />
+          </button>
+        </div>
+
+        {/* Direct In-App Turn-by-Turn Navigation Console */}
+        {steps.length > 0 && (
+          <div className="geo-turn-navigator-console">
+            <div className="turn-console-header">
+              <div className="turn-console-title">
+                <Compass size={16} className="compass-icon pulse-subtle" />
+                <span>CHỈ ĐƯỜNG REAL-TIME TRỰC TIẾP TRÊN APP (TURN-BY-TURN)</span>
+              </div>
+              <div className="turn-header-actions">
+                <button
+                  type="button"
+                  className="turn-open-fullscreen-btn"
+                  onClick={handleOpenDirectNavigation}
+                  title="Mở toàn màn hình trang chỉ đường"
+                >
+                  <Route size={12} />
+                  <span>Mở Toàn Màn Hình</span>
+                </button>
+                <span className="turn-step-count-badge">
+                  Chặng {activeStepIndex + 1}/{steps.length}
+                </span>
+              </div>
+            </div>
+
+            {/* Active Turn Highlight Card */}
+            <div className="active-turn-step-card">
+              <div className="turn-icon-container">
+                {getTurnDirectionIcon(currentStep.instruction)}
+              </div>
+              <div className="turn-content-container">
+                <span className="turn-road-name">{currentStep.road_name || 'Đoạn đường di chuyển'}</span>
+                <h4 className="turn-instruction-text">{currentStep.instruction}</h4>
+                <div className="turn-metrics-row">
+                  <span className="metric-tag distance-metric">
+                    <Route size={12} /> {currentStep.distance_km} km
+                  </span>
+                  <span className="metric-tag eta-metric">
+                    <Clock size={12} /> ~{Math.max(1, Math.round(currentStep.distance_km * 2.5))} phút
+                  </span>
+                  {currentStep.traffic_level === 'HEAVY' && (
+                    <span className="metric-tag traffic-heavy-metric">
+                      <AlertTriangle size={12} /> Đoạn đường ùn tắc
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Turn Controller Step Bar */}
+            <div className="turn-controller-bar">
+              <button
+                type="button"
+                className="turn-ctrl-btn"
+                disabled={activeStepIndex === 0}
+                onClick={() => setActiveStepIndex((prev) => Math.max(0, prev - 1))}
+              >
+                <ArrowLeft size={14} /> Chặng trước
+              </button>
+              <div className="turn-step-dots-track">
+                {steps.map((s, idx) => (
+                  <button
+                    key={`dot-${idx}`}
+                    type="button"
+                    className={`step-dot-btn ${idx === activeStepIndex ? 'active' : idx < activeStepIndex ? 'passed' : ''}`}
+                    onClick={() => setActiveStepIndex(idx)}
+                    title={`Chặng ${idx + 1}: ${s.road_name || s.instruction}`}
+                  >
+                    {idx + 1}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                className="turn-ctrl-btn turn-btn-next"
+                disabled={activeStepIndex === steps.length - 1}
+                onClick={() => setActiveStepIndex((prev) => Math.min(steps.length - 1, prev + 1))}
+              >
+                Chặng kế tiếp <ArrowRight size={14} />
+              </button>
+            </div>
+
+            {/* Expandable all-steps list */}
+            <details className="nav-all-steps-details">
+              <summary className="nav-all-steps-summary">
+                <span>Xem toàn bộ danh sách {steps.length} chặng rẽ</span>
+                <ChevronDown size={13} />
+              </summary>
+              <ol className="geo-steps-list">
+                {steps.map((step, idx) => (
+                  <li
+                    key={`step-${step.step_number}`}
+                    className={`geo-step-item ${idx === activeStepIndex ? 'current-step' : ''}`}
+                    onClick={() => setActiveStepIndex(idx)}
+                  >
+                    <span className="step-num">{step.step_number}</span>
+                    <div className="step-body">
+                      <p className="step-inst">{step.instruction}</p>
+                      <span className="step-meta">
+                        {step.road_name} &bull; {step.distance_km} km
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </details>
+          </div>
+        )}
       </div>
 
-      {/* Turn-by-Turn Step Directions */}
-      {activeRoute?.steps?.length > 0 && (
-        <div className="geo-steps-container">
-          <h4 className="geo-steps-title">
-            <Navigation size={14} />
-            <span>Chỉ dẫn chặng rẽ ({activeRoute.route_name}):</span>
-          </h4>
-          <ol className="geo-steps-list">
-            {activeRoute.steps.map((step) => (
-              <li key={`step-${step.step_number}`} className="geo-step-item">
-                <span className="step-num">{step.step_number}</span>
-                <div className="step-body">
-                  <p className="step-inst">{step.instruction}</p>
-                  <span className="step-meta">
-                    {step.road_name} &bull; {step.distance_km} km
-                  </span>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </div>
-      )}
-
-      {/* Action Buttons: 1-Tap Google Maps Navigation & Direct Phone Calls */}
+      {/* Action Buttons: Phone and Direct Links */}
       <div className="geo-action-buttons-row">
         <a
           href={geoRouting.google_maps_turn_by_turn_url}
@@ -958,7 +1425,7 @@ function RealTimeGeoMapCard({ geoRouting }) {
           className="geo-btn-primary-nav"
         >
           <Navigation size={16} />
-          <span>BẬT DẪN ĐƯỜNG GOOGLE MAPS (TURN-BY-TURN)</span>
+          <span>MỞ DẪN ĐƯỜNG TRÊN GOOGLE MAPS (LỰA CHỌN 1)</span>
           <ExternalLink size={13} />
         </a>
 
@@ -1121,29 +1588,26 @@ export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQues
         </div>
       </section>
 
-      {/* Emergency Transit & Real-time Turn-by-Turn Navigation Card */}
-      {answer.emergency_transit && (
-        <EmergencyTransitCard transit={answer.emergency_transit} />
-      )}
-
-      {/* Real-time Hybrid Geo Routing & Traffic Optimization Card */}
-      {answer.geo_routing && (
-        <RealTimeGeoMapCard geoRouting={answer.geo_routing} />
-      )}
-
-      {/* Pre-hospital En-Route Physical Signs Triage Card */}
-      {answer.enroute_triage && (
-        <EnRouteTriageCard enroute={answer.enroute_triage} />
-      )}
-
-      {/* 3-State Medication Suitability & GPP Pharmacy Card */}
-      {answer.medication_suitability && (
-        <MedicationSuitabilityCard suitability={answer.medication_suitability} />
-      )}
-
       {/* Anti-counterfeit / Product Registry Verification Card */}
       {(responseMeta.intent === 'authenticity' || result?.verification_status) && (
         <ProductVerificationCard result={result} answer={answer} />
+      )}
+
+      {/* 1. GIẢI THÍCH Y KHOA & PHÂN TÍCH TRIỆU CHỨNG (Việc giải thích) */}
+      {!verifiedAgentPrimary && hasNarrative && narrativeBlocks.length > 0 && (
+        <div className="clinical-explanation-narrative-box">
+          <div className="explanation-section-title">
+            <Stethoscope size={15} />
+            <span>{isClinical ? 'Giải thích y khoa & Đánh giá tình trạng' : 'Giải thích chi tiết'}</span>
+          </div>
+          <div className="answer-narrative">
+            {narrativeBlocks
+              .filter((b) => !hasNarrativeClarifying || (!b.text?.startsWith('Bạn cho mình biết thêm:') && !b.text?.startsWith('Thông tin cần báo nhân viên y tế')))
+              .map((block, index) => (
+                <NarrativeBlock key={`explanation-${index}`} block={block} sourcesById={sourcesById} />
+              ))}
+          </div>
+        </div>
       )}
 
       {verifiedAgentPrimary ? (
@@ -1191,6 +1655,7 @@ export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQues
             tone="clinical"
           />
 
+          {/* 2. NỘI DUNG ĐỀ XUẤT XỬ TRÍ & HƯỚNG DẪN DÙNG THUỐC (Nội dung đề xuất) */}
           <ClinicalSection
             title={isClinical ? 'Bạn nên làm gì lúc này' : 'Bước tiếp theo'}
             icon={ListChecks}
@@ -1229,18 +1694,8 @@ export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQues
             onSelectQuestion={onSelectQuestion}
           />
         </div>
-      ) : !isBrief && hasNarrative ? (
+      ) : !isBrief && hasNarrative && !verifiedAgentPrimary ? (
         <>
-          <div className="answer-narrative clinical-narrative-fallback">
-            {narrativeBlocks.map((block, index) => (
-              <NarrativeBlock
-                key={`${block.text}-${index}`}
-                block={block}
-                sourcesById={sourcesById}
-              />
-            ))}
-          </div>
-
           {!hasNarrativeClarifying && systemClarifyingQuestions.length > 0 && (
             <ClinicalClarifyingNotes questions={systemClarifyingQuestions} />
           )}
@@ -1254,6 +1709,23 @@ export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQues
         </>
       ) : null}
 
+      {/* 3. TÌM VỊ TRÍ, NHÀ THUỐC GPP & BẢN ĐỒ CHỈ ĐƯỜNG (Đặt ở sau phần giải thích và nội dung đề xuất theo đúng yêu cầu) */}
+      {answer.medication_suitability && (
+        <MedicationSuitabilityCard suitability={answer.medication_suitability} />
+      )}
+
+      {answer.geo_routing && (
+        <RealTimeGeoMapCard geoRouting={answer.geo_routing} />
+      )}
+
+      {answer.emergency_transit && (
+        <EmergencyTransitCard transit={answer.emergency_transit} />
+      )}
+
+      {answer.enroute_triage && (
+        <EnRouteTriageCard enroute={answer.enroute_triage} />
+      )}
+
       {!isBrief && limitations.length > 0 && (
         <div className="clinical-limitations">
           <AlertCircle size={15} />
@@ -1262,30 +1734,6 @@ export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQues
             {limitations.map((item, index) => <p key={`${item}-${index}`}>{item}</p>)}
           </div>
         </div>
-      )}
-
-      {(isBrief || isFocused || (hasNarrative && narrativeBlocks.length > 0)) && (
-        <details className="clinical-detail-panel">
-          <summary>
-            <span><Stethoscope size={15} /> {isClinical ? 'Giải thích chi tiết' : 'Chi tiết xử lý'}</span>
-            <ChevronDown size={14} className="panel-chevron" />
-          </summary>
-          <div className="clinical-detail-content">
-            {narrativeBlocks.filter((b) => !hasNarrativeClarifying || (!b.text?.startsWith('Bạn cho mình biết thêm:') && !b.text?.startsWith('Thông tin cần báo nhân viên y tế'))).length > 0 ? (
-              narrativeBlocks
-                .filter((b) => !hasNarrativeClarifying || (!b.text?.startsWith('Bạn cho mình biết thêm:') && !b.text?.startsWith('Thông tin cần báo nhân viên y tế')))
-                .map((block, index) => (
-                  <NarrativeBlock
-                    key={`detail-${index}`}
-                    block={block}
-                    sourcesById={sourcesById}
-                  />
-                ))
-            ) : (
-              <p>{answer.summary}</p>
-            )}
-          </div>
-        </details>
       )}
     </div>
   );

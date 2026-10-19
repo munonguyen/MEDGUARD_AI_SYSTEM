@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Activity,
   AlarmClock,
+  AlertTriangle,
   ArrowLeft,
   Braces,
   CalendarClock,
@@ -14,15 +15,19 @@ import {
   HeartPulse,
   ListOrdered,
   LoaderCircle,
+  LocateFixed,
   LogOut,
+  MapPin,
   Menu,
   MessageSquare,
   Paperclip,
+  Navigation,
   PanelLeftClose,
   PanelLeftOpen,
   Pill,
   Plus,
   QrCode,
+  Route,
   Search,
   Save,
   Send,
@@ -52,6 +57,14 @@ import { SchedulePage } from './schedule/SchedulePage';
 import { MedicationPage } from './schedule/MedicationPage';
 import { SettingsModal } from './settings/SettingsModal';
 import { GrokLiveCompanionPage } from './companion/GrokLiveCompanionPage';
+import { NavigationPage } from './navigation/NavigationPage';
+import {
+  getSavedUserLocation,
+  saveUserLocation,
+  requestBrowserGeolocation,
+  autoDetectLiveLocation,
+  LOCATION_PRESETS,
+} from './locationState';
 
 const tenantDefaults = { 'tenant-demo': 'demo-key', 'tenant-alt': 'alt-key' };
 
@@ -184,7 +197,7 @@ function ProfileEditor({ context, onSave, onClear, close }) {
   </form>;
 }
 
-function Sidebar({ open, close, collapse, conversations, activeId, onSelect, onNew, onDelete, onSchedule, onSchedulePage, onMedicationPage, onCompanionPage, onSettings, onSystem, activeView, search, setSearch }) {
+function Sidebar({ open, close, collapse, conversations, activeId, onSelect, onNew, onDelete, onSchedule, onSchedulePage, onMedicationPage, onCompanionPage, onNavigationPage, onSettings, onSystem, activeView, search, setSearch }) {
   return <>
     {open && <button className="sidebar-scrim" type="button" aria-label="Đóng menu" onClick={close} />}
     <aside className={`sidebar ${open ? 'open' : ''}`}>
@@ -211,6 +224,7 @@ function Sidebar({ open, close, collapse, conversations, activeId, onSelect, onN
           <span>Bác sĩ 3D Live</span>
           <span className="sidebar-live-tag">LIVE</span>
         </button>
+        <button type="button" className={`nav-link-btn ${activeView === 'navigation' ? 'active' : ''}`} onClick={() => { onNavigationPage?.(); close(); }}><Route size={17} /><span>Chỉ đường Real-time</span></button>
         <button type="button" className={`nav-link-btn ${activeView === 'schedule' ? 'active' : ''}`} onClick={() => { onSchedulePage(); close(); }}><CalendarClock size={17} /><span>Lịch khám</span></button>
         <button type="button" className={`nav-link-btn ${activeView === 'medication' ? 'active' : ''}`} onClick={() => { onMedicationPage(); close(); }}><CalendarDays size={17} /><span>Lịch uống thuốc</span></button>
         <button type="button" className="nav-link-btn" onClick={() => { onSettings(); close(); }}><Settings size={17} /><span>Cài đặt</span></button>
@@ -672,7 +686,7 @@ function Composer({ value, setValue, onSend, busy, selectedTool, setSelectedTool
 
 const newContext = (profile = emptyProfile) => ({ ...emptyProfile, ...profile, last_result: null });
 
-function clinicalContext(context) {
+function clinicalContext(context, userLocation = null) {
   return {
     patient_ref: context.patient_ref || null,
     age: context.age,
@@ -681,6 +695,7 @@ function clinicalContext(context) {
     allergies: context.allergies,
     conditions: context.conditions,
     last_result: context.last_result,
+    user_location: userLocation || context.user_location || null,
   };
 }
 
@@ -732,7 +747,7 @@ export default function App({
       const sp = new URLSearchParams(window.location.search);
       const hash = window.location.hash.replace(/^#\/?/, '');
       const initial = sp.get('view') || hash;
-      if (['chat', 'companion', 'schedule', 'medication', 'system'].includes(initial)) {
+      if (['chat', 'companion', 'schedule', 'medication', 'navigation', 'system'].includes(initial)) {
         return initial;
       }
     } catch {}
@@ -741,7 +756,89 @@ export default function App({
   const [historySearch, setHistorySearch] = useState('');
   const [toast, setToast] = useState(null);
   const [chatTimeoutMs, setChatTimeoutMs] = useState(35000);
+  const [userLocation, setUserLocation] = useState(() => getSavedUserLocation());
+  const [locationPromptOpen, setLocationPromptOpen] = useState(false);
+  const [requestingGps, setRequestingGps] = useState(false);
+  const [navigationContext, setNavigationContext] = useState(null);
   const toastTimerRef = useRef(null);
+
+  useEffect(() => {
+    const handleCustomNavigate = (e) => {
+      const detail = e.detail;
+      const target = typeof detail === 'string' ? detail : detail?.view;
+      if (['chat', 'companion', 'schedule', 'medication', 'navigation', 'system'].includes(target)) {
+        if (detail && typeof detail === 'object' && detail.navigationContext) {
+          setNavigationContext(detail.navigationContext);
+        }
+        setView(target);
+      }
+    };
+    window.addEventListener('medguard:navigate', handleCustomNavigate);
+    return () => window.removeEventListener('medguard:navigate', handleCustomNavigate);
+  }, []);
+
+  useEffect(() => {
+    try {
+      const sp = new URLSearchParams(window.location.search);
+      if (sp.get('view') !== view) {
+        sp.set('view', view);
+        const newUrl = `${window.location.pathname}?${sp.toString()}${window.location.hash}`;
+        window.history.replaceState(null, '', newUrl);
+      }
+    } catch {}
+  }, [view]);
+
+  useEffect(() => {
+    const handleLocChange = (e) => {
+      if (e.detail && typeof e.detail.lat === 'number') {
+        setUserLocation((prev) => {
+          if (
+            prev &&
+            prev.name === e.detail.name &&
+            Math.abs(prev.lat - e.detail.lat) < 0.00008 &&
+            Math.abs(prev.lng - e.detail.lng) < 0.00008
+          ) {
+            return prev;
+          }
+          return e.detail;
+        });
+      }
+    };
+    window.addEventListener('medguard:location-changed', handleLocChange);
+    return () => window.removeEventListener('medguard:location-changed', handleLocChange);
+  }, []);
+
+  useEffect(() => {
+    // Automatically detect user's live position (GPS or IP network) on startup
+    autoDetectLiveLocation().then((loc) => {
+      if (loc && typeof loc.lat === 'number' && typeof loc.lng === 'number') {
+        setUserLocation(loc);
+      }
+    });
+  }, []);
+
+  const handleRequestGps = async () => {
+    setRequestingGps(true);
+    try {
+      const loc = await requestBrowserGeolocation();
+      setUserLocation(loc);
+      notify(`Đã cập nhật GPS thực tế: ${loc.address?.slice(0, 45) || 'Vị trí hiện tại'}...`);
+      setLocationPromptOpen(false);
+    } catch (err) {
+      notify(err.message || 'Không thể lấy GPS. Vui lòng cho phép quyền truy cập vị trí trên trình duyệt.');
+    } finally {
+      setRequestingGps(false);
+    }
+  };
+
+  const handleSelectPreset = (preset) => {
+    const loc = { ...preset, is_gps: false, permission_status: 'custom' };
+    saveUserLocation(loc);
+    setUserLocation(loc);
+    notify(`Đã chọn vị trí: ${preset.name}`);
+    setLocationPromptOpen(false);
+  };
+
   const api = useMemo(() => createApiClient({ tenantId, apiKey, consentToken }), [tenantId, apiKey, consentToken]);
   const hasPendingGatewayReview = entries.some(
     (entry) => entry.role === 'assistant' && entry.verification_status === 'shadow_pending',
@@ -1003,7 +1100,7 @@ export default function App({
         messages.push({ role: 'user', content: shownText });
         const data = await api.request('/v1/chat', {
           method: 'POST',
-          body: { conversation_id: conversationId, messages, context: clinicalContext(context), intent_hint: effectiveIntent, locale: 'vi-VN' },
+          body: { conversation_id: conversationId, messages, context: clinicalContext(context, userLocation), intent_hint: effectiveIntent, locale: 'vi-VN' },
           timeoutMs: chatTimeoutMs || 35000,
         });
         responseEntry = { role: 'assistant', requestId: data.request_id, text: data.reply, intent: data.intent, status: data.status, result: data.result, answer: data.answer, suggestions: data.suggestions, answer_origin: data.answer_origin, verification_status: data.verification_status, knowledge_approval: data.knowledge_approval };
@@ -1052,7 +1149,7 @@ export default function App({
   const filteredConversations = conversations.filter((item) => item.title.toLowerCase().includes(historySearch.toLowerCase()));
   return <div className={`app-shell chat-shell ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
     <a href="#main-content" className="skip-link">Chuyển đến nội dung chính</a>
-    <Sidebar open={sidebarOpen} close={() => setSidebarOpen(false)} collapse={() => { setSidebarCollapsed(true); setSidebarOpen(false); }} conversations={filteredConversations} activeId={conversationId} onSelect={selectConversation} onNew={startNew} onDelete={deleteConversation} onSchedule={() => setView('medication')} onSchedulePage={() => setView('schedule')} onMedicationPage={() => setView('medication')} onCompanionPage={() => setView('companion')} onSettings={() => { setSettingsInitialTab('general'); setSettingsOpen(true); }} onSystem={() => { if (!account || account.role === 'admin') setView('system'); }} activeView={view} search={historySearch} setSearch={setHistorySearch} />
+    <Sidebar open={sidebarOpen} close={() => setSidebarOpen(false)} collapse={() => { setSidebarCollapsed(true); setSidebarOpen(false); }} conversations={filteredConversations} activeId={conversationId} onSelect={selectConversation} onNew={startNew} onDelete={deleteConversation} onSchedule={() => setView('medication')} onSchedulePage={() => setView('schedule')} onMedicationPage={() => setView('medication')} onCompanionPage={() => setView('companion')} onNavigationPage={() => setView('navigation')} onSettings={() => { setSettingsInitialTab('general'); setSettingsOpen(true); }} onSystem={() => { if (!account || account.role === 'admin') setView('system'); }} activeView={view} search={historySearch} setSearch={setHistorySearch} />
     <main className="main-shell chat-main" id="main-content" tabIndex={-1}>
       <header className="topbar chat-topbar">
         <div className="topbar-title">
@@ -1066,8 +1163,8 @@ export default function App({
             {sidebarCollapsed ? <PanelLeftOpen size={20} /> : <Menu size={20} />}
           </button>
           <div>
-            <h1>{view === 'system' ? 'Hệ thống & Kiểm toán' : view === 'schedule' ? 'Lịch khám bệnh' : view === 'medication' ? 'Lịch uống thuốc' : view === 'companion' ? 'Bác sĩ 3D Live' : conversationTitle}</h1>
-            <span>{view === 'system' ? 'Trạng thái vận hành lâm sàng' : view === 'schedule' ? 'Thời khóa biểu ca khám bác sĩ' : view === 'medication' ? 'Thời khóa biểu nhắc thuốc cá nhân' : view === 'companion' ? 'Bác sĩ ảo 3D tư vấn trực tiếp qua giọng nói & cử chỉ' : (context.display_name ? `Bệnh nhân: ${context.display_name}` : context.patient_ref || 'Hỗ trợ y khoa 24/7')}</span>
+            <h1>{view === 'system' ? 'Hệ thống & Kiểm toán' : view === 'schedule' ? 'Lịch khám bệnh' : view === 'medication' ? 'Lịch uống thuốc' : view === 'companion' ? 'Bác sĩ 3D Live' : view === 'navigation' ? 'Chỉ đường & Trạm Y Tế' : conversationTitle}</h1>
+            <span>{view === 'system' ? 'Trạng thái vận hành lâm sàng' : view === 'schedule' ? 'Thời khóa biểu ca khám bác sĩ' : view === 'medication' ? 'Thời khóa biểu nhắc thuốc cá nhân' : view === 'companion' ? 'Bác sĩ ảo 3D tư vấn trực tiếp qua giọng nói & cử chỉ' : view === 'navigation' ? 'Định tuyến 3D & Bản đồ GPP' : (context.display_name ? `Bệnh nhân: ${context.display_name}` : context.patient_ref || 'Hỗ trợ y khoa 24/7')}</span>
           </div>
         </div>
         <div className="topbar-actions">
@@ -1093,6 +1190,17 @@ export default function App({
             >
               <MessageSquare size={14} />
               <span>Hội thoại</span>
+            </button>
+            <button
+              role="tab"
+              aria-selected={view === "navigation"}
+              className={`view-tab-btn ${view === "navigation" ? "active" : ""}`}
+              type="button"
+              onClick={() => setView(view === "navigation" ? "chat" : "navigation")}
+              title="Chỉ đường & Trạm Y Tế Real-time"
+            >
+              <Route size={14} />
+              <span>Chỉ đường</span>
             </button>
             <button
               role="tab"
@@ -1127,6 +1235,94 @@ export default function App({
               <Pill size={14} />
               <span>Lịch thuốc</span>
             </button>
+          </div>
+
+          <div className="location-anchor">
+            <button
+              className={`location-topbar-pill ${userLocation.is_gps ? 'gps-active' : ''}`}
+              type="button"
+              aria-label="Cài đặt vị trí & chỉ đường"
+              onClick={() => setLocationPromptOpen(!locationPromptOpen)}
+              title={`Vị trí: ${userLocation.name} (${userLocation.address})`}
+            >
+              <MapPin size={14} className="location-pin-icon" />
+              <div className="location-pill-text">
+                <strong>{userLocation.name || 'Vị trí'}</strong>
+                <small>{userLocation.city === 'hanoi' ? 'Hà Nội' : userLocation.city === 'hcm' ? 'TP.HCM' : 'Đà Nẵng'}</small>
+              </div>
+              <ChevronDown size={13} className="location-chevron" />
+            </button>
+            {locationPromptOpen && (
+              <div className="location-popover" role="dialog" aria-label="Định vị & Chỉ đường">
+                <div className="location-popover-header">
+                  <div className="loc-title-row">
+                    <LocateFixed size={16} />
+                    <strong>Vị trí & Chỉ đường Real-time</strong>
+                  </div>
+                  <p>Hệ thống tự động quét quầy thuốc GPP và vẽ lộ trình thời gian thực quanh điểm này.</p>
+                </div>
+
+                <div className="location-current-status">
+                  <div className="current-status-badge">
+                    <span className={`status-dot ${userLocation.is_gps ? 'gps' : 'preset'}`} />
+                    <span>{userLocation.is_gps ? 'GPS Trực tiếp (Chính xác)' : 'Địa điểm chỉ định'}</span>
+                  </div>
+                  <p className="current-address-text">{userLocation.address}</p>
+                  <span className="current-coords">Tọa độ: {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}</span>
+                </div>
+
+                {userLocation.permission_status === 'denied' && (
+                  <div className="location-denied-alert">
+                    <AlertTriangle size={15} />
+                    <span>Trình duyệt đang chặn quyền vị trí. Vui lòng cấp quyền trong cài đặt trình duyệt hoặc chọn cơ sở bên dưới.</span>
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  className="gps-acquire-btn"
+                  disabled={requestingGps}
+                  onClick={handleRequestGps}
+                >
+                  {requestingGps ? (
+                    <>
+                      <LoaderCircle size={15} className="spin" />
+                      <span>Đang xin quyền & lấy GPS...</span>
+                    </>
+                  ) : (
+                    <>
+                      <LocateFixed size={15} />
+                      <span>Cấp quyền & Lấy vị trí GPS của tôi</span>
+                    </>
+                  )}
+                </button>
+
+                <div className="location-divider"><span>HOẶC CHỌN KHU VỰC SẴN CÓ</span></div>
+
+                <div className="location-presets-list">
+                  {LOCATION_PRESETS.map((p) => {
+                    const isSelected = !userLocation.is_gps && userLocation.name === p.name;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        className={`preset-item-btn ${isSelected ? 'selected' : ''}`}
+                        onClick={() => handleSelectPreset(p)}
+                      >
+                        <div className="preset-item-icon">
+                          <MapPin size={14} />
+                        </div>
+                        <div className="preset-item-info">
+                          <strong>{p.name}</strong>
+                          <span>{p.address}</span>
+                        </div>
+                        {isSelected && <Check size={14} className="preset-check" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {view === 'chat' && (
@@ -1284,8 +1480,45 @@ export default function App({
           onBackToChat={() => setView('chat')}
           onNotify={notify}
         />
+      ) : view === 'navigation' ? (
+        <NavigationPage
+          api={api}
+          userLocation={userLocation}
+          navigationContext={navigationContext}
+          onBackToChat={() => setView('chat')}
+          onNotify={notify}
+        />
       ) : (
         <section id="main-chat-workspace" className={`chat-workspace ${entries.length ? 'has-messages' : ''}`} aria-live="polite">
+          <div className="location-context-bar">
+            <div className="loc-context-info">
+              <span className={`loc-status-indicator ${userLocation.is_gps ? 'gps-live' : 'preset-fixed'}`} />
+              <MapPin size={13} className="loc-bar-icon" />
+              <span className="loc-bar-label">Vị trí của bạn:</span>
+              <strong className="loc-bar-name">{userLocation.name}</strong>
+              <span className="loc-bar-addr">— {userLocation.address}</span>
+            </div>
+            <div className="loc-bar-actions" style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                className="loc-context-change-btn"
+                onClick={() => setView('navigation')}
+                title="Mở trang chỉ đường Real-time toàn màn hình"
+                style={{ borderColor: 'rgba(0, 229, 255, 0.4)', color: '#00e5ff' }}
+              >
+                <Route size={12} />
+                <span>Bản đồ Chỉ đường</span>
+              </button>
+              <button
+                type="button"
+                className="loc-context-change-btn"
+                onClick={() => setLocationPromptOpen(true)}
+              >
+                <LocateFixed size={12} />
+                <span>{userLocation.is_gps ? 'GPS đang bật' : 'Cấp quyền GPS / Đổi vị trí'}</span>
+              </button>
+            </div>
+          </div>
           <div className="chat-scroll">
             {entries.length ? (
               <Conversation

@@ -19,6 +19,8 @@ _REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9._:-]{1,128}$")
 _RATE_LIMIT_EXEMPT_PATHS = {
     "/v1/health",
     "/v1/health/readiness",
+    "/v1/geo/pois",
+    "/v1/geo/route",
 }
 _RATE_LIMIT_STATIC_BUCKETS = {
     "/v1/audit/events",
@@ -72,13 +74,19 @@ def _security_headers(response, *, path: str) -> None:
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "no-referrer"
     response.headers["Permissions-Policy"] = (
-        "camera=(self), microphone=(self), geolocation=(), payment=(), usb=()"
+        "camera=(self), microphone=(self), geolocation=(self), payment=(), usb=()"
     )
     if path in {"/", "/dashboard"} or path.startswith("/static/"):
         response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; base-uri 'self'; connect-src 'self' blob: data:; "
-            "font-src 'self'; frame-ancestors 'none'; img-src 'self' data: blob:; "
-            "media-src 'self' blob: data:; object-src 'none'; script-src 'self'; style-src 'self'"
+            "default-src 'self'; base-uri 'self'; "
+            "connect-src 'self' blob: data: https://api.geoapify.com https://maps.geoapify.com https://*.geoapify.com https://server.arcgisonline.com https://*.arcgisonline.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com; "
+            "font-src 'self' data: https://fonts.gstatic.com; "
+            "frame-src 'self' https://www.google.com https://maps.google.com; "
+            "frame-ancestors 'none'; "
+            "img-src 'self' data: blob: https://*.basemaps.cartocdn.com https://*.tile.openstreetmap.org https://maps.geoapify.com https://*.geoapify.com https://server.arcgisonline.com https://*.arcgisonline.com; "
+            "media-src 'self' blob: data:; "
+            "worker-src 'self' blob:; "
+            "object-src 'none'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com"
         )
     if path.startswith("/v1/"):
         response.headers["Cache-Control"] = "no-store"

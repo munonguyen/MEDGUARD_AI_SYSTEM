@@ -1135,6 +1135,18 @@
   transform: translateY(-1px);
 }
 
+.emergency-nav-btn.emergency-inapp-direct {
+  background: linear-gradient(135deg, #0d9488 0%, #0284c7 100%);
+  border: 1px solid #0f766e;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(13, 148, 136, 0.3);
+}
+
+.emergency-nav-btn.emergency-inapp-direct:hover {
+  background: linear-gradient(135deg, #0f766e 0%, #0369a1 100%);
+  transform: translateY(-1px);
+}
+
 .golden-window-risk-box {
   background: #fff8f8;
   border: 1px dashed #fca5a5;
@@ -1639,6 +1651,34 @@
   transform: translateY(-1px);
 }
 
+.pharmacy-footer-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.find-pharmacy-inapp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #0d9488 0%, #0284c7 100%);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.3);
+  transition: all 0.2s ease;
+}
+
+.find-pharmacy-inapp-btn:hover {
+  background: linear-gradient(135deg, #0f766e 0%, #0369a1 100%);
+  transform: translateY(-1px);
+}
+
 /* =====================================================================
    Real-Time Geo Routing & Dynamic Traffic Optimization Card
    ===================================================================== */
@@ -1868,27 +1908,432 @@
   font-size: 11px;
 }
 
-.svg-map-wrapper {
-  width: 100%;
-  height: 200px;
+/* Real-Time Street Map Display Area */
+.geo-map-display-area {
   position: relative;
-  background: #030712;
+  width: 100%;
+  background: #0f172a;
 }
 
-.route-vector-svg {
+.map-view-toggle-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(15, 23, 42, 0.95);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.map-toggle-tabs {
+  display: flex;
+  gap: 6px;
+}
+
+.map-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.map-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f1f5f9;
+}
+
+.map-toggle-btn.active {
+  background: rgba(37, 99, 235, 0.25);
+  border-color: #3b82f6;
+  color: #60a5fa;
+}
+
+.map-realtime-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #10b981;
+  font-weight: 600;
+}
+
+.geo-static-map-wrapper {
+  position: relative;
+  width: 100%;
+  height: 280px;
+  overflow: hidden;
+  background: #0a0f1d;
+}
+
+.geo-static-street-img {
   width: 100%;
   height: 100%;
+  object-fit: cover;
   display: block;
 }
 
-.pulse-radar-ring {
-  animation: radarWave 2s infinite ease-out;
-  transform-origin: center;
+.geo-map-overlay-card {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  max-width: 48%;
+  z-index: 10;
 }
 
-@keyframes radarWave {
-  0% { r: 8; opacity: 0.8; }
-  100% { r: 24; opacity: 0; }
+.start-overlay {
+  top: 10px;
+  left: 10px;
+}
+
+.dest-overlay {
+  bottom: 10px;
+  right: 10px;
+}
+
+.overlay-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-weight: 800;
+  font-size: 11px;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.overlay-badge.pin-a {
+  background: #2563eb;
+  box-shadow: 0 0 8px rgba(37, 99, 235, 0.6);
+}
+
+.overlay-badge.pin-b {
+  background: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+}
+
+.overlay-text {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.overlay-role {
+  font-size: 10px;
+  color: #94a3b8;
+  line-height: 1.2;
+}
+
+.overlay-address {
+  font-size: 11px;
+  color: #f8fafc;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.geo-osm-iframe-wrapper {
+  width: 100%;
+  height: 320px;
+  background: #0a0f1d;
+}
+
+.geo-osm-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+.geo-map-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+/* In-App Live Turn-by-Turn Navigator Console */
+.geo-turn-navigator-console {
+  padding: 12px 14px;
+  background: rgba(15, 23, 42, 0.85);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.turn-console-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.turn-console-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #38bdf8;
+  letter-spacing: 0.03em;
+}
+
+.compass-icon {
+  color: #38bdf8;
+}
+
+.turn-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.turn-open-fullscreen-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(0, 229, 255, 0.12);
+  border: 1px solid rgba(0, 229, 255, 0.35);
+  color: #00e5ff;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.turn-open-fullscreen-btn:hover {
+  background: rgba(0, 229, 255, 0.22);
+  border-color: #00e5ff;
+  color: #ffffff;
+}
+
+.turn-step-count-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 12px;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.active-turn-step-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  margin-bottom: 12px;
+}
+
+.turn-icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: rgba(37, 99, 235, 0.2);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  color: #60a5fa;
+  flex-shrink: 0;
+}
+
+.turn-direction-icon.turn-left { color: #38bdf8; }
+.turn-direction-icon.turn-right { color: #34d399; }
+.turn-direction-icon.turn-roundabout { color: #fbbf24; }
+.turn-direction-icon.turn-straight { color: #818cf8; }
+
+.turn-content-container {
+  flex: 1;
+  min-width: 0;
+}
+
+.turn-road-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.turn-instruction-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 6px 0;
+  line-height: 1.35;
+}
+
+.turn-metrics-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.metric-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 5px;
+}
+
+.distance-metric {
+  background: rgba(59, 130, 246, 0.15);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.eta-metric {
+  background: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.traffic-heavy-metric {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.turn-controller-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.turn-ctrl-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #e2e8f0;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.turn-ctrl-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+.turn-ctrl-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.turn-ctrl-btn.turn-btn-next {
+  background: rgba(37, 99, 235, 0.3);
+  border-color: #3b82f6;
+  color: #93c5fd;
+}
+
+.turn-ctrl-btn.turn-btn-next:hover:not(:disabled) {
+  background: rgba(37, 99, 235, 0.5);
+  color: #ffffff;
+}
+
+.turn-step-dots-track {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  justify-content: center;
+  overflow-x: auto;
+}
+
+.step-dot-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.step-dot-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #f1f5f9;
+}
+
+.step-dot-btn.active {
+  background: #2563eb;
+  border-color: #60a5fa;
+  color: #ffffff;
+  box-shadow: 0 0 8px rgba(37, 99, 235, 0.6);
+}
+
+.step-dot-btn.passed {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #34d399;
+}
+
+.nav-all-steps-details {
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.nav-all-steps-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  cursor: pointer;
+  user-select: none;
+}
+
+.nav-all-steps-summary:hover {
+  color: #f1f5f9;
+}
+
+.geo-step-item.current-step {
+  background: rgba(37, 99, 235, 0.15);
+  border-left: 3px solid #3b82f6;
 }
 
 /* Route Selector Grid */
@@ -2191,3 +2636,366 @@
   background: rgba(255, 255, 255, 0.15);
   color: #ffffff;
 }
+
+/* =====================================================================
+   LEAFLET MAP INTEGRATION & DUAL NAVIGATION CHOICE CONSOLE
+   ===================================================================== */
+
+.leaflet-map-canvas-wrapper {
+  position: relative;
+  width: 100%;
+  height: 360px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.08);
+  background: #f8fafc;
+}
+
+.leaflet-map-element {
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* Custom Marker Pins */
+.leaflet-pin-wrapper {
+  background: transparent !important;
+  border: none !important;
+}
+
+.marker-pin {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.25));
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.marker-pin:hover {
+  transform: scale(1.1) translateY(-2px);
+}
+
+.pin-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  font-weight: 800;
+  font-size: 13px;
+  color: #ffffff;
+}
+
+.pin-badge > * {
+  transform: rotate(45deg);
+}
+
+.marker-pin.pin-start .pin-badge {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  border: 2px solid #ffffff;
+}
+
+.marker-pin.pin-dest .pin-badge {
+  background: linear-gradient(135deg, #059669, #047857);
+  border: 2px solid #ffffff;
+}
+
+.marker-pin.pin-emergency .pin-badge {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  border: 2px solid #ffffff;
+}
+
+.pin-title {
+  margin-top: 2px;
+  background: rgba(15, 23, 42, 0.85);
+  color: #ffffff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 9.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+}
+
+/* Dual Navigation Choice Console */
+.geo-dual-navigation-console {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1.5px solid #e2e8f0;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.nav-choices-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.nav-console-icon {
+  color: #0d9488;
+  flex-shrink: 0;
+}
+
+.nav-console-title-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-console-title-wrap strong {
+  font-size: 13px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: 0.5px;
+}
+
+.nav-console-title-wrap small {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.nav-choices-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.nav-choice-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  position: relative;
+}
+
+.nav-choice-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
+}
+
+.nav-choice-card.choice-gmaps {
+  border-color: #cbd5e1;
+}
+
+.nav-choice-card.choice-gmaps:hover {
+  border-color: #3b82f6;
+  background: #f0f7ff;
+}
+
+.nav-choice-card.choice-inapp {
+  border-color: #99f6e4;
+  background: #f0fdfa;
+}
+
+.nav-choice-card.clickable-choice {
+  cursor: pointer;
+  text-align: left;
+  border: 1.5px solid #0d9488;
+  background: linear-gradient(145deg, #f0fdfa 0%, #e6fffa 100%);
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.12);
+  width: 100%;
+}
+
+.nav-choice-card.clickable-choice:hover {
+  transform: translateY(-2px);
+  border-color: #059669;
+  background: linear-gradient(145deg, #e6fffa 0%, #ccfbf1 100%);
+  box-shadow: 0 8px 24px rgba(13, 148, 136, 0.22);
+}
+
+.nav-choice-card.clickable-choice:active {
+  transform: translateY(0);
+}
+
+.choice-arrow-icon {
+  margin-left: auto;
+  color: #0d9488;
+}
+
+.choice-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.choice-tag-pill {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.tag-gmaps {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.tag-inapp {
+  background: #ccfbf1;
+  color: #0f766e;
+}
+
+.choice-hint {
+  font-size: 10.5px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.choice-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 2px 0 0 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.choice-desc {
+  margin: 0;
+  font-size: 11.5px;
+  color: #475569;
+  line-height: 1.45;
+  flex-grow: 1;
+}
+
+.choice-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid rgba(226, 232, 240, 0.8);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+.choice-action-bar.inapp-active {
+  color: #0f766e;
+}
+
+@media (max-width: 680px) {
+  .nav-choices-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.nav-open-dedicated-page-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(0, 229, 255, 0.15) 100%);
+  border: 1.5px solid rgba(0, 229, 255, 0.45);
+  color: #0284c7;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 2px;
+}
+
+.nav-open-dedicated-page-btn:hover {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.18) 0%, rgba(0, 229, 255, 0.28) 100%);
+  border-color: #00e5ff;
+  color: #0369a1;
+  transform: translateY(-1px);
+}
+
+/* --------------------------------------------------------------------------
+   Clinical Explanation Narrative Box (Hiển thị lời giải thích trước bản đồ)
+   -------------------------------------------------------------------------- */
+.clinical-explanation-narrative-box {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #0284c7;
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: message-in 0.22s ease-out;
+}
+
+.explanation-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0369a1;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.explanation-section-title svg {
+  color: #0284c7;
+}
+
+/* Floating Theme Switcher on Leaflet Map */
+.leaflet-floating-theme-bar {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1000;
+  display: flex;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 4px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.btn-leaflet-theme {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-leaflet-theme:hover {
+  color: #ffffff;
+}
+
+.btn-leaflet-theme.active {
+  background: #0284c7;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.4);
+}
+
+

@@ -56,11 +56,15 @@ class GeoRoutingPlan:
     recommended_route_type: Literal["PRIMARY_DIRECT", "OPTIMAL_BYPASS"]
     google_maps_turn_by_turn_url: str
     google_maps_place_url: str
+    static_map_url: str = ""
+    interactive_map_url: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "query_type": self.query_type,
             "user_location": self.user_location,
+            "static_map_url": self.static_map_url,
+            "interactive_map_url": self.interactive_map_url,
             "selected_poi": {
                 "id": self.selected_poi.id,
                 "name": self.selected_poi.name,
@@ -255,6 +259,9 @@ class TrafficRoutingAgent:
         patient_age: int | None = None,
         forced_poi_type: Literal["emergency", "pharmacy"] | None = None,
         check_time: datetime | None = None,
+        user_coordinates: tuple[float, float] | None = None,
+        location_name: str | None = None,
+        city_override: str | None = None,
     ) -> GeoRoutingPlan:
         """Analyze intent, select nearest active POI, analyze traffic, and compute dual routes."""
         norm_q = normalize_search_text(query)
@@ -272,24 +279,41 @@ class TrafficRoutingAgent:
             )
             poi_type = "emergency" if is_emergency else "pharmacy"
 
-        # 2. Determine city and resolve user coordinates using Geoapify Geocoding
-        loc_str = normalize_search_text(f"{location_hint or ''} {query}")
-        if any(k in loc_str for k in ("ha noi", "hanoi", "hoan kiem", "dong da", "hai ba trung", "bach mai")):
-            city = "hanoi"
-        elif any(k in loc_str for k in ("da nang", "danang", "hai chau", "thach thang")):
-            city = "danang"
-        else:
-            city = "hcm"
-
-        user_lat, user_lng, user_loc_name = _resolve_user_coordinates(location_hint, city)
-
         from app.services.geoapify_client import geoapify_client
-        if location_hint and len(location_hint.strip()) >= 3:
-            geo_resolved = geoapify_client.geocode(location_hint)
-            if geo_resolved:
-                dist_to_city = _calculate_haversine_km(user_lat, user_lng, geo_resolved[0], geo_resolved[1])
-                if dist_to_city <= 35.0:
-                    user_lat, user_lng, user_loc_name = geo_resolved
+
+        # 2. Determine city and resolve user coordinates using GPS / Geoapify Geocoding
+        if user_coordinates and len(user_coordinates) == 2 and user_coordinates[0] and user_coordinates[1]:
+            user_lat, user_lng = float(user_coordinates[0]), float(user_coordinates[1])
+            if city_override:
+                city = city_override
+            elif user_lat >= 20.0:
+                city = "hanoi"
+            elif 15.0 <= user_lat <= 17.0:
+                city = "danang"
+            else:
+                city = "hcm"
+            user_loc_name = location_name or "Vị trí của bạn (GPS)"
+            if not location_name:
+                rev = geoapify_client.reverse_geocode(user_lat, user_lng)
+                if rev:
+                    user_loc_name = rev
+        else:
+            loc_str = normalize_search_text(f"{location_hint or ''} {query}")
+            if any(k in loc_str for k in ("ha noi", "hanoi", "hoan kiem", "dong da", "hai ba trung", "bach mai")):
+                city = "hanoi"
+            elif any(k in loc_str for k in ("da nang", "danang", "hai chau", "thach thang")):
+                city = "danang"
+            else:
+                city = "hcm"
+
+            user_lat, user_lng, user_loc_name = _resolve_user_coordinates(location_hint, city)
+
+            if location_hint and len(location_hint.strip()) >= 3:
+                geo_resolved = geoapify_client.geocode(location_hint)
+                if geo_resolved:
+                    dist_to_city = _calculate_haversine_km(user_lat, user_lng, geo_resolved[0], geo_resolved[1])
+                    if dist_to_city <= 35.0:
+                        user_lat, user_lng, user_loc_name = geo_resolved
 
         user_location_info = {
             "address": user_loc_name,
@@ -411,12 +435,15 @@ class TrafficRoutingAgent:
                 ),
             ]
 
-        primary_polyline = [
-            (user_lat, user_lng),
-            (round(user_lat * 0.7 + selected_poi.lat * 0.3, 4), round(user_lng * 0.7 + selected_poi.lng * 0.3, 4)),
-            (round(user_lat * 0.3 + selected_poi.lat * 0.7, 4), round(user_lng * 0.3 + selected_poi.lng * 0.7, 4)),
-            (selected_poi.lat, selected_poi.lng),
-        ]
+        if geo_route and geo_route.coordinates:
+            primary_polyline = geo_route.coordinates
+        else:
+            primary_polyline = [
+                (user_lat, user_lng),
+                (round(user_lat * 0.7 + selected_poi.lat * 0.3, 4), round(user_lng * 0.7 + selected_poi.lng * 0.3, 4)),
+                (round(user_lat * 0.3 + selected_poi.lat * 0.7, 4), round(user_lng * 0.3 + selected_poi.lng * 0.7, 4)),
+                (selected_poi.lat, selected_poi.lng),
+            ]
 
         primary_route = EvaluatedRoute(
             route_name=f"Tuyến Trục Chính (Qua {congested_artery})",
@@ -505,7 +532,39 @@ class TrafficRoutingAgent:
         )
         gmaps_place = f"https://www.google.com/maps/search/?api=1&query={encoded_dest}"
 
-        # 8. Traffic Overview Statement
+        # 8. Build Geoapify Real Street Static Map URL & OpenStreetMap Interactive Embed
+        api_key = geoapify_client.api_key
+        if primary_polyline and len(primary_polyline) >= 2:
+            step_stride = max(1, len(primary_polyline) // 20)
+            sampled = primary_polyline[::step_stride]
+            if primary_polyline[-1] not in sampled:
+                sampled.append(primary_polyline[-1])
+            poly_str = ",".join(f"{round(pt[1], 5)},{round(pt[0], 5)}" for pt in sampled)
+            static_map_url = (
+                f"https://maps.geoapify.com/v1/staticmap?style=osm-bright-smooth&width=720&height=340"
+                f"&marker=lonlat:{round(user_lng, 5)},{round(user_lat, 5)};color:%232563eb;size:medium;text:A"
+                f"|lonlat:{round(selected_poi.lng, 5)},{round(selected_poi.lat, 5)};color:%2310b981;size:medium;text:B"
+                f"&geometry=polyline:{poly_str};linecolor:%232563eb;linewidth:5"
+                f"&apiKey={api_key}"
+            )
+        else:
+            static_map_url = (
+                f"https://maps.geoapify.com/v1/staticmap?style=osm-bright-smooth&width=720&height=340"
+                f"&marker=lonlat:{round(user_lng, 5)},{round(user_lat, 5)};color:%232563eb;size:medium;text:A"
+                f"|lonlat:{round(selected_poi.lng, 5)},{round(selected_poi.lat, 5)};color:%2310b981;size:medium;text:B"
+                f"&apiKey={api_key}"
+            )
+
+        min_lat = round(min(user_lat, selected_poi.lat) - 0.005, 5)
+        max_lat = round(max(user_lat, selected_poi.lat) + 0.005, 5)
+        min_lon = round(min(user_lng, selected_poi.lng) - 0.005, 5)
+        max_lon = round(max(user_lng, selected_poi.lng) + 0.005, 5)
+        interactive_map_url = (
+            f"https://www.openstreetmap.org/export/embed.html?bbox={min_lon},{min_lat},{max_lon},{max_lat}"
+            f"&layer=mapnik&marker={round(selected_poi.lat, 5)},{round(selected_poi.lng, 5)}"
+        )
+
+        # 9. Traffic Overview Statement
         if is_rush and alternative_route:
             traffic_overview = (
                 f"CẢNH BÁO MẬT ĐỘ GIAO THÔNG CAO: Đang trong {rush_name}. Tuyến đường trực tiếp qua {congested_artery} "
@@ -531,6 +590,8 @@ class TrafficRoutingAgent:
             recommended_route_type=recommended_type,
             google_maps_turn_by_turn_url=gmaps_turn_by_turn,
             google_maps_place_url=gmaps_place,
+            static_map_url=static_map_url,
+            interactive_map_url=interactive_map_url,
         )
 
 

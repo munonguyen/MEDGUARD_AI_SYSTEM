@@ -100,6 +100,7 @@ class ChatContext(BaseModel):
     allergies: list[str] = Field(default_factory=list, max_length=50)
     conditions: list[str] = Field(default_factory=list, max_length=50)
     last_result: dict[str, Any] | None = None
+    user_location: dict[str, Any] | None = None
 
 
 class CompanionVoicePreference(BaseModel):

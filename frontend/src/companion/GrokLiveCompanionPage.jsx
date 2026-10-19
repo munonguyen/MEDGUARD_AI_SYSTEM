@@ -19,6 +19,7 @@ import { splitSpeech, runSpeechQueue } from './speechQueue';
 import { preparedSpeechPlan, validateSpeechBlob, optionalAudioContext, optionalLipSync } from './preparedSpeech';
 import { readSpeechTiming } from './speechTimeline.js';
 import { clinicalReply, verificationNotice, awaitReviewedReply } from './clinicalReply';
+import { getSavedUserLocation } from '../locationState';
 import './GrokLiveCompanionPage.css';
 
 /**
@@ -516,6 +517,7 @@ export function GrokLiveCompanionPage({
             patient_ref: context?.patient_ref || 'BN-LIVE',
             display_name: context?.display_name || 'Bệnh nhân',
             conditions: context?.conditions || [],
+            user_location: getSavedUserLocation(),
           },
           intent_hint: 'auto',
           locale: 'vi-VN',
