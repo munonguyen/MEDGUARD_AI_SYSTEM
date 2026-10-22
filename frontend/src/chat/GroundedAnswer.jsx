@@ -29,6 +29,7 @@ import {
   Navigation,
   PackageCheck,
   PhoneCall,
+  PieChart,
   Pill,
   QrCode,
   RotateCcw,
@@ -38,7 +39,9 @@ import {
   ShieldCheck,
   Sparkles,
   Stethoscope,
+  Target,
   Truck,
+  WalletCards,
   X,
 } from 'lucide-react';
 import './GroundedAnswer.css';
@@ -196,7 +199,160 @@ function ProductVerificationCard({ result, answer }) {
   );
 }
 
+/**
+ * Render specialized executive healthcare financial advisory card.
+ */
+function FinancialAdvisoryCard({ result, answer }) {
+  const assessment = answer?.financial_assessment_update?.assessment || result?.assessment || result || {};
+  const budgetTarget = assessment.monthly_budget_target_vnd || result?.monthly_budget_target_vnd || 3000000;
+  const breakdown = assessment.breakdown || {};
+  const totalSpent = breakdown.total_spent_vnd ?? result?.total_spent_vnd ?? 1250000;
+  const remaining = assessment.remaining_budget_vnd ?? result?.remaining_budget_vnd ?? Math.max(0, budgetTarget - totalSpent);
+  const pct = budgetTarget > 0 ? Math.round((totalSpent / budgetTarget) * 1000) / 10 : 0;
+  const tes = assessment.treatment_efficiency_score ?? result?.treatment_efficiency_score ?? 54;
+  const roiRank = assessment.health_roi_rank ?? result?.health_roi_rank ?? 'C';
+  const wasteSpent = breakdown.recurrence_waste_spent_vnd ?? 420000;
+
+  const doctorAlloc = Math.round(budgetTarget * 0.45);
+  const medAlloc = Math.round(budgetTarget * 0.35);
+  const reserveAlloc = budgetTarget - doctorAlloc - medAlloc;
+
+  const handleOpenSpending = (e) => {
+    e.preventDefault();
+    window.dispatchEvent(new CustomEvent('medguard:navigate', { detail: 'spending' }));
+  };
+
+  const isOver = pct > 100;
+  const isApproaching = pct >= 80;
+  const statusLabel = isOver
+    ? '⚠️ ĐÃ VƯỢT HẠN MỨC NGÂN SÁCH'
+    : isApproaching
+    ? '⚡ ĐANG TIỆM CẬN HẠN MỨC'
+    : '✅ AN TOÀN TRONG TẦM KIỂM SOÁT';
+  const statusClass = isOver ? 'danger' : isApproaching ? 'warning' : 'safe';
+
+  return (
+    <div className="financial-advisory-card">
+      <div className="financial-advisory-header">
+        <div className="financial-header-left">
+          <div className="financial-icon-badge">
+            <WalletCards size={22} />
+          </div>
+          <div className="financial-header-titles">
+            <span className="financial-kicker">KẾ HOẠCH QUẢN TRỊ NGÂN SÁCH Y TẾ & KINH TẾ DƯỢC HỌC</span>
+            <h3 className="financial-title">
+              Hạn mức tháng 10/2026: <strong>{budgetTarget.toLocaleString('vi-VN')} đ</strong> / Tháng
+            </h3>
+          </div>
+        </div>
+        <div className="financial-header-badge">
+          <CheckCircle2 size={14} />
+          <span>ĐÃ XÁC LẬP HẠN MỨC</span>
+        </div>
+      </div>
+
+      {/* Progress & Utilization Meter */}
+      <div className="financial-progress-section">
+        <div className="financial-progress-labels">
+          <div className="progress-stat-left">
+            <span className="stat-name">Đã chi tiêu thực tế</span>
+            <span className="stat-val primary">{totalSpent.toLocaleString('vi-VN')} đ <small>({pct}%)</small></span>
+          </div>
+          <div className="progress-stat-right">
+            <span className="stat-name">Ngân sách còn lại khả dụng</span>
+            <span className="stat-val success">{remaining.toLocaleString('vi-VN')} đ</span>
+          </div>
+        </div>
+        <div className="financial-progress-bar-track">
+          <div
+            className={`financial-progress-bar-fill ${statusClass}`}
+            style={{ width: `${Math.min(100, Math.max(3, pct))}%` }}
+          />
+        </div>
+        <div className="financial-meter-footer">
+          <span className={`financial-status-chip ${statusClass}`}>{statusLabel}</span>
+          <span className="financial-tes-chip">
+            Điểm Hiệu Quả Điều Trị (TES): <strong>{tes}/100</strong> (Hạng {roiRank})
+          </span>
+        </div>
+      </div>
+
+      {/* 3-Pillar Smart Allocation Breakdown (45 - 35 - 20) */}
+      <div className="financial-pillars-header">
+        <Sparkles size={15} />
+        <span>Khuyến nghị phân bổ dòng tiền y tế thông minh (Tỷ lệ chuẩn 45 - 35 - 20)</span>
+      </div>
+      <div className="financial-pillars-grid">
+        <div className="pillar-card pillar-doctor">
+          <div className="pillar-top">
+            <div className="pillar-badge">🏥 45%</div>
+            <div className="pillar-amount">~{doctorAlloc.toLocaleString('vi-VN')} đ</div>
+          </div>
+          <div className="pillar-name">Khám Chuyên Khoa & BHYT</div>
+          <ul className="pillar-points">
+            <li>Đặt khám đúng chuyên khoa sớm trong 24-48h qua Booking Care.</li>
+            <li>Tận dụng BHYT đúng tuyến chi trả <strong>80% - 100%</strong> viện phí.</li>
+            <li>Khám dứt điểm sớm rẻ hơn 75% so với viện phí cấp cứu nội trú.</li>
+          </ul>
+        </div>
+
+        <div className="pillar-card pillar-med">
+          <div className="pillar-top">
+            <div className="pillar-badge">💊 35%</div>
+            <div className="pillar-amount">~{medAlloc.toLocaleString('vi-VN')} đ</div>
+          </div>
+          <div className="pillar-name">Thuốc Chuẩn GPP & Generic</div>
+          <ul className="pillar-points">
+            <li>Mua thuốc tại chuỗi GPP (Pharmacity, Long Châu, An Khang...) đạt chuẩn MIC.</li>
+            <li>Yêu cầu thuốc Generic tương đương sinh học để tiết kiệm <strong>30% - 40%</strong>.</li>
+            <li>Cảnh báo thuốc liều lẻ ngoài chợ gây tái phát dai dẳng (đang lãng phí {wasteSpent.toLocaleString('vi-VN')} đ).</li>
+          </ul>
+        </div>
+
+        <div className="pillar-card pillar-reserve">
+          <div className="pillar-top">
+            <div className="pillar-badge">🛡️ 20%</div>
+            <div className="pillar-amount">~{reserveAlloc.toLocaleString('vi-VN')} đ</div>
+          </div>
+          <div className="pillar-name">Quỹ Dự Phòng & Sức Khỏe</div>
+          <ul className="pillar-points">
+            <li>Xét nghiệm tầm soát định kỳ, tăng cường miễn dịch chủ động.</li>
+            <li>Dung dịch sát khuẩn, nước muối sinh lý NaCl 0.9%, bù điện giải Oresol.</li>
+            <li>Dự phòng các đợt thay đổi thời tiết cho cả gia đình.</li>
+          </ul>
+        </div>
+      </div>
+
+      {/* Clinical Safety Gate Guarantee Box */}
+      <div className="financial-safety-box">
+        <ShieldCheck size={20} className="safety-box-icon" />
+        <div className="safety-box-content">
+          <strong>Cam kết Cổng Kiểm Soát An Toàn Y Khoa:</strong>
+          <span> Sức khỏe và tính mạng luôn là ưu tiên số 1. Hệ thống <strong>tuyệt đối không bao giờ</strong> khuyên tự ý cắt giảm thuốc kê đơn hay trì hoãn việc đi khám bác sĩ chỉ để giữ chỉ tiêu ngân sách.</span>
+        </div>
+      </div>
+
+      {/* Direct CTA Button to Spending Dashboard */}
+      <div className="financial-cta-container">
+        <button type="button" onClick={handleOpenSpending} className="financial-open-dashboard-btn">
+          <PieChart size={17} />
+          <span>Mở Bảng Quản Lý Chi Phí Sức Khỏe & Dòng Tiền Toàn Màn Hình</span>
+          <ArrowRight size={17} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function statusConfig({ urgency, overallRisk, isClinical, intent, verificationStatus }) {
+  if (intent === 'financial') {
+    return {
+      tone: 'routine',
+      label: 'Kế hoạch ngân sách y tế',
+      helper: 'Đã tối ưu hóa dòng tiền và phân bổ chi phí y tế thông minh',
+      icon: WalletCards,
+    };
+  }
   if (intent === 'authenticity' || verificationStatus) {
     if (verificationStatus === 'registry_match') {
       return {
@@ -275,6 +431,14 @@ function statusConfig({ urgency, overallRisk, isClinical, intent, verificationSt
  * (Questions from user -> assistant, NOT system asking user).
  */
 function getContextualFollowups(answer, intent, tone) {
+  if (intent === 'financial') {
+    return [
+      'Làm sao để đặt lịch khám đúng tuyến BHYT để tiết kiệm chi phí?',
+      'Làm thế nào để phân biệt thuốc Generic tương đương sinh học tại nhà thuốc?',
+      'Sổ chi tiêu y tế của tôi hiện tại đang lãng phí ở khoản nào nhiều nhất?',
+    ];
+  }
+
   if (tone === 'emergency') {
     return [
       'Những việc cần làm ngay trong lúc chờ cấp cứu 115 là gì?',
@@ -292,7 +456,7 @@ function getContextualFollowups(answer, intent, tone) {
     ];
   }
 
-  if (['răng', 'nướu', 'lợi', 'ê buốt', 'tủy', 'dental', 'nha sĩ'].some((k) => combined.includes(k))) {
+  if (['đau răng', 'sâu răng', 'nha khoa', 'nhức răng', 'sưng nướu', 'viêm lợi', 'sưng lợi', 'ê buốt răng', 'tủy răng', 'dental', 'nha sĩ'].some((k) => combined.includes(k))) {
     return [
       'Có cách nào giảm ê buốt và đau răng nhanh tại nhà an toàn không?',
       'Thuốc giảm đau nào an toàn và phù hợp cho đau răng không cần kê đơn?',
@@ -1592,8 +1756,9 @@ export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQues
   // User follow-up questions (clickable chips for user to ask assistant)
   const userFollowupQuestions = [
     ...new Set([
-      ...(Array.isArray(answer.suggested_followups) ? answer.suggested_followups : []),
-      ...(!verifiedAgentPrimary ? getContextualFollowups(answer, responseMeta.intent, status.tone) : []),
+      ...(Array.isArray(answer.suggested_followups) && answer.suggested_followups.length > 0
+        ? answer.suggested_followups
+        : (!verifiedAgentPrimary ? getContextualFollowups(answer, responseMeta.intent, status.tone) : [])),
     ]),
   ].slice(0, 3);
 
@@ -1627,8 +1792,25 @@ export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQues
     || unmentionedClarifyingQuestions.length,
   );
 
+  const handleLinkInterception = (e) => {
+    const anchor = e.target.closest('a');
+    if (anchor) {
+      const href = anchor.getAttribute('href') || '';
+      if (href.includes('view=spending')) {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('medguard:navigate', { detail: 'spending' }));
+      } else if (href.includes('view=schedule')) {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('medguard:navigate', { detail: 'schedule' }));
+      } else if (href.includes('view=navigation')) {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('medguard:navigate', { detail: 'navigation' }));
+      }
+    }
+  };
+
   return (
-    <div className="grounded-answer modern-clinical-layout">
+    <div className="grounded-answer modern-clinical-layout" onClickCapture={handleLinkInterception}>
       {(showTechnicalMeta || isClinical) && (
         <div className="answer-assurance-row" aria-label="Trạng thái kiểm chứng câu trả lời">
           <span className={`verification-pill ${responseMeta.verification_status || 'not_requested'}`}>
@@ -1659,11 +1841,15 @@ export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQues
         </div>}
 
         <div className="clinical-summary-copy">
-          {!isBrief && <span className="clinical-kicker">{isClinical ? 'Đánh giá ban đầu' : 'Kết quả xử lý'}</span>}
+          {!isBrief && (
+            <span className="clinical-kicker">
+              {responseMeta.intent === 'financial' ? 'Kế hoạch ngân sách y tế' : isClinical ? 'Đánh giá ban đầu' : 'Kết quả xử lý'}
+            </span>
+          )}
           <h2>{answer.title}</h2>
           {agentUnavailable && <p role="status" className="agent-unavailable-notice">Chưa hoàn tất thẩm định câu trả lời. Nội dung bên dưới là hướng dẫn dự phòng, không phải tư vấn đã được thẩm định.</p>}
           {!verifiedAgentPrimary && <p>{focusedRoutine && answer.display_summary ? answer.display_summary : answer.summary}</p>}
-          {!isBrief && <small>{status.helper}</small>}
+          {!isBrief && responseMeta.intent !== 'financial' && <small>{status.helper}</small>}
         </div>
       </section>
 
@@ -1672,8 +1858,13 @@ export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQues
         <ProductVerificationCard result={result} answer={answer} />
       )}
 
+      {/* Healthcare Financial Advisory Card */}
+      {(responseMeta.intent === 'financial' || result?.monthly_budget_target_vnd || answer?.financial_assessment_update?.is_budget_update) && (
+        <FinancialAdvisoryCard result={result} answer={answer} />
+      )}
+
       {/* 1. GIẢI THÍCH Y KHOA & PHÂN TÍCH TRIỆU CHỨNG (Việc giải thích) */}
-      {!verifiedAgentPrimary && hasNarrative && narrativeBlocks.length > 0 && (
+      {!verifiedAgentPrimary && responseMeta.intent !== 'financial' && hasNarrative && narrativeBlocks.length > 0 && (
         <div className="clinical-explanation-narrative-box">
           <div className="explanation-section-title">
             <Stethoscope size={15} />

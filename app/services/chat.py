@@ -1358,15 +1358,19 @@ def _response(
         enroute_data = enroute_assessment.to_dict()
 
     med_suitability_data = None
-    asks_about_medicine = any(
-        k in normalize_search_text(latest_user_text)
-        for k in (
-            "uong thuoc gi", "dung thuoc gi", "nen uong thuoc", "co uong duoc", "co dung duoc",
-            "thuoc khoi om", "thuoc tri", "thuoc chua", "uong paracetamol", "uong panadol",
-            "uong efferalgan", "mua thuoc", "hieu thuoc", "nha thuoc", "de xuat thuoc", "ke don",
-            "thuoc gi de khoi", "khang sinh", "thuoc khang sinh"
+    asks_about_medicine = (
+        any(
+            k in normalize_search_text(latest_user_text)
+            for k in (
+                "uong thuoc gi", "dung thuoc gi", "nen uong thuoc", "co uong duoc", "co dung duoc",
+                "thuoc khoi om", "thuoc tri", "thuoc chua", "uong paracetamol", "uong panadol",
+                "uong efferalgan", "de xuat thuoc", "ke don thuoc",
+                "thuoc gi de khoi", "khang sinh", "thuoc khang sinh", "tu van thuoc", "uong thuoc nao"
+            )
         )
-    ) or intent == "safety" or (intent == "triage" and "thuoc" in normalize_search_text(latest_user_text))
+        or intent == "safety"
+        or (intent == "triage" and any(k in normalize_search_text(latest_user_text) for k in ("uong thuoc", "dung thuoc", "uong paracetamol", "ke don")))
+    ) and intent != "financial"
 
     if asks_about_medicine:
         med_suit = evaluate_medication_suitability(
@@ -1382,6 +1386,7 @@ def _response(
         med_suitability_data = med_suit.to_dict()
 
     # Geo Routing Agent: Real-time POI discovery, operating hours check, traffic congestion, and bypass optimization
+    # Only show routing if emergency case or user explicitly requests location/routing
     geo_routing_data = None
     asks_for_location_or_routing = any(
         k in normalize_search_text(latest_user_text)
@@ -1389,15 +1394,11 @@ def _response(
             "dia diem", "cho ban thuoc", "nha thuoc gan nhat", "hieu thuoc gan nhat",
             "cho xu ly cap cuu", "cap cuu gan nhat", "benh vien gan nhat", "chi duong",
             "ban do", "tac duong", "ket xe", "tuyen duong", "google map", "maps",
-            "tim nha thuoc", "tim benh vien", "o dau", "di duong nao"
+            "tim nha thuoc", "tim benh vien", "o dau", "di duong nao", "tram y te gan nhat"
         )
     )
 
-    if (
-        is_emergency_case
-        or asks_for_location_or_routing
-        or (asks_about_medicine and med_suitability_data and med_suitability_data.get("state") == "ELIGIBLE_OTC")
-    ):
+    if (is_emergency_case or asks_for_location_or_routing) and intent != "financial":
         target_poi_type = (
             "emergency"
             if is_emergency_case
@@ -1472,8 +1473,11 @@ def _response(
         financial_sync = healthcare_financial_advisor_service.extract_and_sync_from_chat(
             message=latest_user_text,
             current_medications=payload.context.current_medications,
+            patient_ref=payload.context.patient_ref or "guest_patient",
         )
         financial_data = financial_sync
+    except Exception:
+        pass
     except Exception:
         pass
 

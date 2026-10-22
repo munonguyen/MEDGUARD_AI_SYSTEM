@@ -1053,6 +1053,7 @@ async def log_financial_transaction(
     assessment = healthcare_financial_advisor_service.get_assessment(patient_ref)
     assessment.transactions.insert(0, payload)
     healthcare_financial_advisor_service.recalculate(assessment)
+    healthcare_financial_advisor_service._save_to_disk()
     return assessment
 
 

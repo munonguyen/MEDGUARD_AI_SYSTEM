@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
 import re
 from datetime import datetime
 from typing import Any
@@ -14,6 +16,8 @@ from app.models.financial_assessment import (
     SmartRecommendation,
     SpendingBreakdown,
 )
+
+RUNTIME_STORAGE_PATH = Path(__file__).resolve().parent.parent.parent / ".runtime" / "financial_assessments.json"
 
 RED_FLAG_SYMPTOMS: list[tuple[str, str]] = [
     (r"(đau ngực|thắt ngực|nặng ngực|đau tim)", "Đau thắt ngực hoặc áp lực vùng tim (Nguy cơ mạch vành)"),
@@ -119,11 +123,37 @@ DEFAULT_TRANSACTIONS: list[FinancialTransaction] = [
 class HealthcareFinancialAdvisorService:
     def __init__(self) -> None:
         self._assessments: dict[str, MonthlyFinancialAssessment] = {}
+        self._load_from_disk()
+
+    def _clean_ref(self, patient_ref: str | None) -> str:
+        ref = (patient_ref or "").strip()
+        return ref if ref else "guest_patient"
+
+    def _load_from_disk(self) -> None:
+        try:
+            if RUNTIME_STORAGE_PATH.exists():
+                with open(RUNTIME_STORAGE_PATH, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    for k, v in data.items():
+                        self._assessments[k] = MonthlyFinancialAssessment.model_validate(v)
+        except Exception:
+            pass
+
+    def _save_to_disk(self) -> None:
+        try:
+            RUNTIME_STORAGE_PATH.parent.mkdir(parents=True, exist_ok=True)
+            data = {k: v.model_dump(mode="json") for k, v in self._assessments.items()}
+            with open(RUNTIME_STORAGE_PATH, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+        except Exception:
+            pass
 
     def get_assessment(self, patient_ref: str = "guest_patient") -> MonthlyFinancialAssessment:
-        if patient_ref not in self._assessments:
-            self._assessments[patient_ref] = self._create_initial_assessment(patient_ref)
-        return self._assessments[patient_ref]
+        clean = self._clean_ref(patient_ref)
+        if clean not in self._assessments:
+            self._assessments[clean] = self._create_initial_assessment(clean)
+            self._save_to_disk()
+        return self._assessments[clean]
 
     def _create_initial_assessment(self, patient_ref: str) -> MonthlyFinancialAssessment:
         assessment = MonthlyFinancialAssessment(
@@ -221,9 +251,11 @@ class HealthcareFinancialAdvisorService:
     def set_budget(
         self, patient_ref: str = "guest_patient", budget_target_vnd: int = 3000000
     ) -> MonthlyFinancialAssessment:
-        assessment = self.get_assessment(patient_ref)
+        clean = self._clean_ref(patient_ref)
+        assessment = self.get_assessment(clean)
         assessment.monthly_budget_target_vnd = budget_target_vnd
         self.recalculate(assessment)
+        self._save_to_disk()
         return assessment
 
     def _generate_recommendations(
@@ -395,7 +427,10 @@ class HealthcareFinancialAdvisorService:
         return status, revised_advice
 
     def extract_and_sync_from_chat(
-        self, message: str, current_medications: list[str] | None = None
+        self,
+        message: str,
+        current_medications: list[str] | None = None,
+        patient_ref: str = "guest_patient",
     ) -> dict[str, Any]:
         """
         Zero-friction clinical-financial extraction:
@@ -404,7 +439,8 @@ class HealthcareFinancialAdvisorService:
         """
         text = message.strip()
         norm = text.lower()
-        assessment = self.get_assessment("guest_patient")
+        clean = self._clean_ref(patient_ref)
+        assessment = self.get_assessment(clean)
 
         detected_amount: int | None = None
         # Match patterns like: "hết 80k", "hết 150.000đ", "mất 90 nghìn", "hết 200 ngàn"
@@ -446,6 +482,7 @@ class HealthcareFinancialAdvisorService:
         if budget_target:
             assessment.monthly_budget_target_vnd = budget_target
             self.recalculate(assessment)
+            self._save_to_disk()
             is_budget_update = True
 
         # Safety Gate Evaluation
@@ -482,6 +519,7 @@ class HealthcareFinancialAdvisorService:
             if not duplicate:
                 assessment.transactions.insert(0, new_transaction)
                 self.recalculate(assessment)
+                self._save_to_disk()
 
         return {
             "has_financial_signal": detected_amount is not None or recurrence_flag or is_budget_update or safety_status.clinical_override_applied,
@@ -660,8 +698,10 @@ class HealthcareFinancialAdvisorService:
         return reply
 
     def reset_to_default(self, patient_ref: str = "guest_patient") -> MonthlyFinancialAssessment:
-        self._assessments[patient_ref] = self._create_initial_assessment(patient_ref)
-        return self._assessments[patient_ref]
+        clean = self._clean_ref(patient_ref)
+        self._assessments[clean] = self._create_initial_assessment(clean)
+        self._save_to_disk()
+        return self._assessments[clean]
 
 
 healthcare_financial_advisor_service = HealthcareFinancialAdvisorService()

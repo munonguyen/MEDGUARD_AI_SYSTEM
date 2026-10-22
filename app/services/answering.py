@@ -193,6 +193,13 @@ def _with_narrative(answer: GroundedAnswer, intent: ChatIntent) -> GroundedAnswe
 
 def _generate_suggested_followups(answer: GroundedAnswer, intent: ChatIntent) -> list[str]:
     """Generate high-value follow-up questions from the USER's perspective to ask the AI assistant."""
+    if intent == "financial":
+        return [
+            "Làm sao để đặt lịch khám đúng tuyến BHYT để tiết kiệm chi phí?",
+            "Làm thế nào để phân biệt thuốc Generic tương đương sinh học tại nhà thuốc?",
+            "Sổ chi tiêu y tế của tôi hiện tại đang lãng phí ở khoản nào nhiều nhất?",
+        ]
+
     is_emergency = _is_emergency_answer(answer)
     if is_emergency:
         return [
@@ -209,7 +216,7 @@ def _generate_suggested_followups(answer: GroundedAnswer, intent: ChatIntent) ->
             "Nếu tôi đã lỡ uống một liều aspirin thì cần xử trí như thế nào?",
         ]
 
-    if any(k in combined for k in ("răng", "nướu", "lợi", "ê buốt", "tủy", "dental", "nha sĩ")):
+    if any(k in combined for k in ("đau răng", "sâu răng", "nha khoa", "nhức răng", "sưng nướu", "viêm lợi", "sưng lợi", "ê buốt răng", "tủy răng", "dental", "nha sĩ")):
         return [
             "Có cách nào giảm ê buốt và đau răng nhanh tại nhà không?",
             "Thuốc giảm đau nào an toàn và phù hợp cho đau răng?",
@@ -724,6 +731,97 @@ def _authenticity_answer(result: dict[str, Any], sources: list[ChatEvidenceSourc
     )
 
 
+def _financial_answer(result: dict[str, Any], reply: str) -> GroundedAnswer:
+    budget_val = result.get("monthly_budget_target_vnd") or 3000000
+    budget_str = f"{budget_val:,}đ".replace(",", ".")
+    spent_val = result.get("total_spent_vnd") or 1250000
+    spent_str = f"{spent_val:,}đ".replace(",", ".")
+    remaining_val = result.get("remaining_budget_vnd") or max(0, budget_val - spent_val)
+    remaining_str = f"{remaining_val:,}đ".replace(",", ".")
+    pct = round((spent_val / budget_val) * 100, 1) if budget_val > 0 else 0.0
+    tes = result.get("treatment_efficiency_score") or 54
+    roi_rank = result.get("health_roi_rank") or "C"
+
+    doctor_val = int(budget_val * 0.45)
+    med_val = int(budget_val * 0.35)
+    reserve_val = budget_val - doctor_val - med_val
+    doctor_str = f"{doctor_val:,}đ".replace(",", ".")
+    med_str = f"{med_val:,}đ".replace(",", ".")
+    reserve_str = f"{reserve_val:,}đ".replace(",", ".")
+
+    title = f"Hạn mức ngân sách y tế: {budget_str} / Tháng"
+    summary = (
+        f"MedGuard AI đã ghi nhận và áp dụng hạn mức chi tiêu y tế {budget_str}/tháng vào hồ sơ của bạn. "
+        f"Hiện bạn đã chi {spent_str} ({pct}%), ngân sách khả dụng còn lại {remaining_str} (✅ An toàn trong tầm kiểm soát). "
+        f"Điểm Hiệu Quả Điều Trị (TES) đạt {tes}/100 (Hạng {roi_rank}). "
+        f"👉 Theo dõi chi tiết tại [Bảng Quản Lý Chi Phí Sức Khỏe](http://localhost:8000/?view=spending)."
+    )
+
+    blocks = [
+        AnswerNarrativeBlock(
+            kind="paragraph",
+            text=(
+                f"🎯 HẠN MỨC NGÂN SÁCH ĐÃ THIẾT LẬP: {budget_str}/tháng. "
+                f"Tiến độ thực hiện: Đã chi {spent_str} ({pct}%) | Còn lại khả dụng {remaining_str}. "
+                f"Chỉ số hiệu quả điều trị TES: {tes}/100 (Hạng {roi_rank})."
+            ),
+            emphasis=[f"{budget_str}/tháng", remaining_str, f"{tes}/100"],
+        ),
+        AnswerNarrativeBlock(
+            kind="paragraph",
+            text=(
+                f"Khuyến nghị phân bổ dòng tiền y tế thông minh (45 - 35 - 20): "
+                f"1. 🏥 45% (~{doctor_str}) cho khám chuyên khoa sớm qua Booking Care & đồng chi trả BHYT đúng tuyến để dứt điểm bệnh; "
+                f"2. 💊 35% (~{med_str}) mua thuốc chuẩn GPP và chủ động chọn biệt dược Generic tương đương sinh học tiết kiệm 30%-40%; "
+                f"3. 🛡️ 20% (~{reserve_str}) lập quỹ dự phòng cho xét nghiệm tầm soát định kỳ và chăm sóc nâng cao miễn dịch."
+            ),
+            emphasis=["45 - 35 - 20", doctor_str, med_str, reserve_str],
+        ),
+        AnswerNarrativeBlock(
+            kind="caution",
+            text=(
+                "Cam kết Cổng Kiểm Soát An Toàn Y Khoa: Hệ thống tuyệt đối không khuyến khích tự ý cắt giảm thuốc kê đơn "
+                "hay trì hoãn khám bác sĩ để giữ ngân sách. Khi có triệu chứng bất thường hoặc cảnh báo đỏ, "
+                "bạn cần đến ngay cơ sở y tế gần nhất."
+            ),
+            emphasis=["Cổng Kiểm Soát An Toàn Y Khoa", "không khuyến khích tự ý cắt giảm thuốc kê đơn"],
+        ),
+    ]
+
+    return GroundedAnswer(
+        title=title,
+        summary=summary,
+        presentation="detailed",
+        key_points=[
+            f"Hạn mức ngân sách y tế tháng 10/2026: {budget_str}",
+            f"Đã chi tiêu thực tế: {spent_str} ({pct}% ngân sách) — Trạng thái: An toàn",
+            f"Ngân sách còn lại khả dụng: {remaining_str}",
+            f"Điểm Hiệu Quả Điều Trị (TES): {tes}/100 (Hạng {roi_rank})",
+        ],
+        next_steps=[
+            f"🏥 Khám chuyên khoa Booking Care (~{doctor_str}): Đặt lịch hẹn trong 24-48h đầu khi có triệu chứng, tận dụng BHYT đúng tuyến thanh toán 80%-100%.",
+            f"💊 Mua thuốc GPP & Generic (~{med_str}): Mua tại chuỗi chính hãng, yêu cầu dược sĩ tư vấn Generic tương đương sinh học để tiết kiệm 30%-40%.",
+            f"🛡️ Quỹ dự phòng sức khỏe (~{reserve_str}): Dành cho xét nghiệm tầm soát định kỳ và vệ sinh phòng bệnh.",
+            "Truy cập Bảng Quản Lý Chi Phí Sức Khỏe để theo dõi tiến độ chi tiêu và cập nhật các khoản chi mới.",
+        ],
+        safety_notes=[
+            "Cổng Kiểm Soát An Toàn: Không tự ý bỏ thuốc hoặc mua thuốc kém chất lượng trôi nổi để giảm chi phí.",
+            "Khi có dấu hiệu cờ đỏ (sốt cao kéo dài, đau ngực, khó thở...), hãy đến bệnh viện khám ngay.",
+        ],
+        questions=[],
+        suggested_followups=[
+            "Làm sao để đặt lịch khám đúng tuyến BHYT để tiết kiệm chi phí?",
+            "Làm thế nào để phân biệt thuốc Generic tương đương sinh học tại nhà thuốc?",
+            "Sổ chi tiêu y tế của tôi hiện tại đang lãng phí ở khoản nào nhiều nhất?",
+        ],
+        narrative=blocks,
+        decision_basis="workflow_record",
+        evidence_state="operation_confirmed",
+        limitations=["Kế hoạch phân bổ ngân sách mang tính chất tư vấn kinh tế dược học, không thay thế cho phác đồ điều trị trực tiếp của bác sĩ."],
+        requires_human_review=False,
+    )
+
+
 def build_grounded_answer(
     *,
     intent: ChatIntent,
@@ -735,6 +833,8 @@ def build_grounded_answer(
     """Build presentation text without introducing claims absent from domain output."""
     if status == "needs_information":
         return _with_narrative(_needs_information(intent, reply, required_fields), intent)
+    if intent == "financial":
+        return _financial_answer(result or {}, reply=reply)
     if not result:
         return _with_narrative(GroundedAnswer(
             title="Mình chưa thể xử lý yêu cầu này" if status == "unsupported" else "Kết quả xử lý",

@@ -170,3 +170,58 @@ def test_chat_budget_statement_intercepted(client):
     fin = data["answer"]["financial_assessment_update"]
     assert fin["assessment"]["monthly_budget_target_vnd"] == 3000000
 
+
+def test_chat_update_budget_to_10_million_and_suppress_irrelevant_cards(client):
+    """
+    When updating budget to 10 million:
+    1. Budget must update to 10.000.000đ and persist across assessment fetch.
+    2. No unwanted medication proposal (medication_suitability is None).
+    3. No unwanted map routing (geo_routing is None).
+    4. Follow-up suggestions must be financial, NOT dental/toothache.
+    """
+    chat_payload = {
+        "conversation_id": "conv-test-budget-10m",
+        "messages": [
+            {
+                "role": "user",
+                "content": "tổng chi tiêu tháng này tôi muốn là tối đa khoảng 10 triệu vào việc mua thuốc và khám sức khoẻ",
+            }
+        ],
+        "context": {"patient_ref": "guest_patient"},
+    }
+    res = client.post(
+        "/v1/chat",
+        json=chat_payload,
+        headers={
+            "x-api-key": "demo-key",
+            "x-tenant-id": "tenant-demo",
+            "Idempotency-Key": "test-budget-10m-01",
+        },
+    )
+    assert res.status_code == 200
+    data = res.json()
+    assert data["status"] == "answered"
+    assert data["intent"] == "financial"
+    assert "10.000.000" in data["reply"]
+    assert "view=spending" in data["reply"]
+
+    # Verify no unwanted cards attached
+    answer = data["answer"]
+    assert answer.get("medication_suitability") is None
+    assert answer.get("geo_routing") is None
+
+    # Verify follow-ups are financial, not dental
+    followups = answer.get("suggested_followups", [])
+    assert any("BHYT" in f or "tiết kiệm" in f for f in followups)
+    assert not any("răng" in f.lower() or "nha sĩ" in f.lower() for f in followups)
+
+    # Verify assessment persisted in backend and can be retrieved via GET
+    get_res = client.get(
+        "/v1/financial/assessment?patient_ref=guest_patient",
+        headers={"x-api-key": "demo-key", "x-tenant-id": "tenant-demo"},
+    )
+    assert get_res.status_code == 200
+    assess_data = get_res.json()
+    assert assess_data["monthly_budget_target_vnd"] == 10000000
+
+

@@ -48,8 +48,15 @@ export function HealthcareSpendingPage({
   onNavigate,
   onNotify,
 }) {
-  const [assessment, setAssessment] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [assessment, setAssessment] = useState(() => {
+    try {
+      const saved = localStorage.getItem('medguard_financial_assessment');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [loading, setLoading] = useState(!assessment);
   const [refreshing, setRefreshing] = useState(false);
   const [filterType, setFilterType] = useState('all'); // 'all', 'gpp', 'waste', 'doctor'
 
@@ -75,7 +82,13 @@ export function HealthcareSpendingPage({
 
   // Monthly Budget Target Modal State
   const [showBudgetModal, setShowBudgetModal] = useState(false);
-  const [budgetValue, setBudgetValue] = useState('3000000');
+  const [budgetValue, setBudgetValue] = useState(() => {
+    try {
+      return localStorage.getItem('medguard_budget_target_vnd') || '3000000';
+    } catch {
+      return '3000000';
+    }
+  });
   const [budgetSaving, setBudgetSaving] = useState(false);
 
   // Robust API request wrapper supporting both functional and object API client
@@ -106,8 +119,26 @@ export function HealthcareSpendingPage({
     async (isSilent = false) => {
       if (!isSilent) setRefreshing(true);
       try {
-        const data = await makeRequest(`/v1/financial/assessment?patient_ref=${encodeURIComponent(patientRef)}`);
-        setAssessment(data);
+        const cleanRef = (patientRef && patientRef.trim()) || 'guest_patient';
+        const data = await makeRequest(`/v1/financial/assessment?patient_ref=${encodeURIComponent(cleanRef)}`);
+        if (data) {
+          const localTarget = localStorage.getItem('medguard_budget_target_vnd');
+          if (localTarget && parseInt(localTarget, 10) > 0 && data.monthly_budget_target_vnd !== parseInt(localTarget, 10)) {
+            data.monthly_budget_target_vnd = parseInt(localTarget, 10);
+            if (data.breakdown) {
+              const spent = data.breakdown.total_spent_vnd || 0;
+              data.remaining_budget_vnd = Math.max(0, data.monthly_budget_target_vnd - spent);
+              data.budget_utilization_percentage = Math.round((spent / data.monthly_budget_target_vnd) * 1000) / 10;
+            }
+          }
+          setAssessment(data);
+          try {
+            if (data.monthly_budget_target_vnd) {
+              localStorage.setItem('medguard_budget_target_vnd', String(data.monthly_budget_target_vnd));
+            }
+            localStorage.setItem('medguard_financial_assessment', JSON.stringify(data));
+          } catch {}
+        }
       } catch (err) {
         console.error('Error fetching financial assessment:', err);
         if (onNotify) {
@@ -126,8 +157,15 @@ export function HealthcareSpendingPage({
 
     const handleFinancialUpdate = (event) => {
       const chatData = event.detail;
-      if (chatData?.answer?.financial_assessment_update?.assessment) {
-        setAssessment(chatData.answer.financial_assessment_update.assessment);
+      const finAssess = chatData?.answer?.financial_assessment_update?.assessment;
+      if (finAssess) {
+        setAssessment(finAssess);
+        try {
+          if (finAssess.monthly_budget_target_vnd) {
+            localStorage.setItem('medguard_budget_target_vnd', String(finAssess.monthly_budget_target_vnd));
+          }
+          localStorage.setItem('medguard_financial_assessment', JSON.stringify(finAssess));
+        } catch {}
         if (onNotify) {
           onNotify('Đã tự động cập nhật sổ chi tiêu từ hội thoại chat!', 'info');
         }
@@ -221,14 +259,19 @@ export function HealthcareSpendingPage({
     }
     setBudgetSaving(true);
     try {
+      const cleanRef = (patientRef && patientRef.trim()) || 'guest_patient';
       const updated = await makeRequest('/v1/financial/set-budget', {
         method: 'POST',
         body: {
-          patient_ref: patientRef,
+          patient_ref: cleanRef,
           budget_target_vnd: amt,
         },
       });
       setAssessment(updated);
+      try {
+        localStorage.setItem('medguard_budget_target_vnd', String(amt));
+        localStorage.setItem('medguard_financial_assessment', JSON.stringify(updated));
+      } catch {}
       setShowBudgetModal(false);
       if (onNotify) onNotify(`Đã cập nhật hạn mức ngân sách y tế: ${formatVnd(amt)} / tháng!`, 'success');
     } catch (err) {

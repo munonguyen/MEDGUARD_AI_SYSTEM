@@ -1124,7 +1124,19 @@ export default function App({
         if (data.answer?.health_twin_update || data.answer) {
           window.dispatchEvent(new CustomEvent('medguard:health-twin-updated', { detail: data }));
         }
-        if (data.answer?.financial_assessment_update || data.answer) {
+        if (data.answer?.financial_assessment_update || data.intent === 'financial' || data.answer) {
+          const finAssess = data.answer?.financial_assessment_update?.assessment;
+          const budgetVal = data.result?.monthly_budget_target_vnd || finAssess?.monthly_budget_target_vnd;
+          if (budgetVal) {
+            try {
+              localStorage.setItem('medguard_budget_target_vnd', String(budgetVal));
+            } catch {}
+          }
+          if (finAssess) {
+            try {
+              localStorage.setItem('medguard_financial_assessment', JSON.stringify(finAssess));
+            } catch {}
+          }
           window.dispatchEvent(new CustomEvent('medguard:financial-updated', { detail: data }));
         }
       }
