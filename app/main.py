@@ -88,6 +88,10 @@ def _security_headers(response, *, path: str) -> None:
             "worker-src 'self' blob:; "
             "object-src 'none'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com"
         )
+    if path in {"/", "/dashboard"} or path.startswith("/static/"):
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
     if path.startswith("/v1/"):
         response.headers["Cache-Control"] = "no-store"
     if settings.environment.lower() == "production":

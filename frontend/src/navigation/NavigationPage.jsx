@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import MaplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import * as turf from '@turf/turf';
 import {
   AlertTriangle,
@@ -59,20 +60,31 @@ import {
 } from '../locationState';
 import './NavigationPage.css';
 
+// Configure MapLibre Web Worker URL for Vite bundled environments
+if (typeof window !== 'undefined' && maplibregl?.setWorkerUrl) {
+  try {
+    maplibregl.setWorkerUrl(MaplibreWorkerUrl);
+  } catch {}
+}
+
 const GEOAPIFY_API_KEY = '224447c8da3b4555a5380f31ddb56bf3';
 
-// High-speed, guaranteed-uptime raster styles (Sub-50ms loading, never black, WebKit/Safari compatible)
+// High-speed, guaranteed-uptime Retina @2x styles with WebGL 3D building extrusions
 const STREETS_RASTER_STYLE = {
   version: 8,
   sources: {
     'streets-tiles': {
       type: 'raster',
       tiles: [
-        `https://maps.geoapify.com/v1/tile/osm-bright/{z}/{x}/{y}.png?apiKey=${GEOAPIFY_API_KEY}`,
+        `https://maps.geoapify.com/v1/tile/osm-bright/{z}/{x}/{y}@2x.png?apiKey=${GEOAPIFY_API_KEY}`,
       ],
       tileSize: 256,
       attribution: '© Geoapify, OpenStreetMap contributors',
       maxzoom: 20,
+    },
+    'geoapify-buildings': {
+      type: 'vector',
+      url: `https://maps.geoapify.com/v1/styles/osm-bright-smooth/data.json?apiKey=${GEOAPIFY_API_KEY}`,
     },
   },
   layers: [
@@ -82,6 +94,45 @@ const STREETS_RASTER_STYLE = {
       source: 'streets-tiles',
       minzoom: 0,
       maxzoom: 22,
+    },
+    {
+      id: '3d-buildings',
+      type: 'fill-extrusion',
+      source: 'geoapify-buildings',
+      'source-layer': 'building',
+      minzoom: 14.5,
+      paint: {
+        'fill-extrusion-color': [
+          'interpolate',
+          ['linear'],
+          ['coalesce', ['get', 'render_height'], 12],
+          0,
+          '#d1d5db',
+          20,
+          '#94a3b8',
+          60,
+          '#64748b',
+        ],
+        'fill-extrusion-height': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          14.5,
+          0,
+          15,
+          ['coalesce', ['get', 'render_height'], 12],
+        ],
+        'fill-extrusion-base': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          14.5,
+          0,
+          15,
+          ['coalesce', ['get', 'render_min_height'], 0],
+        ],
+        'fill-extrusion-opacity': 0.82,
+      },
     },
   ],
 };
@@ -98,12 +149,28 @@ const SATELLITE_RASTER_STYLE = {
       attribution: 'Esri World Imagery',
       maxzoom: 19,
     },
+    'esri-labels': {
+      type: 'raster',
+      tiles: [
+        'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+      ],
+      tileSize: 256,
+      attribution: 'Esri Reference Labels',
+      maxzoom: 19,
+    },
   },
   layers: [
     {
       id: 'satellite-base',
       type: 'raster',
       source: 'esri-satellite',
+      minzoom: 0,
+      maxzoom: 22,
+    },
+    {
+      id: 'satellite-labels',
+      type: 'raster',
+      source: 'esri-labels',
       minzoom: 0,
       maxzoom: 22,
     },
@@ -116,11 +183,15 @@ const DARK_RASTER_STYLE = {
     'dark-tiles': {
       type: 'raster',
       tiles: [
-        `https://maps.geoapify.com/v1/tile/dark-matter-dark-grey/{z}/{x}/{y}.png?apiKey=${GEOAPIFY_API_KEY}`,
+        `https://maps.geoapify.com/v1/tile/dark-matter-dark-grey/{z}/{x}/{y}@2x.png?apiKey=${GEOAPIFY_API_KEY}`,
       ],
       tileSize: 256,
       attribution: '© Geoapify, OpenStreetMap contributors',
       maxzoom: 20,
+    },
+    'geoapify-buildings': {
+      type: 'vector',
+      url: `https://maps.geoapify.com/v1/styles/dark-matter-dark-grey/data.json?apiKey=${GEOAPIFY_API_KEY}`,
     },
   },
   layers: [
@@ -130,6 +201,35 @@ const DARK_RASTER_STYLE = {
       source: 'dark-tiles',
       minzoom: 0,
       maxzoom: 22,
+    },
+    {
+      id: '3d-buildings-dark',
+      type: 'fill-extrusion',
+      source: 'geoapify-buildings',
+      'source-layer': 'building',
+      minzoom: 14.5,
+      paint: {
+        'fill-extrusion-color': '#1e293b',
+        'fill-extrusion-height': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          14.5,
+          0,
+          15,
+          ['coalesce', ['get', 'render_height'], 12],
+        ],
+        'fill-extrusion-base': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          14.5,
+          0,
+          15,
+          ['coalesce', ['get', 'render_min_height'], 0],
+        ],
+        'fill-extrusion-opacity': 0.75,
+      },
     },
   ],
 };
@@ -262,32 +362,66 @@ export function update3dRouteLine(map3d, coordinates) {
           type: 'geojson',
           data: geojson,
         });
-        if (!map3d.getLayer('route-glow')) {
-          map3d.addLayer({
-            id: 'route-glow',
-            type: 'line',
-            source: 'route-source',
-            layout: { 'line-join': 'round', 'line-cap': 'round' },
-            paint: {
-              'line-color': '#00e5ff',
-              'line-width': 12,
-              'line-opacity': 0.55,
-            },
-          });
-        }
-        if (!map3d.getLayer('route-line')) {
-          map3d.addLayer({
-            id: 'route-line',
-            type: 'line',
-            source: 'route-source',
-            layout: { 'line-join': 'round', 'line-cap': 'round' },
-            paint: {
-              'line-color': '#2563eb',
-              'line-width': 6,
-              'line-opacity': 0.95,
-            },
-          });
-        }
+      }
+
+      // 1. Deep Contrast Casing: dark outline for maximum edge contrast
+      if (!map3d.getLayer('route-casing')) {
+        map3d.addLayer({
+          id: 'route-casing',
+          type: 'line',
+          source: 'route-source',
+          layout: { 'line-join': 'round', 'line-cap': 'round' },
+          paint: {
+            'line-color': '#0a192f',
+            'line-width': 13,
+            'line-opacity': 0.92,
+          },
+        });
+      }
+
+      // 2. Ambient High-Tech Glow: neon cyan
+      if (!map3d.getLayer('route-glow')) {
+        map3d.addLayer({
+          id: 'route-glow',
+          type: 'line',
+          source: 'route-source',
+          layout: { 'line-join': 'round', 'line-cap': 'round' },
+          paint: {
+            'line-color': '#00e5ff',
+            'line-width': 9,
+            'line-opacity': 0.65,
+          },
+        });
+      }
+
+      // 3. Primary Route Line: vivid cobalt blue
+      if (!map3d.getLayer('route-line')) {
+        map3d.addLayer({
+          id: 'route-line',
+          type: 'line',
+          source: 'route-source',
+          layout: { 'line-join': 'round', 'line-cap': 'round' },
+          paint: {
+            'line-color': '#2563eb',
+            'line-width': 5.5,
+            'line-opacity': 1.0,
+          },
+        });
+      }
+
+      // 4. Center Precision Stripe: bright white directional core
+      if (!map3d.getLayer('route-inner-core')) {
+        map3d.addLayer({
+          id: 'route-inner-core',
+          type: 'line',
+          source: 'route-source',
+          layout: { 'line-join': 'round', 'line-cap': 'round' },
+          paint: {
+            'line-color': '#ffffff',
+            'line-width': 1.8,
+            'line-opacity': 0.95,
+          },
+        });
       }
     } catch (err) {
       console.warn('update3dRouteLine error:', err);
@@ -550,6 +684,9 @@ export function NavigationPage({
   );
   const [mapTheme, setMapTheme] = useState('streets'); // 'streets', 'satellite', 'dark', 'osm'
   const [activeStepIndex, setActiveStepIndex] = useState(0);
+  const steps = activeRoute?.steps || [];
+  const currentStep = steps[activeStepIndex] || steps[0] || {};
+  const nextStep = steps[activeStepIndex + 1] || null;
   const [liveTracking, setLiveTracking] = useState(true);
 
   // Google Maps Travel Modes (Video instruction: motorcycle, driving, walking)
@@ -623,7 +760,7 @@ export function NavigationPage({
       recognition.onstart = () => {
         setIsListeningVoice(true);
         onNotify?.(
-          '🎙️ Đang lắng nghe giọng nói tiếng Việt... Hãy nói: "Cây xăng gần đây", "Quán cơm", "Quận 12", hoặc tên bệnh viện.'
+          'Đang lắng nghe giọng nói tiếng Việt... Hãy nói: "Cây xăng gần đây", "Quán cơm", "Quận 12", hoặc tên bệnh viện.'
         );
       };
 
@@ -631,7 +768,7 @@ export function NavigationPage({
         const transcript = event.results[0][0].transcript;
         setIsListeningVoice(false);
         setSearchQuery(transcript);
-        onNotify?.(`🗣️ Đã nhận diện giọng nói: "${transcript}"`);
+        onNotify?.(`Đã nhận diện giọng nói: "${transcript}"`);
         handleExecuteSearch(transcript);
       };
 
@@ -662,31 +799,31 @@ export function NavigationPage({
     if (q.includes('xăng') || q.includes('fuel') || q.includes('gas')) {
       setPoiType('gas_station');
       setQuickAmenity('gas_station');
-      onNotify?.('⛽ Đang tìm trạm xăng / cây xăng gần nhất...');
+      onNotify?.('Đang tìm trạm xăng gần nhất...');
       return;
     }
     if (q.includes('cà phê') || q.includes('cafe') || q.includes('uống')) {
       setPoiType('cafe');
       setQuickAmenity('cafe');
-      onNotify?.('☕ Đang tìm quán cà phê / trạm nghỉ gần nhất...');
+      onNotify?.('Đang tìm quán cà phê / trạm nghỉ gần nhất...');
       return;
     }
     if (q.includes('cơm') || q.includes('ăn') || q.includes('quán ăn') || q.includes('gà')) {
       setPoiType('restaurant');
       setQuickAmenity('restaurant');
-      onNotify?.('🍱 Đang tìm quán ăn / quán cơm gần nhất...');
+      onNotify?.('Đang tìm quán ăn / quán cơm gần nhất...');
       return;
     }
     if (q.includes('cấp cứu') || q.includes('bệnh viện') || q.includes('115')) {
       setPoiType('emergency');
       setQuickAmenity('emergency');
-      onNotify?.('🏥 Đang tìm trung tâm cấp cứu 115 & bệnh viện...');
+      onNotify?.('Đang tìm trung tâm cấp cứu 115 & bệnh viện...');
       return;
     }
     if (q.includes('thuốc') || q.includes('nhà thuốc') || q.includes('gpp')) {
       setPoiType('pharmacy');
       setQuickAmenity('pharmacy');
-      onNotify?.('💊 Đang tìm quầy thuốc GPP chuẩn gần nhất...');
+      onNotify?.('Đang tìm quầy thuốc GPP chuẩn gần nhất...');
       return;
     }
 
@@ -698,23 +835,23 @@ export function NavigationPage({
     );
     if (matched) {
       setSelectedPoi(matched);
-      onNotify?.(`📍 Đã chọn điểm đến: ${matched.name}`);
+      onNotify?.(`Đã chọn điểm đến: ${matched.name}`);
     } else {
-      onNotify?.(`🔍 Đang lọc theo từ khóa "${q}"...`);
+      onNotify?.(`Đang lọc theo từ khóa "${q}"...`);
     }
   };
 
   const handleCycleAudioGuidance = () => {
     setAudioGuidanceMode((curr) => {
       if (curr === 'full') {
-        onNotify?.('⚠️ Chế độ giọng nói: Chỉ phát cảnh báo quan trọng');
+        onNotify?.('Chế độ giọng nói: Chỉ phát cảnh báo quan trọng');
         return 'alerts_only';
       }
       if (curr === 'alerts_only') {
-        onNotify?.('🔇 Chế độ giọng nói: Đã tắt tiếng hoàn toàn');
+        onNotify?.('Chế độ giọng nói: Đã tắt tiếng hoàn toàn');
         return 'muted';
       }
-      onNotify?.('🔊 Chế độ giọng nói: Bật âm thanh hướng dẫn đầy đủ');
+      onNotify?.('Chế độ giọng nói: Bật âm thanh hướng dẫn đầy đủ');
       return 'full';
     });
   };
@@ -728,13 +865,13 @@ export function NavigationPage({
         bearing: vehicleHeading || 0,
         speed: 1.4,
       });
-      onNotify?.('🎯 Đã đưa góc nhìn camera về vị trí GPS của bạn');
+      onNotify?.('Đã căn chỉnh camera về vị trí GPS của bạn');
     } else if (mapViewMode === '2d_overview' && map2dInstanceRef.current) {
       map2dInstanceRef.current.flyTo([userLocation.lat, userLocation.lng], 16, {
         animate: true,
         duration: 1.0,
       });
-      onNotify?.('🎯 Đã đưa góc nhìn camera về vị trí GPS của bạn');
+      onNotify?.('Đã căn chỉnh camera về vị trí GPS của bạn');
     }
   };
 
@@ -742,7 +879,7 @@ export function NavigationPage({
     if (mapViewMode === '3d_cockpit' && map3dInstanceRef.current) {
       map3dInstanceRef.current.rotateTo(0, { duration: 600 });
       setVehicleHeading(0);
-      onNotify?.('🧭 Đã căn chỉnh la bàn hướng thẳng về phía Bắc (0°)');
+      onNotify?.('Đã căn chỉnh la bàn về hướng Bắc (0°)');
     }
   };
 
@@ -838,7 +975,7 @@ export function NavigationPage({
         if (res && res.coordinates) {
           setActiveRoute(res);
           setActiveStepIndex(0);
-          onNotify?.(`🔄 Đã tự động định tuyến lại (lệch ${offMeters}m)`);
+          onNotify?.(`Đã tự động tính lại tuyến đường (lệch ${offMeters}m)`);
         }
       } catch (err) {
         console.warn('Auto reroute error:', err);
@@ -1231,18 +1368,38 @@ export function NavigationPage({
       }
     }
 
-    // Camera chase in 3D Cockpit mode
+    // Camera chase in 3D Cockpit mode with speed/turn adaptive zoom & pitch
     if (mapViewMode === '3d_cockpit' && isNavigatingLive) {
+      let dynamicZoom = 17.5;
+      let dynamicPitch = 60;
+
+      const currentStepObj = steps[activeStepIndex] || null;
+      const distToTurn = currentStepObj?.distance_km ?? 0.5;
+
+      if (distToTurn < 0.08) {
+        // Approaching intersection (< 80m): close-in zoom, reduced pitch for maximum junction clarity
+        dynamicZoom = 18.2;
+        dynamicPitch = 52;
+      } else if (distToTurn < 0.25) {
+        // Preparation zone (< 250m)
+        dynamicZoom = 17.8;
+        dynamicPitch = 56;
+      } else {
+        // Open route cruise: broad horizon
+        dynamicZoom = 16.9;
+        dynamicPitch = 62;
+      }
+
       map3d.easeTo({
         center: [vLng, vLat],
         bearing: vehicleHeading || 0,
-        pitch: 60,
-        zoom: 17.5,
+        pitch: dynamicPitch,
+        zoom: dynamicZoom,
         duration: 700,
         easing: (t) => t,
       });
     }
-  }, [vehiclePosition, vehicleHeading, mapViewMode, isNavigatingLive]);
+  }, [vehiclePosition, vehicleHeading, mapViewMode, isNavigatingLive, steps, activeStepIndex]);
 
   // Resize handler on perspective mode toggle
   useEffect(() => {
@@ -1250,10 +1407,12 @@ export function NavigationPage({
       requestAnimationFrame(() => {
         map3dInstanceRef.current?.resize();
       });
+      setTimeout(() => map3dInstanceRef.current?.resize(), 120);
     } else if (mapViewMode === '2d_overview' && map2dInstanceRef.current) {
       requestAnimationFrame(() => {
         map2dInstanceRef.current?.invalidateSize();
       });
+      setTimeout(() => map2dInstanceRef.current?.invalidateSize(), 120);
     }
   }, [mapViewMode]);
 
@@ -1283,25 +1442,37 @@ export function NavigationPage({
       }
     });
 
-    const brightTileUrl = `https://maps.geoapify.com/v1/tile/osm-bright/{z}/{x}/{y}.png?apiKey=${GEOAPIFY_API_KEY}`;
-    const darkTileUrl = `https://maps.geoapify.com/v1/tile/dark-matter-dark-grey/{z}/{x}/{y}.png?apiKey=${GEOAPIFY_API_KEY}`;
+    const brightTileUrl = `https://maps.geoapify.com/v1/tile/osm-bright/{z}/{x}/{y}{r}.png?apiKey=${GEOAPIFY_API_KEY}`;
+    const darkTileUrl = `https://maps.geoapify.com/v1/tile/dark-matter-dark-grey/{z}/{x}/{y}{r}.png?apiKey=${GEOAPIFY_API_KEY}`;
     const osmTileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
     const satelliteTileUrl =
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+    const satelliteLabelsUrl =
+      'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}';
 
-    const tileUrl =
-      mapTheme === 'satellite'
-        ? satelliteTileUrl
-        : mapTheme === 'dark'
-        ? darkTileUrl
-        : mapTheme === 'osm'
-        ? osmTileUrl
-        : brightTileUrl;
+    if (mapTheme === 'satellite') {
+      L.tileLayer(satelliteTileUrl, {
+        maxZoom: 19,
+        attribution: 'Esri World Imagery',
+      }).addTo(map);
+      L.tileLayer(satelliteLabelsUrl, {
+        maxZoom: 19,
+        attribution: 'Esri Reference Labels',
+      }).addTo(map);
+    } else {
+      const tileUrl =
+        mapTheme === 'dark'
+          ? darkTileUrl
+          : mapTheme === 'osm'
+          ? osmTileUrl
+          : brightTileUrl;
 
-    L.tileLayer(tileUrl, {
-      maxZoom: 20,
-      attribution: '© OpenStreetMap, © Geoapify, Esri World Imagery',
-    }).addTo(map);
+      L.tileLayer(tileUrl, {
+        maxZoom: 20,
+        detectRetina: true,
+        attribution: '© OpenStreetMap, © Geoapify',
+      }).addTo(map);
+    }
   }, [mapTheme]);
 
   // Leaflet 2D Markers and Polyline
@@ -1335,17 +1506,29 @@ export function NavigationPage({
       destMarker.bindPopup(`<b>${selectedPoi.name}</b><br/>${selectedPoi.address}`);
 
       if (routeCoords.length > 0) {
+        // Layer 1: Contrast casing (Dark border)
         L.polyline(routeCoords, {
-          color: mapTheme === 'dark' ? '#00e5ff' : '#60a5fa',
+          color: '#0a192f',
           weight: 10,
-          opacity: 0.45,
+          opacity: 0.9,
           lineCap: 'round',
+          lineJoin: 'round',
         }).addTo(polylineGroup2dRef.current);
 
-        const mainLine = L.polyline(routeCoords, {
+        // Layer 2: Main vibrant route path
+        L.polyline(routeCoords, {
           color: mapTheme === 'dark' ? '#00e5ff' : '#2563eb',
           weight: 6,
           opacity: 0.95,
+          lineCap: 'round',
+          lineJoin: 'round',
+        }).addTo(polylineGroup2dRef.current);
+
+        // Layer 3: Inner white directional stripe
+        const mainLine = L.polyline(routeCoords, {
+          color: '#ffffff',
+          weight: 2,
+          opacity: 0.9,
           lineCap: 'round',
           lineJoin: 'round',
         }).addTo(polylineGroup2dRef.current);
@@ -1411,9 +1594,7 @@ export function NavigationPage({
     }
   }, [mapViewMode]);
 
-  const steps = activeRoute?.steps || [];
-  const currentStep = steps[activeStepIndex] || steps[0] || {};
-  const nextStep = steps[activeStepIndex + 1] || null;
+
 
   // Unified Simulation Driving Loop using Turf.js Pipeline
   useEffect(() => {
@@ -1438,7 +1619,7 @@ export function NavigationPage({
           `Bạn đã đến điểm đích: ${selectedPoi?.name || 'điểm đến'}. Chúc bạn dồi dào sức khỏe!`,
           voiceGuidanceEnabled
         );
-        onNotify?.(`🏁 Đã hoàn thành lộ trình đến ${selectedPoi?.name || 'điểm đến'}`);
+        onNotify?.(`Đã hoàn thành lộ trình đến ${selectedPoi?.name || 'điểm đến'}`);
         return;
       }
 
@@ -1510,7 +1691,7 @@ export function NavigationPage({
     if (simulate) {
       setIsSimulatingDrive(true);
     }
-    onNotify?.(`🟢 Đã kích hoạt Chế độ Dẫn Đường 3D & 2D Kết Hợp (Turf.js GPS Engine)`);
+    onNotify?.('Đã kích hoạt chế độ dẫn đường Turn-by-Turn');
   };
 
   // Stop Live Navigation
@@ -2055,7 +2236,7 @@ export function NavigationPage({
                   onClick={() => {
                     setPoiType('gas_station');
                     setQuickAmenity('gas_station');
-                    onNotify?.('⛽ Đang quét các cây xăng / trạm xăng gần nhất dọc tuyến...');
+                    onNotify?.('Đang quét các cây xăng / trạm xăng gần nhất dọc tuyến...');
                   }}
                   title="Tìm cây xăng / trạm xăng gần nhất"
                 >
@@ -2068,7 +2249,7 @@ export function NavigationPage({
                   onClick={() => {
                     setPoiType('pharmacy');
                     setQuickAmenity('pharmacy');
-                    onNotify?.('💊 Đang hiển thị các quầy thuốc GPP gần nhất...');
+                    onNotify?.('Đang hiển thị các quầy thuốc GPP gần nhất...');
                   }}
                   title="Tìm quầy thuốc GPP"
                 >
@@ -2081,7 +2262,7 @@ export function NavigationPage({
                   onClick={() => {
                     setPoiType('emergency');
                     setQuickAmenity('emergency');
-                    onNotify?.('🏥 Đang hiển thị các trung tâm cấp cứu 115 & bệnh viện...');
+                    onNotify?.('Đang hiển thị các trung tâm cấp cứu 115 & bệnh viện...');
                   }}
                   title="Tìm trạm cấp cứu & bệnh viện"
                 >
@@ -2094,7 +2275,7 @@ export function NavigationPage({
                   onClick={() => {
                     setPoiType('cafe');
                     setQuickAmenity('cafe');
-                    onNotify?.('☕ Đang tìm quán cà phê / trạm dừng chân gần nhất...');
+                    onNotify?.('Đang tìm quán cà phê / trạm dừng chân gần nhất...');
                   }}
                   title="Tìm quán cà phê / trạm nghỉ"
                 >
@@ -2107,7 +2288,7 @@ export function NavigationPage({
                   onClick={() => {
                     setPoiType('restaurant');
                     setQuickAmenity('restaurant');
-                    onNotify?.('🍱 Đang tìm quán cơm / quán ăn gần nhất...');
+                    onNotify?.('Đang tìm quán cơm / quán ăn gần nhất...');
                   }}
                   title="Tìm quán cơm / quán ăn"
                 >
@@ -2334,7 +2515,7 @@ export function NavigationPage({
                     title="Kích hoạt chế độ dẫn đường trực tiếp Google Maps"
                   >
                     <Navigation size={16} />
-                    <span>🟢 BẮT ĐẦU CHỈ ĐƯỜNG</span>
+                    <span>BẮT ĐẦU CHỈ ĐƯỜNG</span>
                   </button>
 
                   <button
@@ -2464,7 +2645,7 @@ export function NavigationPage({
                 >
                   <Navigation size={15} />
                   <span>
-                    {isNavigatingLive ? 'DỪNG DẪN ĐƯỜNG' : '🟢 BẮT ĐẦU CHỈ ĐƯỜNG'}
+                    {isNavigatingLive ? 'DỪNG DẪN ĐƯỜNG' : 'BẮT ĐẦU CHỈ ĐƯỜNG'}
                   </span>
                 </button>
                 <button
@@ -2586,7 +2767,7 @@ export function NavigationPage({
                 </p>
                 <div className="choice-btn-row active-text">
                   <span className="btn-launch-inline">
-                    {isNavigatingLive ? '🟢 Đang dẫn đường HUD' : '🟢 Bắt đầu chỉ đường ngay'}
+                    {isNavigatingLive ? 'Đang dẫn đường HUD' : 'Bắt đầu chỉ đường ngay'}
                   </span>
                   <ChevronDown size={14} />
                 </div>

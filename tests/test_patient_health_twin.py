@@ -13,7 +13,7 @@ def test_patient_health_twin_default_profile():
     assert head_organ is not None
     assert head_organ.vietnamese_name == "Đầu & Thần kinh"
     assert head_organ.coordinates.x == 50.0
-    assert head_organ.coordinates.y == 13.0
+    assert head_organ.coordinates.y == 11.0
 
 
 def test_patient_health_twin_recovery():
@@ -98,3 +98,34 @@ def test_health_twin_api_endpoints():
     assert resp3.status_code == 200
     sc_data = resp3.json()
     assert sc_data["overall_health_score"] >= 90
+
+    # 4. POST /v1/health-twin/reset
+    resp_reset = client.post("/v1/health-twin/reset", headers=headers)
+    assert resp_reset.status_code == 200
+    reset_data = resp_reset.json()
+    assert reset_data["overall_health_score"] == 98
+
+    # 5. Dynamic User Symptom Input: "Tôi bị đau rát họng và sốt 38.5 độ"
+    resp_dyn = client.post(
+        "/v1/health-twin/evaluate-symptom-update",
+        headers=headers,
+        json={"message": "Tôi bị đau rát họng và sốt 38.5 độ"},
+    )
+    assert resp_dyn.status_code == 200
+    dyn_data = resp_dyn.json()
+    assert dyn_data["status"] == "success"
+    ent_organ = next(o for o in dyn_data["profile"]["organs"] if o["id"] == "ent")
+    assert ent_organ["status"] == "inflamed"
+    assert dyn_data["profile"]["vitals"]["temperature_celsius"] == 38.5
+
+    # 6. Dynamic Vaccine Input: "Tôi chưa tiêm phòng viêm gan b"
+    resp_hbv = client.post(
+        "/v1/health-twin/evaluate-symptom-update",
+        headers=headers,
+        json={"message": "Tôi chưa tiêm phòng vắc-xin viêm gan B"},
+    )
+    assert resp_hbv.status_code == 200
+    hbv_data = resp_hbv.json()
+    liver_organ = next(o for o in hbv_data["profile"]["organs"] if o["id"] == "liver")
+    assert liver_organ["future_risk"]["risk_level"] == "high"
+    assert "CHƯA TIÊM PHÒNG" in liver_organ["future_risk"]["vaccination_status"]

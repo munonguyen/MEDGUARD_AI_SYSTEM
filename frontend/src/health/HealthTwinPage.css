@@ -6,11 +6,11 @@
 .health-twin-container {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 22px;
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 24px 24px 120px 24px;
   color: #e2e8f0;
   box-sizing: border-box;
   animation: fadeInTwin 0.35s cubic-bezier(0.16, 1, 0.3, 1);
@@ -191,55 +191,190 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ---------------- Scenario Quick Bar ---------------- */
-.scenario-quick-bar {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 14px 20px;
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-}
-
-.scenario-bar-title {
+/* ---------------- Health Twin Live Sync Bar (Synchronized from AI Doctor Chat) ---------------- */
+.health-twin-sync-bar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #94a3b8;
-}
-
-.scenario-chips-row {
-  display: flex;
-  gap: 10px;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 22px;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.75) 100%);
+  border: 1px solid rgba(0, 229, 255, 0.22);
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
   flex-wrap: wrap;
 }
 
-.scenario-chip-btn {
+.sync-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  min-width: 320px;
+}
+
+.sync-status-indicator {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(0, 229, 255, 0.12);
+  border: 1px solid rgba(0, 229, 255, 0.35);
+  color: #00e5ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 0 16px rgba(0, 229, 255, 0.25);
+}
+
+.sync-pulse-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  animation: pulseSyncDot 2s ease-in-out infinite;
+}
+
+@keyframes pulseSyncDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.3); }
+}
+
+.sync-meta-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sync-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.clinical-live-badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(0, 229, 255, 0.15);
+  border: 1px solid rgba(0, 229, 255, 0.4);
+  color: #00e5ff;
+  text-transform: uppercase;
+}
+
+.patient-active-badge {
+  font-size: 12px;
+  color: #e2e8f0;
+}
+
+.patient-active-badge strong {
+  color: #ffffff;
+}
+
+.sync-description {
+  margin: 0;
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+.sync-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.sync-vitals-preview {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 14px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+}
+
+.preview-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.preview-stat .stat-label {
+  font-size: 10px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.preview-stat .stat-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.preview-stat .stat-value.trend {
+  color: #38bdf8;
+}
+
+.sync-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-open-chat-sync {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 14px;
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-left: 3px solid var(--sc-color, #00e5ff);
+  padding: 9px 16px;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
+  border: 1px solid rgba(56, 189, 248, 0.4);
   border-radius: 8px;
-  color: #e2e8f0;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+  transition: all 0.2s ease;
 }
 
-.scenario-chip-btn:hover {
-  background: rgba(30, 41, 59, 0.95);
-  border-color: var(--sc-color, #00e5ff);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+.btn-open-chat-sync:hover {
+  background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+  border-color: #38bdf8;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.45);
+}
+
+.btn-refresh-profile-sync {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  background: rgba(30, 41, 59, 0.8);
+  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-refresh-profile-sync:hover {
+  background: rgba(51, 65, 85, 0.9);
+  color: #ffffff;
+  border-color: rgba(0, 229, 255, 0.4);
 }
 
 /* ---------------- AI Safe Guardrail Alert Banner ---------------- */
@@ -403,6 +538,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
   margin-bottom: 12px;
 }
 
@@ -415,75 +552,229 @@
   color: #00e5ff;
 }
 
-.hint-pill {
-  font-size: 11px;
-  color: #64748b;
+.model-view-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.65);
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
 }
 
+.view-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.view-toggle-btn:hover {
+  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.view-toggle-btn.active {
+  background: rgba(0, 229, 255, 0.18);
+  color: #00e5ff;
+  border: 1px solid rgba(0, 229, 255, 0.4);
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.25);
+}
+
+/* Quick Organ Selector Chips */
+.organ-quick-chips-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 2px 2px 12px 2px;
+  margin-bottom: 8px;
+  scrollbar-width: thin;
+}
+
+.organ-quick-chips-bar::-webkit-scrollbar {
+  height: 4px;
+}
+.organ-quick-chips-bar::-webkit-scrollbar-thumb {
+  background: rgba(0, 229, 255, 0.25);
+  border-radius: 2px;
+}
+
+.organ-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  color: #cbd5e1;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.organ-chip-btn:hover {
+  background: rgba(0, 229, 255, 0.12);
+  border-color: rgba(0, 229, 255, 0.35);
+  color: #00e5ff;
+}
+
+.organ-chip-btn.active {
+  background: rgba(0, 229, 255, 0.2);
+  border-color: var(--chip-color, #00e5ff);
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.35);
+}
+
+.chip-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--chip-color, #00e5ff);
+  box-shadow: 0 0 6px var(--chip-color, #00e5ff);
+}
+
+/* Organ System Filter Tabs */
+.system-filter-tabs-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.system-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: #94a3b8;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.system-tab-btn:hover {
+  background: rgba(0, 229, 255, 0.1);
+  color: #e2e8f0;
+  border-color: rgba(0, 229, 255, 0.3);
+}
+
+.system-tab-btn.active {
+  background: rgba(0, 229, 255, 0.18);
+  border-color: rgba(0, 229, 255, 0.5);
+  color: #00e5ff;
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.2);
+}
+
+/* 3D Human Model Canvas & Medical Viewing Stage */
 .human-canvas-wrapper {
   position: relative;
   width: 100%;
-  height: 520px;
-  background: radial-gradient(circle at 50% 40%, rgba(0, 229, 255, 0.08) 0%, rgba(10, 16, 29, 0.95) 75%);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 12px;
+  height: 560px;
+  background: radial-gradient(circle at 50% 32%, rgba(14, 116, 144, 0.18) 0%, rgba(15, 23, 42, 0.98) 72%);
+  border: 1px solid rgba(0, 229, 255, 0.22);
+  border-radius: 14px;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.6), 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.clinical-grid-backdrop {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 28px 28px;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Inner container locking exact 3:4 aspect ratio */
+.human-canvas-inner-ratio {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  height: 100%;
+  max-height: 560px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.hologram-grid-bg {
-  position: absolute;
-  inset: 0;
-  background-image: linear-gradient(rgba(0, 229, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 229, 255, 0.05) 1px, transparent 1px);
-  background-size: 24px 24px;
-  opacity: 0.5;
+.human-3d-model-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  filter: drop-shadow(0 0 25px rgba(0, 229, 255, 0.35)) contrast(1.06) brightness(1.02);
+  user-select: none;
   pointer-events: none;
+  transition: transform 0.4s ease, filter 0.4s ease;
 }
 
-.hologram-scan-bar {
+.human-canvas-inner-ratio.wireframe_heatmap .human-3d-model-img {
+  filter: hue-rotate(180deg) drop-shadow(0 0 25px rgba(245, 158, 11, 0.4)) contrast(1.2);
+}
+
+/* Active Organ Focus Indicator (Clean medical focus ring) */
+.organ-focus-indicator {
   position: absolute;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, #00e5ff, transparent);
-  box-shadow: 0 0 12px #00e5ff;
-  animation: scanHologram 4s infinite linear;
+  transform: translate(-50%, -50%);
   pointer-events: none;
-  opacity: 0.6;
+  z-index: 12;
+  transition: left 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), top 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-@keyframes scanHologram {
-  0% { top: 0%; opacity: 0; }
-  10% { opacity: 0.7; }
-  90% { opacity: 0.7; }
-  100% { top: 100%; opacity: 0; }
+.focus-concentric-circle {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  border: 1.5px dashed var(--indicator-color, #00e5ff);
+  border-radius: 50%;
+  box-shadow: 0 0 14px var(--indicator-color, #00e5ff);
+  animation: gentleFocusPulse 2.4s ease-in-out infinite;
 }
 
-.human-svg-body {
-  width: auto;
-  height: 94%;
-  filter: drop-shadow(0 0 10px rgba(0, 229, 255, 0.15));
+@keyframes gentleFocusPulse {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.15); opacity: 0.45; }
 }
 
-.body-outline-path {
-  stroke: rgba(0, 229, 255, 0.45);
-  stroke-width: 1.6;
-  fill: rgba(14, 165, 233, 0.04);
-  transition: all 0.3s ease;
+.focus-center-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--indicator-color, #00e5ff);
+  box-shadow: 0 0 8px var(--indicator-color, #00e5ff);
 }
 
-.organ-wireframe {
-  stroke: rgba(0, 229, 255, 0.25);
-  stroke-width: 1.2;
-  stroke-dasharray: 4 2;
-  fill: rgba(0, 229, 255, 0.02);
-}
-
-/* ---------------- Hotspots (Pins) ---------------- */
-.organ-hotspot-marker {
+/* Precision Clinical Organ Dots (Chấm định vị giải phẫu học chuẩn xác) */
+.clinical-organ-pin {
   position: absolute;
   transform: translate(-50%, -50%);
   cursor: pointer;
@@ -492,76 +783,117 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  transition: opacity 0.25s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.pulse-wave {
+.clinical-organ-pin.dimmed {
+  opacity: 0.18;
+  pointer-events: none;
+}
+
+.pin-pulse-wave {
   position: absolute;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: var(--organ-color, #00e5ff);
-  opacity: 0.35;
-  animation: ripplePulse 2s infinite cubic-bezier(0.25, 1, 0.5, 1);
+  opacity: 0.3;
+  animation: ripplePulse 2.2s infinite cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-@keyframes ripplePulse {
-  0% { transform: scale(0.6); opacity: 0.8; }
-  100% { transform: scale(2.2); opacity: 0; }
-}
-
-.pin-core {
+.pin-point-marker {
   position: relative;
   width: 14px;
   height: 14px;
   border-radius: 50%;
   background: var(--organ-color, #00e5ff);
   border: 2px solid #ffffff;
-  box-shadow: 0 0 12px var(--organ-color, #00e5ff);
+  box-shadow: 0 0 10px var(--organ-color, #00e5ff), 0 0 18px var(--organ-color, #00e5ff);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.pin-inner-dot {
+.pin-dot-inner {
   width: 4px;
   height: 4px;
   border-radius: 50%;
   background: #0f172a;
 }
 
-.pin-title-label {
+.clinical-organ-pin:hover .pin-point-marker,
+.clinical-organ-pin.selected .pin-point-marker {
+  transform: scale(1.4);
+  box-shadow: 0 0 16px var(--organ-color, #00e5ff), 0 0 24px var(--organ-color, #00e5ff);
+}
+
+/* Tooltip badge only appears on hover, never obscuring the body or organs */
+.pin-tooltip-badge {
   position: absolute;
-  top: 18px;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
   white-space: nowrap;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
-  color: #f1f5f9;
-  background: rgba(15, 23, 42, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 1px 6px;
-  border-radius: 4px;
+  color: #ffffff;
+  background: rgba(15, 23, 42, 0.96);
+  border: 1px solid var(--organ-color, #00e5ff);
+  backdrop-filter: blur(8px);
+  padding: 4px 10px;
+  border-radius: 6px;
   pointer-events: none;
-  opacity: 0.75;
-  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.65), 0 0 12px rgba(0, 229, 255, 0.25);
+  z-index: 25;
+  animation: tooltipFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.organ-hotspot-marker:hover .pin-core,
-.organ-hotspot-marker.selected .pin-core {
-  transform: scale(1.35);
-  box-shadow: 0 0 20px var(--organ-color, #00e5ff);
+.pin-tooltip-badge::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px 5px 0 5px;
+  border-style: solid;
+  border-color: var(--organ-color, #00e5ff) transparent transparent transparent;
 }
 
-.organ-hotspot-marker:hover .pin-title-label,
-.organ-hotspot-marker.selected .pin-title-label {
-  opacity: 1;
+@keyframes tooltipFadeIn {
+  from { opacity: 0; transform: translate(-50%, 4px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.tooltip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--organ-color, #00e5ff);
+  box-shadow: 0 0 6px var(--organ-color, #00e5ff);
+}
+
+.tooltip-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: 0.2px;
+}
+
+.tooltip-score {
+  font-size: 10px;
+  font-weight: 700;
   color: var(--organ-color, #00e5ff);
-  border-color: var(--organ-color, #00e5ff);
-  background: rgba(15, 23, 42, 0.95);
-  transform: translateY(2px);
+  background: rgba(255, 255, 255, 0.12);
+  padding: 1px 5px;
+  border-radius: 4px;
+  margin-left: 2px;
 }
 
-.organ-hotspot-marker.is-alert .pin-core {
+.clinical-organ-pin.is-alert .pin-point-marker {
   animation: alertBeacon 1s infinite alternate;
 }
 
@@ -689,6 +1021,76 @@
   color: #fca5a5;
   border: 1px solid rgba(239, 68, 68, 0.5);
   animation: pulseAlert 1.8s infinite alternate;
+}
+
+/* Quick Clinical Actions Bar */
+.organ-quick-actions-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.organ-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.organ-action-btn.consult-btn {
+  background: rgba(0, 229, 255, 0.12);
+  border: 1px solid rgba(0, 229, 255, 0.4);
+  color: #00e5ff;
+}
+.organ-action-btn.consult-btn:hover {
+  background: rgba(0, 229, 255, 0.25);
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.4);
+  color: #ffffff;
+}
+
+.organ-action-btn.declare-btn {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+}
+.organ-action-btn.declare-btn:hover {
+  background: rgba(245, 158, 11, 0.25);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+  color: #ffffff;
+}
+
+.organ-action-btn.recover-btn {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34d399;
+}
+.organ-action-btn.recover-btn:hover:not(:disabled) {
+  background: rgba(16, 185, 129, 0.25);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+  color: #ffffff;
+}
+.organ-action-btn.recover-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.organ-action-btn.nav-btn {
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  color: #60a5fa;
+}
+.organ-action-btn.nav-btn:hover {
+  background: rgba(59, 130, 246, 0.25);
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+  color: #ffffff;
 }
 
 /* Organ Metrics Row */
@@ -857,121 +1259,336 @@
   color: #93c5fd;
 }
 
-/* ---------------- Symptom Update Widget ---------------- */
-.symptom-update-widget {
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  padding: 18px;
+/* FUTURE RISK PROGNOSIS CARD STYLING */
+.future-risk-prognosis-card {
+  margin-top: 14px;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 12px;
+  box-shadow: inset 0 0 20px rgba(239, 68, 68, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.widget-header {
+.risk-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 10px;
+}
+
+.risk-title-badge-group {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.risk-level-icon {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+.risk-level-icon.high { color: #ef4444; }
+.risk-level-icon.moderate { color: #f59e0b; }
+.risk-level-icon.low { color: #10b981; }
+
+.risk-section-eyebrow {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  margin-bottom: 2px;
+}
+
+.risk-prognosis-title {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #f1f5f9;
+  line-height: 1.4;
+}
+
+.risk-badges-cluster {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.risk-level-tag {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.risk-level-tag.high {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  color: #f87171;
+}
+
+.risk-level-tag.moderate {
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  color: #fbbf24;
+}
+
+.risk-level-tag.low {
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  color: #34d399;
+}
+
+.risk-timeframe-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  font-size: 10.5px;
+  color: #cbd5e1;
+}
+
+.vaccine-status-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 8px;
+  color: #fde68a;
+  font-size: 12px;
+}
+
+.syringe-accent-icon {
+  color: #f59e0b;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.vaccine-status-callout strong {
+  display: block;
+  color: #fbbf24;
+  margin-bottom: 2px;
+  font-size: 11.5px;
+}
+
+.vaccine-status-callout p {
+  margin: 0;
+  line-height: 1.4;
+  color: #fef3c7;
+}
+
+.risk-body-block,
+.risk-progression-chain,
+.risk-recs-block,
+.risk-screening-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.block-subtitle {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #94a3b8;
+}
+
+.block-text {
+  margin: 0;
+  font-size: 12.5px;
+  color: #cbd5e1;
+  line-height: 1.5;
+}
+
+.progression-flow-items {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.prog-step-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.step-text {
+  font-size: 11.5px;
+  color: #cbd5e1;
+  font-weight: 500;
+}
+
+.step-text.fatal-step {
+  color: #f87171;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.step-arrow {
+  color: #64748b;
+}
+
+.recs-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.recs-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  color: #e2e8f0;
+  line-height: 1.4;
+}
+
+.rec-check-icon {
+  color: #10b981;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.screening-chips-flow {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.screening-chip-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  font-size: 11px;
+  color: #93c5fd;
+}
+
+.risk-actions-footer {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.risk-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.risk-btn-primary:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+}
+
+.risk-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  color: #cbd5e1;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.risk-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+/* ---------------- Conversational Care Card ---------------- */
+.conversational-care-card {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.6) 100%);
+  border: 1px solid rgba(0, 229, 255, 0.18);
+  border-radius: 14px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.care-card-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 6px;
   color: #00e5ff;
 }
 
-.widget-header h4 {
+.care-card-header h4 {
   margin: 0;
   font-size: 14px;
   font-weight: 600;
   color: #ffffff;
 }
 
-.widget-desc {
-  margin: 0 0 12px 0;
+.care-card-desc {
+  margin: 0;
   font-size: 12px;
   color: #94a3b8;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
-.widget-desc em {
-  color: #cbd5e1;
-}
-
-.update-form {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-
-.symptom-input {
-  flex: 1;
-  padding: 10px 14px;
-  background: rgba(30, 41, 59, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 8px;
-  color: #ffffff;
-  font-size: 13px;
-  outline: none;
-  transition: all 0.2s ease;
-}
-
-.symptom-input:focus {
-  border-color: #00e5ff;
-  box-shadow: 0 0 0 2px rgba(0, 229, 255, 0.2);
-}
-
-.submit-eval-btn {
+.care-card-chat-btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 0 16px;
-  background: linear-gradient(135deg, #00e5ff, #0284c7);
-  border: none;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 14px;
+  margin-top: 4px;
+  background: rgba(0, 229, 255, 0.1);
+  border: 1px solid rgba(0, 229, 255, 0.35);
+  color: #00e5ff;
   border-radius: 8px;
-  color: #0f172a;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
-.submit-eval-btn:hover:not(:disabled) {
-  filter: brightness(1.1);
-  transform: translateY(-1px);
-}
-
-.submit-eval-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.quick-suggestions-row {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.quick-sugg-chip {
-  padding: 5px 10px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 6px;
-  font-size: 11px;
-  color: #cbd5e1;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.quick-sugg-chip.green:hover {
-  background: rgba(16, 185, 129, 0.15);
-  border-color: rgba(16, 185, 129, 0.4);
-  color: #34d399;
-}
-
-.quick-sugg-chip.red:hover {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.4);
-  color: #f87171;
-}
-
-.quick-sugg-chip.orange:hover {
-  background: rgba(245, 158, 11, 0.15);
-  border-color: rgba(245, 158, 11, 0.4);
-  color: #fbbf24;
+.care-card-chat-btn:hover {
+  background: rgba(0, 229, 255, 0.2);
+  border-color: #00e5ff;
+  color: #ffffff;
+  box-shadow: 0 0 14px rgba(0, 229, 255, 0.25);
 }
 
 /* ---------------- Bottom Dashboard ---------------- */
@@ -1010,6 +1627,384 @@
   background: rgba(0, 229, 255, 0.12);
   border-color: rgba(0, 229, 255, 0.3);
   color: #00e5ff;
+}
+
+/* ---------------- Risk Matrix & Immunization Tab ---------------- */
+.risk-matrix-tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  animation: fadeInTwin 0.3s ease;
+}
+
+.risk-intelligence-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 18px 22px;
+  background: linear-gradient(135deg, rgba(14, 116, 144, 0.25) 0%, rgba(15, 23, 42, 0.9) 100%);
+  border: 1px solid rgba(0, 229, 255, 0.35);
+  border-radius: 12px;
+}
+
+.shield-pulse-icon {
+  color: #00e5ff;
+  filter: drop-shadow(0 0 8px rgba(0, 229, 255, 0.5));
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.banner-content-side h3 {
+  margin: 0 0 6px 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.banner-content-side p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #cbd5e1;
+}
+
+.future-risk-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .future-risk-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.risk-matrix-card {
+  padding: 18px;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.2s ease;
+}
+
+.risk-matrix-card.priority-high {
+  border-left: 4px solid #ef4444;
+  background: rgba(30, 41, 59, 0.7);
+}
+
+.risk-matrix-card.priority-mod {
+  border-left: 4px solid #f59e0b;
+}
+
+.matrix-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.organ-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.risk-badge-pill {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.risk-badge-pill.high {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.risk-badge-pill.mod {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.matrix-card-title {
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.4;
+}
+
+.matrix-vaccine-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #fde68a;
+  background: rgba(245, 158, 11, 0.1);
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.matrix-desc {
+  margin: 0;
+  font-size: 12.5px;
+  color: #cbd5e1;
+  line-height: 1.5;
+}
+
+.matrix-action-box {
+  padding: 10px 12px;
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.matrix-action-box strong {
+  display: block;
+  color: #38bdf8;
+  margin-bottom: 6px;
+}
+
+.matrix-action-box ul {
+  margin: 0;
+  padding-left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: #e2e8f0;
+}
+
+.matrix-card-footer {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.matrix-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.matrix-btn.primary {
+  background: rgba(0, 229, 255, 0.15);
+  border: 1px solid rgba(0, 229, 255, 0.4);
+  color: #00e5ff;
+}
+
+.matrix-btn.primary:hover {
+  background: rgba(0, 229, 255, 0.25);
+}
+
+.matrix-btn.secondary {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+}
+
+.matrix-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Immunization Schedule Table */
+.immunization-schedule-section,
+.screening-roadmap-section {
+  padding: 20px;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+}
+
+.section-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  color: #00e5ff;
+}
+
+.section-title-wrap h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.section-subtitle {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.vaccine-table-responsive {
+  overflow-x: auto;
+}
+
+.vaccine-checklist-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  text-align: left;
+}
+
+.vaccine-checklist-table th {
+  padding: 10px 14px;
+  background: rgba(15, 23, 42, 0.7);
+  color: #94a3b8;
+  font-weight: 600;
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.vaccine-checklist-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  vertical-align: top;
+  color: #e2e8f0;
+}
+
+.vaccine-checklist-table tr.row-urgent {
+  background: rgba(239, 68, 68, 0.06);
+}
+
+.table-subtext {
+  display: block;
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.table-desc {
+  margin: 4px 0 0 0;
+  font-size: 11.5px;
+  color: #94a3b8;
+}
+
+.table-status-pill {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.table-status-pill.urgent {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.table-status-pill.warn {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.table-status-pill.routine {
+  background: rgba(14, 165, 233, 0.2);
+  color: #38bdf8;
+  border: 1px solid rgba(14, 165, 233, 0.4);
+}
+
+.table-status-pill.ok {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.table-action-btn {
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  color: #e2e8f0;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.table-action-btn.primary {
+  background: rgba(2, 132, 199, 0.3);
+  border-color: rgba(56, 189, 248, 0.5);
+  color: #38bdf8;
+}
+
+.table-action-btn:hover {
+  filter: brightness(1.2);
+}
+
+/* Screening Roadmap Grid */
+.screening-roadmap-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+@media (max-width: 1024px) {
+  .screening-roadmap-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .screening-roadmap-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.roadmap-card {
+  padding: 14px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+}
+
+.roadmap-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  color: #00e5ff;
+}
+
+.roadmap-header h5 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.roadmap-list {
+  margin: 0;
+  padding-left: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 11.5px;
+  color: #cbd5e1;
+  line-height: 1.4;
+}
+
+.roadmap-list li strong {
+  color: #e2e8f0;
 }
 
 /* Vitals HUD Grid */

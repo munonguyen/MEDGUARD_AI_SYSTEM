@@ -43,6 +43,7 @@ import {
   Trash2,
   UserRound,
   Volume2,
+  WalletCards,
   Webhook,
   Workflow,
   X,
@@ -59,6 +60,8 @@ import { SettingsModal } from './settings/SettingsModal';
 import { GrokLiveCompanionPage } from './companion/GrokLiveCompanionPage';
 import { NavigationPage } from './navigation/NavigationPage';
 import { HealthTwinPage } from './health/HealthTwinPage';
+import { HealthcareSpendingPage } from './spending/HealthcareSpendingPage';
+import { ErrorBoundary } from './common/ErrorBoundary';
 import {
   getSavedUserLocation,
   saveUserLocation,
@@ -198,7 +201,7 @@ function ProfileEditor({ context, onSave, onClear, close }) {
   </form>;
 }
 
-function Sidebar({ open, close, collapse, conversations, activeId, onSelect, onNew, onDelete, onSchedule, onSchedulePage, onMedicationPage, onCompanionPage, onNavigationPage, onHealthPage, onSettings, onSystem, activeView, search, setSearch }) {
+function Sidebar({ open, close, collapse, conversations, activeId, onSelect, onNew, onDelete, onSchedule, onSchedulePage, onMedicationPage, onCompanionPage, onNavigationPage, onHealthPage, onSpendingPage, onSettings, onSystem, activeView, search, setSearch }) {
   return <>
     {open && <button className="sidebar-scrim" type="button" aria-label="Đóng menu" onClick={close} />}
     <aside className={`sidebar ${open ? 'open' : ''}`}>
@@ -223,6 +226,10 @@ function Sidebar({ open, close, collapse, conversations, activeId, onSelect, onN
         <button type="button" className={`nav-link-btn ${activeView === 'health' ? 'active' : ''}`} onClick={() => { onHealthPage?.(); close(); }}>
           <HeartPulse size={17} />
           <span>Cơ thể & Sức khoẻ</span>
+        </button>
+        <button type="button" className={`nav-link-btn ${activeView === 'spending' ? 'active' : ''}`} onClick={() => { onSpendingPage?.(); close(); }}>
+          <WalletCards size={17} />
+          <span>Chi tiêu & Tiết kiệm Care</span>
         </button>
         <button type="button" className={`nav-link-btn companion-nav-btn ${activeView === 'companion' ? 'active' : ''}`} onClick={() => { onCompanionPage?.(); close(); }}>
           <Sparkles size={17} />
@@ -752,7 +759,7 @@ export default function App({
       const sp = new URLSearchParams(window.location.search);
       const hash = window.location.hash.replace(/^#\/?/, '');
       const initial = sp.get('view') || hash;
-      if (['chat', 'companion', 'schedule', 'medication', 'navigation', 'health', 'system'].includes(initial)) {
+      if (['chat', 'companion', 'schedule', 'medication', 'navigation', 'health', 'spending', 'system'].includes(initial)) {
         return initial;
       }
     } catch {}
@@ -771,7 +778,7 @@ export default function App({
     const handleCustomNavigate = (e) => {
       const detail = e.detail;
       const target = typeof detail === 'string' ? detail : detail?.view;
-      if (['chat', 'companion', 'schedule', 'medication', 'navigation', 'health', 'system'].includes(target)) {
+      if (['chat', 'companion', 'schedule', 'medication', 'navigation', 'health', 'spending', 'system'].includes(target)) {
         if (detail && typeof detail === 'object' && detail.navigationContext) {
           setNavigationContext(detail.navigationContext);
         }
@@ -851,8 +858,10 @@ export default function App({
 
   const notify = (text) => {
     window.clearTimeout(toastTimerRef.current);
-    setToast(text);
-    toastTimerRef.current = window.setTimeout(() => setToast(null), 2200);
+    const msg = typeof text === 'string' ? text : text?.message || text?.text || (text ? String(text) : null);
+    if (!msg) return;
+    setToast(msg);
+    toastTimerRef.current = window.setTimeout(() => setToast(null), 2400);
   };
 
   const clearAllConversations = async () => {
@@ -1112,6 +1121,12 @@ export default function App({
         if (data.extracted?.patient_ref) setContext((current) => ({ ...current, patient_ref: data.extracted.patient_ref }));
         if (data.result) setContext((current) => ({ ...current, last_result: data.result }));
         if (data.required_fields?.includes('patient_ref')) setPatientOpen(true);
+        if (data.answer?.health_twin_update || data.answer) {
+          window.dispatchEvent(new CustomEvent('medguard:health-twin-updated', { detail: data }));
+        }
+        if (data.answer?.financial_assessment_update || data.answer) {
+          window.dispatchEvent(new CustomEvent('medguard:financial-updated', { detail: data }));
+        }
       }
       if (refreshHistory) void loadConversations();
     } catch (error) {
@@ -1154,7 +1169,7 @@ export default function App({
   const filteredConversations = conversations.filter((item) => item.title.toLowerCase().includes(historySearch.toLowerCase()));
   return <div className={`app-shell chat-shell ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
     <a href="#main-content" className="skip-link">Chuyển đến nội dung chính</a>
-    <Sidebar open={sidebarOpen} close={() => setSidebarOpen(false)} collapse={() => { setSidebarCollapsed(true); setSidebarOpen(false); }} conversations={filteredConversations} activeId={conversationId} onSelect={selectConversation} onNew={startNew} onDelete={deleteConversation} onSchedule={() => setView('medication')} onSchedulePage={() => setView('schedule')} onMedicationPage={() => setView('medication')} onCompanionPage={() => setView('companion')} onNavigationPage={() => setView('navigation')} onHealthPage={() => setView('health')} onSettings={() => { setSettingsInitialTab('general'); setSettingsOpen(true); }} onSystem={() => { if (!account || account.role === 'admin') setView('system'); }} activeView={view} search={historySearch} setSearch={setHistorySearch} />
+    <Sidebar open={sidebarOpen} close={() => setSidebarOpen(false)} collapse={() => { setSidebarCollapsed(true); setSidebarOpen(false); }} conversations={filteredConversations} activeId={conversationId} onSelect={selectConversation} onNew={startNew} onDelete={deleteConversation} onSchedule={() => setView('medication')} onSchedulePage={() => setView('schedule')} onMedicationPage={() => setView('medication')} onCompanionPage={() => setView('companion')} onNavigationPage={() => setView('navigation')} onHealthPage={() => setView('health')} onSpendingPage={() => setView('spending')} onSettings={() => { setSettingsInitialTab('general'); setSettingsOpen(true); }} onSystem={() => { if (!account || account.role === 'admin') setView('system'); }} activeView={view} search={historySearch} setSearch={setHistorySearch} />
     <main className="main-shell chat-main" id="main-content" tabIndex={-1}>
       <header className="topbar chat-topbar">
         <div className="topbar-title">
@@ -1168,8 +1183,8 @@ export default function App({
             {sidebarCollapsed ? <PanelLeftOpen size={20} /> : <Menu size={20} />}
           </button>
           <div>
-            <h1>{view === 'system' ? 'Hệ thống & Kiểm toán' : view === 'schedule' ? 'Lịch khám bệnh' : view === 'medication' ? 'Lịch uống thuốc' : view === 'companion' ? 'Bác sĩ 3D Live' : view === 'navigation' ? 'Chỉ đường & Trạm Y Tế' : conversationTitle}</h1>
-            <span>{view === 'system' ? 'Trạng thái vận hành lâm sàng' : view === 'schedule' ? 'Thời khóa biểu ca khám bác sĩ' : view === 'medication' ? 'Thời khóa biểu nhắc thuốc cá nhân' : view === 'companion' ? 'Bác sĩ ảo 3D tư vấn trực tiếp qua giọng nói & cử chỉ' : view === 'navigation' ? 'Định tuyến 3D & Bản đồ GPP' : (context.display_name ? `Bệnh nhân: ${context.display_name}` : context.patient_ref || 'Hỗ trợ y khoa 24/7')}</span>
+            <h1>{view === 'system' ? 'Hệ thống & Kiểm toán' : view === 'spending' ? 'Chi Tiêu Y Tế & Tiết Kiệm Care' : view === 'schedule' ? 'Lịch khám bệnh' : view === 'medication' ? 'Lịch uống thuốc' : view === 'companion' ? 'Bác sĩ 3D Live' : view === 'navigation' ? 'Chỉ đường & Trạm Y Tế' : conversationTitle}</h1>
+            <span>{view === 'system' ? 'Trạng thái vận hành lâm sàng' : view === 'spending' ? 'Tối ưu hóa kinh tế y khoa, thuốc chuẩn GPP & Booking Care' : view === 'schedule' ? 'Thời khóa biểu ca khám bác sĩ' : view === 'medication' ? 'Thời khóa biểu nhắc thuốc cá nhân' : view === 'companion' ? 'Bác sĩ ảo 3D tư vấn trực tiếp qua giọng nói & cử chỉ' : view === 'navigation' ? 'Định tuyến 3D & Bản đồ GPP' : (context.display_name ? `Bệnh nhân: ${context.display_name}` : context.patient_ref || 'Hỗ trợ y khoa 24/7')}</span>
           </div>
         </div>
         <div className="topbar-actions">
@@ -1250,6 +1265,17 @@ export default function App({
             >
               <Pill size={14} />
               <span>Lịch thuốc</span>
+            </button>
+            <button
+              role="tab"
+              aria-selected={view === "spending"}
+              className={`view-tab-btn ${view === "spending" ? "active" : ""}`}
+              type="button"
+              onClick={() => setView(view === "spending" ? "chat" : "spending")}
+              title="Đánh giá chi tiêu y tế & Tối ưu Booking Care"
+            >
+              <WalletCards size={14} />
+              <span>Chi tiêu y tế</span>
             </button>
           </div>
 
@@ -1490,12 +1516,28 @@ export default function App({
           />
         </div>
       ) : view === 'health' ? (
-        <HealthTwinPage
-          api={api}
-          onBackToChat={() => setView('chat')}
-          onNavigate={(target) => setView(target)}
-          onNotify={notify}
-        />
+        <div className="health-workspace-container">
+          <ErrorBoundary title="Mô-đun Cơ thể & Sức khoẻ Thời gian thực" onBackToChat={() => setView('chat')}>
+            <HealthTwinPage
+              api={api}
+              onBackToChat={() => setView('chat')}
+              onNavigate={(target) => setView(target)}
+              onNotify={notify}
+            />
+          </ErrorBoundary>
+        </div>
+      ) : view === 'spending' ? (
+        <div className="health-workspace-container">
+          <ErrorBoundary title="Mô-đun Đánh giá Chi Tiêu Y Tế & Tiết Kiệm Care" onBackToChat={() => setView('chat')}>
+            <HealthcareSpendingPage
+              api={api}
+              patientRef={context.patient_ref}
+              onBackToChat={() => setView('chat')}
+              onNavigate={(target) => setView(target)}
+              onNotify={notify}
+            />
+          </ErrorBoundary>
+        </div>
       ) : view === 'companion' ? (
         <GrokLiveCompanionPage
           api={api}
@@ -1582,6 +1624,6 @@ export default function App({
     <QrScanner open={qrOpen} onClose={() => setQrOpen(false)} onDetected={(raw) => { setQrOpen(false); sendText(`Kiểm tra QR hàng giả: ${raw}`, 'authenticity'); }} />
     <SchedulePanel open={scheduleOpen} onClose={() => setScheduleOpen(false)} api={api} patientRef={context.patient_ref} onOpenSchedulePage={() => setView('schedule')} onNotify={notify} />
     <SettingsModal allowSystem={!account || account.role === 'admin'} open={settingsOpen} onClose={() => setSettingsOpen(false)} initialTab={settingsInitialTab} context={context} onSaveProfile={saveProfile} onClearProfile={clearProfile} api={api} tenantId={tenantId} onClearAllChat={clearAllConversations} onExportData={exportClinicalData} onNotify={notify} />
-    {toast && <div className="ui-toast" role="status" aria-live="polite" aria-atomic="true"><Check size={16} /><span>{toast}</span></div>}
+    {toast && <div className="ui-toast" role="status" aria-live="polite" aria-atomic="true"><Check size={16} /><span>{typeof toast === 'string' ? toast : toast?.message || String(toast)}</span></div>}
   </div>;
 }

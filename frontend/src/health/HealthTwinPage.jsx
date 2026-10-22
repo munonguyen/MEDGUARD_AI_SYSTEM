@@ -11,25 +11,34 @@ import {
   Clock,
   Droplet,
   Eye,
+  FileBadge,
   FileText,
   Flame,
   Heart,
   HeartPulse,
   Info,
+  Layers,
+  MessageSquare,
+  Mic,
+  Navigation,
   Pill,
   Plus,
   RefreshCw,
   RotateCcw,
+  Scan,
   Send,
   Shield,
   ShieldAlert,
   ShieldCheck,
   Sparkles,
   Stethoscope,
+  Syringe,
+  CalendarCheck,
   Thermometer,
   TrendingDown,
   TrendingUp,
   User,
+  Volume2,
   X,
   Zap,
 } from 'lucide-react';
@@ -73,25 +82,426 @@ const SCENARIOS = [
   },
 ];
 
+const ORGAN_SYSTEMS = [
+  { id: 'all', label: 'Tất cả cơ quan (9)', icon: Activity },
+  { id: 'digestive', label: 'Tiêu hóa & Gan mật (2)', icon: Flame, organIds: ['stomach', 'liver'] },
+  { id: 'cardiopulmonary', label: 'Hô hấp & Tuần hoàn (3)', icon: HeartPulse, organIds: ['lungs', 'cardiovascular', 'ent'] },
+  { id: 'neuromuscular', label: 'Thần kinh & Vận động (4)', icon: Zap, organIds: ['head', 'spine_joints', 'kidneys', 'skin'] },
+];
+
+const DEFAULT_HEALTH_PROFILE = {
+  patient_id: 'demo-patient-001',
+  patient_name: 'Bệnh nhân MedGuard',
+  age: 34,
+  gender: 'Nam',
+  active_diagnosis: 'Chưa ghi nhận bệnh lý cấp tính — Thể trạng bình thường',
+  overall_health_score: 98,
+  health_trend: 'stable',
+  vitals: {
+    heart_rate_bpm: 72,
+    blood_pressure_systolic: 120,
+    blood_pressure_diastolic: 80,
+    temperature_celsius: 36.8,
+    spo2_percent: 99,
+    overall_pain_level: 0,
+  },
+  organs: [
+    {
+      id: 'head',
+      name: 'Head & Brain',
+      vietnamese_name: 'Đầu & Thần kinh',
+      status: 'normal',
+      health_score: 98,
+      pain_level: 0,
+      inflammation_level: 'none',
+      symptoms: [],
+      clinical_notes: 'Chức năng bình thường. Chưa ghi nhận triệu chứng bất thường từ người dùng.',
+      related_medications: [],
+      warning: null,
+      is_adverse_reaction: false,
+      contraindicated_actions: [],
+      coordinates: { x: 50.0, y: 11.0 },
+      future_risk: {
+        risk_level: 'low',
+        risk_title: 'Rủi ro Đau đầu mạn tính do lạm dụng thuốc giảm đau (MOH)',
+        timeframe: '1 - 2 năm',
+        vaccination_status: 'THẦN KINH: Chưa ghi nhận tổn thương thực thể',
+        latent_risk_description: 'Đau đầu hiện tại do đáp ứng sốt virus. Nguy cơ hình thành thói quen phụ thuộc thuốc giảm đau cấp nếu dùng Paracetamol liên tục trên 15 ngày/tháng.',
+        potential_progression: 'Đau đầu cấp tính -> Lạm dụng thuốc giảm đau -> Đau đầu dội ngược kháng trị (MOH)',
+        preventive_recommendations: [
+          'Không uống thuốc giảm đau quá 3-4 ngày liên tục mà không có chỉ định bác sĩ.',
+          'Đảm bảo ngủ đủ 7-8 tiếng, hạn chế nhìn màn hình xanh quá 2 giờ liên tục khi đang sốt.',
+          'Bổ sung Magie và Vitamin B2 để hỗ trợ ổn định dẫn truyền thần kinh.',
+        ],
+        screening_tests: [
+          'Ghi chép nhật ký cơn đau đầu (Headache Diary)',
+          'Khám chuyên khoa thần kinh nếu xuất hiện dấu hiệu cờ đỏ (nôn vọt, cứng gáy)',
+        ],
+      },
+    },
+    {
+      id: 'ent',
+      name: 'Ear, Nose & Throat',
+      vietnamese_name: 'Tai Mũi Họng',
+      status: 'normal',
+      health_score: 98,
+      pain_level: 0,
+      inflammation_level: 'none',
+      symptoms: [],
+      clinical_notes: 'Đường thở trên thông thoáng, niêm mạc bình thường.',
+      related_medications: [],
+      warning: null,
+      is_adverse_reaction: false,
+      contraindicated_actions: [],
+      coordinates: { x: 50.0, y: 18.0 },
+      future_risk: {
+        risk_level: 'low',
+        risk_title: 'Rủi ro Viêm xoang mạn tính & Viêm họng hạt tái diễn',
+        timeframe: '1 - 2 năm',
+        vaccination_status: 'ĐƯỜNG THỞ TRÊN: Thông thoáng, không phù nề',
+        latent_risk_description: 'Niêm mạc cuốn mũi đang xung huyết phù nề. Nếu ứ đọng dịch nhầy kéo dài dễ dẫn đến bội nhiễm vi khuẩn cơ hội tại các xoang cạnh mũi.',
+        potential_progression: 'Viêm mũi họng cấp tính -> Tắc lỗ thông xoang -> Viêm xoang sàng/hàm mạn tính hoặc Viêm amiđan hốc mủ',
+        preventive_recommendations: [
+          'Rửa mũi bằng dung dịch nước muối sinh lý đẳng trương ấm 2-3 lần/ngày.',
+          'Súc họng sâu với nước muối hoặc dung dịch Povidone Iodine 1% khi ra ngoài về.',
+          'Giữ ấm vùng cổ ngực, uống nhiều nước ấm để làm loãng dịch đờm.',
+        ],
+        screening_tests: [
+          'Nội soi Tai Mũi Họng ống mềm định kỳ nếu triệu chứng kéo dài > 10 ngày',
+          'Chụp CT xoang liều thấp khi nghi ngờ viêm xoang tắc nghẽn',
+        ],
+      },
+    },
+    {
+      id: 'cardiovascular',
+      name: 'Cardiovascular',
+      vietnamese_name: 'Tim mạch & Tuần hoàn',
+      status: 'normal',
+      health_score: 95,
+      pain_level: 0,
+      inflammation_level: 'none',
+      symptoms: [],
+      clinical_notes: 'Huyết áp 120/80 mmHg, nhịp tim đều 78 bpm, không đau ngực.',
+      related_medications: [],
+      warning: null,
+      is_adverse_reaction: false,
+      contraindicated_actions: [],
+      coordinates: { x: 52.0, y: 28.5 },
+      future_risk: {
+        risk_level: 'moderate',
+        risk_title: 'Rủi ro Xơ vữa mạch vành & Biến cố Tim mạch (Thang SCORE/Framingham)',
+        timeframe: '5 - 10 năm',
+        vaccination_status: 'TIÊM PHÒNG CÚM HÀNG NĂM: Cần tiêm nhắc để ngừa biến cố tim mạch',
+        latent_risk_description: 'Huyết áp 120-122 mmHg ngưỡng tiền tăng huyết áp. Thói quen ngồi nhiều kết hợp áp lực công việc làm tăng stress oxy hóa thành mạch.',
+        potential_progression: 'Rối loạn nội mạc mạch máu -> Lắng đọng mảng xơ vữa thành mạch vành -> Cơn đau thắt ngực & Nhồi máu cơ tim (MACE)',
+        preventive_recommendations: [
+          'Duy trì huyết áp mục tiêu < 120/80 mmHg, kiểm soát lượng muối ăn < 5g/ngày.',
+          'Vận động thể thao nhịp điệu (đi bộ nhanh, bơi lội, đạp xe) tối thiểu 150 phút/tuần.',
+          'Tiêm phòng vắc-xin Cúm mùa định kỳ hàng năm (giúp giảm 20-30% nguy cơ biến cố tim mạch).',
+        ],
+        screening_tests: [
+          'Điện tâm đồ (ECG 12 chuyển đạo) & Siêu âm tim Doppler định kỳ hàng năm',
+          'Xét nghiệm bộ mỡ máu Lipid panel (Cholesterol toàn phần, LDL-C, HDL-C, Triglyceride)',
+        ],
+      },
+    },
+    {
+      id: 'lungs',
+      name: 'Respiratory & Lungs',
+      vietnamese_name: 'Phổi & Hô hấp',
+      status: 'normal',
+      health_score: 98,
+      pain_level: 0,
+      inflammation_level: 'none',
+      symptoms: [],
+      clinical_notes: 'SpO2 99%, phế bào êm, không ran, đường thở dưới thông thoáng.',
+      related_medications: [],
+      warning: null,
+      is_adverse_reaction: false,
+      contraindicated_actions: [],
+      coordinates: { x: 43.5, y: 28.0 },
+      future_risk: {
+        risk_level: 'low',
+        risk_title: 'Rủi ro Viêm phế quản mạn & Tăng phản ứng phế quản',
+        timeframe: '2 - 5 năm',
+        vaccination_status: 'VẮC-XIN PHẾ CẦU: Vui lòng khai báo tiền sử tiêm phòng phế cầu',
+        latent_risk_description: 'Đường thở trên đang viêm virus. Nếu thường xuyên tiếp xúc khói bụi hoặc thời tiết lạnh mà chưa có kháng thể phế cầu khuẩn sẽ dễ bị viêm phổi thứ phát.',
+        potential_progression: 'Nhiễm virus hô hấp tái diễn -> Tổn thương biểu mô lông chuyển -> Viêm phế quản mạn tính & Giảm dung tích sống FEV1',
+        preventive_recommendations: [
+          'Tiêm phòng vắc-xin ngừa phế cầu khuẩn (Streptococcus pneumoniae) để bảo vệ phế nang.',
+          'Đeo khẩu trang chuẩn lọc bụi mịn N95 khi di chuyển ngoài đường phố đô thị.',
+          'Tránh hoàn toàn khói thuốc lá thụ động và các chất khí độc hại.',
+        ],
+        screening_tests: [
+          'Đo chức năng hô hấp (Hô hấp ký Spirometry)',
+          'Chụp X-quang phổi thẳng định kỳ 1-2 năm/lần',
+        ],
+      },
+    },
+    {
+      id: 'stomach',
+      name: 'Gastrointestinal & Stomach',
+      vietnamese_name: 'Dạ dày & Tiêu hoá',
+      status: 'normal',
+      health_score: 92,
+      pain_level: 0,
+      inflammation_level: 'none',
+      symptoms: [],
+      clinical_notes: 'Bụng mềm, không chướng, tiêu hóa bình thường. Cần lưu ý uống thuốc sau ăn.',
+      related_medications: [],
+      warning: null,
+      is_adverse_reaction: false,
+      contraindicated_actions: [],
+      coordinates: { x: 53.5, y: 36.5 },
+      future_risk: {
+        risk_level: 'high',
+        risk_title: 'Rủi ro Viêm loét dạ dày tá tràng thủng & Biến chứng Ung thư dạ dày',
+        timeframe: '1 - 3 năm',
+        vaccination_status: 'TẦM SOÁT KHUẨN HP: Chưa kiểm tra vi khuẩn Helicobacter pylori',
+        latent_risk_description: 'Dạ dày rất dễ bị tổn thương nếu lạm dụng thuốc kháng viêm giảm đau (NSAID) hoặc nhiễm vi khuẩn HP âm thầm mà không phát hiện sớm.',
+        potential_progression: 'Kích ứng niêm mạc cấp -> Ổ loét sâu thành dạ dày xuất huyết/thủng -> Viêm teo & Dị sản ruột -> Nguy cơ Ung thư dạ dày',
+        preventive_recommendations: [
+          'Tuyệt đối không uống thuốc giảm đau chống viêm khi đói; dừng ngay nếu thấy cồn cào đau thượng vị.',
+          'Xét nghiệm test thở hoặc nội soi tầm soát vi khuẩn Helicobacter pylori (HP).',
+          'Ăn uống đúng giờ, tránh thói quen ăn đồ quá cay nóng, nhiều muối hoặc thực phẩm muối chua.',
+        ],
+        screening_tests: [
+          'Nội soi thực quản - dạ dày - tá tràng (EGD) có tiền mê',
+          'Test hơi thở C13/C14 Urea Breath Test tìm vi khuẩn HP',
+        ],
+      },
+    },
+    {
+      id: 'liver',
+      name: 'Liver & Metabolism',
+      vietnamese_name: 'Gan & Chuyển hoá',
+      status: 'normal',
+      health_score: 96,
+      pain_level: 0,
+      inflammation_level: 'none',
+      symptoms: [],
+      clinical_notes: 'Chức năng chuyển hóa ổn định. Chú ý không dùng Paracetamol quá 3000mg/24h.',
+      related_medications: [],
+      warning: null,
+      is_adverse_reaction: false,
+      contraindicated_actions: [],
+      coordinates: { x: 43.5, y: 35.0 },
+      future_risk: {
+        risk_level: 'high',
+        risk_title: 'Nguy cơ Nhiễm HBV mạn tính, Xơ gan tiến triển & Ung thư gan (HCC)',
+        timeframe: '3 - 10 năm',
+        vaccination_status: 'CHƯA TIÊM PHÒNG: Chưa tiêm vắc-xin Viêm gan B (Kháng thể Anti-HBs âm tính)',
+        latent_risk_description: 'Cơ thể chưa có kháng thể bảo vệ trước virus Viêm gan B (HBV). Nếu phơi nhiễm nguồn lây qua máu, dịch tiết, thủ thuật y tế hoặc tiếp xúc cộng đồng, nguy cơ chuyển thành thể mạn tính chiếm tới 10-15%.',
+        potential_progression: 'Nhiễm HBV mạn tính âm thầm -> Viêm hoại tử tế bào gan -> Xơ gan tiến triển (Cirrhosis) -> Ung thư biểu mô tế bào gan (HCC)',
+        preventive_recommendations: [
+          'Thực hiện tiêm phòng vắc-xin Viêm gan B đủ phác đồ chuẩn 3 mũi (Tháng 0, 1, 6) càng sớm càng tốt.',
+          'Xét nghiệm kiểm tra lại hiệu giá kháng thể Anti-HBs sau mũi 3 đạt > 10 mIU/mL để đảm bảo miễn dịch.',
+          'Hạn chế tối đa rượu bia, không dùng Paracetamol quá liều (> 3000mg/ngày) để giảm tải giải độc cho tế bào gan.',
+        ],
+        screening_tests: [
+          'Xét nghiệm cặp HBsAg & Anti-HBs kiểm tra tình trạng nhiễm và kháng thể',
+          'Định lượng men gan (AST, ALT, GGT) và chức năng gan tổng quát',
+          'Siêu âm Doppler gan & Xét nghiệm chỉ dấu ung thư gan Alpha-fetoprotein (AFP) mỗi 6 tháng',
+        ],
+      },
+    },
+    {
+      id: 'kidneys',
+      name: 'Kidneys & Urinary',
+      vietnamese_name: 'Thận & Tiết niệu',
+      status: 'normal',
+      health_score: 98,
+      pain_level: 0,
+      inflammation_level: 'none',
+      symptoms: [],
+      clinical_notes: 'Đào thải bình thường, duy trì uống đủ 2 lít nước ấm mỗi ngày.',
+      related_medications: [],
+      warning: null,
+      is_adverse_reaction: false,
+      contraindicated_actions: [],
+      coordinates: { x: 44.5, y: 40.5 },
+      future_risk: {
+        risk_level: 'low',
+        risk_title: 'Rủi ro Suy giảm mức lọc cầu thận & Bệnh thận do thuốc',
+        timeframe: '3 - 5 năm',
+        vaccination_status: 'CHỨC NĂNG THẬN: Ổn định, không protein niệu',
+        latent_risk_description: 'Thận đóng vai trò đào thải chất chuyển hóa của thuốc. Nguy cơ tổn thương mô kẽ thận nếu dùng thuốc giảm đau liều cao kéo dài hoặc cơ thể thiếu nước.',
+        potential_progression: 'Tổn thương tế bào ống thận âm thầm nếu lạm dụng thuốc kéo dài -> Giảm mức lọc cầu thận (eGFR) -> Bệnh thận mạn giai đoạn sớm',
+        preventive_recommendations: [
+          'Duy trì thói quen uống đủ 2 - 2.5 lít nước ấm mỗi ngày để bảo vệ chức năng bài tiết cầu thận.',
+          'Tuyệt đối không tự ý phối hợp nhiều loại thuốc hạ sốt giảm đau cùng lúc mà không có ý kiến bác sĩ.',
+        ],
+        screening_tests: [
+          'Xét nghiệm Creatinine huyết thanh & Ước tính mức lọc cầu thận eGFR',
+          'Tổng phân tích nước tiểu 10 thông số định kỳ hàng năm',
+        ],
+      },
+    },
+    {
+      id: 'spine_joints',
+      name: 'Spine & Musculoskeletal',
+      vietnamese_name: 'Cơ xương khớp & Cột sống',
+      status: 'normal',
+      health_score: 98,
+      pain_level: 0,
+      inflammation_level: 'none',
+      symptoms: [],
+      clinical_notes: 'Vận động bình thường, không co cứng cơ, không đau mỏi.',
+      related_medications: [],
+      warning: null,
+      is_adverse_reaction: false,
+      contraindicated_actions: [],
+      coordinates: { x: 50.0, y: 43.5 },
+      future_risk: {
+        risk_level: 'low',
+        risk_title: 'Rủi ro Thoái hóa cột sống cổ - thắt lưng & Co cứng cơ mạn tính',
+        timeframe: '3 - 5 năm',
+        vaccination_status: 'VẬN ĐỘNG HỌC: Cần cải thiện tư thế công thái học',
+        latent_risk_description: 'Triệu chứng mỏi cơ hiện tại do phản ứng viêm với sốt, kết hợp thói quen làm việc văn phòng ngồi nhiều giờ liên tục ít thay đổi tư thế.',
+        potential_progression: 'Căng cơ cổ vai gáy và thắt lưng mạn tính -> Giảm chiều cao đĩa đệm -> Thoái hóa cột sống & Thoát vị đĩa đệm sớm',
+        preventive_recommendations: [
+          'Thực hiện bài tập giãn cơ 5 phút sau mỗi 45-60 phút ngồi làm việc máy tính.',
+          'Điều chỉnh ghế và màn hình máy tính theo chuẩn công thái học (Ergonomics).',
+          'Bổ sung Canxi và Vitamin D3 qua thực phẩm hoặc tắm nắng buổi sớm.',
+        ],
+        screening_tests: [
+          'Khám chuyên khoa Cơ Xương Khớp & Đánh giá biên độ vận động cột sống',
+        ],
+      },
+    },
+    {
+      id: 'skin',
+      name: 'Skin & Immune System',
+      vietnamese_name: 'Da liễu & Hệ miễn dịch',
+      status: 'normal',
+      health_score: 95,
+      pain_level: 0,
+      inflammation_level: 'none',
+      symptoms: [],
+      clinical_notes: 'Da ấm, không phát ban, không nổi mề đay dị ứng thuốc.',
+      related_medications: [],
+      warning: null,
+      is_adverse_reaction: false,
+      contraindicated_actions: [],
+      coordinates: { x: 32.5, y: 33.5 },
+      future_risk: {
+        risk_level: 'low',
+        risk_title: 'Rủi ro Dị ứng thuốc phản vệ & Lão hóa quang hóa do tia UV',
+        timeframe: '2 - 5 năm',
+        vaccination_status: 'MIỄN DỊCH HỌC: Đang đáp ứng bảo vệ bình thường',
+        latent_risk_description: 'Hệ miễn dịch đang tập trung sản xuất kháng thể chống virus cảm cúm. Cần lưu ý theo dõi các biểu hiện dị ứng nổi mề đay nếu đổi thuốc mới.',
+        potential_progression: 'Dị ứng thuốc nhẹ không nhận biết -> Tái sử dụng dẫn đến phản ứng quá mẫn typ I hoặc hội chứng Stevens-Johnson',
+        preventive_recommendations: [
+          'Thông báo ngay cho bác sĩ nếu từng có tiền sử dị ứng với bất kỳ loại kháng sinh hoặc thuốc giảm đau nào.',
+          'Sử dụng kem chống nắng SPF 50+ phổ rộng khi hoạt động ngoài trời để bảo vệ màng tế bào biểu bì.',
+        ],
+        screening_tests: [
+          'Test áp bì hoặc định lượng IgE đặc hiệu nếu có tiền sử dị ứng thuốc nghi ngờ',
+        ],
+      },
+    },
+  ],
+  active_medications: [],
+  discontinued_medications: [],
+  contraindicated_regimens: [],
+  clinical_directives: [
+    'Cung cấp triệu chứng hoặc tiền sử tiêm chủng để AI đánh giá chuyên sâu',
+    'Duy trì uống đủ 2-2.5 lít nước ấm mỗi ngày',
+    'Chế độ ăn cân đối dinh dưỡng và nghỉ ngơi hợp lý',
+  ],
+  safe_guardrail_alert: null,
+  timeline: [
+    {
+      id: 't1',
+      timestamp: 'Hiện tại',
+      phase: 'baseline',
+      title: 'Khởi tạo Hồ sơ Sức khoẻ Thực tế',
+      trigger_message: 'Hệ thống sẵn sàng tiếp nhận thông tin từ người dùng.',
+      health_score: 98,
+      status_label: 'Thể trạng bình thường',
+      clinical_summary: 'Chưa có thông tin bệnh lý. Bản đồ cơ thể và dự báo rủi ro sẽ chỉ cập nhật dựa trên thông tin thực tế do bạn cung cấp.',
+      ai_directive: 'Vui lòng chia sẻ cảm nhận cơ thể, triệu chứng hoặc tiền sử tiêm chủng nếu có bất thường.',
+      medications_adjusted: [],
+    },
+  ],
+  last_updated: 'Hiện tại',
+};
+
 export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState(DEFAULT_HEALTH_PROFILE);
+  const [loading, setLoading] = useState(false);
   const [evaluating, setEvaluating] = useState(false);
-  const [selectedOrganId, setSelectedOrganId] = useState('stomach');
+  // Default selected organ to 'liver' to directly highlight the Hepatitis B -> Liver cancer example
+  const [selectedOrganId, setSelectedOrganId] = useState('liver');
+  const [selectedSystem, setSelectedSystem] = useState('all');
   const [hoveredOrganId, setHoveredOrganId] = useState(null);
   const [inputMessage, setInputMessage] = useState('');
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'timeline' | 'meds'
+  // Default to future_risks tab so user immediately sees the predictive matrix and vaccination protocol
+  const [activeTab, setActiveTab] = useState('future_risks');
   const [actionNotice, setActionNotice] = useState(null);
+  const [modelViewMode, setModelViewMode] = useState('3d_hologram');
+  const [isListening, setIsListening] = useState(false);
+  const [showVaccineDrawer, setShowVaccineDrawer] = useState(false);
+
+  // Reset health profile back to clean baseline
+  const handleResetProfile = async () => {
+    try {
+      setLoading(true);
+      const res = await api.request('/v1/health-twin/reset', { method: 'POST' });
+      if (res && res.organs) {
+        setProfile(res);
+        setActionNotice('Đã đặt lại thể trạng bình thường ban đầu thành công.');
+        setTimeout(() => setActionNotice(null), 3500);
+      }
+    } catch (err) {
+      console.error('Failed to reset health profile:', err);
+      setProfile(DEFAULT_HEALTH_PROFILE);
+      setActionNotice('Đã đặt lại thể trạng ban đầu.');
+      setTimeout(() => setActionNotice(null), 3500);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Voice speech-to-text handler for symptom description
+  const handleVoiceInput = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      onNotify?.('Trình duyệt chưa hỗ trợ nhận diện giọng nói Web Speech.');
+      return;
+    }
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'vi-VN';
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.onstart = () => setIsListening(true);
+      recognition.onend = () => setIsListening(false);
+      recognition.onerror = () => setIsListening(false);
+      recognition.onresult = (event) => {
+        const text = event.results[0]?.[0]?.transcript;
+        if (text) {
+          setInputMessage((prev) => (prev ? `${prev} ${text}` : text));
+          onNotify?.(`Đã nhận diện: "${text}"`);
+        }
+      };
+      recognition.start();
+    } catch {
+      setIsListening(false);
+    }
+  };
 
   // Load initial health profile
   const fetchProfile = async () => {
     try {
       setLoading(true);
       const data = await api.request('/v1/health-twin/profile');
-      setProfile(data);
+      if (data && data.organs) {
+        setProfile(data);
+      }
     } catch (err) {
       console.error('Failed to load health profile:', err);
-      onNotify?.({ kind: 'error', message: 'Không thể tải hồ sơ sức khoẻ bệnh nhân.' });
+      onNotify?.('Không thể tải hồ sơ sức khoẻ bệnh nhân, dùng dữ liệu lâm sàng mặc định.');
     } finally {
       setLoading(false);
     }
@@ -99,6 +509,13 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
 
   useEffect(() => {
     fetchProfile();
+    const handleSync = () => {
+      fetchProfile();
+    };
+    window.addEventListener('medguard:health-twin-updated', handleSync);
+    return () => {
+      window.removeEventListener('medguard:health-twin-updated', handleSync);
+    };
   }, []);
 
   // Quick scenario switcher
@@ -115,13 +532,13 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
       setTimeout(() => setActionNotice(null), 4000);
     } catch (err) {
       console.error('Failed to switch scenario:', err);
-      onNotify?.({ kind: 'error', message: 'Lỗi chuyển đổi kịch bản.' });
+      onNotify?.('Lỗi chuyển đổi kịch bản.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Submit patient progress message (e.g. "hôm nay tôi đã hết đau đầu sổ mũi" or "uống thuốc vào bị đau dạ dày")
+  // Submit patient progress message
   const handleEvaluateProgress = async (textToEvaluate) => {
     const text = textToEvaluate || inputMessage;
     if (!text || !text.trim()) return;
@@ -136,21 +553,15 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
       setInputMessage('');
 
       if (res.must_discontinue_previous) {
-        onNotify?.({
-          kind: 'warning',
-          message: 'AI PHÁT HIỆN TÁC DỤNG PHỤ: Đã kích hoạt lệnh dừng ngay thuốc cũ gây hại!',
-        });
+        onNotify?.('Cảnh báo lâm sàng: Phát hiện tác dụng phụ, đã kích hoạt hướng dẫn an toàn.');
       } else if (res.detected_event === 'recovery') {
-        onNotify?.({
-          kind: 'success',
-          message: 'Ghi nhận hồi phục tích cực: Đã cập nhật trạng thái cơ thể khoẻ mạnh.',
-        });
+        onNotify?.('Ghi nhận hồi phục tích cực: Đã cập nhật trạng thái cơ thể ổn định.');
       } else {
-        onNotify?.({ kind: 'info', message: 'Đã cập nhật diễn tiến sức khoẻ vào hồ sơ.' });
+        onNotify?.('Đã cập nhật diễn tiến sức khoẻ vào hồ sơ.');
       }
     } catch (err) {
       console.error('Failed to evaluate symptom update:', err);
-      onNotify?.({ kind: 'error', message: 'Không thể phân tích diễn tiến sức khoẻ.' });
+      onNotify?.('Không thể phân tích diễn tiến sức khoẻ.');
     } finally {
       setEvaluating(false);
     }
@@ -204,10 +615,10 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
             <div className="twin-brand-badge">
               <Activity size={18} className="twin-pulse-icon" />
               <h1>Anatomical Health Twin</h1>
-              <span className="live-tag">REAL-TIME</span>
+              <span className="live-tag">CLINICAL PRECISION</span>
             </div>
             <p className="twin-subtitle">
-              Chuẩn đoán & Theo dõi Diễn tiến Sức khoẻ Giải phẫu học — Cảnh báo An toàn & Điều chỉnh Phác đồ AI
+              Định vị Giải phẫu Học Chính xác — Đánh giá Toàn diện Sinh hiệu & Dự báo Rủi ro Tương lai (AI Risk Prognosis)
             </p>
           </div>
         </div>
@@ -217,11 +628,8 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
             <User size={14} />
             <strong>{profile?.patient_name || 'Bệnh nhân'}</strong>
             <span className="meta-sep">•</span>
-            <span>{profile?.age || 34} tuổi</span>
-            <span className="meta-sep">•</span>
-            <span>{profile?.gender || 'Nam'}</span>
+            <span>{profile?.age || 34} tuổi ({profile?.gender || 'Nam'})</span>
           </div>
-
           <button
             type="button"
             className="refresh-btn"
@@ -242,29 +650,63 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
         </div>
       )}
 
-      {/* Clinical Scenario Quick Bar */}
-      <section className="scenario-quick-bar" aria-label="Bộ chọn kịch bản lâm sàng mẫu">
-        <div className="scenario-bar-title">
-          <Stethoscope size={15} />
-          <span>Thử nghiệm diễn tiến lâm sàng nhanh:</span>
+      {/* Real-time Auto-Sync Clinical Header from Doctor Chat */}
+      <section className="health-twin-sync-bar" aria-label="Đồng bộ tự động từ hội thoại khám bệnh lâm sàng">
+        <div className="sync-bar-left">
+          <div className="sync-status-indicator">
+            <span className="sync-pulse-dot" />
+            <Activity size={18} className="sync-pulse-icon" />
+          </div>
+          <div className="sync-meta-info">
+            <div className="sync-badge-row">
+              <span className="clinical-live-badge">ĐỒNG BỘ TỰ ĐỘNG TỪ HỘI THOẠI KHÁM BỆNH</span>
+              <span className="patient-active-badge">
+                Tình trạng: <strong>{profile?.active_diagnosis || 'Đang theo dõi sức khoẻ tổng quát'}</strong>
+              </span>
+            </div>
+            <p className="sync-description">
+              Hệ thống AI tự động phát hiện triệu chứng, đối chiếu phản ứng thuốc và cập nhật bản đồ giải phẫu dựa trên cuộc hội thoại khám bệnh của bạn.
+            </p>
+          </div>
         </div>
-        <div className="scenario-chips-row">
-          {SCENARIOS.map((sc) => {
-            const Icon = sc.icon;
-            return (
-              <button
-                key={sc.id}
-                type="button"
-                className="scenario-chip-btn"
-                style={{ '--sc-color': sc.color }}
-                onClick={() => handleSwitchScenario(sc.id)}
-                title={sc.desc}
-              >
-                <Icon size={14} />
-                <span>{sc.label}</span>
-              </button>
-            );
-          })}
+
+        <div className="sync-bar-right">
+          <div className="sync-vitals-preview">
+            <div className="preview-stat">
+              <span className="stat-label">Điểm thể trạng</span>
+              <span className="stat-value" style={{ color: getStatusColor('score', profile?.overall_health_score || 95) }}>
+                {profile?.overall_health_score || 95}%
+              </span>
+            </div>
+            <div className="preview-stat">
+              <span className="stat-label">Diễn tiến</span>
+              <span className="stat-value trend">
+                {profile?.health_trend === 'improving' ? 'Đang hồi phục' : profile?.health_trend === 'deteriorating' ? 'Cần theo dõi sát' : 'Ổn định'}
+              </span>
+            </div>
+          </div>
+
+          <div className="sync-action-buttons">
+            <button
+              type="button"
+              className="btn-open-chat-sync"
+              onClick={() => onNavigate?.('chat')}
+              title="Mở hội thoại để trao đổi triệu chứng với Bác sĩ AI"
+            >
+              <MessageSquare size={15} />
+              <span>Trò chuyện với Bác sĩ AI</span>
+            </button>
+            <button
+              type="button"
+              className="btn-refresh-profile-sync"
+              onClick={handleResetProfile}
+              disabled={loading}
+              title="Đặt lại thể trạng bình thường ban đầu"
+            >
+              <RotateCcw size={14} className={loading ? 'spinning' : ''} />
+              <span>Đặt lại ban đầu</span>
+            </button>
+          </div>
         </div>
       </section>
 
@@ -323,123 +765,162 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
 
       {/* Main Interactive Twin Workspace */}
       <div className="twin-main-grid">
-        {/* Left Column: Interactive Human Body Anatomical Silhouette */}
+        {/* Left Column: Interactive 3D Anatomical Digital Twin Model */}
         <section className="body-silhouette-card" aria-label="Sơ đồ Giải phẫu Cơ thể">
           <div className="silhouette-header">
             <div className="header-badge">
               <HeartPulse size={16} />
-              <span>Sơ đồ Giải phẫu Số (Digital Twin)</span>
+              <span>Sơ đồ Giải phẫu Cơ thể Người (Anatomical Landmarks)</span>
             </div>
-            <span className="hint-pill">Rê chuột hoặc nhấp để xem chi tiết cơ quan</span>
+            <div className="model-view-controls">
+              <button
+                type="button"
+                className={`view-toggle-btn ${modelViewMode === '3d_hologram' ? 'active' : ''}`}
+                onClick={() => setModelViewMode('3d_hologram')}
+                title="Chế độ Giải phẫu Chuẩn 3D"
+              >
+                <Scan size={13} />
+                <span>Giải phẫu 3D</span>
+              </button>
+              <button
+                type="button"
+                className={`view-toggle-btn ${modelViewMode === 'wireframe_heatmap' ? 'active' : ''}`}
+                onClick={() => setModelViewMode('wireframe_heatmap')}
+                title="Chế độ Bản đồ Nhiệt Lâm sàng"
+              >
+                <Layers size={13} />
+                <span>Bản đồ Nhiệt</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Organ Systems Filter Tabs */}
+          <div className="system-filter-tabs-row" role="tablist" aria-label="Lọc theo hệ cơ quan">
+            {ORGAN_SYSTEMS.map((sys) => {
+              const Icon = sys.icon;
+              const isActive = selectedSystem === sys.id;
+              return (
+                <button
+                  key={sys.id}
+                  type="button"
+                  className={`system-tab-btn ${isActive ? 'active' : ''}`}
+                  onClick={() => setSelectedSystem(sys.id)}
+                >
+                  <Icon size={12} />
+                  <span>{sys.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Quick Organ Selector Chips */}
+          <div className="organ-quick-chips-bar" role="tablist" aria-label="Chọn nhanh cơ quan">
+            {profile?.organs?.map((organ) => {
+              const isSelected = selectedOrganId === organ.id;
+              const statusColor = getStatusColor(organ.status, organ.health_score);
+              const isSystemMember =
+                selectedSystem === 'all' ||
+                ORGAN_SYSTEMS.find((s) => s.id === selectedSystem)?.organIds?.includes(organ.id);
+
+              if (!isSystemMember) return null;
+
+              return (
+                <button
+                  key={organ.id}
+                  type="button"
+                  className={`organ-chip-btn ${isSelected ? 'active' : ''}`}
+                  style={{ '--chip-color': statusColor }}
+                  onClick={() => setSelectedOrganId(organ.id)}
+                  title={`Xem chi tiết: ${organ.vietnamese_name}`}
+                >
+                  <span className="chip-status-dot" />
+                  <span>{organ.vietnamese_name}</span>
+                </button>
+              );
+            })}
           </div>
 
           <div className="human-canvas-wrapper">
-            {/* Ambient Hologram Grid Background */}
-            <div className="hologram-grid-bg" />
-            <div className="hologram-scan-bar" />
+            {/* Clinical studio background */}
+            <div className="clinical-grid-backdrop" />
 
-            {/* SVG Anatomical Human Silhouette */}
-            <svg
-              className="human-svg-body"
-              viewBox="0 0 320 540"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <defs>
-                <linearGradient id="bodyGlowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#00e5ff" stopOpacity="0.25" />
-                  <stop offset="50%" stopColor="#3b82f6" stopOpacity="0.15" />
-                  <stop offset="100%" stopColor="#1e1b4b" stopOpacity="0.08" />
-                </linearGradient>
-                <radialGradient id="organGlow" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stopColor="#00e5ff" stopOpacity="0.8" />
-                  <stop offset="100%" stopColor="#00e5ff" stopOpacity="0" />
-                </radialGradient>
-                <filter id="neonGlowFilter" x="-20%" y="-20%" width="140%" height="140%">
-                  <feGaussianBlur stdDeviation="3" result="blur" />
-                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                </filter>
-              </defs>
-
-              {/* Head & Cranium */}
-              <ellipse cx="160" cy="65" rx="36" ry="44" className="body-outline-path" />
-              {/* Neck */}
-              <path d="M148 106 L148 126 L172 126 L172 106" className="body-outline-path" />
-              {/* Shoulders & Torso */}
-              <path
-                d="M148 126 C120 130 90 148 76 170 C66 186 64 220 62 270 C60 300 70 330 76 340 L84 340 C88 280 92 230 102 205 L112 370 C120 376 138 380 160 380 C182 380 200 376 208 370 L218 205 C228 230 232 280 236 340 L244 340 C250 330 260 300 258 270 C256 220 254 186 244 170 C230 148 200 130 172 126 Z"
-                className="body-outline-path body-fill"
+            {/* Inner Container keeping precise Aspect Ratio */}
+            <div className={`human-canvas-inner-ratio ${modelViewMode}`}>
+              {/* Detailed 3D Anatomical Human Model Image */}
+              <img
+                src="/static/assets/human_anatomical_twin.jpg"
+                alt="3D Anatomical Digital Twin Model"
+                className="human-3d-model-img"
+                onError={(e) => {
+                  if (!e.currentTarget.dataset.fallbackTried) {
+                    e.currentTarget.dataset.fallbackTried = 'true';
+                    e.currentTarget.src = '/assets/human_anatomical_twin.jpg';
+                  }
+                }}
               />
-              {/* Arms */}
-              {/* Left Arm */}
-              <path d="M76 170 L52 270 L42 340 L54 345 L68 280 L84 210" className="body-outline-path" />
-              {/* Right Arm */}
-              <path d="M244 170 L268 270 L278 340 L266 345 L252 280 L236 210" className="body-outline-path" />
 
-              {/* Legs */}
-              {/* Pelvis to Knees */}
-              <path d="M124 376 L118 450 L144 450 L152 380" className="body-outline-path" />
-              <path d="M196 376 L202 450 L176 450 L168 380" className="body-outline-path" />
-              {/* Lower Legs & Feet */}
-              <path d="M118 450 L114 520 L136 520 L142 450" className="body-outline-path" />
-              <path d="M202 450 L206 520 L184 520 L178 450" className="body-outline-path" />
-
-              {/* Internal Organ Subtle Contours */}
-              {/* Brain subtle grid */}
-              <ellipse cx="160" cy="62" rx="22" ry="26" className="organ-wireframe" />
-              {/* Lungs pair */}
-              <path d="M130 155 C120 165 118 190 126 210 C134 220 144 216 148 200 C150 180 145 160 130 155 Z" className="organ-wireframe" />
-              <path d="M190 155 C200 165 202 190 194 210 C186 220 176 216 172 200 C170 180 175 160 190 155 Z" className="organ-wireframe" />
-              {/* Heart contour */}
-              <ellipse cx="170" cy="180" rx="14" ry="16" className="organ-wireframe" />
-              {/* Stomach contour */}
-              <path d="M145 220 C135 230 140 260 162 258 C176 256 180 236 172 226 Z" className="organ-wireframe" />
-              {/* Liver contour */}
-              <path d="M130 226 C118 235 124 258 142 255 Z" className="organ-wireframe" />
-              {/* Spine line */}
-              <line x1="160" y1="126" x2="160" y2="370" stroke="rgba(0, 229, 255, 0.2)" strokeDasharray="3 3" />
-            </svg>
-
-            {/* Hotspots: Interactive Organ Pins */}
-            {profile?.organs?.map((organ) => {
-              const isSelected = selectedOrganId === organ.id;
-              const isHovered = hoveredOrganId === organ.id;
-              const statusColor = getStatusColor(organ.status, organ.health_score);
-              const isAlert = organ.status === 'adverse_reaction' || organ.status === 'critical';
-
-              return (
+              {/* Active Organ Focus Halo (Clean subtle ring on the body, NO floating card) */}
+              {activeOrgan?.coordinates && (
                 <div
-                  key={organ.id}
-                  className={`organ-hotspot-marker ${isSelected ? 'selected' : ''} ${isHovered ? 'hovered' : ''} ${isAlert ? 'is-alert' : ''}`}
+                  className="organ-focus-indicator"
                   style={{
-                    left: `${organ.coordinates.x}%`,
-                    top: `${organ.coordinates.y}%`,
-                    '--organ-color': statusColor,
+                    left: `${activeOrgan.coordinates.x}%`,
+                    top: `${activeOrgan.coordinates.y}%`,
+                    '--indicator-color': getStatusColor(activeOrgan.status, activeOrgan.health_score),
                   }}
-                  onMouseEnter={() => setHoveredOrganId(organ.id)}
-                  onMouseLeave={() => setHoveredOrganId(null)}
-                  onClick={() => setSelectedOrganId(organ.id)}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`Cơ quan: ${organ.vietnamese_name}, Trạng thái: ${organ.status}`}
                 >
-                  {/* Outer pulsating wave */}
-                  <span className="pulse-wave" />
-                  {/* Inner glowing pin */}
-                  <span className="pin-core">
-                    <span className="pin-inner-dot" />
-                  </span>
-                  {/* Pin label tag */}
-                  <span className="pin-title-label">{organ.vietnamese_name}</span>
+                  <div className="focus-concentric-circle" />
                 </div>
-              );
-            })}
+              )}
+
+              {/* Hotspots: Precision Clinical Organ Pointer Dots */}
+              {profile?.organs?.map((organ) => {
+                const isSelected = selectedOrganId === organ.id;
+                const isHovered = hoveredOrganId === organ.id;
+                const statusColor = getStatusColor(organ.status, organ.health_score);
+                const isAlert = organ.status === 'adverse_reaction' || organ.status === 'critical';
+                const isSystemMember =
+                  selectedSystem === 'all' ||
+                  ORGAN_SYSTEMS.find((s) => s.id === selectedSystem)?.organIds?.includes(organ.id);
+
+                return (
+                  <div
+                    key={organ.id}
+                    className={`clinical-organ-pin ${isSelected ? 'selected' : ''} ${isHovered ? 'hovered' : ''} ${isAlert ? 'is-alert' : ''} ${!isSystemMember ? 'dimmed' : ''}`}
+                    style={{
+                      left: `${organ.coordinates?.x ?? 50}%`,
+                      top: `${organ.coordinates?.y ?? 50}%`,
+                      '--organ-color': statusColor,
+                    }}
+                    onMouseEnter={() => setHoveredOrganId(organ.id)}
+                    onMouseLeave={() => setHoveredOrganId(null)}
+                    onClick={() => setSelectedOrganId(organ.id)}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Cơ quan: ${organ.vietnamese_name}, Trạng thái: ${organ.status}`}
+                  >
+                    <span className="pin-pulse-wave" />
+                    <span className="pin-point-marker">
+                      <span className="pin-dot-inner" />
+                    </span>
+                    {/* Tooltip badge appears ONLY when hovered, keeping the human body completely clear of any cards */}
+                    {isHovered && (
+                      <span className="pin-tooltip-badge">
+                        <span className="tooltip-dot" />
+                        <span className="tooltip-text">{organ.vietnamese_name}</span>
+                        <span className="tooltip-score">{organ.health_score}%</span>
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {/* Quick Body Status Footer */}
           <div className="silhouette-footer-legend">
             <div className="legend-item"><span className="legend-dot normal" /> Ổn định (90-100%)</div>
-            <div className="legend-item"><span className="legend-dot monitor" /> Theo dõi (70-89%)</div>
+            <div className="legend-item"><span className="legend-dot monitor" /> Cần theo dõi (70-89%)</div>
             <div className="legend-item"><span className="legend-dot inflamed" /> Đang viêm (50-69%)</div>
             <div className="legend-item"><span className="legend-dot alert" /> Báo động / ADR (&lt;50%)</div>
           </div>
@@ -476,6 +957,76 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
                     {getStatusBadgeText(activeOrgan.status)}
                   </span>
                 </div>
+              </div>
+
+              {/* Quick Clinical Actions Bar */}
+              <div className="organ-quick-actions-bar">
+                <button
+                  type="button"
+                  className="organ-action-btn consult-btn"
+                  onClick={() => {
+                    onNavigate?.('chat');
+                    window.dispatchEvent(
+                      new CustomEvent('medguard:navigate', {
+                        detail: {
+                          view: 'chat',
+                          message: `Tư vấn AI chuyên sâu về tình trạng cơ quan: ${activeOrgan.vietnamese_name} (${activeOrgan.status === 'adverse_reaction' ? 'đang có phản ứng bất lợi' : activeOrgan.status === 'inflamed' ? 'đang bị viêm' : 'cần đánh giá rủi ro tương lai'}).`,
+                        },
+                      })
+                    );
+                  }}
+                  title="Chuyển sang Chat và hỏi AI về cơ quan này"
+                >
+                  <MessageSquare size={14} />
+                  <span>Tư vấn AI</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="organ-action-btn declare-btn"
+                  onClick={() => {
+                    setInputMessage(`Cập nhật triệu chứng tại ${activeOrgan.vietnamese_name}: `);
+                    const el = document.querySelector('.console-text-input');
+                    if (el) {
+                      el.focus();
+                      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                  }}
+                  title={`Khai báo triệu chứng cho cơ quan ${activeOrgan.vietnamese_name}`}
+                >
+                  <Plus size={14} />
+                  <span>Khai báo triệu chứng</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="organ-action-btn recover-btn"
+                  disabled={evaluating || activeOrgan.status === 'normal'}
+                  onClick={() => {
+                    handleEvaluateProgress(`Hôm nay triệu chứng tại ${activeOrgan.vietnamese_name} của tôi đã thuyên giảm hoàn toàn, không còn cảm giác đau hay khó chịu.`);
+                  }}
+                  title="Cập nhật báo cáo cơ quan này đã bình phục"
+                >
+                  <CheckCircle2 size={14} />
+                  <span>Báo đã khỏi</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="organ-action-btn nav-btn"
+                  onClick={() => {
+                    onNavigate?.('navigation');
+                    window.dispatchEvent(
+                      new CustomEvent('medguard:navigate', {
+                        detail: { view: 'navigation', organ: activeOrgan.vietnamese_name },
+                      })
+                    );
+                  }}
+                  title="Chuyển sang bản đồ chỉ đường đến cơ sở y tế"
+                >
+                  <Navigation size={14} />
+                  <span>Chỉ đường CSYT</span>
+                </button>
               </div>
 
               {/* Organ Health Metrics Grid */}
@@ -544,7 +1095,7 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
                 </div>
               )}
 
-              {/* Contraindicated Actions (Cấm tiếp tục) */}
+              {/* Contraindicated Actions */}
               {activeOrgan.contraindicated_actions && activeOrgan.contraindicated_actions.length > 0 && (
                 <div className="contra-actions-box">
                   <div className="contra-title">
@@ -561,9 +1112,129 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
 
               {/* Clinical Notes & Recommendations */}
               <div className="inspector-section notes-section">
-                <span className="section-title">Ghi chú lâm sàng & Khuyến nghị:</span>
+                <span className="section-title">Ghi chú lâm sàng hiện tại:</span>
                 <p className="clinical-notes-p">{activeOrgan.clinical_notes || 'Cơ quan ở trạng thái ổn định bình thường.'}</p>
               </div>
+
+              {/* FUTURE RISK PROGNOSIS & PREVENTIVE VACCINATION CARD */}
+              {activeOrgan.future_risk && (
+                <div className="future-risk-prognosis-card">
+                  <div className="risk-card-top">
+                    <div className="risk-title-badge-group">
+                      <ShieldAlert size={16} className={`risk-level-icon ${activeOrgan.future_risk.risk_level}`} />
+                      <div>
+                        <span className="risk-section-eyebrow">DỰ BÁO RỦI RO SỨC KHOẺ TƯƠNG LAI</span>
+                        <h4 className="risk-prognosis-title">{activeOrgan.future_risk.risk_title}</h4>
+                      </div>
+                    </div>
+                    <div className="risk-badges-cluster">
+                      <span className={`risk-level-tag ${activeOrgan.future_risk.risk_level}`}>
+                        {activeOrgan.future_risk.risk_level === 'high'
+                          ? 'RỦI RO CAO'
+                          : activeOrgan.future_risk.risk_level === 'moderate'
+                          ? 'RỦI RO TRUNG BÌNH'
+                          : 'RỦI RO THẤP'}
+                      </span>
+                      <span className="risk-timeframe-tag">
+                        <Clock size={11} />
+                        <span>{activeOrgan.future_risk.timeframe}</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Vaccination & Preventive Shield Gap */}
+                  {activeOrgan.future_risk.vaccination_status && (
+                    <div className="vaccine-status-callout">
+                      <Syringe size={16} className="syringe-accent-icon" />
+                      <div>
+                        <strong>Tình trạng Tiêm chủng & Miễn dịch:</strong>
+                        <p>{activeOrgan.future_risk.vaccination_status}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Latent Disease Mechanism */}
+                  <div className="risk-body-block">
+                    <span className="block-subtitle">Cơ chế rủi ro tiềm tàng:</span>
+                    <p className="block-text">{activeOrgan.future_risk.latent_risk_description}</p>
+                  </div>
+
+                  {/* Visual Progression Chain */}
+                  <div className="risk-progression-chain">
+                    <span className="block-subtitle">Chuỗi tiến triển bệnh sinh nếu không phòng ngừa:</span>
+                    <div className="progression-flow-items">
+                      {activeOrgan.future_risk.potential_progression.split('->').map((step, sIdx, arr) => (
+                        <div key={sIdx} className="prog-step-item">
+                          <span className={`step-text ${sIdx === arr.length - 1 ? 'fatal-step' : ''}`}>{step.trim()}</span>
+                          {sIdx < arr.length - 1 && <ChevronRight size={13} className="step-arrow" />}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Preventive Action Protocol */}
+                  {activeOrgan.future_risk.preventive_recommendations?.length > 0 && (
+                    <div className="risk-recs-block">
+                      <span className="block-subtitle">Phác đồ can thiệp & Kế hoạch Tiêm chủng:</span>
+                      <ul className="recs-list">
+                        {activeOrgan.future_risk.preventive_recommendations.map((rec, rIdx) => (
+                          <li key={rIdx}>
+                            <CheckCircle2 size={14} className="rec-check-icon" />
+                            <span>{rec}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Screening Tests */}
+                  {activeOrgan.future_risk.screening_tests?.length > 0 && (
+                    <div className="risk-screening-block">
+                      <span className="block-subtitle">Xét nghiệm & Tầm soát định kỳ:</span>
+                      <div className="screening-chips-flow">
+                        {activeOrgan.future_risk.screening_tests.map((test, tIdx) => (
+                          <span key={tIdx} className="screening-chip-badge">
+                            <FileBadge size={12} />
+                            <span>{test}</span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Action buttons on Future Risk */}
+                  <div className="risk-actions-footer">
+                    <button
+                      type="button"
+                      className="risk-btn-primary"
+                      onClick={() => {
+                        onNavigate?.('chat');
+                        window.dispatchEvent(
+                          new CustomEvent('medguard:navigate', {
+                            detail: {
+                              view: 'chat',
+                              message: `Tư vấn kế hoạch tiêm phòng vắc-xin và lộ trình tầm soát sớm rủi ro tương lai cho cơ quan: ${activeOrgan.vietnamese_name} (${activeOrgan.future_risk.risk_title}). Cụ thể: ${activeOrgan.future_risk.vaccination_status || ''}`,
+                            },
+                          })
+                        );
+                      }}
+                    >
+                      <Syringe size={14} />
+                      <span>Tư vấn Tiêm chủng & Phòng ngừa</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="risk-btn-secondary"
+                      onClick={() => {
+                        onNotify?.(`Đã thêm khuyến nghị tầm soát định kỳ cơ quan ${activeOrgan.vietnamese_name} vào lịch y bạ điện tử.`);
+                      }}
+                    >
+                      <CalendarCheck size={14} />
+                      <span>Lên lịch Tầm soát Y tế</span>
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Related Medications */}
               {activeOrgan.related_medications && activeOrgan.related_medications.length > 0 && (
@@ -582,77 +1253,40 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
             </div>
           )}
 
-          {/* Quick Chat Symptom Updater for this patient */}
-          <div className="symptom-update-widget">
-            <div className="widget-header">
-              <Sparkles size={16} />
-              <h4>Cập nhật diễn tiến triệu chứng mới</h4>
+          {/* Conversational Clinical Care Guidance */}
+          <div className="conversational-care-card">
+            <div className="care-card-header">
+              <MessageSquare size={16} className="care-icon" />
+              <h4>Khai báo Triệu chứng qua Hội thoại</h4>
             </div>
-            <p className="widget-desc">
-              Nhập thay đổi thể trạng (Ví dụ: <em>&quot;hôm nay tôi đã hết đau đầu sổ mũi&quot;</em> hoặc <em>&quot;uống thuốc xong bị đau dạ dày dữ dội&quot;</em>):
+            <p className="care-card-desc">
+              Khi phát sinh triệu chứng mới, thuyên giảm hoặc gặp phản ứng phụ sau khi uống thuốc, bạn chỉ cần nhắn trực tiếp trong phần Chat. Bác sĩ AI sẽ tự động phân tích và cập nhật vào hồ sơ giải phẫu học này.
             </p>
-
-            <form
-              className="update-form"
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleEvaluateProgress();
-              }}
+            <button
+              type="button"
+              className="care-card-chat-btn"
+              onClick={() => onNavigate?.('chat')}
             >
-              <input
-                type="text"
-                className="symptom-input"
-                placeholder="Nhập triệu chứng thuyên giảm hoặc tăng nặng..."
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                disabled={evaluating}
-              />
-              <button
-                type="submit"
-                className="submit-eval-btn"
-                disabled={evaluating || !inputMessage.trim()}
-              >
-                {evaluating ? (
-                  <RefreshCw size={14} className="spinning" />
-                ) : (
-                  <>
-                    <span>AI Đánh giá</span>
-                    <Send size={14} />
-                  </>
-                )}
-              </button>
-            </form>
-
-            <div className="quick-suggestions-row">
-              <button
-                type="button"
-                className="quick-sugg-chip green"
-                onClick={() => handleEvaluateProgress('Hôm nay tôi đã hết đau đầu và sổ mũi, cảm thấy khỏe khoắn')}
-              >
-                + Báo khỏi: &quot;Hết đau đầu sổ mũi&quot;
-              </button>
-              <button
-                type="button"
-                className="quick-sugg-chip red"
-                onClick={() => handleEvaluateProgress('Uống thuốc vào bỗng bị đau dạ dày dữ dội, cồn cào buồn nôn')}
-              >
-                + Báo tác dụng phụ: &quot;Đau dạ dày sau uống&quot;
-              </button>
-              <button
-                type="button"
-                className="quick-sugg-chip orange"
-                onClick={() => handleEvaluateProgress('Sốt cao hơn 39.5 độ, rét run và khó thở')}
-              >
-                + Báo tăng nặng: &quot;Sốt 39.5 độ&quot;
-              </button>
-            </div>
+              <MessageSquare size={14} />
+              <span>Nhắn tin với Bác sĩ AI ngay</span>
+              <ChevronRight size={14} />
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Bottom Section: Overall Health Dashboard, Vitals HUD & Recovery Timeline */}
+      {/* Bottom Section: Overall Health Dashboard, Risk Matrix & Recovery Timeline */}
       <section className="overall-health-dashboard">
         <div className="dashboard-tabs-bar" role="tablist">
+          <button
+            role="tab"
+            aria-selected={activeTab === 'future_risks'}
+            className={`dash-tab ${activeTab === 'future_risks' ? 'active' : ''}`}
+            onClick={() => setActiveTab('future_risks')}
+          >
+            <ShieldAlert size={16} />
+            <span>Ma trận Dự báo Rủi ro & Kế hoạch Tiêm chủng Phòng ngừa</span>
+          </button>
           <button
             role="tab"
             aria-selected={activeTab === 'overview'}
@@ -660,7 +1294,7 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
             onClick={() => setActiveTab('overview')}
           >
             <Activity size={16} />
-            <span>Tổng quan Chỉ số Sức khoẻ</span>
+            <span>Tổng quan Sinh hiệu & Điểm Sức khoẻ</span>
           </button>
           <button
             role="tab"
@@ -678,11 +1312,438 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
             onClick={() => setActiveTab('meds')}
           >
             <Pill size={16} />
-            <span>Đơn thuốc & Phác đồ ({profile?.active_medications?.length || 0})</span>
+            <span>Đơn thuốc & Phác đồ An toàn ({profile?.active_medications?.length || 0})</span>
           </button>
         </div>
 
-        {/* Tab 1: Overview & Vitals */}
+        {/* Tab: Future Risk Matrix & Immunization Schedule */}
+        {activeTab === 'future_risks' && (
+          <div className="risk-matrix-tab-content">
+            {/* Top Intelligence Alert Banner */}
+            <div className="risk-intelligence-banner">
+              <div className="banner-icon-side">
+                <ShieldAlert size={28} className="shield-pulse-icon" />
+              </div>
+              <div className="banner-content-side">
+                <h3>Bản Đồ Dự Báo Rủi Ro Sức Khoẻ Dài Hạn & Kế Hoạch Tiêm Chủng Chủ Động</h3>
+                <p>
+                  Hệ thống AI phân tích toàn diện dựa trên tiền sử tiêm chủng, tương tác thuốc đang dùng và tình trạng các cơ quan.
+                  Việc chủ động tiêm phòng sớm (đặc biệt vắc-xin Viêm gan B) và tầm soát định kỳ giúp ngăn ngừa tới <strong>95%</strong> nguy cơ xơ gan và ung thư tế bào gan (HCC) trong 5-10 năm tới.
+                </p>
+              </div>
+            </div>
+
+            {/* Critical Priority Risk Cards */}
+            <div className="future-risk-cards-grid">
+              {/* Card 1: Liver & Hepatitis B -> Cancer */}
+              <div className="risk-matrix-card priority-high">
+                <div className="matrix-card-header">
+                  <div className="organ-tag">
+                    <Activity size={14} />
+                    <span>Gan & Chuyển hoá</span>
+                  </div>
+                  <span className="risk-badge-pill high">RỦI RO CAO (3 - 10 NĂM)</span>
+                </div>
+                <h4 className="matrix-card-title">Nguy cơ HBV mạn tính → Xơ gan → Ung thư tế bào gan (HCC)</h4>
+                <div className="matrix-vaccine-status">
+                  <Syringe size={14} />
+                  <span><strong>Thiếu hụt phòng hộ:</strong> Chưa tiêm vắc-xin Viêm gan B (Kháng thể Anti-HBs âm tính)</span>
+                </div>
+                <p className="matrix-desc">
+                  Virus Viêm gan B lây âm thầm không có triệu chứng ban đầu. Sau 5-10 năm nhiễm mạn tính sẽ dẫn đến xơ gan và ung thư biểu mô gan HCC nguy cơ tử vong cao.
+                </p>
+                <div className="matrix-action-box">
+                  <strong>Khuyến cáo can thiệp y tế:</strong>
+                  <ul>
+                    <li>Tiêm ngay vắc-xin Viêm gan B phác đồ 3 mũi (Tháng 0, 1, 6).</li>
+                    <li>Định lượng kháng thể Anti-HBs sau mũi 3 bảo đảm đạt &gt; 10 mIU/mL.</li>
+                    <li>Siêu âm Doppler gan & Xét nghiệm men gan, AFP mỗi 6 tháng/lần.</li>
+                  </ul>
+                </div>
+                <div className="matrix-card-footer">
+                  <button
+                    type="button"
+                    className="matrix-btn primary"
+                    onClick={() => {
+                      setSelectedOrganId('liver');
+                      onNavigate?.('chat');
+                      window.dispatchEvent(
+                        new CustomEvent('medguard:navigate', {
+                          detail: {
+                            view: 'chat',
+                            message: 'Tư vấn tiêm phòng vắc-xin Viêm gan B đủ 3 mũi và phác đồ tầm soát ung thư tế bào gan HCC.',
+                          },
+                        })
+                      );
+                    }}
+                  >
+                    <Syringe size={13} />
+                    <span>Tư vấn Tiêm phòng HBV</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="matrix-btn secondary"
+                    onClick={() => setSelectedOrganId('liver')}
+                  >
+                    <span>Xem định vị Gan</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Card 2: Stomach & HP / NSAID abuse */}
+              <div className="risk-matrix-card priority-high">
+                <div className="matrix-card-header">
+                  <div className="organ-tag">
+                    <Flame size={14} />
+                    <span>Dạ dày & Tiêu hoá</span>
+                  </div>
+                  <span className="risk-badge-pill high">RỦI RO CAO (1 - 3 NĂM)</span>
+                </div>
+                <h4 className="matrix-card-title">Viêm loét dạ dày tá tràng thủng → Dị sản ruột & Ung thư dạ dày</h4>
+                <div className="matrix-vaccine-status">
+                  <FileBadge size={14} />
+                  <span><strong>Thiếu hụt phòng hộ:</strong> Chưa kiểm tra vi khuẩn HP, nguy cơ tổn thương do thuốc NSAID</span>
+                </div>
+                <p className="matrix-desc">
+                  Lạm dụng thuốc giảm đau kháng viêm khi đói kết hợp nhiễm vi khuẩn Helicobacter pylori âm thầm làm mòn lớp chất nhầy bảo vệ niêm mạc, dẫn đến ổ loét sâu và dị sản ác tính.
+                </p>
+                <div className="matrix-action-box">
+                  <strong>Khuyến cáo can thiệp y tế:</strong>
+                  <ul>
+                    <li>Làm xét nghiệm test hơi thở C13/C14 hoặc nội soi tầm soát vi khuẩn HP.</li>
+                    <li>Tuyệt đối ngừng thuốc giảm đau chống viêm khi xuất hiện cồn cào đau thượng vị.</li>
+                    <li>Dùng thuốc ức chế bơm proton (PPI) bảo vệ niêm mạc khi có chỉ định bác sĩ.</li>
+                  </ul>
+                </div>
+                <div className="matrix-card-footer">
+                  <button
+                    type="button"
+                    className="matrix-btn primary"
+                    onClick={() => {
+                      setSelectedOrganId('stomach');
+                      onNavigate?.('chat');
+                      window.dispatchEvent(
+                        new CustomEvent('medguard:navigate', {
+                          detail: {
+                            view: 'chat',
+                            message: 'Tư vấn tầm soát vi khuẩn Helicobacter pylori (HP) và phòng ngừa viêm loét dạ dày tá tràng do thuốc.',
+                          },
+                        })
+                      );
+                    }}
+                  >
+                    <FileBadge size={13} />
+                    <span>Tư vấn Tầm soát HP</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="matrix-btn secondary"
+                    onClick={() => setSelectedOrganId('stomach')}
+                  >
+                    <span>Xem định vị Dạ dày</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Card 3: Cardiovascular */}
+              <div className="risk-matrix-card priority-mod">
+                <div className="matrix-card-header">
+                  <div className="organ-tag">
+                    <Heart size={14} />
+                    <span>Tim mạch & Tuần hoàn</span>
+                  </div>
+                  <span className="risk-badge-pill mod">RỦI RO TRUNG BÌNH (5 - 10 NĂM)</span>
+                </div>
+                <h4 className="matrix-card-title">Xơ vữa động mạch vành → Cơn đau thắt ngực & Nhồi máu cơ tim (MACE)</h4>
+                <div className="matrix-vaccine-status">
+                  <HeartPulse size={14} />
+                  <span><strong>Dấu hiệu cảnh báo:</strong> Huyết áp 122/80 mmHg ngưỡng tiền tăng huyết áp, chưa tiêm cúm</span>
+                </div>
+                <p className="matrix-desc">
+                  Thói quen ít vận động, áp lực công việc và nhiễm cúm mùa lặp lại gây phản ứng viêm thành mạch, tích tụ mảng xơ vữa làm hẹp lòng mạch vành.
+                </p>
+                <div className="matrix-action-box">
+                  <strong>Khuyến cáo can thiệp y tế:</strong>
+                  <ul>
+                    <li>Tiêm vắc-xin Cúm mùa hàng năm (giảm 20-30% nguy cơ nhồi máu cơ tim).</li>
+                    <li>Tập thể dục aerobic tối thiểu 150 phút/tuần, giảm lượng muối ăn &lt; 5g/ngày.</li>
+                    <li>Đo điện tâm đồ ECG và xét nghiệm mỡ máu Lipid panel định kỳ hàng năm.</li>
+                  </ul>
+                </div>
+                <div className="matrix-card-footer">
+                  <button
+                    type="button"
+                    className="matrix-btn primary"
+                    onClick={() => setSelectedOrganId('cardiovascular')}
+                  >
+                    <span>Xem chi tiết Tim mạch</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Card 4: Lungs */}
+              <div className="risk-matrix-card priority-mod">
+                <div className="matrix-card-header">
+                  <div className="organ-tag">
+                    <Droplet size={14} />
+                    <span>Phổi & Hô hấp</span>
+                  </div>
+                  <span className="risk-badge-pill mod">RỦI RO TRUNG BÌNH (2 - 5 NĂM)</span>
+                </div>
+                <h4 className="matrix-card-title">Viêm phế quản mạn & Bội nhiễm vi khuẩn Phế cầu (Streptococcus pneumoniae)</h4>
+                <div className="matrix-vaccine-status">
+                  <Syringe size={14} />
+                  <span><strong>Thiếu hụt phòng hộ:</strong> Chưa tiêm vắc-xin Phế cầu (Prevenar 13 / Pneumovax 23)</span>
+                </div>
+                <p className="matrix-desc">
+                  Đường thở đang tổn thương do virus cúm tạo điều kiện cho vi khuẩn phế cầu xâm lấn sâu vào phế nang, gây viêm phổi thùy và suy hô hấp cấp tính.
+                </p>
+                <div className="matrix-action-box">
+                  <strong>Khuyến cáo can thiệp y tế:</strong>
+                  <ul>
+                    <li>Tiêm phòng 1 liều vắc-xin Phế cầu 13 chủng để tạo miễn dịch bảo vệ phế nang.</li>
+                    <li>Đeo khẩu trang lọc bụi mịn chuẩn N95 khi di chuyển ngoài đường phố.</li>
+                    <li>Đo chức năng hô hấp (Hô hấp ký Spirometry) và chụp X-quang phổi định kỳ.</li>
+                  </ul>
+                </div>
+                <div className="matrix-card-footer">
+                  <button
+                    type="button"
+                    className="matrix-btn primary"
+                    onClick={() => setSelectedOrganId('lungs')}
+                  >
+                    <span>Xem chi tiết Phổi</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Comprehensive Preventive Immunization Schedule Table */}
+            <div className="immunization-schedule-section">
+              <div className="section-title-wrap">
+                <Syringe size={18} />
+                <div>
+                  <h4>Bảng Kiểm Tiêm Chủng Phòng Ngừa Cho Người Lớn (Adult Immunization Schedule)</h4>
+                  <span className="section-subtitle">Phác đồ phòng hộ chủ động theo khuyến cáo của Bộ Y tế & CDC</span>
+                </div>
+              </div>
+
+              <div className="vaccine-table-responsive">
+                <table className="vaccine-checklist-table">
+                  <thead>
+                    <tr>
+                      <th>Vắc-xin & Chỉ định</th>
+                      <th>Tình trạng cá nhân</th>
+                      <th>Rủi ro phòng ngừa được</th>
+                      <th>Phác đồ khuyến nghị</th>
+                      <th>Hành động y tế</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="row-urgent">
+                      <td>
+                        <strong>Vắc-xin Viêm gan B (Engerix-B / Euvax-B)</strong>
+                        <span className="table-subtext">20mcg/1ml tiêm bắp cơ delta</span>
+                      </td>
+                      <td>
+                        <span className="table-status-pill urgent">CẦN TIÊM PHÒNG</span>
+                        <span className="table-subtext">Anti-HBs &lt; 10 mIU/mL</span>
+                      </td>
+                      <td>
+                        <strong>Ngừa 95% nguy cơ Xơ gan & Ung thư gan (HCC)</strong>
+                        <p className="table-desc">Ngăn ngừa nhiễm virus HBV mạn tính và đột biến tế bào nhu mô gan.</p>
+                      </td>
+                      <td>
+                        <strong>3 mũi chuẩn: Tháng 0, 1, 6</strong>
+                        <span className="table-subtext">Định lượng kháng thể sau mũi 3</span>
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="table-action-btn primary"
+                          onClick={() => {
+                            onNavigate?.('chat');
+                            window.dispatchEvent(
+                              new CustomEvent('medguard:navigate', {
+                                detail: {
+                                  view: 'chat',
+                                  message: 'Hướng dẫn đăng ký tiêm phòng vắc-xin Viêm gan B và xét nghiệm kháng thể Anti-HBs gần nhất.',
+                                },
+                              })
+                            );
+                          }}
+                        >
+                          Đăng ký tiêm phòng HBV
+                        </button>
+                      </td>
+                    </tr>
+
+                    <tr className="row-recommended">
+                      <td>
+                        <strong>Vắc-xin Phế cầu 13 chủng (Prevenar 13)</strong>
+                        <span className="table-subtext">Vắc-xin cộng hợp phế cầu khuẩn</span>
+                      </td>
+                      <td>
+                        <span className="table-status-pill warn">KHUYẾN NGHỊ</span>
+                        <span className="table-subtext">Chưa từng tiêm</span>
+                      </td>
+                      <td>
+                        <strong>Phòng viêm phổi thùy, viêm màng não do phế cầu</strong>
+                        <p className="table-desc">Đặc biệt quan trọng khi đường thở đang có tổn thương do viêm cúm mùa.</p>
+                      </td>
+                      <td>
+                        <strong>1 liều duy nhất</strong>
+                        <span className="table-subtext">Hiệu lực bảo vệ dài hạn</span>
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="table-action-btn"
+                          onClick={() => {
+                            onNavigate?.('chat');
+                            window.dispatchEvent(
+                              new CustomEvent('medguard:navigate', {
+                                detail: {
+                                  view: 'chat',
+                                  message: 'Tư vấn tiêm phòng vắc-xin Phế cầu Prevenar 13 bảo vệ phổi và đường hô hấp.',
+                                },
+                              })
+                            );
+                          }}
+                        >
+                          Tư vấn vắc-xin Phế cầu
+                        </button>
+                      </td>
+                    </tr>
+
+                    <tr className="row-routine">
+                      <td>
+                        <strong>Vắc-xin Cúm mùa Tứ giá (Vaxigrip Tetra)</strong>
+                        <span className="table-subtext">Chống 4 chủng A/H1N1, A/H3N2, B/Yamagata, B/Victoria</span>
+                      </td>
+                      <td>
+                        <span className="table-status-pill routine">TIÊM NHẮC ĐỊNH KỲ</span>
+                        <span className="table-subtext">Mùa dịch cúm hiện tại</span>
+                      </td>
+                      <td>
+                        <strong>Giảm 80% cúm nặng & 30% biến cố tim mạch</strong>
+                        <p className="table-desc">Giảm nguy cơ bão cytokine và viêm cơ tim thứ phát do virus.</p>
+                      </td>
+                      <td>
+                        <strong>1 mũi tiêm nhắc mỗi năm</strong>
+                        <span className="table-subtext">Nên tiêm trước đỉnh dịch mùa đông</span>
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="table-action-btn"
+                          onClick={() => {
+                            onNotify?.('Đã lưu lịch nhắc tiêm vắc-xin Cúm mùa định kỳ vào hồ sơ.');
+                          }}
+                        >
+                          Lưu lịch nhắc hàng năm
+                        </button>
+                      </td>
+                    </tr>
+
+                    <tr className="row-routine">
+                      <td>
+                        <strong>Vắc-xin Uốn ván - Bạch hầu - Ho gà (Tdap)</strong>
+                        <span className="table-subtext">Boostrix / Adacel</span>
+                      </td>
+                      <td>
+                        <span className="table-status-pill ok">ℹ️ THEO DÕI ĐỊNH KỲ</span>
+                        <span className="table-subtext">Tiền sử đã tiêm cơ bản</span>
+                      </td>
+                      <td>
+                        <strong>Phòng suy hô hấp do ho gà và co giật uốn ván</strong>
+                        <p className="table-desc">Duy trì nồng độ kháng thể bảo vệ trước độc tố vi khuẩn Clostridium tetani.</p>
+                      </td>
+                      <td>
+                        <strong>Tiêm nhắc mỗi 10 năm</strong>
+                        <span className="table-subtext">Kiểm tra sau vết thương hở</span>
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="table-action-btn ghost"
+                          onClick={() => {
+                            onNotify?.('Hồ sơ tiêm chủng uốn ván đang ở trạng thái an toàn.');
+                          }}
+                        >
+                          Kiểm tra sổ tiêm
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Periodic Diagnostic Screening Roadmap */}
+            <div className="screening-roadmap-section">
+              <div className="section-title-wrap">
+                <FileBadge size={18} />
+                <div>
+                  <h4>Lộ Trình Tầm Soát Sớm Bệnh Lý Mạn Tính & Ung Thư (Early Screening Roadmap)</h4>
+                  <span className="section-subtitle">Chủ động phát hiện mầm bệnh ở giai đoạn sớm có thể điều trị triệt căn</span>
+                </div>
+              </div>
+
+              <div className="screening-roadmap-grid">
+                <div className="roadmap-card">
+                  <div className="roadmap-header">
+                    <Activity size={16} />
+                    <h5>Tầm soát Gan Mật & Chuyển hoá</h5>
+                  </div>
+                  <ul className="roadmap-list">
+                    <li><strong>Siêu âm gan Doppler màu:</strong> Định kỳ 6 tháng/lần phát hiện u gan sớm &lt; 2cm.</li>
+                    <li><strong>Xét nghiệm AFP & AFP-L3:</strong> Dấu ấn sinh học đặc hiệu ung thư tế bào gan.</li>
+                    <li><strong>Cặp xét nghiệm HBsAg & Anti-HBs:</strong> Kiểm tra tải lượng kháng thể và virus.</li>
+                  </ul>
+                </div>
+
+                <div className="roadmap-card">
+                  <div className="roadmap-header">
+                    <Flame size={16} />
+                    <h5>Tầm soát Dạ Dày & Ống Tiêu Hoá</h5>
+                  </div>
+                  <ul className="roadmap-list">
+                    <li><strong>Test hơi thở C13/C14 UBT:</strong> Độ nhạy 98% phát hiện vi khuẩn HP không xâm lấn.</li>
+                    <li><strong>Nội soi thực quản - dạ dày (EGD):</strong> Tầm soát polyp, viêm teo niêm mạc và dị sản.</li>
+                    <li><strong>Xét nghiệm Pepsinogen I/II:</strong> Đánh giá mức độ teo niêm mạc dạ dày sớm.</li>
+                  </ul>
+                </div>
+
+                <div className="roadmap-card">
+                  <div className="roadmap-header">
+                    <Heart size={16} />
+                    <h5>Tầm soát Tim Mạch & Huyết Áp</h5>
+                  </div>
+                  <ul className="roadmap-list">
+                    <li><strong>Bilan Lipid máu toàn phần:</strong> Định lượng LDL-C, Triglyceride, ApoB hàng năm.</li>
+                    <li><strong>Điện tâm đồ ECG 12 cần:</strong> Phát hiện thiếu máu cơ tim im lặng và rối loạn nhịp.</li>
+                    <li><strong>Siêu âm tim Doppler:</strong> Đo phân suất tống máu EF và độ dày thành tâm thất.</li>
+                  </ul>
+                </div>
+
+                <div className="roadmap-card">
+                  <div className="roadmap-header">
+                    <Droplet size={16} />
+                    <h5>Tầm soát Hô Hấp & Phế Quản</h5>
+                  </div>
+                  <ul className="roadmap-list">
+                    <li><strong>Đo Hô hấp ký Spirometry:</strong> Đánh giá dung tích sống FVC và chỉ số FEV1.</li>
+                    <li><strong>Chụp X-quang phổi thẳng:</strong> Kiểm tra nhu mô phổi, rốn phổi và vòm hoành.</li>
+                    <li><strong>Nồng độ FeNO thở ra:</strong> Đánh giá tình trạng viêm dị ứng đường thở phế quản.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab: Overview & Vitals */}
         {activeTab === 'overview' && (
           <div className="overview-tab-content">
             {/* Health Score & Vitals Row */}
@@ -722,7 +1783,7 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
                 <p className="diagnosis-text">{profile?.active_diagnosis}</p>
               </div>
 
-              {/* Vitals HUD Cards */}
+              {/* Vitals Cards */}
               <div className="hud-card vital-card">
                 <div className="vital-header">
                   <Heart size={16} className="vital-icon heart" />
@@ -748,7 +1809,9 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
                   </strong>
                   <span className="vital-unit">mmHg</span>
                 </div>
-                <span className="vital-status-text">Ngưỡng tối ưu</span>
+                <span className="vital-status-text">
+                  {(profile?.vitals?.blood_pressure_systolic || 120) >= 130 ? 'Tăng huyết áp độ 1' : (profile?.vitals?.blood_pressure_systolic || 120) >= 120 ? 'Tiền tăng huyết áp' : 'Huyết áp tối ưu'}
+                </span>
               </div>
 
               <div className="hud-card vital-card">
@@ -842,7 +1905,7 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
           </div>
         )}
 
-        {/* Tab 2: Recovery Timeline */}
+        {/* Tab: Recovery Timeline */}
         {activeTab === 'timeline' && (
           <div className="timeline-tab-content">
             <div className="timeline-header-info">
@@ -898,7 +1961,7 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
           </div>
         )}
 
-        {/* Tab 3: Medications & Regimens */}
+        {/* Tab: Medications & Regimens */}
         {activeTab === 'meds' && (
           <div className="meds-tab-content">
             <div className="meds-columns-grid">

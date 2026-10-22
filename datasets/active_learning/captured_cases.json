@@ -1,8 +1,8 @@
 {
   "_meta": {
     "version": "1.0.0",
-    "updated_at": "2026-10-19T15:05:53.933040+00:00",
-    "total_captured": 3090
+    "updated_at": "2026-10-21T14:54:31.504700+00:00",
+    "total_captured": 3091
   },
   "cases": [
     {
@@ -138886,6 +138886,45 @@
         {
           "kind": "paragraph",
           "text": "Bạn cho mình biết thêm: Bạn có thể chia sẻ cụ thể hơn về triệu chứng, vị trí khó chịu hoặc băn khoăn sức khỏe của bạn không?",
+          "emphasis": [
+            "Bạn cho mình biết thêm"
+          ]
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261021-1F88B297",
+      "timestamp": "2026-10-21T14:54:31.404463+00:00",
+      "tenant_id": "tenant-demo",
+      "conversation_id": "conv-test-fin",
+      "request_id": "req_f671bee4074d4502",
+      "user_query": "Tôi uống 4 ngày rồi vẫn chưa khỏi ho, vừa ra tiệm thuốc đầu ngõ mua liều lẻ hết 120k",
+      "detected_intent": "triage",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Với các dữ kiện hiện có, bệnh cảnh đang ở mức theo dõi thường quy. Chưa thể xác định nguyên nhân chỉ từ tin nhắn; hãy làm theo hướng chăm sóc và dấu hiệu cảnh báo bên dưới.",
+      "narrative": [
+        {
+          "kind": "paragraph",
+          "text": "Đánh giá ban đầu: mức theo dõi thường quy. Với các dữ kiện hiện có, bệnh cảnh đang ở mức theo dõi thường quy. Chưa thể xác định nguyên nhân chỉ từ tin nhắn; hãy làm theo hướng chăm sóc và dấu hiệu cảnh báo bên dưới.",
+          "emphasis": [
+            "Đánh giá ban đầu: mức theo dõi thường quy"
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Cần thêm đánh giá lâm sàng toàn diện.",
+          "emphasis": []
+        },
+        {
+          "kind": "paragraph",
+          "text": "Bạn cho mình biết thêm: Triệu chứng đã kéo dài bao nhiêu ngày và bạn có dùng thuốc súc họng hay hạ sốt nào chưa?",
           "emphasis": [
             "Bạn cho mình biết thêm"
           ]

@@ -1453,6 +1453,26 @@ def _response(
     except Exception:
         pass
 
+    # Healthcare Financial Assessment & Clinical Safety Verification Gate
+    financial_data = None
+    try:
+        from app.services.healthcare_financial_advisor import healthcare_financial_advisor_service
+        # Apply 3-Tier Clinical Safety & Positivity Verification Gate on candidate_reply
+        safety_status, revised_reply = healthcare_financial_advisor_service.evaluate_clinical_safety_and_positivity(
+            user_message=latest_user_text,
+            proposed_advice=candidate_reply,
+        )
+        if safety_status.clinical_override_applied:
+            candidate_reply = revised_reply
+
+        financial_sync = healthcare_financial_advisor_service.extract_and_sync_from_chat(
+            message=latest_user_text,
+            current_medications=payload.context.current_medications,
+        )
+        financial_data = financial_sync
+    except Exception:
+        pass
+
     answer = answer.model_copy(
         update={
             "emergency_transit": emergency_transit_data,
@@ -1460,6 +1480,7 @@ def _response(
             "medication_suitability": med_suitability_data,
             "geo_routing": geo_routing_data,
             "health_twin_update": health_twin_data,
+            "financial_assessment_update": financial_data,
         }
     )
 

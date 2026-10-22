@@ -1009,6 +1009,70 @@ async def switch_patient_scenario(
 async def reset_patient_health_profile(
     ctx: RequestContext = Depends(verify_tenant_credentials),
 ) -> PatientHealthProfile:
-    """Resets patient health profile back to default initial flu episode."""
-    return patient_health_twin_service.switch_scenario("initial_flu")
+    """Resets patient health profile back to default clean healthy baseline."""
+    return patient_health_twin_service.reset_profile()
+
+
+# --- Healthcare Financial & Clinical Safety Verification Routes ---
+from app.models.financial_assessment import (
+    FinancialTransaction,
+    MonthlyFinancialAssessment,
+    SafetyVerificationStatus,
+)
+from app.services.healthcare_financial_advisor import healthcare_financial_advisor_service
+
+
+class SafetyEvaluationRequest(BaseModel):
+    user_message: str
+    proposed_advice: str = ""
+
+
+class SafetyEvaluationResponse(BaseModel):
+    safety_status: SafetyVerificationStatus
+    revised_advice: str
+
+
+@router.get("/financial/assessment", response_model=MonthlyFinancialAssessment)
+async def get_financial_assessment(
+    patient_ref: str = "guest_patient",
+    ctx: RequestContext = Depends(verify_tenant_credentials),
+) -> MonthlyFinancialAssessment:
+    """Returns the patient's monthly healthcare spending assessment, Treatment Efficiency Score (TES),
+    breakdown of GPP vs unofficial spending, recurrence waste, and actionable Booking Care recommendations."""
+    return healthcare_financial_advisor_service.get_assessment(patient_ref)
+
+
+@router.post("/financial/log-transaction", response_model=MonthlyFinancialAssessment)
+async def log_financial_transaction(
+    payload: FinancialTransaction,
+    patient_ref: str = "guest_patient",
+    ctx: RequestContext = Depends(verify_tenant_credentials),
+) -> MonthlyFinancialAssessment:
+    """Logs a new healthcare expense or Booking Care transaction and recalculates financial health ROI."""
+    assessment = healthcare_financial_advisor_service.get_assessment(patient_ref)
+    assessment.transactions.insert(0, payload)
+    healthcare_financial_advisor_service.recalculate(assessment)
+    return assessment
+
+
+@router.post("/financial/evaluate-safety", response_model=SafetyEvaluationResponse)
+async def evaluate_clinical_safety(
+    payload: SafetyEvaluationRequest,
+    ctx: RequestContext = Depends(verify_tenant_credentials),
+) -> SafetyEvaluationResponse:
+    """Three-Tier Clinical Safety & Positivity Verification Gate:
+    Screens for red flags and removes dangerous false reassurances that inappropriately advise skipping care."""
+    status, revised = healthcare_financial_advisor_service.evaluate_clinical_safety_and_positivity(
+        payload.user_message, payload.proposed_advice
+    )
+    return SafetyEvaluationResponse(safety_status=status, revised_advice=revised)
+
+
+@router.post("/financial/reset", response_model=MonthlyFinancialAssessment)
+async def reset_financial_assessment(
+    patient_ref: str = "guest_patient",
+    ctx: RequestContext = Depends(verify_tenant_credentials),
+) -> MonthlyFinancialAssessment:
+    """Resets financial assessment ledger to default realistic scenario."""
+    return healthcare_financial_advisor_service.reset_to_default(patient_ref)
 

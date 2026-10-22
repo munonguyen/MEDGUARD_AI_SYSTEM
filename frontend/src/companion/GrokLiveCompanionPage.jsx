@@ -534,6 +534,9 @@ export function GrokLiveCompanionPage({
         responseData = data;
         reply = clinicalReply(data);
         if (currentSpeechId === speechIdRef.current) setReplyNotice(verificationNotice(data));
+        if (data.answer?.health_twin_update || data.answer) {
+          window.dispatchEvent(new CustomEvent('medguard:health-twin-updated', { detail: data }));
+        }
 
         if (currentSpeechId !== speechIdRef.current || chatController.signal.aborted) return;
 

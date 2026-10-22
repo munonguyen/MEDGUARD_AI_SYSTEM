@@ -31,12 +31,24 @@ TimelinePhase = Literal[
     "improved_recovering",
     "adverse_event_escalation",
     "fully_resolved",
+    "baseline",
 ]
 
 
 class OrganCoordinates(BaseModel):
     x: float = Field(description="Percentage X coordinate on SVG body (0-100)")
     y: float = Field(description="Percentage Y coordinate on SVG body (0-100)")
+
+
+class FutureRiskPrognosis(BaseModel):
+    risk_level: Literal["low", "moderate", "high", "critical"] = "low"
+    risk_title: str
+    latent_risk_description: str
+    timeframe: str = "3 - 5 năm"
+    vaccination_status: str | None = None
+    potential_progression: str = ""
+    preventive_recommendations: list[str] = Field(default_factory=list)
+    screening_tests: list[str] = Field(default_factory=list)
 
 
 class OrganStatus(BaseModel):
@@ -54,6 +66,7 @@ class OrganStatus(BaseModel):
     is_adverse_reaction: bool = False
     contraindicated_actions: list[str] = Field(default_factory=list)
     coordinates: OrganCoordinates
+    future_risk: FutureRiskPrognosis | None = None
 
 
 class VitalSignsSummary(BaseModel):
@@ -104,6 +117,7 @@ class PatientHealthProfile(BaseModel):
     clinical_directives: list[str] = Field(default_factory=list)
     safe_guardrail_alert: SafeGuardrailAlert | None = None
     timeline: list[RecoveryTimelinePoint] = Field(default_factory=list)
+    overall_future_risks: list[FutureRiskPrognosis] = Field(default_factory=list)
     last_updated: str = Field(default_factory=lambda: datetime.now().strftime("%H:%M %d/%m/%Y"))
 
 
@@ -116,7 +130,17 @@ class EvaluateProgressRequest(BaseModel):
 
 class EvaluateProgressResponse(BaseModel):
     status: str = "success"
-    detected_event: Literal["recovery", "deterioration", "adverse_reaction", "new_symptom", "initial_onset", "inquiry"]
+    detected_event: Literal[
+        "recovery",
+        "deterioration",
+        "adverse_reaction",
+        "new_symptom",
+        "initial_onset",
+        "symptom_update",
+        "vaccine_risk_alert",
+        "vaccine_verified",
+        "inquiry",
+    ]
     ai_analysis: str
     action_plan: str
     must_discontinue_previous: bool = False

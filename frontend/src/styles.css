@@ -2842,6 +2842,34 @@ body { overflow: hidden; background: var(--canvas); color: var(--text); }
   min-height: calc(100vh - 64px);
   background: #f8fafc;
 }
+
+.health-workspace-container {
+  flex: 1 1 0%;
+  width: 100%;
+  height: calc(100vh - 66px);
+  max-height: calc(100vh - 66px);
+  min-height: 0;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  scroll-behavior: smooth;
+  background: radial-gradient(circle at 50% 5%, #0f172a 0%, #060a12 100%);
+}
+
+.health-workspace-container::-webkit-scrollbar {
+  width: 8px;
+}
+.health-workspace-container::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.7);
+}
+.health-workspace-container::-webkit-scrollbar-thumb {
+  background: rgba(0, 229, 255, 0.3);
+  border-radius: 4px;
+}
+.health-workspace-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 229, 255, 0.55);
+}
 .schedule-page-view {
   max-width: 1320px;
   margin: 0 auto;
