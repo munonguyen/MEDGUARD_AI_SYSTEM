@@ -1018,6 +1018,7 @@ from app.models.financial_assessment import (
     FinancialTransaction,
     MonthlyFinancialAssessment,
     SafetyVerificationStatus,
+    UpdateBudgetRequest,
 )
 from app.services.healthcare_financial_advisor import healthcare_financial_advisor_service
 
@@ -1066,6 +1067,18 @@ async def evaluate_clinical_safety(
         payload.user_message, payload.proposed_advice
     )
     return SafetyEvaluationResponse(safety_status=status, revised_advice=revised)
+
+
+@router.post("/financial/set-budget", response_model=MonthlyFinancialAssessment)
+async def set_financial_budget(
+    payload: UpdateBudgetRequest,
+    ctx: RequestContext = Depends(verify_tenant_credentials),
+) -> MonthlyFinancialAssessment:
+    """Updates the patient's monthly healthcare budget target and recalculates financial plan."""
+    return healthcare_financial_advisor_service.set_budget(
+        patient_ref=payload.patient_ref,
+        budget_target_vnd=payload.budget_target_vnd,
+    )
 
 
 @router.post("/financial/reset", response_model=MonthlyFinancialAssessment)

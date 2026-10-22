@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Literal
+from typing import Any, Literal
 from pydantic import BaseModel, Field
 
 TransactionSourceType = Literal[
@@ -87,6 +87,11 @@ class SmartRecommendation(BaseModel):
 class MonthlyFinancialAssessment(BaseModel):
     patient_ref: str = "guest_patient"
     month_year: str = "10/2026"
+    monthly_budget_target_vnd: int = 3000000
+    budget_utilization_percentage: float = 0.0
+    remaining_budget_vnd: int = 1750000
+    budget_status: Literal["within_budget", "approaching_limit", "over_budget"] = "within_budget"
+    budget_allocation_plan: dict[str, Any] | None = None
     breakdown: SpendingBreakdown = Field(default_factory=SpendingBreakdown)
     safety_status: SafetyVerificationStatus = Field(default_factory=SafetyVerificationStatus)
     treatment_efficiency_score: int = Field(default=82, ge=0, le=100)
@@ -96,3 +101,8 @@ class MonthlyFinancialAssessment(BaseModel):
     recommendations: list[SmartRecommendation] = Field(default_factory=list)
     clinical_summary: str = ""
     last_updated: str = Field(default_factory=lambda: datetime.now().isoformat())
+
+
+class UpdateBudgetRequest(BaseModel):
+    patient_ref: str = "guest_patient"
+    budget_target_vnd: int = Field(gt=0, le=500000000)

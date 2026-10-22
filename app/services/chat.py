@@ -1016,6 +1016,10 @@ def _suggestions(intent: ChatIntent) -> list[ChatSuggestion]:
     values = [common[intent]] if intent in common else []
     if intent == "schedule":
         values.append(ChatSuggestion(label="Xem lịch uống thuốc", prompt="Hiển thị lịch uống thuốc", intent="schedule"))
+    if intent == "financial":
+        values.append(ChatSuggestion(label="Xem Bảng Quản Lý Chi Tiêu", prompt="Mở bảng phân tích chi tiêu y tế và dòng tiền", intent="financial"))
+        values.append(ChatSuggestion(label="Tư vấn thuốc Generic", prompt="Thuốc Generic tương đương sinh học giúp tiết kiệm chi phí thế nào?", intent="pharmacy"))
+        values.append(ChatSuggestion(label="Đặt lịch khám Booking Care", prompt="Đặt lịch khám chuyên khoa sớm", intent="schedule"))
     if intent in ("triage", "followup"):
         values.append(ChatSuggestion(label="Xem lịch ca khám", prompt="Xem lịch ca khám và bác sĩ hôm nay", intent="followup"))
     values.append(ChatSuggestion(label="Xuất FHIR", prompt="Xuất kết quả này sang FHIR", intent="fhir"))
@@ -1633,6 +1637,55 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
             ),
             result={"urgency": "ROUTINE", "red_flags": []},
         )
+
+    # Healthcare Financial Budget Target & Spending Intent Interception
+    from app.services.healthcare_financial_advisor import healthcare_financial_advisor_service
+    budget_target_amount = healthcare_financial_advisor_service.detect_budget_target(latest_text)
+    is_financial_inquiry = healthcare_financial_advisor_service.is_financial_inquiry(latest_text)
+
+    if (budget_target_amount is not None or is_financial_inquiry) and not pre_ood_safety_floor.is_emergency:
+        # Check clinical safety verification
+        safety_status, _ = healthcare_financial_advisor_service.evaluate_clinical_safety_and_positivity(latest_text, "")
+        # If there are no urgent red flag symptoms, handle as clinical-financial advisory
+        if safety_status.safety_tier != "urgent_medical_attention":
+            patient_ref = payload.context.patient_ref or "guest_patient"
+            if budget_target_amount is not None:
+                assessment = healthcare_financial_advisor_service.set_budget(
+                    patient_ref=patient_ref,
+                    budget_target_vnd=budget_target_amount,
+                )
+                financial_reply = healthcare_financial_advisor_service.compose_budget_guidance_reply(
+                    budget_vnd=budget_target_amount,
+                    assessment=assessment,
+                    is_new_target=True,
+                )
+            else:
+                assessment = healthcare_financial_advisor_service.get_assessment(patient_ref)
+                financial_reply = healthcare_financial_advisor_service.compose_budget_guidance_reply(
+                    budget_vnd=assessment.monthly_budget_target_vnd,
+                    assessment=assessment,
+                    is_new_target=False,
+                )
+
+            return _response(
+                payload,
+                ctx,
+                status="answered",
+                intent="financial",
+                reply=financial_reply,
+                extracted={
+                    "monthly_budget_target_vnd": assessment.monthly_budget_target_vnd,
+                    "budget_status": assessment.budget_status,
+                    "remaining_budget_vnd": assessment.remaining_budget_vnd,
+                },
+                result={
+                    "monthly_budget_target_vnd": assessment.monthly_budget_target_vnd,
+                    "budget_status": assessment.budget_status,
+                    "remaining_budget_vnd": assessment.remaining_budget_vnd,
+                    "total_spent_vnd": assessment.breakdown.total_spent_vnd,
+                    "treatment_efficiency_score": assessment.treatment_efficiency_score,
+                },
+            )
 
     clinical_task_decision = resolve_clinical_task(latest_text)
 

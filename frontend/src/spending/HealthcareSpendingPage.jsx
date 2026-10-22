@@ -27,9 +27,11 @@ import {
   ShieldCheck,
   Sparkles,
   Stethoscope,
+  Target,
   TrendingDown,
   TrendingUp,
   WalletCards,
+  Edit3,
   X,
 } from 'lucide-react';
 import './HealthcareSpendingPage.css';
@@ -70,6 +72,11 @@ export function HealthcareSpendingPage({
   const [txSourceName, setTxSourceName] = useState('Nhà thuốc Long Châu chuẩn GPP');
   const [txCategory, setTxCategory] = useState('medication');
   const [txRecurrence, setTxRecurrence] = useState(false);
+
+  // Monthly Budget Target Modal State
+  const [showBudgetModal, setShowBudgetModal] = useState(false);
+  const [budgetValue, setBudgetValue] = useState('3000000');
+  const [budgetSaving, setBudgetSaving] = useState(false);
 
   // Robust API request wrapper supporting both functional and object API client
   const makeRequest = useCallback(
@@ -206,12 +213,53 @@ export function HealthcareSpendingPage({
     }
   };
 
+  const handleSetBudget = async (customAmt) => {
+    const amt = typeof customAmt === 'number' ? customAmt : parseInt(budgetValue, 10);
+    if (!amt || amt <= 0) {
+      if (onNotify) onNotify('Vui lòng nhập hạn mức ngân sách hợp lệ.', 'error');
+      return;
+    }
+    setBudgetSaving(true);
+    try {
+      const updated = await makeRequest('/v1/financial/set-budget', {
+        method: 'POST',
+        body: {
+          patient_ref: patientRef,
+          budget_target_vnd: amt,
+        },
+      });
+      setAssessment(updated);
+      setShowBudgetModal(false);
+      if (onNotify) onNotify(`Đã cập nhật hạn mức ngân sách y tế: ${formatVnd(amt)} / tháng!`, 'success');
+    } catch (err) {
+      console.error('Error updating budget:', err);
+      if (onNotify) onNotify('Không thể cập nhật ngân sách.', 'error');
+    } finally {
+      setBudgetSaving(false);
+    }
+  };
+
   const breakdown = assessment?.breakdown || {};
   const safety = assessment?.safety_status || {};
   const recs = assessment?.recommendations || [];
   const allTransactions = assessment?.transactions || [];
   const tes = assessment?.treatment_efficiency_score ?? 82;
   const roiRank = assessment?.health_roi_rank || 'A';
+
+  // Healthcare Financial Budget Metrics
+  const budgetTarget = assessment?.monthly_budget_target_vnd ?? 3000000;
+  const totalSpent = breakdown.total_spent_vnd ?? 0;
+  const remainingBudget = assessment?.remaining_budget_vnd ?? Math.max(0, budgetTarget - totalSpent);
+  const budgetPct = assessment?.budget_utilization_percentage ?? (budgetTarget > 0 ? Math.round((totalSpent / budgetTarget) * 100) : 0);
+  const budgetStatus = assessment?.budget_status ?? (totalSpent > budgetTarget ? 'over_budget' : budgetPct >= 80 ? 'approaching_limit' : 'within_budget');
+  const allocationPlan = assessment?.budget_allocation_plan || {
+    doctor_consult_vnd: Math.round(budgetTarget * 0.45),
+    doctor_consult_pct: 45,
+    gpp_medication_vnd: Math.round(budgetTarget * 0.35),
+    gpp_medication_pct: 35,
+    reserve_diagnostic_vnd: Math.round(budgetTarget * 0.20),
+    reserve_diagnostic_pct: 20,
+  };
 
   const isUrgentSafety = safety.safety_tier === 'urgent_medical_attention';
   const isCautionSafety = safety.safety_tier === 'caution';
@@ -268,6 +316,19 @@ export function HealthcareSpendingPage({
         </div>
 
         <div className="dashboard-actions">
+          <button
+            type="button"
+            className="dash-btn budget-badge-btn"
+            onClick={() => {
+              setBudgetValue(String(budgetTarget));
+              setShowBudgetModal(true);
+            }}
+            title="Nhấn để điều chỉnh hạn mức ngân sách y tế tháng"
+          >
+            <Target size={14} style={{ color: '#00e5ff' }} />
+            <span>Hạn mức: <strong>{formatVnd(budgetTarget)}</strong></span>
+            <Edit3 size={12} style={{ opacity: 0.7, marginLeft: '4px' }} />
+          </button>
           <button
             type="button"
             className="dash-btn"
@@ -327,6 +388,95 @@ export function HealthcareSpendingPage({
             <ShieldCheck size={14} />
             <span>Kiểm thử Cổng An Toàn AI</span>
           </button>
+        </div>
+      </section>
+
+      {/* --------------------------------------------------------------------
+          2.5 MONTHLY BUDGET & SMART CLINICAL ALLOCATION HERO CARD
+          -------------------------------------------------------------------- */}
+      <section className="budget-hero-card">
+        <div className="budget-hero-left">
+          <div className="budget-hero-header">
+            <div className="budget-tag-row">
+              <span className="budget-tag-pill">
+                <Target size={13} />
+                <span>HẠN MỨC NGÂN SÁCH THÁNG 10/2026</span>
+              </span>
+              <span className={`budget-status-badge ${budgetStatus}`}>
+                {budgetStatus === 'over_budget'
+                  ? '⚠️ Vượt hạn mức'
+                  : budgetStatus === 'approaching_limit'
+                  ? '⚡ Tiệm cận hạn mức'
+                  : '✅ An toàn trong tầm kiểm soát'}
+              </span>
+            </div>
+            <div className="budget-amount-display">
+              <span className="budget-current-val">{formatVnd(budgetTarget)}</span>
+              <button
+                type="button"
+                className="budget-edit-trigger"
+                onClick={() => {
+                  setBudgetValue(String(budgetTarget));
+                  setShowBudgetModal(true);
+                }}
+              >
+                <Edit3 size={13} /> Thay đổi hạn mức
+              </button>
+            </div>
+            <p className="budget-hero-desc">
+              Mục tiêu ngân sách tự động đồng bộ từ hội thoại chat để kiểm soát chi phí mua thuốc và khám chữa bệnh.
+            </p>
+          </div>
+
+          {/* Budget progress bar */}
+          <div className="budget-meter-container">
+            <div className="budget-meter-labels">
+              <span>Đã chi: <strong>{formatVnd(breakdown.total_spent_vnd)}</strong> ({budgetPct}%)</span>
+              <span>Còn lại: <strong style={{ color: '#34d399' }}>{formatVnd(remainingBudget)}</strong></span>
+            </div>
+            <div className="budget-meter-track">
+              <div
+                className={`budget-meter-fill ${budgetStatus}`}
+                style={{ width: `${Math.min(100, Math.max(5, budgetPct))}%` }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Smart Allocation Breakdown (45 - 35 - 20) */}
+        <div className="budget-allocation-panel">
+          <div className="allocation-title-row">
+            <Sparkles size={14} style={{ color: '#00e5ff' }} />
+            <span>Phác Đồ Phân Bổ Dòng Tiền Tối Ưu (MedGuard 45-35-20)</span>
+          </div>
+          <div className="allocation-items-grid">
+            <div className="alloc-item doctor">
+              <div className="alloc-item-top">
+                <span className="alloc-pct">45%</span>
+                <span className="alloc-amt">{formatVnd(allocationPlan.doctor_consult_vnd || Math.round(budgetTarget * 0.45))}</span>
+              </div>
+              <div className="alloc-name">Khám Booking Care & BHYT</div>
+              <p className="alloc-desc">Khám đúng chuyên khoa sớm, giảm 80-100% viện phí qua BHYT đúng tuyến.</p>
+            </div>
+
+            <div className="alloc-item meds">
+              <div className="alloc-item-top">
+                <span className="alloc-pct">35%</span>
+                <span className="alloc-amt">{formatVnd(allocationPlan.gpp_medication_vnd || Math.round(budgetTarget * 0.35))}</span>
+              </div>
+              <div className="alloc-name">Thuốc GPP & Generic Chuẩn</div>
+              <p className="alloc-desc">Chuỗi Long Châu/Pharmacity, dùng biệt dược tương đương sinh học tiết kiệm 30-40%.</p>
+            </div>
+
+            <div className="alloc-item reserve">
+              <div className="alloc-item-top">
+                <span className="alloc-pct">20%</span>
+                <span className="alloc-amt">{formatVnd(allocationPlan.reserve_diagnostic_vnd || Math.round(budgetTarget * 0.20))}</span>
+              </div>
+              <div className="alloc-name">Quỹ Dự Phòng Sức Khỏe</div>
+              <p className="alloc-desc">Xét nghiệm tầm soát hoặc dinh dưỡng phòng ngừa biến chứng.</p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -881,6 +1031,113 @@ export function HealthcareSpendingPage({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* --------------------------------------------------------------------
+          MODAL: EDIT MONTHLY HEALTHCARE BUDGET TARGET
+          -------------------------------------------------------------------- */}
+      {showBudgetModal && (
+        <div className="spending-modal-backdrop" onClick={() => setShowBudgetModal(false)}>
+          <div className="spending-modal-card budget-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-dialog-header">
+              <h3>
+                <Target size={20} style={{ color: '#00e5ff' }} />
+                <span>Thiết Lập Hạn Mức Ngân Sách Y Tế Tháng</span>
+              </h3>
+              <button
+                type="button"
+                className="modal-close-icon"
+                onClick={() => setShowBudgetModal(false)}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
+              <p style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8', lineHeight: 1.5 }}>
+                Đặt hạn mức chi tiêu tối đa mỗi tháng cho việc mua thuốc và khám chữa bệnh. MedGuard AI sẽ tính toán tỷ lệ phân bổ dòng tiền tối ưu (45% Khám Booking Care & BHYT, 35% Thuốc chuẩn GPP, 20% Dự phòng) theo chuẩn kinh tế dược học.
+              </p>
+
+              <div className="modal-form-group">
+                <label>Hạn mức ngân sách tối đa (VNĐ):</label>
+                <input
+                  type="number"
+                  step="100000"
+                  min="100000"
+                  max="500000000"
+                  className="modal-input"
+                  value={budgetValue}
+                  onChange={(e) => setBudgetValue(e.target.value)}
+                  placeholder="Ví dụ: 3000000"
+                  required
+                />
+              </div>
+
+              {/* Quick Preset Buttons */}
+              <div className="budget-presets-row">
+                <span className="presets-label">Chọn nhanh:</span>
+                {[1500000, 2000000, 3000000, 5000000].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    className={`preset-pill ${parseInt(budgetValue, 10) === preset ? 'active' : ''}`}
+                    onClick={() => setBudgetValue(String(preset))}
+                  >
+                    {formatVnd(preset)}
+                  </button>
+                ))}
+              </div>
+
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '10px',
+                  background: 'rgba(0, 229, 255, 0.06)',
+                  border: '1px solid rgba(0, 229, 255, 0.2)',
+                  borderRadius: '10px',
+                  padding: '10px 12px',
+                  fontSize: '0.8rem',
+                  color: '#cbd5e1',
+                  lineHeight: 1.45,
+                }}
+              >
+                <ShieldCheck size={16} style={{ color: '#00e5ff', flexShrink: 0, marginTop: '2px' }} />
+                <span>
+                  <strong>Cam kết an toàn tuyệt đối:</strong> MedGuard AI không bao giờ khuyên bạn cắt giảm thuốc kê đơn hay trì hoãn việc đi khám bác sĩ chỉ để giữ chỉ tiêu ngân sách.
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '6px' }}>
+                <button
+                  type="button"
+                  className="dash-btn"
+                  onClick={() => setShowBudgetModal(false)}
+                >
+                  Hủy
+                </button>
+                <button
+                  type="button"
+                  className="dash-btn primary"
+                  onClick={() => handleSetBudget()}
+                  disabled={budgetSaving}
+                >
+                  {budgetSaving ? (
+                    <>
+                      <RefreshCw size={14} className="spin" />
+                      <span>Đang lưu...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 size={14} />
+                      <span>Lưu Hạn Mức {formatVnd(parseInt(budgetValue, 10) || 0)}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

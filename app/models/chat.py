@@ -24,6 +24,7 @@ ChatIntent = Literal[
     "ocr",
     "schedule",
     "authenticity",
+    "financial",
 ]
 
 

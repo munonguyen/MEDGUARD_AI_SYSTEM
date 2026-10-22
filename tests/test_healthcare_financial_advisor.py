@@ -92,3 +92,81 @@ def test_evaluate_safety_endpoint(client):
     data = res.json()
     assert data["safety_status"]["safety_tier"] == "urgent_medical_attention"
     assert "CẢNH BÁO AN TOÀN LÂM SÀNG" in data["revised_advice"]
+
+
+def test_detect_budget_target():
+    """Service must accurately parse Vietnamese healthcare budget phrasing."""
+    svc = healthcare_financial_advisor_service
+    # User's exact prompt
+    target_1 = svc.detect_budget_target(
+        "tổng chi tiêu tháng này tôi muốn là tối đa khoảng 3 triệu vào việc mua thuốc và khám sức khoẻ"
+    )
+    assert target_1 == 3_000_000
+
+    target_2 = svc.detect_budget_target("hạn mức chi tiêu y tế tháng này 2.5 triệu")
+    assert target_2 == 2_500_000
+
+    target_3 = svc.detect_budget_target("ngân sách thuốc và khám tháng 10 là 2tr5")
+    assert target_3 == 2_500_000
+
+    target_4 = svc.detect_budget_target("chi tiêu tối đa 5.000.000 đ cho khám chữa bệnh")
+    assert target_4 == 5_000_000
+
+
+def test_set_budget_endpoint(client):
+    """POST /v1/financial/set-budget updates budget and generates clinical allocation plan."""
+    payload = {
+        "patient_ref": "test_patient",
+        "budget_target_vnd": 3000000,
+    }
+    res = client.post(
+        "/v1/financial/set-budget",
+        json=payload,
+        headers={"x-api-key": "demo-key", "x-tenant-id": "tenant-demo"},
+    )
+    assert res.status_code == 200
+    data = res.json()
+    assert data["monthly_budget_target_vnd"] == 3000000
+    assert data["remaining_budget_vnd"] > 0
+    assert data["budget_status"] == "within_budget"
+    assert "budget_allocation_plan" in data
+    assert data["budget_allocation_plan"]["doctor_consult_vnd"] == 1350000
+    assert data["budget_allocation_plan"]["gpp_medication_vnd"] == 1050000
+
+
+def test_chat_budget_statement_intercepted(client):
+    """Chat must intercept budget statements and return financial guidance instead of symptom fallback."""
+    chat_payload = {
+        "conversation_id": "conv-test-budget-01",
+        "messages": [
+            {
+                "role": "user",
+                "content": "tổng chi tiêu tháng này tôi muốn là tối đa khoảng 3 triệu vào việc mua thuốc và khám sức khoẻ",
+            }
+        ],
+        "context": {"patient_ref": "guest_patient"},
+    }
+    res = client.post(
+        "/v1/chat",
+        json=chat_payload,
+        headers={
+            "x-api-key": "demo-key",
+            "x-tenant-id": "tenant-demo",
+            "Idempotency-Key": "test-budget-idempotency-01",
+        },
+    )
+    assert res.status_code == 200
+    data = res.json()
+    assert data["status"] == "answered"
+    assert data["intent"] == "financial"
+    assert "3.000.000" in data["reply"]
+    assert "view=spending" in data["reply"]
+    # Ensure it did NOT trigger the generic triage fallback
+    assert "Gateway không đạt kiểm định" not in data["reply"]
+    assert "THÔNG BÁO CHƯA ĐỦ THÔNG TIN: Dữ liệu bạn cung cấp hiện chưa đủ" not in data["reply"]
+
+    # Verify financial_assessment_update is included in answer
+    assert "financial_assessment_update" in data["answer"]
+    fin = data["answer"]["financial_assessment_update"]
+    assert fin["assessment"]["monthly_budget_target_vnd"] == 3000000
+

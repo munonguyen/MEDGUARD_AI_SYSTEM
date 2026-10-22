@@ -184,6 +184,32 @@ class HealthcareFinancialAdvisorService:
         else:
             assessment.health_roi_rank = "D"
 
+        # Monthly Budget Target Calculations
+        budget = assessment.monthly_budget_target_vnd or 3000000
+        assessment.monthly_budget_target_vnd = budget
+        assessment.remaining_budget_vnd = max(0, budget - total)
+        assessment.budget_utilization_percentage = round((total / budget) * 100, 1) if budget > 0 else 0.0
+
+        if total > budget:
+            assessment.budget_status = "over_budget"
+        elif assessment.budget_utilization_percentage >= 80.0:
+            assessment.budget_status = "approaching_limit"
+        else:
+            assessment.budget_status = "within_budget"
+
+        # Smart Clinical Allocation Breakdown (45% Doctor & BHYT, 35% GPP Meds, 20% Reserve)
+        doctor_share = int(budget * 0.45)
+        med_share = int(budget * 0.35)
+        reserve_share = budget - doctor_share - med_share
+        assessment.budget_allocation_plan = {
+            "doctor_consult_vnd": doctor_share,
+            "doctor_consult_pct": 45,
+            "gpp_medication_vnd": med_share,
+            "gpp_medication_pct": 35,
+            "reserve_diagnostic_vnd": reserve_share,
+            "reserve_diagnostic_pct": 20,
+        }
+
         # Projected savings if patient adopts GPP adherence and early booking
         # Savings = 100% of recurrence waste + ~35% of diagnostic/revisit costs
         projected_savings = recurrence_waste_spent + int(doctor_booking_spent * 0.3)
@@ -191,6 +217,14 @@ class HealthcareFinancialAdvisorService:
 
         assessment.recommendations = self._generate_recommendations(assessment)
         assessment.last_updated = datetime.now().isoformat()
+
+    def set_budget(
+        self, patient_ref: str = "guest_patient", budget_target_vnd: int = 3000000
+    ) -> MonthlyFinancialAssessment:
+        assessment = self.get_assessment(patient_ref)
+        assessment.monthly_budget_target_vnd = budget_target_vnd
+        self.recalculate(assessment)
+        return assessment
 
     def _generate_recommendations(
         self, assessment: MonthlyFinancialAssessment
@@ -406,6 +440,14 @@ class HealthcareFinancialAdvisorService:
         if any(cue in norm for cue in ["mãi không khỏi", "uống 4 ngày", "uống 5 ngày", "uống 3 ngày", "lại bị lại", "tái phát", "đợt 2", "đợt 3", "chưa đỡ", "vẫn ho", "vẫn sốt", "vẫn đau"]):
             recurrence_flag = True
 
+        # Budget Target Detection from Chat
+        budget_target = self.detect_budget_target(text)
+        is_budget_update = False
+        if budget_target:
+            assessment.monthly_budget_target_vnd = budget_target
+            self.recalculate(assessment)
+            is_budget_update = True
+
         # Safety Gate Evaluation
         safety_status, _ = self.evaluate_clinical_safety_and_positivity(text, "")
         assessment.safety_status = safety_status
@@ -442,14 +484,180 @@ class HealthcareFinancialAdvisorService:
                 self.recalculate(assessment)
 
         return {
-            "has_financial_signal": detected_amount is not None or recurrence_flag or safety_status.clinical_override_applied,
+            "has_financial_signal": detected_amount is not None or recurrence_flag or is_budget_update or safety_status.clinical_override_applied,
             "detected_amount_vnd": detected_amount,
+            "detected_budget_target_vnd": budget_target,
+            "is_budget_update": is_budget_update,
             "is_official_gpp": is_official,
             "recurrence_flag": recurrence_flag,
             "safety_status": safety_status.model_dump(),
             "new_transaction": new_transaction.model_dump() if new_transaction else None,
             "assessment": assessment.model_dump(),
         }
+
+    def detect_budget_target(self, text: str) -> int | None:
+        """
+        Detects if the user is setting or mentioning a monthly healthcare budget target.
+        Examples:
+        - "tổng chi tiêu tháng này tôi muốn là tối đa khoảng 3 triệu vào việc mua thuốc và khám sức khoẻ"
+        - "chi tiêu tháng này tối đa 3 triệu"
+        - "ngân sách tháng này là 3 triệu"
+        - "hạn mức chi tiêu y tế tháng này 3tr"
+        - "tháng này chỉ chi tối đa 3.000.000 đ cho thuốc và khám"
+        - "ngân sách tối đa 2.5 triệu"
+        - "2tr5"
+        - "tối đa khoảng 3 triệu vào việc mua thuốc và khám sức khoẻ"
+        """
+        if not text:
+            return None
+        norm = text.lower().strip()
+
+        # Check for budget intent cues
+        budget_intent_cues = [
+            "chi tiêu", "ngân sách", "hạn mức", "tối đa", "khoản chi", "chi phí",
+            "dành ra", "chi khoảng", "muốn chi", "dự trù", "đặt ngân sách", "đặt hạn mức",
+            "chi tối đa", "giới hạn", "khống chế"
+        ]
+        has_budget_intent = any(cue in norm for cue in budget_intent_cues)
+        if not has_budget_intent:
+            return None
+
+        # Check for context keywords: healthcare/medical/monthly/medicine/exam
+        context_cues = [
+            "tháng", "thuốc", "khám", "sức khoẻ", "sức khỏe", "y tế", "bệnh",
+            "chữa bệnh", "booking care", "bác sĩ", "viện phí"
+        ]
+        has_context = any(cue in norm for cue in context_cues)
+        if not has_context:
+            return None
+
+        # 1. Compound forms like "2tr5", "3tr2", "1tr8"
+        m_compound = re.search(r"(\d+)\s*tr\s*(\d+)", norm)
+        if m_compound:
+            major = int(m_compound.group(1))
+            minor = int(m_compound.group(2))
+            return major * 1_000_000 + minor * 100_000
+
+        # 2. "3 triệu rưỡi", "2 triệu rưỡi"
+        m_half = re.search(r"(\d+)\s*(?:triệu|tr)\s*rưỡi", norm)
+        if m_half:
+            return int(m_half.group(1)) * 1_000_000 + 500_000
+
+        # 3. "3 triệu", "3.5 triệu", "3,5 triệu", "3tr", "3 tr", "3 củ"
+        m_trieu = re.search(r"(\d+(?:[.,]\d+)?)\s*(?:triệu|tr\b|củ\b|m\b)", norm)
+        if m_trieu:
+            try:
+                val = float(m_trieu.group(1).replace(",", "."))
+                return int(val * 1_000_000)
+            except ValueError:
+                pass
+
+        # 4. Formatted currency "3.000.000", "3,000,000", "3000000"
+        m_currency = re.search(r"(\d{1,3}(?:[.,]\d{3})+|\d{6,9})\s*(?:đ|vnd|đồng)?", norm)
+        if m_currency:
+            try:
+                raw = m_currency.group(1).replace(".", "").replace(",", "")
+                val = int(raw)
+                if val >= 50000:
+                    return val
+            except ValueError:
+                pass
+
+        # 5. "500k", "800 nghìn", "500 ngàn"
+        m_k = re.search(r"(\d+)\s*(?:k\b|nghìn|ngàn)", norm)
+        if m_k:
+            try:
+                return int(m_k.group(1)) * 1000
+            except ValueError:
+                pass
+
+        return None
+
+    def is_financial_inquiry(self, text: str) -> bool:
+        if not text:
+            return False
+        norm = text.lower().strip()
+        inquiry_cues = [
+            "chi tiêu y tế", "quản lý chi tiêu", "tiết kiệm chi phí", "tiền thuốc",
+            "tiết kiệm tiền", "sổ chi tiêu", "bảng chi tiêu", "ngân sách sức khoẻ",
+            "ngân sách sức khỏe", "tổng chi tiêu", "tiết kiệm thuốc", "tối ưu chi phí khám"
+        ]
+        return any(cue in norm for cue in inquiry_cues)
+
+    def compose_budget_guidance_reply(
+        self,
+        budget_vnd: int,
+        assessment: MonthlyFinancialAssessment,
+        is_new_target: bool = True,
+    ) -> str:
+        b = assessment.breakdown
+        total_spent = b.total_spent_vnd
+        remaining = assessment.remaining_budget_vnd
+        pct = assessment.budget_utilization_percentage
+        tes = assessment.treatment_efficiency_score
+        roi_rank = assessment.health_roi_rank
+
+        budget_str = f"{budget_vnd:,}đ".replace(",", ".")
+        spent_str = f"{total_spent:,}đ".replace(",", ".")
+        remaining_str = f"{remaining:,}đ".replace(",", ".")
+        waste_str = f"{b.recurrence_waste_spent_vnd:,}đ".replace(",", ".")
+
+        plan = assessment.budget_allocation_plan or {}
+        doctor_share = plan.get("doctor_consult_vnd", int(budget_vnd * 0.45))
+        med_share = plan.get("gpp_medication_vnd", int(budget_vnd * 0.35))
+        reserve_share = plan.get("reserve_diagnostic_vnd", budget_vnd - doctor_share - med_share)
+
+        doctor_str = f"{doctor_share:,}đ".replace(",", ".")
+        med_str = f"{med_share:,}đ".replace(",", ".")
+        reserve_str = f"{reserve_share:,}đ".replace(",", ".")
+
+        if assessment.budget_status == "over_budget":
+            status_desc = "⚠️ ĐÃ VƯỢT NGÂN SÁCH (Cần rà soát các khoản mua thuốc lặp lại)"
+        elif assessment.budget_status == "approaching_limit":
+            status_desc = "⚡ ĐANG TIỆM CẬN HẠN MỨC (Còn lại ít, ưu tiên khám BHYT đúng tuyến)"
+        else:
+            status_desc = "✅ AN TOÀN TRONG TẦM KIỂM SOÁT"
+
+        header_title = (
+            f"🎯 **ĐÃ THIẾT LẬP HẠN MỨC NGÂN SÁCH Y TẾ: {budget_str} / THÁNG**"
+            if is_new_target
+            else f"📊 **KẾ HOẠCH QUẢN TRỊ NGÂN SÁCH Y TẾ: {budget_str} / THÁNG**"
+        )
+
+        reply = (
+            f"{header_title}\n\n"
+            f"MedGuard AI đã tự động cập nhật hạn mức chi tiêu y tế của bạn vào "
+            f"**[Bảng Quản Lý Chi Phí Sức Khỏe](http://localhost:8000/?view=spending)**. "
+            f"Dưới đây là phân tích tiến độ thực tế và khuyến nghị kinh tế dược học tối ưu cho bạn:\n\n"
+            f"### 📈 TIẾN ĐỘ THỰC HIỆN NGÂN SÁCH THÁNG 10/2026\n"
+            f"- **Hạn mức đặt ra**: **{budget_str}**\n"
+            f"- **Đã chi tiêu**: **{spent_str}** ({pct}%)\n"
+            f"- **Ngân sách còn lại khả dụng**: **{remaining_str}**\n"
+            f"- **Trạng thái chi tiêu**: **{status_desc}**\n"
+            f"- **Điểm Hiệu Quả Điều Trị (TES)**: **{tes}/100 (Hạng {roi_rank})**\n\n"
+            f"---\n\n"
+            f"### 💡 LỜI KHUYÊN PHÂN BỔ DÒNG TIỀN Y TẾ THÔNG MINH (45 - 35 - 20)\n\n"
+            f"Dựa trên thực tiễn lâm sàng tại Việt Nam, để tối ưu ngân sách **{budget_str}** mà vẫn đảm bảo **khỏi bệnh dứt điểm**, "
+            f"hệ thống khuyến nghị tỷ lệ phân bổ như sau:\n\n"
+            f"1. **🏥 45% (~{doctor_str}) — Khám chuyên khoa Booking Care & Đồng chi trả BHYT**:\n"
+            f"   - **Khám đúng chuyên khoa sớm**: Khi xuất hiện triệu chứng bất thường, hãy đặt lịch khám chuyên khoa trong 24-48 giờ đầu qua Booking Care thay vì tự ý mua thuốc mò tại tiệm.\n"
+            f"   - **Tận dụng BHYT thông tuyến quận/huyện**: Giúp BHYT chi trả **80% - 100%** chi phí khám bệnh và xét nghiệm cơ bản.\n"
+            f"   - **Lợi ích kinh tế**: Khám đúng bệnh ngay từ đầu giúp giải quyết dứt điểm nguyên nhân, tiết kiệm hàng triệu đồng so với việc để bệnh nặng phải cấp cứu hoặc điều trị nội trú.\n\n"
+            f"2. **💊 35% (~{med_str}) — Mua thuốc chuẩn GPP & Biệt dược Generic tương đương sinh học**:\n"
+            f"   - **Mua thuốc tại chuỗi GPP chính hãng** (Pharmacity, Long Châu, An Khang...): Đảm bảo hoạt chất đạt nồng độ ức chế tối thiểu (MIC), giúp khỏi dứt điểm trong 5-7 ngày.\n"
+            f"   - **Cảnh báo bẫy thuốc liều lẻ ngoài chợ/đầu ngõ**: Mua thuốc liều lẻ giá rẻ nhiều lần tưởng tiết kiệm nhưng thường thiếu liều, khiến vi khuẩn kháng thuốc (AMR), bệnh tái phát dai dẳng (sổ chi tiêu của bạn hiện ghi nhận **{waste_str}** chi phí lãng phí do tái phát).\n"
+            f"   - **Chủ động hỏi biệt dược Generic**: Yêu cầu dược sĩ tư vấn thuốc Generic tương đương sinh học (Bioequivalent) chuẩn GMP/WHO có cùng hoạt chất với biệt dược gốc để tiết kiệm **30% - 40%** tiền thuốc mà hiệu quả tương đương 100%.\n\n"
+            f"3. **🛡️ 20% (~{reserve_str}) — Quỹ dự phòng sức khỏe & Chăm sóc phòng ngừa**:\n"
+            f"   - Dành cho các xét nghiệm tầm soát định kỳ, mua dung dịch sát khuẩn, nước muối sinh lý, bù điện giải hoặc nâng cao miễn dịch phòng bệnh.\n\n"
+            f"---\n\n"
+            f"### 🛡️ CAM KẾT CỔNG KIỂM SOÁT AN TOÀN Y KHOA (CLINICAL SAFETY GATE)\n"
+            f"MedGuard AI cam kết: **An toàn sức khỏe và tính mạng luôn là ưu tiên số 1**. "
+            f"Hệ thống **tuyệt đối không bao giờ** khuyên bạn tự ý cắt giảm liều thuốc kê đơn, mua thuốc kém chất lượng "
+            f"hay trì hoãn việc đi khám bác sĩ chỉ để giữ chỉ tiêu ngân sách. Khi có bất kỳ triệu chứng cảnh báo đỏ, "
+            f"bạn cần đến cơ sở y tế gần nhất ngay lập tức.\n\n"
+            f"👉 **[Nhấn vào đây để xem Bảng Quản Trị Chi Tiêu & Biểu Đồ Chi Tiết (http://localhost:8000/?view=spending)](http://localhost:8000/?view=spending)**"
+        )
+        return reply
 
     def reset_to_default(self, patient_ref: str = "guest_patient") -> MonthlyFinancialAssessment:
         self._assessments[patient_ref] = self._create_initial_assessment(patient_ref)
