@@ -62,6 +62,7 @@ import { NavigationPage } from './navigation/NavigationPage';
 import { HealthTwinPage } from './health/HealthTwinPage';
 import { HealthcareSpendingPage } from './spending/HealthcareSpendingPage';
 import { ErrorBoundary } from './common/ErrorBoundary';
+import { processUnifiedTopicGatedChat, TOPIC_MODES } from './chat/topicGatedSync';
 import {
   getSavedUserLocation,
   saveUserLocation,
@@ -501,6 +502,14 @@ function Conversation({
                 <div className="assistant-identity">
                   <strong>MedGuard AI</strong>
                   <span className="assistant-version-badge">Clinical v14</span>
+                  {entry.topic_label && (
+                    <span
+                      className={`assistant-topic-badge topic-${(entry.topic_mode || 'unrelated').toLowerCase().replace(/_/g, '-')}`}
+                      title="Chế độ phân luồng đồng bộ chủ đề MedGuard AI"
+                    >
+                      {entry.topic_label}
+                    </span>
+                  )}
                   {entry.verification_status === 'verified' && (
                     <span className="assistant-verified-badge" title="Đã qua kiểm định an toàn lâm sàng">
                       <ShieldCheck size={12} />
@@ -1117,16 +1126,52 @@ export default function App({
           body: { conversation_id: conversationId, messages, context: clinicalContext(context, userLocation), intent_hint: effectiveIntent, locale: 'vi-VN' },
           timeoutMs: chatTimeoutMs || 35000,
         });
-        responseEntry = { role: 'assistant', requestId: data.request_id, text: data.reply, intent: data.intent, status: data.status, result: data.result, answer: data.answer, suggestions: data.suggestions, answer_origin: data.answer_origin, verification_status: data.verification_status, knowledge_approval: data.knowledge_approval };
+        let savedHealth = null;
+        try {
+          const raw = localStorage.getItem('medguard_health_twin_profile');
+          if (raw) savedHealth = JSON.parse(raw);
+        } catch {}
+        let savedFin = null;
+        try {
+          const raw = localStorage.getItem('medguard_financial_assessment');
+          if (raw) savedFin = JSON.parse(raw);
+        } catch {}
+
+        const syncResult = processUnifiedTopicGatedChat(shownText, {
+          healthProfile: savedHealth,
+          financialAssessment: savedFin,
+        });
+
+        responseEntry = {
+          role: 'assistant',
+          requestId: data.request_id,
+          text: data.reply,
+          intent: data.intent,
+          status: data.status,
+          result: data.result,
+          answer: data.answer,
+          suggestions: data.suggestions,
+          answer_origin: data.answer_origin,
+          verification_status: data.verification_status,
+          knowledge_approval: data.knowledge_approval,
+          topic_mode: syncResult.topicMode,
+          topic_label: syncResult.label,
+        };
         if (data.extracted?.patient_ref) setContext((current) => ({ ...current, patient_ref: data.extracted.patient_ref }));
         if (data.result) setContext((current) => ({ ...current, last_result: data.result }));
         if (data.required_fields?.includes('patient_ref')) setPatientOpen(true);
-        if (data.answer?.health_twin_update || data.answer) {
-          window.dispatchEvent(new CustomEvent('medguard:health-twin-updated', { detail: data }));
-        }
-        if (data.answer?.financial_assessment_update || data.intent === 'financial' || data.answer) {
-          const finAssess = data.answer?.financial_assessment_update?.assessment;
-          const budgetVal = data.result?.monthly_budget_target_vnd || finAssess?.monthly_budget_target_vnd;
+
+        if (syncResult.topicMode === TOPIC_MODES.HEALTH_OVERVIEW_ONLY) {
+          if (syncResult.healthMutation) {
+            try {
+              localStorage.setItem('medguard_health_twin_profile', JSON.stringify(syncResult.healthMutation));
+            } catch {}
+          }
+          window.dispatchEvent(new CustomEvent('medguard:health-twin-updated', { detail: { ...data, healthMutation: syncResult.healthMutation } }));
+          window.dispatchEvent(new CustomEvent('medguard:unified-chat-sync', { detail: syncResult }));
+        } else if (syncResult.topicMode === TOPIC_MODES.EXPENSE_MANAGEMENT_ONLY) {
+          const finAssess = syncResult.expenseMutation || data.answer?.financial_assessment_update?.assessment;
+          const budgetVal = syncResult.expenseMutation?.monthly_budget_target_vnd || data.result?.monthly_budget_target_vnd;
           if (budgetVal) {
             try {
               localStorage.setItem('medguard_budget_target_vnd', String(budgetVal));
@@ -1137,7 +1182,25 @@ export default function App({
               localStorage.setItem('medguard_financial_assessment', JSON.stringify(finAssess));
             } catch {}
           }
-          window.dispatchEvent(new CustomEvent('medguard:financial-updated', { detail: data }));
+          window.dispatchEvent(new CustomEvent('medguard:financial-updated', { detail: { ...data, expenseMutation: syncResult.expenseMutation } }));
+          window.dispatchEvent(new CustomEvent('medguard:unified-chat-sync', { detail: syncResult }));
+        } else if (syncResult.topicMode === TOPIC_MODES.DUAL_HEALTH_AND_EXPENSE) {
+          if (syncResult.healthMutation) {
+            try {
+              localStorage.setItem('medguard_health_twin_profile', JSON.stringify(syncResult.healthMutation));
+            } catch {}
+          }
+          if (syncResult.expenseMutation) {
+            try {
+              localStorage.setItem('medguard_financial_assessment', JSON.stringify(syncResult.expenseMutation));
+            } catch {}
+          }
+          window.dispatchEvent(new CustomEvent('medguard:health-twin-updated', { detail: { ...data, healthMutation: syncResult.healthMutation } }));
+          window.dispatchEvent(new CustomEvent('medguard:financial-updated', { detail: { ...data, expenseMutation: syncResult.expenseMutation } }));
+          window.dispatchEvent(new CustomEvent('medguard:unified-chat-sync', { detail: syncResult }));
+        } else {
+          // UNRELATED_NO_STATE_MUTATION: 100% metrics in both modules strictly preserved!
+          window.dispatchEvent(new CustomEvent('medguard:unified-chat-sync', { detail: syncResult }));
         }
       }
       if (refreshHistory) void loadConversations();

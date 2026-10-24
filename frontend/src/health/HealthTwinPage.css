@@ -510,10 +510,10 @@
   color: #f87171;
 }
 
-/* ---------------- Main Twin Grid Layout ---------------- */
+/* ---------------- Main Twin Grid Layout (5 Cột + 7 Cột Chuẩn Y Khoa) ---------------- */
 .twin-main-grid {
   display: grid;
-  grid-template-columns: 460px 1fr;
+  grid-template-columns: minmax(400px, 5fr) minmax(480px, 7fr);
   gap: 20px;
 }
 
@@ -2524,4 +2524,394 @@
   font-size: 13px;
   color: #64748b;
   font-style: italic;
+}
+
+/* ==========================================================================
+   CLINICAL ADR EMERGENCY GUARDRAIL BOX
+   ========================================================================== */
+.clinical-adr-emergency-box {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.16) 0%, rgba(15, 23, 42, 0.95) 100%);
+  border: 1.5px solid #ef4444;
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 18px;
+  box-shadow: 0 0 25px rgba(239, 68, 68, 0.25);
+  animation: adrGlow 2.5s infinite alternate;
+}
+
+@keyframes adrGlow {
+  0% { box-shadow: 0 0 15px rgba(239, 68, 68, 0.2); }
+  100% { box-shadow: 0 0 30px rgba(239, 68, 68, 0.45); }
+}
+
+.adr-box-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.adr-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.adr-alert-icon {
+  color: #ef4444;
+  flex-shrink: 0;
+  animation: pulse 1.8s infinite;
+}
+
+.adr-title-wrap h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fca5a5;
+  letter-spacing: 0.03em;
+}
+
+.adr-subtitle {
+  font-size: 11.5px;
+  color: #cbd5e1;
+}
+
+.adr-critical-badge {
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  letter-spacing: 0.05em;
+}
+
+.adr-box-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.adr-instruction-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+.adr-action-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.adr-action-badge.stop { color: #f87171; }
+.adr-action-badge.safe { color: #34d399; }
+
+.adr-text {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.stop-text { color: #fecaca; font-weight: 600; }
+.safe-text { color: #d1fae5; }
+
+.adr-box-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.adr-emergency-115-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.adr-emergency-115-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.55);
+}
+
+/* ==========================================================================
+   MA TRẬN 9 HỆ CƠ QUAN LÂM SÀNG (ANATOMICAL MATRIX 2-COL WIDE)
+   ========================================================================== */
+.organ-matrix-section {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 18px;
+}
+
+.matrix-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.matrix-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.matrix-title-group h4 {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.matrix-hint {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.organ-matrix-9-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+@media (max-width: 768px) {
+  .organ-matrix-9-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.matrix-organ-card {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 3.5px solid var(--organ-color, #10b981);
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.matrix-organ-card:hover {
+  background: rgba(30, 41, 59, 0.85);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.matrix-organ-card.selected {
+  background: rgba(15, 23, 42, 0.95);
+  border-color: var(--organ-color, #00e5ff);
+  box-shadow: 0 0 14px rgba(0, 229, 255, 0.2);
+}
+
+.matrix-card-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.matrix-icon-badge {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.matrix-organ-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #f1f5f9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.matrix-card-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.matrix-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bar-label {
+  font-size: 10.5px;
+  color: #94a3b8;
+  width: 58px;
+  flex-shrink: 0;
+}
+
+.matrix-progress-track, .matrix-vas-track {
+  flex: 1;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.matrix-progress-fill, .matrix-vas-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.bar-num {
+  font-size: 11px;
+  font-weight: 700;
+  width: 32px;
+  text-align: right;
+}
+
+.vas-num {
+  color: #e2e8f0;
+}
+
+/* ==========================================================================
+   SVG RADIAL RING & 5 WAVEFORM VITALS CARDS
+   ========================================================================== */
+.radial-ring-wrap {
+  position: relative;
+  width: 112px;
+  height: 112px;
+  margin: 6px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.svg-radial-ring {
+  transform: rotate(-90deg);
+}
+
+.ring-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.08);
+}
+
+.ring-progress {
+  fill: none;
+  transition: stroke-dashoffset 0.6s ease, stroke 0.4s ease;
+}
+
+.radial-ring-content {
+  position: absolute;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+}
+
+.ring-score-val {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.ring-score-max {
+  font-size: 12px;
+  color: #64748b;
+  margin-left: 2px;
+}
+
+/* Waveform Vital Card with ECG line */
+.vital-waveform-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.vital-svg-waveform-wrap {
+  width: 100%;
+  height: 28px;
+  margin: 4px 0;
+  display: flex;
+  align-items: center;
+}
+
+.ecg-svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.4));
+}
+
+.vital-threshold-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  font-size: 10.5px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.threshold-tag {
+  color: #94a3b8;
+  font-size: 10px;
+}
+
+.vital-progress-stack {
+  width: 100%;
+  margin: 6px 0;
+}
+
+.progress-stack-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-stack-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* VAS Gradient Bar */
+.vas-gradient-track-wrap {
+  width: 100%;
+  margin: 8px 0;
+}
+
+.vas-gradient-bar {
+  position: relative;
+  width: 100%;
+  height: 7px;
+  background: linear-gradient(90deg, #10b981 0%, #f59e0b 50%, #ef4444 100%);
+  border-radius: 4px;
+}
+
+.vas-pointer {
+  position: absolute;
+  top: -3px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid #0f172a;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+  transform: translateX(-50%);
+  transition: left 0.3s ease;
 }

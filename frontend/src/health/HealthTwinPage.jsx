@@ -512,9 +512,26 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
     const handleSync = () => {
       fetchProfile();
     };
+    const handleUnifiedChatSync = (event) => {
+      const detail = event?.detail;
+      if (detail?.healthMutation) {
+        setProfile((prev) => ({
+          ...prev,
+          ...detail.healthMutation,
+        }));
+        if (detail.healthMutation?.adr_alert) {
+          setActionNotice(`Cảnh báo lâm sàng ADR: ${detail.healthMutation.adr_alert.action_directive}`);
+        } else {
+          setActionNotice(`Đồng bộ Tổng Quan Sức Khoẻ: ${detail.label || 'Đã cập nhật'}`);
+        }
+        setTimeout(() => setActionNotice(null), 5000);
+      }
+    };
     window.addEventListener('medguard:health-twin-updated', handleSync);
+    window.addEventListener('medguard:unified-chat-sync', handleUnifiedChatSync);
     return () => {
       window.removeEventListener('medguard:health-twin-updated', handleSync);
+      window.removeEventListener('medguard:unified-chat-sync', handleUnifiedChatSync);
     };
   }, []);
 
@@ -928,6 +945,125 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
 
         {/* Right Column: Detailed Organ Inspector Card & Live Controls */}
         <div className="inspector-column">
+          {/* Clinical ADR Safety Guardrail Emergency Banner */}
+          {(profile.adr_alert?.active || profile.safe_guardrail_alert || activeOrgan?.status === 'adverse_reaction') && (
+            <div className="clinical-adr-emergency-box">
+              <div className="adr-box-header">
+                <div className="adr-title-wrap">
+                  <ShieldAlert size={20} className="adr-alert-icon" />
+                  <div>
+                    <h4>CẢNH BÁO AN TOÀN DƯỢC LÂM SÀNG (SAFETY GUARDRAIL / ADR)</h4>
+                    <span className="adr-subtitle">Phát hiện phản ứng có hại của thuốc hoặc dấu hiệu cờ đỏ cấp tính</span>
+                  </div>
+                </div>
+                <span className="adr-critical-badge">BÁO ĐỘNG ĐỎ</span>
+              </div>
+              <div className="adr-box-body">
+                <div className="adr-instruction-row">
+                  <div className="adr-action-badge stop">CHỈ THỊ: DỪNG THUỐC GÂY HẠI</div>
+                  <p className="adr-text stop-text">
+                    {profile.adr_alert?.action_directive || profile.safe_guardrail_alert?.required_action || 'DỪNG NGAY Ibuprofen / Thuốc kháng viêm NSAID'}
+                  </p>
+                </div>
+                <div className="adr-instruction-row">
+                  <div className="adr-action-badge safe">PHÁC ĐỒ THAY THẾ AN TOÀN</div>
+                  <p className="adr-text safe-text">
+                    {profile.adr_alert?.safe_alternative || profile.safe_guardrail_alert?.alternative_recommendation || 'Dùng Esomeprazole (Nexium 40mg) / Phosphalugel bảo vệ niêm mạc; thay bằng Paracetamol nếu cần hạ sốt.'}
+                  </p>
+                </div>
+              </div>
+              <div className="adr-box-footer">
+                <button
+                  type="button"
+                  className="adr-emergency-115-btn"
+                  onClick={() => {
+                    onNavigate?.('navigation');
+                    window.dispatchEvent(
+                      new CustomEvent('medguard:navigate', {
+                        detail: { view: 'navigation', emergency: true, reason: 'adr_stomach_ibuprofen' },
+                      })
+                    );
+                  }}
+                >
+                  <Navigation size={16} />
+                  <span>Chuyển sang Buồng lái Chỉ đường Cấp cứu 3D 115</span>
+                  <ArrowRight size={16} />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Ma trận 9 Hệ Cơ Quan Lâm Sàng (Không bị cắt chữ, 2 cột lớn) */}
+          <div className="organ-matrix-section">
+            <div className="matrix-section-header">
+              <div className="matrix-title-group">
+                <Activity size={16} style={{ color: '#00e5ff' }} />
+                <h4>Ma Trận 9 Hệ Cơ Quan Sinh Học (100% Tiếng Việt)</h4>
+              </div>
+              <span className="matrix-hint">Nhấp vào thẻ để chọn tiêu điểm</span>
+            </div>
+
+            <div className="organ-matrix-9-grid">
+              {[
+                { id: 'head', name: '1. Não bộ & Thần kinh', icon: Zap },
+                { id: 'eyes', name: '2. Mắt & Thị giác', icon: Eye },
+                { id: 'ent', name: '3. Tai Mũi Họng', icon: Volume2 },
+                { id: 'cardiovascular', name: '4. Tim mạch & Tuần hoàn', icon: Heart },
+                { id: 'lungs', name: '5. Phổi & Hô hấp', icon: Droplet },
+                { id: 'stomach', name: '6. Dạ Dày & Tiêu Hóa', icon: Flame },
+                { id: 'liver', name: '7. Gan & Mật', icon: Activity },
+                { id: 'kidneys', name: '8. Thận & Tiết Niệu', icon: Droplet },
+                { id: 'spine_joints', name: '9. Cơ Xương Khớp', icon: Layers },
+              ].map((sys) => {
+                const organData = profile?.organs?.find((o) => o.id === sys.id || (sys.id === 'eyes' && o.id === 'skin')) || {
+                  health_score: 95,
+                  status: 'normal',
+                  vas_pain_score: 0,
+                  pain_level: 0,
+                };
+                const score = organData.health_score ?? 95;
+                const vas = organData.vas_pain_score ?? organData.pain_level ?? 0;
+                const statusColor = getStatusColor(organData.status, score);
+                const isSelected = (selectedOrganId === sys.id) || (sys.id === 'eyes' && selectedOrganId === 'skin');
+                const IconComponent = sys.icon;
+
+                return (
+                  <div
+                    key={sys.id}
+                    className={`matrix-organ-card ${isSelected ? 'selected' : ''}`}
+                    onClick={() => setSelectedOrganId(sys.id === 'eyes' ? 'skin' : sys.id)}
+                    style={{ '--organ-color': statusColor }}
+                  >
+                    <div className="matrix-card-top">
+                      <div className="matrix-icon-badge" style={{ backgroundColor: `${statusColor}22`, color: statusColor }}>
+                        <IconComponent size={16} />
+                      </div>
+                      <span className="matrix-organ-name">{sys.name}</span>
+                    </div>
+
+                    <div className="matrix-card-bars">
+                      <div className="matrix-bar-row">
+                        <span className="bar-label">Sức khoẻ:</span>
+                        <div className="matrix-progress-track">
+                          <div className="matrix-progress-fill" style={{ width: `${score}%`, backgroundColor: statusColor }} />
+                        </div>
+                        <strong className="bar-num" style={{ color: statusColor }}>{score}%</strong>
+                      </div>
+
+                      <div className="matrix-bar-row vas-row">
+                        <span className="bar-label">Thang VAS:</span>
+                        <div className="matrix-vas-track">
+                          <div className="matrix-vas-fill" style={{ width: `${(vas / 10) * 100}%`, backgroundColor: vas >= 7 ? '#ef4444' : vas >= 4 ? '#f59e0b' : '#10b981' }} />
+                        </div>
+                        <strong className="bar-num vas-num">{vas}/10</strong>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           {activeOrgan && (
             <div
               className={`organ-inspector-card ${activeOrgan.status === 'adverse_reaction' ? 'has-adr' : ''}`}
@@ -1746,121 +1882,207 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
         {/* Tab: Overview & Vitals */}
         {activeTab === 'overview' && (
           <div className="overview-tab-content">
-            {/* Health Score & Vitals Row */}
+            {/* Health Score SVG Radial Ring & 5 Waveform Vitals Cards */}
             <div className="vitals-hud-grid">
-              {/* Overall Recovery Score Dial */}
-              <div className="hud-card recovery-score-card">
-                <span className="card-subtitle">Điểm Hồi phục Sức khoẻ</span>
-                <div className="dial-wrap">
-                  <div
-                    className="dial-circle"
-                    style={{
-                      background: `conic-gradient(${getStatusColor(profile?.health_trend === 'critical_alert' ? 'critical' : 'normal', profile?.overall_health_score || 80)} ${(profile?.overall_health_score || 80) * 3.6}deg, rgba(255,255,255,0.06) 0deg)`,
-                    }}
-                  >
-                    <div className="dial-inner">
-                      <strong className="dial-num">{profile?.overall_health_score || 82}</strong>
-                      <span className="dial-max">/100</span>
+              {/* Overall SVG Radial Ring Score Card */}
+              {(() => {
+                const currentScore = profile?.overall_health_score ?? 81;
+                const ringColor = currentScore >= 80 ? '#10b981' : currentScore >= 50 ? '#06b6d4' : '#ef4444';
+                const circumference = 2 * Math.PI * 46;
+                const strokeDashoffset = circumference * (1 - currentScore / 100);
+
+                return (
+                  <div className="hud-card recovery-score-card">
+                    <span className="card-subtitle">Điểm Sức khoẻ Toàn diện</span>
+                    <div className="radial-ring-wrap">
+                      <svg width="112" height="112" viewBox="0 0 112 112" className="svg-radial-ring">
+                        <circle cx="56" cy="56" r="46" className="ring-bg" strokeWidth="8" />
+                        <circle
+                          cx="56"
+                          cy="56"
+                          r="46"
+                          className="ring-progress"
+                          strokeWidth="8"
+                          stroke={ringColor}
+                          strokeDasharray={circumference}
+                          strokeDashoffset={strokeDashoffset}
+                          strokeLinecap="round"
+                          transform="rotate(-90 56 56)"
+                        />
+                      </svg>
+                      <div className="radial-ring-content">
+                        <strong className="ring-score-val" style={{ color: ringColor }}>{currentScore}</strong>
+                        <span className="ring-score-max">/100</span>
+                      </div>
                     </div>
+
+                    <div className="trend-indicator-row">
+                      {currentScore < 50 || profile?.health_trend === 'critical_alert' ? (
+                        <span className="trend-badge alert">
+                          <TrendingDown size={14} /> Báo động cần can thiệp
+                        </span>
+                      ) : currentScore < 80 ? (
+                        <span className="trend-badge stable">
+                          <Activity size={14} /> Cần theo dõi sinh lý
+                        </span>
+                      ) : (
+                        <span className="trend-badge improving">
+                          <TrendingUp size={14} /> Thể trạng tối ưu
+                        </span>
+                      )}
+                    </div>
+                    <p className="diagnosis-text">{profile?.active_diagnosis || 'Thể trạng sinh lý bình thường'}</p>
                   </div>
-                </div>
+                );
+              })()}
 
-                <div className="trend-indicator-row">
-                  {profile?.health_trend === 'improving' ? (
-                    <span className="trend-badge improving">
-                      <TrendingUp size={14} /> Đang hồi phục tốt
-                    </span>
-                  ) : profile?.health_trend === 'critical_alert' ? (
-                    <span className="trend-badge alert">
-                      <TrendingDown size={14} /> Báo động cần can thiệp
-                    </span>
-                  ) : (
-                    <span className="trend-badge stable">
-                      <Activity size={14} /> Đang theo dõi ổn định
-                    </span>
-                  )}
-                </div>
-                <p className="diagnosis-text">{profile?.active_diagnosis}</p>
-              </div>
-
-              {/* Vitals Cards */}
-              <div className="hud-card vital-card">
+              {/* 1. Nhịp Tim BPM kèm Sóng Điện Tâm Đồ SVG (ECG Waveform) */}
+              <div className="hud-card vital-card vital-waveform-card">
                 <div className="vital-header">
                   <Heart size={16} className="vital-icon heart" />
-                  <span>Nhịp tim</span>
+                  <span>1. Nhịp tim (BPM)</span>
                 </div>
                 <div className="vital-val-row">
                   <strong className="vital-num">{profile?.vitals?.heart_rate_bpm || 78}</strong>
-                  <span className="vital-unit">bpm</span>
+                  <span className="vital-unit">BPM</span>
                 </div>
-                <span className="vital-status-text">
-                  {(profile?.vitals?.heart_rate_bpm || 78) > 100 ? 'Nhịp tim nhanh' : 'Nhịp đều bình thường'}
-                </span>
+                {/* SVG ECG Waveform */}
+                <div className="vital-svg-waveform-wrap">
+                  <svg className="ecg-svg" viewBox="0 0 140 32" preserveAspectRatio="none">
+                    <polyline
+                      fill="none"
+                      stroke="#ef4444"
+                      strokeWidth="2.2"
+                      points="0,16 25,16 32,16 38,8 44,26 50,2 56,20 62,14 68,16 95,16 102,8 108,26 114,2 120,20 126,14 140,16"
+                    />
+                  </svg>
+                </div>
+                <div className="vital-threshold-bar">
+                  <span className="threshold-tag">Chuẩn: 60 - 100 bpm</span>
+                  <span className="vital-status-text">
+                    {(profile?.vitals?.heart_rate_bpm || 78) > 100 ? 'Nhịp nhanh' : (profile?.vitals?.heart_rate_bpm || 78) < 60 ? 'Nhịp chậm' : 'Nhịp đều chuẩn'}
+                  </span>
+                </div>
               </div>
 
+              {/* 2. Huyết Áp mmHg */}
               <div className="hud-card vital-card">
                 <div className="vital-header">
                   <Activity size={16} className="vital-icon bp" />
-                  <span>Huyết áp</span>
+                  <span>2. Huyết áp (mmHg)</span>
                 </div>
                 <div className="vital-val-row">
                   <strong className="vital-num">
-                    {profile?.vitals?.blood_pressure_systolic || 120}/{profile?.vitals?.blood_pressure_diastolic || 80}
+                    {profile?.vitals?.blood_pressure_systolic || 118}/{profile?.vitals?.blood_pressure_diastolic || 78}
                   </strong>
                   <span className="vital-unit">mmHg</span>
                 </div>
-                <span className="vital-status-text">
-                  {(profile?.vitals?.blood_pressure_systolic || 120) >= 130 ? 'Tăng huyết áp độ 1' : (profile?.vitals?.blood_pressure_systolic || 120) >= 120 ? 'Tiền tăng huyết áp' : 'Huyết áp tối ưu'}
-                </span>
+                <div className="vital-progress-stack">
+                  <div className="progress-stack-track">
+                    <div
+                      className="progress-stack-fill"
+                      style={{
+                        width: `${Math.min(100, ((profile?.vitals?.blood_pressure_systolic || 118) / 160) * 100)}%`,
+                        backgroundColor: (profile?.vitals?.blood_pressure_systolic || 118) >= 140 ? '#ef4444' : (profile?.vitals?.blood_pressure_systolic || 118) >= 120 ? '#f59e0b' : '#10b981',
+                      }}
+                    />
+                  </div>
+                </div>
+                <div className="vital-threshold-bar">
+                  <span className="threshold-tag">Chuẩn: &lt;120/80</span>
+                  <span className="vital-status-text">
+                    {(profile?.vitals?.blood_pressure_systolic || 118) >= 130 ? 'Tăng HA độ 1' : (profile?.vitals?.blood_pressure_systolic || 118) >= 120 ? 'Tiền tăng HA' : 'Tối ưu'}
+                  </span>
+                </div>
               </div>
 
+              {/* 3. Thân Nhiệt °C */}
               <div className="hud-card vital-card">
                 <div className="vital-header">
                   <Thermometer size={16} className="vital-icon temp" />
-                  <span>Thân nhiệt</span>
+                  <span>3. Thân nhiệt (°C)</span>
                 </div>
                 <div className="vital-val-row">
-                  <strong
-                    className={`vital-num ${(profile?.vitals?.temperature_celsius || 37) >= 38.5 ? 'vital-hot' : ''}`}
-                  >
-                    {profile?.vitals?.temperature_celsius || 37.0}°C
+                  <strong className={`vital-num ${(profile?.vitals?.temperature_celsius || profile?.vitals?.body_temperature_c || 36.8) >= 38.5 ? 'vital-hot' : ''}`}>
+                    {profile?.vitals?.temperature_celsius || profile?.vitals?.body_temperature_c || 36.8}°C
                   </strong>
                 </div>
-                <span className="vital-status-text">
-                  {(profile?.vitals?.temperature_celsius || 37) >= 38.5
-                    ? 'Sốt cao cần hạ sốt'
-                    : (profile?.vitals?.temperature_celsius || 37) > 37.5
-                    ? 'Sốt nhẹ'
-                    : 'Thân nhiệt bình thường'}
-                </span>
+                <div className="vital-progress-stack">
+                  <div className="progress-stack-track">
+                    <div
+                      className="progress-stack-fill"
+                      style={{
+                        width: `${Math.min(100, (((profile?.vitals?.temperature_celsius || profile?.vitals?.body_temperature_c || 36.8) - 35) / 5) * 100)}%`,
+                        backgroundColor: (profile?.vitals?.temperature_celsius || profile?.vitals?.body_temperature_c || 36.8) >= 38.5 ? '#ef4444' : (profile?.vitals?.temperature_celsius || profile?.vitals?.body_temperature_c || 36.8) > 37.5 ? '#f59e0b' : '#10b981',
+                      }}
+                    />
+                  </div>
+                </div>
+                <div className="vital-threshold-bar">
+                  <span className="threshold-tag">Chuẩn: 36.5 - 37.5°C</span>
+                  <span className="vital-status-text">
+                    {(profile?.vitals?.temperature_celsius || profile?.vitals?.body_temperature_c || 36.8) >= 38.5 ? 'Sốt cao kịch phát' : (profile?.vitals?.temperature_celsius || profile?.vitals?.body_temperature_c || 36.8) > 37.5 ? 'Sốt nhẹ' : 'Bình thường'}
+                  </span>
+                </div>
               </div>
 
+              {/* 4. SpO2 Máu % */}
               <div className="hud-card vital-card">
                 <div className="vital-header">
                   <Droplet size={16} className="vital-icon spo2" />
-                  <span>SpO2 Khí máu</span>
+                  <span>4. SpO2 Máu (%)</span>
                 </div>
                 <div className="vital-val-row">
                   <strong className="vital-num">{profile?.vitals?.spo2_percent || 98}%</strong>
                 </div>
-                <span className="vital-status-text">
-                  {(profile?.vitals?.spo2_percent || 98) < 95 ? 'Nguy cơ suy hô hấp' : 'Nồng độ oxy tối ưu'}
-                </span>
+                <div className="vital-progress-stack">
+                  <div className="progress-stack-track">
+                    <div
+                      className="progress-stack-fill"
+                      style={{
+                        width: `${profile?.vitals?.spo2_percent || 98}%`,
+                        backgroundColor: (profile?.vitals?.spo2_percent || 98) < 95 ? '#ef4444' : '#00e5ff',
+                      }}
+                    />
+                  </div>
+                </div>
+                <div className="vital-threshold-bar">
+                  <span className="threshold-tag">Chuẩn: &ge; 95%</span>
+                  <span className="vital-status-text">
+                    {(profile?.vitals?.spo2_percent || 98) < 95 ? 'Báo động suy hô hấp' : 'Bão hòa oxy tối ưu'}
+                  </span>
+                </div>
               </div>
 
+              {/* 5. Thang Đau VAS /10 */}
               <div className="hud-card vital-card">
                 <div className="vital-header">
                   <Flame size={16} className="vital-icon pain" />
-                  <span>Mức đau toàn thân</span>
+                  <span>5. Thang Đau VAS (/10)</span>
                 </div>
-                <div className="vital-val-row">
-                  <strong className={`vital-num ${(profile?.vitals?.overall_pain_level || 0) >= 5 ? 'vital-pain' : ''}`}>
-                    {profile?.vitals?.overall_pain_level || 0}/10
-                  </strong>
-                </div>
-                <span className="vital-status-text">
-                  {(profile?.vitals?.overall_pain_level || 0) === 0 ? 'Không đau' : 'Đau có đáp ứng'}
-                </span>
+                {(() => {
+                  const vasScore = profile?.vitals?.vas_pain_score ?? profile?.vitals?.overall_pain_level ?? 2;
+                  const vasColor = vasScore >= 7 ? '#ef4444' : vasScore >= 4 ? '#f59e0b' : '#10b981';
+                  return (
+                    <>
+                      <div className="vital-val-row">
+                        <strong className="vital-num" style={{ color: vasColor }}>{vasScore}/10</strong>
+                        <span className="vital-unit">VAS</span>
+                      </div>
+                      <div className="vas-gradient-track-wrap">
+                        <div className="vas-gradient-bar">
+                          <div className="vas-pointer" style={{ left: `${Math.min(100, (vasScore / 10) * 100)}%` }} />
+                        </div>
+                      </div>
+                      <div className="vital-threshold-bar">
+                        <span className="threshold-tag">Chuẩn: 0 - 2 (Nhẹ)</span>
+                        <span className="vital-status-text" style={{ color: vasColor }}>
+                          {vasScore >= 7 ? 'Đau dữ dội cấp' : vasScore >= 4 ? 'Đau vừa có phản xạ' : vasScore === 0 ? 'Không đau' : 'Đau nhẹ kiểm soát'}
+                        </span>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </div>
 

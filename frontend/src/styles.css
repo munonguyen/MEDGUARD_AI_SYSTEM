@@ -1170,6 +1170,38 @@ body { overflow: hidden; background: var(--canvas); color: var(--text); }
   padding: 2px 8px;
   border-radius: 9999px;
 }
+.assistant-topic-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  letter-spacing: 0.02em;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  text-transform: uppercase;
+}
+.assistant-topic-badge.topic-health-overview-only {
+  color: #047857;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+}
+.assistant-topic-badge.topic-expense-management-only {
+  color: #1d4ed8;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+}
+.assistant-topic-badge.topic-dual-health-and-expense {
+  color: #6d28d9;
+  background: #f5f3ff;
+  border: 1px solid #ddd6fe;
+}
+.assistant-topic-badge.topic-unrelated-no-state-mutation {
+  color: #64748b;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
 .speaking-wave-bars {
   display: inline-flex;
   align-items: center;

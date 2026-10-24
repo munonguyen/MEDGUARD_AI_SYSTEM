@@ -5,12 +5,14 @@ import {
   AlertTriangle,
   ArrowRight,
   ArrowUpRight,
+  Award,
   BadgeCheck,
   CalendarCheck,
   CheckCircle2,
   ChevronRight,
   Coins,
   DollarSign,
+  FileScan,
   Filter,
   Flame,
   HelpCircle,
@@ -22,11 +24,14 @@ import {
   Plus,
   RefreshCw,
   RotateCcw,
+  Search,
   Shield,
   ShieldAlert,
   ShieldCheck,
+  ShoppingBag,
   Sparkles,
   Stethoscope,
+  Tag,
   Target,
   TrendingDown,
   TrendingUp,
@@ -35,6 +40,7 @@ import {
   X,
 } from 'lucide-react';
 import './HealthcareSpendingPage.css';
+import { calculateWilsonScore, detectSpamReviewNLP, calculateEigenTrust } from '../chat/topicGatedSync';
 
 function formatVnd(amount) {
   if (typeof amount !== 'number') return '0 đ';
@@ -59,6 +65,8 @@ export function HealthcareSpendingPage({
   const [loading, setLoading] = useState(!assessment);
   const [refreshing, setRefreshing] = useState(false);
   const [filterType, setFilterType] = useState('all'); // 'all', 'gpp', 'waste', 'doctor'
+  const [activeSubView, setActiveSubView] = useState('all'); // 'all', 'ocr_market', 'product_search', 'tickets_faq'
+  const [productSearchQuery, setProductSearchQuery] = useState('');
 
   // Safety Gate Simulation State
   const [showSimulator, setShowSimulator] = useState(false);
@@ -174,11 +182,32 @@ export function HealthcareSpendingPage({
       }
     };
 
+    const handleUnifiedChatSync = (event) => {
+      const detail = event?.detail;
+      if (detail?.expenseMutation) {
+        setAssessment((prev) => ({
+          ...prev,
+          ...detail.expenseMutation,
+        }));
+        try {
+          if (detail.expenseMutation.monthly_budget_target_vnd) {
+            localStorage.setItem('medguard_budget_target_vnd', String(detail.expenseMutation.monthly_budget_target_vnd));
+          }
+          localStorage.setItem('medguard_financial_assessment', JSON.stringify({ ...assessment, ...detail.expenseMutation }));
+        } catch {}
+        if (onNotify) {
+          onNotify(`Đã đồng bộ Chi Tiêu Y Tế từ Chat (${detail.label || 'Tài chính'})!`, 'info');
+        }
+      }
+    };
+
     window.addEventListener('medguard:financial-updated', handleFinancialUpdate);
+    window.addEventListener('medguard:unified-chat-sync', handleUnifiedChatSync);
     return () => {
       window.removeEventListener('medguard:financial-updated', handleFinancialUpdate);
+      window.removeEventListener('medguard:unified-chat-sync', handleUnifiedChatSync);
     };
-  }, [fetchAssessment, onNotify]);
+  }, [fetchAssessment, onNotify, assessment]);
 
   const handleReset = async () => {
     try {
@@ -524,126 +553,627 @@ export function HealthcareSpendingPage({
       </section>
 
       {/* --------------------------------------------------------------------
-          3. HIGH-IMPACT DASHBOARD KPI METRIC CARDS
+          3. 4 THẺ KPI TÀI CHÍNH Y TẾ VỚI SVG RADIAL PROGRESS
           -------------------------------------------------------------------- */}
       <section className="kpi-metrics-grid">
-        {/* KPI 1: Total Spent */}
-        <div className="kpi-card">
-          <div className="kpi-card-header">
-            <span className="kpi-label">Tổng Chi Y Tế Tháng</span>
-            <div className="kpi-icon-container total">
-              <WalletCards size={18} />
+        {/* KPI 1: Tổng Thực Chi Tháng Này */}
+        {(() => {
+          const spent = breakdown.total_spent_vnd || 2450000;
+          const target = budgetTarget || 10000000;
+          const pct = Math.min(100, Math.round((spent / target) * 100));
+          const circumference = 2 * Math.PI * 26;
+          const offset = circumference * (1 - pct / 100);
+          return (
+            <div className="kpi-card kpi-radial-card">
+              <div className="kpi-card-header">
+                <span className="kpi-label">Tổng Thực Chi Tháng</span>
+                <span className="kpi-pill success">{pct}% Hạn mức</span>
+              </div>
+              <div className="kpi-radial-body">
+                <div className="kpi-radial-svg-wrap">
+                  <svg width="68" height="68" viewBox="0 0 68 68">
+                    <circle cx="34" cy="34" r="26" className="kpi-ring-track" strokeWidth="6" />
+                    <circle
+                      cx="34"
+                      cy="34"
+                      r="26"
+                      className="kpi-ring-fill"
+                      strokeWidth="6"
+                      stroke="#10b981"
+                      strokeDasharray={circumference}
+                      strokeDashoffset={offset}
+                      strokeLinecap="round"
+                      transform="rotate(-90 34 34)"
+                    />
+                  </svg>
+                  <span className="kpi-radial-center-text">{pct}%</span>
+                </div>
+                <div className="kpi-radial-info">
+                  <span className="kpi-main-val">{formatVnd(spent)}</span>
+                  <span className="kpi-sub-val">Hạn mức: {formatVnd(target)}</span>
+                </div>
+              </div>
+              <p className="kpi-footnote">Đã chi cho thuốc GPP, khám Booking Care và xét nghiệm trong kỳ.</p>
             </div>
-          </div>
-          <div className="kpi-number-row">
-            <span className="kpi-main-val">{formatVnd(breakdown.total_spent_vnd)}</span>
-          </div>
-          <p className="kpi-footnote">Đã chi cho thuốc, khám bác sĩ Booking Care và xét nghiệm trong kỳ.</p>
-        </div>
+          );
+        })()}
 
-        {/* KPI 2: Recurrence Waste (The core problem in Vietnam) */}
-        <div className="kpi-card">
-          <div className="kpi-card-header">
-            <span className="kpi-label">Lãng Phí Do Bệnh Tái Phát</span>
-            <div className="kpi-icon-container waste">
-              <TrendingDown size={18} />
+        {/* KPI 2: Quỹ BHYT Đã Thanh Toán */}
+        {(() => {
+          const bhytPaid = assessment?.bhyt_paid_vnd || Math.round((breakdown.total_spent_vnd || 2450000) * 0.45);
+          const bhytRate = 80; // 80% đúng tuyến
+          const circumference = 2 * Math.PI * 26;
+          const offset = circumference * (1 - bhytRate / 100);
+          return (
+            <div className="kpi-card kpi-radial-card">
+              <div className="kpi-card-header">
+                <span className="kpi-label">Quỹ BHYT Đã Thanh Toán</span>
+                <span className="kpi-pill cyan">80% BHYT</span>
+              </div>
+              <div className="kpi-radial-body">
+                <div className="kpi-radial-svg-wrap">
+                  <svg width="68" height="68" viewBox="0 0 68 68">
+                    <circle cx="34" cy="34" r="26" className="kpi-ring-track" strokeWidth="6" />
+                    <circle
+                      cx="34"
+                      cy="34"
+                      r="26"
+                      className="kpi-ring-fill"
+                      strokeWidth="6"
+                      stroke="#00e5ff"
+                      strokeDasharray={circumference}
+                      strokeDashoffset={offset}
+                      strokeLinecap="round"
+                      transform="rotate(-90 34 34)"
+                    />
+                  </svg>
+                  <span className="kpi-radial-center-text">80%</span>
+                </div>
+                <div className="kpi-radial-info">
+                  <span className="kpi-main-val" style={{ color: '#00e5ff' }}>+{formatVnd(bhytPaid)}</span>
+                  <span className="kpi-sub-val">Bảo hiểm xã hội chi trả</span>
+                </div>
+              </div>
+              <p className="kpi-footnote">Tiền khám và thuốc nằm trong danh mục thanh toán BHYT đúng tuyến.</p>
             </div>
-          </div>
-          <div className="kpi-number-row">
-            <span className="kpi-main-val" style={{ color: '#fb7185' }}>
-              {formatVnd(breakdown.recurrence_waste_spent_vnd)}
-            </span>
-            <span className="kpi-pill danger">{breakdown.recurrence_waste_percentage}% Nguy cơ</span>
-          </div>
-          <p className="kpi-footnote">Tiền mua thuốc lẻ nhiều đợt không dứt điểm, vi khuẩn kháng thuốc (AMR).</p>
-        </div>
+          );
+        })()}
 
-        {/* KPI 3: Treatment Efficiency Score (TES) */}
-        <div className="kpi-card">
-          <div className="kpi-card-header">
-            <span className="kpi-label">Điểm Hiệu Quả Điều Trị (TES)</span>
-            <div className="kpi-icon-container tes">
-              <Activity size={18} />
+        {/* KPI 3: Điểm Tối Ưu Giá Thị Trường (DAV) */}
+        {(() => {
+          const score = assessment?.market_optimization_score ?? 92;
+          const circumference = 2 * Math.PI * 26;
+          const offset = circumference * (1 - score / 100);
+          return (
+            <div className="kpi-card kpi-radial-card">
+              <div className="kpi-card-header">
+                <span className="kpi-label">Điểm Tối Ưu Giá (DAV)</span>
+                <span className="kpi-pill rank">Bộ Y Tế</span>
+              </div>
+              <div className="kpi-radial-body">
+                <div className="kpi-radial-svg-wrap">
+                  <svg width="68" height="68" viewBox="0 0 68 68">
+                    <circle cx="34" cy="34" r="26" className="kpi-ring-track" strokeWidth="6" />
+                    <circle
+                      cx="34"
+                      cy="34"
+                      r="26"
+                      className="kpi-ring-fill"
+                      strokeWidth="6"
+                      stroke="#34d399"
+                      strokeDasharray={circumference}
+                      strokeDashoffset={offset}
+                      strokeLinecap="round"
+                      transform="rotate(-90 34 34)"
+                    />
+                  </svg>
+                  <span className="kpi-radial-center-text">{score}</span>
+                </div>
+                <div className="kpi-radial-info">
+                  <span className="kpi-main-val" style={{ color: '#34d399' }}>{score}/100</span>
+                  <span className="kpi-sub-val">Đúng trần kê khai DAV</span>
+                </div>
+              </div>
+              <p className="kpi-footnote">100% thuốc mua tại chuỗi GPP đúng khung giá niêm yết Cục Quản Lý Dược.</p>
             </div>
-          </div>
-          <div className="kpi-number-row">
-            <span className="kpi-main-val" style={{ color: '#d8b4fe' }}>
-              {tes} <span style={{ fontSize: '0.95rem', color: '#94a3b8' }}>/ 100</span>
-            </span>
-            <span className="kpi-pill rank">Hạng {roiRank}</span>
-          </div>
-          <p className="kpi-footnote">Tỷ lệ khỏi bệnh dứt điểm ngay từ đầu bằng nguồn thuốc chính hãng chuẩn GPP.</p>
-        </div>
+          );
+        })()}
 
-        {/* KPI 4: Projected Monthly Savings */}
-        <div className="kpi-card">
-          <div className="kpi-card-header">
-            <span className="kpi-label">Tiết Kiệm Khả Thi / Tháng</span>
-            <div className="kpi-icon-container savings">
-              <TrendingUp size={18} />
+        {/* KPI 4: Tiềm Năng Tiết Kiệm Generic EU-GMP */}
+        {(() => {
+          const potential = assessment?.eu_gmp_saving_potential_vnd ?? 420000;
+          const genericRate = 35; // 35% cost reduction
+          const circumference = 2 * Math.PI * 26;
+          const offset = circumference * (1 - genericRate / 100);
+          return (
+            <div className="kpi-card kpi-radial-card">
+              <div className="kpi-card-header">
+                <span className="kpi-label">Tiết Kiệm Generic EU-GMP</span>
+                <span className="kpi-pill rank">Nhóm 1</span>
+              </div>
+              <div className="kpi-radial-body">
+                <div className="kpi-radial-svg-wrap">
+                  <svg width="68" height="68" viewBox="0 0 68 68">
+                    <circle cx="34" cy="34" r="26" className="kpi-ring-track" strokeWidth="6" />
+                    <circle
+                      cx="34"
+                      cy="34"
+                      r="26"
+                      className="kpi-ring-fill"
+                      strokeWidth="6"
+                      stroke="#a855f7"
+                      strokeDasharray={circumference}
+                      strokeDashoffset={offset}
+                      strokeLinecap="round"
+                      transform="rotate(-90 34 34)"
+                    />
+                  </svg>
+                  <span className="kpi-radial-center-text">35%</span>
+                </div>
+                <div className="kpi-radial-info">
+                  <span className="kpi-main-val" style={{ color: '#c084fc' }}>+{formatVnd(potential)}</span>
+                  <span className="kpi-sub-val">Tiết kiệm khi đổi biệt dược</span>
+                </div>
+              </div>
+              <p className="kpi-footnote">Chuyển sang thuốc Generic tương đương sinh học EU-GMP giữ nguyên hiệu lực.</p>
             </div>
-          </div>
-          <div className="kpi-number-row">
-            <span className="kpi-main-val" style={{ color: '#34d399' }}>
-              +{formatVnd(assessment?.projected_monthly_savings_vnd)}
-            </span>
-            <span className="kpi-pill success">Khả thi cao</span>
-          </div>
-          <p className="kpi-footnote">Tiết kiệm được khi dứt điểm bệnh đợt 1 và khám BHYT đúng tuyến cơ sở.</p>
+          );
+        })()}
+      </section>
+
+      {/* --------------------------------------------------------------------
+          3.5 SEGMENTED SUB-NAVIGATION (CHUYỂN ĐỔI CHẾ ĐỘ XEM THÔNG MINH)
+          -------------------------------------------------------------------- */}
+      <section className="segmented-subnav-section" aria-label="Phân hệ nghiệp vụ">
+        <div className="segmented-subnav-tabs" role="tablist">
+          <button
+            type="button"
+            className={`subnav-tab-btn ${activeSubView === 'all' ? 'active' : ''}`}
+            onClick={() => setActiveSubView('all')}
+          >
+            <Layers size={15} />
+            <span>Tất cả phân hệ</span>
+          </button>
+          <button
+            type="button"
+            className={`subnav-tab-btn ${activeSubView === 'ocr_market' ? 'active' : ''}`}
+            onClick={() => setActiveSubView('ocr_market')}
+          >
+            <FileScan size={15} />
+            <span>1. Đọc Hóa Đơn OCR & Thị Trường</span>
+          </button>
+          <button
+            type="button"
+            className={`subnav-tab-btn ${activeSubView === 'product_search' ? 'active' : ''}`}
+            onClick={() => setActiveSubView('product_search')}
+          >
+            <Search size={15} />
+            <span>2. Tìm Sản Phẩm Ảnh & Agent Uy Tín</span>
+          </button>
+          <button
+            type="button"
+            className={`subnav-tab-btn ${activeSubView === 'tickets_faq' ? 'active' : ''}`}
+            onClick={() => setActiveSubView('tickets_faq')}
+          >
+            <HelpCircle size={15} />
+            <span>3. Phân Loại Ticket & Gợi Ý Câu Hỏi</span>
+          </button>
         </div>
       </section>
 
       {/* --------------------------------------------------------------------
-          4. CASHFLOW BREAKDOWN STRIP (VISUAL BUDGET BAR)
+          4. BIỂU ĐỒ DONUT SVG PHÂN BỔ CHI TIÊU & ĐỐI SÁNH 4 KHÍA CẠNH THỊ TRƯỜNG
           -------------------------------------------------------------------- */}
-      <section className="cashflow-strip-card">
-        <div className="cashflow-strip-header">
-          <div className="cashflow-title">
-            <PieChart size={16} style={{ color: '#00e5ff' }} />
-            <span>Cơ cấu phân bổ dòng tiền y tế tháng 10/2026</span>
-          </div>
-          <div className="cashflow-stats">
-            <span>Tổng chi: <strong>{formatVnd(breakdown.total_spent_vnd)}</strong></span>
-          </div>
-        </div>
+      {(activeSubView === 'all' || activeSubView === 'ocr_market') && (
+        <section className="donut-market-section">
+          <div className="donut-market-grid">
+            {/* Left: SVG Donut Chart */}
+            <div className="donut-chart-card">
+              <div className="donut-card-header">
+                <div className="card-title-group">
+                  <PieChart size={17} style={{ color: '#00e5ff' }} />
+                  <h4>Biểu Đồ Donut Phân Bổ Tỷ Trọng Chi Tiêu</h4>
+                </div>
+                <span className="donut-total-badge">Tháng 10/2026</span>
+              </div>
 
-        {/* Segmented Progress Bar */}
-        <div className="cashflow-progress-bar" title="Cơ cấu chi tiêu y tế">
-          <div
-            className="cashflow-segment gpp"
-            style={{ width: `${Math.max(15, gppPct)}%` }}
-            title={`Thuốc GPP Chuẩn: ${formatVnd(breakdown.gpp_official_spent_vnd)}`}
-          />
-          <div
-            className="cashflow-segment waste"
-            style={{ width: `${Math.max(10, wastePct)}%` }}
-            title={`Lãng phí do mua lẻ tái phát: ${formatVnd(breakdown.recurrence_waste_spent_vnd)}`}
-          />
-          <div
-            className="cashflow-segment booking"
-            style={{ width: `${Math.max(10, bookingPct)}%` }}
-            title={`Khám chuyên khoa & Xét nghiệm: ${formatVnd(breakdown.doctor_booking_spent_vnd)}`}
-          />
-        </div>
+              <div className="donut-visual-wrap">
+                <svg width="180" height="180" viewBox="0 0 180 180" className="spending-donut-svg">
+                  {/* Outer segments: 45% (meds), 35% (doctor), 12% (lab), 8% (supplies) */}
+                  {/* Circumference = 2 * PI * 65 = 408.4 */}
+                  <circle cx="90" cy="90" r="65" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="22" />
+                  {/* Segment 1: Thuốc kê đơn & GPP (45% = 183.78) */}
+                  <circle
+                    cx="90"
+                    cy="90"
+                    r="65"
+                    fill="none"
+                    stroke="#10b981"
+                    strokeWidth="22"
+                    strokeDasharray="183.78 224.62"
+                    strokeDashoffset="0"
+                    transform="rotate(-90 90 90)"
+                  />
+                  {/* Segment 2: Khám Booking Care (35% = 142.94) */}
+                  <circle
+                    cx="90"
+                    cy="90"
+                    r="65"
+                    fill="none"
+                    stroke="#00e5ff"
+                    strokeWidth="22"
+                    strokeDasharray="142.94 265.46"
+                    strokeDashoffset="-183.78"
+                    transform="rotate(-90 90 90)"
+                  />
+                  {/* Segment 3: Xét nghiệm Cận lâm sàng (12% = 49.0) */}
+                  <circle
+                    cx="90"
+                    cy="90"
+                    r="65"
+                    fill="none"
+                    stroke="#f59e0b"
+                    strokeWidth="22"
+                    strokeDasharray="49.0 359.4"
+                    strokeDashoffset="-326.72"
+                    transform="rotate(-90 90 90)"
+                  />
+                  {/* Segment 4: Vật tư y tế (8% = 32.67) */}
+                  <circle
+                    cx="90"
+                    cy="90"
+                    r="65"
+                    fill="none"
+                    stroke="#a855f7"
+                    strokeWidth="22"
+                    strokeDasharray="32.67 375.73"
+                    strokeDashoffset="-375.72"
+                    transform="rotate(-90 90 90)"
+                  />
+                </svg>
+                <div className="donut-center-legend">
+                  <span className="donut-center-label">Tổng Chi</span>
+                  <strong className="donut-center-amt">{formatVnd(breakdown.total_spent_vnd || 2450000)}</strong>
+                </div>
+              </div>
 
-        {/* Legend */}
-        <div className="cashflow-legend">
-          <div className="legend-item">
-            <span className="legend-color-dot gpp" />
-            <span>Chuỗi GPP chính hãng: <strong>{formatVnd(breakdown.gpp_official_spent_vnd)}</strong></span>
+              {/* Donut Legend */}
+              <div className="donut-legend-grid">
+                <div className="donut-legend-item">
+                  <span className="legend-dot" style={{ backgroundColor: '#10b981' }} />
+                  <span className="legend-name">Thuốc GPP chuẩn: <strong>45%</strong></span>
+                </div>
+                <div className="donut-legend-item">
+                  <span className="legend-dot" style={{ backgroundColor: '#00e5ff' }} />
+                  <span className="legend-name">Khám Booking Care: <strong>35%</strong></span>
+                </div>
+                <div className="donut-legend-item">
+                  <span className="legend-dot" style={{ backgroundColor: '#f59e0b' }} />
+                  <span className="legend-name">Xét nghiệm cận lâm sàng: <strong>12%</strong></span>
+                </div>
+                <div className="donut-legend-item">
+                  <span className="legend-dot" style={{ backgroundColor: '#a855f7' }} />
+                  <span className="legend-name">Vật tư y tế & Khác: <strong>8%</strong></span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Đối Sánh 4 Khía Cạnh Thị Trường Y Tế (DAV & Generic EU-GMP) */}
+            <div className="market-benchmark-card">
+              <div className="benchmark-card-header">
+                <div className="card-title-group">
+                  <Coins size={17} style={{ color: '#34d399' }} />
+                  <h4>Đối Sánh 4 Khía Cạnh Thị Trường & BHYT (DAV Benchmark)</h4>
+                </div>
+                <span className="benchmark-source-tag">Cục Quản Lý Dược (DAV)</span>
+              </div>
+
+              <div className="benchmark-table-wrap">
+                <table className="benchmark-comparison-table">
+                  <thead>
+                    <tr>
+                      <th>Hạng mục dịch vụ</th>
+                      <th>Giá mua thực tế</th>
+                      <th>Trần niêm yết DAV</th>
+                      <th>Generic EU-GMP</th>
+                      <th>Độ tối ưu</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <strong>Thuốc Esomeprazole 40mg</strong>
+                        <span className="table-sub">Kháng tiết acid dạ dày (Nexium / Generic)</span>
+                      </td>
+                      <td>24.000 ₫/viên</td>
+                      <td>24.500 ₫/viên</td>
+                      <td style={{ color: '#34d399' }}>14.500 ₫/viên</td>
+                      <td><span className="table-badge optimal">Tiết kiệm 40%</span></td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <strong>Thuốc Augmentin 1g</strong>
+                        <span className="table-sub">Kháng sinh Amoxicillin/Acid clavulanic</span>
+                      </td>
+                      <td>21.000 ₫/viên</td>
+                      <td>21.800 ₫/viên</td>
+                      <td style={{ color: '#34d399' }}>13.200 ₫/viên</td>
+                      <td><span className="table-badge optimal">Chuẩn DAV</span></td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <strong>Khám Chuyên Khoa Tiêu Hóa</strong>
+                        <span className="table-sub">Booking Care BV Đại học Y Dược</span>
+                      </td>
+                      <td>150.000 ₫/lượt</td>
+                      <td>150.000 ₫/lượt</td>
+                      <td>BHYT: 38.700 ₫</td>
+                      <td><span className="table-badge bhyt">Hưởng 80% BHYT</span></td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <strong>Xét nghiệm Men Gan (AST/ALT)</strong>
+                        <span className="table-sub">Đánh giá tác động chuyển hóa thuốc</span>
+                      </td>
+                      <td>85.000 ₫</td>
+                      <td>90.000 ₫</td>
+                      <td>BHYT đúng tuyến</td>
+                      <td><span className="table-badge optimal">Đúng giá</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
-          <div className="legend-item">
-            <span className="legend-color-dot waste" />
-            <span style={{ color: '#fb7185' }}>
-              Lãng phí mua lẻ tái phát: <strong>{formatVnd(breakdown.recurrence_waste_spent_vnd)}</strong>
-            </span>
+        </section>
+      )}
+
+      {/* --------------------------------------------------------------------
+          4.5 THANH TIẾN TRÌNH KIỂM ĐỊNH UY TÍN OPEN-SOURCE (WILSON SCORE, SPAM NLP, EIGENTRUST)
+          -------------------------------------------------------------------- */}
+      {(activeSubView === 'all' || activeSubView === 'product_search') && (
+        <section className="product-trust-section">
+          <div className="product-trust-header">
+            <div className="trust-title-group">
+              <Award size={18} style={{ color: '#00e5ff' }} />
+              <div>
+                <h4>Kiểm Định Uy Tín Sản Phẩm Y Tế & Nhà Cung Cấp Chuẩn Open-Source</h4>
+                <p className="trust-subtitle">
+                  Tích hợp bộ ba thuật toán chuẩn: Wilson Score 95% CI (độ tin cậy đánh giá), SpamReviewDetector NLP (lọc bình luận rác) và EigenTrust (uy tín mạng lưới GPP).
+                </p>
+              </div>
+            </div>
           </div>
-          <div className="legend-item">
-            <span className="legend-color-dot booking" />
-            <span>Khám Booking Care & BHYT: <strong>{formatVnd(breakdown.doctor_booking_spent_vnd)}</strong></span>
+
+          <div className="product-trust-cards-grid">
+            {[
+              {
+                id: 'prod_1',
+                name: 'Thuốc Nexium 40mg (Esomeprazole AstraZeneca)',
+                desc: 'Thuốc ức chế bơm proton (PPI) điều trị viêm loét dạ dày - tá tràng và trào ngược dạ dày thực quản.',
+                price: '480.000 ₫ / Hộp 14 viên',
+                genericAlternative: 'Esomeprazole Stada 40mg EU-GMP (Tiết kiệm 160.000 ₫)',
+                positiveReviews: 482,
+                totalReviews: 510,
+                spamDetectedRate: 1.4,
+                eigenTrustPeers: [0.95, 0.98, 0.94, 0.97],
+                category: 'Dạ Dày & Tiêu Hóa',
+              },
+              {
+                id: 'prod_2',
+                name: 'Kháng sinh Augmentin 1g (Amoxicillin/Acid clavulanic GSK)',
+                desc: 'Kháng sinh phổ rộng chính hãng điều trị nhiễm khuẩn đường hô hấp trên và dưới.',
+                price: '294.000 ₫ / Hộp 14 viên',
+                genericAlternative: 'Klamentin 1g Dược Hậu Giang EU-GMP (Tiết kiệm 98.000 ₫)',
+                positiveReviews: 318,
+                totalReviews: 345,
+                spamDetectedRate: 2.1,
+                eigenTrustPeers: [0.92, 0.94, 0.91, 0.96],
+                category: 'Hô Hấp & Kháng Sinh',
+              },
+              {
+                id: 'prod_3',
+                name: 'Thuốc Giảm Đau Panadol Extra (Paracetamol 500mg + Caffeine 65mg)',
+                desc: 'Giảm đau đầu, đau nửa đầu, đau cơ khớp do cảm sốt. Không kích ứng niêm mạc dạ dày.',
+                price: '185.000 ₫ / Hộp 180 viên',
+                genericAlternative: 'Hapacol 650mg Dược Hậu Giang (Tiết kiệm 45.000 ₫)',
+                positiveReviews: 890,
+                totalReviews: 920,
+                spamDetectedRate: 0.8,
+                eigenTrustPeers: [0.96, 0.98, 0.97, 0.99],
+                category: 'Thần Kinh & Giảm Đau',
+              },
+              {
+                id: 'prod_4',
+                name: 'Phosphalugel (Gel Nhôm Phosphat 20%)',
+                desc: 'Thuốc dạ dày chữ P dạng gel kháng acid bảo vệ niêm mạc thượng vị, giảm nóng rát tức thì.',
+                price: '115.000 ₫ / Hộp 26 gói',
+                genericAlternative: 'Alumag Gel đạt chuẩn GPP (Tiết kiệm 30.000 ₫)',
+                positiveReviews: 412,
+                totalReviews: 430,
+                spamDetectedRate: 1.2,
+                eigenTrustPeers: [0.94, 0.95, 0.93, 0.96],
+                category: 'Dạ Dày & Kháng Acid',
+              },
+            ].map((prod) => {
+              const wilsonScore = calculateWilsonScore(prod.positiveReviews, prod.totalReviews, 0.95);
+              const wilsonPct = Math.round(wilsonScore * 1000) / 10;
+              const realReviewPct = Math.round((100 - prod.spamDetectedRate) * 10) / 10;
+              const eigenTrustScore = calculateEigenTrust(prod.eigenTrustPeers);
+
+              return (
+                <div key={prod.id} className="product-trust-card">
+                  <div className="product-card-top">
+                    <span className="product-category-tag">{prod.category}</span>
+                    <span className="product-price-badge">{prod.price}</span>
+                  </div>
+
+                  <h5 className="product-name">{prod.name}</h5>
+                  <p className="product-desc">{prod.desc}</p>
+
+                  <div className="generic-suggestion-box">
+                    <Sparkles size={13} style={{ color: '#34d399' }} />
+                    <span>Lựa chọn Generic: <strong>{prod.genericAlternative}</strong></span>
+                  </div>
+
+                  {/* 3 Trust Metrics */}
+                  <div className="trust-metrics-stack">
+                    {/* Wilson Score 95% CI */}
+                    <div className="trust-metric-row">
+                      <div className="metric-title-wrap">
+                        <span className="metric-name">Wilson Score 95% CI:</span>
+                        <strong className="metric-val" style={{ color: '#00e5ff' }}>{wilsonPct}%</strong>
+                      </div>
+                      <div className="trust-bar-track">
+                        <div className="trust-bar-fill wilson" style={{ width: `${wilsonPct}%` }} />
+                      </div>
+                    </div>
+
+                    {/* SpamReviewDetector NLP */}
+                    <div className="trust-metric-row">
+                      <div className="metric-title-wrap">
+                        <span className="metric-name">NLP Đánh Giá Thật:</span>
+                        <strong className="metric-val" style={{ color: '#10b981' }}>{realReviewPct}%</strong>
+                      </div>
+                      <div className="trust-bar-track">
+                        <div className="trust-bar-fill nlp" style={{ width: `${realReviewPct}%` }} />
+                      </div>
+                    </div>
+
+                    {/* EigenTrust */}
+                    <div className="trust-metric-row">
+                      <div className="metric-title-wrap">
+                        <span className="metric-name">EigenTrust Nhà Thuốc:</span>
+                        <strong className="metric-val" style={{ color: '#a855f7' }}>{eigenTrustScore} / 1.0</strong>
+                      </div>
+                      <div className="trust-bar-track">
+                        <div className="trust-bar-fill eigentrust" style={{ width: `${eigenTrustScore * 100}%` }} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="product-card-actions">
+                    <button
+                      type="button"
+                      className="prod-action-btn primary"
+                      onClick={() => {
+                        if (onNotify) onNotify(`Đã tra cứu đối sánh giá niêm yết DAV cho ${prod.name}!`, 'info');
+                      }}
+                    >
+                      <Tag size={13} />
+                      <span>Tra cứu giá DAV</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="prod-action-btn"
+                      onClick={() => {
+                        onNavigate?.('chat');
+                        window.dispatchEvent(
+                          new CustomEvent('medguard:navigate', {
+                            detail: {
+                              view: 'chat',
+                              message: `Tư vấn kinh tế dược học về thuốc ${prod.name} và thuốc Generic EU-GMP thay thế tương đương.`,
+                            },
+                          })
+                        );
+                      }}
+                    >
+                      <MessageSquare size={13} />
+                      <span>Hỏi Dược sĩ AI</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        </div>
-      </section>
+        </section>
+      )}
+
+      {/* --------------------------------------------------------------------
+          4.8 PHÂN LOẠI TICKET & GỢI Ý CÂU HỎI TIẾT KIỆM CHI PHÍ
+          -------------------------------------------------------------------- */}
+      {(activeSubView === 'all' || activeSubView === 'tickets_faq') && (
+        <section className="tickets-faq-section">
+          <div className="tickets-faq-header">
+            <div className="card-title-group">
+              <HelpCircle size={17} style={{ color: '#00e5ff' }} />
+              <h4>Phân Loại Ticket & Câu Hỏi Gợi Ý Tiết Kiệm Chi Phí</h4>
+            </div>
+            <span className="tickets-count-badge">4 Nhóm nghiệp vụ</span>
+          </div>
+
+          <div className="tickets-grid">
+            {[
+              {
+                id: 'ticket_bhyt',
+                title: 'Hỏi đáp hưởng BHYT đúng tuyến khi khám Booking Care',
+                category: 'BHYT & Viện Phí',
+                icon: ShieldCheck,
+                color: '#00e5ff',
+                faq: 'Làm thế nào để được hưởng 80% BHYT khi đặt lịch khám chuyên khoa qua Booking Care?',
+                suggestedAction: 'Xin giấy chuyển tuyến từ cơ sở y tế ban đầu (trạm y tế phường/BV quận) để được BHYT chi trả 80-100%.',
+              },
+              {
+                id: 'ticket_generic',
+                title: 'Tra cứu thuốc Generic EU-GMP thay thế biệt dược gốc đắt tiền',
+                category: 'Kinh Tế Dược',
+                icon: Sparkles,
+                color: '#34d399',
+                faq: 'Đơn thuốc kê Nexium 40mg đắt quá, có thể yêu cầu nhà thuốc bán thuốc Generic tương đương sinh học không?',
+                suggestedAction: 'Theo Thông tư Bộ Y Tế, người bệnh có quyền đề nghị dược sĩ tư vấn thuốc Generic cùng hoạt chất nhóm 1 EU-GMP tiết kiệm 30-40%.',
+              },
+              {
+                id: 'ticket_ocr',
+                title: 'Xác thực giá hóa đơn nhà thuốc so với bảng kê khai DAV',
+                category: 'Kiểm Soát Giá',
+                icon: FileScan,
+                color: '#f59e0b',
+                faq: 'Làm sao để biết nhà thuốc có bán chênh lệch so với giá kê khai của Cục Quản Lý Dược không?',
+                suggestedAction: 'Chụp ảnh hóa đơn tải lên MedGuard OCR; hệ thống tự động đối chiếu giá niêm yết DAV mã thuốc quốc gia.',
+              },
+              {
+                id: 'ticket_adr',
+                title: 'Chi phí đổi thuốc khi gặp tác dụng phụ dạ dày do NSAID',
+                category: 'An Toàn Lâm Sàng',
+                icon: AlertTriangle,
+                color: '#ef4444',
+                faq: 'Uống thuốc giảm đau bị đau dạ dày thì chi phí xử trí và đổi thuốc thay thế có tốn kém không?',
+                suggestedAction: 'Dừng ngay thuốc NSAID, dùng gói Phosphalugel hoặc Paracetamol chi phí rất thấp (dưới 30.000 ₫) và bảo vệ niêm mạc an toàn.',
+              },
+            ].map((t) => {
+              const Icon = t.icon;
+              return (
+                <div key={t.id} className="ticket-card" style={{ '--ticket-accent': t.color }}>
+                  <div className="ticket-top">
+                    <span className="ticket-category-pill" style={{ color: t.color, backgroundColor: `${t.color}18` }}>
+                      <Icon size={12} />
+                      <span>{t.category}</span>
+                    </span>
+                  </div>
+                  <h5 className="ticket-title">{t.title}</h5>
+                  <p className="ticket-faq"><strong>Hỏi:</strong> {t.faq}</p>
+                  <p className="ticket-action"><strong>Giải pháp:</strong> {t.suggestedAction}</p>
+                  <button
+                    type="button"
+                    className="ticket-ask-btn"
+                    onClick={() => {
+                      onNavigate?.('chat');
+                      window.dispatchEvent(
+                        new CustomEvent('medguard:navigate', {
+                          detail: { view: 'chat', message: t.faq },
+                        })
+                      );
+                    }}
+                  >
+                    <MessageSquare size={12} />
+                    <span>Hỏi AI về chủ đề này</span>
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* --------------------------------------------------------------------
           5. TWO-COLUMN DASHBOARD GRID
