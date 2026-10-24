@@ -1644,7 +1644,7 @@ export default function App({
                 className="loc-context-change-btn"
                 onClick={() => setView('navigation')}
                 title="Mở trang chỉ đường Real-time toàn màn hình"
-                style={{ borderColor: 'rgba(0, 229, 255, 0.4)', color: '#00e5ff' }}
+                style={{ borderColor: '#bae6fd', color: '#0284c7', background: '#f0f9ff' }}
               >
                 <Route size={12} />
                 <span>Bản đồ Chỉ đường</span>

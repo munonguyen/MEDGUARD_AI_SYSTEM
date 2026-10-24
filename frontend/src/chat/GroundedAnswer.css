@@ -137,7 +137,15 @@
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.035);
 }
 
-.clinical-section-wide { grid-column: 1 / -1; }
+.clinical-section-wide,
+.clinical-clarifying-direct-wrap,
+.clinical-clarifying-notes,
+.answer-sources-footnote,
+.interactive-followup-section {
+  grid-column: 1 / -1 !important;
+  width: 100% !important;
+  box-sizing: border-box;
+}
 
 .clinical-section-heading {
   display: flex;
@@ -416,95 +424,112 @@
 
 /* User Interactive Follow-up Question Prompts (User -> AI) */
 .interactive-followup-section {
+  grid-column: 1 / -1 !important;
+  width: 100% !important;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 7px;
   margin-top: 10px;
-  padding: 14px 16px;
-  border-radius: 14px;
-  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #f8fafc;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
 }
 
 .interactive-followup-header {
   display: flex;
   align-items: center;
-  gap: 7px;
-  font-size: 11.5px;
+  gap: 6px;
+  font-size: 11px;
   font-weight: 700;
   color: #475569;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .interactive-followup-header .followup-header-icon {
-  color: #0284c7;
+  color: #0d9488;
+  flex-shrink: 0;
+}
+
+.followup-header-title {
+  color: #334155;
+  font-weight: 750;
+  text-transform: uppercase;
+  font-size: 10.5px;
+}
+
+.followup-header-hint {
+  font-size: 10px;
+  font-weight: 550;
+  color: #94a3b8;
+  margin-left: 2px;
 }
 
 .interactive-followup-chips {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 6px;
+  width: 100%;
 }
 
 .interactive-followup-chip {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
+  gap: 8px;
   text-align: left;
-  padding: 10px 14px;
-  border-radius: 12px;
+  padding: 7px 11px;
+  border-radius: 8px;
   background: #ffffff;
   border: 1px solid #e2e8f0;
   color: #1e293b;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  transition: all 0.16s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .interactive-followup-chip:hover {
-  background: linear-gradient(135deg, #f0fdfa 0%, #e0f2fe 100%);
+  background: #f0fdfa;
   border-color: #0d9488;
-  color: #0f172a;
-  transform: translateY(-1.5px);
-  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.15);
+  color: #0f766e;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(13, 148, 136, 0.12);
 }
 
 .interactive-followup-chip:active {
   transform: scale(0.99);
 }
 
-.interactive-followup-chip .followup-chip-sparkle {
-  font-size: 13px;
-  line-height: 1;
-  flex-shrink: 0;
-}
-
-.interactive-followup-chip .followup-chip-text {
-  flex: 1;
-  font-size: 13px;
-  font-weight: 550;
-  line-height: 1.45;
-  color: #1e293b;
-}
-
-.interactive-followup-chip:hover .followup-chip-text {
-  color: #0f766e;
-}
-
-.interactive-followup-chip .followup-chip-icon {
-  flex-shrink: 0;
+.followup-chip-prompt-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: #0d9488;
-  opacity: 0.7;
-  transition: all 0.2s ease;
+  flex-shrink: 0;
+  opacity: 0.75;
 }
 
-.interactive-followup-chip:hover .followup-chip-icon {
-  opacity: 1;
-  transform: translateX(3px);
+.followup-chip-text {
+  flex: 1;
+  font-weight: 550;
+  color: inherit;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.followup-chip-send-icon {
+  color: #94a3b8;
+  flex-shrink: 0;
+  transition: transform 0.16s ease, color 0.16s ease;
+}
+
+.interactive-followup-chip:hover .followup-chip-send-icon {
+  color: #0d9488;
+  transform: translateX(1.5px);
 }
 
 /* =====================================================================

@@ -560,8 +560,9 @@ function InteractiveFollowupPrompts({ questions, onSelectQuestion }) {
   return (
     <section className="interactive-followup-section" aria-label="Gợi ý câu hỏi tiếp theo dành cho bạn">
       <div className="interactive-followup-header">
-        <Sparkles size={14} className="followup-header-icon" />
-        <span>Gợi ý câu hỏi bạn có thể hỏi tiếp (Nhấn để gửi nhanh):</span>
+        <Sparkles size={13} className="followup-header-icon" />
+        <span className="followup-header-title">Gợi ý câu hỏi tiếp theo</span>
+        <span className="followup-header-hint">• Nhấn để gửi nhanh</span>
       </div>
       <div className="interactive-followup-chips" role="group">
         {questions.map((q, idx) => (
@@ -572,9 +573,11 @@ function InteractiveFollowupPrompts({ questions, onSelectQuestion }) {
             onClick={() => onSelectQuestion?.(q)}
             title={`Nhấn để gửi câu hỏi: "${q}"`}
           >
-            <span className="followup-chip-sparkle">💬</span>
+            <span className="followup-chip-prompt-icon">
+              <CornerUpRight size={11} />
+            </span>
             <span className="followup-chip-text">{q}</span>
-            <Send size={12} className="followup-chip-icon" />
+            <Send size={11} className="followup-chip-send-icon" />
           </button>
         ))}
       </div>
@@ -1910,52 +1913,54 @@ export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQues
           />
         </>
       ) : !isBrief && hasStructuredContent ? (
-        <div className="clinical-report-body">
-          <ClinicalSection
-            title={isClinical ? 'Dữ kiện chính' : 'Thông tin chính'}
-            icon={Activity}
-            items={isFocused && responseMeta.intent === 'triage' && status.tone === 'routine' ? [] : keyPoints}
-            tone="neutral"
-          />
+        <>
+          <div className="clinical-report-body">
+            <ClinicalSection
+              title={isClinical ? 'Dữ kiện chính' : 'Thông tin chính'}
+              icon={Activity}
+              items={isFocused && responseMeta.intent === 'triage' && status.tone === 'routine' ? [] : keyPoints}
+              tone="neutral"
+            />
 
-          <ClinicalSection
-            title="Khả năng cần cân nhắc"
-            icon={Stethoscope}
-            items={isFocused ? [] : hypotheses}
-            tone="clinical"
-          />
+            <ClinicalSection
+              title="Khả năng cần cân nhắc"
+              icon={Stethoscope}
+              items={isFocused ? [] : hypotheses}
+              tone="clinical"
+            />
 
-          {/* 2. NỘI DUNG ĐỀ XUẤT XỬ TRÍ & HƯỚNG DẪN DÙNG THUỐC (Nội dung đề xuất) */}
-          <ClinicalSection
-            title={isClinical ? 'Bạn nên làm gì lúc này' : 'Bước tiếp theo'}
-            icon={ListChecks}
-            items={nextSteps}
-            tone="action"
-            ordered
-            className="clinical-section-wide"
-          />
+            {/* 2. NỘI DUNG ĐỀ XUẤT XỬ TRÍ & HƯỚNG DẪN DÙNG THUỐC (Nội dung đề xuất) */}
+            <ClinicalSection
+              title={isClinical ? 'Bạn nên làm gì lúc này' : 'Bước tiếp theo'}
+              icon={ListChecks}
+              items={nextSteps}
+              tone="action"
+              ordered
+              className="clinical-section-wide"
+            />
 
-          <ClinicalSection
-            title={status.tone === 'emergency' ? 'Hành động và dấu hiệu khẩn cấp' : 'Khi nào cần đi khám / cấp cứu'}
-            icon={ShieldAlert}
-            items={safetyNotes}
-            tone={status.tone === 'emergency' ? 'danger' : 'warning'}
-            className="clinical-section-wide"
-          />
+            <ClinicalSection
+              title={status.tone === 'emergency' ? 'Hành động và dấu hiệu khẩn cấp' : 'Khi nào cần đi khám / cấp cứu'}
+              icon={ShieldAlert}
+              items={safetyNotes}
+              tone={status.tone === 'emergency' ? 'danger' : 'warning'}
+              className="clinical-section-wide"
+            />
 
-          {hasNarrativeClarifying && (
-            <div className="clinical-clarifying-direct-wrap">
-              {narrativeBlocks
-                .filter((b) => b.text?.startsWith('Bạn cho mình biết thêm:') || b.text?.startsWith('Thông tin cần báo nhân viên y tế'))
-                .map((block, i) => (
-                  <NarrativeBlock key={`clarifying-direct-${i}`} block={block} sourcesById={sourcesById} />
-                ))}
-            </div>
-          )}
+            {hasNarrativeClarifying && (
+              <div className="clinical-clarifying-direct-wrap">
+                {narrativeBlocks
+                  .filter((b) => b.text?.startsWith('Bạn cho mình biết thêm:') || b.text?.startsWith('Thông tin cần báo nhân viên y tế'))
+                  .map((block, i) => (
+                    <NarrativeBlock key={`clarifying-direct-${i}`} block={block} sourcesById={sourcesById} />
+                  ))}
+              </div>
+            )}
 
-          {!hasNarrativeClarifying && unmentionedClarifyingQuestions.length > 0 && (
-            <ClinicalClarifyingNotes questions={unmentionedClarifyingQuestions} />
-          )}
+            {!hasNarrativeClarifying && unmentionedClarifyingQuestions.length > 0 && (
+              <ClinicalClarifyingNotes questions={unmentionedClarifyingQuestions} />
+            )}
+          </div>
 
           <ResearchedSourcesFootnote sources={researchedSources} />
 
@@ -1963,7 +1968,7 @@ export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQues
             questions={userFollowupQuestions}
             onSelectQuestion={onSelectQuestion}
           />
-        </div>
+        </>
       ) : !isBrief && hasNarrative && !verifiedAgentPrimary ? (
         <>
           {!hasNarrativeClarifying && systemClarifyingQuestions.length > 0 && (
