@@ -3,6 +3,7 @@ __pycache__/
 .venv
 .venv/
 MEDGUARD_AI_SYSTEM/
+Lab-for-aws/
 *.pyc
 .coverage
 coverage.xml
