@@ -1,8 +1,8 @@
 {
   "_meta": {
     "version": "1.0.0",
-    "updated_at": "2026-10-21T14:54:31.504700+00:00",
-    "total_captured": 3091
+    "updated_at": "2026-10-24T17:04:39.883591+00:00",
+    "total_captured": 3092
   },
   "cases": [
     {
@@ -138928,6 +138928,36 @@
           "emphasis": [
             "Bạn cho mình biết thêm"
           ]
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261024-1920047A",
+      "timestamp": "2026-10-24T17:04:39.836309+00:00",
+      "tenant_id": "user-e0959166d33142e0960e6ef4e3eef49f",
+      "conversation_id": "fe26a73d-7e41-421e-8338-2ad98ea42940",
+      "request_id": "ui-f94aa4b8-f027-4562-97d8-08cc9293d9bc",
+      "user_query": "tháng 10 này tôi không muốn bỏ tiền cho chi tiêu sức khoẻ",
+      "detected_intent": "general",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Mình chưa có đủ thông tin y tế để đưa ra hướng dẫn an toàn. Bạn hãy mô tả triệu chứng và vị trí khó chịu, thời điểm bắt đầu, mức độ, dấu hiệu kèm theo; hoặc gửi tên thuốc/chỉ số sức khỏe cần kiểm tra.",
+      "narrative": [
+        {
+          "kind": "paragraph",
+          "text": "Việc chủ động quản lý tài chính cá nhân là điều hoàn toàn dễ hiểu, tuy nhiên chăm sóc sức khỏe dự phòng và duy trì lối sống lành mạnh có thể giúp bạn phòng ngừa các chi phí phát sinh lớn hơn trong tương lai.",
+          "emphasis": []
+        },
+        {
+          "kind": "paragraph",
+          "text": "Bạn có thể chia sẻ cụ thể hơn về triệu chứng, vị trí khó chịu hoặc băn khoăn sức khỏe của bạn không?",
+          "emphasis": []
         }
       ],
       "verifier_status": "deterministic",
