@@ -43,6 +43,13 @@ import {
   Zap,
 } from 'lucide-react';
 import './HealthTwinPage.css';
+import {
+  QUICK_FEELING_CHIPS,
+  normalizeOrgansArray,
+  evaluateHolisticHealthInput,
+  computeEpisodicHealthAnalytics,
+  computePersonalizedHealthSolutions,
+} from './holisticHealthEngine';
 
 const SCENARIOS = [
   {
@@ -442,6 +449,9 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
   const [modelViewMode, setModelViewMode] = useState('3d_hologram');
   const [isListening, setIsListening] = useState(false);
   const [showVaccineDrawer, setShowVaccineDrawer] = useState(false);
+  const [episodicTimeframe, setEpisodicTimeframe] = useState('DAY');
+  const [selectedBatchId, setSelectedBatchId] = useState('all');
+  const [completedSolutions, setCompletedSolutions] = useState({});
 
   // Reset health profile back to clean baseline
   const handleResetProfile = async () => {
@@ -497,11 +507,33 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
       setLoading(true);
       const data = await api.request('/v1/health-twin/profile');
       if (data && data.organs) {
-        setProfile(data);
+        const normalized = {
+          ...DEFAULT_HEALTH_PROFILE,
+          ...data,
+          organs: normalizeOrgansArray(data.organs, DEFAULT_HEALTH_PROFILE.organs),
+        };
+        setProfile(normalized);
       }
     } catch (err) {
       console.error('Failed to load health profile:', err);
-      onNotify?.('Không thể tải hồ sơ sức khoẻ bệnh nhân, dùng dữ liệu lâm sàng mặc định.');
+      try {
+        const raw = localStorage.getItem('medguard_health_twin_profile');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          setProfile((prev) => {
+            const base = {
+              ...prev,
+              ...parsed,
+              organs: normalizeOrgansArray(parsed.organs, DEFAULT_HEALTH_PROFILE.organs),
+            };
+            return parsed.raw_message
+              ? evaluateHolisticHealthInput(base, parsed.raw_message, DEFAULT_HEALTH_PROFILE)
+              : base;
+          });
+          return;
+        }
+      } catch {}
+      onNotify?.('Đang sử dụng hồ sơ sức khoẻ thông minh tại chỗ.');
     } finally {
       setLoading(false);
     }
@@ -515,14 +547,20 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
     const handleUnifiedChatSync = (event) => {
       const detail = event?.detail;
       if (detail?.healthMutation) {
-        setProfile((prev) => ({
-          ...prev,
-          ...detail.healthMutation,
-        }));
+        setProfile((prev) => {
+          const base = {
+            ...prev,
+            ...detail.healthMutation,
+            organs: normalizeOrgansArray(detail.healthMutation.organs, prev.organs || DEFAULT_HEALTH_PROFILE.organs),
+          };
+          return detail.healthMutation.raw_message
+            ? evaluateHolisticHealthInput(base, detail.healthMutation.raw_message, DEFAULT_HEALTH_PROFILE)
+            : base;
+        });
         if (detail.healthMutation?.adr_alert) {
           setActionNotice(`Cảnh báo lâm sàng ADR: ${detail.healthMutation.adr_alert.action_directive}`);
         } else {
-          setActionNotice(`Đồng bộ Tổng Quan Sức Khoẻ: ${detail.label || 'Đã cập nhật'}`);
+          setActionNotice(`Đã tự động đồng bộ tình trạng bệnh & cảm giác vào Tổng Quan Sức Khoẻ!`);
         }
         setTimeout(() => setActionNotice(null), 5000);
       }
@@ -584,11 +622,26 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
     }
   };
 
+  const normalizedOrgans = useMemo(
+    () => normalizeOrgansArray(profile?.organs, DEFAULT_HEALTH_PROFILE.organs),
+    [profile?.organs]
+  );
+
   const activeOrgan = useMemo(() => {
-    if (!profile?.organs) return null;
+    if (!normalizedOrgans.length) return null;
     const targetId = hoveredOrganId || selectedOrganId;
-    return profile.organs.find((o) => o.id === targetId) || profile.organs[0];
-  }, [profile, selectedOrganId, hoveredOrganId]);
+    return normalizedOrgans.find((o) => o.id === targetId) || normalizedOrgans[0];
+  }, [normalizedOrgans, selectedOrganId, hoveredOrganId]);
+
+  const episodicAnalytics = useMemo(
+    () => computeEpisodicHealthAnalytics(profile, episodicTimeframe),
+    [profile, episodicTimeframe]
+  );
+
+  const personalizedSolutions = useMemo(
+    () => computePersonalizedHealthSolutions({ ...profile, organs: normalizedOrgans }),
+    [profile, normalizedOrgans]
+  );
 
   const getStatusColor = (status, score) => {
     if (status === 'adverse_reaction' || status === 'critical') return '#ef4444';
@@ -780,6 +833,298 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
         </section>
       )}
 
+      {/* Holistic Symptom & Feeling Live Input Hub + Episodic Multi-Timeframe Dashboard & 4-Pillar Solutions */}
+      <section className="holistic-health-command-center" aria-label="Trung tâm Đồng bộ Cảm giác, Biểu đồ Theo Đợt và Giải pháp Sức khoẻ">
+        {/* 1. Holistic Natural-Language Symptom & Feeling Input Box */}
+        <div className="holistic-live-input-card">
+          <div className="holistic-input-header">
+            <div className="holistic-title-wrap">
+              <Sparkles size={18} className="holistic-sparkle-icon" />
+              <div>
+                <h3>Cập Nhật Tự Động Mọi Tình Trạng Bệnh, Triệu Chứng & Cảm Giác Cơ Thể</h3>
+                <p>
+                  Nhập hoặc nói bất kỳ biểu hiện bệnh, cơn đau hay cảm giác trong người (căng thẳng, mất ngủ, mỏi mắt, đau rát dạ dày, sốt, mệt lả, hoặc đã khỏe hơn...) — Hệ thống tự động đồng bộ toàn bộ 9 cơ quan, sinh hiệu, biểu đồ từng đợt và phác đồ giải pháp.
+                </p>
+              </div>
+            </div>
+            <span className="holistic-last-sync-pill">
+              <Clock size={12} />
+              <span>{profile?.last_updated || 'Đồng bộ thời gian thực'}</span>
+            </span>
+          </div>
+
+          <div className="holistic-input-bar-row">
+            <input
+              type="text"
+              className="holistic-symptom-input"
+              placeholder="Ví dụ: Hôm nay tôi đau đầu căng thẳng, mất ngủ, mỏi mắt và hơi đau rát thượng vị dạ dày..."
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleEvaluateProgress();
+              }}
+            />
+            <button
+              type="button"
+              className={`holistic-mic-btn ${isListening ? 'listening' : ''}`}
+              onClick={handleVoiceInput}
+              title="Nhập triệu chứng bằng giọng nói"
+            >
+              <Mic size={16} />
+            </button>
+            <button
+              type="button"
+              className="holistic-submit-btn"
+              disabled={evaluating || !inputMessage.trim()}
+              onClick={() => handleEvaluateProgress()}
+            >
+              <Send size={15} />
+              <span>{evaluating ? 'Đang đồng bộ AI...' : 'Đồng bộ Toàn diện'}</span>
+            </button>
+          </div>
+
+          {/* Quick Feeling & Symptom Chips */}
+          <div className="holistic-quick-chips-row">
+            <span className="chips-prefix-label">Khai báo nhanh cảm giác / bệnh lý:</span>
+            {QUICK_FEELING_CHIPS.map((chip) => (
+              <button
+                key={chip.id}
+                type="button"
+                className="holistic-feeling-chip"
+                onClick={() => handleEvaluateProgress(chip.text)}
+              >
+                <Zap size={12} />
+                <span>{chip.label}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* 4 Holistic Wellbeing & Subjective Feeling Strips */}
+          <div className="holistic-wellbeing-strip">
+            <div className="wellbeing-mini-card">
+              <span className="wb-label">Chất lượng Giấc ngủ & Phục hồi</span>
+              <strong className="wb-val">{profile?.wellbeing?.sleep_quality_score ?? 88}/100</strong>
+            </div>
+            <div className="wellbeing-mini-card">
+              <span className="wb-label">Mức độ Căng thẳng Thần kinh</span>
+              <strong className="wb-val">{profile?.wellbeing?.stress_level_label || 'Thấp (Ổn định)'}</strong>
+            </div>
+            <div className="wellbeing-mini-card">
+              <span className="wb-label">Pin Năng lượng Cơ thể</span>
+              <strong className="wb-val">{profile?.wellbeing?.energy_battery_percent ?? 90}%</strong>
+            </div>
+            <div className="wellbeing-mini-card">
+              <span className="wb-label">Cân bằng Nước & Điện giải</span>
+              <strong className="wb-val">{profile?.wellbeing?.hydration_balance_percent ?? 92}%</strong>
+            </div>
+          </div>
+        </div>
+
+        {/* 2. Episodic Multi-Timeframe Health Statistics Dashboard (Giờ / Ngày / Tuần / Tháng by Đợt 1, Đợt 2, Đợt 3) */}
+        <div className="episodic-analytics-panel">
+          <div className="episodic-panel-header">
+            <div className="episodic-title-block">
+              <div className="episodic-badge-row">
+                <span className="episodic-tag">THỐNG KÊ SỨC KHOẺ THEO ĐỢT</span>
+                <span className={`episodic-delta-pill ${episodicAnalytics.overallDelta >= 0 ? 'up' : 'down'}`}>
+                  {episodicAnalytics.overallDelta >= 0 ? <TrendingUp size={13} /> : <TrendingDown size={13} />}
+                  <span>
+                    {episodicAnalytics.overallDelta >= 0 ? `+${episodicAnalytics.overallDelta}%` : `${episodicAnalytics.overallDelta}%`} so với Đợt 1
+                  </span>
+                </span>
+              </div>
+              <h3>Biểu Đồ Thống Kê Diễn Tiến Sức Khoẻ Chia Theo Từng Đợt ({episodicAnalytics.timeframeLabel})</h3>
+              <p>
+                Phân tích đa khung thời gian (Giờ, Ngày, Tuần, Tháng) chia theo 3 đợt lâm sàng giúp đánh giá chính xác tốc độ đáp ứng điều trị và đề xuất giải pháp trúng đích.
+              </p>
+            </div>
+
+            <div className="episodic-timeframe-switcher" role="tablist" aria-label="Chọn khung thời gian thống kê">
+              {[
+                { id: 'HOUR', label: 'Theo Giờ (24h)' },
+                { id: 'DAY', label: 'Theo Ngày (7 ngày)' },
+                { id: 'WEEK', label: 'Theo Tuần (4 tuần)' },
+                { id: 'MONTH', label: 'Theo Tháng (6 tháng)' },
+              ].map((tf) => (
+                <button
+                  key={tf.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={episodicTimeframe === tf.id}
+                  className={`tf-switch-btn ${episodicTimeframe === tf.id ? 'active' : ''}`}
+                  onClick={() => {
+                    setEpisodicTimeframe(tf.id);
+                    setSelectedBatchId('all');
+                  }}
+                >
+                  {tf.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 3 Clinical Batch Filter Cards (Đợt 1, Đợt 2, Đợt 3 - Hiện tại) */}
+          <div className="episodic-batches-grid">
+            {episodicAnalytics.batches.map((batch) => {
+              const isSelected = selectedBatchId === batch.id;
+              return (
+                <div
+                  key={batch.id}
+                  className={`episodic-batch-card ${batch.status} ${isSelected ? 'selected' : ''}`}
+                  onClick={() => setSelectedBatchId(isSelected ? 'all' : batch.id)}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <div className="batch-card-top">
+                    <span className="batch-code-badge">{batch.code}</span>
+                    <span className={`batch-delta-tag ${batch.delta >= 0 ? 'pos' : 'neg'}`}>
+                      {batch.delta >= 0 ? `+${batch.delta}% điểm thể trạng` : `${batch.delta}% điểm thể trạng`}
+                    </span>
+                  </div>
+                  <h4 className="batch-card-title">{batch.name}</h4>
+                  <p className="batch-focus-text">{batch.focus}</p>
+                  <div className="batch-metrics-row">
+                    <div className="bm-item">
+                      <span>Điểm TB</span>
+                      <strong>{batch.avgScore}%</strong>
+                    </div>
+                    <div className="bm-item">
+                      <span>Đau VAS</span>
+                      <strong>{batch.avgPain}/10</strong>
+                    </div>
+                    <div className="bm-item">
+                      <span>Thân nhiệt</span>
+                      <strong>{batch.avgTemp}°C</strong>
+                    </div>
+                    <div className="bm-item">
+                      <span>Nhịp tim</span>
+                      <strong>{batch.avgHr} bpm</strong>
+                    </div>
+                  </div>
+                  <div className="batch-solution-callout">
+                    <CheckCircle2 size={13} />
+                    <span><strong>Giải pháp trọng tâm đợt này:</strong> {batch.solutionSummary}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Visual Episodic Bar & Trend Chart */}
+          <div className="episodic-chart-stage">
+            <div className="chart-legend-bar">
+              <span className="c-legend"><i className="dot score" /> Điểm Sức Khoẻ Tổng Thể (%)</span>
+              <span className="c-legend"><i className="dot sleep" /> Chỉ Số Giấc Ngủ & Phục Hồi (%)</span>
+              <span className="c-legend"><i className="dot pain" /> Thang Đau VAS (/10) & Nhiệt độ (°C)</span>
+            </div>
+            <div className="episodic-bars-columns">
+              {episodicAnalytics.series.map((pt, idx) => {
+                const isDimmed = selectedBatchId !== 'all' && pt.batchId !== selectedBatchId;
+                return (
+                  <div key={idx} className={`episodic-col-item ${isDimmed ? 'dimmed' : ''}`}>
+                    <div className="col-batch-tag">{pt.batchCode}</div>
+                    <div className="col-bars-track">
+                      <div
+                        className="col-bar health-bar"
+                        style={{ height: `${Math.max(12, pt.healthScore)}%` }}
+                        title={`Điểm sức khoẻ: ${pt.healthScore}%`}
+                      >
+                        <span className="bar-top-val">{pt.healthScore}%</span>
+                      </div>
+                      <div
+                        className="col-bar sleep-bar"
+                        style={{ height: `${Math.max(12, pt.sleepScore)}%` }}
+                        title={`Giấc ngủ & phục hồi: ${pt.sleepScore}%`}
+                      />
+                    </div>
+                    <div className="col-sub-metrics">
+                      <span className="sub-pain">VAS {pt.painScore}/10</span>
+                      <span className="sub-temp">{pt.temperature}°C</span>
+                    </div>
+                    <strong className="col-time-label">{pt.label}</strong>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* 3. 4-Pillar Personalized Health Solutions Center */}
+        <div className="personalized-solutions-center">
+          <div className="solutions-header-bar">
+            <div>
+              <span className="solutions-kicker">TRỌNG TÂM ĐÁNH GIÁ TỔNG QUAN & CAN THIỆP</span>
+              <h3>Trung Tâm Giải Pháp Sức Khoẻ & Phác Đồ Hành Động Cá Nhân Hoá (4 Trụ Cột)</h3>
+              <p>
+                Tự động tổng hợp giải pháp từ tình trạng bệnh, cảm giác cơ thể và thống kê từng đợt của bạn để cải thiện sức khoẻ nhanh chóng, an toàn.
+              </p>
+            </div>
+          </div>
+
+          <div className="solutions-pillars-grid">
+            {personalizedSolutions.map((sol) => {
+              const isDone = Boolean(completedSolutions[sol.id]);
+              return (
+                <div key={sol.id} className={`solution-pillar-card priority-${sol.priorityLevel} ${isDone ? 'completed' : ''}`}>
+                  <div className="sol-card-top">
+                    <span className="sol-pillar-name">{sol.pillar}</span>
+                    <span className={`sol-priority-badge ${sol.priorityLevel}`}>{sol.priority}</span>
+                  </div>
+                  <h4 className="sol-card-title">{sol.title}</h4>
+                  <div className="sol-target-organ">
+                    <HeartPulse size={13} />
+                    <span>Đích tác động: <strong>{sol.targetOrgan}</strong></span>
+                  </div>
+                  <p className="sol-rationale">{sol.rationale}</p>
+                  <ul className="sol-steps-list">
+                    {sol.actionSteps.map((step, sIdx) => (
+                      <li key={sIdx}>
+                        <CheckCircle2 size={14} className="sol-step-icon" />
+                        <span>{step}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="sol-outcome-box">
+                    <Sparkles size={13} />
+                    <span><strong>Mục tiêu đạt được:</strong> {sol.expectedOutcome}</span>
+                  </div>
+                  <div className="sol-card-actions">
+                    <button
+                      type="button"
+                      className={`sol-btn-check ${isDone ? 'done' : ''}`}
+                      onClick={() =>
+                        setCompletedSolutions((prev) => ({ ...prev, [sol.id]: !prev[sol.id] }))
+                      }
+                    >
+                      <Check size={14} />
+                      <span>{isDone ? 'Đã áp dụng giải pháp' : 'Đánh dấu thực hiện'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="sol-btn-chat"
+                      onClick={() => {
+                        onNavigate?.('chat');
+                        window.dispatchEvent(
+                          new CustomEvent('medguard:navigate', {
+                            detail: {
+                              view: 'chat',
+                              message: `Tư vấn chi tiết giải pháp: ${sol.title} cho ${sol.targetOrgan}`,
+                            },
+                          })
+                        );
+                      }}
+                    >
+                      <MessageSquare size={13} />
+                      <span>Hỏi Bác sĩ AI</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
       {/* Main Interactive Twin Workspace */}
       <div className="twin-main-grid">
         {/* Left Column: Interactive 3D Anatomical Digital Twin Model */}
@@ -832,7 +1177,7 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
 
           {/* Quick Organ Selector Chips */}
           <div className="organ-quick-chips-bar" role="tablist" aria-label="Chọn nhanh cơ quan">
-            {profile?.organs?.map((organ) => {
+            {normalizedOrgans.map((organ) => {
               const isSelected = selectedOrganId === organ.id;
               const statusColor = getStatusColor(organ.status, organ.health_score);
               const isSystemMember =
@@ -891,7 +1236,7 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
               )}
 
               {/* Hotspots: Precision Clinical Organ Pointer Dots */}
-              {profile?.organs?.map((organ) => {
+              {normalizedOrgans.map((organ) => {
                 const isSelected = selectedOrganId === organ.id;
                 const isHovered = hoveredOrganId === organ.id;
                 const statusColor = getStatusColor(organ.status, organ.health_score);

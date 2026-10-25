@@ -197,7 +197,10 @@ export function classifyTopic(text = '') {
     'đau', 'rát', 'sốt', 'nhức đầu', 'đau đầu', 'chóng mặt', 'buồn nôn', 'ợ chua',
     'ợ nóng', 'ho', 'khó thở', 'tức ngực', 'nhịp tim', 'huyết áp', 'thân nhiệt',
     'spo2', 'uống thuốc bị', 'tác dụng phụ', 'dị ứng', 'cấp cứu', '115', 'thượng vị',
-    'chấn thương', 'mệt mỏi', 'buốt'
+    'chấn thương', 'mệt mỏi', 'buốt', 'mất ngủ', 'khó ngủ', 'căng thẳng', 'stress', 'lo âu',
+    'mỏi mắt', 'nhìn mờ', 'nặng đầu', 'đau lưng', 'vai gáy', 'kiệt sức', 'uể oải', 'hồi hộp',
+    'đánh trống ngực', 'khát nước', 'khô miệng', 'tiểu buốt', 'vàng da', 'men gan', 'nổi mề đay',
+    'ngứa', 'khỏe hơn', 'đỡ nhiều', 'hết sốt', 'cắt sốt', 'hết đau', 'sổ mũi', 'nghẹt mũi'
   ];
 
   // 2. Anatomical / Medical mentions:
@@ -350,6 +353,7 @@ export function processUnifiedTopicGatedChat(message = '', currentContext = {}) 
         organs: updatedOrgans,
         vitals: updatedVitals,
         adr_alert: adrAlert,
+        raw_message: message,
         last_updated: new Date().toISOString(),
       };
       expenseMutation = null; // 100% unchanged

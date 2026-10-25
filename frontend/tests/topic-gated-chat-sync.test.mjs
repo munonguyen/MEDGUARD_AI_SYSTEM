@@ -220,3 +220,54 @@ describe('Suite 6: SpamReviewDetector NLP & EigenTrust Reputation', () => {
     assert.ok(trust[1] > trust[2], `Peer 1 (${trust[1]}) should have higher trust than Peer 2 (${trust[2]})`);
   });
 });
+
+import {
+  evaluateHolisticHealthInput,
+  computeEpisodicHealthAnalytics,
+  computePersonalizedHealthSolutions,
+} from '../src/health/holisticHealthEngine.js';
+
+describe('Suite 7: Holistic Symptom & Feeling Sync, Episodic Batches & 4-Pillar Solutions', () => {
+  it('25. Automatically updates head, sleep, stress and energy when user reports stress, insomnia and eye strain', () => {
+    const baseProfile = {
+      overall_health_score: 96,
+      vitals: { heart_rate_bpm: 72, temperature_celsius: 36.7, overall_pain_level: 0 },
+      organs: [
+        { id: 'head', vietnamese_name: 'Đầu & Thần kinh', status: 'normal', health_score: 98, pain_level: 0, symptoms: [] },
+        { id: 'stomach', vietnamese_name: 'Dạ dày & Tiêu hoá', status: 'normal', health_score: 96, pain_level: 0, symptoms: [] },
+      ],
+    };
+    const updated = evaluateHolisticHealthInput(
+      baseProfile,
+      'Hôm nay tôi đau đầu âm ỉ, căng thẳng stress, mất ngủ cả đêm và mỏi mắt nhìn mờ'
+    );
+    const head = updated.organs.find((o) => o.id === 'head');
+    assert.ok(head.health_score < 90, 'Head health score should decrease');
+    assert.ok(head.symptoms.length >= 2, 'Head symptoms should be recorded');
+    assert.ok(updated.wellbeing.sleep_quality_score < 70, 'Sleep quality should reflect insomnia');
+    assert.match(updated.wellbeing.stress_level_label, /Cao/);
+  });
+
+  it('26. Computes 3 clinical batches (Đợt 1, Đợt 2, Đợt 3) across HOUR, DAY, WEEK, MONTH timeframes', () => {
+    for (const tf of ['HOUR', 'DAY', 'WEEK', 'MONTH']) {
+      const analytics = computeEpisodicHealthAnalytics({ overall_health_score: 82 }, tf);
+      assert.equal(analytics.batches.length, 3);
+      assert.equal(analytics.series.length, 6);
+      assert.equal(analytics.batches[0].code, 'ĐỢT 1');
+      assert.equal(analytics.batches[1].code, 'ĐỢT 2');
+      assert.match(analytics.batches[2].code, /ĐỢT 3/);
+    }
+  });
+
+  it('27. Generates 4-pillar personalized health solutions tailored to active organ status', () => {
+    const solutions = computePersonalizedHealthSolutions({
+      overall_health_score: 68,
+      safe_guardrail_alert: { title: 'ADR' },
+      vitals: { temperature_celsius: 38.6, vas_pain_score: 6 },
+      organs: [{ id: 'stomach', vietnamese_name: 'Dạ dày & Tiêu hoá', status: 'adverse_reaction', health_score: 42 }],
+    });
+    assert.equal(solutions.length, 4);
+    assert.equal(solutions[0].priorityLevel, 'high');
+    assert.ok(solutions[0].actionSteps.length >= 2);
+  });
+});
