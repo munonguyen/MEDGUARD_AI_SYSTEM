@@ -160,9 +160,15 @@
   transition: all 0.2s;
 }
 
-.month-nav-btn:hover {
+.month-nav-btn:hover:not(:disabled) {
   background: #e2e8f0;
   color: var(--spend-dark);
+}
+
+.month-nav-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .month-current-text {
@@ -781,6 +787,45 @@
   border: 1px solid #bae6fd;
   padding: 3px 9px;
   border-radius: 9999px;
+}
+
+.tx-month-filter-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  background: #fdf2f8;
+  color: #db2777;
+  font-size: 0.74rem;
+  font-weight: 750;
+  border: 1px solid rgba(219, 39, 119, 0.25);
+}
+
+.tx-scope-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border: 1px solid #cbd5e1;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tx-scope-toggle-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.tx-scope-toggle-btn.active {
+  background: #0ea5e9;
+  color: #ffffff;
+  border-color: #0284c7;
+  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.25);
 }
 
 .ledger-header-actions {

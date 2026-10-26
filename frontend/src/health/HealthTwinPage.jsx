@@ -2106,20 +2106,27 @@ export function HealthTwinPage({
       </nav>
 
       {/* ====================================================================
-          5. MAIN COMMAND CENTER DASHBOARD (BALANCED & EASY TO SCAN)
+          5. MAIN COMMAND CENTER DASHBOARD (BALANCED & EXECUTIVE MULTI-TIER)
           ==================================================================== */}
       {sectionFilter === "all" && (
-        <div className="twin-executive-grid">
-          {/* Left Wing: 3D Anatomical Twin & Selected Organ Inspector */}
-          <div className="twin-col-anatomy">
-            {render3DAnatomicalModel()}
-            {renderOrganInspector()}
+        <div className="twin-executive-master-wrapper">
+          {/* Upper Deck: 3D Anatomical Stage (Left) & Biometrics / Organ Ranking (Right) */}
+          <div className="twin-executive-grid">
+            {/* Left Wing: 3D Anatomical Twin & Selected Organ Inspector */}
+            <div className="twin-col-anatomy">
+              {render3DAnatomicalModel()}
+              {renderOrganInspector()}
+            </div>
+
+            {/* Right Wing: Biometrics, 9-Organ Ranking */}
+            <div className="twin-col-analytics">
+              {renderBioRadarAndGauges()}
+              {renderOrganRankingDonutAndBars()}
+            </div>
           </div>
 
-          {/* Right Wing: Biometrics, 9-Organ Ranking, Episodic Charts & Solutions */}
-          <div className="twin-col-analytics">
-            {renderBioRadarAndGauges()}
-            {renderOrganRankingDonutAndBars()}
+          {/* Lower Clinical Deck: Full-Width Episodic Analytics & 4-Pillar Solutions */}
+          <div className="twin-clinical-deck-full">
             {renderEpisodicAnalyticsSuite()}
             {renderSolutionsCenter()}
           </div>

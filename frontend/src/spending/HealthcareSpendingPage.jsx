@@ -339,6 +339,408 @@ const INITIAL_TRANSACTIONS = [
     ],
     verified: true,
   },
+
+  // --- THÁNG 9/2026 ---
+  {
+    id: 'tx_09_01',
+    date: '18/09/2026',
+    raw_date: '2026-09-18',
+    time: '09:30',
+    title: 'Tái khám Tiêu Hóa & Nội soi đại trực tràng tầm soát',
+    provider: 'Bệnh viện Chợ Rẫy TP.HCM',
+    doctor: 'TS. BS Trần Văn Hùng',
+    icd10: 'K58.0 - Hội chứng ruột kích thích',
+    category: 'clinic',
+    category_name: 'Khám chuyên khoa',
+    source_type: 'hospital_clinic',
+    amount_vnd: -1850000,
+    bhyt_covered_vnd: 1480000,
+    is_gpp: true,
+    dav_compliant: true,
+    dav_registration: 'BYT-CR-0129',
+    bhyt_rate: 80,
+    rx_code: 'RX-2026-0899',
+    e_invoice_no: 'BV-CHORAY-44102',
+    treatment_status: 'Kết quả nội soi an toàn • Không có polyp',
+    clinical_notes: 'Thăm khám định kỳ theo phác đồ BHYT • Niêm mạc hồng hào, đáp ứng tốt với chế độ dinh dưỡng',
+    items: [
+      { name: 'Công khám & Gói nội soi đại trực tràng không đau', qty: '1 gói', unit_price: 1850000, dav_ceiling: 1850000, amount: 1850000 },
+    ],
+    verified: true,
+  },
+  {
+    id: 'tx_09_02',
+    date: '22/09/2026',
+    raw_date: '2026-09-22',
+    time: '15:10',
+    title: 'Thuốc hạ mỡ máu Atorvastatin 20mg (Generic EU-GMP Sandoz)',
+    provider: 'Nhà thuốc Long Châu - Chuẩn GPP',
+    doctor: 'BS. CKII Phạm Hoàng Tâm',
+    icd10: 'E78.0 - Tăng cholesterol máu nguyên phát',
+    category: 'medication',
+    category_name: 'Thuốc kê đơn GPP',
+    source_type: 'gpp_pharmacy',
+    amount_vnd: -380000,
+    bhyt_covered_vnd: 304000,
+    is_gpp: true,
+    dav_compliant: true,
+    dav_registration: 'VN-19340-15',
+    bhyt_rate: 80,
+    rx_code: 'RX-2026-0841',
+    e_invoice_no: 'HD-LC-09188',
+    treatment_status: 'Duy trì uống mỗi tối 1 viên',
+    clinical_notes: 'Thuốc Generic Nhóm 1 chuẩn châu Âu • Tiết kiệm 42% so với biệt dược gốc Lipitor',
+    items: [
+      { name: 'Atorvastatin Sandoz 20mg (Hộp 30 viên)', qty: '1 hộp', unit_price: 380000, dav_ceiling: 400000, amount: 380000 },
+    ],
+    verified: true,
+  },
+  {
+    id: 'tx_09_03',
+    date: '10/09/2026',
+    raw_date: '2026-09-10',
+    time: '08:20',
+    title: 'Xét nghiệm Sinh Hóa Máu: Lipid toàn phần, Ure & Creatinin',
+    provider: 'Trung tâm Xét nghiệm Y khoa Diag',
+    doctor: 'BS. Nguyễn Thị Thu Hà',
+    icd10: 'Z01.7 - Khám xét nghiệm cận lâm sàng định kỳ',
+    category: 'diagnostics',
+    category_name: 'Xét nghiệm cận lâm sàng',
+    source_type: 'hospital_clinic',
+    amount_vnd: -450000,
+    bhyt_covered_vnd: 225000,
+    is_gpp: true,
+    dav_compliant: true,
+    dav_registration: 'ISO-15189-DIAG',
+    bhyt_rate: 50,
+    rx_code: 'LAB-7102',
+    e_invoice_no: 'HD-DIAG-08102',
+    treatment_status: 'Chỉ số gan thận trong giới hạn tối ưu',
+    clinical_notes: 'Định lượng cholesterol HDL/LDL và chức năng lọc cầu thận eGFR = 92 ml/min',
+    items: [
+      { name: 'Bộ bilan Lipid máu 4 chỉ số', qty: '1 mẫu', unit_price: 250000, dav_ceiling: 260000, amount: 250000 },
+      { name: 'Định lượng Ure & Creatinin huyết thanh', qty: '1 mẫu', unit_price: 200000, dav_ceiling: 210000, amount: 200000 },
+    ],
+    verified: true,
+  },
+  {
+    id: 'tx_09_04',
+    date: '05/09/2026',
+    raw_date: '2026-09-05',
+    time: '14:00',
+    title: 'Hoàn Viện Phí Giám Định BHYT Quý 3/2026',
+    provider: 'Bảo hiểm Xã hội TP.HCM (VssID)',
+    doctor: 'Hệ thống liên thông BHXH Quốc gia',
+    icd10: 'Z01.9 - Quyết toán BHYT',
+    category: 'refund',
+    category_name: 'BHYT chi trả',
+    source_type: 'hospital_clinic',
+    amount_vnd: 2100000,
+    bhyt_covered_vnd: 2100000,
+    is_gpp: true,
+    dav_compliant: true,
+    dav_registration: 'BHYT-QD-2026',
+    bhyt_rate: 100,
+    rx_code: 'BHYT-REF-7712',
+    e_invoice_no: 'BHXH-QTOAN-0905',
+    treatment_status: 'Đã hoàn tất thanh toán',
+    clinical_notes: 'Chi trả chế độ đồng thanh toán BHYT 5 năm liên tục theo luật BHYT số 46/2014/QH13',
+    items: [
+      { name: 'Hoàn chi phí đồng thanh toán BHYT 5 năm liên tục', qty: '1 khoản', unit_price: 2100000, dav_ceiling: 2100000, amount: 2100000 },
+    ],
+    verified: true,
+  },
+  {
+    id: 'tx_09_05',
+    date: '02/09/2026',
+    raw_date: '2026-09-02',
+    time: '10:15',
+    title: 'Thuốc hạ áp Amlodipine 5mg (Generic EU-GMP Stada)',
+    provider: 'Nhà thuốc An Khang - Chuẩn GPP',
+    doctor: 'BS. CKII Phạm Hoàng Tâm',
+    icd10: 'I10 - Tăng huyết áp vô căn (Mãn tính)',
+    category: 'medication',
+    category_name: 'Thuốc mãn tính',
+    source_type: 'gpp_pharmacy',
+    amount_vnd: -165000,
+    bhyt_covered_vnd: 132000,
+    is_gpp: true,
+    dav_compliant: true,
+    dav_registration: 'VD-28491-17',
+    bhyt_rate: 80,
+    rx_code: 'RX-2026-0802',
+    e_invoice_no: 'HD-AK-33910',
+    treatment_status: 'Thuốc mãn tính tháng 9',
+    clinical_notes: 'Uống đều đặn mỗi sáng • Huyết áp mục tiêu < 120/80 mmHg',
+    items: [
+      { name: 'Amlodipine Stada 5mg (Hộp 30 viên)', qty: '1 hộp', unit_price: 165000, dav_ceiling: 180000, amount: 165000 },
+    ],
+    verified: true,
+  },
+
+  // --- THÁNG 8/2026 ---
+  {
+    id: 'tx_08_01',
+    date: '24/08/2026',
+    raw_date: '2026-08-24',
+    time: '08:45',
+    title: 'Khám chuyên khoa Hô Hấp & Điều trị Viêm Phế Quản Cấp',
+    provider: 'Bệnh viện Phạm Ngọc Thạch',
+    doctor: 'BS. CKI Vũ Hải Yến',
+    icd10: 'J20.9 - Viêm phế quản cấp',
+    category: 'clinic',
+    category_name: 'Khám chuyên khoa',
+    source_type: 'hospital_clinic',
+    amount_vnd: -850000,
+    bhyt_covered_vnd: 680000,
+    is_gpp: true,
+    dav_compliant: true,
+    dav_registration: 'BYT-PNT-091',
+    bhyt_rate: 80,
+    rx_code: 'RX-2026-0792',
+    e_invoice_no: 'BV-PNT-99120',
+    treatment_status: 'Đã khỏi dứt điểm',
+    clinical_notes: 'Khám chuyên sâu hô hấp đúng tuyến • Cắt cơn ho sốt sau 3 ngày điều trị',
+    items: [
+      { name: 'Khám chuyên khoa & Khí dung mũi họng', qty: '1 đợt', unit_price: 850000, dav_ceiling: 850000, amount: 850000 },
+    ],
+    verified: true,
+  },
+  {
+    id: 'tx_08_02',
+    date: '24/08/2026',
+    raw_date: '2026-08-24',
+    time: '09:30',
+    title: 'Chụp X-quang Phổi Kỹ Thuật Số (DR) & Đo Chức Năng Hô Hấp',
+    provider: 'Bệnh viện Phạm Ngọc Thạch',
+    doctor: 'BS. CKI Vũ Hải Yến',
+    icd10: 'R91 - Kết quả hình ảnh X-quang phổi',
+    category: 'diagnostics',
+    category_name: 'Xét nghiệm cận lâm sàng',
+    source_type: 'hospital_clinic',
+    amount_vnd: -450000,
+    bhyt_covered_vnd: 360000,
+    is_gpp: true,
+    dav_compliant: true,
+    dav_registration: 'BYT-XQ-2026',
+    bhyt_rate: 80,
+    rx_code: 'RAD-2026-084',
+    e_invoice_no: 'BV-PNT-99125',
+    treatment_status: 'Nhu mô phổi bình thường, không tổn thương',
+    clinical_notes: 'Loại trừ viêm phổi thùy và tràn dịch màng phổi • Đạt tiêu chuẩn an toàn bức xạ',
+    items: [
+      { name: 'X-quang ngực thẳng kỹ thuật số DR', qty: '1 phim', unit_price: 250000, dav_ceiling: 250000, amount: 250000 },
+      { name: 'Đo phế dung hô hấp ký', qty: '1 lần', unit_price: 200000, dav_ceiling: 200000, amount: 200000 },
+    ],
+    verified: true,
+  },
+  {
+    id: 'tx_08_03',
+    date: '02/08/2026',
+    raw_date: '2026-08-02',
+    time: '11:00',
+    title: 'Thuốc hạ áp Amlodipine 5mg (Generic EU-GMP Stada)',
+    provider: 'Nhà thuốc Long Châu - Chuẩn GPP',
+    doctor: 'BS. CKII Phạm Hoàng Tâm',
+    icd10: 'I10 - Tăng huyết áp vô căn (Mãn tính)',
+    category: 'medication',
+    category_name: 'Thuốc mãn tính',
+    source_type: 'gpp_pharmacy',
+    amount_vnd: -165000,
+    bhyt_covered_vnd: 132000,
+    is_gpp: true,
+    dav_compliant: true,
+    dav_registration: 'VD-28491-17',
+    bhyt_rate: 80,
+    rx_code: 'RX-2026-0701',
+    e_invoice_no: 'HD-LC-77401',
+    treatment_status: 'Thuốc mãn tính tháng 8',
+    clinical_notes: 'Uống duy trì đều đặn',
+    items: [
+      { name: 'Amlodipine Stada 5mg (Hộp 30 viên)', qty: '1 hộp', unit_price: 165000, dav_ceiling: 180000, amount: 165000 },
+    ],
+    verified: true,
+  },
+
+  // --- THÁNG 7/2026 ---
+  {
+    id: 'tx_07_01',
+    date: '18/07/2026',
+    raw_date: '2026-07-18',
+    time: '09:00',
+    title: 'Khám Tim Mạch Chuyên Sâu & Siêu Âm Tim Doppler Màu',
+    provider: 'Bệnh viện Tim Tâm Đức TP.HCM',
+    doctor: 'TS. BS Đỗ Nguyên Tín',
+    icd10: 'I10 - Tăng huyết áp • Khám chức năng van tim',
+    category: 'clinic',
+    category_name: 'Khám chuyên khoa',
+    source_type: 'hospital_clinic',
+    amount_vnd: -1250000,
+    bhyt_covered_vnd: 1000000,
+    is_gpp: true,
+    dav_compliant: true,
+    dav_registration: 'BYT-TTD-071',
+    bhyt_rate: 80,
+    rx_code: 'RX-2026-0691',
+    e_invoice_no: 'BV-TAMDUC-8812',
+    treatment_status: 'Chức năng tâm thu thất trái EF = 64% bình thường',
+    clinical_notes: 'Siêu âm tim định kỳ đánh giá cơ tim và buồng tim • Huyết áp kiểm soát tốt',
+    items: [
+      { name: 'Gói khám tim mạch & Siêu âm tim 4D Doppler màu', qty: '1 gói', unit_price: 1250000, dav_ceiling: 1250000, amount: 1250000 },
+    ],
+    verified: true,
+  },
+  {
+    id: 'tx_07_02',
+    date: '18/07/2026',
+    raw_date: '2026-07-18',
+    time: '10:30',
+    title: 'Thuốc phối hợp Coversyl Plus & Amlodipine Generic EU-GMP',
+    provider: 'Nhà thuốc Long Châu - Chuẩn GPP',
+    doctor: 'TS. BS Đỗ Nguyên Tín',
+    icd10: 'I10 - Tăng huyết áp phối hợp',
+    category: 'medication',
+    category_name: 'Thuốc kê đơn GPP',
+    source_type: 'gpp_pharmacy',
+    amount_vnd: -540000,
+    bhyt_covered_vnd: 432000,
+    is_gpp: true,
+    dav_compliant: true,
+    dav_registration: 'VN-18812-14',
+    bhyt_rate: 80,
+    rx_code: 'RX-2026-0692',
+    e_invoice_no: 'HD-LC-66102',
+    treatment_status: 'Duy trì liệu trình 30 ngày',
+    clinical_notes: 'Bảo vệ thành mạch và ngăn ngừa phì đại thất trái',
+    items: [
+      { name: 'Thuốc Coversyl Plus 5mg/1.25mg Servier', qty: '1 hộp', unit_price: 375000, dav_ceiling: 380000, amount: 375000 },
+      { name: 'Amlodipine Stada 5mg', qty: '1 hộp', unit_price: 165000, dav_ceiling: 180000, amount: 165000 },
+    ],
+    verified: true,
+  },
+
+  // --- THÁNG 6/2026 ---
+  {
+    id: 'tx_06_01',
+    date: '12/06/2026',
+    raw_date: '2026-06-12',
+    time: '08:30',
+    title: 'Khám Cấp Tính Đợt Loét Dạ Dày & Test Vi Khuẩn HP Hơi Thở C13',
+    provider: 'Bệnh viện Đại học Y Dược TP.HCM',
+    doctor: 'PGS. TS. BS Lê Quang Quốc Bảo',
+    icd10: 'K25.3 - Loét dạ dày cấp tính có xuất huyết nhẹ',
+    category: 'clinic',
+    category_name: 'Khám chuyên khoa',
+    source_type: 'hospital_clinic',
+    amount_vnd: -1650000,
+    bhyt_covered_vnd: 1320000,
+    is_gpp: true,
+    dav_compliant: true,
+    dav_registration: 'BYT-CS-0081',
+    bhyt_rate: 80,
+    rx_code: 'BS-CKI-612',
+    e_invoice_no: 'BV-YDUOC-55109',
+    treatment_status: 'Kết quả test HP Âm tính • Phác đồ lành niêm mạc',
+    clinical_notes: 'Cấp cứu nội khoa dạ dày đợt 1 • Can thiệp kịp thời bảo vệ thành dạ dày',
+    items: [
+      { name: 'Khám chuyên khoa & Test thở C13 chẩn đoán HP', qty: '1 gói', unit_price: 1650000, dav_ceiling: 1650000, amount: 1650000 },
+    ],
+    verified: true,
+  },
+  {
+    id: 'tx_06_02',
+    date: '12/06/2026',
+    raw_date: '2026-06-12',
+    time: '10:00',
+    title: 'Thuốc Nexium 40mg (Esomeprazole AstraZeneca) & Thuốc băng dạ dày',
+    provider: 'Nhà thuốc Long Châu - Chuẩn GPP',
+    doctor: 'PGS. TS. BS Lê Quang Quốc Bảo',
+    icd10: 'K25.3 - Loét dạ dày cấp tính',
+    category: 'medication',
+    category_name: 'Thuốc kê đơn GPP',
+    source_type: 'gpp_pharmacy',
+    amount_vnd: -480000,
+    bhyt_covered_vnd: 384000,
+    is_gpp: true,
+    dav_compliant: true,
+    dav_registration: 'VN-22145-19',
+    bhyt_rate: 80,
+    rx_code: 'RX-2026-0612',
+    e_invoice_no: 'HD-LC-55190',
+    treatment_status: 'Phác đồ 28 ngày dứt điểm',
+    clinical_notes: 'Liều tấn công 40mg/ngày giúp tái tạo biểu mô thượng vị',
+    items: [
+      { name: 'Nexium 40mg AstraZeneca', qty: '14 viên', unit_price: 24000, dav_ceiling: 24500, amount: 336000 },
+      { name: 'Phosphalugel gói 20g', qty: '12 gói', unit_price: 12000, dav_ceiling: 12500, amount: 144000 },
+    ],
+    verified: true,
+  },
+
+  // --- THÁNG 5/2026 ---
+  {
+    id: 'tx_05_01',
+    date: '15/05/2026',
+    raw_date: '2026-05-15',
+    time: '08:00',
+    title: 'Khám Sức Khỏe Tổng Quát & Tầm Soát Ung Thư Sớm Định Kỳ',
+    provider: 'Bệnh viện Chợ Rẫy TP.HCM',
+    doctor: 'Khoa Khám Bệnh Theo Yêu Cầu',
+    icd10: 'Z00.0 - Khám sức khỏe tổng quát định kỳ',
+    category: 'clinic',
+    category_name: 'Khám chuyên khoa',
+    source_type: 'hospital_clinic',
+    amount_vnd: -1950000,
+    bhyt_covered_vnd: 1560000,
+    is_gpp: true,
+    dav_compliant: true,
+    dav_registration: 'BYT-CR-0051',
+    bhyt_rate: 80,
+    rx_code: 'RX-2026-0511',
+    e_invoice_no: 'BV-CHORAY-33012',
+    treatment_status: 'Hồ sơ sức khỏe định kỳ đầu năm',
+    clinical_notes: 'Đầy đủ các chuyên khoa Mắt, Tai Mũi Họng, Răng Hàm Mặt, Nội Ngoại Tổng Quát',
+    items: [
+      { name: 'Gói khám lâm sàng tổng thể toàn diện', qty: '1 gói', unit_price: 1950000, dav_ceiling: 1950000, amount: 1950000 },
+    ],
+    verified: true,
+  },
+  {
+    id: 'tx_05_02',
+    date: '15/05/2026',
+    raw_date: '2026-05-15',
+    time: '09:15',
+    title: 'Bộ Xét Nghiệm 18 Chỉ Số Máu, Nước Tiểu & Dấu Ấn Ung Thư',
+    provider: 'Trung tâm Xét nghiệm Y khoa Diag',
+    doctor: 'BS. Nguyễn Thị Thu Hà',
+    icd10: 'Z01.7 - Xét nghiệm cận lâm sàng định kỳ',
+    category: 'diagnostics',
+    category_name: 'Xét nghiệm cận lâm sàng',
+    source_type: 'hospital_clinic',
+    amount_vnd: -890000,
+    bhyt_covered_vnd: 445000,
+    is_gpp: true,
+    dav_compliant: true,
+    dav_registration: 'ISO-15189-DIAG',
+    bhyt_rate: 50,
+    rx_code: 'LAB-5012',
+    e_invoice_no: 'HD-DIAG-05012',
+    treatment_status: 'Chỉ số bình thường, không phát hiện bệnh lý ác tính',
+    clinical_notes: 'Tầm soát chỉ số CEA, AFP, CA 19-9 và xét nghiệm tổng phân tích nước tiểu 10 thông số',
+    items: [
+      { name: 'Gói xét nghiệm sinh hóa & huyết học tổng quát 18 thông số', qty: '1 gói', unit_price: 890000, dav_ceiling: 900000, amount: 890000 },
+    ],
+    verified: true,
+  },
+];
+
+// 6 Available Calendar Months Registry for Database-driven Dynamic Navigation
+export const AVAILABLE_MONTHS = [
+  { key: '2026-10', label: 'Tháng này (10/2026)', shortLabel: 'T10/26', defaultSpend: 12366016, defaultBhyt: 8540000, genericSaved: 4.8 },
+  { key: '2026-09', label: 'Tháng 9/2026', shortLabel: 'T9/26', defaultSpend: 12900000, defaultBhyt: 7900000, genericSaved: 4.1 },
+  { key: '2026-08', label: 'Tháng 8/2026', shortLabel: 'T8/26', defaultSpend: 15100000, defaultBhyt: 7500000, genericSaved: 3.6 },
+  { key: '2026-07', label: 'Tháng 7/2026', shortLabel: 'T7/26', defaultSpend: 13800000, defaultBhyt: 7100000, genericSaved: 3.2 },
+  { key: '2026-06', label: 'Tháng 6/2026', shortLabel: 'T6/26', defaultSpend: 16500000, defaultBhyt: 6400000, genericSaved: 2.8 },
+  { key: '2026-05', label: 'Tháng 5/2026', shortLabel: 'T5/26', defaultSpend: 14200000, defaultBhyt: 5800000, genericSaved: 2.1 },
 ];
 
 export function HealthcareSpendingPage({
@@ -352,9 +754,16 @@ export function HealthcareSpendingPage({
   onNotify,
 }) {
   const [hideAmounts, setHideAmounts] = useState(false);
-  const [timePeriod, setTimePeriod] = useState('Tháng này (10/2026)');
+  
+  // Database-driven Dynamic Month Selection
+  const [selectedMonthIndex, setSelectedMonthIndex] = useState(0); // 0 = 2026-10 (Tháng này)
+  const currentMonthMeta = AVAILABLE_MONTHS[selectedMonthIndex] || AVAILABLE_MONTHS[0];
+  const selectedMonthKey = currentMonthMeta.key;
+  const timePeriod = currentMonthMeta.label;
+
   const [showCategoryDetail, setShowCategoryDetail] = useState(true);
   const [selectedTxForDetail, setSelectedTxForDetail] = useState(null);
+  const [showAllMonthsTx, setShowAllMonthsTx] = useState(false);
 
   // Interactive Chart Hover & Focus States
   const [hoveredMonthIdx, setHoveredMonthIdx] = useState(null);
@@ -382,7 +791,18 @@ export function HealthcareSpendingPage({
   const [transactions, setTransactions] = useState(() => {
     try {
       const saved = localStorage.getItem('medguard_spending_transactions');
-      return saved ? JSON.parse(saved) : INITIAL_TRANSACTIONS;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const hasPriorMonths = parsed.some((tx) => tx.raw_date && !tx.raw_date.startsWith('2026-10'));
+          if (!hasPriorMonths) {
+            const priorTxs = INITIAL_TRANSACTIONS.filter((tx) => tx.raw_date && !tx.raw_date.startsWith('2026-10'));
+            return [...parsed, ...priorTxs];
+          }
+          return parsed;
+        }
+      }
+      return INITIAL_TRANSACTIONS;
     } catch {
       return INITIAL_TRANSACTIONS;
     }
@@ -399,7 +819,7 @@ export function HealthcareSpendingPage({
   const [newTxBhytEligible, setNewTxBhytEligible] = useState(true);
   const [newTxNotes, setNewTxNotes] = useState('');
 
-  // Assessment state
+  // Assessment state from unified chat sync
   const [assessment, setAssessment] = useState(() => {
     try {
       const saved = localStorage.getItem('medguard_financial_assessment');
@@ -409,30 +829,166 @@ export function HealthcareSpendingPage({
     }
   });
 
-  // Total actual monthly spend
-  const totalActualSpend = useMemo(() => {
-    if (assessment?.total_actual_spend_vnd) {
-      return assessment.total_actual_spend_vnd;
+  // Month navigation handlers
+  const handlePrevMonth = () => {
+    if (selectedMonthIndex < AVAILABLE_MONTHS.length - 1) {
+      const nextIdx = selectedMonthIndex + 1;
+      setSelectedMonthIndex(nextIdx);
+      onNotify?.(`Đã chuyển số liệu sang: ${AVAILABLE_MONTHS[nextIdx].label}`, 'info');
     }
-    return 12366016; // Exact number from reference
-  }, [assessment]);
+  };
 
-  // Total BHYT paid or supplementary inflow
-  const totalBhytCovered = useMemo(() => {
-    if (assessment?.bhyt_paid_vnd) {
-      return assessment.bhyt_paid_vnd;
+  const handleNextMonth = () => {
+    if (selectedMonthIndex > 0) {
+      const prevIdx = selectedMonthIndex - 1;
+      setSelectedMonthIndex(prevIdx);
+      onNotify?.(`Đã chuyển số liệu sang: ${AVAILABLE_MONTHS[prevIdx].label}`, 'info');
     }
-    return 8540000;
-  }, [assessment]);
+  };
 
-  // Budget calculations
+  // Dynamic calculations for the selected month according to transactions database
+  const selectedMonthData = useMemo(() => {
+    // Filter transactions for this specific month
+    const mTransactions = transactions.filter((tx) => {
+      if (!tx.raw_date) return selectedMonthIndex === 0;
+      return tx.raw_date.startsWith(selectedMonthKey);
+    });
+
+    // Sum actual outflows
+    const txSpend = mTransactions
+      .filter((tx) => tx.amount_vnd < 0)
+      .reduce((acc, tx) => acc + Math.abs(tx.amount_vnd), 0);
+
+    // Sum BHYT covered
+    const txBhyt = mTransactions
+      .reduce((acc, tx) => acc + (tx.bhyt_covered_vnd || 0), 0);
+
+    // Default or transaction-derived figures
+    let actualSpend = txSpend > 0 ? txSpend : currentMonthMeta.defaultSpend;
+    let bhytCovered = txBhyt > 0 ? txBhyt : currentMonthMeta.defaultBhyt;
+
+    // For current month (T10), if assessment from chat sync exists, respect assessment
+    if (selectedMonthIndex === 0) {
+      if (assessment?.total_actual_spend_vnd) {
+        actualSpend = assessment.total_actual_spend_vnd;
+      }
+      if (assessment?.bhyt_paid_vnd) {
+        bhytCovered = assessment.bhyt_paid_vnd;
+      }
+    }
+
+    return {
+      mTransactions,
+      actualSpend,
+      bhytCovered,
+    };
+  }, [transactions, selectedMonthKey, selectedMonthIndex, assessment, currentMonthMeta]);
+
+  // Total actual monthly spend for selected month
+  const totalActualSpend = selectedMonthData.actualSpend;
+
+  // Total BHYT paid or supplementary inflow for selected month
+  const totalBhytCovered = selectedMonthData.bhytCovered;
+
+  // Budget calculations for selected month
   const remainingBudget = Math.max(0, budgetTarget - totalActualSpend);
   const budgetUtilizationPct = Math.min(100, Math.round((totalActualSpend / budgetTarget) * 100));
 
-  // MedGuard 45-35-20 Care Allocation
+  // MedGuard 45-35-20 Care Allocation for selected month
   const allocation45 = Math.round(budgetTarget * 0.45);
   const allocation35 = Math.round(budgetTarget * 0.35);
   const allocation20 = Math.round(budgetTarget * 0.20);
+
+  // Dynamic Categories Breakdown for selected month
+  const currentCategories = useMemo(() => {
+    const { mTransactions, actualSpend } = selectedMonthData;
+
+    const categoryTotals = {
+      medication: 0,
+      clinic: 0,
+      diagnostics: 0,
+      supplements: 0,
+      supplies: 0,
+    };
+
+    mTransactions.forEach((tx) => {
+      if (tx.amount_vnd < 0) {
+        const cat = tx.category in categoryTotals ? tx.category : 'medication';
+        categoryTotals[cat] += Math.abs(tx.amount_vnd);
+      }
+    });
+
+    const hasTxData = Object.values(categoryTotals).some((v) => v > 0);
+
+    return DEFAULT_CATEGORIES.map((baseCat) => {
+      let amount = baseCat.amount_vnd;
+      let pct = baseCat.percentage;
+
+      if (hasTxData && actualSpend > 0) {
+        amount = categoryTotals[baseCat.id] || 0;
+        pct = Math.max(1, Math.round((amount / actualSpend) * 100));
+      } else if (selectedMonthIndex !== 0) {
+        amount = Math.round((baseCat.percentage / 100) * actualSpend);
+      }
+
+      return {
+        ...baseCat,
+        amount_vnd: amount,
+        percentage: pct,
+      };
+    });
+  }, [selectedMonthData, selectedMonthIndex]);
+
+  // Dynamic Donut SVG Arcs for selected month
+  const dynamicDonutArcs = useMemo(() => {
+    let currentOffset = 0;
+    const circumference = 439.82;
+    return currentCategories.map((cat) => {
+      const pct = Math.max(1, cat.percentage);
+      const len = +(circumference * (pct / 100)).toFixed(2);
+      const gap = +(circumference - len).toFixed(2);
+      const arc = {
+        id: cat.id,
+        color: cat.color,
+        len,
+        gap,
+        offset: currentOffset,
+      };
+      currentOffset -= len;
+      return arc;
+    });
+  }, [currentCategories]);
+
+  // Dynamic Comparison with Prior Month
+  const monthComparison = useMemo(() => {
+    const priorMonthIndex = selectedMonthIndex + 1;
+    if (priorMonthIndex < AVAILABLE_MONTHS.length) {
+      const prior = AVAILABLE_MONTHS[priorMonthIndex];
+      const diff = totalActualSpend - prior.defaultSpend;
+      const isReduction = diff <= 0;
+      const absDiff = Math.abs(diff);
+      const pct = Math.abs(Math.round((diff / prior.defaultSpend) * 100));
+      return {
+        hasPrior: true,
+        isReduction,
+        absDiff,
+        pct,
+        priorLabel: prior.label,
+        text: isReduction
+          ? `Giảm ${formatVnd(absDiff)} so với ${prior.label}`
+          : `Tăng ${formatVnd(absDiff)} so với ${prior.label}`,
+        subText: isReduction
+          ? `Tiết kiệm ${pct}% chi phí y tế nhờ dùng thuốc Generic EU-GMP nhóm 1 đạt tương đương sinh học đúng trần DAV.`
+          : `Chi phí tăng ${pct}% do phát sinh các đợt khám chuyên khoa hoặc xét nghiệm cận lâm sàng bổ sung.`,
+      };
+    }
+    return {
+      hasPrior: false,
+      isReduction: true,
+      text: `Số liệu ghi nhận đầy đủ cho ${currentMonthMeta.label}`,
+      subText: 'Toàn bộ khoản chi đều được giám định theo danh mục BHYT và trần giá Cục Quản Lý Dược (DAV).',
+    };
+  }, [selectedMonthIndex, totalActualSpend, currentMonthMeta]);
 
   // Synchronize when unified chat events trigger
   useEffect(() => {
@@ -497,6 +1053,12 @@ export function HealthcareSpendingPage({
   // Filtered transactions
   const filteredTransactions = useMemo(() => {
     let result = transactions;
+    if (!showAllMonthsTx) {
+      result = result.filter((tx) => {
+        if (!tx.raw_date) return selectedMonthIndex === 0;
+        return tx.raw_date.startsWith(selectedMonthKey);
+      });
+    }
     if (txFilterTab === 'medication') {
       result = result.filter((tx) => tx.category === 'medication');
     } else if (txFilterTab === 'clinic') {
@@ -522,7 +1084,7 @@ export function HealthcareSpendingPage({
       );
     }
     return result;
-  }, [transactions, txFilterTab, txSearchQuery]);
+  }, [transactions, showAllMonthsTx, selectedMonthKey, selectedMonthIndex, txFilterTab, txSearchQuery]);
 
   // Group transactions by date string
   const groupedTransactions = useMemo(() => {
@@ -677,10 +1239,9 @@ export function HealthcareSpendingPage({
             <button
               type="button"
               className="month-nav-btn"
-              onClick={() => {
-                setTimePeriod('Tháng 9/2026');
-                onNotify?.('Đã chuyển số liệu sang: Tháng 9/2026', 'info');
-              }}
+              disabled={selectedMonthIndex >= AVAILABLE_MONTHS.length - 1}
+              onClick={handlePrevMonth}
+              title="Tháng trước"
             >
               <ChevronLeft size={16} />
             </button>
@@ -691,10 +1252,9 @@ export function HealthcareSpendingPage({
             <button
               type="button"
               className="month-nav-btn"
-              onClick={() => {
-                setTimePeriod('Tháng này (10/2026)');
-                onNotify?.('Đang xem số liệu: Tháng này (10/2026)', 'info');
-              }}
+              disabled={selectedMonthIndex <= 0}
+              onClick={handleNextMonth}
+              title="Tháng sau"
             >
               <ChevronRight size={16} />
             </button>
@@ -774,7 +1334,7 @@ export function HealthcareSpendingPage({
           </div>
           <div className="tile-info-text">
             <strong>Biến động thu chi</strong>
-            <span>Giảm 941.854 ₫ so với cùng kỳ tháng trước</span>
+            <span>{monthComparison.text}</span>
           </div>
         </button>
 
@@ -1100,7 +1660,7 @@ export function HealthcareSpendingPage({
                 );
               })()}
 
-              {/* Invisible Hit Columns for Smooth Mouse Capture */}
+              {/* Invisible Hit Columns for Smooth Mouse Capture and Direct Month Switching */}
               {monthlyTrendSeries.map((m, idx) => {
                 const x = 62 + idx * 66;
                 return (
@@ -1114,6 +1674,11 @@ export function HealthcareSpendingPage({
                     style={{ cursor: 'pointer' }}
                     onMouseEnter={() => setHoveredMonthIdx(idx)}
                     onMouseLeave={() => setHoveredMonthIdx(null)}
+                    onClick={() => {
+                      const targetIdx = 5 - idx;
+                      setSelectedMonthIndex(targetIdx);
+                      onNotify?.(`Đã chuyển sang xem số liệu: ${AVAILABLE_MONTHS[targetIdx]?.label}`, 'info');
+                    }}
                   />
                 );
               })}
@@ -1168,7 +1733,7 @@ export function HealthcareSpendingPage({
           </div>
         </div>
 
-        {/* Sub-banner: Giảm 941.854 ₫ so với cùng kỳ tháng trước */}
+        {/* Sub-banner: Dynamic Comparison with Prior Month */}
         <div className="web-comparison-banner">
           <div className="banner-left-wrap">
             <div className="banner-icon-box">
@@ -1176,17 +1741,19 @@ export function HealthcareSpendingPage({
             </div>
             <div className="banner-content-text">
               <span className="banner-highlight-text">
-                <strong className="text-emerald">Giảm 941.854 ₫</strong> so với cùng kỳ tháng trước
+                <strong className={monthComparison.isReduction ? 'text-emerald' : 'text-pink'}>
+                  {monthComparison.text}
+                </strong>
               </span>
               <span className="banner-sub-desc">
-                Tiết kiệm 28.5% chi phí dược phẩm nhờ dùng thuốc Generic EU-GMP nhóm 1 đạt tương đương sinh học đúng trần DAV.
+                {monthComparison.subText}
               </span>
             </div>
           </div>
           <button
             type="button"
             className="banner-action-btn"
-            onClick={() => onNotify?.('Báo cáo chi tiết tối ưu hóa kinh tế dược học đã được cập nhật!', 'info')}
+            onClick={() => onNotify?.(`Báo cáo chi tiết tối ưu hóa kinh tế dược học cho ${currentMonthMeta.label} đã được cập nhật!`, 'info')}
           >
             <span>Xem phân tích dược học</span>
             <ChevronRight size={14} />
@@ -1306,13 +1873,7 @@ export function HealthcareSpendingPage({
                   />
 
                   {/* 5 Dynamic SVG Arcs with Bidirectional Hover Sync */}
-                  {[
-                    { id: 'medication', color: '#f472b6', len: 180.33, gap: 259.49, offset: 0 },
-                    { id: 'clinic', color: '#34d399', len: 145.14, gap: 294.68, offset: -180.33 },
-                    { id: 'diagnostics', color: '#38bdf8', len: 61.57, gap: 378.25, offset: -325.47 },
-                    { id: 'supplements', color: '#fb923c', len: 48.38, gap: 391.44, offset: -387.04 },
-                    { id: 'supplies', color: '#94a3b8', len: 4.4, gap: 435.42, offset: -435.42 },
-                  ].map((arc) => {
+                  {dynamicDonutArcs.map((arc) => {
                     const isHovered = hoveredCatId === arc.id;
                     const isDimmed = hoveredCatId !== null && !isHovered;
                     return (
@@ -1344,7 +1905,7 @@ export function HealthcareSpendingPage({
 
                 {/* Donut Core Center with Interactive Hover Inspection */}
                 {(() => {
-                  const activeCat = DEFAULT_CATEGORIES.find((c) => c.id === hoveredCatId);
+                  const activeCat = currentCategories.find((c) => c.id === hoveredCatId);
                   return (
                     <div className={`web-donut-core ${hoveredCatId ? 'has-active-focus' : ''}`}>
                       {hoveredCatId && activeCat ? (
@@ -1375,7 +1936,7 @@ export function HealthcareSpendingPage({
 
               {/* Category Breakdown Bars with Bidirectional Hover Sync */}
               <div className="category-bars-stack">
-                {DEFAULT_CATEGORIES.map((cat) => {
+                {currentCategories.map((cat) => {
                   const CatIcon = cat.icon;
                   const isHovered = hoveredCatId === cat.id;
                   const isDimmed = hoveredCatId !== null && !isHovered;
@@ -1612,6 +2173,18 @@ export function HealthcareSpendingPage({
             <Coins size={20} className="text-pink" />
             <h2 className="ledger-heading-title">Lịch Sử Chi Tiêu Y Tế Chi Tiết & Toa Thuốc</h2>
             <span className="tx-count-pill">{filteredTransactions.length} giao dịch</span>
+            <span className="tx-month-filter-badge">
+              <Calendar size={13} />
+              <span>{showAllMonthsTx ? 'Toàn bộ 6 tháng' : currentMonthMeta.label}</span>
+            </span>
+            <button
+              type="button"
+              className={`tx-scope-toggle-btn ${showAllMonthsTx ? 'active' : ''}`}
+              onClick={() => setShowAllMonthsTx((v) => !v)}
+              title="Chuyển đổi xem tháng đã chọn hoặc toàn bộ lịch sử"
+            >
+              {showAllMonthsTx ? 'Chỉ xem tháng này' : 'Xem toàn bộ 6 tháng'}
+            </button>
           </div>
 
           <div className="ledger-header-actions">
