@@ -4,6 +4,7 @@ import {
   AlarmClock,
   AlertTriangle,
   ArrowLeft,
+  BadgeCheck,
   Braces,
   CalendarClock,
   CalendarDays,
@@ -11,25 +12,32 @@ import {
   CheckCircle2,
   ChevronDown,
   Copy,
+  CreditCard,
+  Droplet,
   FileScan,
+  FileText,
   HeartPulse,
   ListOrdered,
   LoaderCircle,
   LocateFixed,
+  LogIn,
   LogOut,
   MapPin,
   Menu,
   MessageSquare,
+  MoreHorizontal,
   Paperclip,
   Navigation,
   PanelLeftClose,
   PanelLeftOpen,
+  Phone,
   Pill,
   Plus,
   QrCode,
   Route,
   Search,
   Save,
+  Scale,
   Send,
   Settings,
   Settings2,
@@ -41,12 +49,14 @@ import {
   ThumbsDown,
   ThumbsUp,
   Trash2,
+  UserCheck,
   UserRound,
   Volume2,
   WalletCards,
   Webhook,
   Workflow,
   X,
+  XCircle,
 } from 'lucide-react';
 import { createApiClient } from './api';
 import { ErrorResult, Field, SelectInput, TextInput } from './components';
@@ -61,6 +71,10 @@ import { GrokLiveCompanionPage } from './companion/GrokLiveCompanionPage';
 import { NavigationPage } from './navigation/NavigationPage';
 import { HealthTwinPage } from './health/HealthTwinPage';
 import { HealthcareSpendingPage } from './spending/HealthcareSpendingPage';
+import { PatientProfileModal } from './health/PatientProfileModal';
+import { SidebarUserCard } from './health/SidebarUserCard';
+import { ProfileUpdateConfirmationCard } from './health/ProfileUpdateConfirmationCard';
+import { extractUserProfileProposal } from './health/profileDisambiguation';
 import { ErrorBoundary } from './common/ErrorBoundary';
 import { DataManagementAuthGate } from './common/DataManagementAuthGate';
 import { processUnifiedTopicGatedChat, TOPIC_MODES } from './chat/topicGatedSync';
@@ -157,11 +171,31 @@ function Credentials({ tenantId, setTenantId, apiKey, setApiKey, consentToken, s
 const emptyProfile = {
   display_name: '',
   patient_ref: '',
+  dob: '',
   age: null,
   sex: null,
+  phone: '',
+  email: '',
+  address: '',
+  blood_type: '',
+  height_cm: null,
+  weight_kg: null,
+  bmi: null,
+  bhyt_number: '',
+  bhyt_hospital: '',
+  bhyt_rate: 80,
+  bhxh_number: '',
+  vssid_status: 'unlinked',
+  life_insurance_provider: '',
+  life_insurance_policy_no: '',
+  coverage_limit_vnd: null,
+  is_verified: false,
   current_medications: [],
   allergies: [],
   conditions: [],
+  emergency_contact_name: '',
+  emergency_contact_phone: '',
+  emergency_contact_relation: '',
 };
 
 function parseList(value) {
@@ -176,34 +210,34 @@ function loadProfile(tenantId) {
   }
 }
 
-function ProfileEditor({ context, onSave, onClear, close }) {
-  const [draft, setDraft] = useState({ ...context, age: context.age ?? '' });
-  const update = (key, value) => setDraft((current) => ({ ...current, [key]: value }));
-  const submit = (event) => {
-    event.preventDefault();
-    onSave({
-      display_name: draft.display_name.trim(),
-      patient_ref: draft.patient_ref.trim().toUpperCase(),
-      age: draft.age === '' ? null : Number(draft.age),
-      sex: draft.sex || null,
-      current_medications: parseList(Array.isArray(draft.current_medications) ? draft.current_medications.join(', ') : draft.current_medications),
-      allergies: parseList(Array.isArray(draft.allergies) ? draft.allergies.join(', ') : draft.allergies),
-      conditions: parseList(Array.isArray(draft.conditions) ? draft.conditions.join(', ') : draft.conditions),
-    });
-  };
-  return <form className="patient-popover profile-editor" onSubmit={submit}>
-    <div className="popover-heading"><div><strong>Profile cá nhân</strong><span>Thông tin không bắt buộc</span></div><button className="icon-button" type="button" onClick={close} title="Đóng" aria-label="Đóng"><X size={16} /></button></div>
-    <Field label="Tên hiển thị"><TextInput value={draft.display_name} onChange={(event) => update('display_name', event.target.value)} placeholder="Nguyễn An" autoComplete="name" /></Field>
-    <div className="profile-grid"><Field label="Tuổi"><TextInput type="number" min="0" max="120" value={draft.age} onChange={(event) => update('age', event.target.value)} placeholder="35" /></Field><Field label="Giới tính"><SelectInput value={draft.sex || ''} onChange={(event) => update('sex', event.target.value)}><option value="">Không cung cấp</option><option value="female">Nữ</option><option value="male">Nam</option><option value="other">Khác</option></SelectInput></Field></div>
-    <Field label="Mã hồ sơ"><TextInput value={draft.patient_ref} onChange={(event) => update('patient_ref', event.target.value)} placeholder="BN-001" autoComplete="off" /></Field>
-    <Field label="Thuốc đang dùng"><TextInput value={Array.isArray(draft.current_medications) ? draft.current_medications.join(', ') : draft.current_medications} onChange={(event) => update('current_medications', event.target.value)} placeholder="warfarin, aspirin" /></Field>
-    <Field label="Dị ứng"><TextInput value={Array.isArray(draft.allergies) ? draft.allergies.join(', ') : draft.allergies} onChange={(event) => update('allergies', event.target.value)} placeholder="penicillin" /></Field>
-    <Field label="Bệnh nền"><TextInput value={Array.isArray(draft.conditions) ? draft.conditions.join(', ') : draft.conditions} onChange={(event) => update('conditions', event.target.value)} placeholder="tăng huyết áp" /></Field>
-    <div className="profile-actions"><button className="secondary-button danger-action" type="button" onClick={onClear}><Trash2 size={15} /> Xóa Profile</button><button className="profile-save" type="submit"><Save size={15} /> Lưu Profile</button></div>
-  </form>;
-}
-
-function Sidebar({ open, close, collapse, conversations, activeId, onSelect, onNew, onDelete, onSchedule, onSchedulePage, onMedicationPage, onCompanionPage, onNavigationPage, onHealthPage, onSpendingPage, onSettings, onSystem, activeView, search, setSearch, isGuest = false }) {
+function Sidebar({
+  open,
+  close,
+  collapse,
+  conversations,
+  activeId,
+  onSelect,
+  onNew,
+  onDelete,
+  onSchedule,
+  onSchedulePage,
+  onMedicationPage,
+  onCompanionPage,
+  onNavigationPage,
+  onHealthPage,
+  onSpendingPage,
+  onSettings,
+  onSystem,
+  activeView,
+  search,
+  setSearch,
+  isGuest = false,
+  context,
+  account,
+  onOpenProfile,
+  onRequireAuth,
+  onLogout,
+}) {
   return <>
     {open && <button className="sidebar-scrim" type="button" aria-label="Đóng menu" onClick={close} />}
     <aside className={`sidebar ${open ? 'open' : ''}`}>
@@ -245,7 +279,23 @@ function Sidebar({ open, close, collapse, conversations, activeId, onSelect, onN
         <button type="button" className={`nav-link-btn ${activeView === 'medication' ? 'active' : ''}`} onClick={() => { onMedicationPage(); close(); }}><CalendarDays size={17} /><span>Lịch uống thuốc</span></button>
         <button type="button" className="nav-link-btn" onClick={() => { onSettings(); close(); }}><Settings size={17} /><span>Cài đặt</span></button>
       </div>
-      <div className="sidebar-foot"><Pill size={17} /><div><strong>Clinical support</strong><span>Human review required</span></div></div>
+      <div className="sidebar-foot-user">
+        <SidebarUserCard
+          context={context}
+          account={account}
+          isGuest={isGuest}
+          onOpenProfile={() => { onOpenProfile?.(); close(); }}
+          onSettings={() => { onSettings(); close(); }}
+          onLogout={onLogout}
+          onRequireAuth={onRequireAuth}
+          onNavigate={(target) => {
+            if (target === 'health') onHealthPage?.();
+            else if (target === 'spending') onSpendingPage?.();
+            else if (target === 'companion') onCompanionPage?.();
+            close();
+          }}
+        />
+      </div>
     </aside>
   </>;
 }
@@ -311,6 +361,9 @@ function Conversation({
   speakingKey,
   setSpeakingKey,
   setSpeakingText,
+  onAcceptProfileProposal,
+  onDeclineProfileProposal,
+  onOpenProfile,
 }) {
   const streamRef = useRef(null);
   const latestRef = useRef(null);
@@ -534,6 +587,15 @@ function Conversation({
               {entry.status === 'needs_information' && !entry.answer && (
                 <span className="answer-state needs_information">Cần thêm thông tin</span>
               )}
+              {entry.profileProposal && (
+                <ProfileUpdateConfirmationCard
+                  proposal={entry.profileProposal}
+                  status={entry.profileProposalStatus || 'pending'}
+                  onAccept={(prop) => onAcceptProfileProposal?.(prop, key)}
+                  onDecline={() => onDeclineProfileProposal?.(key)}
+                  onOpenProfile={onOpenProfile}
+                />
+              )}
               <div className="message-actions">
                 <button
                   type="button"
@@ -713,11 +775,25 @@ const newContext = (profile = emptyProfile) => ({ ...emptyProfile, ...profile, l
 function clinicalContext(context, userLocation = null) {
   return {
     patient_ref: context.patient_ref || null,
+    display_name: context.display_name || null,
     age: context.age,
+    dob: context.dob || null,
     sex: context.sex,
+    blood_type: context.blood_type || null,
+    height_cm: context.height_cm,
+    weight_kg: context.weight_kg,
+    bmi: context.bmi,
+    bhyt_number: context.bhyt_number || null,
+    bhyt_hospital: context.bhyt_hospital || null,
+    bhyt_rate: context.bhyt_rate || 80,
+    bhxh_number: context.bhxh_number || null,
+    life_insurance_provider: context.life_insurance_provider || null,
+    coverage_limit_vnd: context.coverage_limit_vnd,
+    is_verified: context.is_verified,
     current_medications: context.current_medications,
     allergies: context.allergies,
     conditions: context.conditions,
+    emergency_contact_name: context.emergency_contact_name || null,
     last_result: context.last_result,
     user_location: userLocation || context.user_location || null,
   };
@@ -1003,7 +1079,6 @@ export default function App({
         return;
       }
       if (event.type === 'pointerdown') {
-        if (!event.target.closest('.profile-anchor')) setPatientOpen(false);
         if (!event.target.closest('.credentials-anchor')) setCredentialsOpen(false);
       }
     };
@@ -1029,30 +1104,66 @@ export default function App({
 
   const saveProfile = async (profile) => {
     if (account) {
-      try { await api.request('/v1/auth/profile', {method:'PUT', body:profile}); }
+      try { await api.request('/v1/auth/profile', { method: 'PUT', body: profile }); }
       catch (e) { notify(e.message); return; }
     }
     try {
-      if (!account) localStorage.setItem(`medguard.profile.${tenantId}`, JSON.stringify(profile));
+      localStorage.setItem(`medguard.profile.${tenantId}`, JSON.stringify(profile));
+      localStorage.setItem('medguard_verified_patient_profile', JSON.stringify(profile));
     } catch {
       // The profile still applies to the current tab when browser storage is unavailable.
     }
     setContext((current) => ({ ...current, ...profile }));
+    window.dispatchEvent(new CustomEvent('medguard:profile-updated', { detail: profile }));
     setPatientOpen(false);
-    notify('Đã lưu Profile');
+    notify('Đã lưu Hồ sơ y tế & Xác thực bảo hiểm');
+  };
+
+  const handleAcceptProfileProposal = async (proposal, entryKey) => {
+    if (!proposal?.fields) return;
+    const updated = {
+      ...context,
+      ...proposal.fields,
+    };
+    await saveProfile(updated);
+    setEntries((prev) =>
+      prev.map((item, idx) => {
+        const key = item.id || idx;
+        if (key === entryKey || (item.profileProposal && item.profileProposal.proposalId === proposal.proposalId)) {
+          return { ...item, profileProposalStatus: 'accepted' };
+        }
+        return item;
+      })
+    );
+    notify('Đã tự động cập nhật Hồ sơ cá nhân & Bảo hiểm thành công!');
+  };
+
+  const handleDeclineProfileProposal = (entryKey) => {
+    setEntries((prev) =>
+      prev.map((item, idx) => {
+        const key = item.id || idx;
+        if (key === entryKey) {
+          return { ...item, profileProposalStatus: 'declined' };
+        }
+        return item;
+      })
+    );
+    notify('Đã hủy bỏ cập nhật theo yêu cầu');
   };
 
   const clearProfile = async () => {
     if (account) {
-      try { await api.request('/v1/auth/profile', {method:'PUT', body:emptyProfile}); }
+      try { await api.request('/v1/auth/profile', { method: 'PUT', body: emptyProfile }); }
       catch (e) { notify(e.message); return; }
     }
     try {
       localStorage.removeItem(`medguard.profile.${tenantId}`);
+      localStorage.removeItem('medguard_verified_patient_profile');
     } catch {
       // Keep the clear action functional for the current tab.
     }
     setContext(newContext());
+    window.dispatchEvent(new CustomEvent('medguard:profile-updated', { detail: emptyProfile }));
     setPatientOpen(false);
     notify('Đã xóa Profile');
   };
@@ -1110,6 +1221,8 @@ export default function App({
     let refreshHistory = true;
     if (conversationTitle === 'Cuộc trò chuyện mới') setConversationTitle(shownText.slice(0, 80));
 
+    const profileProposal = extractUserProfileProposal(shownText, context);
+
     try {
       if (currentAttachment && isExplicitPrescriptionOcr) {
         const patientRef = context.patient_ref || shownText.match(/\b(?:BN|HS|P)[-_][A-Z0-9._-]+\b/i)?.[0]?.toUpperCase() || `BN-KHACH-${conversationId.slice(0, 6).toUpperCase()}`;
@@ -1121,6 +1234,10 @@ export default function App({
         const data = await api.request('/v1/prescription/extract', { method: 'POST', formData });
         const { answer: ocrAnswer, ...ocrResult } = data;
         responseEntry = { role: 'assistant', text: ocrAnswer?.summary || 'Đã tiếp nhận ảnh đơn thuốc. Kết quả nhận diện cần dược sĩ hoặc bác sĩ xác nhận trước khi tạo lịch thuốc.', intent: 'ocr', status: 'answered', result: ocrResult, answer: ocrAnswer };
+        if (profileProposal && profileProposal.hasProposal) {
+          responseEntry.profileProposal = profileProposal;
+          responseEntry.profileProposalStatus = 'pending';
+        }
       } else {
         const messages = previous.filter((item) => item.role === 'user' || item.role === 'assistant').slice(-18).map((item) => ({ role: item.role, content: item.text }));
         messages.push({ role: 'user', content: shownText });
@@ -1160,6 +1277,10 @@ export default function App({
           topic_mode: syncResult.topicMode,
           topic_label: syncResult.label,
         };
+        if (profileProposal && profileProposal.hasProposal) {
+          responseEntry.profileProposal = profileProposal;
+          responseEntry.profileProposalStatus = 'pending';
+        }
         if (data.extracted?.patient_ref) setContext((current) => ({ ...current, patient_ref: data.extracted.patient_ref }));
         if (data.result) setContext((current) => ({ ...current, last_result: data.result }));
         if (data.required_fields?.includes('patient_ref')) setPatientOpen(true);
@@ -1246,8 +1367,34 @@ export default function App({
 
   const filteredConversations = conversations.filter((item) => item.title.toLowerCase().includes(historySearch.toLowerCase()));
   return <div className={`app-shell chat-shell ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
-    <a href="#main-content" className="skip-link">Chuyển đến nội dung chính</a>
-    <Sidebar open={sidebarOpen} close={() => setSidebarOpen(false)} collapse={() => { setSidebarCollapsed(true); setSidebarOpen(false); }} conversations={filteredConversations} activeId={conversationId} onSelect={selectConversation} onNew={startNew} onDelete={deleteConversation} onSchedule={() => setView('medication')} onSchedulePage={() => setView('schedule')} onMedicationPage={() => setView('medication')} onCompanionPage={() => setView('companion')} onNavigationPage={() => setView('navigation')} onHealthPage={() => setView('health')} onSpendingPage={() => setView('spending')} onSettings={() => { setSettingsInitialTab('general'); setSettingsOpen(true); }} onSystem={() => { if (!account || account.role === 'admin') setView('system'); }} activeView={view} search={historySearch} setSearch={setHistorySearch} isGuest={isGuest || !account} />
+    <Sidebar
+      open={sidebarOpen}
+      close={() => setSidebarOpen(false)}
+      collapse={() => { setSidebarCollapsed(true); setSidebarOpen(false); }}
+      conversations={filteredConversations}
+      activeId={conversationId}
+      onSelect={selectConversation}
+      onNew={startNew}
+      onDelete={deleteConversation}
+      onSchedule={() => setView('medication')}
+      onSchedulePage={() => setView('schedule')}
+      onMedicationPage={() => setView('medication')}
+      onCompanionPage={() => setView('companion')}
+      onNavigationPage={() => setView('navigation')}
+      onHealthPage={() => setView('health')}
+      onSpendingPage={() => setView('spending')}
+      onSettings={() => { setSettingsInitialTab('general'); setSettingsOpen(true); }}
+      onSystem={() => { if (!account || account.role === 'admin') setView('system'); }}
+      activeView={view}
+      search={historySearch}
+      setSearch={setHistorySearch}
+      isGuest={isGuest || !account}
+      context={context}
+      account={account}
+      onOpenProfile={() => setPatientOpen(true)}
+      onRequireAuth={onRequireAuth}
+      onLogout={onLogout}
+    />
     <main className="main-shell chat-main" id="main-content" tabIndex={-1}>
       <header className="topbar chat-topbar">
         <div className="topbar-title">
@@ -1451,16 +1598,15 @@ export default function App({
                 className={`patient-button ${context.patient_ref || context.display_name ? 'selected' : ''}`}
                 type="button"
                 aria-label="Mở Profile cá nhân"
-                onClick={() => setPatientOpen(!patientOpen)}
+                onClick={() => setPatientOpen(true)}
               >
                 <span>{context.display_name ? context.display_name.trim().slice(0, 2).toUpperCase() : context.patient_ref ? context.patient_ref.slice(0, 2) : <UserRound size={15} />}</span>
                 <div>
                   <strong>{context.display_name || 'Hồ sơ bệnh nhân'}</strong>
-                  <small>{context.patient_ref || 'Không bắt buộc'}</small>
+                  <small>{context.bhyt_number ? `BHYT: ${context.bhyt_number.slice(0, 8)}...` : context.patient_ref || 'Chưa liên kết BHYT'}</small>
                 </div>
                 <ChevronDown size={14} />
               </button>
-              {patientOpen && <ProfileEditor context={context} onSave={saveProfile} onClear={clearProfile} close={() => setPatientOpen(false)} />}
             </div>
           )}
 
@@ -1714,6 +1860,9 @@ export default function App({
                 speakingKey={speakingKey}
                 setSpeakingKey={setSpeakingKey}
                 setSpeakingText={setSpeakingText}
+                onAcceptProfileProposal={handleAcceptProfileProposal}
+                onDeclineProfileProposal={handleDeclineProfileProposal}
+                onOpenProfile={() => setPatientOpen(true)}
               />
             ) : (
               <Welcome
@@ -1744,6 +1893,7 @@ export default function App({
     <QrScanner open={qrOpen} onClose={() => setQrOpen(false)} onDetected={(raw) => { setQrOpen(false); sendText(`Kiểm tra QR hàng giả: ${raw}`, 'authenticity'); }} />
     <SchedulePanel open={scheduleOpen} onClose={() => setScheduleOpen(false)} api={api} patientRef={context.patient_ref} onOpenSchedulePage={() => setView('schedule')} onNotify={notify} />
     <SettingsModal allowSystem={!account || account.role === 'admin'} open={settingsOpen} onClose={() => setSettingsOpen(false)} initialTab={settingsInitialTab} context={context} onSaveProfile={saveProfile} onClearProfile={clearProfile} api={api} tenantId={tenantId} onClearAllChat={clearAllConversations} onExportData={exportClinicalData} onNotify={notify} />
+    <PatientProfileModal open={patientOpen} context={context} onSave={saveProfile} onClear={clearProfile} onClose={() => setPatientOpen(false)} />
     {toast && <div className="ui-toast" role="status" aria-live="polite" aria-atomic="true"><Check size={16} /><span>{typeof toast === 'string' ? toast : toast?.message || String(toast)}</span></div>}
   </div>;
 }
