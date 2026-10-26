@@ -75,6 +75,16 @@ import { PatientProfileModal } from './health/PatientProfileModal';
 import { SidebarUserCard } from './health/SidebarUserCard';
 import { ProfileUpdateConfirmationCard } from './health/ProfileUpdateConfirmationCard';
 import { extractUserProfileProposal } from './health/profileDisambiguation';
+import {
+  detectConversationalNavigation,
+  extractMedicationProposal,
+  extractAppointmentProposal,
+  extractNavigationAction,
+} from './chat/chatActionInteractions';
+import { MedicationProposalCard } from './chat/MedicationProposalCard';
+import { AppointmentProposalCard } from './chat/AppointmentProposalCard';
+import { NavigationActionCard } from './chat/NavigationActionCard';
+import { QuickNavActionCard } from './chat/QuickNavActionCard';
 import { ErrorBoundary } from './common/ErrorBoundary';
 import { DataManagementAuthGate } from './common/DataManagementAuthGate';
 import { processUnifiedTopicGatedChat, TOPIC_MODES } from './chat/topicGatedSync';
@@ -364,6 +374,12 @@ function Conversation({
   onAcceptProfileProposal,
   onDeclineProfileProposal,
   onOpenProfile,
+  onAcceptMedicationProposal,
+  onDeclineMedicationProposal,
+  onAcceptAppointmentProposal,
+  onDeclineAppointmentProposal,
+  onOpenNavigation,
+  onNavigate,
 }) {
   const streamRef = useRef(null);
   const latestRef = useRef(null);
@@ -594,6 +610,36 @@ function Conversation({
                   onAccept={(prop) => onAcceptProfileProposal?.(prop, key)}
                   onDecline={() => onDeclineProfileProposal?.(key)}
                   onOpenProfile={onOpenProfile}
+                />
+              )}
+              {entry.medicationProposal && (
+                <MedicationProposalCard
+                  proposal={entry.medicationProposal}
+                  status={entry.medicationProposalStatus || 'pending'}
+                  onAccept={(prop) => onAcceptMedicationProposal?.(prop, key)}
+                  onDecline={() => onDeclineMedicationProposal?.(key)}
+                  onOpenMedication={() => onNavigate?.('medication')}
+                />
+              )}
+              {entry.appointmentProposal && (
+                <AppointmentProposalCard
+                  proposal={entry.appointmentProposal}
+                  status={entry.appointmentProposalStatus || 'pending'}
+                  onAccept={(prop) => onAcceptAppointmentProposal?.(prop, key)}
+                  onDecline={() => onDeclineAppointmentProposal?.(key)}
+                  onOpenSchedule={() => onNavigate?.('schedule')}
+                />
+              )}
+              {entry.navigationAction && (
+                <NavigationActionCard
+                  action={entry.navigationAction}
+                  onOpenNavigation={onOpenNavigation}
+                />
+              )}
+              {entry.navCommand && (
+                <QuickNavActionCard
+                  navCommand={entry.navCommand}
+                  onNavigate={onNavigate}
                 />
               )}
               <div className="message-actions">
@@ -1151,6 +1197,91 @@ export default function App({
     notify('Đã hủy bỏ cập nhật theo yêu cầu');
   };
 
+  const handleAcceptMedicationProposal = (proposal, entryKey) => {
+    if (!proposal?.medication) return;
+    const med = proposal.medication;
+    try {
+      const raw = localStorage.getItem('medguard.user_meds.data');
+      let currentMeds = raw ? JSON.parse(raw) : [];
+      currentMeds = [med, ...currentMeds.filter((m) => m.name.toLowerCase() !== med.name.toLowerCase())];
+      localStorage.setItem('medguard.user_meds.data', JSON.stringify(currentMeds));
+      window.dispatchEvent(new CustomEvent('medguard:medication-added', { detail: med }));
+    } catch (e) {
+      console.warn('Error saving medication to localStorage', e);
+    }
+    setEntries((prev) =>
+      prev.map((item, idx) => {
+        const key = item.id || idx;
+        if (key === entryKey || (item.medicationProposal && item.medicationProposal.proposalId === proposal.proposalId)) {
+          return { ...item, medicationProposalStatus: 'accepted' };
+        }
+        return item;
+      })
+    );
+    notify(`Đã thêm ${med.name} vào Lịch uống thuốc thành công!`);
+  };
+
+  const handleDeclineMedicationProposal = (entryKey) => {
+    setEntries((prev) =>
+      prev.map((item, idx) => {
+        const key = item.id || idx;
+        if (key === entryKey) {
+          return { ...item, medicationProposalStatus: 'declined' };
+        }
+        return item;
+      })
+    );
+    notify('Đã bỏ qua lịch uống thuốc');
+  };
+
+  const handleAcceptAppointmentProposal = (proposal, entryKey) => {
+    if (!proposal?.appointment) return;
+    const appt = proposal.appointment;
+    try {
+      const raw = localStorage.getItem('medguard.shifts.data');
+      let currentShifts = raw ? JSON.parse(raw) : [];
+      currentShifts = [appt, ...currentShifts.filter((s) => s.id !== appt.id)];
+      localStorage.setItem('medguard.shifts.data', JSON.stringify(currentShifts));
+      window.dispatchEvent(new CustomEvent('medguard:appointment-booked', { detail: appt }));
+    } catch (e) {
+      console.warn('Error saving appointment to localStorage', e);
+    }
+    setEntries((prev) =>
+      prev.map((item, idx) => {
+        const key = item.id || idx;
+        if (key === entryKey || (item.appointmentProposal && item.appointmentProposal.proposalId === proposal.proposalId)) {
+          return { ...item, appointmentProposalStatus: 'accepted' };
+        }
+        return item;
+      })
+    );
+    notify(`Đã xác nhận đặt lịch khám với ${appt.doctor} thành công!`);
+  };
+
+  const handleDeclineAppointmentProposal = (entryKey) => {
+    setEntries((prev) =>
+      prev.map((item, idx) => {
+        const key = item.id || idx;
+        if (key === entryKey) {
+          return { ...item, appointmentProposalStatus: 'declined' };
+        }
+        return item;
+      })
+    );
+    notify('Đã hủy lịch hẹn khám');
+  };
+
+  const handleOpenNavigationAction = (navData) => {
+    setNavigationContext({
+      destinationName: navData.poiName,
+      category: navData.category,
+      address: navData.address,
+      coordinates: navData.coordinates,
+    });
+    setView('navigation');
+    notify(`Đang mở chỉ đường đến ${navData.poiName}...`);
+  };
+
   const clearProfile = async () => {
     if (account) {
       try { await api.request('/v1/auth/profile', { method: 'PUT', body: emptyProfile }); }
@@ -1222,6 +1353,10 @@ export default function App({
     if (conversationTitle === 'Cuộc trò chuyện mới') setConversationTitle(shownText.slice(0, 80));
 
     const profileProposal = extractUserProfileProposal(shownText, context);
+    const navCommand = detectConversationalNavigation(shownText);
+    const medProposal = extractMedicationProposal(shownText);
+    const apptProposal = extractAppointmentProposal(shownText, context);
+    const navAction = extractNavigationAction(shownText);
 
     try {
       if (currentAttachment && isExplicitPrescriptionOcr) {
@@ -1237,6 +1372,10 @@ export default function App({
         if (profileProposal && profileProposal.hasProposal) {
           responseEntry.profileProposal = profileProposal;
           responseEntry.profileProposalStatus = 'pending';
+        }
+        if (medProposal && medProposal.hasProposal) {
+          responseEntry.medicationProposal = medProposal;
+          responseEntry.medicationProposalStatus = 'pending';
         }
       } else {
         const messages = previous.filter((item) => item.role === 'user' || item.role === 'assistant').slice(-18).map((item) => ({ role: item.role, content: item.text }));
@@ -1281,9 +1420,39 @@ export default function App({
           responseEntry.profileProposal = profileProposal;
           responseEntry.profileProposalStatus = 'pending';
         }
+        if (medProposal && medProposal.hasProposal) {
+          responseEntry.medicationProposal = medProposal;
+          responseEntry.medicationProposalStatus = 'pending';
+        }
+        if (apptProposal && apptProposal.hasProposal) {
+          responseEntry.appointmentProposal = apptProposal;
+          responseEntry.appointmentProposalStatus = 'pending';
+        }
+        if (navAction && navAction.hasAction) {
+          responseEntry.navigationAction = navAction;
+        }
+        if (navCommand && navCommand.isNavCommand) {
+          responseEntry.navCommand = navCommand;
+          if (navCommand.targetView === 'profile') {
+            setPatientOpen(true);
+          } else if (navCommand.targetView === 'settings') {
+            setSettingsOpen(true);
+          } else if (navCommand.targetView) {
+            setView(navCommand.targetView);
+            notify('success', `Đã chuyển sang ${navCommand.label}`);
+          }
+        }
         if (data.extracted?.patient_ref) setContext((current) => ({ ...current, patient_ref: data.extracted.patient_ref }));
         if (data.result) setContext((current) => ({ ...current, last_result: data.result }));
-        if (data.required_fields?.includes('patient_ref')) setPatientOpen(true);
+        if (
+          data.required_fields?.includes('patient_ref') &&
+          !medProposal?.hasProposal &&
+          !apptProposal?.hasProposal &&
+          !profileProposal?.hasProposal &&
+          !navAction?.hasAction
+        ) {
+          setPatientOpen(true);
+        }
 
         if (syncResult.topicMode === TOPIC_MODES.HEALTH_OVERVIEW_ONLY) {
           if (syncResult.healthMutation) {
@@ -1863,6 +2032,16 @@ export default function App({
                 onAcceptProfileProposal={handleAcceptProfileProposal}
                 onDeclineProfileProposal={handleDeclineProfileProposal}
                 onOpenProfile={() => setPatientOpen(true)}
+                onAcceptMedicationProposal={handleAcceptMedicationProposal}
+                onDeclineMedicationProposal={handleDeclineMedicationProposal}
+                onAcceptAppointmentProposal={handleAcceptAppointmentProposal}
+                onDeclineAppointmentProposal={handleDeclineAppointmentProposal}
+                onOpenNavigation={handleOpenNavigationAction}
+                onNavigate={(target) => {
+                  if (target === 'profile') setPatientOpen(true);
+                  else if (target === 'settings') setSettingsOpen(true);
+                  else setView(target);
+                }}
               />
             ) : (
               <Welcome
