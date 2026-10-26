@@ -649,6 +649,8 @@ function Conversation({
                   onAccept={(prop) => onAcceptMedicationProposal?.(prop, key)}
                   onDecline={() => onDeclineMedicationProposal?.(key)}
                   onOpenMedication={() => onNavigate?.('medication')}
+                  autoSubmit={autoSubmitUpdates}
+                  onToggleAutoSubmit={onToggleAutoSubmit}
                 />
               )}
               {entry.appointmentProposal && (
@@ -658,6 +660,8 @@ function Conversation({
                   onAccept={(prop) => onAcceptAppointmentProposal?.(prop, key)}
                   onDecline={() => onDeclineAppointmentProposal?.(key)}
                   onOpenSchedule={() => onNavigate?.('schedule')}
+                  autoSubmit={autoSubmitUpdates}
+                  onToggleAutoSubmit={onToggleAutoSubmit}
                 />
               )}
               {entry.navigationAction && (
@@ -1527,15 +1531,54 @@ export default function App({
         };
         if (profileProposal && profileProposal.hasProposal) {
           responseEntry.profileProposal = profileProposal;
-          responseEntry.profileProposalStatus = 'pending';
+          if (autoSubmitUpdates) {
+            responseEntry.profileProposalStatus = 'accepted';
+            try {
+              const updated = { ...patientProfile, ...profileProposal.updates };
+              setPatientProfile(updated);
+              localStorage.setItem('medguard_patient_demographics', JSON.stringify(updated));
+            } catch (e) {
+              console.warn('Auto-submit profile failed', e);
+            }
+          } else {
+            responseEntry.profileProposalStatus = 'pending';
+          }
         }
         if (medProposal && medProposal.hasProposal) {
           responseEntry.medicationProposal = medProposal;
-          responseEntry.medicationProposalStatus = 'pending';
+          if (autoSubmitUpdates) {
+            responseEntry.medicationProposalStatus = 'accepted';
+            try {
+              const med = medProposal.medication;
+              const raw = localStorage.getItem('medguard.user_meds.data');
+              let currentMeds = raw ? JSON.parse(raw) : [];
+              currentMeds = [med, ...currentMeds.filter((m) => m.name.toLowerCase() !== med.name.toLowerCase())];
+              localStorage.setItem('medguard.user_meds.data', JSON.stringify(currentMeds));
+              window.dispatchEvent(new CustomEvent('medguard:medication-added', { detail: med }));
+            } catch (e) {
+              console.warn('Auto-submit medication failed', e);
+            }
+          } else {
+            responseEntry.medicationProposalStatus = 'pending';
+          }
         }
         if (apptProposal && apptProposal.hasProposal) {
           responseEntry.appointmentProposal = apptProposal;
-          responseEntry.appointmentProposalStatus = 'pending';
+          if (autoSubmitUpdates) {
+            responseEntry.appointmentProposalStatus = 'accepted';
+            try {
+              const appt = apptProposal.appointment;
+              const raw = localStorage.getItem('medguard.shifts.data');
+              let currentShifts = raw ? JSON.parse(raw) : [];
+              currentShifts = [appt, ...currentShifts.filter((s) => s.id !== appt.id)];
+              localStorage.setItem('medguard.shifts.data', JSON.stringify(currentShifts));
+              window.dispatchEvent(new CustomEvent('medguard:appointment-booked', { detail: appt }));
+            } catch (e) {
+              console.warn('Auto-submit appointment failed', e);
+            }
+          } else {
+            responseEntry.appointmentProposalStatus = 'pending';
+          }
         }
         if (navAction && navAction.hasAction) {
           responseEntry.navigationAction = navAction;

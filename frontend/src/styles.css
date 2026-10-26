@@ -7928,110 +7928,144 @@ body:has(>.auth-screen),body:has(#root>.auth-screen){overflow-y:auto}
    CONVERSATIONAL ACTION CARDS (Medication, Appointment, Navigation)
    ===================================================================== */
 .chat-action-card {
-  margin: 12px 0 6px;
-  padding: 14px 16px;
-  border-radius: 14px;
-  background: rgba(15, 23, 42, 0.88);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  margin: 14px 0 8px;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  overflow: hidden;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   animation: fadeIn 0.2s ease-out;
+}
+
+.chat-action-card:hover {
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
+  border-color: #cbd5e1;
 }
 
 /* Card Header */
 .chat-action-card .card-header {
   display: flex;
-  align-items: flex-start;
-  gap: 11px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 1px solid #e2e8f0;
+  gap: 12px;
 }
 
 .chat-action-card .card-header-icon {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: transform 0.2s ease;
 }
 
 .chat-action-card .card-header-text {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .chat-action-card .card-title-row {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 2px;
 }
 
+.chat-action-card .header-kicker-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chat-action-card .action-type-pill {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.chat-action-card .module-name-tag {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 4px;
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.chat-action-card .card-main-title,
 .chat-action-card .card-title-row strong {
-  font-size: 13.5px;
-  font-weight: 650;
-  color: #f8fafc;
+  font-size: 14.5px;
+  font-weight: 750;
+  color: #0f172a;
 }
 
 .chat-action-card .card-subtitle {
   display: block;
   font-size: 11.5px;
-  color: #94a3b8;
-  margin-top: 2px;
+  color: #64748b;
 }
 
 /* Status Badges */
 .chat-action-card .status-badge {
   font-size: 11px;
-  font-weight: 600;
-  padding: 2.5px 8.5px;
+  font-weight: 700;
+  padding: 4px 10px;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  white-space: nowrap;
 }
 
 .chat-action-card .status-badge.pending {
-  background: rgba(245, 158, 11, 0.15);
-  border: 1px solid rgba(245, 158, 11, 0.35);
-  color: #fbbf24;
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  color: #92400e;
 }
 
 .chat-action-card .status-badge.accepted {
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  color: #34d399;
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
+  color: #166534;
 }
 
 .chat-action-card .status-badge.declined {
-  background: rgba(148, 163, 184, 0.12);
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  color: #94a3b8;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #64748b;
 }
 
 /* 1. Medication Card Theme */
-.med-proposal-card {
-  border-color: rgba(16, 185, 129, 0.35);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 16px rgba(16, 185, 129, 0.1);
+.med-proposal-card .card-header-icon.med-icon {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #059669;
 }
 
-.med-proposal-card .card-header-icon.med-icon {
-  background: rgba(16, 185, 129, 0.18);
-  border: 1px solid rgba(16, 185, 129, 0.38);
-  color: #34d399;
+.card-body-content {
+  padding: 14px 18px;
 }
 
 .card-details-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  background: rgba(0, 0, 0, 0.25);
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  gap: 10px;
+  background: #f8fafc;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
 }
 
 .card-details-grid .detail-item {
@@ -8043,26 +8077,26 @@ body:has(>.auth-screen),body:has(#root>.auth-screen){overflow-y:auto}
 .card-details-grid .detail-item.full-width {
   grid-column: 1 / -1;
   margin-top: 4px;
-  padding-top: 6px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 8px;
+  border-top: 1px solid #e2e8f0;
 }
 
 .detail-label {
   font-size: 10.5px;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   color: #64748b;
 }
 
 .detail-value {
   font-size: 13px;
-  font-weight: 600;
-  color: #f1f5f9;
+  font-weight: 700;
+  color: #0f172a;
 }
 
 .detail-value.text-highlight {
-  color: #34d399;
+  color: #059669;
 }
 
 .time-badge-box {
@@ -8070,40 +8104,37 @@ body:has(>.auth-screen),body:has(#root>.auth-screen){overflow-y:auto}
   align-items: center;
   gap: 5px;
   font-size: 12.5px;
-  color: #f1f5f9;
+  color: #0f172a;
+  font-weight: 700;
 }
 
 .time-badge-box .slot-tag {
-  font-size: 10.5px;
-  color: #94a3b8;
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 600;
 }
 
 .detail-instruction {
-  font-size: 11.5px;
-  color: #cbd5e1;
-  line-height: 1.4;
+  font-size: 12px;
+  color: #334155;
+  line-height: 1.5;
 }
 
 /* 2. Appointment Booking Card Theme */
-.appt-proposal-card {
-  border-color: rgba(99, 102, 241, 0.35);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 16px rgba(99, 102, 241, 0.1);
-}
-
 .appt-proposal-card .card-header-icon.appt-icon {
-  background: rgba(99, 102, 241, 0.18);
-  border: 1px solid rgba(99, 102, 241, 0.38);
-  color: #818cf8;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  color: #4f46e5;
 }
 
 .appt-voucher-body {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  background: rgba(0, 0, 0, 0.28);
-  padding: 12px;
-  border-radius: 11px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #f8fafc;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
 }
 
 .voucher-row.main-highlight {
@@ -8112,7 +8143,7 @@ body:has(>.auth-screen),body:has(#root>.auth-screen){overflow-y:auto}
   justify-content: space-between;
   gap: 12px;
   padding-bottom: 9px;
-  border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+  border-bottom: 1px dashed #cbd5e1;
 }
 
 .doctor-badge-box {
@@ -8122,22 +8153,23 @@ body:has(>.auth-screen),body:has(#root>.auth-screen){overflow-y:auto}
 }
 
 .voucher-label {
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   color: #64748b;
 }
 
 .doctor-name {
-  font-size: 14px;
-  font-weight: 650;
-  color: #c7d2fe;
+  font-size: 14.5px;
+  font-weight: 750;
+  color: #1e1b4b;
 }
 
 .dept-tag {
-  font-size: 11px;
-  color: #94a3b8;
+  font-size: 11.5px;
+  color: #4f46e5;
+  font-weight: 600;
 }
 
 .appt-voucher-body .time-badge-box {
@@ -8152,8 +8184,8 @@ body:has(>.auth-screen),body:has(#root>.auth-screen){overflow-y:auto}
   align-items: center;
   gap: 5px;
   font-size: 13px;
-  font-weight: 650;
-  color: #f1f5f9;
+  font-weight: 700;
+  color: #0f172a;
 }
 
 .slot-val {
@@ -8161,7 +8193,8 @@ body:has(>.auth-screen),body:has(#root>.auth-screen){overflow-y:auto}
   align-items: center;
   gap: 4px;
   font-size: 11.5px;
-  color: #818cf8;
+  color: #4f46e5;
+  font-weight: 600;
 }
 
 .voucher-grid-2 {
@@ -8180,14 +8213,14 @@ body:has(>.auth-screen),body:has(#root>.auth-screen){overflow-y:auto}
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
-  font-weight: 550;
-  color: #e2e8f0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #0f172a;
 }
 
 .room-text {
   font-size: 11px;
-  color: #94a3b8;
+  color: #64748b;
 }
 
 .bhyt-pill {
@@ -8195,72 +8228,61 @@ body:has(>.auth-screen),body:has(#root>.auth-screen){overflow-y:auto}
   align-items: center;
   gap: 4px;
   font-size: 10.5px;
-  font-weight: 600;
+  font-weight: 700;
   padding: 2px 7px;
   border-radius: 999px;
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  color: #34d399;
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
+  color: #166534;
   align-self: flex-start;
   margin-top: 2px;
 }
 
 .voucher-notes {
-  font-size: 11px;
-  color: #94a3b8;
-  line-height: 1.4;
-  padding-top: 4px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 11.5px;
+  color: #475569;
+  line-height: 1.45;
+  padding-top: 6px;
+  border-top: 1px solid #e2e8f0;
 }
 
 .voucher-notes strong {
-  color: #cbd5e1;
+  color: #0f172a;
 }
 
 /* 3. Navigation Action Card Theme */
-.nav-action-card {
-  border-color: rgba(14, 165, 233, 0.35);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 16px rgba(14, 165, 233, 0.12);
-}
-
 .nav-action-card .card-header-icon.nav-icon {
-  background: rgba(14, 165, 233, 0.18);
-  border: 1px solid rgba(14, 165, 233, 0.38);
-  color: #38bdf8;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  color: #0284c7;
 }
 
 .nav-tag {
-  background: rgba(14, 165, 233, 0.15);
-  border: 1px solid rgba(14, 165, 233, 0.35);
-  color: #38bdf8;
-}
-
-.nav-action-card.emergency {
-  border-color: rgba(239, 68, 68, 0.45);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 20px rgba(239, 68, 68, 0.18);
+  background: #e0f2fe;
+  border: 1px solid #bae6fd;
+  color: #0284c7;
 }
 
 .nav-action-card.emergency .card-header-icon.nav-icon {
-  background: rgba(239, 68, 68, 0.2);
-  border-color: rgba(239, 68, 68, 0.45);
-  color: #f87171;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
 }
 
 .emergency-tag {
-  background: rgba(239, 68, 68, 0.18);
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  color: #fca5a5;
-  animation: pulseDot 1.5s infinite;
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #b91c1c;
 }
 
 .nav-details-box {
-  background: rgba(0, 0, 0, 0.25);
-  padding: 11px 13px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: #f8fafc;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
 }
 
 .nav-target-row {
@@ -8278,14 +8300,14 @@ body:has(>.auth-screen),body:has(#root>.auth-screen){overflow-y:auto}
 }
 
 .target-name-wrap .pin-icon {
-  color: #38bdf8;
+  color: #0284c7;
   flex-shrink: 0;
 }
 
 .poi-title {
   font-size: 13.5px;
-  font-weight: 650;
-  color: #f1f5f9;
+  font-weight: 750;
+  color: #0f172a;
 }
 
 .nav-metrics-pill {
@@ -8293,12 +8315,12 @@ body:has(>.auth-screen),body:has(#root>.auth-screen){overflow-y:auto}
   align-items: center;
   gap: 5px;
   font-size: 11.5px;
-  font-weight: 600;
-  padding: 2.5px 8.5px;
+  font-weight: 650;
+  padding: 3px 9px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #38bdf8;
+  background: #e0f2fe;
+  border: 1px solid #bae6fd;
+  color: #0369a1;
 }
 
 .nav-metrics-pill .dot {
@@ -8306,9 +8328,14 @@ body:has(>.auth-screen),body:has(#root>.auth-screen){overflow-y:auto}
 }
 
 .nav-address-text {
-  font-size: 11.5px;
-  color: #94a3b8;
+  font-size: 12px;
+  color: #475569;
   margin: 0;
+  line-height: 1.4;
+}
+
+.nav-action-row {
+  padding: 10px 18px 14px;
 }
 
 .nav-action-btn {
@@ -8317,22 +8344,22 @@ body:has(>.auth-screen),body:has(#root>.auth-screen){overflow-y:auto}
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 9px 16px;
-  border-radius: 10px;
+  padding: 10px 18px;
+  border-radius: 9px;
   background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-  border: 1px solid rgba(56, 189, 248, 0.35);
+  border: none;
   color: #ffffff;
-  font-size: 12.5px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 140ms ease;
-  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);
 }
 
 .nav-action-btn:hover {
   background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.4);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
 }
 
 .nav-action-btn .arrow-icon {
@@ -8344,28 +8371,28 @@ body:has(>.auth-screen),body:has(#root>.auth-screen){overflow-y:auto}
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px;
-  background: rgba(15, 23, 42, 0.92);
-  border-color: rgba(0, 229, 255, 0.3);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3), 0 0 12px rgba(0, 229, 255, 0.1);
+  padding: 12px 18px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 3px 12px rgba(15, 23, 42, 0.05);
 }
 
 .quick-nav-left {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .quick-nav-icon {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 9px;
-  background: rgba(0, 229, 255, 0.15);
-  border: 1px solid rgba(0, 229, 255, 0.3);
+  background: #f0fdfa;
+  border: 1px solid #99f6e4;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #00e5ff;
+  color: #0d9488;
 }
 
 .quick-nav-info {
@@ -8375,44 +8402,54 @@ body:has(>.auth-screen),body:has(#root>.auth-screen){overflow-y:auto}
 }
 
 .quick-nav-kicker {
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: #00e5ff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #0d9488;
+  text-transform: uppercase;
 }
 
 .quick-nav-title {
-  font-size: 13px;
-  font-weight: 650;
-  color: #f8fafc;
+  font-size: 13.5px;
+  font-weight: 750;
+  color: #0f172a;
 }
 
 .quick-nav-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
+  padding: 7px 14px;
   border-radius: 8px;
-  background: rgba(0, 229, 255, 0.15);
-  border: 1px solid rgba(0, 229, 255, 0.35);
-  color: #00e5ff;
+  background: #f0fdfa;
+  border: 1px solid #99f6e4;
+  color: #0f766e;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: all 130ms ease;
 }
 
 .quick-nav-btn:hover {
-  background: rgba(0, 229, 255, 0.28);
+  background: #ccfbf1;
+  border-color: #5eead4;
   transform: translateX(2px);
 }
 
-/* Card Actions Common */
+/* Card Footer Area Common */
+.card-footer-area {
+  padding: 12px 18px 16px;
+  background: #fafafa;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .card-actions-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 2px;
+  gap: 10px;
 }
 
 .card-actions-row .action-btn {
@@ -8420,75 +8457,152 @@ body:has(>.auth-screen),body:has(#root>.auth-screen){overflow-y:auto}
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 8px 14px;
-  border-radius: 9px;
-  font-size: 12px;
-  font-weight: 600;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 130ms ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.card-actions-row .action-btn.accept-btn {
+.med-proposal-card .card-actions-row .action-btn.accept-btn {
   background: linear-gradient(135deg, #059669 0%, #047857 100%);
-  border: 1px solid rgba(52, 211, 153, 0.35);
+  border: none;
   color: #ffffff;
-  box-shadow: 0 3px 10px rgba(5, 150, 105, 0.25);
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);
 }
 
-.card-actions-row .action-btn.accept-btn:hover {
+.med-proposal-card .card-actions-row .action-btn.accept-btn:hover {
   background: linear-gradient(135deg, #047857 0%, #065f46 100%);
   transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(5, 150, 105, 0.35);
+}
+
+.appt-proposal-card .card-actions-row .action-btn.accept-btn {
+  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+  border: none;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(79, 70, 229, 0.25);
+}
+
+.appt-proposal-card .card-actions-row .action-btn.accept-btn:hover {
+  background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.35);
 }
 
 .card-actions-row .action-btn.decline-btn {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #94a3b8;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #64748b;
 }
 
 .card-actions-row .action-btn.decline-btn:hover {
-  background: rgba(255, 255, 255, 0.09);
-  color: #cbd5e1;
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #334155;
 }
 
+/* Success Banners */
 .card-success-banner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding: 9px 12px;
-  border-radius: 9px;
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  color: #34d399;
+  gap: 12px;
+  padding: 12px 18px;
+  background: #f0fdf4;
+  border-top: 1px solid #bbf7d0;
+  color: #166534;
 }
 
 .card-success-banner .success-msg {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  font-size: 12px;
-  font-weight: 550;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
 }
 
 .card-success-banner .view-link-btn {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 9px;
-  border-radius: 7px;
-  background: rgba(16, 185, 129, 0.25);
-  border: 1px solid rgba(16, 185, 129, 0.4);
-  color: #ffffff;
-  font-size: 11px;
-  font-weight: 600;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: #ffffff;
+  border: 1px solid #86efac;
+  color: #15803d;
+  font-size: 12px;
+  font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 130ms ease;
+  transition: all 0.15s ease;
 }
 
 .card-success-banner .view-link-btn:hover {
-  background: rgba(16, 185, 129, 0.4);
-  transform: translateY(-1px);
+  background: #dcfce7;
+  border-color: #4ade80;
+}
+
+/* Declined Banners */
+.card-declined-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.card-declined-banner .declined-msg {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+/* Dark Mode Overrides */
+[data-theme='dark'] .chat-action-card {
+  background: #0f172a;
+  border-color: #334155;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme='dark'] .chat-action-card .card-header {
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  border-color: #334155;
+}
+
+[data-theme='dark'] .chat-action-card .card-main-title,
+[data-theme='dark'] .chat-action-card .card-title-row strong {
+  color: #f8fafc;
+}
+
+[data-theme='dark'] .card-details-grid,
+[data-theme='dark'] .appt-voucher-body,
+[data-theme='dark'] .nav-details-box {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+[data-theme='dark'] .detail-value,
+[data-theme='dark'] .doctor-name,
+[data-theme='dark'] .hosp-info,
+[data-theme='dark'] .patient-info,
+[data-theme='dark'] .poi-title,
+[data-theme='dark'] .time-val,
+[data-theme='dark'] .quick-nav-title {
+  color: #f8fafc;
+}
+
+[data-theme='dark'] .card-footer-area {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+[data-theme='dark'] .quick-nav-card {
+  background: #0f172a;
+  border-color: #334155;
 }
 

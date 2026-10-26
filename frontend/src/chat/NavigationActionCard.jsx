@@ -30,15 +30,19 @@ export function NavigationActionCard({
         </div>
         <div className="card-header-text">
           <div className="card-title-row">
-            <strong>{isEmergency ? 'Cấp cứu & Chỉ đường Khẩn cấp' : 'Đề xuất Định tuyến & Chỉ đường'}</strong>
-            <span className={`status-badge ${isEmergency ? 'emergency-tag' : 'nav-tag'}`}>
-              {nav.categoryLabel}
-            </span>
+            <div className="header-kicker-row">
+              <span className="action-type-pill">{isEmergency ? 'Cấp cứu y tế' : 'Đề xuất định tuyến'}</span>
+              <span className="module-name-tag">Bản Đồ Chỉ Đường 3D</span>
+            </div>
+            <strong className="card-main-title">{isEmergency ? 'Cấp cứu & Chỉ đường Khẩn cấp' : 'Đề xuất Định tuyến & Chỉ đường'}</strong>
           </div>
           <span className="card-subtitle">
             Hệ thống tự động tìm kiếm cơ sở y tế phù hợp với yêu cầu của bạn
           </span>
         </div>
+        <span className={`status-badge ${isEmergency ? 'emergency-tag' : 'nav-tag'}`}>
+          {nav.categoryLabel}
+        </span>
       </div>
 
       <div className="nav-details-box">
