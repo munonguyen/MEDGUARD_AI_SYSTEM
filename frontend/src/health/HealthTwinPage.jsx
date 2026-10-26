@@ -41,6 +41,9 @@ import {
   Volume2,
   X,
   Zap,
+  BarChart2,
+  PieChart,
+  Lock,
 } from 'lucide-react';
 import './HealthTwinPage.css';
 import {
@@ -49,7 +52,9 @@ import {
   evaluateHolisticHealthInput,
   computeEpisodicHealthAnalytics,
   computePersonalizedHealthSolutions,
+  computeHolisticVisualChartSuite,
 } from './holisticHealthEngine';
+import { DataManagementAuthGate } from '../common/DataManagementAuthGate';
 
 const SCENARIOS = [
   {
@@ -434,55 +439,70 @@ const DEFAULT_HEALTH_PROFILE = {
   last_updated: 'Hiện tại',
 };
 
-export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
+export function HealthTwinPage({
+  api,
+  account = null,
+  isGuest = false,
+  onRequireAuth = null,
+  onBackToChat,
+  onNavigate,
+  onNotify,
+}) {
   const [profile, setProfile] = useState(DEFAULT_HEALTH_PROFILE);
   const [loading, setLoading] = useState(false);
   const [evaluating, setEvaluating] = useState(false);
-  // Default selected organ to 'liver' to directly highlight the Hepatitis B -> Liver cancer example
-  const [selectedOrganId, setSelectedOrganId] = useState('liver');
-  const [selectedSystem, setSelectedSystem] = useState('all');
+  const [selectedOrganId, setSelectedOrganId] = useState("liver");
+  const [selectedSystem, setSelectedSystem] = useState("all");
   const [hoveredOrganId, setHoveredOrganId] = useState(null);
-  const [inputMessage, setInputMessage] = useState('');
-  // Default to future_risks tab so user immediately sees the predictive matrix and vaccination protocol
-  const [activeTab, setActiveTab] = useState('future_risks');
+  const [inputMessage, setInputMessage] = useState("");
+  const [activeTab, setActiveTab] = useState("vitals");
+  const [sectionFilter, setSectionFilter] = useState("all");
   const [actionNotice, setActionNotice] = useState(null);
-  const [modelViewMode, setModelViewMode] = useState('3d_hologram');
+  const [modelViewMode, setModelViewMode] = useState("3d_hologram");
   const [isListening, setIsListening] = useState(false);
-  const [showVaccineDrawer, setShowVaccineDrawer] = useState(false);
-  const [episodicTimeframe, setEpisodicTimeframe] = useState('DAY');
-  const [selectedBatchId, setSelectedBatchId] = useState('all');
+  const [episodicTimeframe, setEpisodicTimeframe] = useState("DAY");
+  const [selectedBatchId, setSelectedBatchId] = useState("all");
   const [completedSolutions, setCompletedSolutions] = useState({});
 
-  // Reset health profile back to clean baseline
   const handleResetProfile = async () => {
     try {
       setLoading(true);
-      const res = await api.request('/v1/health-twin/reset', { method: 'POST' });
+      const res = await api.request("/v1/health-twin/reset", { method: "POST" });
       if (res && res.organs) {
-        setProfile(res);
-        setActionNotice('Đã đặt lại thể trạng bình thường ban đầu thành công.');
-        setTimeout(() => setActionNotice(null), 3500);
+        setProfile({
+          ...DEFAULT_HEALTH_PROFILE,
+          ...res,
+          organs: normalizeOrgansArray(res.organs, DEFAULT_HEALTH_PROFILE.organs),
+        });
+      } else {
+        setProfile(DEFAULT_HEALTH_PROFILE);
       }
-    } catch (err) {
-      console.error('Failed to reset health profile:', err);
+      try {
+        localStorage.removeItem("medguard_health_twin_profile");
+      } catch {}
+      setActionNotice("Đã đặt lại thể trạng bình thường ban đầu thành công.");
+      setTimeout(() => setActionNotice(null), 3500);
+    } catch {
       setProfile(DEFAULT_HEALTH_PROFILE);
-      setActionNotice('Đã đặt lại thể trạng ban đầu.');
+      try {
+        localStorage.removeItem("medguard_health_twin_profile");
+      } catch {}
+      setActionNotice("Đã đặt lại thể trạng ban đầu.");
       setTimeout(() => setActionNotice(null), 3500);
     } finally {
       setLoading(false);
     }
   };
 
-  // Voice speech-to-text handler for symptom description
   const handleVoiceInput = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      onNotify?.('Trình duyệt chưa hỗ trợ nhận diện giọng nói Web Speech.');
+      onNotify?.("Trình duyệt chưa hỗ trợ nhận diện giọng nói Web Speech.");
       return;
     }
     try {
       const recognition = new SpeechRecognition();
-      recognition.lang = 'vi-VN';
+      recognition.lang = "vi-VN";
       recognition.continuous = false;
       recognition.interimResults = false;
       recognition.onstart = () => setIsListening(true);
@@ -501,11 +521,10 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
     }
   };
 
-  // Load initial health profile
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      const data = await api.request('/v1/health-twin/profile');
+      const data = await api.request("/v1/health-twin/profile");
       if (data && data.organs) {
         const normalized = {
           ...DEFAULT_HEALTH_PROFILE,
@@ -514,10 +533,9 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
         };
         setProfile(normalized);
       }
-    } catch (err) {
-      console.error('Failed to load health profile:', err);
+    } catch {
       try {
-        const raw = localStorage.getItem('medguard_health_twin_profile');
+        const raw = localStorage.getItem("medguard_health_twin_profile");
         if (raw) {
           const parsed = JSON.parse(raw);
           setProfile((prev) => {
@@ -533,7 +551,6 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
           return;
         }
       } catch {}
-      onNotify?.('Đang sử dụng hồ sơ sức khoẻ thông minh tại chỗ.');
     } finally {
       setLoading(false);
     }
@@ -541,9 +558,7 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
 
   useEffect(() => {
     fetchProfile();
-    const handleSync = () => {
-      fetchProfile();
-    };
+    const handleSync = () => fetchProfile();
     const handleUnifiedChatSync = (event) => {
       const detail = event?.detail;
       if (detail?.healthMutation) {
@@ -557,66 +572,46 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
             ? evaluateHolisticHealthInput(base, detail.healthMutation.raw_message, DEFAULT_HEALTH_PROFILE)
             : base;
         });
-        if (detail.healthMutation?.adr_alert) {
-          setActionNotice(`Cảnh báo lâm sàng ADR: ${detail.healthMutation.adr_alert.action_directive}`);
-        } else {
-          setActionNotice(`Đã tự động đồng bộ tình trạng bệnh & cảm giác vào Tổng Quan Sức Khoẻ!`);
-        }
-        setTimeout(() => setActionNotice(null), 5000);
+        setActionNotice("Đã tự động đồng bộ tình trạng bệnh & cảm giác vào Đa Biểu Đồ Sức Khoẻ!");
+        setTimeout(() => setActionNotice(null), 4500);
       }
     };
-    window.addEventListener('medguard:health-twin-updated', handleSync);
-    window.addEventListener('medguard:unified-chat-sync', handleUnifiedChatSync);
+    window.addEventListener("medguard:health-twin-updated", handleSync);
+    window.addEventListener("medguard:unified-chat-sync", handleUnifiedChatSync);
     return () => {
-      window.removeEventListener('medguard:health-twin-updated', handleSync);
-      window.removeEventListener('medguard:unified-chat-sync', handleUnifiedChatSync);
+      window.removeEventListener("medguard:health-twin-updated", handleSync);
+      window.removeEventListener("medguard:unified-chat-sync", handleUnifiedChatSync);
     };
   }, []);
 
-  // Quick scenario switcher
-  const handleSwitchScenario = async (scenarioId) => {
-    try {
-      setLoading(true);
-      const updated = await api.request('/v1/health-twin/scenario', {
-        method: 'POST',
-        body: { scenario_id: scenarioId },
-      });
-      setProfile(updated);
-      const sc = SCENARIOS.find((s) => s.id === scenarioId);
-      setActionNotice(`Đã chuyển kịch bản: ${sc?.label}`);
-      setTimeout(() => setActionNotice(null), 4000);
-    } catch (err) {
-      console.error('Failed to switch scenario:', err);
-      onNotify?.('Lỗi chuyển đổi kịch bản.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Submit patient progress message
   const handleEvaluateProgress = async (textToEvaluate) => {
-    const text = textToEvaluate || inputMessage;
-    if (!text || !text.trim()) return;
-
+    const text = (textToEvaluate ?? inputMessage ?? "").trim();
+    if (!text) return;
     try {
       setEvaluating(true);
-      const res = await api.request('/v1/health-twin/evaluate-symptom-update', {
-        method: 'POST',
-        body: { message: text },
-      });
-      setProfile(res.profile);
-      setInputMessage('');
-
-      if (res.must_discontinue_previous) {
-        onNotify?.('Cảnh báo lâm sàng: Phát hiện tác dụng phụ, đã kích hoạt hướng dẫn an toàn.');
-      } else if (res.detected_event === 'recovery') {
-        onNotify?.('Ghi nhận hồi phục tích cực: Đã cập nhật trạng thái cơ thể ổn định.');
-      } else {
-        onNotify?.('Đã cập nhật diễn tiến sức khoẻ vào hồ sơ.');
+      let nextProfile = null;
+      try {
+        const res = await api.request("/v1/health-twin/evaluate-symptom-update", {
+          method: "POST",
+          body: { message: text },
+        });
+        if (res?.profile) {
+          nextProfile = evaluateHolisticHealthInput(res.profile, text, DEFAULT_HEALTH_PROFILE);
+        }
+      } catch {
+        // Fallback to client-side holistic engine
       }
-    } catch (err) {
-      console.error('Failed to evaluate symptom update:', err);
-      onNotify?.('Không thể phân tích diễn tiến sức khoẻ.');
+      setProfile((prev) => {
+        const computed = nextProfile || evaluateHolisticHealthInput(prev, text, DEFAULT_HEALTH_PROFILE);
+        try {
+          localStorage.setItem("medguard_health_twin_profile", JSON.stringify(computed));
+        } catch {}
+        return computed;
+      });
+      setInputMessage("");
+      setActionNotice(`Đã cập nhật tự động: "${text.slice(0, 65)}..." vào toàn bộ Biểu đồ & Giải pháp!`);
+      setTimeout(() => setActionNotice(null), 4500);
+      onNotify?.("Đã đồng bộ triệu chứng & cảm giác vào hệ thống biểu đồ sức khoẻ.");
     } finally {
       setEvaluating(false);
     }
@@ -634,8 +629,8 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
   }, [normalizedOrgans, selectedOrganId, hoveredOrganId]);
 
   const episodicAnalytics = useMemo(
-    () => computeEpisodicHealthAnalytics(profile, episodicTimeframe),
-    [profile, episodicTimeframe]
+    () => computeEpisodicHealthAnalytics({ ...profile, organs: normalizedOrgans }, episodicTimeframe),
+    [profile, normalizedOrgans, episodicTimeframe]
   );
 
   const personalizedSolutions = useMemo(
@@ -643,33 +638,90 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
     [profile, normalizedOrgans]
   );
 
+  const visualChartSuite = useMemo(
+    () => computeHolisticVisualChartSuite({ ...profile, organs: normalizedOrgans }, completedSolutions),
+    [profile, normalizedOrgans, completedSolutions]
+  );
+
   const getStatusColor = (status, score) => {
-    if (status === 'adverse_reaction' || status === 'critical') return '#ef4444';
-    if (status === 'inflamed') return '#f97316';
-    if (status === 'monitoring') return '#eab308';
-    if (score < 50) return '#ef4444';
-    if (score < 80) return '#f59e0b';
-    return '#10b981';
+    if (status === "adverse_reaction" || status === "critical") return "#e11d48";
+    if (status === "inflamed") return "#d97706";
+    if (status === "monitoring") return "#2563eb";
+    if (score < 60) return "#e11d48";
+    if (score < 85) return "#d97706";
+    return "#0d9488";
   };
 
   const getStatusBadgeText = (status) => {
     switch (status) {
-      case 'adverse_reaction':
-        return 'TÁC DỤNG PHỤ (ADR)';
-      case 'critical':
-        return 'BÁO ĐỘNG ĐỎ';
-      case 'inflamed':
-        return 'ĐANG VIÊM / TỔN THƯƠNG';
-      case 'monitoring':
-        return 'ĐANG THEO DÕI';
+      case "adverse_reaction":
+        return "PHẢN ỨNG THUỐC (ADR)";
+      case "critical":
+        return "CẢNH BÁO ĐỎ";
+      case "inflamed":
+        return "ĐANG VIÊM / ĐAU";
+      case "monitoring":
+        return "ĐANG THEO DÕI";
       default:
-        return 'ỔN ĐỊNH / BÌNH THƯỜNG';
+        return "ỔN ĐỊNH";
     }
   };
 
+  // Strict RBAC guard if rendered directly in guest mode
+  if (isGuest) {
+    return (
+      <DataManagementAuthGate
+        moduleTitle="Hồ Sơ Cơ Thể & Thống Kê Sức Khoẻ Đa Biểu Đồ"
+        moduleType="health"
+        onRequireAuth={onRequireAuth}
+        onBackToChat={onBackToChat}
+      />
+    );
+  }
+
+  // Compute SVG Dual-Spline coordinates for Section 2 Chart 2A
+  const chartSeries = episodicAnalytics.series || [];
+  const svgW = 520;
+  const svgH = 170;
+  const padX = 34;
+  const padY = 22;
+  const plotW = svgW - padX * 2;
+  const plotH = svgH - padY * 2;
+
+  const healthPoints = chartSeries.map((pt, i) => {
+    const x = +(padX + (i / Math.max(1, chartSeries.length - 1)) * plotW).toFixed(1);
+    const y = +(padY + ((100 - Math.max(20, Math.min(100, pt.healthScore))) / 80) * plotH).toFixed(1);
+    return { x, y, val: pt.healthScore, label: pt.label, batchCode: pt.batchCode, batchId: pt.batchId };
+  });
+
+  const sleepPoints = chartSeries.map((pt, i) => {
+    const x = +(padX + (i / Math.max(1, chartSeries.length - 1)) * plotW).toFixed(1);
+    const y = +(padY + ((100 - Math.max(20, Math.min(100, pt.sleepScore))) / 80) * plotH).toFixed(1);
+    return { x, y, val: pt.sleepScore };
+  });
+
+  const healthPolyline = healthPoints.map((p) => `${p.x},${p.y}`).join(" ");
+  const healthAreaPath = healthPoints.length
+    ? `M ${healthPoints[0].x},${padY + plotH} L ${healthPoints.map((p) => `${p.x},${p.y}`).join(" L ")} L ${healthPoints[healthPoints.length - 1].x},${padY + plotH} Z`
+    : "";
+  const sleepPolyline = sleepPoints.map((p) => `${p.x},${p.y}`).join(" ");
+
+  // Temperature line coordinates for Chart 2B
+  const tempPoints = chartSeries.map((pt, i) => {
+    const x = +(padX + (i / Math.max(1, chartSeries.length - 1)) * plotW).toFixed(1);
+    const clampedTemp = Math.max(36.0, Math.min(40.0, pt.temperature || 36.6));
+    const y = +(padY + ((40.0 - clampedTemp) / 4.0) * plotH).toFixed(1);
+    return { x, y, temp: pt.temperature, pain: pt.painScore, label: pt.label, batchId: pt.batchId };
+  });
+  const tempPolyline = tempPoints.map((p) => `${p.x},${p.y}`).join(" ");
+
+  const overallScore = profile?.overall_health_score ?? 96;
+
   return (
-    <div className="health-twin-container" role="main" aria-label="Bản đồ Cơ thể & Sức khoẻ Thời gian thực">
-      {/* Top Banner & Header */}
+    <div className="health-twin-container daylight-clinical-theme" role="main" aria-label="Bản đồ Cơ thể & Đa Biểu Đồ Sức khoẻ">
+      {/* ====================================================================
+          1. COMPACT EXECUTIVE TOPBAR & MEMBER AUTH BADGE
+          ==================================================================== */}
       <header className="health-twin-topbar">
         <div className="topbar-left">
           <button
@@ -678,36 +730,58 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
             onClick={onBackToChat}
             title="Quay lại phòng chat hội thoại"
           >
-            <ArrowLeft size={16} />
-            <span>Quay lại Chat</span>
+            <ArrowLeft size={15} />
+            <span>Hội thoại</span>
           </button>
+
           <div className="twin-title-group">
             <div className="twin-brand-badge">
-              <Activity size={18} className="twin-pulse-icon" />
-              <h1>Anatomical Health Twin</h1>
-              <span className="live-tag">CLINICAL PRECISION</span>
+              <HeartPulse size={18} className="twin-pulse-icon" />
+              <h1>Quản Trị Sức Khoẻ & Giải Phẫu Đa Biểu Đồ</h1>
+              <span className="live-tag">ĐỒNG BỘ TỰ ĐỘNG</span>
             </div>
             <p className="twin-subtitle">
-              Định vị Giải phẫu Học Chính xác — Đánh giá Toàn diện Sinh hiệu & Dự báo Rủi ro Tương lai (AI Risk Prognosis)
+              Tình trạng: <strong>{profile?.active_diagnosis || "Thể trạng Khỏe mạnh - Bình thường"}</strong> • Cập nhật lúc {profile?.last_updated || "Hiện tại"}
             </p>
           </div>
         </div>
 
         <div className="topbar-right">
-          <div className="patient-meta-pill">
-            <User size={14} />
-            <strong>{profile?.patient_name || 'Bệnh nhân'}</strong>
-            <span className="meta-sep">•</span>
-            <span>{profile?.age || 34} tuổi ({profile?.gender || 'Nam'})</span>
+          <div className="member-verified-pill" title="Phân quyền Hồ sơ Cá nhân đã xác thực">
+            <ShieldCheck size={14} />
+            <span>{account?.email || profile?.patient_name || "Thành viên Đã đăng nhập"}</span>
           </div>
+
+          <div className="overall-score-mini-ring">
+            <svg viewBox="0 0 36 36" className="mini-ring-svg">
+              <circle cx="18" cy="18" r="15" fill="none" stroke="#e2e8f0" strokeWidth="3.5" />
+              <circle
+                cx="18"
+                cy="18"
+                r="15"
+                fill="none"
+                stroke={getStatusColor("normal", overallScore)}
+                strokeWidth="3.5"
+                strokeDasharray={`${Math.round((overallScore / 100) * 94.2)} 95`}
+                strokeLinecap="round"
+                transform="rotate(-90 18 18)"
+              />
+            </svg>
+            <div className="mini-ring-text">
+              <span>Thể trạng</span>
+              <strong>{overallScore}%</strong>
+            </div>
+          </div>
+
           <button
             type="button"
-            className="refresh-btn"
-            onClick={fetchProfile}
+            className="console-btn-subtle"
+            onClick={handleResetProfile}
             disabled={loading}
-            title="Tải lại dữ liệu"
+            title="Đặt lại thể trạng ban đầu"
           >
-            <RefreshCw size={14} className={loading ? 'spinning' : ''} />
+            <RotateCcw size={14} className={loading ? "spinning" : ""} />
+            <span>Đặt lại ban đầu</span>
           </button>
         </div>
       </header>
@@ -715,246 +789,289 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
       {/* Action Notification Toast */}
       {actionNotice && (
         <div className="health-action-toast">
-          <Sparkles size={16} />
+          <Sparkles size={15} />
           <span>{actionNotice}</span>
         </div>
       )}
 
-      {/* Real-time Auto-Sync Clinical Header from Doctor Chat */}
-      <section className="health-twin-sync-bar" aria-label="Đồng bộ tự động từ hội thoại khám bệnh lâm sàng">
-        <div className="sync-bar-left">
-          <div className="sync-status-indicator">
-            <span className="sync-pulse-dot" />
-            <Activity size={18} className="sync-pulse-icon" />
-          </div>
-          <div className="sync-meta-info">
-            <div className="sync-badge-row">
-              <span className="clinical-live-badge">ĐỒNG BỘ TỰ ĐỘNG TỪ HỘI THOẠI KHÁM BỆNH</span>
-              <span className="patient-active-badge">
-                Tình trạng: <strong>{profile?.active_diagnosis || 'Đang theo dõi sức khoẻ tổng quát'}</strong>
-              </span>
-            </div>
-            <p className="sync-description">
-              Hệ thống AI tự động phát hiện triệu chứng, đối chiếu phản ứng thuốc và cập nhật bản đồ giải phẫu dựa trên cuộc hội thoại khám bệnh của bạn.
-            </p>
-          </div>
+      {/* ====================================================================
+          2. SECTION FOCUS FILTER BAR (Prevents Information Overload!)
+          ==================================================================== */}
+      <nav className="health-section-switcher-bar" aria-label="Bộ lọc phân khu trực quan">
+        <div className="section-tabs-group" role="tablist">
+          {[
+            { id: "all", label: "Tất cả Trực quan (Đa Biểu Đồ)" },
+            { id: "bio", label: "1. Khai báo & Radar Sinh học" },
+            { id: "episodic", label: "2. Biểu đồ Theo Đợt (Giờ/Ngày/Tuần/Tháng)" },
+            { id: "anatomy", label: "3. Giải phẫu 3D & 9 Cơ quan" },
+            { id: "solutions", label: "4. Phác đồ Giải pháp & Sinh hiệu" },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={sectionFilter === tab.id}
+              className={`sec-filter-tab ${sectionFilter === tab.id ? "active" : ""}`}
+              onClick={() => setSectionFilter(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
 
-        <div className="sync-bar-right">
-          <div className="sync-vitals-preview">
-            <div className="preview-stat">
-              <span className="stat-label">Điểm thể trạng</span>
-              <span className="stat-value" style={{ color: getStatusColor('score', profile?.overall_health_score || 95) }}>
-                {profile?.overall_health_score || 95}%
-              </span>
-            </div>
-            <div className="preview-stat">
-              <span className="stat-label">Diễn tiến</span>
-              <span className="stat-value trend">
-                {profile?.health_trend === 'improving' ? 'Đang hồi phục' : profile?.health_trend === 'deteriorating' ? 'Cần theo dõi sát' : 'Ổn định'}
-              </span>
-            </div>
-          </div>
+        <button
+          type="button"
+          className="btn-open-chat-sync"
+          onClick={() => onNavigate?.("chat")}
+        >
+          <MessageSquare size={14} />
+          <span>Chat với Bác sĩ AI</span>
+        </button>
+      </nav>
 
-          <div className="sync-action-buttons">
-            <button
-              type="button"
-              className="btn-open-chat-sync"
-              onClick={() => onNavigate?.('chat')}
-              title="Mở hội thoại để trao đổi triệu chứng với Bác sĩ AI"
-            >
-              <MessageSquare size={15} />
-              <span>Trò chuyện với Bác sĩ AI</span>
-            </button>
-            <button
-              type="button"
-              className="btn-refresh-profile-sync"
-              onClick={handleResetProfile}
-              disabled={loading}
-              title="Đặt lại thể trạng bình thường ban đầu"
-            >
-              <RotateCcw size={14} className={loading ? 'spinning' : ''} />
-              <span>Đặt lại ban đầu</span>
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* AI Safe Guardrail Alert Banner (If Harmful Medication Detected) */}
-      {profile?.safe_guardrail_alert && (
-        <section className={`guardrail-alert-banner level-${profile.safe_guardrail_alert.alert_level}`}>
-          <div className="alert-banner-header">
-            <div className="alert-title-wrap">
-              <ShieldAlert size={22} className="alert-beacon-icon" />
-              <div>
-                <h2>{profile.safe_guardrail_alert.title}</h2>
-                <span className="alert-cause">Nguyên nhân: {profile.safe_guardrail_alert.cause_identified}</span>
+      {/* ====================================================================
+          SECTION 1: NATURAL-LANGUAGE AUTO-SYNC + 6-AXIS RADAR & 4 RADIAL RINGS
+          ==================================================================== */}
+      {(sectionFilter === "all" || sectionFilter === "bio") && (
+        <section className="visual-section-card bio-intake-radar-grid" aria-label="Khai báo Tự động & Biểu đồ Radar Thể trạng">
+          {/* Left: Streamlined Smart Input Console + 4 Radial Gauge Rings */}
+          <div className="bio-left-col user-health-input-console">
+            <div className="sec-head-compact">
+              <div className="sec-title-inline">
+                <Sparkles size={17} className="icon-teal" />
+                <h3>1. Khai Báo Tự Động Bệnh Lý & Cảm Giác Cơ Thể</h3>
               </div>
+              <span className="sec-sub-badge">Tự động cập nhật 100% Biểu đồ</span>
             </div>
-            {profile.safe_guardrail_alert.seek_emergency && (
+
+            <div className="holistic-input-bar-row">
+              <input
+                type="text"
+                className="holistic-symptom-input console-text-input"
+                placeholder="Nhập triệu chứng hoặc cảm giác (VD: đau đầu căng thẳng, mất ngủ, đau rát dạ dày, sốt 38.5 độ...)"
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleEvaluateProgress();
+                }}
+              />
               <button
                 type="button"
-                className="alert-emergency-nav-btn"
-                onClick={() => {
-                  window.dispatchEvent(
-                    new CustomEvent('medguard:navigate', {
-                      detail: { view: 'navigation' },
-                    })
-                  );
-                }}
+                className={`holistic-mic-btn ${isListening ? "listening" : ""}`}
+                onClick={handleVoiceInput}
+                title="Khai báo bằng giọng nói"
               >
-                <AlertTriangle size={15} />
-                <span>CHỈ ĐƯỜNG ĐẾN CƠ SỞ CẤP CỨU GẦN NHẤT</span>
+                <Mic size={16} />
               </button>
-            )}
-          </div>
-
-          <div className="guardrail-grid">
-            <div className="guardrail-col stop-col">
-              <div className="col-label">
-                <X size={15} />
-                <strong>CHỈ THỊ: DỪNG CÁCH CŨ GÂY HẠI</strong>
-              </div>
-              <p className="col-desc highlight-stop">{profile.safe_guardrail_alert.required_action}</p>
-              <div className="contra-badge">
-                <span>Chống chỉ định:</span>
-                <strong>{profile.safe_guardrail_alert.contraindicated_item}</strong>
-              </div>
+              <button
+                type="button"
+                className="holistic-submit-btn console-submit-btn"
+                disabled={evaluating || !inputMessage.trim()}
+                onClick={() => handleEvaluateProgress()}
+              >
+                <Send size={14} />
+                <span>{evaluating ? "Đang xử lý..." : "Đồng bộ ngay"}</span>
+              </button>
             </div>
 
-            <div className="guardrail-col alt-col">
-              <div className="col-label">
-                <ShieldCheck size={15} />
-                <strong>PHƯƠNG ÁN AN TOÀN THAY THẾ</strong>
+            {/* Concise 1-Click Quick Chips */}
+            <div className="holistic-quick-chips-row">
+              {QUICK_FEELING_CHIPS.map((chip) => (
+                <button
+                  key={chip.id}
+                  type="button"
+                  className="holistic-feeling-chip quick-chip-item"
+                  disabled={evaluating}
+                  onClick={() => handleEvaluateProgress(chip.message)}
+                >
+                  <Zap size={12} />
+                  <span>{chip.label}</span>
+                </button>
+              ))}
+              <button
+                type="button"
+                className="holistic-feeling-chip quick-chip-item"
+                disabled={evaluating}
+                onClick={() => handleEvaluateProgress("Tôi chưa tiêm phòng vắc-xin Viêm gan B, cần đánh giá rủi ro gan")}
+              >
+                <Syringe size={12} />
+                <span>💉 Chưa tiêm Viêm gan B</span>
+              </button>
+            </div>
+
+            {/* Chart 1B: 4 Circular Radial Progress Gauges */}
+            <div className="bio-radial-gauges-grid">
+              {[
+                {
+                  id: "sleep",
+                  label: "Giấc ngủ & Phục hồi",
+                  val: profile?.wellbeing?.sleep_quality_score ?? 88,
+                  unit: "/100",
+                  color: "#0d9488",
+                },
+                {
+                  id: "neuro",
+                  label: "An thần & Tâm lý",
+                  val: String(profile?.wellbeing?.stress_level_label || "").includes("Cao") ? 52 : String(profile?.wellbeing?.stress_level_label || "").includes("Trung") ? 74 : 92,
+                  unit: "%",
+                  subText: profile?.wellbeing?.stress_level_label || "Thấp (Ổn định)",
+                  color: "#2563eb",
+                },
+                {
+                  id: "energy",
+                  label: "Pin Năng lượng",
+                  val: profile?.wellbeing?.energy_battery_percent ?? 90,
+                  unit: "%",
+                  color: "#d97706",
+                },
+                {
+                  id: "hydration",
+                  label: "Nước & Điện giải",
+                  val: profile?.wellbeing?.hydration_balance_percent ?? 92,
+                  unit: "%",
+                  color: "#0284c7",
+                },
+              ].map((g) => {
+                const dash = Math.round((Math.max(10, Math.min(100, g.val)) / 100) * 113);
+                return (
+                  <div key={g.id} className="radial-gauge-mini-card">
+                    <svg viewBox="0 0 44 44" className="radial-gauge-svg">
+                      <circle cx="22" cy="22" r="18" fill="none" stroke="#e2e8f0" strokeWidth="4" />
+                      <circle
+                        cx="22"
+                        cy="22"
+                        r="18"
+                        fill="none"
+                        stroke={g.color}
+                        strokeWidth="4"
+                        strokeDasharray={`${dash} 114`}
+                        strokeLinecap="round"
+                        transform="rotate(-90 22 22)"
+                      />
+                      <text x="22" y="25" textAnchor="middle" className="radial-svg-num" fill={g.color}>
+                        {g.val}
+                      </text>
+                    </svg>
+                    <div className="radial-gauge-info">
+                      <span>{g.label}</span>
+                      <strong style={{ color: g.color }}>{g.subText || `${g.val}${g.unit}`}</strong>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Right: Chart 1A — Interactive 6-Axis Spider/Radar SVG Chart */}
+          <div className="bio-right-radar-card">
+            <div className="radar-card-header">
+              <div>
+                <span className="chart-kicker">BIỂU ĐỒ RADAR 6 TRỤC</span>
+                <h4>Cân Bằng Sinh Học Toàn Diện</h4>
               </div>
-              <p className="col-desc">{profile.safe_guardrail_alert.alternative_recommendation}</p>
+              <span className="radar-avg-badge">TB: {visualChartSuite.radarAverage}/100</span>
+            </div>
+
+            <div className="radar-svg-stage">
+              <svg viewBox="0 0 220 220" className="bio-radar-svg" role="img" aria-label="Biểu đồ Radar 6 chiều sức khoẻ">
+                {/* Concentric Hexagonal Grid Rings (33%, 66%, 100%) */}
+                {[0.35, 0.68, 1.0].map((scale, sIdx) => {
+                  const pts = visualChartSuite.radarAxes
+                    .map((a) => {
+                      const rx = +(110 + 72 * scale * Math.cos(a.angle)).toFixed(1);
+                      const ry = +(110 + 72 * scale * Math.sin(a.angle)).toFixed(1);
+                      return `${rx},${ry}`;
+                    })
+                    .join(" ");
+                  return (
+                    <polygon
+                      key={sIdx}
+                      points={pts}
+                      fill={sIdx === 2 ? "rgba(241,245,249,0.5)" : "none"}
+                      stroke="#cbd5e1"
+                      strokeWidth="1"
+                      strokeDasharray={sIdx < 2 ? "2 2" : undefined}
+                    />
+                  );
+                })}
+
+                {/* Radial Axes Spokes */}
+                {visualChartSuite.radarAxes.map((a) => (
+                  <line
+                    key={a.id}
+                    x1="110"
+                    y1="110"
+                    x2={a.outerX}
+                    y2={a.outerY}
+                    stroke="#cbd5e1"
+                    strokeWidth="1"
+                  />
+                ))}
+
+                {/* Active Bio-Wellness Polygon */}
+                <polygon
+                  points={visualChartSuite.radarPolygonPoints}
+                  fill="rgba(13, 148, 136, 0.22)"
+                  stroke="#0d9488"
+                  strokeWidth="2.5"
+                />
+
+                {/* Data Vertex Nodes & Labels */}
+                {visualChartSuite.radarAxes.map((a) => (
+                  <g key={a.id}>
+                    <circle cx={a.x} cy={a.y} r="4" fill={a.color} stroke="#ffffff" strokeWidth="1.5" />
+                    <text
+                      x={a.labelX}
+                      y={a.labelY}
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      className="radar-axis-label"
+                    >
+                      {a.shortLabel} ({a.value})
+                    </text>
+                  </g>
+                ))}
+              </svg>
             </div>
           </div>
         </section>
       )}
 
-      {/* Holistic Symptom & Feeling Live Input Hub + Episodic Multi-Timeframe Dashboard & 4-Pillar Solutions */}
-      <section className="holistic-health-command-center" aria-label="Trung tâm Đồng bộ Cảm giác, Biểu đồ Theo Đợt và Giải pháp Sức khoẻ">
-        {/* 1. Holistic Natural-Language Symptom & Feeling Input Box */}
-        <div className="holistic-live-input-card">
-          <div className="holistic-input-header">
-            <div className="holistic-title-wrap">
-              <Sparkles size={18} className="holistic-sparkle-icon" />
-              <div>
-                <h3>Cập Nhật Tự Động Mọi Tình Trạng Bệnh, Triệu Chứng & Cảm Giác Cơ Thể</h3>
-                <p>
-                  Nhập hoặc nói bất kỳ biểu hiện bệnh, cơn đau hay cảm giác trong người (căng thẳng, mất ngủ, mỏi mắt, đau rát dạ dày, sốt, mệt lả, hoặc đã khỏe hơn...) — Hệ thống tự động đồng bộ toàn bộ 9 cơ quan, sinh hiệu, biểu đồ từng đợt và phác đồ giải pháp.
-                </p>
-              </div>
-            </div>
-            <span className="holistic-last-sync-pill">
-              <Clock size={12} />
-              <span>{profile?.last_updated || 'Đồng bộ thời gian thực'}</span>
-            </span>
-          </div>
-
-          <div className="holistic-input-bar-row">
-            <input
-              type="text"
-              className="holistic-symptom-input"
-              placeholder="Ví dụ: Hôm nay tôi đau đầu căng thẳng, mất ngủ, mỏi mắt và hơi đau rát thượng vị dạ dày..."
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleEvaluateProgress();
-              }}
-            />
-            <button
-              type="button"
-              className={`holistic-mic-btn ${isListening ? 'listening' : ''}`}
-              onClick={handleVoiceInput}
-              title="Nhập triệu chứng bằng giọng nói"
-            >
-              <Mic size={16} />
-            </button>
-            <button
-              type="button"
-              className="holistic-submit-btn"
-              disabled={evaluating || !inputMessage.trim()}
-              onClick={() => handleEvaluateProgress()}
-            >
-              <Send size={15} />
-              <span>{evaluating ? 'Đang đồng bộ AI...' : 'Đồng bộ Toàn diện'}</span>
-            </button>
-          </div>
-
-          {/* Quick Feeling & Symptom Chips */}
-          <div className="holistic-quick-chips-row">
-            <span className="chips-prefix-label">Khai báo nhanh cảm giác / bệnh lý:</span>
-            {QUICK_FEELING_CHIPS.map((chip) => (
-              <button
-                key={chip.id}
-                type="button"
-                className="holistic-feeling-chip"
-                onClick={() => handleEvaluateProgress(chip.text)}
-              >
-                <Zap size={12} />
-                <span>{chip.label}</span>
-              </button>
-            ))}
-          </div>
-
-          {/* 4 Holistic Wellbeing & Subjective Feeling Strips */}
-          <div className="holistic-wellbeing-strip">
-            <div className="wellbeing-mini-card">
-              <span className="wb-label">Chất lượng Giấc ngủ & Phục hồi</span>
-              <strong className="wb-val">{profile?.wellbeing?.sleep_quality_score ?? 88}/100</strong>
-            </div>
-            <div className="wellbeing-mini-card">
-              <span className="wb-label">Mức độ Căng thẳng Thần kinh</span>
-              <strong className="wb-val">{profile?.wellbeing?.stress_level_label || 'Thấp (Ổn định)'}</strong>
-            </div>
-            <div className="wellbeing-mini-card">
-              <span className="wb-label">Pin Năng lượng Cơ thể</span>
-              <strong className="wb-val">{profile?.wellbeing?.energy_battery_percent ?? 90}%</strong>
-            </div>
-            <div className="wellbeing-mini-card">
-              <span className="wb-label">Cân bằng Nước & Điện giải</span>
-              <strong className="wb-val">{profile?.wellbeing?.hydration_balance_percent ?? 92}%</strong>
-            </div>
-          </div>
-        </div>
-
-        {/* 2. Episodic Multi-Timeframe Health Statistics Dashboard (Giờ / Ngày / Tuần / Tháng by Đợt 1, Đợt 2, Đợt 3) */}
-        <div className="episodic-analytics-panel">
+      {/* ====================================================================
+          SECTION 2: EPISODIC MULTI-CHART SUITE (GIỜ / NGÀY / TUẦN / THÁNG BY BATCH)
+          ==================================================================== */}
+      {(sectionFilter === "all" || sectionFilter === "episodic") && (
+        <section className="visual-section-card episodic-analytics-panel" aria-label="Biểu đồ Thống kê Sức khoẻ Theo Đợt">
           <div className="episodic-panel-header">
             <div className="episodic-title-block">
               <div className="episodic-badge-row">
-                <span className="episodic-tag">THỐNG KÊ SỨC KHOẺ THEO ĐỢT</span>
-                <span className={`episodic-delta-pill ${episodicAnalytics.overallDelta >= 0 ? 'up' : 'down'}`}>
+                <span className="episodic-tag">ĐA BIỂU ĐỒ THEO TỪNG ĐỢT</span>
+                <span className={`episodic-delta-pill ${episodicAnalytics.overallDelta >= 0 ? "up" : "down"}`}>
                   {episodicAnalytics.overallDelta >= 0 ? <TrendingUp size={13} /> : <TrendingDown size={13} />}
                   <span>
                     {episodicAnalytics.overallDelta >= 0 ? `+${episodicAnalytics.overallDelta}%` : `${episodicAnalytics.overallDelta}%`} so với Đợt 1
                   </span>
                 </span>
               </div>
-              <h3>Biểu Đồ Thống Kê Diễn Tiến Sức Khoẻ Chia Theo Từng Đợt ({episodicAnalytics.timeframeLabel})</h3>
-              <p>
-                Phân tích đa khung thời gian (Giờ, Ngày, Tuần, Tháng) chia theo 3 đợt lâm sàng giúp đánh giá chính xác tốc độ đáp ứng điều trị và đề xuất giải pháp trúng đích.
-              </p>
+              <h3>2. Thống Kê Diễn Tiến Theo Đợt ({episodicAnalytics.timeframeLabel})</h3>
             </div>
 
             <div className="episodic-timeframe-switcher" role="tablist" aria-label="Chọn khung thời gian thống kê">
               {[
-                { id: 'HOUR', label: 'Theo Giờ (24h)' },
-                { id: 'DAY', label: 'Theo Ngày (7 ngày)' },
-                { id: 'WEEK', label: 'Theo Tuần (4 tuần)' },
-                { id: 'MONTH', label: 'Theo Tháng (6 tháng)' },
+                { id: "HOUR", label: "Theo Giờ (24h)" },
+                { id: "DAY", label: "Theo Ngày (7 ngày)" },
+                { id: "WEEK", label: "Theo Tuần (4 tuần)" },
+                { id: "MONTH", label: "Theo Tháng (6 tháng)" },
               ].map((tf) => (
                 <button
                   key={tf.id}
                   type="button"
                   role="tab"
                   aria-selected={episodicTimeframe === tf.id}
-                  className={`tf-switch-btn ${episodicTimeframe === tf.id ? 'active' : ''}`}
+                  className={`tf-switch-btn ${episodicTimeframe === tf.id ? "active" : ""}`}
                   onClick={() => {
                     setEpisodicTimeframe(tf.id);
-                    setSelectedBatchId('all');
+                    setSelectedBatchId("all");
                   }}
                 >
                   {tf.label}
@@ -963,1622 +1080,716 @@ export function HealthTwinPage({ api, onBackToChat, onNavigate, onNotify }) {
             </div>
           </div>
 
-          {/* 3 Clinical Batch Filter Cards (Đợt 1, Đợt 2, Đợt 3 - Hiện tại) */}
+          {/* 3 Compact Batch Filter Cards with Visual Progress Bars */}
           <div className="episodic-batches-grid">
             {episodicAnalytics.batches.map((batch) => {
               const isSelected = selectedBatchId === batch.id;
               return (
                 <div
                   key={batch.id}
-                  className={`episodic-batch-card ${batch.status} ${isSelected ? 'selected' : ''}`}
-                  onClick={() => setSelectedBatchId(isSelected ? 'all' : batch.id)}
+                  className={`episodic-batch-card ${batch.status} ${isSelected ? "selected" : ""}`}
+                  onClick={() => setSelectedBatchId(isSelected ? "all" : batch.id)}
                   role="button"
                   tabIndex={0}
                 >
                   <div className="batch-card-top">
                     <span className="batch-code-badge">{batch.code}</span>
-                    <span className={`batch-delta-tag ${batch.delta >= 0 ? 'pos' : 'neg'}`}>
-                      {batch.delta >= 0 ? `+${batch.delta}% điểm thể trạng` : `${batch.delta}% điểm thể trạng`}
+                    <span className={`batch-delta-tag ${batch.delta >= 0 ? "pos" : "neg"}`}>
+                      {batch.delta >= 0 ? `+${batch.delta}%` : `${batch.delta}%`}
                     </span>
                   </div>
                   <h4 className="batch-card-title">{batch.name}</h4>
-                  <p className="batch-focus-text">{batch.focus}</p>
-                  <div className="batch-metrics-row">
-                    <div className="bm-item">
-                      <span>Điểm TB</span>
+                  <div className="batch-visual-bars">
+                    <div className="bv-bar-row">
+                      <span>Thể trạng TB</span>
+                      <div className="bv-track">
+                        <div className="bv-fill teal" style={{ width: `${batch.avgScore}%` }} />
+                      </div>
                       <strong>{batch.avgScore}%</strong>
                     </div>
-                    <div className="bm-item">
-                      <span>Đau VAS</span>
-                      <strong>{batch.avgPain}/10</strong>
-                    </div>
-                    <div className="bm-item">
-                      <span>Thân nhiệt</span>
-                      <strong>{batch.avgTemp}°C</strong>
-                    </div>
-                    <div className="bm-item">
-                      <span>Nhịp tim</span>
-                      <strong>{batch.avgHr} bpm</strong>
+                    <div className="bv-bar-row">
+                      <span>Đau VAS & Nhiệt</span>
+                      <div className="bv-track">
+                        <div
+                          className="bv-fill amber"
+                          style={{ width: `${Math.max(8, batch.avgPain * 10)}%` }}
+                        />
+                      </div>
+                      <strong>{batch.avgPain}/10 • {batch.avgTemp}°C</strong>
                     </div>
                   </div>
                   <div className="batch-solution-callout">
                     <CheckCircle2 size={13} />
-                    <span><strong>Giải pháp trọng tâm đợt này:</strong> {batch.solutionSummary}</span>
+                    <span>{batch.solutionSummary}</span>
                   </div>
                 </div>
               );
             })}
           </div>
 
-          {/* Visual Episodic Bar & Trend Chart */}
-          <div className="episodic-chart-stage">
-            <div className="chart-legend-bar">
-              <span className="c-legend"><i className="dot score" /> Điểm Sức Khoẻ Tổng Thể (%)</span>
-              <span className="c-legend"><i className="dot sleep" /> Chỉ Số Giấc Ngủ & Phục Hồi (%)</span>
-              <span className="c-legend"><i className="dot pain" /> Thang Đau VAS (/10) & Nhiệt độ (°C)</span>
+          {/* Dual SVG Chart Grid: Chart 2A (Area Spline) + Chart 2B (Combo VAS Bar & Temp Curve) */}
+          <div className="episodic-dual-charts-grid">
+            {/* Chart 2A: Biểu Đồ Đường Cong Miền Đôi (Thể trạng & Phục hồi) */}
+            <div className="episodic-svg-chart-box">
+              <div className="svg-chart-head">
+                <div>
+                  <span className="chart-kicker">BIỂU ĐỒ MIỀN & ĐƯỜNG XU HƯỚNG</span>
+                  <h4>Diễn Tiến Điểm Sức Khoẻ & Phục Hồi Giấc Ngủ (%)</h4>
+                </div>
+                <div className="svg-legend-inline">
+                  <span className="leg-dot teal">● Thể trạng (%)</span>
+                  <span className="leg-dot blue">● Giấc ngủ (%)</span>
+                </div>
+              </div>
+
+              <svg viewBox={`0 0 ${svgW} ${svgH}`} className="episodic-spline-svg">
+                <defs>
+                  <linearGradient id="healthAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#0d9488" stopOpacity="0.28" />
+                    <stop offset="100%" stopColor="#0d9488" stopOpacity="0.02" />
+                  </linearGradient>
+                </defs>
+
+                {/* Horizontal Reference Lines */}
+                {[40, 60, 80, 100].map((val) => {
+                  const y = +(padY + ((100 - val) / 80) * plotH).toFixed(1);
+                  return (
+                    <g key={val}>
+                      <line x1={padX} y1={y} x2={svgW - padX} y2={y} stroke="#e2e8f0" strokeDasharray="3 3" />
+                      <text x={padX - 6} y={y + 3} textAnchor="end" className="svg-axis-num">
+                        {val}%
+                      </text>
+                    </g>
+                  );
+                })}
+
+                {/* Area & Polylines */}
+                {healthAreaPath && <path d={healthAreaPath} fill="url(#healthAreaGrad)" />}
+                <polyline
+                  fill="none"
+                  stroke="#2563eb"
+                  strokeWidth="2"
+                  strokeDasharray="4 3"
+                  points={sleepPolyline}
+                />
+                <polyline
+                  fill="none"
+                  stroke="#0d9488"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  points={healthPolyline}
+                />
+
+                {/* Data Points & Labels */}
+                {healthPoints.map((p, idx) => {
+                  const isDimmed = selectedBatchId !== "all" && p.batchId !== selectedBatchId;
+                  return (
+                    <g key={idx} opacity={isDimmed ? 0.25 : 1}>
+                      <circle cx={p.x} cy={p.y} r="4.5" fill="#0d9488" stroke="#ffffff" strokeWidth="1.5" />
+                      <text x={p.x} y={p.y - 8} textAnchor="middle" className="svg-node-val">
+                        {p.val}%
+                      </text>
+                      <text x={p.x} y={svgH - 4} textAnchor="middle" className="svg-x-label">
+                        {p.label}
+                      </text>
+                    </g>
+                  );
+                })}
+              </svg>
             </div>
-            <div className="episodic-bars-columns">
-              {episodicAnalytics.series.map((pt, idx) => {
-                const isDimmed = selectedBatchId !== 'all' && pt.batchId !== selectedBatchId;
-                return (
-                  <div key={idx} className={`episodic-col-item ${isDimmed ? 'dimmed' : ''}`}>
-                    <div className="col-batch-tag">{pt.batchCode}</div>
-                    <div className="col-bars-track">
-                      <div
-                        className="col-bar health-bar"
-                        style={{ height: `${Math.max(12, pt.healthScore)}%` }}
-                        title={`Điểm sức khoẻ: ${pt.healthScore}%`}
-                      >
-                        <span className="bar-top-val">{pt.healthScore}%</span>
-                      </div>
-                      <div
-                        className="col-bar sleep-bar"
-                        style={{ height: `${Math.max(12, pt.sleepScore)}%` }}
-                        title={`Giấc ngủ & phục hồi: ${pt.sleepScore}%`}
+
+            {/* Chart 2B: Biểu Đồ Cột Ghép Đau VAS & Đường Thân Nhiệt (°C) */}
+            <div className="episodic-svg-chart-box">
+              <div className="svg-chart-head">
+                <div>
+                  <span className="chart-kicker">BIỂU ĐỒ CỘT GHÉP & ĐƯỜNG NHIỆT ĐỘ</span>
+                  <h4>Tương Quan Mức Đau (VAS /10) & Thân Nhiệt (°C)</h4>
+                </div>
+                <div className="svg-legend-inline">
+                  <span className="leg-dot amber">■ Cột Đau VAS</span>
+                  <span className="leg-dot rose">● Thân nhiệt (°C)</span>
+                </div>
+              </div>
+
+              <svg viewBox={`0 0 ${svgW} ${svgH}`} className="episodic-spline-svg">
+                {/* 37.0°C Normal Threshold Line */}
+                <line
+                  x1={padX}
+                  y1={+(padY + ((40.0 - 37.0) / 4.0) * plotH).toFixed(1)}
+                  x2={svgW - padX}
+                  y2={+(padY + ((40.0 - 37.0) / 4.0) * plotH).toFixed(1)}
+                  stroke="#94a3b8"
+                  strokeDasharray="3 3"
+                />
+
+                {/* VAS Pain Vertical Bars */}
+                {tempPoints.map((pt, idx) => {
+                  const barH = Math.max(6, (pt.pain / 10) * plotH);
+                  const barY = padY + plotH - barH;
+                  const barColor = pt.pain >= 6 ? "#e11d48" : pt.pain >= 3 ? "#f59e0b" : "#10b981";
+                  const isDimmed = selectedBatchId !== "all" && pt.batchId !== selectedBatchId;
+                  return (
+                    <g key={idx} opacity={isDimmed ? 0.25 : 1}>
+                      <rect
+                        x={pt.x - 14}
+                        y={barY}
+                        width="28"
+                        height={barH}
+                        rx="5"
+                        fill={barColor}
+                        fillOpacity="0.25"
+                        stroke={barColor}
+                        strokeWidth="1.5"
                       />
-                    </div>
-                    <div className="col-sub-metrics">
-                      <span className="sub-pain">VAS {pt.painScore}/10</span>
-                      <span className="sub-temp">{pt.temperature}°C</span>
-                    </div>
-                    <strong className="col-time-label">{pt.label}</strong>
-                  </div>
-                );
-              })}
+                      <text x={pt.x} y={padY + plotH - 4} textAnchor="middle" className="svg-bar-vas">
+                        VAS {pt.pain}
+                      </text>
+                      <text x={pt.x} y={svgH - 4} textAnchor="middle" className="svg-x-label">
+                        {pt.label}
+                      </text>
+                    </g>
+                  );
+                })}
+
+                {/* Overlaid Temperature Line */}
+                <polyline
+                  fill="none"
+                  stroke="#e11d48"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  points={tempPolyline}
+                />
+
+                {tempPoints.map((pt, idx) => (
+                  <g key={`t-${idx}`}>
+                    <circle cx={pt.x} cy={pt.y} r="4" fill="#e11d48" stroke="#ffffff" strokeWidth="1.5" />
+                    <text x={pt.x} y={pt.y - 7} textAnchor="middle" className="svg-temp-val">
+                      {pt.temp}°C
+                    </text>
+                  </g>
+                ))}
+              </svg>
             </div>
           </div>
-        </div>
+        </section>
+      )}
 
-        {/* 3. 4-Pillar Personalized Health Solutions Center */}
-        <div className="personalized-solutions-center">
-          <div className="solutions-header-bar">
-            <div>
-              <span className="solutions-kicker">TRỌNG TÂM ĐÁNH GIÁ TỔNG QUAN & CAN THIỆP</span>
-              <h3>Trung Tâm Giải Pháp Sức Khoẻ & Phác Đồ Hành Động Cá Nhân Hoá (4 Trụ Cột)</h3>
-              <p>
-                Tự động tổng hợp giải pháp từ tình trạng bệnh, cảm giác cơ thể và thống kê từng đợt của bạn để cải thiện sức khoẻ nhanh chóng, an toàn.
-              </p>
+      {/* ====================================================================
+          SECTION 3: 3D ANATOMICAL BODY TWIN + 9-ORGAN BAR RANKING & RISK GAUGE
+          ==================================================================== */}
+      {(sectionFilter === "all" || sectionFilter === "anatomy") && (
+        <div className="twin-main-grid">
+          {/* Left Column: Interactive 3D Anatomical Digital Twin Model */}
+          <section className="body-silhouette-panel">
+            <div className="panel-header-bar">
+              <div className="header-bar-title">
+                <Scan size={16} className="scan-icon" />
+                <span>3. Mô Hình Giải Phẫu 9 Cơ Quan (3D Twin)</span>
+              </div>
+              <div className="view-mode-pills">
+                <button
+                  type="button"
+                  className={`mode-pill ${modelViewMode === "3d_hologram" ? "active" : ""}`}
+                  onClick={() => setModelViewMode("3d_hologram")}
+                >
+                  <Layers size={12} />
+                  <span>3D Chuẩn</span>
+                </button>
+                <button
+                  type="button"
+                  className={`mode-pill ${modelViewMode === "xray_scan" ? "active" : ""}`}
+                  onClick={() => setModelViewMode("xray_scan")}
+                >
+                  <Eye size={12} />
+                  <span>Quét Mô</span>
+                </button>
+              </div>
             </div>
-          </div>
 
-          <div className="solutions-pillars-grid">
-            {personalizedSolutions.map((sol) => {
-              const isDone = Boolean(completedSolutions[sol.id]);
-              return (
-                <div key={sol.id} className={`solution-pillar-card priority-${sol.priorityLevel} ${isDone ? 'completed' : ''}`}>
-                  <div className="sol-card-top">
-                    <span className="sol-pillar-name">{sol.pillar}</span>
-                    <span className={`sol-priority-badge ${sol.priorityLevel}`}>{sol.priority}</span>
-                  </div>
-                  <h4 className="sol-card-title">{sol.title}</h4>
-                  <div className="sol-target-organ">
-                    <HeartPulse size={13} />
-                    <span>Đích tác động: <strong>{sol.targetOrgan}</strong></span>
-                  </div>
-                  <p className="sol-rationale">{sol.rationale}</p>
-                  <ul className="sol-steps-list">
-                    {sol.actionSteps.map((step, sIdx) => (
-                      <li key={sIdx}>
-                        <CheckCircle2 size={14} className="sol-step-icon" />
-                        <span>{step}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="sol-outcome-box">
-                    <Sparkles size={13} />
-                    <span><strong>Mục tiêu đạt được:</strong> {sol.expectedOutcome}</span>
-                  </div>
-                  <div className="sol-card-actions">
-                    <button
-                      type="button"
-                      className={`sol-btn-check ${isDone ? 'done' : ''}`}
-                      onClick={() =>
-                        setCompletedSolutions((prev) => ({ ...prev, [sol.id]: !prev[sol.id] }))
-                      }
-                    >
-                      <Check size={14} />
-                      <span>{isDone ? 'Đã áp dụng giải pháp' : 'Đánh dấu thực hiện'}</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="sol-btn-chat"
-                      onClick={() => {
-                        onNavigate?.('chat');
-                        window.dispatchEvent(
-                          new CustomEvent('medguard:navigate', {
-                            detail: {
-                              view: 'chat',
-                              message: `Tư vấn chi tiết giải pháp: ${sol.title} cho ${sol.targetOrgan}`,
-                            },
-                          })
-                        );
-                      }}
-                    >
-                      <MessageSquare size={13} />
-                      <span>Hỏi Bác sĩ AI</span>
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Main Interactive Twin Workspace */}
-      <div className="twin-main-grid">
-        {/* Left Column: Interactive 3D Anatomical Digital Twin Model */}
-        <section className="body-silhouette-card" aria-label="Sơ đồ Giải phẫu Cơ thể">
-          <div className="silhouette-header">
-            <div className="header-badge">
-              <HeartPulse size={16} />
-              <span>Sơ đồ Giải phẫu Cơ thể Người (Anatomical Landmarks)</span>
-            </div>
-            <div className="model-view-controls">
-              <button
-                type="button"
-                className={`view-toggle-btn ${modelViewMode === '3d_hologram' ? 'active' : ''}`}
-                onClick={() => setModelViewMode('3d_hologram')}
-                title="Chế độ Giải phẫu Chuẩn 3D"
-              >
-                <Scan size={13} />
-                <span>Giải phẫu 3D</span>
-              </button>
-              <button
-                type="button"
-                className={`view-toggle-btn ${modelViewMode === 'wireframe_heatmap' ? 'active' : ''}`}
-                onClick={() => setModelViewMode('wireframe_heatmap')}
-                title="Chế độ Bản đồ Nhiệt Lâm sàng"
-              >
-                <Layers size={13} />
-                <span>Bản đồ Nhiệt</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Organ Systems Filter Tabs */}
-          <div className="system-filter-tabs-row" role="tablist" aria-label="Lọc theo hệ cơ quan">
-            {ORGAN_SYSTEMS.map((sys) => {
-              const Icon = sys.icon;
-              const isActive = selectedSystem === sys.id;
-              return (
+            {/* Organ System Filter Tabs */}
+            <div className="system-filter-bar" role="tablist">
+              {ORGAN_SYSTEMS.map((sys) => (
                 <button
                   key={sys.id}
                   type="button"
-                  className={`system-tab-btn ${isActive ? 'active' : ''}`}
-                  onClick={() => setSelectedSystem(sys.id)}
-                >
-                  <Icon size={12} />
-                  <span>{sys.label}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Quick Organ Selector Chips */}
-          <div className="organ-quick-chips-bar" role="tablist" aria-label="Chọn nhanh cơ quan">
-            {normalizedOrgans.map((organ) => {
-              const isSelected = selectedOrganId === organ.id;
-              const statusColor = getStatusColor(organ.status, organ.health_score);
-              const isSystemMember =
-                selectedSystem === 'all' ||
-                ORGAN_SYSTEMS.find((s) => s.id === selectedSystem)?.organIds?.includes(organ.id);
-
-              if (!isSystemMember) return null;
-
-              return (
-                <button
-                  key={organ.id}
-                  type="button"
-                  className={`organ-chip-btn ${isSelected ? 'active' : ''}`}
-                  style={{ '--chip-color': statusColor }}
-                  onClick={() => setSelectedOrganId(organ.id)}
-                  title={`Xem chi tiết: ${organ.vietnamese_name}`}
-                >
-                  <span className="chip-status-dot" />
-                  <span>{organ.vietnamese_name}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="human-canvas-wrapper">
-            {/* Clinical studio background */}
-            <div className="clinical-grid-backdrop" />
-
-            {/* Inner Container keeping precise Aspect Ratio */}
-            <div className={`human-canvas-inner-ratio ${modelViewMode}`}>
-              {/* Detailed 3D Anatomical Human Model Image */}
-              <img
-                src="/static/assets/human_anatomical_twin.jpg"
-                alt="3D Anatomical Digital Twin Model"
-                className="human-3d-model-img"
-                onError={(e) => {
-                  if (!e.currentTarget.dataset.fallbackTried) {
-                    e.currentTarget.dataset.fallbackTried = 'true';
-                    e.currentTarget.src = '/assets/human_anatomical_twin.jpg';
-                  }
-                }}
-              />
-
-              {/* Active Organ Focus Halo (Clean subtle ring on the body, NO floating card) */}
-              {activeOrgan?.coordinates && (
-                <div
-                  className="organ-focus-indicator"
-                  style={{
-                    left: `${activeOrgan.coordinates.x}%`,
-                    top: `${activeOrgan.coordinates.y}%`,
-                    '--indicator-color': getStatusColor(activeOrgan.status, activeOrgan.health_score),
-                  }}
-                >
-                  <div className="focus-concentric-circle" />
-                </div>
-              )}
-
-              {/* Hotspots: Precision Clinical Organ Pointer Dots */}
-              {normalizedOrgans.map((organ) => {
-                const isSelected = selectedOrganId === organ.id;
-                const isHovered = hoveredOrganId === organ.id;
-                const statusColor = getStatusColor(organ.status, organ.health_score);
-                const isAlert = organ.status === 'adverse_reaction' || organ.status === 'critical';
-                const isSystemMember =
-                  selectedSystem === 'all' ||
-                  ORGAN_SYSTEMS.find((s) => s.id === selectedSystem)?.organIds?.includes(organ.id);
-
-                return (
-                  <div
-                    key={organ.id}
-                    className={`clinical-organ-pin ${isSelected ? 'selected' : ''} ${isHovered ? 'hovered' : ''} ${isAlert ? 'is-alert' : ''} ${!isSystemMember ? 'dimmed' : ''}`}
-                    style={{
-                      left: `${organ.coordinates?.x ?? 50}%`,
-                      top: `${organ.coordinates?.y ?? 50}%`,
-                      '--organ-color': statusColor,
-                    }}
-                    onMouseEnter={() => setHoveredOrganId(organ.id)}
-                    onMouseLeave={() => setHoveredOrganId(null)}
-                    onClick={() => setSelectedOrganId(organ.id)}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Cơ quan: ${organ.vietnamese_name}, Trạng thái: ${organ.status}`}
-                  >
-                    <span className="pin-pulse-wave" />
-                    <span className="pin-point-marker">
-                      <span className="pin-dot-inner" />
-                    </span>
-                    {/* Tooltip badge appears ONLY when hovered, keeping the human body completely clear of any cards */}
-                    {isHovered && (
-                      <span className="pin-tooltip-badge">
-                        <span className="tooltip-dot" />
-                        <span className="tooltip-text">{organ.vietnamese_name}</span>
-                        <span className="tooltip-score">{organ.health_score}%</span>
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Quick Body Status Footer */}
-          <div className="silhouette-footer-legend">
-            <div className="legend-item"><span className="legend-dot normal" /> Ổn định (90-100%)</div>
-            <div className="legend-item"><span className="legend-dot monitor" /> Cần theo dõi (70-89%)</div>
-            <div className="legend-item"><span className="legend-dot inflamed" /> Đang viêm (50-69%)</div>
-            <div className="legend-item"><span className="legend-dot alert" /> Báo động / ADR (&lt;50%)</div>
-          </div>
-        </section>
-
-        {/* Right Column: Detailed Organ Inspector Card & Live Controls */}
-        <div className="inspector-column">
-          {/* Clinical ADR Safety Guardrail Emergency Banner */}
-          {(profile.adr_alert?.active || profile.safe_guardrail_alert || activeOrgan?.status === 'adverse_reaction') && (
-            <div className="clinical-adr-emergency-box">
-              <div className="adr-box-header">
-                <div className="adr-title-wrap">
-                  <ShieldAlert size={20} className="adr-alert-icon" />
-                  <div>
-                    <h4>CẢNH BÁO AN TOÀN DƯỢC LÂM SÀNG (SAFETY GUARDRAIL / ADR)</h4>
-                    <span className="adr-subtitle">Phát hiện phản ứng có hại của thuốc hoặc dấu hiệu cờ đỏ cấp tính</span>
-                  </div>
-                </div>
-                <span className="adr-critical-badge">BÁO ĐỘNG ĐỎ</span>
-              </div>
-              <div className="adr-box-body">
-                <div className="adr-instruction-row">
-                  <div className="adr-action-badge stop">CHỈ THỊ: DỪNG THUỐC GÂY HẠI</div>
-                  <p className="adr-text stop-text">
-                    {profile.adr_alert?.action_directive || profile.safe_guardrail_alert?.required_action || 'DỪNG NGAY Ibuprofen / Thuốc kháng viêm NSAID'}
-                  </p>
-                </div>
-                <div className="adr-instruction-row">
-                  <div className="adr-action-badge safe">PHÁC ĐỒ THAY THẾ AN TOÀN</div>
-                  <p className="adr-text safe-text">
-                    {profile.adr_alert?.safe_alternative || profile.safe_guardrail_alert?.alternative_recommendation || 'Dùng Esomeprazole (Nexium 40mg) / Phosphalugel bảo vệ niêm mạc; thay bằng Paracetamol nếu cần hạ sốt.'}
-                  </p>
-                </div>
-              </div>
-              <div className="adr-box-footer">
-                <button
-                  type="button"
-                  className="adr-emergency-115-btn"
+                  role="tab"
+                  aria-selected={selectedSystem === sys.id}
+                  className={`system-tab-btn ${selectedSystem === sys.id ? "active" : ""}`}
                   onClick={() => {
-                    onNavigate?.('navigation');
-                    window.dispatchEvent(
-                      new CustomEvent('medguard:navigate', {
-                        detail: { view: 'navigation', emergency: true, reason: 'adr_stomach_ibuprofen' },
-                      })
-                    );
+                    setSelectedSystem(sys.id);
+                    if (sys.organIds && sys.organIds.length > 0 && !sys.organIds.includes(selectedOrganId)) {
+                      setSelectedOrganId(sys.organIds[0]);
+                    }
                   }}
                 >
-                  <Navigation size={16} />
-                  <span>Chuyển sang Buồng lái Chỉ đường Cấp cứu 3D 115</span>
-                  <ArrowRight size={16} />
+                  {sys.label}
                 </button>
-              </div>
-            </div>
-          )}
-
-          {/* Ma trận 9 Hệ Cơ Quan Lâm Sàng (Không bị cắt chữ, 2 cột lớn) */}
-          <div className="organ-matrix-section">
-            <div className="matrix-section-header">
-              <div className="matrix-title-group">
-                <Activity size={16} style={{ color: '#00e5ff' }} />
-                <h4>Ma Trận 9 Hệ Cơ Quan Sinh Học (100% Tiếng Việt)</h4>
-              </div>
-              <span className="matrix-hint">Nhấp vào thẻ để chọn tiêu điểm</span>
+              ))}
             </div>
 
-            <div className="organ-matrix-9-grid">
-              {[
-                { id: 'head', name: '1. Não bộ & Thần kinh', icon: Zap },
-                { id: 'eyes', name: '2. Mắt & Thị giác', icon: Eye },
-                { id: 'ent', name: '3. Tai Mũi Họng', icon: Volume2 },
-                { id: 'cardiovascular', name: '4. Tim mạch & Tuần hoàn', icon: Heart },
-                { id: 'lungs', name: '5. Phổi & Hô hấp', icon: Droplet },
-                { id: 'stomach', name: '6. Dạ Dày & Tiêu Hóa', icon: Flame },
-                { id: 'liver', name: '7. Gan & Mật', icon: Activity },
-                { id: 'kidneys', name: '8. Thận & Tiết Niệu', icon: Droplet },
-                { id: 'spine_joints', name: '9. Cơ Xương Khớp', icon: Layers },
-              ].map((sys) => {
-                const organData = profile?.organs?.find((o) => o.id === sys.id || (sys.id === 'eyes' && o.id === 'skin')) || {
-                  health_score: 95,
-                  status: 'normal',
-                  vas_pain_score: 0,
-                  pain_level: 0,
-                };
-                const score = organData.health_score ?? 95;
-                const vas = organData.vas_pain_score ?? organData.pain_level ?? 0;
-                const statusColor = getStatusColor(organData.status, score);
-                const isSelected = (selectedOrganId === sys.id) || (sys.id === 'eyes' && selectedOrganId === 'skin');
-                const IconComponent = sys.icon;
+            <div className="human-canvas-wrapper">
+              <div className="clinical-grid-backdrop" />
+              <div className={`human-canvas-inner-ratio ${modelViewMode}`}>
+                <img
+                  src="/static/assets/human_anatomical_twin.jpg"
+                  alt="3D Anatomical Digital Twin Model"
+                  className="human-3d-model-img"
+                  onError={(e) => {
+                    if (!e.currentTarget.dataset.fallbackTried) {
+                      e.currentTarget.dataset.fallbackTried = "true";
+                      e.currentTarget.src = "/assets/human_anatomical_twin.jpg";
+                    }
+                  }}
+                />
 
-                return (
+                {activeOrgan?.coordinates && (
                   <div
-                    key={sys.id}
-                    className={`matrix-organ-card ${isSelected ? 'selected' : ''}`}
-                    onClick={() => setSelectedOrganId(sys.id === 'eyes' ? 'skin' : sys.id)}
-                    style={{ '--organ-color': statusColor }}
+                    className="organ-focus-indicator"
+                    style={{
+                      left: `${activeOrgan.coordinates.x}%`,
+                      top: `${activeOrgan.coordinates.y}%`,
+                      "--indicator-color": getStatusColor(activeOrgan.status, activeOrgan.health_score),
+                    }}
                   >
-                    <div className="matrix-card-top">
-                      <div className="matrix-icon-badge" style={{ backgroundColor: `${statusColor}22`, color: statusColor }}>
-                        <IconComponent size={16} />
-                      </div>
-                      <span className="matrix-organ-name">{sys.name}</span>
-                    </div>
-
-                    <div className="matrix-card-bars">
-                      <div className="matrix-bar-row">
-                        <span className="bar-label">Sức khoẻ:</span>
-                        <div className="matrix-progress-track">
-                          <div className="matrix-progress-fill" style={{ width: `${score}%`, backgroundColor: statusColor }} />
-                        </div>
-                        <strong className="bar-num" style={{ color: statusColor }}>{score}%</strong>
-                      </div>
-
-                      <div className="matrix-bar-row vas-row">
-                        <span className="bar-label">Thang VAS:</span>
-                        <div className="matrix-vas-track">
-                          <div className="matrix-vas-fill" style={{ width: `${(vas / 10) * 100}%`, backgroundColor: vas >= 7 ? '#ef4444' : vas >= 4 ? '#f59e0b' : '#10b981' }} />
-                        </div>
-                        <strong className="bar-num vas-num">{vas}/10</strong>
-                      </div>
-                    </div>
+                    <div className="focus-concentric-circle" />
                   </div>
-                );
-              })}
+                )}
+
+                {normalizedOrgans.map((organ) => {
+                  const isSelected = selectedOrganId === organ.id;
+                  const isHovered = hoveredOrganId === organ.id;
+                  const statusColor = getStatusColor(organ.status, organ.health_score);
+                  const isAlert = organ.status === "adverse_reaction" || organ.status === "critical";
+                  const isSystemMember =
+                    selectedSystem === "all" ||
+                    ORGAN_SYSTEMS.find((s) => s.id === selectedSystem)?.organIds?.includes(organ.id);
+
+                  return (
+                    <div
+                      key={organ.id}
+                      className={`clinical-organ-pin ${isSelected ? "selected" : ""} ${isHovered ? "hovered" : ""} ${isAlert ? "is-alert" : ""} ${!isSystemMember ? "dimmed" : ""}`}
+                      style={{
+                        left: `${organ.coordinates?.x ?? 50}%`,
+                        top: `${organ.coordinates?.y ?? 50}%`,
+                        "--organ-color": statusColor,
+                      }}
+                      onMouseEnter={() => setHoveredOrganId(organ.id)}
+                      onMouseLeave={() => setHoveredOrganId(null)}
+                      onClick={() => setSelectedOrganId(organ.id)}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Cơ quan: ${organ.vietnamese_name}, Trạng thái: ${organ.status}`}
+                    >
+                      <span className="pin-pulse-wave" />
+                      <span className="pin-point-marker">
+                        <span className="pin-dot-inner" />
+                      </span>
+                      {isHovered && (
+                        <span className="pin-tooltip-badge">
+                          <span className="tooltip-dot" />
+                          <span className="tooltip-text">{organ.vietnamese_name}</span>
+                          <span className="tooltip-score">{organ.health_score}%</span>
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
 
-          {activeOrgan && (
-            <div
-              className={`organ-inspector-card ${activeOrgan.status === 'adverse_reaction' ? 'has-adr' : ''}`}
-              style={{ '--organ-accent': getStatusColor(activeOrgan.status, activeOrgan.health_score) }}
-            >
-              <div className="inspector-header">
-                <div className="inspector-organ-title">
-                  <div className="organ-icon-circle">
-                    {activeOrgan.id === 'head' && <Zap size={20} />}
-                    {activeOrgan.id === 'ent' && <Eye size={20} />}
-                    {activeOrgan.id === 'cardiovascular' && <Heart size={20} />}
-                    {activeOrgan.id === 'lungs' && <Droplet size={20} />}
-                    {activeOrgan.id === 'stomach' && <Flame size={20} />}
-                    {activeOrgan.id === 'liver' && <Activity size={20} />}
-                    {activeOrgan.id === 'kidneys' && <Droplet size={20} />}
-                    {activeOrgan.id === 'spine_joints' && <Activity size={20} />}
-                    {activeOrgan.id === 'skin' && <Shield size={20} />}
-                  </div>
-                  <div>
-                    <h3>{activeOrgan.vietnamese_name}</h3>
-                    <span className="organ-en-name">{activeOrgan.name}</span>
-                  </div>
+            <div className="silhouette-footer-legend">
+              <div className="legend-item"><span className="legend-dot normal" /> Ổn định (85-100%)</div>
+              <div className="legend-item"><span className="legend-dot inflamed" /> Viêm / Theo dõi (60-84%)</div>
+              <div className="legend-item"><span className="legend-dot alert" /> Báo động (&lt;60%)</div>
+            </div>
+          </section>
+
+          {/* Right Column: Chart 3A (9-Organ Ranking Bars + Donut) & Chart 3B (Organ Inspector + Risk Gauge) */}
+          <div className="inspector-column">
+            {/* Chart 3A: 9-Organ Horizontal Score Bar Chart + Status Donut */}
+            <div className="organ-ranking-chart-card">
+              <div className="sec-head-compact">
+                <div className="sec-title-inline">
+                  <BarChart2 size={16} className="icon-teal" />
+                  <h4>Biểu Đồ Xếp Hạng Sức Khoẻ 9 Cơ Quan & Phân Bổ An Toàn</h4>
+                </div>
+                <span className="sec-sub-badge">Nhấp vào thanh để chọn cơ quan</span>
+              </div>
+
+              <div className="organ-ranking-layout">
+                {/* Mini Donut of 9 Organs */}
+                <div className="organ-donut-box">
+                  <svg viewBox="0 0 100 100" className="organ-donut-svg">
+                    <circle cx="50" cy="50" r="36" fill="none" stroke="#e2e8f0" strokeWidth="12" />
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="36"
+                      fill="none"
+                      stroke="#0d9488"
+                      strokeWidth="12"
+                      strokeDasharray={`${Math.round((visualChartSuite.organDistribution.normal / 9) * 226)} 226`}
+                      transform="rotate(-90 50 50)"
+                    />
+                    <text x="50" y="48" textAnchor="middle" className="donut-big-num">
+                      {visualChartSuite.organDistribution.normal}/9
+                    </text>
+                    <text x="50" y="61" textAnchor="middle" className="donut-sub-txt">
+                      Ổn định
+                    </text>
+                  </svg>
                 </div>
 
-                <div className="status-badge-wrap">
+                {/* 9 Horizontal Score Bars */}
+                <div className="organ-bars-list">
+                  {visualChartSuite.organRanking.map((item) => {
+                    const isSel = selectedOrganId === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        className={`organ-bar-item-btn ${isSel ? "active" : ""}`}
+                        onClick={() => setSelectedOrganId(item.id)}
+                      >
+                        <span className="ob-name">{item.name}</span>
+                        <div className="ob-track">
+                          <div
+                            className="ob-fill"
+                            style={{ width: `${item.score}%`, backgroundColor: item.color }}
+                          />
+                        </div>
+                        <strong className="ob-score" style={{ color: item.color }}>
+                          {item.score}%
+                        </strong>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Chart 3B: Selected Organ Inspector + Semi-Circular Future Risk Gauge */}
+            {activeOrgan && (
+              <div className={`organ-inspector-card status-${activeOrgan.status}`}>
+                <div className="inspector-header">
+                  <div className="organ-title-row">
+                    <div
+                      className="organ-icon-circle"
+                      style={{
+                        backgroundColor: `${getStatusColor(activeOrgan.status, activeOrgan.health_score)}18`,
+                        color: getStatusColor(activeOrgan.status, activeOrgan.health_score),
+                      }}
+                    >
+                      <HeartPulse size={20} />
+                    </div>
+                    <div>
+                      <h3>{activeOrgan.vietnamese_name}</h3>
+                      <span className="organ-en-name">{activeOrgan.clinical_notes || activeOrgan.name}</span>
+                    </div>
+                  </div>
                   <span className={`status-pill ${activeOrgan.status}`}>
                     {getStatusBadgeText(activeOrgan.status)}
                   </span>
                 </div>
-              </div>
 
-              {/* Quick Clinical Actions Bar */}
-              <div className="organ-quick-actions-bar">
-                <button
-                  type="button"
-                  className="organ-action-btn consult-btn"
-                  onClick={() => {
-                    onNavigate?.('chat');
-                    window.dispatchEvent(
-                      new CustomEvent('medguard:navigate', {
-                        detail: {
-                          view: 'chat',
-                          message: `Tư vấn AI chuyên sâu về tình trạng cơ quan: ${activeOrgan.vietnamese_name} (${activeOrgan.status === 'adverse_reaction' ? 'đang có phản ứng bất lợi' : activeOrgan.status === 'inflamed' ? 'đang bị viêm' : 'cần đánh giá rủi ro tương lai'}).`,
-                        },
-                      })
-                    );
-                  }}
-                  title="Chuyển sang Chat và hỏi AI về cơ quan này"
-                >
-                  <MessageSquare size={14} />
-                  <span>Tư vấn AI</span>
-                </button>
-
-                <button
-                  type="button"
-                  className="organ-action-btn declare-btn"
-                  onClick={() => {
-                    setInputMessage(`Cập nhật triệu chứng tại ${activeOrgan.vietnamese_name}: `);
-                    const el = document.querySelector('.console-text-input');
-                    if (el) {
-                      el.focus();
-                      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                {/* Quick Clinical Actions Bar */}
+                <div className="organ-quick-actions-bar">
+                  <button
+                    type="button"
+                    className="organ-action-btn consult-btn"
+                    onClick={() => {
+                      onNavigate?.("chat");
+                      window.dispatchEvent(
+                        new CustomEvent("medguard:navigate", {
+                          detail: {
+                            view: "chat",
+                            message: `Tư vấn AI chuyên sâu về tình trạng cơ quan: ${activeOrgan.vietnamese_name}`,
+                          },
+                        })
+                      );
+                    }}
+                  >
+                    <MessageSquare size={13} />
+                    <span>Tư vấn AI</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="organ-action-btn declare-btn"
+                    onClick={() => {
+                      setInputMessage(`Cập nhật triệu chứng tại ${activeOrgan.vietnamese_name}: `);
+                      document.querySelector(".console-text-input")?.focus();
+                    }}
+                  >
+                    <Plus size={13} />
+                    <span>Khai báo thêm</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="organ-action-btn recover-btn"
+                    disabled={evaluating || activeOrgan.status === "normal"}
+                    onClick={() =>
+                      handleEvaluateProgress(
+                        `Triệu chứng tại ${activeOrgan.vietnamese_name} của tôi đã khỏi và ổn định hoàn toàn.`
+                      )
                     }
-                  }}
-                  title={`Khai báo triệu chứng cho cơ quan ${activeOrgan.vietnamese_name}`}
-                >
-                  <Plus size={14} />
-                  <span>Khai báo triệu chứng</span>
-                </button>
-
-                <button
-                  type="button"
-                  className="organ-action-btn recover-btn"
-                  disabled={evaluating || activeOrgan.status === 'normal'}
-                  onClick={() => {
-                    handleEvaluateProgress(`Hôm nay triệu chứng tại ${activeOrgan.vietnamese_name} của tôi đã thuyên giảm hoàn toàn, không còn cảm giác đau hay khó chịu.`);
-                  }}
-                  title="Cập nhật báo cáo cơ quan này đã bình phục"
-                >
-                  <CheckCircle2 size={14} />
-                  <span>Báo đã khỏi</span>
-                </button>
-
-                <button
-                  type="button"
-                  className="organ-action-btn nav-btn"
-                  onClick={() => {
-                    onNavigate?.('navigation');
-                    window.dispatchEvent(
-                      new CustomEvent('medguard:navigate', {
-                        detail: { view: 'navigation', organ: activeOrgan.vietnamese_name },
-                      })
-                    );
-                  }}
-                  title="Chuyển sang bản đồ chỉ đường đến cơ sở y tế"
-                >
-                  <Navigation size={14} />
-                  <span>Chỉ đường CSYT</span>
-                </button>
-              </div>
-
-              {/* Organ Health Metrics Grid */}
-              <div className="organ-metrics-row">
-                <div className="metric-box">
-                  <span className="metric-label">Điểm sức khoẻ</span>
-                  <div className="metric-value-row">
-                    <strong style={{ color: getStatusColor(activeOrgan.status, activeOrgan.health_score) }}>
-                      {activeOrgan.health_score}
-                    </strong>
-                    <span className="metric-unit">/100</span>
-                  </div>
-                  <div className="score-mini-bar">
-                    <div
-                      className="score-mini-fill"
-                      style={{
-                        width: `${activeOrgan.health_score}%`,
-                        backgroundColor: getStatusColor(activeOrgan.status, activeOrgan.health_score),
-                      }}
-                    />
-                  </div>
+                  >
+                    <CheckCircle2 size={13} />
+                    <span>Báo đã khỏi</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="organ-action-btn nav-btn"
+                    onClick={() => onNavigate?.("navigation")}
+                  >
+                    <Navigation size={13} />
+                    <span>Chỉ đường CSYT</span>
+                  </button>
                 </div>
 
-                <div className="metric-box">
-                  <span className="metric-label">Mức độ đau (0-10)</span>
-                  <div className="metric-value-row">
-                    <strong className={activeOrgan.pain_level >= 5 ? 'pain-high' : ''}>
-                      {activeOrgan.pain_level}
-                    </strong>
-                    <span className="metric-unit">
-                      {activeOrgan.pain_level === 0 ? 'Không đau' : activeOrgan.pain_level <= 3 ? 'Nhẹ' : activeOrgan.pain_level <= 6 ? 'Vừa' : 'Dữ dội'}
-                    </span>
-                  </div>
-                  <span className="metric-sub">Thang đo lâm sàng VAS</span>
-                </div>
-
-                <div className="metric-box">
-                  <span className="metric-label">Mức độ viêm</span>
-                  <div className="metric-value-row">
-                    <strong className="text-capital">{activeOrgan.inflammation_level}</strong>
-                  </div>
-                  <span className="metric-sub">Đánh giá phản ứng mô</span>
-                </div>
-              </div>
-
-              {/* Symptoms Recorded */}
-              {activeOrgan.symptoms && activeOrgan.symptoms.length > 0 && (
-                <div className="inspector-section">
-                  <span className="section-title">Triệu chứng ghi nhận tại vị trí này:</span>
-                  <div className="symptom-tag-list">
-                    {activeOrgan.symptoms.map((s, idx) => (
-                      <span key={idx} className="symptom-tag-item">
-                        <AlertCircle size={12} />
-                        {s}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Warning or ADR callout */}
-              {activeOrgan.warning && (
-                <div className="inspector-warning-box">
-                  <AlertTriangle size={16} />
-                  <span>{activeOrgan.warning}</span>
-                </div>
-              )}
-
-              {/* Contraindicated Actions */}
-              {activeOrgan.contraindicated_actions && activeOrgan.contraindicated_actions.length > 0 && (
-                <div className="contra-actions-box">
-                  <div className="contra-title">
-                    <X size={14} />
-                    <span>HẠN CHẾ TIẾP TỤC / CHỐNG CHỈ ĐỊNH:</span>
-                  </div>
-                  <ul>
-                    {activeOrgan.contraindicated_actions.map((act, idx) => (
-                      <li key={idx}><strong>{act}</strong></li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* Clinical Notes & Recommendations */}
-              <div className="inspector-section notes-section">
-                <span className="section-title">Ghi chú lâm sàng hiện tại:</span>
-                <p className="clinical-notes-p">{activeOrgan.clinical_notes || 'Cơ quan ở trạng thái ổn định bình thường.'}</p>
-              </div>
-
-              {/* FUTURE RISK PROGNOSIS & PREVENTIVE VACCINATION CARD */}
-              {activeOrgan.future_risk && (
-                <div className="future-risk-prognosis-card">
-                  <div className="risk-card-top">
-                    <div className="risk-title-badge-group">
-                      <ShieldAlert size={16} className={`risk-level-icon ${activeOrgan.future_risk.risk_level}`} />
-                      <div>
-                        <span className="risk-section-eyebrow">DỰ BÁO RỦI RO SỨC KHOẺ TƯƠNG LAI</span>
-                        <h4 className="risk-prognosis-title">{activeOrgan.future_risk.risk_title}</h4>
-                      </div>
+                {/* Semi-Circular Risk Gauge + Concise Future Prognosis */}
+                {activeOrgan.future_risk && (
+                  <div className="organ-risk-gauge-panel">
+                    <div className="semi-gauge-col">
+                      {(() => {
+                        const rLevel = activeOrgan.future_risk.risk_level;
+                        const rPct = rLevel === "high" ? 84 : rLevel === "moderate" ? 52 : 22;
+                        const rColor = rLevel === "high" ? "#e11d48" : rLevel === "moderate" ? "#d97706" : "#0d9488";
+                        const arcLen = Math.round((rPct / 100) * 125.6);
+                        return (
+                          <svg viewBox="0 0 100 62" className="semi-risk-svg">
+                            <path
+                              d="M 10 52 A 40 40 0 0 1 90 52"
+                              fill="none"
+                              stroke="#e2e8f0"
+                              strokeWidth="9"
+                              strokeLinecap="round"
+                            />
+                            <path
+                              d="M 10 52 A 40 40 0 0 1 90 52"
+                              fill="none"
+                              stroke={rColor}
+                              strokeWidth="9"
+                              strokeDasharray={`${arcLen} 130`}
+                              strokeLinecap="round"
+                            />
+                            <text x="50" y="42" textAnchor="middle" className="semi-gauge-pct" fill={rColor}>
+                              {rPct}%
+                            </text>
+                            <text x="50" y="55" textAnchor="middle" className="semi-gauge-lbl">
+                              Rủi ro ({activeOrgan.future_risk.timeframe})
+                            </text>
+                          </svg>
+                        );
+                      })()}
                     </div>
-                    <div className="risk-badges-cluster">
-                      <span className={`risk-level-tag ${activeOrgan.future_risk.risk_level}`}>
-                        {activeOrgan.future_risk.risk_level === 'high'
-                          ? 'RỦI RO CAO'
-                          : activeOrgan.future_risk.risk_level === 'moderate'
-                          ? 'RỦI RO TRUNG BÌNH'
-                          : 'RỦI RO THẤP'}
-                      </span>
-                      <span className="risk-timeframe-tag">
-                        <Clock size={11} />
-                        <span>{activeOrgan.future_risk.timeframe}</span>
-                      </span>
-                    </div>
-                  </div>
 
-                  {/* Vaccination & Preventive Shield Gap */}
-                  {activeOrgan.future_risk.vaccination_status && (
-                    <div className="vaccine-status-callout">
-                      <Syringe size={16} className="syringe-accent-icon" />
-                      <div>
-                        <strong>Tình trạng Tiêm chủng & Miễn dịch:</strong>
-                        <p>{activeOrgan.future_risk.vaccination_status}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Latent Disease Mechanism */}
-                  <div className="risk-body-block">
-                    <span className="block-subtitle">Cơ chế rủi ro tiềm tàng:</span>
-                    <p className="block-text">{activeOrgan.future_risk.latent_risk_description}</p>
-                  </div>
-
-                  {/* Visual Progression Chain */}
-                  <div className="risk-progression-chain">
-                    <span className="block-subtitle">Chuỗi tiến triển bệnh sinh nếu không phòng ngừa:</span>
-                    <div className="progression-flow-items">
-                      {activeOrgan.future_risk.potential_progression.split('->').map((step, sIdx, arr) => (
-                        <div key={sIdx} className="prog-step-item">
-                          <span className={`step-text ${sIdx === arr.length - 1 ? 'fatal-step' : ''}`}>{step.trim()}</span>
-                          {sIdx < arr.length - 1 && <ChevronRight size={13} className="step-arrow" />}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Preventive Action Protocol */}
-                  {activeOrgan.future_risk.preventive_recommendations?.length > 0 && (
-                    <div className="risk-recs-block">
-                      <span className="block-subtitle">Phác đồ can thiệp & Kế hoạch Tiêm chủng:</span>
-                      <ul className="recs-list">
-                        {activeOrgan.future_risk.preventive_recommendations.map((rec, rIdx) => (
-                          <li key={rIdx}>
-                            <CheckCircle2 size={14} className="rec-check-icon" />
+                    <div className="risk-concise-info">
+                      <span className="risk-vaccine-pill">{activeOrgan.future_risk.vaccination_status}</span>
+                      <h5 className="risk-prognosis-title">{activeOrgan.future_risk.risk_title}</h5>
+                      <ul className="risk-concise-list">
+                        {(activeOrgan.future_risk.preventive_recommendations || []).slice(0, 2).map((rec, i) => (
+                          <li key={i}>
+                            <CheckCircle2 size={13} />
                             <span>{rec}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
-                  )}
-
-                  {/* Screening Tests */}
-                  {activeOrgan.future_risk.screening_tests?.length > 0 && (
-                    <div className="risk-screening-block">
-                      <span className="block-subtitle">Xét nghiệm & Tầm soát định kỳ:</span>
-                      <div className="screening-chips-flow">
-                        {activeOrgan.future_risk.screening_tests.map((test, tIdx) => (
-                          <span key={tIdx} className="screening-chip-badge">
-                            <FileBadge size={12} />
-                            <span>{test}</span>
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Action buttons on Future Risk */}
-                  <div className="risk-actions-footer">
-                    <button
-                      type="button"
-                      className="risk-btn-primary"
-                      onClick={() => {
-                        onNavigate?.('chat');
-                        window.dispatchEvent(
-                          new CustomEvent('medguard:navigate', {
-                            detail: {
-                              view: 'chat',
-                              message: `Tư vấn kế hoạch tiêm phòng vắc-xin và lộ trình tầm soát sớm rủi ro tương lai cho cơ quan: ${activeOrgan.vietnamese_name} (${activeOrgan.future_risk.risk_title}). Cụ thể: ${activeOrgan.future_risk.vaccination_status || ''}`,
-                            },
-                          })
-                        );
-                      }}
-                    >
-                      <Syringe size={14} />
-                      <span>Tư vấn Tiêm chủng & Phòng ngừa</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="risk-btn-secondary"
-                      onClick={() => {
-                        onNotify?.(`Đã thêm khuyến nghị tầm soát định kỳ cơ quan ${activeOrgan.vietnamese_name} vào lịch y bạ điện tử.`);
-                      }}
-                    >
-                      <CalendarCheck size={14} />
-                      <span>Lên lịch Tầm soát Y tế</span>
-                    </button>
                   </div>
-                </div>
-              )}
-
-              {/* Related Medications */}
-              {activeOrgan.related_medications && activeOrgan.related_medications.length > 0 && (
-                <div className="inspector-section meds-section">
-                  <span className="section-title">Thuốc liên quan cơ quan này:</span>
-                  <div className="meds-badge-row">
-                    {activeOrgan.related_medications.map((m, idx) => (
-                      <span key={idx} className="med-badge">
-                        <Pill size={12} />
-                        {m}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Conversational Clinical Care Guidance */}
-          <div className="conversational-care-card">
-            <div className="care-card-header">
-              <MessageSquare size={16} className="care-icon" />
-              <h4>Khai báo Triệu chứng qua Hội thoại</h4>
-            </div>
-            <p className="care-card-desc">
-              Khi phát sinh triệu chứng mới, thuyên giảm hoặc gặp phản ứng phụ sau khi uống thuốc, bạn chỉ cần nhắn trực tiếp trong phần Chat. Bác sĩ AI sẽ tự động phân tích và cập nhật vào hồ sơ giải phẫu học này.
-            </p>
-            <button
-              type="button"
-              className="care-card-chat-btn"
-              onClick={() => onNavigate?.('chat')}
-            >
-              <MessageSquare size={14} />
-              <span>Nhắn tin với Bác sĩ AI ngay</span>
-              <ChevronRight size={14} />
-            </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Bottom Section: Overall Health Dashboard, Risk Matrix & Recovery Timeline */}
-      <section className="overall-health-dashboard">
-        <div className="dashboard-tabs-bar" role="tablist">
-          <button
-            role="tab"
-            aria-selected={activeTab === 'future_risks'}
-            className={`dash-tab ${activeTab === 'future_risks' ? 'active' : ''}`}
-            onClick={() => setActiveTab('future_risks')}
-          >
-            <ShieldAlert size={16} />
-            <span>Ma trận Dự báo Rủi ro & Kế hoạch Tiêm chủng Phòng ngừa</span>
-          </button>
-          <button
-            role="tab"
-            aria-selected={activeTab === 'overview'}
-            className={`dash-tab ${activeTab === 'overview' ? 'active' : ''}`}
-            onClick={() => setActiveTab('overview')}
-          >
-            <Activity size={16} />
-            <span>Tổng quan Sinh hiệu & Điểm Sức khoẻ</span>
-          </button>
-          <button
-            role="tab"
-            aria-selected={activeTab === 'timeline'}
-            className={`dash-tab ${activeTab === 'timeline' ? 'active' : ''}`}
-            onClick={() => setActiveTab('timeline')}
-          >
-            <Clock size={16} />
-            <span>Thời gian Thăm dò & Hồi phục ({profile?.timeline?.length || 0})</span>
-          </button>
-          <button
-            role="tab"
-            aria-selected={activeTab === 'meds'}
-            className={`dash-tab ${activeTab === 'meds' ? 'active' : ''}`}
-            onClick={() => setActiveTab('meds')}
-          >
-            <Pill size={16} />
-            <span>Đơn thuốc & Phác đồ An toàn ({profile?.active_medications?.length || 0})</span>
-          </button>
-        </div>
+      {/* ====================================================================
+          SECTION 4: 4-PILLAR SOLUTIONS CENTER (WITH DONUT & IMPACT CHART) + 5 VITALS
+          ==================================================================== */}
+      {(sectionFilter === "all" || sectionFilter === "solutions") && (
+        <section className="visual-section-card solutions-and-vitals-wrapper" aria-label="Trung tâm Giải pháp & Biểu đồ Sinh hiệu">
+          <div className="solutions-top-layout">
+            {/* Chart 4A: Solutions Completion Donut & Impact Bars */}
+            <div className="solutions-impact-chart-card">
+              <span className="chart-kicker">TIẾN ĐỘ & HIỆU QUẢ CAN THIỆP</span>
+              <h4>Biểu Đồ Hoàn Thành Giải Pháp (4 Trụ Cột)</h4>
+              <div className="sol-donut-and-bars">
+                <svg viewBox="0 0 100 100" className="sol-donut-svg">
+                  <circle cx="50" cy="50" r="36" fill="none" stroke="#e2e8f0" strokeWidth="11" />
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="36"
+                    fill="none"
+                    stroke="#0d9488"
+                    strokeWidth="11"
+                    strokeDasharray={`${Math.round((visualChartSuite.solutionsSummary.completionPct / 100) * 226)} 226`}
+                    strokeLinecap="round"
+                    transform="rotate(-90 50 50)"
+                  />
+                  <text x="50" y="47" textAnchor="middle" className="donut-big-num">
+                    {visualChartSuite.solutionsSummary.completedCount}/{visualChartSuite.solutionsSummary.total}
+                  </text>
+                  <text x="50" y="61" textAnchor="middle" className="donut-sub-txt">
+                    +{visualChartSuite.solutionsSummary.projectedGain}% Hồi phục
+                  </text>
+                </svg>
 
-        {/* Tab: Future Risk Matrix & Immunization Schedule */}
-        {activeTab === 'future_risks' && (
-          <div className="risk-matrix-tab-content">
-            {/* Top Intelligence Alert Banner */}
-            <div className="risk-intelligence-banner">
-              <div className="banner-icon-side">
-                <ShieldAlert size={28} className="shield-pulse-icon" />
-              </div>
-              <div className="banner-content-side">
-                <h3>Bản Đồ Dự Báo Rủi Ro Sức Khoẻ Dài Hạn & Kế Hoạch Tiêm Chủng Chủ Động</h3>
-                <p>
-                  Hệ thống AI phân tích toàn diện dựa trên tiền sử tiêm chủng, tương tác thuốc đang dùng và tình trạng các cơ quan.
-                  Việc chủ động tiêm phòng sớm (đặc biệt vắc-xin Viêm gan B) và tầm soát định kỳ giúp ngăn ngừa tới <strong>95%</strong> nguy cơ xơ gan và ung thư tế bào gan (HCC) trong 5-10 năm tới.
-                </p>
-              </div>
-            </div>
-
-            {/* Critical Priority Risk Cards */}
-            <div className="future-risk-cards-grid">
-              {/* Card 1: Liver & Hepatitis B -> Cancer */}
-              <div className="risk-matrix-card priority-high">
-                <div className="matrix-card-header">
-                  <div className="organ-tag">
-                    <Activity size={14} />
-                    <span>Gan & Chuyển hoá</span>
-                  </div>
-                  <span className="risk-badge-pill high">RỦI RO CAO (3 - 10 NĂM)</span>
-                </div>
-                <h4 className="matrix-card-title">Nguy cơ HBV mạn tính → Xơ gan → Ung thư tế bào gan (HCC)</h4>
-                <div className="matrix-vaccine-status">
-                  <Syringe size={14} />
-                  <span><strong>Thiếu hụt phòng hộ:</strong> Chưa tiêm vắc-xin Viêm gan B (Kháng thể Anti-HBs âm tính)</span>
-                </div>
-                <p className="matrix-desc">
-                  Virus Viêm gan B lây âm thầm không có triệu chứng ban đầu. Sau 5-10 năm nhiễm mạn tính sẽ dẫn đến xơ gan và ung thư biểu mô gan HCC nguy cơ tử vong cao.
-                </p>
-                <div className="matrix-action-box">
-                  <strong>Khuyến cáo can thiệp y tế:</strong>
-                  <ul>
-                    <li>Tiêm ngay vắc-xin Viêm gan B phác đồ 3 mũi (Tháng 0, 1, 6).</li>
-                    <li>Định lượng kháng thể Anti-HBs sau mũi 3 bảo đảm đạt &gt; 10 mIU/mL.</li>
-                    <li>Siêu âm Doppler gan & Xét nghiệm men gan, AFP mỗi 6 tháng/lần.</li>
-                  </ul>
-                </div>
-                <div className="matrix-card-footer">
-                  <button
-                    type="button"
-                    className="matrix-btn primary"
-                    onClick={() => {
-                      setSelectedOrganId('liver');
-                      onNavigate?.('chat');
-                      window.dispatchEvent(
-                        new CustomEvent('medguard:navigate', {
-                          detail: {
-                            view: 'chat',
-                            message: 'Tư vấn tiêm phòng vắc-xin Viêm gan B đủ 3 mũi và phác đồ tầm soát ung thư tế bào gan HCC.',
-                          },
-                        })
-                      );
-                    }}
-                  >
-                    <Syringe size={13} />
-                    <span>Tư vấn Tiêm phòng HBV</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="matrix-btn secondary"
-                    onClick={() => setSelectedOrganId('liver')}
-                  >
-                    <span>Xem định vị Gan</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Card 2: Stomach & HP / NSAID abuse */}
-              <div className="risk-matrix-card priority-high">
-                <div className="matrix-card-header">
-                  <div className="organ-tag">
-                    <Flame size={14} />
-                    <span>Dạ dày & Tiêu hoá</span>
-                  </div>
-                  <span className="risk-badge-pill high">RỦI RO CAO (1 - 3 NĂM)</span>
-                </div>
-                <h4 className="matrix-card-title">Viêm loét dạ dày tá tràng thủng → Dị sản ruột & Ung thư dạ dày</h4>
-                <div className="matrix-vaccine-status">
-                  <FileBadge size={14} />
-                  <span><strong>Thiếu hụt phòng hộ:</strong> Chưa kiểm tra vi khuẩn HP, nguy cơ tổn thương do thuốc NSAID</span>
-                </div>
-                <p className="matrix-desc">
-                  Lạm dụng thuốc giảm đau kháng viêm khi đói kết hợp nhiễm vi khuẩn Helicobacter pylori âm thầm làm mòn lớp chất nhầy bảo vệ niêm mạc, dẫn đến ổ loét sâu và dị sản ác tính.
-                </p>
-                <div className="matrix-action-box">
-                  <strong>Khuyến cáo can thiệp y tế:</strong>
-                  <ul>
-                    <li>Làm xét nghiệm test hơi thở C13/C14 hoặc nội soi tầm soát vi khuẩn HP.</li>
-                    <li>Tuyệt đối ngừng thuốc giảm đau chống viêm khi xuất hiện cồn cào đau thượng vị.</li>
-                    <li>Dùng thuốc ức chế bơm proton (PPI) bảo vệ niêm mạc khi có chỉ định bác sĩ.</li>
-                  </ul>
-                </div>
-                <div className="matrix-card-footer">
-                  <button
-                    type="button"
-                    className="matrix-btn primary"
-                    onClick={() => {
-                      setSelectedOrganId('stomach');
-                      onNavigate?.('chat');
-                      window.dispatchEvent(
-                        new CustomEvent('medguard:navigate', {
-                          detail: {
-                            view: 'chat',
-                            message: 'Tư vấn tầm soát vi khuẩn Helicobacter pylori (HP) và phòng ngừa viêm loét dạ dày tá tràng do thuốc.',
-                          },
-                        })
-                      );
-                    }}
-                  >
-                    <FileBadge size={13} />
-                    <span>Tư vấn Tầm soát HP</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="matrix-btn secondary"
-                    onClick={() => setSelectedOrganId('stomach')}
-                  >
-                    <span>Xem định vị Dạ dày</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Card 3: Cardiovascular */}
-              <div className="risk-matrix-card priority-mod">
-                <div className="matrix-card-header">
-                  <div className="organ-tag">
-                    <Heart size={14} />
-                    <span>Tim mạch & Tuần hoàn</span>
-                  </div>
-                  <span className="risk-badge-pill mod">RỦI RO TRUNG BÌNH (5 - 10 NĂM)</span>
-                </div>
-                <h4 className="matrix-card-title">Xơ vữa động mạch vành → Cơn đau thắt ngực & Nhồi máu cơ tim (MACE)</h4>
-                <div className="matrix-vaccine-status">
-                  <HeartPulse size={14} />
-                  <span><strong>Dấu hiệu cảnh báo:</strong> Huyết áp 122/80 mmHg ngưỡng tiền tăng huyết áp, chưa tiêm cúm</span>
-                </div>
-                <p className="matrix-desc">
-                  Thói quen ít vận động, áp lực công việc và nhiễm cúm mùa lặp lại gây phản ứng viêm thành mạch, tích tụ mảng xơ vữa làm hẹp lòng mạch vành.
-                </p>
-                <div className="matrix-action-box">
-                  <strong>Khuyến cáo can thiệp y tế:</strong>
-                  <ul>
-                    <li>Tiêm vắc-xin Cúm mùa hàng năm (giảm 20-30% nguy cơ nhồi máu cơ tim).</li>
-                    <li>Tập thể dục aerobic tối thiểu 150 phút/tuần, giảm lượng muối ăn &lt; 5g/ngày.</li>
-                    <li>Đo điện tâm đồ ECG và xét nghiệm mỡ máu Lipid panel định kỳ hàng năm.</li>
-                  </ul>
-                </div>
-                <div className="matrix-card-footer">
-                  <button
-                    type="button"
-                    className="matrix-btn primary"
-                    onClick={() => setSelectedOrganId('cardiovascular')}
-                  >
-                    <span>Xem chi tiết Tim mạch</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Card 4: Lungs */}
-              <div className="risk-matrix-card priority-mod">
-                <div className="matrix-card-header">
-                  <div className="organ-tag">
-                    <Droplet size={14} />
-                    <span>Phổi & Hô hấp</span>
-                  </div>
-                  <span className="risk-badge-pill mod">RỦI RO TRUNG BÌNH (2 - 5 NĂM)</span>
-                </div>
-                <h4 className="matrix-card-title">Viêm phế quản mạn & Bội nhiễm vi khuẩn Phế cầu (Streptococcus pneumoniae)</h4>
-                <div className="matrix-vaccine-status">
-                  <Syringe size={14} />
-                  <span><strong>Thiếu hụt phòng hộ:</strong> Chưa tiêm vắc-xin Phế cầu (Prevenar 13 / Pneumovax 23)</span>
-                </div>
-                <p className="matrix-desc">
-                  Đường thở đang tổn thương do virus cúm tạo điều kiện cho vi khuẩn phế cầu xâm lấn sâu vào phế nang, gây viêm phổi thùy và suy hô hấp cấp tính.
-                </p>
-                <div className="matrix-action-box">
-                  <strong>Khuyến cáo can thiệp y tế:</strong>
-                  <ul>
-                    <li>Tiêm phòng 1 liều vắc-xin Phế cầu 13 chủng để tạo miễn dịch bảo vệ phế nang.</li>
-                    <li>Đeo khẩu trang lọc bụi mịn chuẩn N95 khi di chuyển ngoài đường phố.</li>
-                    <li>Đo chức năng hô hấp (Hô hấp ký Spirometry) và chụp X-quang phổi định kỳ.</li>
-                  </ul>
-                </div>
-                <div className="matrix-card-footer">
-                  <button
-                    type="button"
-                    className="matrix-btn primary"
-                    onClick={() => setSelectedOrganId('lungs')}
-                  >
-                    <span>Xem chi tiết Phổi</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Comprehensive Preventive Immunization Schedule Table */}
-            <div className="immunization-schedule-section">
-              <div className="section-title-wrap">
-                <Syringe size={18} />
-                <div>
-                  <h4>Bảng Kiểm Tiêm Chủng Phòng Ngừa Cho Người Lớn (Adult Immunization Schedule)</h4>
-                  <span className="section-subtitle">Phác đồ phòng hộ chủ động theo khuyến cáo của Bộ Y tế & CDC</span>
-                </div>
-              </div>
-
-              <div className="vaccine-table-responsive">
-                <table className="vaccine-checklist-table">
-                  <thead>
-                    <tr>
-                      <th>Vắc-xin & Chỉ định</th>
-                      <th>Tình trạng cá nhân</th>
-                      <th>Rủi ro phòng ngừa được</th>
-                      <th>Phác đồ khuyến nghị</th>
-                      <th>Hành động y tế</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="row-urgent">
-                      <td>
-                        <strong>Vắc-xin Viêm gan B (Engerix-B / Euvax-B)</strong>
-                        <span className="table-subtext">20mcg/1ml tiêm bắp cơ delta</span>
-                      </td>
-                      <td>
-                        <span className="table-status-pill urgent">CẦN TIÊM PHÒNG</span>
-                        <span className="table-subtext">Anti-HBs &lt; 10 mIU/mL</span>
-                      </td>
-                      <td>
-                        <strong>Ngừa 95% nguy cơ Xơ gan & Ung thư gan (HCC)</strong>
-                        <p className="table-desc">Ngăn ngừa nhiễm virus HBV mạn tính và đột biến tế bào nhu mô gan.</p>
-                      </td>
-                      <td>
-                        <strong>3 mũi chuẩn: Tháng 0, 1, 6</strong>
-                        <span className="table-subtext">Định lượng kháng thể sau mũi 3</span>
-                      </td>
-                      <td>
-                        <button
-                          type="button"
-                          className="table-action-btn primary"
-                          onClick={() => {
-                            onNavigate?.('chat');
-                            window.dispatchEvent(
-                              new CustomEvent('medguard:navigate', {
-                                detail: {
-                                  view: 'chat',
-                                  message: 'Hướng dẫn đăng ký tiêm phòng vắc-xin Viêm gan B và xét nghiệm kháng thể Anti-HBs gần nhất.',
-                                },
-                              })
-                            );
+                <div className="sol-impact-bars">
+                  {visualChartSuite.solutionsSummary.items.map((item, idx) => (
+                    <div key={item.id} className="sol-impact-row">
+                      <span>Trụ cột {idx + 1}</span>
+                      <div className="si-track">
+                        <div
+                          className="si-fill"
+                          style={{
+                            width: `${item.impactScore}%`,
+                            backgroundColor: item.completed ? "#0d9488" : "#3b82f6",
                           }}
-                        >
-                          Đăng ký tiêm phòng HBV
-                        </button>
-                      </td>
-                    </tr>
-
-                    <tr className="row-recommended">
-                      <td>
-                        <strong>Vắc-xin Phế cầu 13 chủng (Prevenar 13)</strong>
-                        <span className="table-subtext">Vắc-xin cộng hợp phế cầu khuẩn</span>
-                      </td>
-                      <td>
-                        <span className="table-status-pill warn">KHUYẾN NGHỊ</span>
-                        <span className="table-subtext">Chưa từng tiêm</span>
-                      </td>
-                      <td>
-                        <strong>Phòng viêm phổi thùy, viêm màng não do phế cầu</strong>
-                        <p className="table-desc">Đặc biệt quan trọng khi đường thở đang có tổn thương do viêm cúm mùa.</p>
-                      </td>
-                      <td>
-                        <strong>1 liều duy nhất</strong>
-                        <span className="table-subtext">Hiệu lực bảo vệ dài hạn</span>
-                      </td>
-                      <td>
-                        <button
-                          type="button"
-                          className="table-action-btn"
-                          onClick={() => {
-                            onNavigate?.('chat');
-                            window.dispatchEvent(
-                              new CustomEvent('medguard:navigate', {
-                                detail: {
-                                  view: 'chat',
-                                  message: 'Tư vấn tiêm phòng vắc-xin Phế cầu Prevenar 13 bảo vệ phổi và đường hô hấp.',
-                                },
-                              })
-                            );
-                          }}
-                        >
-                          Tư vấn vắc-xin Phế cầu
-                        </button>
-                      </td>
-                    </tr>
-
-                    <tr className="row-routine">
-                      <td>
-                        <strong>Vắc-xin Cúm mùa Tứ giá (Vaxigrip Tetra)</strong>
-                        <span className="table-subtext">Chống 4 chủng A/H1N1, A/H3N2, B/Yamagata, B/Victoria</span>
-                      </td>
-                      <td>
-                        <span className="table-status-pill routine">TIÊM NHẮC ĐỊNH KỲ</span>
-                        <span className="table-subtext">Mùa dịch cúm hiện tại</span>
-                      </td>
-                      <td>
-                        <strong>Giảm 80% cúm nặng & 30% biến cố tim mạch</strong>
-                        <p className="table-desc">Giảm nguy cơ bão cytokine và viêm cơ tim thứ phát do virus.</p>
-                      </td>
-                      <td>
-                        <strong>1 mũi tiêm nhắc mỗi năm</strong>
-                        <span className="table-subtext">Nên tiêm trước đỉnh dịch mùa đông</span>
-                      </td>
-                      <td>
-                        <button
-                          type="button"
-                          className="table-action-btn"
-                          onClick={() => {
-                            onNotify?.('Đã lưu lịch nhắc tiêm vắc-xin Cúm mùa định kỳ vào hồ sơ.');
-                          }}
-                        >
-                          Lưu lịch nhắc hàng năm
-                        </button>
-                      </td>
-                    </tr>
-
-                    <tr className="row-routine">
-                      <td>
-                        <strong>Vắc-xin Uốn ván - Bạch hầu - Ho gà (Tdap)</strong>
-                        <span className="table-subtext">Boostrix / Adacel</span>
-                      </td>
-                      <td>
-                        <span className="table-status-pill ok">ℹ️ THEO DÕI ĐỊNH KỲ</span>
-                        <span className="table-subtext">Tiền sử đã tiêm cơ bản</span>
-                      </td>
-                      <td>
-                        <strong>Phòng suy hô hấp do ho gà và co giật uốn ván</strong>
-                        <p className="table-desc">Duy trì nồng độ kháng thể bảo vệ trước độc tố vi khuẩn Clostridium tetani.</p>
-                      </td>
-                      <td>
-                        <strong>Tiêm nhắc mỗi 10 năm</strong>
-                        <span className="table-subtext">Kiểm tra sau vết thương hở</span>
-                      </td>
-                      <td>
-                        <button
-                          type="button"
-                          className="table-action-btn ghost"
-                          onClick={() => {
-                            onNotify?.('Hồ sơ tiêm chủng uốn ván đang ở trạng thái an toàn.');
-                          }}
-                        >
-                          Kiểm tra sổ tiêm
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Periodic Diagnostic Screening Roadmap */}
-            <div className="screening-roadmap-section">
-              <div className="section-title-wrap">
-                <FileBadge size={18} />
-                <div>
-                  <h4>Lộ Trình Tầm Soát Sớm Bệnh Lý Mạn Tính & Ung Thư (Early Screening Roadmap)</h4>
-                  <span className="section-subtitle">Chủ động phát hiện mầm bệnh ở giai đoạn sớm có thể điều trị triệt căn</span>
-                </div>
-              </div>
-
-              <div className="screening-roadmap-grid">
-                <div className="roadmap-card">
-                  <div className="roadmap-header">
-                    <Activity size={16} />
-                    <h5>Tầm soát Gan Mật & Chuyển hoá</h5>
-                  </div>
-                  <ul className="roadmap-list">
-                    <li><strong>Siêu âm gan Doppler màu:</strong> Định kỳ 6 tháng/lần phát hiện u gan sớm &lt; 2cm.</li>
-                    <li><strong>Xét nghiệm AFP & AFP-L3:</strong> Dấu ấn sinh học đặc hiệu ung thư tế bào gan.</li>
-                    <li><strong>Cặp xét nghiệm HBsAg & Anti-HBs:</strong> Kiểm tra tải lượng kháng thể và virus.</li>
-                  </ul>
-                </div>
-
-                <div className="roadmap-card">
-                  <div className="roadmap-header">
-                    <Flame size={16} />
-                    <h5>Tầm soát Dạ Dày & Ống Tiêu Hoá</h5>
-                  </div>
-                  <ul className="roadmap-list">
-                    <li><strong>Test hơi thở C13/C14 UBT:</strong> Độ nhạy 98% phát hiện vi khuẩn HP không xâm lấn.</li>
-                    <li><strong>Nội soi thực quản - dạ dày (EGD):</strong> Tầm soát polyp, viêm teo niêm mạc và dị sản.</li>
-                    <li><strong>Xét nghiệm Pepsinogen I/II:</strong> Đánh giá mức độ teo niêm mạc dạ dày sớm.</li>
-                  </ul>
-                </div>
-
-                <div className="roadmap-card">
-                  <div className="roadmap-header">
-                    <Heart size={16} />
-                    <h5>Tầm soát Tim Mạch & Huyết Áp</h5>
-                  </div>
-                  <ul className="roadmap-list">
-                    <li><strong>Bilan Lipid máu toàn phần:</strong> Định lượng LDL-C, Triglyceride, ApoB hàng năm.</li>
-                    <li><strong>Điện tâm đồ ECG 12 cần:</strong> Phát hiện thiếu máu cơ tim im lặng và rối loạn nhịp.</li>
-                    <li><strong>Siêu âm tim Doppler:</strong> Đo phân suất tống máu EF và độ dày thành tâm thất.</li>
-                  </ul>
-                </div>
-
-                <div className="roadmap-card">
-                  <div className="roadmap-header">
-                    <Droplet size={16} />
-                    <h5>Tầm soát Hô Hấp & Phế Quản</h5>
-                  </div>
-                  <ul className="roadmap-list">
-                    <li><strong>Đo Hô hấp ký Spirometry:</strong> Đánh giá dung tích sống FVC và chỉ số FEV1.</li>
-                    <li><strong>Chụp X-quang phổi thẳng:</strong> Kiểm tra nhu mô phổi, rốn phổi và vòm hoành.</li>
-                    <li><strong>Nồng độ FeNO thở ra:</strong> Đánh giá tình trạng viêm dị ứng đường thở phế quản.</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Tab: Overview & Vitals */}
-        {activeTab === 'overview' && (
-          <div className="overview-tab-content">
-            {/* Health Score SVG Radial Ring & 5 Waveform Vitals Cards */}
-            <div className="vitals-hud-grid">
-              {/* Overall SVG Radial Ring Score Card */}
-              {(() => {
-                const currentScore = profile?.overall_health_score ?? 81;
-                const ringColor = currentScore >= 80 ? '#10b981' : currentScore >= 50 ? '#06b6d4' : '#ef4444';
-                const circumference = 2 * Math.PI * 46;
-                const strokeDashoffset = circumference * (1 - currentScore / 100);
-
-                return (
-                  <div className="hud-card recovery-score-card">
-                    <span className="card-subtitle">Điểm Sức khoẻ Toàn diện</span>
-                    <div className="radial-ring-wrap">
-                      <svg width="112" height="112" viewBox="0 0 112 112" className="svg-radial-ring">
-                        <circle cx="56" cy="56" r="46" className="ring-bg" strokeWidth="8" />
-                        <circle
-                          cx="56"
-                          cy="56"
-                          r="46"
-                          className="ring-progress"
-                          strokeWidth="8"
-                          stroke={ringColor}
-                          strokeDasharray={circumference}
-                          strokeDashoffset={strokeDashoffset}
-                          strokeLinecap="round"
-                          transform="rotate(-90 56 56)"
                         />
-                      </svg>
-                      <div className="radial-ring-content">
-                        <strong className="ring-score-val" style={{ color: ringColor }}>{currentScore}</strong>
-                        <span className="ring-score-max">/100</span>
                       </div>
+                      <strong>{item.impactScore}%</strong>
                     </div>
+                  ))}
+                </div>
+              </div>
+            </div>
 
-                    <div className="trend-indicator-row">
-                      {currentScore < 50 || profile?.health_trend === 'critical_alert' ? (
-                        <span className="trend-badge alert">
-                          <TrendingDown size={14} /> Báo động cần can thiệp
-                        </span>
-                      ) : currentScore < 80 ? (
-                        <span className="trend-badge stable">
-                          <Activity size={14} /> Cần theo dõi sinh lý
-                        </span>
-                      ) : (
-                        <span className="trend-badge improving">
-                          <TrendingUp size={14} /> Thể trạng tối ưu
-                        </span>
-                      )}
+            {/* 4 Scannable Solution Pillar Cards */}
+            <div className="solutions-pillars-grid">
+              {personalizedSolutions.map((sol) => {
+                const isDone = Boolean(completedSolutions[sol.id]);
+                return (
+                  <div key={sol.id} className={`solution-pillar-card priority-${sol.priorityLevel} ${isDone ? "completed" : ""}`}>
+                    <div className="sol-card-top">
+                      <span className="sol-pillar-name">{sol.pillar}</span>
+                      <span className={`sol-priority-badge ${sol.priorityLevel}`}>{sol.priority}</span>
                     </div>
-                    <p className="diagnosis-text">{profile?.active_diagnosis || 'Thể trạng sinh lý bình thường'}</p>
+                    <h4 className="sol-card-title">{sol.title}</h4>
+                    <ul className="sol-steps-list">
+                      {sol.actionSteps.slice(0, 2).map((step, sIdx) => (
+                        <li key={sIdx}>
+                          <CheckCircle2 size={13} className="sol-step-icon" />
+                          <span>{step}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="sol-card-actions">
+                      <button
+                        type="button"
+                        className={`sol-btn-check ${isDone ? "done" : ""}`}
+                        onClick={() =>
+                          setCompletedSolutions((prev) => ({ ...prev, [sol.id]: !prev[sol.id] }))
+                        }
+                      >
+                        <Check size={13} />
+                        <span>{isDone ? "Đã thực hiện" : "Đánh dấu hoàn thành"}</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="sol-btn-chat"
+                        onClick={() => onNavigate?.("chat")}
+                      >
+                        <MessageSquare size={13} />
+                        <span>Hỏi AI</span>
+                      </button>
+                    </div>
                   </div>
                 );
-              })()}
+              })}
+            </div>
+          </div>
 
-              {/* 1. Nhịp Tim BPM kèm Sóng Điện Tâm Đồ SVG (ECG Waveform) */}
-              <div className="hud-card vital-card vital-waveform-card">
-                <div className="vital-header">
-                  <Heart size={16} className="vital-icon heart" />
-                  <span>1. Nhịp tim (BPM)</span>
-                </div>
-                <div className="vital-val-row">
-                  <strong className="vital-num">{profile?.vitals?.heart_rate_bpm || 78}</strong>
-                  <span className="vital-unit">BPM</span>
-                </div>
-                {/* SVG ECG Waveform */}
-                <div className="vital-svg-waveform-wrap">
-                  <svg className="ecg-svg" viewBox="0 0 140 32" preserveAspectRatio="none">
-                    <polyline
-                      fill="none"
-                      stroke="#ef4444"
-                      strokeWidth="2.2"
-                      points="0,16 25,16 32,16 38,8 44,26 50,2 56,20 62,14 68,16 95,16 102,8 108,26 114,2 120,20 126,14 140,16"
-                    />
-                  </svg>
-                </div>
-                <div className="vital-threshold-bar">
-                  <span className="threshold-tag">Chuẩn: 60 - 100 bpm</span>
-                  <span className="vital-status-text">
-                    {(profile?.vitals?.heart_rate_bpm || 78) > 100 ? 'Nhịp nhanh' : (profile?.vitals?.heart_rate_bpm || 78) < 60 ? 'Nhịp chậm' : 'Nhịp đều chuẩn'}
-                  </span>
-                </div>
+          {/* Chart 4B: 5 Vital Sign Sparkline & Gauge Cards */}
+          <div className="vitals-sparkline-strip">
+            <div className="vital-chart-card">
+              <div className="vc-top">
+                <span>1. Nhịp tim (ECG)</span>
+                <strong className="text-rose">{profile?.vitals?.heart_rate_bpm || 78} bpm</strong>
               </div>
+              <svg viewBox="0 0 120 32" className="vc-spark-svg">
+                <polyline
+                  fill="none"
+                  stroke="#e11d48"
+                  strokeWidth="2"
+                  points="0,18 22,18 28,6 34,28 40,12 46,20 72,18 80,5 86,27 92,15 120,18"
+                />
+              </svg>
+            </div>
 
-              {/* 2. Huyết Áp mmHg */}
-              <div className="hud-card vital-card">
-                <div className="vital-header">
-                  <Activity size={16} className="vital-icon bp" />
-                  <span>2. Huyết áp (mmHg)</span>
-                </div>
-                <div className="vital-val-row">
-                  <strong className="vital-num">
-                    {profile?.vitals?.blood_pressure_systolic || 118}/{profile?.vitals?.blood_pressure_diastolic || 78}
-                  </strong>
-                  <span className="vital-unit">mmHg</span>
-                </div>
-                <div className="vital-progress-stack">
-                  <div className="progress-stack-track">
-                    <div
-                      className="progress-stack-fill"
-                      style={{
-                        width: `${Math.min(100, ((profile?.vitals?.blood_pressure_systolic || 118) / 160) * 100)}%`,
-                        backgroundColor: (profile?.vitals?.blood_pressure_systolic || 118) >= 140 ? '#ef4444' : (profile?.vitals?.blood_pressure_systolic || 118) >= 120 ? '#f59e0b' : '#10b981',
-                      }}
-                    />
-                  </div>
-                </div>
-                <div className="vital-threshold-bar">
-                  <span className="threshold-tag">Chuẩn: &lt;120/80</span>
-                  <span className="vital-status-text">
-                    {(profile?.vitals?.blood_pressure_systolic || 118) >= 130 ? 'Tăng HA độ 1' : (profile?.vitals?.blood_pressure_systolic || 118) >= 120 ? 'Tiền tăng HA' : 'Tối ưu'}
-                  </span>
-                </div>
+            <div className="vital-chart-card">
+              <div className="vc-top">
+                <span>2. Huyết áp</span>
+                <strong className="text-blue">{profile?.vitals?.blood_pressure || "120/80"} mmHg</strong>
               </div>
-
-              {/* 3. Thân Nhiệt °C */}
-              <div className="hud-card vital-card">
-                <div className="vital-header">
-                  <Thermometer size={16} className="vital-icon temp" />
-                  <span>3. Thân nhiệt (°C)</span>
-                </div>
-                <div className="vital-val-row">
-                  <strong className={`vital-num ${(profile?.vitals?.temperature_celsius || profile?.vitals?.body_temperature_c || 36.8) >= 38.5 ? 'vital-hot' : ''}`}>
-                    {profile?.vitals?.temperature_celsius || profile?.vitals?.body_temperature_c || 36.8}°C
-                  </strong>
-                </div>
-                <div className="vital-progress-stack">
-                  <div className="progress-stack-track">
-                    <div
-                      className="progress-stack-fill"
-                      style={{
-                        width: `${Math.min(100, (((profile?.vitals?.temperature_celsius || profile?.vitals?.body_temperature_c || 36.8) - 35) / 5) * 100)}%`,
-                        backgroundColor: (profile?.vitals?.temperature_celsius || profile?.vitals?.body_temperature_c || 36.8) >= 38.5 ? '#ef4444' : (profile?.vitals?.temperature_celsius || profile?.vitals?.body_temperature_c || 36.8) > 37.5 ? '#f59e0b' : '#10b981',
-                      }}
-                    />
-                  </div>
-                </div>
-                <div className="vital-threshold-bar">
-                  <span className="threshold-tag">Chuẩn: 36.5 - 37.5°C</span>
-                  <span className="vital-status-text">
-                    {(profile?.vitals?.temperature_celsius || profile?.vitals?.body_temperature_c || 36.8) >= 38.5 ? 'Sốt cao kịch phát' : (profile?.vitals?.temperature_celsius || profile?.vitals?.body_temperature_c || 36.8) > 37.5 ? 'Sốt nhẹ' : 'Bình thường'}
-                  </span>
-                </div>
+              <div className="vc-dual-bars">
+                <div className="vc-bar-line"><span style={{ width: "75%", background: "#2563eb" }} /></div>
+                <div className="vc-bar-line"><span style={{ width: "55%", background: "#0d9488" }} /></div>
               </div>
+            </div>
 
-              {/* 4. SpO2 Máu % */}
-              <div className="hud-card vital-card">
-                <div className="vital-header">
-                  <Droplet size={16} className="vital-icon spo2" />
-                  <span>4. SpO2 Máu (%)</span>
-                </div>
-                <div className="vital-val-row">
-                  <strong className="vital-num">{profile?.vitals?.spo2_percent || 98}%</strong>
-                </div>
-                <div className="vital-progress-stack">
-                  <div className="progress-stack-track">
-                    <div
-                      className="progress-stack-fill"
-                      style={{
-                        width: `${profile?.vitals?.spo2_percent || 98}%`,
-                        backgroundColor: (profile?.vitals?.spo2_percent || 98) < 95 ? '#ef4444' : '#00e5ff',
-                      }}
-                    />
-                  </div>
-                </div>
-                <div className="vital-threshold-bar">
-                  <span className="threshold-tag">Chuẩn: &ge; 95%</span>
-                  <span className="vital-status-text">
-                    {(profile?.vitals?.spo2_percent || 98) < 95 ? 'Báo động suy hô hấp' : 'Bão hòa oxy tối ưu'}
-                  </span>
-                </div>
+            <div className="vital-chart-card">
+              <div className="vc-top">
+                <span>3. Thân nhiệt</span>
+                <strong className="text-amber">
+                  {profile?.vitals?.temperature_celsius || profile?.vitals?.body_temperature_c || 36.6} °C
+                </strong>
               </div>
+              <div className="vc-thermometer-track">
+                <div
+                  className="vc-thermometer-fill"
+                  style={{
+                    width: `${Math.min(100, Math.max(25, (((profile?.vitals?.temperature_celsius || 36.6) - 36) / 4) * 100))}%`,
+                  }}
+                />
+              </div>
+            </div>
 
-              {/* 5. Thang Đau VAS /10 */}
-              <div className="hud-card vital-card">
-                <div className="vital-header">
-                  <Flame size={16} className="vital-icon pain" />
-                  <span>5. Thang Đau VAS (/10)</span>
-                </div>
-                {(() => {
-                  const vasScore = profile?.vitals?.vas_pain_score ?? profile?.vitals?.overall_pain_level ?? 2;
-                  const vasColor = vasScore >= 7 ? '#ef4444' : vasScore >= 4 ? '#f59e0b' : '#10b981';
+            <div className="vital-chart-card">
+              <div className="vc-top">
+                <span>4. Oxy máu SpO2</span>
+                <strong className="text-teal">{profile?.vitals?.spo2_percent || 98}%</strong>
+              </div>
+              <div className="vc-thermometer-track">
+                <div
+                  className="vc-thermometer-fill teal"
+                  style={{ width: `${profile?.vitals?.spo2_percent || 98}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="vital-chart-card">
+              <div className="vc-top">
+                <span>5. Thang đau VAS</span>
+                <strong className="text-amber">
+                  {profile?.vitals?.vas_pain_score ?? profile?.vitals?.overall_pain_level ?? 0}/10
+                </strong>
+              </div>
+              <div className="vc-vas-segments">
+                {Array.from({ length: 10 }).map((_, idx) => {
+                  const active = idx < (profile?.vitals?.vas_pain_score ?? 0);
                   return (
-                    <>
-                      <div className="vital-val-row">
-                        <strong className="vital-num" style={{ color: vasColor }}>{vasScore}/10</strong>
-                        <span className="vital-unit">VAS</span>
-                      </div>
-                      <div className="vas-gradient-track-wrap">
-                        <div className="vas-gradient-bar">
-                          <div className="vas-pointer" style={{ left: `${Math.min(100, (vasScore / 10) * 100)}%` }} />
-                        </div>
-                      </div>
-                      <div className="vital-threshold-bar">
-                        <span className="threshold-tag">Chuẩn: 0 - 2 (Nhẹ)</span>
-                        <span className="vital-status-text" style={{ color: vasColor }}>
-                          {vasScore >= 7 ? 'Đau dữ dội cấp' : vasScore >= 4 ? 'Đau vừa có phản xạ' : vasScore === 0 ? 'Không đau' : 'Đau nhẹ kiểm soát'}
-                        </span>
-                      </div>
-                    </>
+                    <span
+                      key={idx}
+                      className={`vas-seg ${active ? "active" : ""}`}
+                      style={{
+                        backgroundColor: active
+                          ? idx >= 6
+                            ? "#e11d48"
+                            : idx >= 3
+                            ? "#f59e0b"
+                            : "#10b981"
+                          : "#e2e8f0",
+                      }}
+                    />
                   );
-                })()}
-              </div>
-            </div>
-
-            {/* Directives & Action Recommendations */}
-            <div className="directives-row">
-              <div className="directives-box">
-                <div className="box-title">
-                  <Stethoscope size={16} />
-                  <span>Chỉ thị Y tế & Lời khuyên Điều trị</span>
-                </div>
-                <ul className="directives-list">
-                  {profile?.clinical_directives?.map((d, i) => (
-                    <li key={i}>
-                      <CheckCircle2 size={15} className="directive-check-icon" />
-                      <span>{d}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Safety Discontinued Items Warning */}
-              {profile?.discontinued_medications && profile.discontinued_medications.length > 0 && (
-                <div className="discontinued-alert-box">
-                  <div className="box-title danger">
-                    <ShieldAlert size={16} />
-                    <span>Thuốc & Cách cũ ĐÃ BỊ ĐÌNH CHỈ (Dừng Ngay)</span>
-                  </div>
-                  <p className="disc-sub">
-                    Để bảo vệ bệnh nhân, AI đã gắn cờ cấm tiếp tục sử dụng các mục sau do phát hiện phản ứng bất lợi:
-                  </p>
-                  <ul className="disc-list">
-                    {profile.discontinued_medications.map((item, idx) => (
-                      <li key={idx}>
-                        <X size={14} className="disc-cross" />
-                        <strong>{item}</strong>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Tab: Recovery Timeline */}
-        {activeTab === 'timeline' && (
-          <div className="timeline-tab-content">
-            <div className="timeline-header-info">
-              <Clock size={16} />
-              <span>Tiến trình Diễn biến Lâm sàng & Các lần Tương tác Thăm dò</span>
-            </div>
-
-            <div className="timeline-vertical-flow">
-              {profile?.timeline?.map((point, idx) => (
-                <div key={point.id || idx} className={`timeline-entry-node ${point.phase}`}>
-                  <div className="timeline-node-marker">
-                    <span className="node-dot" />
-                    {idx < profile.timeline.length - 1 && <span className="node-line" />}
-                  </div>
-
-                  <div className="timeline-entry-card">
-                    <div className="entry-card-top">
-                      <div className="entry-title-wrap">
-                        <h4>{point.title}</h4>
-                        <span className="entry-time">{point.timestamp}</span>
-                      </div>
-                      <span className={`phase-badge ${point.phase}`}>{point.status_label}</span>
-                    </div>
-
-                    <div className="trigger-quote-box">
-                      <span className="quote-label">Tin nhắn bệnh nhân:</span>
-                      <p>&ldquo;{point.trigger_message}&rdquo;</p>
-                    </div>
-
-                    <p className="clinical-summary-p">{point.clinical_summary}</p>
-
-                    <div className="ai-directive-quote">
-                      <Sparkles size={14} />
-                      <div>
-                        <strong>Chỉ dẫn AI Bác sĩ:</strong>
-                        <p>{point.ai_directive}</p>
-                      </div>
-                    </div>
-
-                    {point.medications_adjusted && point.medications_adjusted.length > 0 && (
-                      <div className="med-adjust-row">
-                        {point.medications_adjusted.map((m, i) => (
-                          <span key={i} className="med-adjust-tag">
-                            <Pill size={11} /> {m}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Tab: Medications & Regimens */}
-        {activeTab === 'meds' && (
-          <div className="meds-tab-content">
-            <div className="meds-columns-grid">
-              <div className="meds-col active-meds">
-                <div className="meds-col-header">
-                  <CheckCircle2 size={16} />
-                  <h3>Thuốc đang được sử dụng an toàn</h3>
-                </div>
-                {profile?.active_medications && profile.active_medications.length > 0 ? (
-                  <ul className="meds-card-list">
-                    {profile.active_medications.map((m, idx) => (
-                      <li key={idx} className="med-item-card safe">
-                        <Pill size={16} />
-                        <div>
-                          <strong>{m}</strong>
-                          <span>Đang đáp ứng theo dõi tốt</span>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="empty-meds">Hiện không có thuốc kê thêm.</p>
-                )}
-              </div>
-
-              <div className="meds-col stopped-meds">
-                <div className="meds-col-header danger">
-                  <ShieldAlert size={16} />
-                  <h3>Thuốc đã bị dừng / Chống chỉ định</h3>
-                </div>
-                {profile?.discontinued_medications && profile.discontinued_medications.length > 0 ? (
-                  <ul className="meds-card-list">
-                    {profile.discontinued_medications.map((m, idx) => (
-                      <li key={idx} className="med-item-card stopped">
-                        <X size={16} />
-                        <div>
-                          <strong>{m}</strong>
-                          <span className="stopped-warn">Ngừng khẩn cấp do gây phản ứng bất lợi</span>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="empty-meds">Chưa ghi nhận thuốc nào bị chống chỉ định.</p>
-                )}
+                })}
               </div>
             </div>
           </div>
-        )}
-      </section>
+        </section>
+      )}
     </div>
   );
 }

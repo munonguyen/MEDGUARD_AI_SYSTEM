@@ -225,6 +225,8 @@ import {
   evaluateHolisticHealthInput,
   computeEpisodicHealthAnalytics,
   computePersonalizedHealthSolutions,
+  computeHolisticVisualChartSuite,
+  checkDataPageAccess,
 } from '../src/health/holisticHealthEngine.js';
 
 describe('Suite 7: Holistic Symptom & Feeling Sync, Episodic Batches & 4-Pillar Solutions', () => {
@@ -269,5 +271,38 @@ describe('Suite 7: Holistic Symptom & Feeling Sync, Episodic Batches & 4-Pillar 
     assert.equal(solutions.length, 4);
     assert.equal(solutions[0].priorityLevel, 'high');
     assert.ok(solutions[0].actionSteps.length >= 2);
+  });
+
+  it("28. Enforces RBAC login gate so only authenticated users can access health & spending pages", () => {
+    const guestHealth = checkDataPageAccess(null, true, "health");
+    assert.equal(guestHealth.allowed, false);
+    assert.equal(guestHealth.requiresLogin, true);
+
+    const guestSpending = checkDataPageAccess(null, true, "spending");
+    assert.equal(guestSpending.allowed, false);
+    assert.equal(guestSpending.requiresLogin, true);
+
+    const authedHealth = checkDataPageAccess({ id: "u_01", email: "patient@medguard.vn" }, false, "health");
+    assert.equal(authedHealth.allowed, true);
+    assert.equal(authedHealth.requiresLogin, false);
+  });
+
+  it("29. Computes 6-axis radar, 9-organ ranking, and 4-pillar solutions completion charts", () => {
+    const suite = computeHolisticVisualChartSuite(
+      {
+        overall_health_score: 88,
+        wellbeing: { sleep_quality_score: 82, energy_battery_percent: 86, hydration_balance_percent: 90 },
+        organs: [
+          { id: "head", vietnamese_name: "Đầu & Thần kinh", status: "normal", health_score: 92 },
+          { id: "stomach", vietnamese_name: "Dạ dày", status: "inflamed", health_score: 68 },
+        ],
+      },
+      { sol_medical_care: true, sol_medication_safety: true }
+    );
+    assert.equal(suite.radarAxes.length, 6);
+    assert.ok(suite.radarPolygonPoints.includes(","));
+    assert.equal(suite.organRanking[0].id, "stomach");
+    assert.equal(suite.solutionsSummary.completedCount, 2);
+    assert.equal(suite.solutionsSummary.completionPct, 50);
   });
 });

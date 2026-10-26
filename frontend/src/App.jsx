@@ -62,6 +62,7 @@ import { NavigationPage } from './navigation/NavigationPage';
 import { HealthTwinPage } from './health/HealthTwinPage';
 import { HealthcareSpendingPage } from './spending/HealthcareSpendingPage';
 import { ErrorBoundary } from './common/ErrorBoundary';
+import { DataManagementAuthGate } from './common/DataManagementAuthGate';
 import { processUnifiedTopicGatedChat, TOPIC_MODES } from './chat/topicGatedSync';
 import {
   getSavedUserLocation,
@@ -202,7 +203,7 @@ function ProfileEditor({ context, onSave, onClear, close }) {
   </form>;
 }
 
-function Sidebar({ open, close, collapse, conversations, activeId, onSelect, onNew, onDelete, onSchedule, onSchedulePage, onMedicationPage, onCompanionPage, onNavigationPage, onHealthPage, onSpendingPage, onSettings, onSystem, activeView, search, setSearch }) {
+function Sidebar({ open, close, collapse, conversations, activeId, onSelect, onNew, onDelete, onSchedule, onSchedulePage, onMedicationPage, onCompanionPage, onNavigationPage, onHealthPage, onSpendingPage, onSettings, onSystem, activeView, search, setSearch, isGuest = false }) {
   return <>
     {open && <button className="sidebar-scrim" type="button" aria-label="Đóng menu" onClick={close} />}
     <aside className={`sidebar ${open ? 'open' : ''}`}>
@@ -227,10 +228,12 @@ function Sidebar({ open, close, collapse, conversations, activeId, onSelect, onN
         <button type="button" className={`nav-link-btn ${activeView === 'health' ? 'active' : ''}`} onClick={() => { onHealthPage?.(); close(); }}>
           <HeartPulse size={17} />
           <span>Cơ thể & Sức khoẻ</span>
+          {isGuest && <span className="sidebar-lock-tag" title="Yêu cầu đăng nhập">🔒</span>}
         </button>
         <button type="button" className={`nav-link-btn ${activeView === 'spending' ? 'active' : ''}`} onClick={() => { onSpendingPage?.(); close(); }}>
           <WalletCards size={17} />
           <span>Chi tiêu & Tiết kiệm Care</span>
+          {isGuest && <span className="sidebar-lock-tag" title="Yêu cầu đăng nhập">🔒</span>}
         </button>
         <button type="button" className={`nav-link-btn companion-nav-btn ${activeView === 'companion' ? 'active' : ''}`} onClick={() => { onCompanionPage?.(); close(); }}>
           <Sparkles size={17} />
@@ -1244,7 +1247,7 @@ export default function App({
   const filteredConversations = conversations.filter((item) => item.title.toLowerCase().includes(historySearch.toLowerCase()));
   return <div className={`app-shell chat-shell ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
     <a href="#main-content" className="skip-link">Chuyển đến nội dung chính</a>
-    <Sidebar open={sidebarOpen} close={() => setSidebarOpen(false)} collapse={() => { setSidebarCollapsed(true); setSidebarOpen(false); }} conversations={filteredConversations} activeId={conversationId} onSelect={selectConversation} onNew={startNew} onDelete={deleteConversation} onSchedule={() => setView('medication')} onSchedulePage={() => setView('schedule')} onMedicationPage={() => setView('medication')} onCompanionPage={() => setView('companion')} onNavigationPage={() => setView('navigation')} onHealthPage={() => setView('health')} onSpendingPage={() => setView('spending')} onSettings={() => { setSettingsInitialTab('general'); setSettingsOpen(true); }} onSystem={() => { if (!account || account.role === 'admin') setView('system'); }} activeView={view} search={historySearch} setSearch={setHistorySearch} />
+    <Sidebar open={sidebarOpen} close={() => setSidebarOpen(false)} collapse={() => { setSidebarCollapsed(true); setSidebarOpen(false); }} conversations={filteredConversations} activeId={conversationId} onSelect={selectConversation} onNew={startNew} onDelete={deleteConversation} onSchedule={() => setView('medication')} onSchedulePage={() => setView('schedule')} onMedicationPage={() => setView('medication')} onCompanionPage={() => setView('companion')} onNavigationPage={() => setView('navigation')} onHealthPage={() => setView('health')} onSpendingPage={() => setView('spending')} onSettings={() => { setSettingsInitialTab('general'); setSettingsOpen(true); }} onSystem={() => { if (!account || account.role === 'admin') setView('system'); }} activeView={view} search={historySearch} setSearch={setHistorySearch} isGuest={isGuest || !account} />
     <main className="main-shell chat-main" id="main-content" tabIndex={-1}>
       <header className="topbar chat-topbar">
         <div className="topbar-title">
@@ -1555,62 +1558,104 @@ export default function App({
         <div className="system-workspace"><SystemModule api={api} tenantId={tenantId} /></div>
       ) : view === 'schedule' ? (
         <div className="schedule-workspace">
-          <SchedulePage
-            api={api}
-            onBackToChat={() => setView('chat')}
-            onOpenMedicationPage={() => setView('medication')}
-            onConsultPatient={(shift) => {
-              setView('chat');
-              setContext((current) => ({
-                ...current,
-                patient_ref: shift.patientRef,
-                display_name: shift.patientName,
-                age: shift.age,
-                sex: shift.sex === 'Nam' ? 'male' : 'female',
-                conditions: [shift.department, shift.purpose],
-                current_medications: shift.currentMeds || [],
-              }));
-              setMessage(`Tư vấn ca khám của bệnh nhân ${shift.patientName} (${shift.patientRef}), lý do: ${shift.purpose}.`);
-              requestAnimationFrame(() => document.querySelector('[aria-label="Tin nhắn"]')?.focus());
-            }}
-          />
+          {(isGuest || !account) ? (
+            <DataManagementAuthGate
+              moduleTitle="Quản Lý Lịch Khám Bác Sĩ & Đặt Hẹn Chuyên Khoa"
+              moduleType="schedule"
+              onRequireAuth={onRequireAuth}
+              onBackToChat={() => setView('chat')}
+            />
+          ) : (
+            <SchedulePage
+              api={api}
+              onBackToChat={() => setView('chat')}
+              onOpenMedicationPage={() => setView('medication')}
+              onConsultPatient={(shift) => {
+                setView('chat');
+                setContext((current) => ({
+                  ...current,
+                  patient_ref: shift.patientRef,
+                  display_name: shift.patientName,
+                  age: shift.age,
+                  sex: shift.sex === 'Nam' ? 'male' : 'female',
+                  conditions: [shift.department, shift.purpose],
+                  current_medications: shift.currentMeds || [],
+                }));
+                setMessage(`Tư vấn ca khám của bệnh nhân ${shift.patientName} (${shift.patientRef}), lý do: ${shift.purpose}.`);
+                requestAnimationFrame(() => document.querySelector('[aria-label="Tin nhắn"]')?.focus());
+              }}
+            />
+          )}
         </div>
       ) : view === 'medication' ? (
         <div className="schedule-workspace">
-          <MedicationPage
-            api={api}
-            patientRef={context.patient_ref}
-            onBackToChat={() => setView('chat')}
-            onOpenSchedulePage={() => setView('schedule')}
-            onConsultMedicine={(med) => {
-              setView('chat');
-              setMessage(`Tư vấn thông tin và lưu ý dùng thuốc ${med.name || med.medicine_name} (${med.strength || med.dosage || ''}), dùng vào: ${med.timing || med.slot || 'trong ngày'}.`);
-              requestAnimationFrame(() => document.querySelector('[aria-label="Tin nhắn"]')?.focus());
-            }}
-            onNotify={notify}
-          />
+          {(isGuest || !account) ? (
+            <DataManagementAuthGate
+              moduleTitle="Quản Lý Lịch Uống Thuốc & Kiểm Soát Tương Tác Dược"
+              moduleType="medication"
+              onRequireAuth={onRequireAuth}
+              onBackToChat={() => setView('chat')}
+            />
+          ) : (
+            <MedicationPage
+              api={api}
+              patientRef={context.patient_ref}
+              onBackToChat={() => setView('chat')}
+              onOpenSchedulePage={() => setView('schedule')}
+              onConsultMedicine={(med) => {
+                setView('chat');
+                setMessage(`Tư vấn thông tin và lưu ý dùng thuốc ${med.name || med.medicine_name} (${med.strength || med.dosage || ''}), dùng vào: ${med.timing || med.slot || 'trong ngày'}.`);
+                requestAnimationFrame(() => document.querySelector('[aria-label="Tin nhắn"]')?.focus());
+              }}
+              onNotify={notify}
+            />
+          )}
         </div>
       ) : view === 'health' ? (
         <div className="health-workspace-container">
           <ErrorBoundary title="Mô-đun Cơ thể & Sức khoẻ Thời gian thực" onBackToChat={() => setView('chat')}>
-            <HealthTwinPage
-              api={api}
-              onBackToChat={() => setView('chat')}
-              onNavigate={(target) => setView(target)}
-              onNotify={notify}
-            />
+            {(isGuest || !account) ? (
+              <DataManagementAuthGate
+                moduleTitle="Hồ Sơ Cơ Thể & Thống Kê Sức Khoẻ Đa Biểu Đồ"
+                moduleType="health"
+                onRequireAuth={onRequireAuth}
+                onBackToChat={() => setView('chat')}
+              />
+            ) : (
+              <HealthTwinPage
+                api={api}
+                account={account}
+                isGuest={isGuest}
+                onRequireAuth={onRequireAuth}
+                onBackToChat={() => setView('chat')}
+                onNavigate={(target) => setView(target)}
+                onNotify={notify}
+              />
+            )}
           </ErrorBoundary>
         </div>
       ) : view === 'spending' ? (
         <div className="health-workspace-container">
           <ErrorBoundary title="Mô-đun Đánh giá Chi Tiêu Y Tế & Tiết Kiệm Care" onBackToChat={() => setView('chat')}>
-            <HealthcareSpendingPage
-              api={api}
-              patientRef={context.patient_ref}
-              onBackToChat={() => setView('chat')}
-              onNavigate={(target) => setView(target)}
-              onNotify={notify}
-            />
+            {(isGuest || !account) ? (
+              <DataManagementAuthGate
+                moduleTitle="Quản Trị Chi Phí Y Tế, BHYT & Lộ Trình Tiết Kiệm Care"
+                moduleType="spending"
+                onRequireAuth={onRequireAuth}
+                onBackToChat={() => setView('chat')}
+              />
+            ) : (
+              <HealthcareSpendingPage
+                api={api}
+                account={account}
+                isGuest={isGuest}
+                onRequireAuth={onRequireAuth}
+                patientRef={context.patient_ref}
+                onBackToChat={() => setView('chat')}
+                onNavigate={(target) => setView(target)}
+                onNotify={notify}
+              />
+            )}
           </ErrorBoundary>
         </div>
       ) : view === 'companion' ? (

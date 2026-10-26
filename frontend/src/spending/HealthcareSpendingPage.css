@@ -2056,3 +2056,188 @@
   color: var(--spend-pink);
   border-color: var(--spend-pink-border);
 }
+
+/* ============================================================================
+   SPENDING MULTI-CHART SUITE & REFINED CLINICAL PALETTE (2026 REDESIGN)
+   ============================================================================ */
+.spending-web-dashboard {
+  background: linear-gradient(180deg, #f1f5f9 0%, #f8fafc 50%, #eef2f6 100%) !important;
+}
+
+.web-kpi-card.expense-kpi-card {
+  border: 1.5px solid #fda4af !important;
+  box-shadow: 0 6px 20px rgba(244, 63, 94, 0.06) !important;
+}
+
+.spending-multi-charts-suite {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 18px;
+  margin-top: 16px;
+}
+
+.spending-chart-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 16px 18px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.sc-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.sc-kicker {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #0d9488;
+  text-transform: uppercase;
+}
+
+.sc-head h4 {
+  margin: 2px 0 0;
+  font-size: 0.94rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.sc-legend {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.sc-leg.rose { color: #f43f5e; }
+.sc-leg.teal { color: #0d9488; }
+.sc-leg.blue { color: #2563eb; }
+
+.spending-trend-svg {
+  width: 100%;
+  height: 155px;
+  display: block;
+}
+
+.sc-axis-txt {
+  font-size: 9.5px;
+  fill: #64748b;
+  font-weight: 600;
+}
+
+.sc-val-txt {
+  font-size: 9px;
+  fill: #0f172a;
+  font-weight: 800;
+}
+
+.sc-x-txt {
+  font-size: 9.5px;
+  fill: #475569;
+  font-weight: 700;
+}
+
+.sc-save-pill {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #047857;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.dav-visual-bars-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dav-vbar-group {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 11px;
+  padding: 9px 12px;
+}
+
+.dav-vbar-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.dav-vbar-top strong {
+  font-size: 0.8rem;
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.dav-vbar-save {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #0d9488;
+}
+
+.dav-vbar-Dual {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.dav-vbar-line {
+  display: grid;
+  grid-template-columns: 72px 1fr 76px;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.74rem;
+}
+
+.dav-vbar-line span {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.dav-vbar-line b {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: #334155;
+}
+
+.dav-vbar-track {
+  height: 7px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.dav-vbar-fill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.dav-vbar-fill.brand {
+  background: #94a3b8;
+}
+
+.dav-vbar-fill.generic {
+  background: linear-gradient(90deg, #0d9488, #10b981);
+}
+
+@media (max-width: 1024px) {
+  .spending-multi-charts-suite {
+    grid-template-columns: 1fr;
+  }
+}

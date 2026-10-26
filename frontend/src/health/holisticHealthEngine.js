@@ -834,3 +834,136 @@ export function computePersonalizedHealthSolutions(profile) {
     },
   ];
 }
+
+/**
+ * Role-based Access Control (RBAC) for Personal Data Management Pages.
+ * Only authenticated users (!isGuest && Boolean(account)) can access personal health/spending/schedule/medication management.
+ */
+export function checkDataPageAccess(account, isGuest = false, view = 'health') {
+  const protectedViews = new Set(['health', 'spending', 'schedule', 'medication']);
+  const isProtected = protectedViews.has(String(view || '').toLowerCase());
+  const isAuthenticated = Boolean(account && (account.id || account.email)) && !isGuest;
+  return {
+    view,
+    isProtected,
+    allowed: !isProtected || isAuthenticated,
+    requiresLogin: isProtected && !isAuthenticated,
+    memberLabel: isAuthenticated
+      ? account.email || account.display_name || 'Thành viên Đã xác thực'
+      : 'Khách (Chưa đăng nhập)',
+  };
+}
+
+/**
+ * Computes multi-chart visual datasets for every section of the Health Twin dashboard:
+ * - Section 1: 6-Axis Spider/Radar Bio-Balance + 4 Circular Radial Rings
+ * - Section 2: Dual-Spline Area Curve + VAS/Temp Combo Bar-Line coordinates
+ * - Section 3: 9-Organ Horizontal Score Ranking + Organ Status Donut Distribution + Semi-circular Future Risk Gauge
+ * - Section 4: 4-Pillar Solutions Completion Donut + Expected Recovery Impact Bars
+ */
+export function computeHolisticVisualChartSuite(profile, completedSolutions = {}) {
+  const organs = Array.isArray(profile?.organs) ? profile.organs : [];
+  const sleep = Math.max(20, Math.min(100, profile?.wellbeing?.sleep_quality_score ?? 88));
+  const energy = Math.max(20, Math.min(100, profile?.wellbeing?.energy_battery_percent ?? 90));
+  const hydration = Math.max(20, Math.min(100, profile?.wellbeing?.hydration_balance_percent ?? 92));
+  const stressText = String(profile?.wellbeing?.stress_level_label || 'Thấp');
+  const neuroCalm = stressText.includes('Cao') ? 52 : stressText.includes('Trung bình') ? 74 : 92;
+
+  const temp = profile?.vitals?.temperature_celsius ?? profile?.vitals?.body_temperature_c ?? 36.6;
+  const spo2 = profile?.vitals?.spo2_percent ?? 98;
+  const hr = profile?.vitals?.heart_rate_bpm ?? 74;
+  const pain = profile?.vitals?.vas_pain_score ?? profile?.vitals?.overall_pain_level ?? 0;
+
+  const immunity = Math.max(35, Math.min(100, Math.round(100 - Math.max(0, temp - 37.0) * 18 - pain * 3)));
+  const circulation = Math.max(45, Math.min(100, Math.round(spo2 - Math.max(0, Math.abs(hr - 72) * 0.4))));
+
+  // 1. 6-Axis Radar Chart (center 110, 110, radius 76)
+  const rawAxes = [
+    { id: 'sleep', label: 'Giấc ngủ', shortLabel: 'Giấc ngủ', value: sleep, color: '#0d9488' },
+    { id: 'neuro', label: 'An thần', shortLabel: 'Thần kinh', value: neuroCalm, color: '#2563eb' },
+    { id: 'energy', label: 'Năng lượng', shortLabel: 'Pin cơ thể', value: energy, color: '#d97706' },
+    { id: 'hydration', label: 'Điện giải', shortLabel: 'Bù nước', value: hydration, color: '#0284c7' },
+    { id: 'immunity', label: 'Miễn dịch', shortLabel: 'Đề kháng', value: immunity, color: '#7c3aed' },
+    { id: 'circulation', label: 'Tuần hoàn', shortLabel: 'Tim phổi', value: circulation, color: '#10b981' },
+  ];
+
+  const cx = 110;
+  const cy = 110;
+  const maxR = 72;
+
+  const radarAxes = rawAxes.map((axis, idx) => {
+    const angle = -Math.PI / 2 + (idx * 2 * Math.PI) / rawAxes.length;
+    const r = (axis.value / 100) * maxR;
+    const x = +(cx + r * Math.cos(angle)).toFixed(1);
+    const y = +(cy + r * Math.sin(angle)).toFixed(1);
+    const outerX = +(cx + maxR * Math.cos(angle)).toFixed(1);
+    const outerY = +(cy + maxR * Math.sin(angle)).toFixed(1);
+    const labelX = +(cx + (maxR + 24) * Math.cos(angle)).toFixed(1);
+    const labelY = +(cy + (maxR + 20) * Math.sin(angle)).toFixed(1);
+    return { ...axis, angle, x, y, outerX, outerY, labelX, labelY };
+  });
+
+  const radarPolygonPoints = radarAxes.map((a) => `${a.x},${a.y}`).join(' ');
+  const radarAverage = Math.round(rawAxes.reduce((acc, a) => acc + a.value, 0) / rawAxes.length);
+
+  // 2. 9-Organ Ranking & Status Distribution
+  const organRanking = [...organs]
+    .map((o) => {
+      const score = o.health_score ?? 95;
+      const tone =
+        o.status === 'adverse_reaction' || score < 60
+          ? '#e11d48'
+          : o.status === 'inflamed' || score < 85
+          ? '#d97706'
+          : '#0d9488';
+      const riskLevel = o.future_risk?.risk_level || 'low';
+      const riskPct = riskLevel === 'high' ? 82 : riskLevel === 'moderate' ? 52 : 22;
+      return {
+        id: o.id,
+        name: o.vietnamese_name || o.name,
+        score,
+        pain: o.pain_level ?? 0,
+        status: o.status || 'normal',
+        color: tone,
+        riskLevel,
+        riskPct,
+      };
+    })
+    .sort((a, b) => a.score - b.score); // lowest score first for immediate attention
+
+  const normalOrgans = organRanking.filter((o) => o.status === 'normal' && o.score >= 85).length;
+  const warningOrgans = organRanking.filter((o) => o.status === 'inflamed' || (o.score >= 60 && o.score < 85)).length;
+  const criticalOrgans = Math.max(0, organRanking.length - normalOrgans - warningOrgans);
+
+  // 3. 4-Pillar Solutions Progress & Impact Chart
+  const solutions = computePersonalizedHealthSolutions(profile);
+  const impactWeights = [94, 89, 84, 78];
+  const enrichedSolutions = solutions.map((sol, idx) => ({
+    ...sol,
+    impactScore: impactWeights[idx] || 82,
+    completed: Boolean(completedSolutions?.[sol.id]),
+  }));
+  const completedCount = enrichedSolutions.filter((s) => s.completed).length;
+  const completionPct = Math.round((completedCount / Math.max(1, enrichedSolutions.length)) * 100);
+  const projectedGain = 8 + completedCount * 4;
+
+  return {
+    radarAxes,
+    radarPolygonPoints,
+    radarAverage,
+    organRanking,
+    organDistribution: {
+      total: organRanking.length || 9,
+      normal: normalOrgans,
+      warning: warningOrgans,
+      critical: criticalOrgans,
+    },
+    solutionsSummary: {
+      total: enrichedSolutions.length,
+      completedCount,
+      completionPct,
+      projectedGain,
+      items: enrichedSolutions,
+    },
+  };
+}

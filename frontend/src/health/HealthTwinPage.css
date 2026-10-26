@@ -3623,3 +3623,1230 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+/* ============================================================================
+   CLINICAL DAYLIGHT & MULTI-CHART PRECISION THEME (2026 REDESIGN)
+   Unifies Health Twin & Data Management Pages with crisp light surfaces,
+   reduced text clutter, and high-visibility interactive SVG charts.
+   ============================================================================ */
+
+.health-twin-container.daylight-clinical-theme {
+  background: linear-gradient(180deg, #f1f5f9 0%, #f8fafc 45%, #eef2f6 100%) !important;
+  color: #0f172a !important;
+  padding: 18px 22px 36px !important;
+  gap: 16px !important;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.daylight-clinical-theme .health-twin-topbar {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 16px !important;
+  padding: 14px 20px !important;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04) !important;
+}
+
+.daylight-clinical-theme .back-btn,
+.daylight-clinical-theme .console-btn-subtle {
+  background: #f8fafc !important;
+  color: #334155 !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 10px !important;
+  padding: 8px 13px !important;
+  font-size: 0.81rem !important;
+  font-weight: 600 !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.daylight-clinical-theme .back-btn:hover,
+.daylight-clinical-theme .console-btn-subtle:hover {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #94a3b8 !important;
+}
+
+.daylight-clinical-theme .twin-brand-badge h1 {
+  color: #0f172a !important;
+  font-size: 1.22rem !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em;
+}
+
+.daylight-clinical-theme .twin-subtitle {
+  color: #475569 !important;
+  font-size: 0.82rem !important;
+  margin-top: 2px !important;
+}
+
+.daylight-clinical-theme .twin-subtitle strong {
+  color: #0d9488 !important;
+}
+
+.daylight-clinical-theme .live-tag {
+  background: #ccfbf1 !important;
+  color: #0f766e !important;
+  border: 1px solid #99f6e4 !important;
+  font-weight: 700 !important;
+}
+
+.member-verified-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #047857;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.overall-score-mini-ring {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 6px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.mini-ring-svg {
+  width: 34px;
+  height: 34px;
+}
+
+.mini-ring-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.mini-ring-text span {
+  font-size: 0.68rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.mini-ring-text strong {
+  font-size: 0.92rem;
+  color: #0f172a;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Section Focus Filter Bar */
+.health-section-switcher-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 8px 12px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+  flex-wrap: wrap;
+}
+
+.section-tabs-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.sec-filter-tab {
+  padding: 7px 13px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #475569;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.sec-filter-tab:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.sec-filter-tab.active {
+  background: #0d9488;
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.25);
+}
+
+.daylight-clinical-theme .btn-open-chat-sync {
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+  border: 1px solid #bfdbfe !important;
+  border-radius: 9px !important;
+  padding: 7px 13px !important;
+  font-size: 0.8rem !important;
+  font-weight: 700 !important;
+}
+
+/* Shared Visual Section Card */
+.visual-section-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 18px !important;
+  padding: 18px 20px !important;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.04) !important;
+}
+
+.sec-head-compact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.sec-title-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sec-title-inline h3,
+.sec-title-inline h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.icon-teal {
+  color: #0d9488;
+}
+
+.sec-sub-badge {
+  font-size: 0.73rem;
+  font-weight: 700;
+  color: #0f766e;
+  background: #f0fdfa;
+  border: 1px solid #ccfbf1;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+/* SECTION 1: Bio Intake + 6-Axis Radar & 4 Radial Gauges */
+.bio-intake-radar-grid {
+  display: grid;
+  grid-template-columns: 1.45fr 1fr;
+  gap: 20px;
+  align-items: stretch;
+}
+
+.bio-left-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.daylight-clinical-theme .holistic-symptom-input {
+  background: #f8fafc !important;
+  border: 1.5px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  font-size: 0.88rem !important;
+  padding: 11px 14px !important;
+  border-radius: 11px !important;
+}
+
+.daylight-clinical-theme .holistic-symptom-input:focus {
+  background: #ffffff !important;
+  border-color: #0d9488 !important;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.14) !important;
+}
+
+.daylight-clinical-theme .holistic-mic-btn {
+  background: #f8fafc !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+.daylight-clinical-theme .holistic-feeling-chip {
+  background: #f8fafc !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+  padding: 6px 11px !important;
+  font-size: 0.77rem !important;
+  font-weight: 600 !important;
+}
+
+.daylight-clinical-theme .holistic-feeling-chip:hover {
+  background: #f0fdfa !important;
+  border-color: #0d9488 !important;
+  color: #0f766e !important;
+}
+
+/* 4 Radial Gauge Mini Cards */
+.bio-radial-gauges-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.radial-gauge-mini-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.radial-gauge-svg {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+
+.radial-svg-num {
+  font-size: 11px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.radial-gauge-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.radial-gauge-info span {
+  font-size: 0.72rem;
+  color: #64748b;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.radial-gauge-info strong {
+  font-size: 0.86rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Right: 6-Axis Radar Card */
+.bio-right-radar-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.radar-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chart-kicker {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #0d9488;
+  text-transform: uppercase;
+}
+
+.radar-card-header h4 {
+  margin: 2px 0 0;
+  font-size: 0.94rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.radar-avg-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #ccfbf1;
+  color: #0f766e;
+  font-size: 0.76rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.radar-svg-stage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.bio-radar-svg {
+  width: 100%;
+  max-width: 225px;
+  height: 185px;
+}
+
+.radar-axis-label {
+  font-size: 8.5px;
+  font-weight: 700;
+  fill: #334155;
+}
+
+/* SECTION 2: Episodic Multi-Chart Suite */
+.daylight-clinical-theme .episodic-panel-header h3 {
+  color: #0f172a !important;
+  font-size: 1.06rem !important;
+}
+
+.daylight-clinical-theme .episodic-timeframe-switcher {
+  background: #f1f5f9 !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.daylight-clinical-theme .tf-switch-btn {
+  color: #475569 !important;
+}
+
+.daylight-clinical-theme .tf-switch-btn.active {
+  background: #ffffff !important;
+  color: #0d9488 !important;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08) !important;
+}
+
+.daylight-clinical-theme .episodic-batch-card {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  padding: 13px 15px !important;
+}
+
+.daylight-clinical-theme .episodic-batch-card.selected {
+  background: #f0fdfa !important;
+  border-color: #0d9488 !important;
+  box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.16) !important;
+}
+
+.daylight-clinical-theme .batch-card-title {
+  color: #0f172a !important;
+  font-size: 0.92rem !important;
+  margin-bottom: 8px !important;
+}
+
+.batch-visual-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.bv-bar-row {
+  display: grid;
+  grid-template-columns: 92px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+}
+
+.bv-bar-row span {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.bv-bar-row strong {
+  color: #0f172a;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.bv-track {
+  height: 7px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.bv-fill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.bv-fill.teal {
+  background: linear-gradient(90deg, #0d9488, #10b981);
+}
+
+.bv-fill.amber {
+  background: linear-gradient(90deg, #f59e0b, #e11d48);
+}
+
+.daylight-clinical-theme .batch-solution-callout {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #334155 !important;
+  font-size: 0.76rem !important;
+  padding: 7px 10px !important;
+}
+
+.episodic-dual-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 14px;
+}
+
+.episodic-svg-chart-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+
+.svg-chart-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.svg-chart-head h4 {
+  margin: 2px 0 0;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.svg-legend-inline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.73rem;
+  font-weight: 700;
+}
+
+.leg-dot.teal { color: #0d9488; }
+.leg-dot.blue { color: #2563eb; }
+.leg-dot.amber { color: #d97706; }
+.leg-dot.rose { color: #e11d48; }
+
+.episodic-spline-svg {
+  width: 100%;
+  height: 170px;
+  display: block;
+}
+
+.svg-axis-num {
+  font-size: 9.5px;
+  fill: #64748b;
+  font-weight: 600;
+}
+
+.svg-node-val {
+  font-size: 9.5px;
+  fill: #0f766e;
+  font-weight: 800;
+}
+
+.svg-temp-val {
+  font-size: 9.5px;
+  fill: #be123c;
+  font-weight: 800;
+}
+
+.svg-bar-vas {
+  font-size: 8.5px;
+  fill: #334155;
+  font-weight: 700;
+}
+
+.svg-x-label {
+  font-size: 9.5px;
+  fill: #475569;
+  font-weight: 700;
+}
+
+/* SECTION 3: 3D Body Twin + 9-Organ Bar Matrix & Semi-Circular Risk Gauge */
+.daylight-clinical-theme .body-silhouette-panel {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.04) !important;
+}
+
+.daylight-clinical-theme .panel-header-bar {
+  background: #f8fafc !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+.daylight-clinical-theme .header-bar-title span {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+}
+
+.daylight-clinical-theme .system-filter-bar {
+  background: #f8fafc !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.daylight-clinical-theme .system-tab-btn {
+  color: #475569 !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.daylight-clinical-theme .system-tab-btn.active {
+  background: #0d9488 !important;
+  color: #ffffff !important;
+  border-color: #0d9488 !important;
+}
+
+.daylight-clinical-theme .silhouette-footer-legend {
+  background: #f8fafc !important;
+  border-top: 1px solid #e2e8f0 !important;
+  color: #475569 !important;
+}
+
+/* Chart 3A: 9-Organ Horizontal Score Ranking + Donut */
+.organ-ranking-chart-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 16px 18px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.03);
+}
+
+.organ-ranking-layout {
+  display: grid;
+  grid-template-columns: 125px 1fr;
+  gap: 16px;
+  align-items: center;
+}
+
+.organ-donut-box {
+  display: flex;
+  justify-content: center;
+}
+
+.organ-donut-svg,
+.sol-donut-svg {
+  width: 112px;
+  height: 112px;
+}
+
+.donut-big-num {
+  font-size: 16px;
+  font-weight: 800;
+  fill: #0f172a;
+}
+
+.donut-sub-txt {
+  font-size: 9px;
+  font-weight: 700;
+  fill: #0d9488;
+}
+
+.organ-bars-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px 14px;
+}
+
+.organ-bar-item-btn {
+  display: grid;
+  grid-template-columns: 110px 1fr 40px;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 9px;
+  border-radius: 9px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.14s ease;
+}
+
+.organ-bar-item-btn:hover,
+.organ-bar-item-btn.active {
+  background: #f0fdfa;
+  border-color: #0d9488;
+}
+
+.ob-name {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ob-track {
+  height: 7px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.ob-fill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.ob-score {
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Chart 3B: Organ Inspector + Semi-Circular Risk Gauge */
+.daylight-clinical-theme .organ-inspector-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 16px !important;
+  padding: 16px 18px !important;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.03) !important;
+}
+
+.daylight-clinical-theme .organ-title-row h3 {
+  color: #0f172a !important;
+}
+
+.daylight-clinical-theme .organ-en-name {
+  color: #475569 !important;
+}
+
+.daylight-clinical-theme .organ-action-btn {
+  background: #f8fafc !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #1e293b !important;
+}
+
+.daylight-clinical-theme .organ-action-btn:hover {
+  background: #f0fdfa !important;
+  border-color: #0d9488 !important;
+  color: #0f766e !important;
+}
+
+.organ-risk-gauge-panel {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 16px;
+  align-items: center;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 13px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.semi-risk-svg {
+  width: 130px;
+  height: 82px;
+}
+
+.semi-gauge-pct {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.semi-gauge-lbl {
+  font-size: 8.5px;
+  font-weight: 700;
+  fill: #64748b;
+}
+
+.risk-concise-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.risk-vaccine-pill {
+  align-self: flex-start;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #0f766e;
+  background: #ccfbf1;
+  padding: 2px 9px;
+  border-radius: 999px;
+}
+
+.risk-concise-info .risk-prognosis-title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.risk-concise-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.risk-concise-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: #334155;
+}
+
+.risk-concise-list li svg {
+  color: #0d9488;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* SECTION 4: Solutions Donut + Impact Chart + 5 Vitals Sparklines */
+.solutions-top-layout {
+  display: grid;
+  grid-template-columns: 310px 1fr;
+  gap: 18px;
+  align-items: stretch;
+}
+
+.solutions-impact-chart-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.solutions-impact-chart-card h4 {
+  margin: 2px 0 10px;
+  font-size: 0.94rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.sol-donut-and-bars {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.sol-impact-bars {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sol-impact-row {
+  display: grid;
+  grid-template-columns: 64px 1fr 38px;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+}
+
+.sol-impact-row span {
+  color: #475569;
+  font-weight: 600;
+}
+
+.sol-impact-row strong {
+  color: #0f172a;
+  font-weight: 800;
+  text-align: right;
+}
+
+.si-track {
+  height: 7px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.si-fill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.daylight-clinical-theme .solution-pillar-card {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  padding: 13px 15px !important;
+}
+
+.daylight-clinical-theme .sol-card-title {
+  color: #0f172a !important;
+  font-size: 0.9rem !important;
+}
+
+.daylight-clinical-theme .sol-steps-list li {
+  color: #334155 !important;
+  font-size: 0.78rem !important;
+}
+
+.daylight-clinical-theme .sol-btn-check,
+.daylight-clinical-theme .sol-btn-chat {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #1e293b !important;
+}
+
+.daylight-clinical-theme .sol-btn-check.done {
+  background: #ecfdf5 !important;
+  border-color: #10b981 !important;
+  color: #047857 !important;
+}
+
+/* 5 Vitals Sparkline Strip */
+.vitals-sparkline-strip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.vital-chart-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 11px 13px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.vc-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.vc-top span {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.vc-top strong {
+  font-size: 0.9rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.text-rose { color: #e11d48; }
+.text-blue { color: #2563eb; }
+.text-amber { color: #d97706; }
+.text-teal { color: #0d9488; }
+
+.vc-spark-svg {
+  width: 100%;
+  height: 28px;
+}
+
+.vc-dual-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.vc-bar-line,
+.vc-thermometer-track {
+  height: 7px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.vc-bar-line span,
+.vc-thermometer-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #f59e0b, #e11d48);
+}
+
+.vc-thermometer-fill.teal {
+  background: linear-gradient(90deg, #0d9488, #10b981);
+}
+
+.vc-vas-segments {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 3px;
+}
+
+.vas-seg {
+  height: 8px;
+  border-radius: 3px;
+}
+
+/* ============================================================================
+   DATA MANAGEMENT AUTH GATE (PHÂN QUYỀN CHỈ USER ĐÃ ĐĂNG NHẬP)
+   ============================================================================ */
+.dm-auth-gate-shell {
+  min-height: calc(100vh - 90px);
+  padding: 32px 24px;
+  background: linear-gradient(180deg, #f1f5f9 0%, #f8fafc 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dm-auth-gate-card {
+  max-width: 980px;
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 22px;
+  padding: 28px 32px;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+}
+
+.dm-auth-badge-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.dm-auth-security-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+.dm-auth-hipaa-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #f0fdfa;
+  border: 1px solid #99f6e4;
+  color: #0f766e;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.dm-auth-hero-grid {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 28px;
+  align-items: center;
+}
+
+.dm-auth-icon-circle {
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #0d9488, #2563eb);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+  box-shadow: 0 8px 20px rgba(13, 148, 136, 0.25);
+}
+
+.dm-auth-title {
+  margin: 0 0 10px;
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.28;
+}
+
+.dm-auth-subtitle {
+  margin: 0 0 16px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #475569;
+}
+
+.dm-auth-feature-pills {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.dm-feat-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.dm-feat-item svg {
+  color: #0d9488;
+  flex-shrink: 0;
+}
+
+.dm-auth-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.dm-auth-primary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #0d9488, #0284c7);
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(13, 148, 136, 0.28);
+  transition: transform 0.15s ease;
+}
+
+.dm-auth-primary-btn:hover {
+  transform: translateY(-1px);
+}
+
+.dm-auth-secondary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 16px;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.dm-auth-preview-col {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.dm-preview-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #334155;
+  margin-bottom: 12px;
+}
+
+.dm-preview-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.dm-mini-chart-box {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 11px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dm-mini-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.dm-mini-svg {
+  width: 100%;
+  height: 62px;
+}
+
+.dm-mini-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 8px 0;
+}
+
+.dm-bar-line {
+  height: 7px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.dm-bar-line span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+
+.dm-preview-lock-overlay {
+  margin-top: 12px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  font-size: 0.76rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.sidebar-lock-tag {
+  margin-left: auto;
+  font-size: 0.75rem;
+}
+
+@media (max-width: 1100px) {
+  .bio-intake-radar-grid,
+  .episodic-dual-charts-grid,
+  .solutions-top-layout,
+  .dm-auth-hero-grid {
+    grid-template-columns: 1fr;
+  }
+  .bio-radial-gauges-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .vitals-sparkline-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
