@@ -5007,3 +5007,312 @@
   }
 }
 
+/* ============================================================================
+   RICH INTERACTIVE CHART HOVER EFFECTS & MICRO-INTERACTIONS
+   ============================================================================ */
+
+/* 1. Radar Chart Hover Effects */
+.bio-radar-svg {
+  overflow: visible;
+}
+
+.radar-vertex-group {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.radar-vertex-group.hovered {
+  filter: drop-shadow(0 0 6px rgba(13, 148, 136, 0.4));
+}
+
+.radar-pulse-ring {
+  animation: radarPulseRing 1.8s infinite ease-out;
+  transform-origin: center;
+}
+
+@keyframes radarPulseRing {
+  0% {
+    r: 6px;
+    opacity: 0.9;
+  }
+  100% {
+    r: 16px;
+    opacity: 0;
+  }
+}
+
+.radar-axis-label {
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.radar-axis-label.active {
+  font-size: 11px !important;
+  font-weight: 800 !important;
+}
+
+.bio-radar-polygon:hover {
+  filter: drop-shadow(0 0 10px rgba(13, 148, 136, 0.65)) !important;
+}
+
+/* 2. 4 Radial Wellbeing Gauges Hover Effects */
+.radial-gauge-mini-card {
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  cursor: pointer;
+}
+
+.radial-gauge-mini-card:hover,
+.radial-gauge-mini-card.hovered {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 10px 24px rgba(13, 148, 136, 0.16) !important;
+  border-color: #0d9488 !important;
+}
+
+.radial-gauge-mini-card:hover .radial-gauge-svg circle:nth-child(2),
+.radial-gauge-mini-card.hovered .radial-gauge-svg circle:nth-child(2) {
+  filter: drop-shadow(0 0 7px currentColor) !important;
+}
+
+.gauge-hover-hint {
+  font-size: 0.68rem;
+  color: #0d9488;
+  font-weight: 700;
+  margin-top: 2px;
+  animation: fadeInHint 0.2s ease;
+}
+
+@keyframes fadeInHint {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 3. Donut Charts Hover Effects */
+.hoverable-donut {
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: visible;
+}
+
+.hoverable-donut:hover {
+  transform: scale(1.06);
+}
+
+.hoverable-donut:hover .donut-active-circle {
+  filter: drop-shadow(0 0 8px rgba(13, 148, 136, 0.55));
+  stroke-width: 14px;
+  transition: stroke-width 0.25s ease, filter 0.25s ease;
+}
+
+/* 4. 9-Organ Horizontal Score Bars Hover Effects */
+.organ-bar-item-btn {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  position: relative;
+}
+
+.organ-bar-item-btn:hover,
+.organ-bar-item-btn.hovered {
+  transform: translateX(6px) scale(1.015);
+  background: #f0fdfa !important;
+  border-color: #0d9488 !important;
+  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.15) !important;
+}
+
+.organ-bar-item-btn:hover .ob-name,
+.organ-bar-item-btn.hovered .ob-name {
+  color: #0f766e !important;
+}
+
+.organ-bar-item-btn:hover .ob-fill,
+.organ-bar-item-btn.hovered .ob-fill {
+  position: relative;
+  overflow: hidden;
+}
+
+.organ-bar-item-btn:hover .ob-fill::after,
+.organ-bar-item-btn.hovered .ob-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+  animation: barShimmer 1.2s infinite;
+}
+
+@keyframes barShimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* 5. Episodic Dual Charts (Area Spline & VAS/Temp) Hover Effects */
+.episodic-spline-svg {
+  overflow: visible;
+}
+
+.spline-pulse-ring {
+  animation: splinePulseRing 1.8s infinite ease-out;
+  transform-origin: center;
+}
+
+@keyframes splinePulseRing {
+  0% {
+    r: 5px;
+    opacity: 0.95;
+  }
+  100% {
+    r: 15px;
+    opacity: 0;
+  }
+}
+
+.episodic-svg-chart-box {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.episodic-svg-chart-box:hover {
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+  border-color: #cbd5e1;
+}
+
+.episodic-svg-chart-box:hover .spline-line-health {
+  filter: drop-shadow(0 0 6px rgba(13, 148, 136, 0.65));
+  stroke-width: 3.5px;
+  transition: all 0.25s ease;
+}
+
+.episodic-svg-chart-box:hover .spline-line-sleep {
+  filter: drop-shadow(0 0 5px rgba(37, 99, 235, 0.55));
+  stroke-width: 2.5px;
+  transition: all 0.25s ease;
+}
+
+.episodic-svg-chart-box:hover .spline-line-temp {
+  filter: drop-shadow(0 0 6px rgba(225, 29, 72, 0.65));
+  stroke-width: 3px;
+  transition: all 0.25s ease;
+}
+
+.svg-node-val,
+.svg-temp-val,
+.svg-bar-vas,
+.svg-x-label {
+  transition: all 0.18s ease;
+  user-select: none;
+}
+
+.svg-node-val.active {
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  fill: #0d9488 !important;
+}
+
+.svg-temp-val.active {
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  fill: #e11d48 !important;
+}
+
+.svg-bar-vas.active {
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  fill: #0f172a !important;
+}
+
+.svg-x-label.active {
+  font-weight: 800 !important;
+  fill: #0d9488 !important;
+}
+
+/* 6. Episodic Batch Cards Hover Effects */
+.episodic-batch-card {
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  cursor: pointer;
+}
+
+.episodic-batch-card:hover {
+  transform: translateY(-4px) scale(1.015);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08) !important;
+  border-color: #0d9488 !important;
+}
+
+.episodic-batch-card:hover .bv-fill.teal {
+  filter: drop-shadow(0 0 6px rgba(13, 148, 136, 0.6));
+}
+
+.episodic-batch-card:hover .bv-fill.amber {
+  filter: drop-shadow(0 0 6px rgba(217, 119, 6, 0.6));
+}
+
+/* 7. Solutions Pillars & Impact Bars Hover Effects */
+.solution-pillar-card {
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.solution-pillar-card:hover,
+.solution-pillar-card.hovered {
+  transform: translateY(-4px) scale(1.012);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08) !important;
+  border-color: #0d9488 !important;
+}
+
+.sol-impact-row {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 4px 6px;
+  border-radius: 8px;
+}
+
+.sol-impact-row:hover,
+.sol-impact-row.hovered {
+  background: #f0fdfa;
+  transform: translateX(4px);
+}
+
+.sol-impact-row:hover span,
+.sol-impact-row.hovered span {
+  color: #0f766e;
+  font-weight: 700;
+}
+
+/* 8. Top Executive Vitals Cards Hover Effects */
+.vital-chart-card {
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  cursor: pointer;
+}
+
+.vital-chart-card:hover {
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+  border-color: #cbd5e1 !important;
+}
+
+.vital-chart-card:hover .vc-spark-svg polyline {
+  filter: drop-shadow(0 0 5px rgba(225, 29, 72, 0.65));
+  stroke-width: 2.5px;
+  transition: all 0.2s ease;
+}
+
+.vital-chart-card:hover .vc-thermometer-fill {
+  filter: drop-shadow(0 0 6px rgba(217, 119, 6, 0.6));
+}
+
+.vital-chart-card:hover .vc-thermometer-fill.teal {
+  filter: drop-shadow(0 0 6px rgba(13, 148, 136, 0.6));
+}
+
+.vital-chart-card .vas-seg {
+  transition: transform 0.16s ease, filter 0.16s ease;
+}
+
+.vital-chart-card:hover .vas-seg.active {
+  transform: scaleY(1.3);
+  filter: drop-shadow(0 0 4px currentColor);
+}
+
+

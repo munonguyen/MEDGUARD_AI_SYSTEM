@@ -454,6 +454,11 @@ export function HealthTwinPage({
   const [selectedOrganId, setSelectedOrganId] = useState("liver");
   const [selectedSystem, setSelectedSystem] = useState("all");
   const [hoveredOrganId, setHoveredOrganId] = useState(null);
+  const [hoveredRadarAxis, setHoveredRadarAxis] = useState(null);
+  const [hoveredGaugeId, setHoveredGaugeId] = useState(null);
+  const [hoveredSplineIdx, setHoveredSplineIdx] = useState(null);
+  const [hoveredBarIdx, setHoveredBarIdx] = useState(null);
+  const [hoveredPillarId, setHoveredPillarId] = useState(null);
   const [inputMessage, setInputMessage] = useState("");
   const [activeTab, setActiveTab] = useState("vitals");
   const [sectionFilter, setSectionFilter] = useState("all");
@@ -1152,9 +1157,10 @@ export function HealthTwinPage({
       </div>
 
       <div className="bio-radar-and-gauges-row">
-        {/* Radar SVG Stage */}
+        {/* Radar SVG Stage with rich hover effects */}
         <div className="bio-right-radar-card inline-radar-box">
           <svg viewBox="0 0 220 220" className="bio-radar-svg" role="img" aria-label="Biểu đồ Radar 6 chiều sức khoẻ">
+            {/* Concentric Hexagonal Rings */}
             {[0.35, 0.68, 1.0].map((scale, sIdx) => {
               const pts = visualChartSuite.radarAxes
                 .map((a) => {
@@ -1175,43 +1181,116 @@ export function HealthTwinPage({
               );
             })}
 
-            {visualChartSuite.radarAxes.map((a) => (
-              <line
-                key={a.id}
-                x1="110"
-                y1="110"
-                x2={a.outerX}
-                y2={a.outerY}
-                stroke="#cbd5e1"
-                strokeWidth="1"
-              />
-            ))}
+            {/* Radial Spokes with Hover Glow */}
+            {visualChartSuite.radarAxes.map((a) => {
+              const isHovered = hoveredRadarAxis === a.id;
+              return (
+                <line
+                  key={a.id}
+                  x1="110"
+                  y1="110"
+                  x2={a.outerX}
+                  y2={a.outerY}
+                  stroke={isHovered ? a.color : "#cbd5e1"}
+                  strokeWidth={isHovered ? 2.5 : 1}
+                  strokeDasharray={isHovered ? undefined : "2 2"}
+                  style={{ transition: "all 0.2s ease" }}
+                />
+              );
+            })}
 
+            {/* Active Polygon with Hover Expansion */}
             <polygon
               points={visualChartSuite.radarPolygonPoints}
-              fill="rgba(13, 148, 136, 0.22)"
+              fill={hoveredRadarAxis ? "rgba(13, 148, 136, 0.35)" : "rgba(13, 148, 136, 0.22)"}
               stroke="#0d9488"
-              strokeWidth="2.5"
+              strokeWidth={hoveredRadarAxis ? 3 : 2.5}
+              className="bio-radar-polygon"
+              style={{ transition: "all 0.25s ease", filter: hoveredRadarAxis ? "drop-shadow(0 0 8px rgba(13,148,136,0.5))" : "none" }}
             />
 
-            {visualChartSuite.radarAxes.map((a) => (
-              <g key={a.id}>
-                <circle cx={a.x} cy={a.y} r="4" fill={a.color} stroke="#ffffff" strokeWidth="1.5" />
-                <text
-                  x={a.labelX}
-                  y={a.labelY}
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  className="radar-axis-label"
+            {/* Data Vertex Nodes, Labels & Tooltips */}
+            {visualChartSuite.radarAxes.map((a) => {
+              const isHovered = hoveredRadarAxis === a.id;
+              return (
+                <g
+                  key={a.id}
+                  className={`radar-vertex-group ${isHovered ? "hovered" : ""}`}
+                  onMouseEnter={() => setHoveredRadarAxis(a.id)}
+                  onMouseLeave={() => setHoveredRadarAxis(null)}
+                  style={{ cursor: "pointer" }}
                 >
-                  {a.shortLabel} ({a.value})
-                </text>
-              </g>
-            ))}
+                  {/* Invisible enlarged hit target for easy hovering */}
+                  <circle cx={a.x} cy={a.y} r="16" fill="transparent" />
+
+                  {isHovered && (
+                    <circle
+                      cx={a.x}
+                      cy={a.y}
+                      r="12"
+                      fill="none"
+                      stroke={a.color}
+                      strokeWidth="1.5"
+                      className="radar-pulse-ring"
+                    />
+                  )}
+
+                  <circle
+                    cx={a.x}
+                    cy={a.y}
+                    r={isHovered ? 6.5 : 4}
+                    fill={a.color}
+                    stroke="#ffffff"
+                    strokeWidth={isHovered ? 2.5 : 1.5}
+                    style={{
+                      filter: isHovered ? `drop-shadow(0 0 8px ${a.color})` : "none",
+                      transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+                    }}
+                  />
+                  <text
+                    x={a.labelX}
+                    y={a.labelY}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    className={`radar-axis-label ${isHovered ? "active" : ""}`}
+                    fill={isHovered ? a.color : "#334155"}
+                    fontWeight={isHovered ? "800" : "700"}
+                  >
+                    {a.shortLabel} ({a.value})
+                  </text>
+
+                  {/* Interactive Floating Tooltip when hovered */}
+                  {isHovered && (
+                    <g className="radar-floating-tooltip" style={{ pointerEvents: "none" }}>
+                      <rect
+                        x={Math.max(6, Math.min(130, a.x - 42))}
+                        y={Math.max(4, a.y - 28)}
+                        width="84"
+                        height="22"
+                        rx="6"
+                        fill="#0f172a"
+                        fillOpacity="0.94"
+                        filter="drop-shadow(0 4px 10px rgba(15,23,42,0.3))"
+                      />
+                      <text
+                        x={Math.max(6, Math.min(130, a.x - 42)) + 42}
+                        y={Math.max(4, a.y - 28) + 14}
+                        textAnchor="middle"
+                        fill="#2dd4bf"
+                        fontSize="9.5"
+                        fontWeight="800"
+                      >
+                        {a.label}: {a.value}/100
+                      </text>
+                    </g>
+                  )}
+                </g>
+              );
+            })}
           </svg>
         </div>
 
-        {/* 4 Radial Gauges */}
+        {/* 4 Radial Gauges with Interactive Hover Lift and Ring Glow */}
         <div className="bio-radial-gauges-grid vertical-radial-grid">
           {[
             {
@@ -1220,6 +1299,7 @@ export function HealthTwinPage({
               val: profile?.wellbeing?.sleep_quality_score ?? 88,
               unit: "/100",
               color: "#0d9488",
+              hint: "Chất lượng ngủ sâu REM đạt 7.5h",
             },
             {
               id: "neuro",
@@ -1228,6 +1308,7 @@ export function HealthTwinPage({
               unit: "%",
               subText: profile?.wellbeing?.stress_level_label || "Thấp (Ổn định)",
               color: "#2563eb",
+              hint: "Tâm lý thư thái, chỉ số căng thẳng thấp",
             },
             {
               id: "energy",
@@ -1235,6 +1316,7 @@ export function HealthTwinPage({
               val: profile?.wellbeing?.energy_battery_percent ?? 90,
               unit: "%",
               color: "#d97706",
+              hint: "Mức năng lượng tế bào đạt 90%",
             },
             {
               id: "hydration",
@@ -1242,11 +1324,19 @@ export function HealthTwinPage({
               val: profile?.wellbeing?.hydration_balance_percent ?? 92,
               unit: "%",
               color: "#0284c7",
+              hint: "Đã nạp 2.2L nước, điện giải cân bằng",
             },
           ].map((g) => {
+            const isHovered = hoveredGaugeId === g.id;
             const dash = Math.round((Math.max(10, Math.min(100, g.val)) / 100) * 113);
             return (
-              <div key={g.id} className="radial-gauge-mini-card">
+              <div
+                key={g.id}
+                className={`radial-gauge-mini-card ${isHovered ? "hovered" : ""}`}
+                onMouseEnter={() => setHoveredGaugeId(g.id)}
+                onMouseLeave={() => setHoveredGaugeId(null)}
+                title={g.hint}
+              >
                 <svg viewBox="0 0 44 44" className="radial-gauge-svg">
                   <circle cx="22" cy="22" r="18" fill="none" stroke="#e2e8f0" strokeWidth="4" />
                   <circle
@@ -1255,18 +1345,35 @@ export function HealthTwinPage({
                     r="18"
                     fill="none"
                     stroke={g.color}
-                    strokeWidth="4"
+                    strokeWidth={isHovered ? "5" : "4"}
                     strokeDasharray={`${dash} 114`}
                     strokeLinecap="round"
                     transform="rotate(-90 22 22)"
+                    style={{
+                      filter: isHovered ? `drop-shadow(0 0 6px ${g.color})` : "none",
+                      transition: "all 0.25s ease",
+                    }}
                   />
-                  <text x="22" y="25" textAnchor="middle" className="radial-svg-num" fill={g.color}>
+                  <text
+                    x="22"
+                    y="25"
+                    textAnchor="middle"
+                    className="radial-svg-num"
+                    fill={g.color}
+                    style={{
+                      transform: isHovered ? "scale(1.12)" : "scale(1)",
+                      transformOrigin: "22px 22px",
+                      transition: "transform 0.2s ease",
+                      fontWeight: isHovered ? "900" : "800",
+                    }}
+                  >
                     {g.val}
                   </text>
                 </svg>
                 <div className="radial-gauge-info">
                   <span>{g.label}</span>
                   <strong style={{ color: g.color }}>{g.subText || `${g.val}${g.unit}`}</strong>
+                  {isHovered && <span className="gauge-hover-hint">{g.hint}</span>}
                 </div>
               </div>
             );
@@ -1276,7 +1383,7 @@ export function HealthTwinPage({
     </div>
   );
 
-  // 6. Xếp Hạng 9 Hệ Cơ Quan & Tỷ Lệ An Toàn
+  // 6. Xếp Hạng 9 Hệ Cơ Quan & Tỷ Lệ An Toàn (Bi-directional Hover Synchronization)
   const renderOrganRankingDonutAndBars = () => (
     <div className="organ-ranking-chart-card" aria-label="Xếp hạng 9 cơ quan">
       <div className="sec-head-compact">
@@ -1284,12 +1391,12 @@ export function HealthTwinPage({
           <BarChart2 size={16} className="icon-teal" />
           <h4>Xếp Hạng Sức Khoẻ 9 Cơ Quan & Phân Bổ An Toàn</h4>
         </div>
-        <span className="sec-sub-badge">Nhấp vào thanh để chọn cơ quan</span>
+        <span className="sec-sub-badge">Rê chuột để làm nổi bật cơ quan</span>
       </div>
 
       <div className="organ-ranking-layout">
         <div className="organ-donut-box">
-          <svg viewBox="0 0 100 100" className="organ-donut-svg">
+          <svg viewBox="0 0 100 100" className="organ-donut-svg hoverable-donut">
             <circle cx="50" cy="50" r="36" fill="none" stroke="#e2e8f0" strokeWidth="12" />
             <circle
               cx="50"
@@ -1300,6 +1407,7 @@ export function HealthTwinPage({
               strokeWidth="12"
               strokeDasharray={`${Math.round((visualChartSuite.organDistribution.normal / 9) * 226)} 226`}
               transform="rotate(-90 50 50)"
+              className="donut-active-circle"
             />
             <text x="50" y="48" textAnchor="middle" className="donut-big-num">
               {visualChartSuite.organDistribution.normal}/9
@@ -1313,18 +1421,25 @@ export function HealthTwinPage({
         <div className="organ-bars-list">
           {visualChartSuite.organRanking.map((item) => {
             const isSel = selectedOrganId === item.id;
+            const isHovered = hoveredOrganId === item.id;
             return (
               <button
                 key={item.id}
                 type="button"
-                className={`organ-bar-item-btn ${isSel ? "active" : ""}`}
+                className={`organ-bar-item-btn ${isSel ? "active" : ""} ${isHovered ? "hovered" : ""}`}
                 onClick={() => setSelectedOrganId(item.id)}
+                onMouseEnter={() => setHoveredOrganId(item.id)}
+                onMouseLeave={() => setHoveredOrganId(null)}
               >
                 <span className="ob-name">{item.name}</span>
                 <div className="ob-track">
                   <div
                     className="ob-fill"
-                    style={{ width: `${item.score}%`, backgroundColor: item.color }}
+                    style={{
+                      width: `${item.score}%`,
+                      backgroundColor: item.color,
+                      filter: isHovered ? `drop-shadow(0 0 6px ${item.color})` : "none",
+                    }}
                   />
                 </div>
                 <strong className="ob-score" style={{ color: item.color }}>
@@ -1338,7 +1453,7 @@ export function HealthTwinPage({
     </div>
   );
 
-  // 7. Thống Kê Diễn Tiến Theo Đợt (Episodic Multi-Charts)
+  // 7. Thống Kê Diễn Tiến Theo Đợt (Episodic Multi-Charts with Crosshair & Rich Tooltips)
   const renderEpisodicAnalyticsSuite = () => (
     <section className="visual-section-card episodic-analytics-panel" aria-label="Biểu đồ Thống kê Sức khoẻ Theo Đợt">
       <div className="episodic-panel-header">
@@ -1428,6 +1543,7 @@ export function HealthTwinPage({
 
       {/* Dual SVG Chart Grid */}
       <div className="episodic-dual-charts-grid">
+        {/* Chart 2A: Biểu Đồ Đường Cong Miền Đôi (Thể trạng & Phục hồi) */}
         <div className="episodic-svg-chart-box">
           <div className="svg-chart-head">
             <div>
@@ -1448,6 +1564,7 @@ export function HealthTwinPage({
               </linearGradient>
             </defs>
 
+            {/* Reference Grid Lines */}
             {[40, 60, 80, 100].map((val) => {
               const y = +(padY + ((100 - val) / 80) * plotH).toFixed(1);
               return (
@@ -1460,13 +1577,31 @@ export function HealthTwinPage({
               );
             })}
 
+            {/* Vertical Crosshair Line when a point is hovered */}
+            {hoveredSplineIdx !== null && healthPoints[hoveredSplineIdx] && (
+              <line
+                x1={healthPoints[hoveredSplineIdx].x}
+                y1={padY}
+                x2={healthPoints[hoveredSplineIdx].x}
+                y2={svgH - 18}
+                stroke="#0d9488"
+                strokeWidth="1.5"
+                strokeDasharray="3 3"
+                opacity="0.8"
+              />
+            )}
+
+            {/* Area Path */}
             {healthAreaPath && <path d={healthAreaPath} fill="url(#healthAreaGrad)" />}
+
+            {/* Polylines with hover highlight */}
             <polyline
               fill="none"
               stroke="#2563eb"
               strokeWidth="2"
               strokeDasharray="4 3"
               points={sleepPolyline}
+              className="spline-line-sleep"
             />
             <polyline
               fill="none"
@@ -1475,25 +1610,103 @@ export function HealthTwinPage({
               strokeLinecap="round"
               strokeLinejoin="round"
               points={healthPolyline}
+              className="spline-line-health"
             />
 
+            {/* Data Points with interactive hover listeners & tooltips */}
             {healthPoints.map((p, idx) => {
               const isDimmed = selectedBatchId !== "all" && p.batchId !== selectedBatchId;
+              const isHovered = hoveredSplineIdx === idx;
               return (
-                <g key={idx} opacity={isDimmed ? 0.25 : 1}>
-                  <circle cx={p.x} cy={p.y} r="4.5" fill="#0d9488" stroke="#ffffff" strokeWidth="1.5" />
-                  <text x={p.x} y={p.y - 8} textAnchor="middle" className="svg-node-val">
+                <g
+                  key={idx}
+                  opacity={isDimmed ? 0.25 : 1}
+                  onMouseEnter={() => setHoveredSplineIdx(idx)}
+                  onMouseLeave={() => setHoveredSplineIdx(null)}
+                  style={{ cursor: "pointer" }}
+                >
+                  {/* Invisible larger hit target */}
+                  <circle cx={p.x} cy={p.y} r="16" fill="transparent" />
+
+                  {isHovered && (
+                    <circle cx={p.x} cy={p.y} r="11" fill="none" stroke="#0d9488" strokeWidth="1.5" className="spline-pulse-ring" />
+                  )}
+
+                  <circle
+                    cx={p.x}
+                    cy={p.y}
+                    r={isHovered ? 7 : 4.5}
+                    fill="#0d9488"
+                    stroke="#ffffff"
+                    strokeWidth={isHovered ? 2.5 : 1.5}
+                    style={{
+                      filter: isHovered ? "drop-shadow(0 0 8px rgba(13,148,136,0.8))" : "none",
+                      transition: "all 0.18s ease",
+                    }}
+                  />
+
+                  {isHovered && sleepPoints[idx] && (
+                    <circle
+                      cx={sleepPoints[idx].x}
+                      cy={sleepPoints[idx].y}
+                      r="6"
+                      fill="#2563eb"
+                      stroke="#ffffff"
+                      strokeWidth="2"
+                      style={{ filter: "drop-shadow(0 0 6px rgba(37,99,235,0.8))" }}
+                    />
+                  )}
+
+                  <text x={p.x} y={p.y - (isHovered ? 12 : 8)} textAnchor="middle" className={`svg-node-val ${isHovered ? "active" : ""}`}>
                     {p.val}%
                   </text>
-                  <text x={p.x} y={svgH - 4} textAnchor="middle" className="svg-x-label">
+                  <text x={p.x} y={svgH - 4} textAnchor="middle" className={`svg-x-label ${isHovered ? "active" : ""}`}>
                     {p.label}
                   </text>
+
+                  {/* Rich Floating Tooltip */}
+                  {isHovered && (
+                    <g className="spline-hover-tooltip" style={{ pointerEvents: "none" }}>
+                      <rect
+                        x={Math.max(6, Math.min(svgW - 142, p.x - 71))}
+                        y={Math.max(4, p.y - 48)}
+                        width="142"
+                        height="38"
+                        rx="7"
+                        fill="#0f172a"
+                        fillOpacity="0.94"
+                        filter="drop-shadow(0 4px 12px rgba(15,23,42,0.3))"
+                      />
+                      <text
+                        x={Math.max(6, Math.min(svgW - 142, p.x - 71)) + 71}
+                        y={Math.max(4, p.y - 48) + 16}
+                        textAnchor="middle"
+                        fill="#94a3b8"
+                        fontSize="9.5"
+                        fontWeight="700"
+                      >
+                        {p.label} • {p.batchId === "b1" ? "Đợt 1" : p.batchId === "b2" ? "Đợt 2" : "Đợt 3"}
+                      </text>
+                      <text
+                        x={Math.max(6, Math.min(svgW - 142, p.x - 71)) + 71}
+                        y={Math.max(4, p.y - 48) + 30}
+                        textAnchor="middle"
+                        fontSize="10.5"
+                        fontWeight="800"
+                      >
+                        <tspan fill="#2dd4bf">SK: {p.val}%</tspan>
+                        <tspan fill="#64748b"> | </tspan>
+                        <tspan fill="#60a5fa">Ngủ: {sleepPoints[idx]?.val ?? 88}%</tspan>
+                      </text>
+                    </g>
+                  )}
                 </g>
               );
             })}
           </svg>
         </div>
 
+        {/* Chart 2B: Biểu Đồ Cột Ghép Đau VAS & Đường Thân Nhiệt (°C) with Crosshair & Tooltips */}
         <div className="episodic-svg-chart-box">
           <div className="svg-chart-head">
             <div>
@@ -1516,57 +1729,149 @@ export function HealthTwinPage({
               strokeDasharray="3 3"
             />
 
+            {/* Crosshair line when hovered */}
+            {hoveredBarIdx !== null && tempPoints[hoveredBarIdx] && (
+              <line
+                x1={tempPoints[hoveredBarIdx].x}
+                y1={padY}
+                x2={tempPoints[hoveredBarIdx].x}
+                y2={svgH - 18}
+                stroke="#e11d48"
+                strokeWidth="1.5"
+                strokeDasharray="3 3"
+                opacity="0.8"
+              />
+            )}
+
+            {/* VAS Vertical Bars with Hover Expansion & Glow */}
             {tempPoints.map((pt, idx) => {
               const barH = Math.max(6, (pt.pain / 10) * plotH);
               const barY = padY + plotH - barH;
               const barColor = pt.pain >= 6 ? "#e11d48" : pt.pain >= 3 ? "#f59e0b" : "#10b981";
               const isDimmed = selectedBatchId !== "all" && pt.batchId !== selectedBatchId;
+              const isHovered = hoveredBarIdx === idx;
               return (
-                <g key={idx} opacity={isDimmed ? 0.25 : 1}>
+                <g
+                  key={idx}
+                  opacity={isDimmed ? 0.25 : 1}
+                  onMouseEnter={() => setHoveredBarIdx(idx)}
+                  onMouseLeave={() => setHoveredBarIdx(null)}
+                  style={{ cursor: "pointer" }}
+                >
+                  {/* Invisible hit target */}
+                  <rect x={pt.x - 18} y={padY} width="36" height={plotH} fill="transparent" />
+
                   <rect
-                    x={pt.x - 14}
-                    y={barY}
-                    width="28"
-                    height={barH}
-                    rx="5"
+                    x={pt.x - (isHovered ? 16 : 14)}
+                    y={barY - (isHovered ? 2 : 0)}
+                    width={isHovered ? 32 : 28}
+                    height={barH + (isHovered ? 2 : 0)}
+                    rx="6"
                     fill={barColor}
-                    fillOpacity="0.25"
+                    fillOpacity={isHovered ? 0.55 : 0.25}
                     stroke={barColor}
-                    strokeWidth="1.5"
+                    strokeWidth={isHovered ? 2.5 : 1.5}
+                    style={{
+                      filter: isHovered ? `drop-shadow(0 0 10px ${barColor})` : "none",
+                      transition: "all 0.18s ease",
+                    }}
                   />
-                  <text x={pt.x} y={padY + plotH - 4} textAnchor="middle" className="svg-bar-vas">
+                  <text
+                    x={pt.x}
+                    y={padY + plotH - 4}
+                    textAnchor="middle"
+                    className={`svg-bar-vas ${isHovered ? "active" : ""}`}
+                    fontWeight={isHovered ? "800" : "700"}
+                  >
                     VAS {pt.pain}
                   </text>
-                  <text x={pt.x} y={svgH - 4} textAnchor="middle" className="svg-x-label">
+                  <text x={pt.x} y={svgH - 4} textAnchor="middle" className={`svg-x-label ${isHovered ? "active" : ""}`}>
                     {pt.label}
                   </text>
+
+                  {/* Floating VAS & Temp Tooltip */}
+                  {isHovered && (
+                    <g className="vas-hover-tooltip" style={{ pointerEvents: "none" }}>
+                      <rect
+                        x={Math.max(6, Math.min(svgW - 146, pt.x - 73))}
+                        y={Math.max(4, barY - 44)}
+                        width="146"
+                        height="38"
+                        rx="7"
+                        fill="#0f172a"
+                        fillOpacity="0.94"
+                        filter="drop-shadow(0 4px 12px rgba(15,23,42,0.3))"
+                      />
+                      <text
+                        x={Math.max(6, Math.min(svgW - 146, pt.x - 73)) + 73}
+                        y={Math.max(4, barY - 44) + 16}
+                        textAnchor="middle"
+                        fill="#94a3b8"
+                        fontSize="9.5"
+                        fontWeight="700"
+                      >
+                        {pt.label} • {pt.pain >= 6 ? "Đau nhiều" : pt.pain >= 3 ? "Đau vừa" : "Ổn định"}
+                      </text>
+                      <text
+                        x={Math.max(6, Math.min(svgW - 146, pt.x - 73)) + 73}
+                        y={Math.max(4, barY - 44) + 30}
+                        textAnchor="middle"
+                        fontSize="10.5"
+                        fontWeight="800"
+                      >
+                        <tspan fill={barColor}>Đau: VAS {pt.pain}/10</tspan>
+                        <tspan fill="#64748b"> | </tspan>
+                        <tspan fill="#fb7185">Nhiệt: {pt.temp}°C</tspan>
+                      </text>
+                    </g>
+                  )}
                 </g>
               );
             })}
 
+            {/* Overlaid Temperature Line */}
             <polyline
               fill="none"
               stroke="#e11d48"
               strokeWidth="2.5"
               strokeLinecap="round"
               points={tempPolyline}
+              className="spline-line-temp"
             />
 
-            {tempPoints.map((pt, idx) => (
-              <g key={`t-${idx}`}>
-                <circle cx={pt.x} cy={pt.y} r="4" fill="#e11d48" stroke="#ffffff" strokeWidth="1.5" />
-                <text x={pt.x} y={pt.y - 7} textAnchor="middle" className="svg-temp-val">
-                  {pt.temp}°C
-                </text>
-              </g>
-            ))}
+            {/* Temperature Nodes with Hover Expansion */}
+            {tempPoints.map((pt, idx) => {
+              const isHovered = hoveredBarIdx === idx;
+              return (
+                <g key={`t-${idx}`}>
+                  {isHovered && (
+                    <circle cx={pt.x} cy={pt.y} r="11" fill="none" stroke="#e11d48" strokeWidth="1.5" className="spline-pulse-ring" />
+                  )}
+                  <circle
+                    cx={pt.x}
+                    cy={pt.y}
+                    r={isHovered ? 6.5 : 4}
+                    fill="#e11d48"
+                    stroke="#ffffff"
+                    strokeWidth={isHovered ? 2.5 : 1.5}
+                    style={{
+                      filter: isHovered ? "drop-shadow(0 0 8px #e11d48)" : "none",
+                      transition: "all 0.18s ease",
+                    }}
+                  />
+                  <text x={pt.x} y={pt.y - (isHovered ? 11 : 7)} textAnchor="middle" className={`svg-temp-val ${isHovered ? "active" : ""}`}>
+                    {pt.temp}°C
+                  </text>
+                </g>
+              );
+            })}
           </svg>
         </div>
       </div>
     </section>
   );
 
-  // 8. Trung Tâm Giải Pháp 4 Trụ Cột
+  // 8. Trung Tâm Giải Pháp 4 Trụ Cột (Synchronized Hover with Impact Bars)
   const renderSolutionsCenter = () => (
     <section className="visual-section-card solutions-and-vitals-wrapper" aria-label="Trung tâm Giải pháp 4 Trụ Cột">
       <div className="solutions-top-layout">
@@ -1574,7 +1879,7 @@ export function HealthTwinPage({
           <span className="chart-kicker">TIẾN ĐỘ & HIỆU QUẢ CAN THIỆP</span>
           <h4>Biểu Đồ Hoàn Thành Giải Pháp (4 Trụ Cột)</h4>
           <div className="sol-donut-and-bars">
-            <svg viewBox="0 0 100 100" className="sol-donut-svg">
+            <svg viewBox="0 0 100 100" className="sol-donut-svg hoverable-donut">
               <circle cx="50" cy="50" r="36" fill="none" stroke="#e2e8f0" strokeWidth="11" />
               <circle
                 cx="50"
@@ -1586,6 +1891,7 @@ export function HealthTwinPage({
                 strokeDasharray={`${Math.round((visualChartSuite.solutionsSummary.completionPct / 100) * 226)} 226`}
                 strokeLinecap="round"
                 transform="rotate(-90 50 50)"
+                className="donut-active-circle"
               />
               <text x="50" y="47" textAnchor="middle" className="donut-big-num">
                 {visualChartSuite.solutionsSummary.completedCount}/{visualChartSuite.solutionsSummary.total}
@@ -1596,21 +1902,31 @@ export function HealthTwinPage({
             </svg>
 
             <div className="sol-impact-bars">
-              {visualChartSuite.solutionsSummary.items.map((item, idx) => (
-                <div key={item.id} className="sol-impact-row">
-                  <span>Trụ cột {idx + 1}</span>
-                  <div className="si-track">
-                    <div
-                      className="si-fill"
-                      style={{
-                        width: `${item.impactScore}%`,
-                        backgroundColor: item.completed ? "#0d9488" : "#3b82f6",
-                      }}
-                    />
+              {visualChartSuite.solutionsSummary.items.map((item, idx) => {
+                const isHovered = hoveredPillarId === item.id;
+                return (
+                  <div
+                    key={item.id}
+                    className={`sol-impact-row ${isHovered ? "hovered" : ""}`}
+                    onMouseEnter={() => setHoveredPillarId(item.id)}
+                    onMouseLeave={() => setHoveredPillarId(null)}
+                    style={{ cursor: "pointer", transition: "all 0.2s ease" }}
+                  >
+                    <span>Trụ cột {idx + 1}</span>
+                    <div className="si-track">
+                      <div
+                        className="si-fill"
+                        style={{
+                          width: `${item.impactScore}%`,
+                          backgroundColor: isHovered ? "#0d9488" : item.completed ? "#0d9488" : "#3b82f6",
+                          filter: isHovered ? "drop-shadow(0 0 6px rgba(13,148,136,0.6))" : "none",
+                        }}
+                      />
+                    </div>
+                    <strong>{item.impactScore}%</strong>
                   </div>
-                  <strong>{item.impactScore}%</strong>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
@@ -1618,8 +1934,14 @@ export function HealthTwinPage({
         <div className="solutions-pillars-grid">
           {personalizedSolutions.map((sol) => {
             const isDone = Boolean(completedSolutions[sol.id]);
+            const isHovered = hoveredPillarId === sol.id;
             return (
-              <div key={sol.id} className={`solution-pillar-card priority-${sol.priorityLevel} ${isDone ? "completed" : ""}`}>
+              <div
+                key={sol.id}
+                className={`solution-pillar-card priority-${sol.priorityLevel} ${isDone ? "completed" : ""} ${isHovered ? "hovered" : ""}`}
+                onMouseEnter={() => setHoveredPillarId(sol.id)}
+                onMouseLeave={() => setHoveredPillarId(null)}
+              >
                 <div className="sol-card-top">
                   <span className="sol-pillar-name">{sol.pillar}</span>
                   <span className={`sol-priority-badge ${sol.priorityLevel}`}>{sol.priority}</span>
