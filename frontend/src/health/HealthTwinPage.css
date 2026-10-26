@@ -4850,3 +4850,160 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* ============================================================================
+   STREAMLINED EXECUTIVE COMMAND CENTER LAYOUT (DỄ NHÌN & KHOA HỌC)
+   ============================================================================ */
+
+.twin-executive-grid {
+  display: grid;
+  grid-template-columns: minmax(380px, 4.6fr) minmax(460px, 7.4fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.twin-col-anatomy {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.twin-col-analytics {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.twin-focus-2col-grid {
+  display: grid;
+  grid-template-columns: minmax(380px, 4.8fr) minmax(460px, 7.2fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.twin-focus-full-width {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+}
+
+/* Executive Vitals Ribbon (Top-level Biometrics) */
+.executive-vitals-bar {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 0;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 16px !important;
+  padding: 14px 16px !important;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03) !important;
+}
+
+.smart-intake-bar-card {
+  padding: 14px 18px !important;
+}
+
+/* Daylight 3D Anatomical Stage Overrides */
+.daylight-clinical-theme .human-canvas-wrapper {
+  background: radial-gradient(circle at 50% 35%, #ffffff 0%, #f8fafc 70%, #f1f5f9 100%) !important;
+  border: 1px solid #cbd5e1 !important;
+  height: 520px !important;
+  box-shadow: inset 0 2px 10px rgba(15, 23, 42, 0.03), 0 4px 16px rgba(15, 23, 42, 0.03) !important;
+}
+
+.daylight-clinical-theme .clinical-grid-backdrop {
+  background-image: 
+    linear-gradient(rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.12) 1px, transparent 1px) !important;
+  opacity: 0.75 !important;
+}
+
+.daylight-clinical-theme .human-3d-model-img {
+  filter: drop-shadow(0 10px 25px rgba(13, 148, 136, 0.18)) contrast(1.04) brightness(1.0) !important;
+}
+
+/* Combined Bio Radar & Radial Gauges Card */
+.bio-overview-combined-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 16px 18px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.bio-radar-and-gauges-row {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 16px;
+  align-items: center;
+}
+
+.inline-radar-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vertical-radial-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+/* Clean Organ Inspector */
+.daylight-clinical-theme .organ-inspector-card {
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 16px !important;
+  padding: 16px 18px !important;
+  background: #ffffff !important;
+}
+
+.daylight-clinical-theme .organ-inspector-card.status-normal {
+  border-left: 4px solid #0d9488 !important;
+}
+
+.daylight-clinical-theme .organ-inspector-card.status-inflamed,
+.daylight-clinical-theme .organ-inspector-card.status-monitoring {
+  border-left: 4px solid #f59e0b !important;
+}
+
+.daylight-clinical-theme .organ-inspector-card.status-adverse_reaction,
+.daylight-clinical-theme .organ-inspector-card.status-critical {
+  border-left: 4px solid #e11d48 !important;
+}
+
+/* Responsive Overrides */
+@media (max-width: 1200px) {
+  .twin-executive-grid,
+  .twin-focus-2col-grid {
+    grid-template-columns: 1fr;
+  }
+  .bio-radar-and-gauges-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .executive-vitals-bar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 580px) {
+  .executive-vitals-bar {
+    grid-template-columns: 1fr;
+  }
+  .vertical-radial-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

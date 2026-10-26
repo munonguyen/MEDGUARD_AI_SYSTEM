@@ -717,6 +717,950 @@ export function HealthTwinPage({
 
   const overallScore = profile?.overall_health_score ?? 96;
 
+  // ============================================================================
+  // MODULAR RENDERERS FOR INTUITIVE CLINICAL LAYOUT
+  // ============================================================================
+
+  // 1. Executive Biometric Vitals Ribbon (5 Vital Signs)
+  const renderVitalsRibbon = () => (
+    <div className="vitals-sparkline-strip executive-vitals-bar" aria-label="5 Chỉ số Sinh hiệu Lâm sàng">
+      <div className="vital-chart-card">
+        <div className="vc-top">
+          <span>1. Nhịp tim (ECG)</span>
+          <strong className="text-rose">{profile?.vitals?.heart_rate_bpm || 78} bpm</strong>
+        </div>
+        <svg viewBox="0 0 120 32" className="vc-spark-svg" role="img" aria-label="Dải nhịp tim ECG">
+          <polyline
+            fill="none"
+            stroke="#e11d48"
+            strokeWidth="2"
+            points="0,18 22,18 28,6 34,28 40,12 46,20 72,18 80,5 86,27 92,15 120,18"
+          />
+        </svg>
+      </div>
+
+      <div className="vital-chart-card">
+        <div className="vc-top">
+          <span>2. Huyết áp</span>
+          <strong className="text-blue">{profile?.vitals?.blood_pressure || "120/80"} mmHg</strong>
+        </div>
+        <div className="vc-dual-bars">
+          <div className="vc-bar-line"><span style={{ width: "75%", background: "#2563eb" }} /></div>
+          <div className="vc-bar-line"><span style={{ width: "55%", background: "#0d9488" }} /></div>
+        </div>
+      </div>
+
+      <div className="vital-chart-card">
+        <div className="vc-top">
+          <span>3. Thân nhiệt</span>
+          <strong className="text-amber">
+            {profile?.vitals?.temperature_celsius || profile?.vitals?.body_temperature_c || 36.6} °C
+          </strong>
+        </div>
+        <div className="vc-thermometer-track">
+          <div
+            className="vc-thermometer-fill"
+            style={{
+              width: `${Math.min(100, Math.max(25, (((profile?.vitals?.temperature_celsius || 36.6) - 36) / 4) * 100))}%`,
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="vital-chart-card">
+        <div className="vc-top">
+          <span>4. Oxy máu SpO2</span>
+          <strong className="text-teal">{profile?.vitals?.spo2_percent || 98}%</strong>
+        </div>
+        <div className="vc-thermometer-track">
+          <div
+            className="vc-thermometer-fill teal"
+            style={{ width: `${profile?.vitals?.spo2_percent || 98}%` }}
+          />
+        </div>
+      </div>
+
+      <div className="vital-chart-card">
+        <div className="vc-top">
+          <span>5. Thang đau VAS</span>
+          <strong className="text-amber">
+            {profile?.vitals?.vas_pain_score ?? profile?.vitals?.overall_pain_level ?? 0}/10
+          </strong>
+        </div>
+        <div className="vc-vas-segments">
+          {Array.from({ length: 10 }).map((_, idx) => {
+            const active = idx < (profile?.vitals?.vas_pain_score ?? 0);
+            return (
+              <span
+                key={idx}
+                className={`vas-seg ${active ? "active" : ""}`}
+                style={{
+                  backgroundColor: active
+                    ? idx >= 6
+                      ? "#e11d48"
+                      : idx >= 3
+                      ? "#f59e0b"
+                      : "#10b981"
+                    : "#e2e8f0",
+                }}
+              />
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+
+  // 2. Universal Smart Natural Intake Console & Quick Chips
+  const renderSmartIntakeConsole = () => (
+    <section className="visual-section-card smart-intake-bar-card" aria-label="Khai báo Tự động Bệnh lý & Cảm giác">
+      <div className="sec-head-compact">
+        <div className="sec-title-inline">
+          <Sparkles size={17} className="icon-teal" />
+          <h3>Khai Báo Tự Động Bệnh Lý & Cảm Giác Cơ Thể</h3>
+        </div>
+        <span className="sec-sub-badge">Tự động cập nhật 100% Biểu đồ</span>
+      </div>
+
+      <div className="holistic-input-bar-row">
+        <input
+          type="text"
+          className="holistic-symptom-input console-text-input"
+          placeholder="Nhập triệu chứng hoặc cảm giác (VD: đau đầu căng thẳng, mất ngủ, đau rát dạ dày, sốt 38.5 độ...)"
+          value={inputMessage}
+          onChange={(e) => setInputMessage(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleEvaluateProgress();
+          }}
+        />
+        <button
+          type="button"
+          className={`holistic-mic-btn ${isListening ? "listening" : ""}`}
+          onClick={handleVoiceInput}
+          title="Khai báo bằng giọng nói"
+        >
+          <Mic size={16} />
+        </button>
+        <button
+          type="button"
+          className="holistic-submit-btn console-submit-btn"
+          disabled={evaluating || !inputMessage.trim()}
+          onClick={() => handleEvaluateProgress()}
+        >
+          <Send size={14} />
+          <span>{evaluating ? "Đang xử lý..." : "Đồng bộ ngay"}</span>
+        </button>
+      </div>
+
+      <div className="holistic-quick-chips-row">
+        {QUICK_FEELING_CHIPS.map((chip) => (
+          <button
+            key={chip.id}
+            type="button"
+            className="holistic-feeling-chip quick-chip-item"
+            disabled={evaluating}
+            onClick={() => handleEvaluateProgress(chip.message)}
+          >
+            <Zap size={12} />
+            <span>{chip.label}</span>
+          </button>
+        ))}
+        <button
+          type="button"
+          className="holistic-feeling-chip quick-chip-item"
+          disabled={evaluating}
+          onClick={() => handleEvaluateProgress("Tôi chưa tiêm phòng vắc-xin Viêm gan B, cần đánh giá rủi ro gan")}
+        >
+          <Syringe size={12} />
+          <span>💉 Chưa tiêm Viêm gan B</span>
+        </button>
+      </div>
+    </section>
+  );
+
+  // 3. 3D Anatomical Body Silhouette Panel
+  const render3DAnatomicalModel = () => (
+    <section className="body-silhouette-panel" aria-label="Mô hình 3D Giải phẫu Cơ thể">
+      <div className="panel-header-bar">
+        <div className="header-bar-title">
+          <Scan size={16} className="scan-icon" />
+          <span>Mô Hình Giải Phẫu 9 Cơ Quan (3D Twin)</span>
+        </div>
+        <div className="view-mode-pills">
+          <button
+            type="button"
+            className={`mode-pill ${modelViewMode === "3d_hologram" ? "active" : ""}`}
+            onClick={() => setModelViewMode("3d_hologram")}
+          >
+            <Layers size={12} />
+            <span>3D Chuẩn</span>
+          </button>
+          <button
+            type="button"
+            className={`mode-pill ${modelViewMode === "xray_scan" ? "active" : ""}`}
+            onClick={() => setModelViewMode("xray_scan")}
+          >
+            <Eye size={12} />
+            <span>Quét Mô</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Organ System Filter Tabs */}
+      <div className="system-filter-bar" role="tablist">
+        {ORGAN_SYSTEMS.map((sys) => (
+          <button
+            key={sys.id}
+            type="button"
+            role="tab"
+            aria-selected={selectedSystem === sys.id}
+            className={`system-tab-btn ${selectedSystem === sys.id ? "active" : ""}`}
+            onClick={() => {
+              setSelectedSystem(sys.id);
+              if (sys.organIds && sys.organIds.length > 0 && !sys.organIds.includes(selectedOrganId)) {
+                setSelectedOrganId(sys.organIds[0]);
+              }
+            }}
+          >
+            {sys.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="human-canvas-wrapper">
+        <div className="clinical-grid-backdrop" />
+        <div className={`human-canvas-inner-ratio ${modelViewMode}`}>
+          <img
+            src="/static/assets/human_anatomical_twin.jpg"
+            alt="3D Anatomical Digital Twin Model"
+            className="human-3d-model-img"
+            onError={(e) => {
+              if (!e.currentTarget.dataset.fallbackTried) {
+                e.currentTarget.dataset.fallbackTried = "true";
+                e.currentTarget.src = "/assets/human_anatomical_twin.jpg";
+              }
+            }}
+          />
+
+          {activeOrgan?.coordinates && (
+            <div
+              className="organ-focus-indicator"
+              style={{
+                left: `${activeOrgan.coordinates.x}%`,
+                top: `${activeOrgan.coordinates.y}%`,
+                "--indicator-color": getStatusColor(activeOrgan.status, activeOrgan.health_score),
+              }}
+            >
+              <div className="focus-concentric-circle" />
+            </div>
+          )}
+
+          {normalizedOrgans.map((organ) => {
+            const isSelected = selectedOrganId === organ.id;
+            const isHovered = hoveredOrganId === organ.id;
+            const statusColor = getStatusColor(organ.status, organ.health_score);
+            const isAlert = organ.status === "adverse_reaction" || organ.status === "critical";
+            const isSystemMember =
+              selectedSystem === "all" ||
+              ORGAN_SYSTEMS.find((s) => s.id === selectedSystem)?.organIds?.includes(organ.id);
+
+            return (
+              <div
+                key={organ.id}
+                className={`clinical-organ-pin ${isSelected ? "selected" : ""} ${isHovered ? "hovered" : ""} ${isAlert ? "is-alert" : ""} ${!isSystemMember ? "dimmed" : ""}`}
+                style={{
+                  left: `${organ.coordinates?.x ?? 50}%`,
+                  top: `${organ.coordinates?.y ?? 50}%`,
+                  "--organ-color": statusColor,
+                }}
+                onMouseEnter={() => setHoveredOrganId(organ.id)}
+                onMouseLeave={() => setHoveredOrganId(null)}
+                onClick={() => setSelectedOrganId(organ.id)}
+                role="button"
+                tabIndex={0}
+                aria-label={`Cơ quan: ${organ.vietnamese_name}, Trạng thái: ${organ.status}`}
+              >
+                <span className="pin-pulse-wave" />
+                <span className="pin-point-marker">
+                  <span className="pin-dot-inner" />
+                </span>
+                {isHovered && (
+                  <span className="pin-tooltip-badge">
+                    <span className="tooltip-dot" />
+                    <span className="tooltip-text">{organ.vietnamese_name}</span>
+                    <span className="tooltip-score">{organ.health_score}%</span>
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="silhouette-footer-legend">
+        <div className="legend-item"><span className="legend-dot normal" /> Ổn định (85-100%)</div>
+        <div className="legend-item"><span className="legend-dot inflamed" /> Viêm / Theo dõi (60-84%)</div>
+        <div className="legend-item"><span className="legend-dot alert" /> Báo động (&lt;60%)</div>
+      </div>
+    </section>
+  );
+
+  // 4. Selected Organ Inspector & Future Risk Gauge
+  const renderOrganInspector = () => {
+    if (!activeOrgan) return null;
+    return (
+      <div className={`organ-inspector-card status-${activeOrgan.status}`} aria-label="Chi tiết cơ quan đang chọn">
+        <div className="inspector-header">
+          <div className="organ-title-row">
+            <div
+              className="organ-icon-circle"
+              style={{
+                backgroundColor: `${getStatusColor(activeOrgan.status, activeOrgan.health_score)}18`,
+                color: getStatusColor(activeOrgan.status, activeOrgan.health_score),
+              }}
+            >
+              <HeartPulse size={20} />
+            </div>
+            <div>
+              <h3>{activeOrgan.vietnamese_name}</h3>
+              <span className="organ-en-name">{activeOrgan.clinical_notes || activeOrgan.name}</span>
+            </div>
+          </div>
+          <span className={`status-pill ${activeOrgan.status}`}>
+            {getStatusBadgeText(activeOrgan.status)}
+          </span>
+        </div>
+
+        {/* Quick Clinical Actions Bar */}
+        <div className="organ-quick-actions-bar">
+          <button
+            type="button"
+            className="organ-action-btn consult-btn"
+            onClick={() => {
+              onNavigate?.("chat");
+              window.dispatchEvent(
+                new CustomEvent("medguard:navigate", {
+                  detail: {
+                    view: "chat",
+                    message: `Tư vấn AI chuyên sâu về tình trạng cơ quan: ${activeOrgan.vietnamese_name}`,
+                  },
+                })
+              );
+            }}
+          >
+            <MessageSquare size={13} />
+            <span>Tư vấn AI</span>
+          </button>
+          <button
+            type="button"
+            className="organ-action-btn declare-btn"
+            onClick={() => {
+              setInputMessage(`Cập nhật triệu chứng tại ${activeOrgan.vietnamese_name}: `);
+              document.querySelector(".console-text-input")?.focus();
+            }}
+          >
+            <Plus size={13} />
+            <span>Khai báo thêm</span>
+          </button>
+          <button
+            type="button"
+            className="organ-action-btn recover-btn"
+            disabled={evaluating || activeOrgan.status === "normal"}
+            onClick={() =>
+              handleEvaluateProgress(
+                `Triệu chứng tại ${activeOrgan.vietnamese_name} của tôi đã khỏi và ổn định hoàn toàn.`
+              )
+            }
+          >
+            <CheckCircle2 size={13} />
+            <span>Báo đã khỏi</span>
+          </button>
+          <button
+            type="button"
+            className="organ-action-btn nav-btn"
+            onClick={() => onNavigate?.("navigation")}
+          >
+            <Navigation size={13} />
+            <span>Chỉ đường CSYT</span>
+          </button>
+        </div>
+
+        {/* Semi-Circular Risk Gauge + Concise Future Prognosis */}
+        {activeOrgan.future_risk && (
+          <div className="organ-risk-gauge-panel">
+            <div className="semi-gauge-col">
+              {(() => {
+                const rLevel = activeOrgan.future_risk.risk_level;
+                const rPct = rLevel === "high" ? 84 : rLevel === "moderate" ? 52 : 22;
+                const rColor = rLevel === "high" ? "#e11d48" : rLevel === "moderate" ? "#d97706" : "#0d9488";
+                const arcLen = Math.round((rPct / 100) * 125.6);
+                return (
+                  <svg viewBox="0 0 100 62" className="semi-risk-svg">
+                    <path
+                      d="M 10 52 A 40 40 0 0 1 90 52"
+                      fill="none"
+                      stroke="#e2e8f0"
+                      strokeWidth="9"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M 10 52 A 40 40 0 0 1 90 52"
+                      fill="none"
+                      stroke={rColor}
+                      strokeWidth="9"
+                      strokeDasharray={`${arcLen} 130`}
+                      strokeLinecap="round"
+                    />
+                    <text x="50" y="42" textAnchor="middle" className="semi-gauge-pct" fill={rColor}>
+                      {rPct}%
+                    </text>
+                    <text x="50" y="55" textAnchor="middle" className="semi-gauge-lbl">
+                      Rủi ro ({activeOrgan.future_risk.timeframe})
+                    </text>
+                  </svg>
+                );
+              })()}
+            </div>
+
+            <div className="risk-concise-info">
+              <span className="risk-vaccine-pill">{activeOrgan.future_risk.vaccination_status}</span>
+              <h5 className="risk-prognosis-title">{activeOrgan.future_risk.risk_title}</h5>
+              <ul className="risk-concise-list">
+                {(activeOrgan.future_risk.preventive_recommendations || []).slice(0, 2).map((rec, i) => (
+                  <li key={i}>
+                    <CheckCircle2 size={13} />
+                    <span>{rec}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // 5. Bio-Radar 6 Trục & 4 Vòng Sức Khoẻ Thể Trạng
+  const renderBioRadarAndGauges = () => (
+    <div className="bio-overview-combined-card" aria-label="Biểu đồ Radar và 4 Vòng Thể trạng">
+      <div className="sec-head-compact">
+        <div className="sec-title-inline">
+          <Sparkles size={16} className="icon-teal" />
+          <h4>Cân Bằng Sinh Học & Chỉ Số Thể Trạng</h4>
+        </div>
+        <span className="radar-avg-badge">TB: {visualChartSuite.radarAverage}/100</span>
+      </div>
+
+      <div className="bio-radar-and-gauges-row">
+        {/* Radar SVG Stage */}
+        <div className="bio-right-radar-card inline-radar-box">
+          <svg viewBox="0 0 220 220" className="bio-radar-svg" role="img" aria-label="Biểu đồ Radar 6 chiều sức khoẻ">
+            {[0.35, 0.68, 1.0].map((scale, sIdx) => {
+              const pts = visualChartSuite.radarAxes
+                .map((a) => {
+                  const rx = +(110 + 72 * scale * Math.cos(a.angle)).toFixed(1);
+                  const ry = +(110 + 72 * scale * Math.sin(a.angle)).toFixed(1);
+                  return `${rx},${ry}`;
+                })
+                .join(" ");
+              return (
+                <polygon
+                  key={sIdx}
+                  points={pts}
+                  fill={sIdx === 2 ? "rgba(241,245,249,0.5)" : "none"}
+                  stroke="#cbd5e1"
+                  strokeWidth="1"
+                  strokeDasharray={sIdx < 2 ? "2 2" : undefined}
+                />
+              );
+            })}
+
+            {visualChartSuite.radarAxes.map((a) => (
+              <line
+                key={a.id}
+                x1="110"
+                y1="110"
+                x2={a.outerX}
+                y2={a.outerY}
+                stroke="#cbd5e1"
+                strokeWidth="1"
+              />
+            ))}
+
+            <polygon
+              points={visualChartSuite.radarPolygonPoints}
+              fill="rgba(13, 148, 136, 0.22)"
+              stroke="#0d9488"
+              strokeWidth="2.5"
+            />
+
+            {visualChartSuite.radarAxes.map((a) => (
+              <g key={a.id}>
+                <circle cx={a.x} cy={a.y} r="4" fill={a.color} stroke="#ffffff" strokeWidth="1.5" />
+                <text
+                  x={a.labelX}
+                  y={a.labelY}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  className="radar-axis-label"
+                >
+                  {a.shortLabel} ({a.value})
+                </text>
+              </g>
+            ))}
+          </svg>
+        </div>
+
+        {/* 4 Radial Gauges */}
+        <div className="bio-radial-gauges-grid vertical-radial-grid">
+          {[
+            {
+              id: "sleep",
+              label: "Giấc ngủ & Phục hồi",
+              val: profile?.wellbeing?.sleep_quality_score ?? 88,
+              unit: "/100",
+              color: "#0d9488",
+            },
+            {
+              id: "neuro",
+              label: "An thần & Tâm lý",
+              val: String(profile?.wellbeing?.stress_level_label || "").includes("Cao") ? 52 : String(profile?.wellbeing?.stress_level_label || "").includes("Trung") ? 74 : 92,
+              unit: "%",
+              subText: profile?.wellbeing?.stress_level_label || "Thấp (Ổn định)",
+              color: "#2563eb",
+            },
+            {
+              id: "energy",
+              label: "Pin Năng lượng",
+              val: profile?.wellbeing?.energy_battery_percent ?? 90,
+              unit: "%",
+              color: "#d97706",
+            },
+            {
+              id: "hydration",
+              label: "Nước & Điện giải",
+              val: profile?.wellbeing?.hydration_balance_percent ?? 92,
+              unit: "%",
+              color: "#0284c7",
+            },
+          ].map((g) => {
+            const dash = Math.round((Math.max(10, Math.min(100, g.val)) / 100) * 113);
+            return (
+              <div key={g.id} className="radial-gauge-mini-card">
+                <svg viewBox="0 0 44 44" className="radial-gauge-svg">
+                  <circle cx="22" cy="22" r="18" fill="none" stroke="#e2e8f0" strokeWidth="4" />
+                  <circle
+                    cx="22"
+                    cy="22"
+                    r="18"
+                    fill="none"
+                    stroke={g.color}
+                    strokeWidth="4"
+                    strokeDasharray={`${dash} 114`}
+                    strokeLinecap="round"
+                    transform="rotate(-90 22 22)"
+                  />
+                  <text x="22" y="25" textAnchor="middle" className="radial-svg-num" fill={g.color}>
+                    {g.val}
+                  </text>
+                </svg>
+                <div className="radial-gauge-info">
+                  <span>{g.label}</span>
+                  <strong style={{ color: g.color }}>{g.subText || `${g.val}${g.unit}`}</strong>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+
+  // 6. Xếp Hạng 9 Hệ Cơ Quan & Tỷ Lệ An Toàn
+  const renderOrganRankingDonutAndBars = () => (
+    <div className="organ-ranking-chart-card" aria-label="Xếp hạng 9 cơ quan">
+      <div className="sec-head-compact">
+        <div className="sec-title-inline">
+          <BarChart2 size={16} className="icon-teal" />
+          <h4>Xếp Hạng Sức Khoẻ 9 Cơ Quan & Phân Bổ An Toàn</h4>
+        </div>
+        <span className="sec-sub-badge">Nhấp vào thanh để chọn cơ quan</span>
+      </div>
+
+      <div className="organ-ranking-layout">
+        <div className="organ-donut-box">
+          <svg viewBox="0 0 100 100" className="organ-donut-svg">
+            <circle cx="50" cy="50" r="36" fill="none" stroke="#e2e8f0" strokeWidth="12" />
+            <circle
+              cx="50"
+              cy="50"
+              r="36"
+              fill="none"
+              stroke="#0d9488"
+              strokeWidth="12"
+              strokeDasharray={`${Math.round((visualChartSuite.organDistribution.normal / 9) * 226)} 226`}
+              transform="rotate(-90 50 50)"
+            />
+            <text x="50" y="48" textAnchor="middle" className="donut-big-num">
+              {visualChartSuite.organDistribution.normal}/9
+            </text>
+            <text x="50" y="61" textAnchor="middle" className="donut-sub-txt">
+              Ổn định
+            </text>
+          </svg>
+        </div>
+
+        <div className="organ-bars-list">
+          {visualChartSuite.organRanking.map((item) => {
+            const isSel = selectedOrganId === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                className={`organ-bar-item-btn ${isSel ? "active" : ""}`}
+                onClick={() => setSelectedOrganId(item.id)}
+              >
+                <span className="ob-name">{item.name}</span>
+                <div className="ob-track">
+                  <div
+                    className="ob-fill"
+                    style={{ width: `${item.score}%`, backgroundColor: item.color }}
+                  />
+                </div>
+                <strong className="ob-score" style={{ color: item.color }}>
+                  {item.score}%
+                </strong>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+
+  // 7. Thống Kê Diễn Tiến Theo Đợt (Episodic Multi-Charts)
+  const renderEpisodicAnalyticsSuite = () => (
+    <section className="visual-section-card episodic-analytics-panel" aria-label="Biểu đồ Thống kê Sức khoẻ Theo Đợt">
+      <div className="episodic-panel-header">
+        <div className="episodic-title-block">
+          <div className="episodic-badge-row">
+            <span className="episodic-tag">ĐA BIỂU ĐỒ THEO TỪNG ĐỢT</span>
+            <span className={`episodic-delta-pill ${episodicAnalytics.overallDelta >= 0 ? "up" : "down"}`}>
+              {episodicAnalytics.overallDelta >= 0 ? <TrendingUp size={13} /> : <TrendingDown size={13} />}
+              <span>
+                {episodicAnalytics.overallDelta >= 0 ? `+${episodicAnalytics.overallDelta}%` : `${episodicAnalytics.overallDelta}%`} so với Đợt 1
+              </span>
+            </span>
+          </div>
+          <h3>Thống Kê Diễn Tiến Theo Đợt ({episodicAnalytics.timeframeLabel})</h3>
+        </div>
+
+        <div className="episodic-timeframe-switcher" role="tablist" aria-label="Chọn khung thời gian thống kê">
+          {[
+            { id: "HOUR", label: "Theo Giờ (24h)" },
+            { id: "DAY", label: "Theo Ngày (7 ngày)" },
+            { id: "WEEK", label: "Theo Tuần (4 tuần)" },
+            { id: "MONTH", label: "Theo Tháng (6 tháng)" },
+          ].map((tf) => (
+            <button
+              key={tf.id}
+              type="button"
+              role="tab"
+              aria-selected={episodicTimeframe === tf.id}
+              className={`tf-switch-btn ${episodicTimeframe === tf.id ? "active" : ""}`}
+              onClick={() => {
+                setEpisodicTimeframe(tf.id);
+                setSelectedBatchId("all");
+              }}
+            >
+              {tf.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 3 Compact Batch Filter Cards with Visual Progress Bars */}
+      <div className="episodic-batches-grid">
+        {episodicAnalytics.batches.map((batch) => {
+          const isSelected = selectedBatchId === batch.id;
+          return (
+            <div
+              key={batch.id}
+              className={`episodic-batch-card ${batch.status} ${isSelected ? "selected" : ""}`}
+              onClick={() => setSelectedBatchId(isSelected ? "all" : batch.id)}
+              role="button"
+              tabIndex={0}
+            >
+              <div className="batch-card-top">
+                <span className="batch-code-badge">{batch.code}</span>
+                <span className={`batch-delta-tag ${batch.delta >= 0 ? "pos" : "neg"}`}>
+                  {batch.delta >= 0 ? `+${batch.delta}%` : `${batch.delta}%`}
+                </span>
+              </div>
+              <h4 className="batch-card-title">{batch.name}</h4>
+              <div className="batch-visual-bars">
+                <div className="bv-bar-row">
+                  <span>Thể trạng TB</span>
+                  <div className="bv-track">
+                    <div className="bv-fill teal" style={{ width: `${batch.avgScore}%` }} />
+                  </div>
+                  <strong>{batch.avgScore}%</strong>
+                </div>
+                <div className="bv-bar-row">
+                  <span>Đau VAS & Nhiệt</span>
+                  <div className="bv-track">
+                    <div
+                      className="bv-fill amber"
+                      style={{ width: `${Math.max(8, batch.avgPain * 10)}%` }}
+                    />
+                  </div>
+                  <strong>{batch.avgPain}/10 • {batch.avgTemp}°C</strong>
+                </div>
+              </div>
+              <div className="batch-solution-callout">
+                <CheckCircle2 size={13} />
+                <span>{batch.solutionSummary}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Dual SVG Chart Grid */}
+      <div className="episodic-dual-charts-grid">
+        <div className="episodic-svg-chart-box">
+          <div className="svg-chart-head">
+            <div>
+              <span className="chart-kicker">BIỂU ĐỒ MIỀN & ĐƯỜNG XU HƯỚNG</span>
+              <h4>Diễn Tiến Điểm Sức Khoẻ & Phục Hồi Giấc Ngủ (%)</h4>
+            </div>
+            <div className="svg-legend-inline">
+              <span className="leg-dot teal">● Thể trạng (%)</span>
+              <span className="leg-dot blue">● Giấc ngủ (%)</span>
+            </div>
+          </div>
+
+          <svg viewBox={`0 0 ${svgW} ${svgH}`} className="episodic-spline-svg">
+            <defs>
+              <linearGradient id="healthAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#0d9488" stopOpacity="0.28" />
+                <stop offset="100%" stopColor="#0d9488" stopOpacity="0.02" />
+              </linearGradient>
+            </defs>
+
+            {[40, 60, 80, 100].map((val) => {
+              const y = +(padY + ((100 - val) / 80) * plotH).toFixed(1);
+              return (
+                <g key={val}>
+                  <line x1={padX} y1={y} x2={svgW - padX} y2={y} stroke="#e2e8f0" strokeDasharray="3 3" />
+                  <text x={padX - 6} y={y + 3} textAnchor="end" className="svg-axis-num">
+                    {val}%
+                  </text>
+                </g>
+              );
+            })}
+
+            {healthAreaPath && <path d={healthAreaPath} fill="url(#healthAreaGrad)" />}
+            <polyline
+              fill="none"
+              stroke="#2563eb"
+              strokeWidth="2"
+              strokeDasharray="4 3"
+              points={sleepPolyline}
+            />
+            <polyline
+              fill="none"
+              stroke="#0d9488"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              points={healthPolyline}
+            />
+
+            {healthPoints.map((p, idx) => {
+              const isDimmed = selectedBatchId !== "all" && p.batchId !== selectedBatchId;
+              return (
+                <g key={idx} opacity={isDimmed ? 0.25 : 1}>
+                  <circle cx={p.x} cy={p.y} r="4.5" fill="#0d9488" stroke="#ffffff" strokeWidth="1.5" />
+                  <text x={p.x} y={p.y - 8} textAnchor="middle" className="svg-node-val">
+                    {p.val}%
+                  </text>
+                  <text x={p.x} y={svgH - 4} textAnchor="middle" className="svg-x-label">
+                    {p.label}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+        </div>
+
+        <div className="episodic-svg-chart-box">
+          <div className="svg-chart-head">
+            <div>
+              <span className="chart-kicker">BIỂU ĐỒ CỘT GHÉP & ĐƯỜNG NHIỆT ĐỘ</span>
+              <h4>Tương Quan Mức Đau (VAS /10) & Thân Nhiệt (°C)</h4>
+            </div>
+            <div className="svg-legend-inline">
+              <span className="leg-dot amber">■ Cột Đau VAS</span>
+              <span className="leg-dot rose">● Thân nhiệt (°C)</span>
+            </div>
+          </div>
+
+          <svg viewBox={`0 0 ${svgW} ${svgH}`} className="episodic-spline-svg">
+            <line
+              x1={padX}
+              y1={+(padY + ((40.0 - 37.0) / 4.0) * plotH).toFixed(1)}
+              x2={svgW - padX}
+              y2={+(padY + ((40.0 - 37.0) / 4.0) * plotH).toFixed(1)}
+              stroke="#94a3b8"
+              strokeDasharray="3 3"
+            />
+
+            {tempPoints.map((pt, idx) => {
+              const barH = Math.max(6, (pt.pain / 10) * plotH);
+              const barY = padY + plotH - barH;
+              const barColor = pt.pain >= 6 ? "#e11d48" : pt.pain >= 3 ? "#f59e0b" : "#10b981";
+              const isDimmed = selectedBatchId !== "all" && pt.batchId !== selectedBatchId;
+              return (
+                <g key={idx} opacity={isDimmed ? 0.25 : 1}>
+                  <rect
+                    x={pt.x - 14}
+                    y={barY}
+                    width="28"
+                    height={barH}
+                    rx="5"
+                    fill={barColor}
+                    fillOpacity="0.25"
+                    stroke={barColor}
+                    strokeWidth="1.5"
+                  />
+                  <text x={pt.x} y={padY + plotH - 4} textAnchor="middle" className="svg-bar-vas">
+                    VAS {pt.pain}
+                  </text>
+                  <text x={pt.x} y={svgH - 4} textAnchor="middle" className="svg-x-label">
+                    {pt.label}
+                  </text>
+                </g>
+              );
+            })}
+
+            <polyline
+              fill="none"
+              stroke="#e11d48"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              points={tempPolyline}
+            />
+
+            {tempPoints.map((pt, idx) => (
+              <g key={`t-${idx}`}>
+                <circle cx={pt.x} cy={pt.y} r="4" fill="#e11d48" stroke="#ffffff" strokeWidth="1.5" />
+                <text x={pt.x} y={pt.y - 7} textAnchor="middle" className="svg-temp-val">
+                  {pt.temp}°C
+                </text>
+              </g>
+            ))}
+          </svg>
+        </div>
+      </div>
+    </section>
+  );
+
+  // 8. Trung Tâm Giải Pháp 4 Trụ Cột
+  const renderSolutionsCenter = () => (
+    <section className="visual-section-card solutions-and-vitals-wrapper" aria-label="Trung tâm Giải pháp 4 Trụ Cột">
+      <div className="solutions-top-layout">
+        <div className="solutions-impact-chart-card">
+          <span className="chart-kicker">TIẾN ĐỘ & HIỆU QUẢ CAN THIỆP</span>
+          <h4>Biểu Đồ Hoàn Thành Giải Pháp (4 Trụ Cột)</h4>
+          <div className="sol-donut-and-bars">
+            <svg viewBox="0 0 100 100" className="sol-donut-svg">
+              <circle cx="50" cy="50" r="36" fill="none" stroke="#e2e8f0" strokeWidth="11" />
+              <circle
+                cx="50"
+                cy="50"
+                r="36"
+                fill="none"
+                stroke="#0d9488"
+                strokeWidth="11"
+                strokeDasharray={`${Math.round((visualChartSuite.solutionsSummary.completionPct / 100) * 226)} 226`}
+                strokeLinecap="round"
+                transform="rotate(-90 50 50)"
+              />
+              <text x="50" y="47" textAnchor="middle" className="donut-big-num">
+                {visualChartSuite.solutionsSummary.completedCount}/{visualChartSuite.solutionsSummary.total}
+              </text>
+              <text x="50" y="61" textAnchor="middle" className="donut-sub-txt">
+                +{visualChartSuite.solutionsSummary.projectedGain}% Hồi phục
+              </text>
+            </svg>
+
+            <div className="sol-impact-bars">
+              {visualChartSuite.solutionsSummary.items.map((item, idx) => (
+                <div key={item.id} className="sol-impact-row">
+                  <span>Trụ cột {idx + 1}</span>
+                  <div className="si-track">
+                    <div
+                      className="si-fill"
+                      style={{
+                        width: `${item.impactScore}%`,
+                        backgroundColor: item.completed ? "#0d9488" : "#3b82f6",
+                      }}
+                    />
+                  </div>
+                  <strong>{item.impactScore}%</strong>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="solutions-pillars-grid">
+          {personalizedSolutions.map((sol) => {
+            const isDone = Boolean(completedSolutions[sol.id]);
+            return (
+              <div key={sol.id} className={`solution-pillar-card priority-${sol.priorityLevel} ${isDone ? "completed" : ""}`}>
+                <div className="sol-card-top">
+                  <span className="sol-pillar-name">{sol.pillar}</span>
+                  <span className={`sol-priority-badge ${sol.priorityLevel}`}>{sol.priority}</span>
+                </div>
+                <h4 className="sol-card-title">{sol.title}</h4>
+                <ul className="sol-steps-list">
+                  {sol.actionSteps.slice(0, 2).map((step, sIdx) => (
+                    <li key={sIdx}>
+                      <CheckCircle2 size={13} className="sol-step-icon" />
+                      <span>{step}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="sol-card-actions">
+                  <button
+                    type="button"
+                    className={`sol-btn-check ${isDone ? "done" : ""}`}
+                    onClick={() =>
+                      setCompletedSolutions((prev) => ({ ...prev, [sol.id]: !prev[sol.id] }))
+                    }
+                  >
+                    <Check size={13} />
+                    <span>{isDone ? "Đã thực hiện" : "Đánh dấu hoàn thành"}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="sol-btn-chat"
+                    onClick={() => onNavigate?.("chat")}
+                  >
+                    <MessageSquare size={13} />
+                    <span>Hỏi AI</span>
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+
   return (
     <div className="health-twin-container daylight-clinical-theme" role="main" aria-label="Bản đồ Cơ thể & Đa Biểu Đồ Sức khoẻ">
       {/* ====================================================================
@@ -795,16 +1739,26 @@ export function HealthTwinPage({
       )}
 
       {/* ====================================================================
-          2. SECTION FOCUS FILTER BAR (Prevents Information Overload!)
+          2. BIOMETRIC VITALS EXECUTIVE RIBBON (5 VITAL SIGNS - PROMINENT AT TOP!)
+          ==================================================================== */}
+      {renderVitalsRibbon()}
+
+      {/* ====================================================================
+          3. UNIVERSAL NATURAL-LANGUAGE SYMPTOM/FEELING INPUT CONSOLE
+          ==================================================================== */}
+      {renderSmartIntakeConsole()}
+
+      {/* ====================================================================
+          4. SECTION FOCUS FILTER BAR (Segmented Navigation)
           ==================================================================== */}
       <nav className="health-section-switcher-bar" aria-label="Bộ lọc phân khu trực quan">
         <div className="section-tabs-group" role="tablist">
           {[
-            { id: "all", label: "Tất cả Trực quan (Đa Biểu Đồ)" },
-            { id: "bio", label: "1. Khai báo & Radar Sinh học" },
-            { id: "episodic", label: "2. Biểu đồ Theo Đợt (Giờ/Ngày/Tuần/Tháng)" },
-            { id: "anatomy", label: "3. Giải phẫu 3D & 9 Cơ quan" },
-            { id: "solutions", label: "4. Phác đồ Giải pháp & Sinh hiệu" },
+            { id: "all", label: "Tất cả Trực quan (Toàn diện)" },
+            { id: "anatomy", label: "1. Giải phẫu 3D & 9 Cơ quan" },
+            { id: "bio", label: "2. Radar Sinh học & Chỉ số Thể trạng" },
+            { id: "episodic", label: "3. Diễn tiến Theo Đợt (Giờ/Ngày/Tuần/Tháng)" },
+            { id: "solutions", label: "4. Phác đồ Giải pháp 4 Trụ Cột" },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -830,965 +1784,59 @@ export function HealthTwinPage({
       </nav>
 
       {/* ====================================================================
-          SECTION 1: NATURAL-LANGUAGE AUTO-SYNC + 6-AXIS RADAR & 4 RADIAL RINGS
+          5. MAIN COMMAND CENTER DASHBOARD (BALANCED & EASY TO SCAN)
           ==================================================================== */}
-      {(sectionFilter === "all" || sectionFilter === "bio") && (
-        <section className="visual-section-card bio-intake-radar-grid" aria-label="Khai báo Tự động & Biểu đồ Radar Thể trạng">
-          {/* Left: Streamlined Smart Input Console + 4 Radial Gauge Rings */}
-          <div className="bio-left-col user-health-input-console">
-            <div className="sec-head-compact">
-              <div className="sec-title-inline">
-                <Sparkles size={17} className="icon-teal" />
-                <h3>1. Khai Báo Tự Động Bệnh Lý & Cảm Giác Cơ Thể</h3>
-              </div>
-              <span className="sec-sub-badge">Tự động cập nhật 100% Biểu đồ</span>
-            </div>
-
-            <div className="holistic-input-bar-row">
-              <input
-                type="text"
-                className="holistic-symptom-input console-text-input"
-                placeholder="Nhập triệu chứng hoặc cảm giác (VD: đau đầu căng thẳng, mất ngủ, đau rát dạ dày, sốt 38.5 độ...)"
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleEvaluateProgress();
-                }}
-              />
-              <button
-                type="button"
-                className={`holistic-mic-btn ${isListening ? "listening" : ""}`}
-                onClick={handleVoiceInput}
-                title="Khai báo bằng giọng nói"
-              >
-                <Mic size={16} />
-              </button>
-              <button
-                type="button"
-                className="holistic-submit-btn console-submit-btn"
-                disabled={evaluating || !inputMessage.trim()}
-                onClick={() => handleEvaluateProgress()}
-              >
-                <Send size={14} />
-                <span>{evaluating ? "Đang xử lý..." : "Đồng bộ ngay"}</span>
-              </button>
-            </div>
-
-            {/* Concise 1-Click Quick Chips */}
-            <div className="holistic-quick-chips-row">
-              {QUICK_FEELING_CHIPS.map((chip) => (
-                <button
-                  key={chip.id}
-                  type="button"
-                  className="holistic-feeling-chip quick-chip-item"
-                  disabled={evaluating}
-                  onClick={() => handleEvaluateProgress(chip.message)}
-                >
-                  <Zap size={12} />
-                  <span>{chip.label}</span>
-                </button>
-              ))}
-              <button
-                type="button"
-                className="holistic-feeling-chip quick-chip-item"
-                disabled={evaluating}
-                onClick={() => handleEvaluateProgress("Tôi chưa tiêm phòng vắc-xin Viêm gan B, cần đánh giá rủi ro gan")}
-              >
-                <Syringe size={12} />
-                <span>💉 Chưa tiêm Viêm gan B</span>
-              </button>
-            </div>
-
-            {/* Chart 1B: 4 Circular Radial Progress Gauges */}
-            <div className="bio-radial-gauges-grid">
-              {[
-                {
-                  id: "sleep",
-                  label: "Giấc ngủ & Phục hồi",
-                  val: profile?.wellbeing?.sleep_quality_score ?? 88,
-                  unit: "/100",
-                  color: "#0d9488",
-                },
-                {
-                  id: "neuro",
-                  label: "An thần & Tâm lý",
-                  val: String(profile?.wellbeing?.stress_level_label || "").includes("Cao") ? 52 : String(profile?.wellbeing?.stress_level_label || "").includes("Trung") ? 74 : 92,
-                  unit: "%",
-                  subText: profile?.wellbeing?.stress_level_label || "Thấp (Ổn định)",
-                  color: "#2563eb",
-                },
-                {
-                  id: "energy",
-                  label: "Pin Năng lượng",
-                  val: profile?.wellbeing?.energy_battery_percent ?? 90,
-                  unit: "%",
-                  color: "#d97706",
-                },
-                {
-                  id: "hydration",
-                  label: "Nước & Điện giải",
-                  val: profile?.wellbeing?.hydration_balance_percent ?? 92,
-                  unit: "%",
-                  color: "#0284c7",
-                },
-              ].map((g) => {
-                const dash = Math.round((Math.max(10, Math.min(100, g.val)) / 100) * 113);
-                return (
-                  <div key={g.id} className="radial-gauge-mini-card">
-                    <svg viewBox="0 0 44 44" className="radial-gauge-svg">
-                      <circle cx="22" cy="22" r="18" fill="none" stroke="#e2e8f0" strokeWidth="4" />
-                      <circle
-                        cx="22"
-                        cy="22"
-                        r="18"
-                        fill="none"
-                        stroke={g.color}
-                        strokeWidth="4"
-                        strokeDasharray={`${dash} 114`}
-                        strokeLinecap="round"
-                        transform="rotate(-90 22 22)"
-                      />
-                      <text x="22" y="25" textAnchor="middle" className="radial-svg-num" fill={g.color}>
-                        {g.val}
-                      </text>
-                    </svg>
-                    <div className="radial-gauge-info">
-                      <span>{g.label}</span>
-                      <strong style={{ color: g.color }}>{g.subText || `${g.val}${g.unit}`}</strong>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+      {sectionFilter === "all" && (
+        <div className="twin-executive-grid">
+          {/* Left Wing: 3D Anatomical Twin & Selected Organ Inspector */}
+          <div className="twin-col-anatomy">
+            {render3DAnatomicalModel()}
+            {renderOrganInspector()}
           </div>
 
-          {/* Right: Chart 1A — Interactive 6-Axis Spider/Radar SVG Chart */}
-          <div className="bio-right-radar-card">
-            <div className="radar-card-header">
-              <div>
-                <span className="chart-kicker">BIỂU ĐỒ RADAR 6 TRỤC</span>
-                <h4>Cân Bằng Sinh Học Toàn Diện</h4>
-              </div>
-              <span className="radar-avg-badge">TB: {visualChartSuite.radarAverage}/100</span>
-            </div>
-
-            <div className="radar-svg-stage">
-              <svg viewBox="0 0 220 220" className="bio-radar-svg" role="img" aria-label="Biểu đồ Radar 6 chiều sức khoẻ">
-                {/* Concentric Hexagonal Grid Rings (33%, 66%, 100%) */}
-                {[0.35, 0.68, 1.0].map((scale, sIdx) => {
-                  const pts = visualChartSuite.radarAxes
-                    .map((a) => {
-                      const rx = +(110 + 72 * scale * Math.cos(a.angle)).toFixed(1);
-                      const ry = +(110 + 72 * scale * Math.sin(a.angle)).toFixed(1);
-                      return `${rx},${ry}`;
-                    })
-                    .join(" ");
-                  return (
-                    <polygon
-                      key={sIdx}
-                      points={pts}
-                      fill={sIdx === 2 ? "rgba(241,245,249,0.5)" : "none"}
-                      stroke="#cbd5e1"
-                      strokeWidth="1"
-                      strokeDasharray={sIdx < 2 ? "2 2" : undefined}
-                    />
-                  );
-                })}
-
-                {/* Radial Axes Spokes */}
-                {visualChartSuite.radarAxes.map((a) => (
-                  <line
-                    key={a.id}
-                    x1="110"
-                    y1="110"
-                    x2={a.outerX}
-                    y2={a.outerY}
-                    stroke="#cbd5e1"
-                    strokeWidth="1"
-                  />
-                ))}
-
-                {/* Active Bio-Wellness Polygon */}
-                <polygon
-                  points={visualChartSuite.radarPolygonPoints}
-                  fill="rgba(13, 148, 136, 0.22)"
-                  stroke="#0d9488"
-                  strokeWidth="2.5"
-                />
-
-                {/* Data Vertex Nodes & Labels */}
-                {visualChartSuite.radarAxes.map((a) => (
-                  <g key={a.id}>
-                    <circle cx={a.x} cy={a.y} r="4" fill={a.color} stroke="#ffffff" strokeWidth="1.5" />
-                    <text
-                      x={a.labelX}
-                      y={a.labelY}
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      className="radar-axis-label"
-                    >
-                      {a.shortLabel} ({a.value})
-                    </text>
-                  </g>
-                ))}
-              </svg>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ====================================================================
-          SECTION 2: EPISODIC MULTI-CHART SUITE (GIỜ / NGÀY / TUẦN / THÁNG BY BATCH)
-          ==================================================================== */}
-      {(sectionFilter === "all" || sectionFilter === "episodic") && (
-        <section className="visual-section-card episodic-analytics-panel" aria-label="Biểu đồ Thống kê Sức khoẻ Theo Đợt">
-          <div className="episodic-panel-header">
-            <div className="episodic-title-block">
-              <div className="episodic-badge-row">
-                <span className="episodic-tag">ĐA BIỂU ĐỒ THEO TỪNG ĐỢT</span>
-                <span className={`episodic-delta-pill ${episodicAnalytics.overallDelta >= 0 ? "up" : "down"}`}>
-                  {episodicAnalytics.overallDelta >= 0 ? <TrendingUp size={13} /> : <TrendingDown size={13} />}
-                  <span>
-                    {episodicAnalytics.overallDelta >= 0 ? `+${episodicAnalytics.overallDelta}%` : `${episodicAnalytics.overallDelta}%`} so với Đợt 1
-                  </span>
-                </span>
-              </div>
-              <h3>2. Thống Kê Diễn Tiến Theo Đợt ({episodicAnalytics.timeframeLabel})</h3>
-            </div>
-
-            <div className="episodic-timeframe-switcher" role="tablist" aria-label="Chọn khung thời gian thống kê">
-              {[
-                { id: "HOUR", label: "Theo Giờ (24h)" },
-                { id: "DAY", label: "Theo Ngày (7 ngày)" },
-                { id: "WEEK", label: "Theo Tuần (4 tuần)" },
-                { id: "MONTH", label: "Theo Tháng (6 tháng)" },
-              ].map((tf) => (
-                <button
-                  key={tf.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={episodicTimeframe === tf.id}
-                  className={`tf-switch-btn ${episodicTimeframe === tf.id ? "active" : ""}`}
-                  onClick={() => {
-                    setEpisodicTimeframe(tf.id);
-                    setSelectedBatchId("all");
-                  }}
-                >
-                  {tf.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* 3 Compact Batch Filter Cards with Visual Progress Bars */}
-          <div className="episodic-batches-grid">
-            {episodicAnalytics.batches.map((batch) => {
-              const isSelected = selectedBatchId === batch.id;
-              return (
-                <div
-                  key={batch.id}
-                  className={`episodic-batch-card ${batch.status} ${isSelected ? "selected" : ""}`}
-                  onClick={() => setSelectedBatchId(isSelected ? "all" : batch.id)}
-                  role="button"
-                  tabIndex={0}
-                >
-                  <div className="batch-card-top">
-                    <span className="batch-code-badge">{batch.code}</span>
-                    <span className={`batch-delta-tag ${batch.delta >= 0 ? "pos" : "neg"}`}>
-                      {batch.delta >= 0 ? `+${batch.delta}%` : `${batch.delta}%`}
-                    </span>
-                  </div>
-                  <h4 className="batch-card-title">{batch.name}</h4>
-                  <div className="batch-visual-bars">
-                    <div className="bv-bar-row">
-                      <span>Thể trạng TB</span>
-                      <div className="bv-track">
-                        <div className="bv-fill teal" style={{ width: `${batch.avgScore}%` }} />
-                      </div>
-                      <strong>{batch.avgScore}%</strong>
-                    </div>
-                    <div className="bv-bar-row">
-                      <span>Đau VAS & Nhiệt</span>
-                      <div className="bv-track">
-                        <div
-                          className="bv-fill amber"
-                          style={{ width: `${Math.max(8, batch.avgPain * 10)}%` }}
-                        />
-                      </div>
-                      <strong>{batch.avgPain}/10 • {batch.avgTemp}°C</strong>
-                    </div>
-                  </div>
-                  <div className="batch-solution-callout">
-                    <CheckCircle2 size={13} />
-                    <span>{batch.solutionSummary}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Dual SVG Chart Grid: Chart 2A (Area Spline) + Chart 2B (Combo VAS Bar & Temp Curve) */}
-          <div className="episodic-dual-charts-grid">
-            {/* Chart 2A: Biểu Đồ Đường Cong Miền Đôi (Thể trạng & Phục hồi) */}
-            <div className="episodic-svg-chart-box">
-              <div className="svg-chart-head">
-                <div>
-                  <span className="chart-kicker">BIỂU ĐỒ MIỀN & ĐƯỜNG XU HƯỚNG</span>
-                  <h4>Diễn Tiến Điểm Sức Khoẻ & Phục Hồi Giấc Ngủ (%)</h4>
-                </div>
-                <div className="svg-legend-inline">
-                  <span className="leg-dot teal">● Thể trạng (%)</span>
-                  <span className="leg-dot blue">● Giấc ngủ (%)</span>
-                </div>
-              </div>
-
-              <svg viewBox={`0 0 ${svgW} ${svgH}`} className="episodic-spline-svg">
-                <defs>
-                  <linearGradient id="healthAreaGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#0d9488" stopOpacity="0.28" />
-                    <stop offset="100%" stopColor="#0d9488" stopOpacity="0.02" />
-                  </linearGradient>
-                </defs>
-
-                {/* Horizontal Reference Lines */}
-                {[40, 60, 80, 100].map((val) => {
-                  const y = +(padY + ((100 - val) / 80) * plotH).toFixed(1);
-                  return (
-                    <g key={val}>
-                      <line x1={padX} y1={y} x2={svgW - padX} y2={y} stroke="#e2e8f0" strokeDasharray="3 3" />
-                      <text x={padX - 6} y={y + 3} textAnchor="end" className="svg-axis-num">
-                        {val}%
-                      </text>
-                    </g>
-                  );
-                })}
-
-                {/* Area & Polylines */}
-                {healthAreaPath && <path d={healthAreaPath} fill="url(#healthAreaGrad)" />}
-                <polyline
-                  fill="none"
-                  stroke="#2563eb"
-                  strokeWidth="2"
-                  strokeDasharray="4 3"
-                  points={sleepPolyline}
-                />
-                <polyline
-                  fill="none"
-                  stroke="#0d9488"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  points={healthPolyline}
-                />
-
-                {/* Data Points & Labels */}
-                {healthPoints.map((p, idx) => {
-                  const isDimmed = selectedBatchId !== "all" && p.batchId !== selectedBatchId;
-                  return (
-                    <g key={idx} opacity={isDimmed ? 0.25 : 1}>
-                      <circle cx={p.x} cy={p.y} r="4.5" fill="#0d9488" stroke="#ffffff" strokeWidth="1.5" />
-                      <text x={p.x} y={p.y - 8} textAnchor="middle" className="svg-node-val">
-                        {p.val}%
-                      </text>
-                      <text x={p.x} y={svgH - 4} textAnchor="middle" className="svg-x-label">
-                        {p.label}
-                      </text>
-                    </g>
-                  );
-                })}
-              </svg>
-            </div>
-
-            {/* Chart 2B: Biểu Đồ Cột Ghép Đau VAS & Đường Thân Nhiệt (°C) */}
-            <div className="episodic-svg-chart-box">
-              <div className="svg-chart-head">
-                <div>
-                  <span className="chart-kicker">BIỂU ĐỒ CỘT GHÉP & ĐƯỜNG NHIỆT ĐỘ</span>
-                  <h4>Tương Quan Mức Đau (VAS /10) & Thân Nhiệt (°C)</h4>
-                </div>
-                <div className="svg-legend-inline">
-                  <span className="leg-dot amber">■ Cột Đau VAS</span>
-                  <span className="leg-dot rose">● Thân nhiệt (°C)</span>
-                </div>
-              </div>
-
-              <svg viewBox={`0 0 ${svgW} ${svgH}`} className="episodic-spline-svg">
-                {/* 37.0°C Normal Threshold Line */}
-                <line
-                  x1={padX}
-                  y1={+(padY + ((40.0 - 37.0) / 4.0) * plotH).toFixed(1)}
-                  x2={svgW - padX}
-                  y2={+(padY + ((40.0 - 37.0) / 4.0) * plotH).toFixed(1)}
-                  stroke="#94a3b8"
-                  strokeDasharray="3 3"
-                />
-
-                {/* VAS Pain Vertical Bars */}
-                {tempPoints.map((pt, idx) => {
-                  const barH = Math.max(6, (pt.pain / 10) * plotH);
-                  const barY = padY + plotH - barH;
-                  const barColor = pt.pain >= 6 ? "#e11d48" : pt.pain >= 3 ? "#f59e0b" : "#10b981";
-                  const isDimmed = selectedBatchId !== "all" && pt.batchId !== selectedBatchId;
-                  return (
-                    <g key={idx} opacity={isDimmed ? 0.25 : 1}>
-                      <rect
-                        x={pt.x - 14}
-                        y={barY}
-                        width="28"
-                        height={barH}
-                        rx="5"
-                        fill={barColor}
-                        fillOpacity="0.25"
-                        stroke={barColor}
-                        strokeWidth="1.5"
-                      />
-                      <text x={pt.x} y={padY + plotH - 4} textAnchor="middle" className="svg-bar-vas">
-                        VAS {pt.pain}
-                      </text>
-                      <text x={pt.x} y={svgH - 4} textAnchor="middle" className="svg-x-label">
-                        {pt.label}
-                      </text>
-                    </g>
-                  );
-                })}
-
-                {/* Overlaid Temperature Line */}
-                <polyline
-                  fill="none"
-                  stroke="#e11d48"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  points={tempPolyline}
-                />
-
-                {tempPoints.map((pt, idx) => (
-                  <g key={`t-${idx}`}>
-                    <circle cx={pt.x} cy={pt.y} r="4" fill="#e11d48" stroke="#ffffff" strokeWidth="1.5" />
-                    <text x={pt.x} y={pt.y - 7} textAnchor="middle" className="svg-temp-val">
-                      {pt.temp}°C
-                    </text>
-                  </g>
-                ))}
-              </svg>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ====================================================================
-          SECTION 3: 3D ANATOMICAL BODY TWIN + 9-ORGAN BAR RANKING & RISK GAUGE
-          ==================================================================== */}
-      {(sectionFilter === "all" || sectionFilter === "anatomy") && (
-        <div className="twin-main-grid">
-          {/* Left Column: Interactive 3D Anatomical Digital Twin Model */}
-          <section className="body-silhouette-panel">
-            <div className="panel-header-bar">
-              <div className="header-bar-title">
-                <Scan size={16} className="scan-icon" />
-                <span>3. Mô Hình Giải Phẫu 9 Cơ Quan (3D Twin)</span>
-              </div>
-              <div className="view-mode-pills">
-                <button
-                  type="button"
-                  className={`mode-pill ${modelViewMode === "3d_hologram" ? "active" : ""}`}
-                  onClick={() => setModelViewMode("3d_hologram")}
-                >
-                  <Layers size={12} />
-                  <span>3D Chuẩn</span>
-                </button>
-                <button
-                  type="button"
-                  className={`mode-pill ${modelViewMode === "xray_scan" ? "active" : ""}`}
-                  onClick={() => setModelViewMode("xray_scan")}
-                >
-                  <Eye size={12} />
-                  <span>Quét Mô</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Organ System Filter Tabs */}
-            <div className="system-filter-bar" role="tablist">
-              {ORGAN_SYSTEMS.map((sys) => (
-                <button
-                  key={sys.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={selectedSystem === sys.id}
-                  className={`system-tab-btn ${selectedSystem === sys.id ? "active" : ""}`}
-                  onClick={() => {
-                    setSelectedSystem(sys.id);
-                    if (sys.organIds && sys.organIds.length > 0 && !sys.organIds.includes(selectedOrganId)) {
-                      setSelectedOrganId(sys.organIds[0]);
-                    }
-                  }}
-                >
-                  {sys.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="human-canvas-wrapper">
-              <div className="clinical-grid-backdrop" />
-              <div className={`human-canvas-inner-ratio ${modelViewMode}`}>
-                <img
-                  src="/static/assets/human_anatomical_twin.jpg"
-                  alt="3D Anatomical Digital Twin Model"
-                  className="human-3d-model-img"
-                  onError={(e) => {
-                    if (!e.currentTarget.dataset.fallbackTried) {
-                      e.currentTarget.dataset.fallbackTried = "true";
-                      e.currentTarget.src = "/assets/human_anatomical_twin.jpg";
-                    }
-                  }}
-                />
-
-                {activeOrgan?.coordinates && (
-                  <div
-                    className="organ-focus-indicator"
-                    style={{
-                      left: `${activeOrgan.coordinates.x}%`,
-                      top: `${activeOrgan.coordinates.y}%`,
-                      "--indicator-color": getStatusColor(activeOrgan.status, activeOrgan.health_score),
-                    }}
-                  >
-                    <div className="focus-concentric-circle" />
-                  </div>
-                )}
-
-                {normalizedOrgans.map((organ) => {
-                  const isSelected = selectedOrganId === organ.id;
-                  const isHovered = hoveredOrganId === organ.id;
-                  const statusColor = getStatusColor(organ.status, organ.health_score);
-                  const isAlert = organ.status === "adverse_reaction" || organ.status === "critical";
-                  const isSystemMember =
-                    selectedSystem === "all" ||
-                    ORGAN_SYSTEMS.find((s) => s.id === selectedSystem)?.organIds?.includes(organ.id);
-
-                  return (
-                    <div
-                      key={organ.id}
-                      className={`clinical-organ-pin ${isSelected ? "selected" : ""} ${isHovered ? "hovered" : ""} ${isAlert ? "is-alert" : ""} ${!isSystemMember ? "dimmed" : ""}`}
-                      style={{
-                        left: `${organ.coordinates?.x ?? 50}%`,
-                        top: `${organ.coordinates?.y ?? 50}%`,
-                        "--organ-color": statusColor,
-                      }}
-                      onMouseEnter={() => setHoveredOrganId(organ.id)}
-                      onMouseLeave={() => setHoveredOrganId(null)}
-                      onClick={() => setSelectedOrganId(organ.id)}
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`Cơ quan: ${organ.vietnamese_name}, Trạng thái: ${organ.status}`}
-                    >
-                      <span className="pin-pulse-wave" />
-                      <span className="pin-point-marker">
-                        <span className="pin-dot-inner" />
-                      </span>
-                      {isHovered && (
-                        <span className="pin-tooltip-badge">
-                          <span className="tooltip-dot" />
-                          <span className="tooltip-text">{organ.vietnamese_name}</span>
-                          <span className="tooltip-score">{organ.health_score}%</span>
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="silhouette-footer-legend">
-              <div className="legend-item"><span className="legend-dot normal" /> Ổn định (85-100%)</div>
-              <div className="legend-item"><span className="legend-dot inflamed" /> Viêm / Theo dõi (60-84%)</div>
-              <div className="legend-item"><span className="legend-dot alert" /> Báo động (&lt;60%)</div>
-            </div>
-          </section>
-
-          {/* Right Column: Chart 3A (9-Organ Ranking Bars + Donut) & Chart 3B (Organ Inspector + Risk Gauge) */}
-          <div className="inspector-column">
-            {/* Chart 3A: 9-Organ Horizontal Score Bar Chart + Status Donut */}
-            <div className="organ-ranking-chart-card">
-              <div className="sec-head-compact">
-                <div className="sec-title-inline">
-                  <BarChart2 size={16} className="icon-teal" />
-                  <h4>Biểu Đồ Xếp Hạng Sức Khoẻ 9 Cơ Quan & Phân Bổ An Toàn</h4>
-                </div>
-                <span className="sec-sub-badge">Nhấp vào thanh để chọn cơ quan</span>
-              </div>
-
-              <div className="organ-ranking-layout">
-                {/* Mini Donut of 9 Organs */}
-                <div className="organ-donut-box">
-                  <svg viewBox="0 0 100 100" className="organ-donut-svg">
-                    <circle cx="50" cy="50" r="36" fill="none" stroke="#e2e8f0" strokeWidth="12" />
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="36"
-                      fill="none"
-                      stroke="#0d9488"
-                      strokeWidth="12"
-                      strokeDasharray={`${Math.round((visualChartSuite.organDistribution.normal / 9) * 226)} 226`}
-                      transform="rotate(-90 50 50)"
-                    />
-                    <text x="50" y="48" textAnchor="middle" className="donut-big-num">
-                      {visualChartSuite.organDistribution.normal}/9
-                    </text>
-                    <text x="50" y="61" textAnchor="middle" className="donut-sub-txt">
-                      Ổn định
-                    </text>
-                  </svg>
-                </div>
-
-                {/* 9 Horizontal Score Bars */}
-                <div className="organ-bars-list">
-                  {visualChartSuite.organRanking.map((item) => {
-                    const isSel = selectedOrganId === item.id;
-                    return (
-                      <button
-                        key={item.id}
-                        type="button"
-                        className={`organ-bar-item-btn ${isSel ? "active" : ""}`}
-                        onClick={() => setSelectedOrganId(item.id)}
-                      >
-                        <span className="ob-name">{item.name}</span>
-                        <div className="ob-track">
-                          <div
-                            className="ob-fill"
-                            style={{ width: `${item.score}%`, backgroundColor: item.color }}
-                          />
-                        </div>
-                        <strong className="ob-score" style={{ color: item.color }}>
-                          {item.score}%
-                        </strong>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-
-            {/* Chart 3B: Selected Organ Inspector + Semi-Circular Future Risk Gauge */}
-            {activeOrgan && (
-              <div className={`organ-inspector-card status-${activeOrgan.status}`}>
-                <div className="inspector-header">
-                  <div className="organ-title-row">
-                    <div
-                      className="organ-icon-circle"
-                      style={{
-                        backgroundColor: `${getStatusColor(activeOrgan.status, activeOrgan.health_score)}18`,
-                        color: getStatusColor(activeOrgan.status, activeOrgan.health_score),
-                      }}
-                    >
-                      <HeartPulse size={20} />
-                    </div>
-                    <div>
-                      <h3>{activeOrgan.vietnamese_name}</h3>
-                      <span className="organ-en-name">{activeOrgan.clinical_notes || activeOrgan.name}</span>
-                    </div>
-                  </div>
-                  <span className={`status-pill ${activeOrgan.status}`}>
-                    {getStatusBadgeText(activeOrgan.status)}
-                  </span>
-                </div>
-
-                {/* Quick Clinical Actions Bar */}
-                <div className="organ-quick-actions-bar">
-                  <button
-                    type="button"
-                    className="organ-action-btn consult-btn"
-                    onClick={() => {
-                      onNavigate?.("chat");
-                      window.dispatchEvent(
-                        new CustomEvent("medguard:navigate", {
-                          detail: {
-                            view: "chat",
-                            message: `Tư vấn AI chuyên sâu về tình trạng cơ quan: ${activeOrgan.vietnamese_name}`,
-                          },
-                        })
-                      );
-                    }}
-                  >
-                    <MessageSquare size={13} />
-                    <span>Tư vấn AI</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="organ-action-btn declare-btn"
-                    onClick={() => {
-                      setInputMessage(`Cập nhật triệu chứng tại ${activeOrgan.vietnamese_name}: `);
-                      document.querySelector(".console-text-input")?.focus();
-                    }}
-                  >
-                    <Plus size={13} />
-                    <span>Khai báo thêm</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="organ-action-btn recover-btn"
-                    disabled={evaluating || activeOrgan.status === "normal"}
-                    onClick={() =>
-                      handleEvaluateProgress(
-                        `Triệu chứng tại ${activeOrgan.vietnamese_name} của tôi đã khỏi và ổn định hoàn toàn.`
-                      )
-                    }
-                  >
-                    <CheckCircle2 size={13} />
-                    <span>Báo đã khỏi</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="organ-action-btn nav-btn"
-                    onClick={() => onNavigate?.("navigation")}
-                  >
-                    <Navigation size={13} />
-                    <span>Chỉ đường CSYT</span>
-                  </button>
-                </div>
-
-                {/* Semi-Circular Risk Gauge + Concise Future Prognosis */}
-                {activeOrgan.future_risk && (
-                  <div className="organ-risk-gauge-panel">
-                    <div className="semi-gauge-col">
-                      {(() => {
-                        const rLevel = activeOrgan.future_risk.risk_level;
-                        const rPct = rLevel === "high" ? 84 : rLevel === "moderate" ? 52 : 22;
-                        const rColor = rLevel === "high" ? "#e11d48" : rLevel === "moderate" ? "#d97706" : "#0d9488";
-                        const arcLen = Math.round((rPct / 100) * 125.6);
-                        return (
-                          <svg viewBox="0 0 100 62" className="semi-risk-svg">
-                            <path
-                              d="M 10 52 A 40 40 0 0 1 90 52"
-                              fill="none"
-                              stroke="#e2e8f0"
-                              strokeWidth="9"
-                              strokeLinecap="round"
-                            />
-                            <path
-                              d="M 10 52 A 40 40 0 0 1 90 52"
-                              fill="none"
-                              stroke={rColor}
-                              strokeWidth="9"
-                              strokeDasharray={`${arcLen} 130`}
-                              strokeLinecap="round"
-                            />
-                            <text x="50" y="42" textAnchor="middle" className="semi-gauge-pct" fill={rColor}>
-                              {rPct}%
-                            </text>
-                            <text x="50" y="55" textAnchor="middle" className="semi-gauge-lbl">
-                              Rủi ro ({activeOrgan.future_risk.timeframe})
-                            </text>
-                          </svg>
-                        );
-                      })()}
-                    </div>
-
-                    <div className="risk-concise-info">
-                      <span className="risk-vaccine-pill">{activeOrgan.future_risk.vaccination_status}</span>
-                      <h5 className="risk-prognosis-title">{activeOrgan.future_risk.risk_title}</h5>
-                      <ul className="risk-concise-list">
-                        {(activeOrgan.future_risk.preventive_recommendations || []).slice(0, 2).map((rec, i) => (
-                          <li key={i}>
-                            <CheckCircle2 size={13} />
-                            <span>{rec}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
+          {/* Right Wing: Biometrics, 9-Organ Ranking, Episodic Charts & Solutions */}
+          <div className="twin-col-analytics">
+            {renderBioRadarAndGauges()}
+            {renderOrganRankingDonutAndBars()}
+            {renderEpisodicAnalyticsSuite()}
+            {renderSolutionsCenter()}
           </div>
         </div>
       )}
 
-      {/* ====================================================================
-          SECTION 4: 4-PILLAR SOLUTIONS CENTER (WITH DONUT & IMPACT CHART) + 5 VITALS
-          ==================================================================== */}
-      {(sectionFilter === "all" || sectionFilter === "solutions") && (
-        <section className="visual-section-card solutions-and-vitals-wrapper" aria-label="Trung tâm Giải pháp & Biểu đồ Sinh hiệu">
-          <div className="solutions-top-layout">
-            {/* Chart 4A: Solutions Completion Donut & Impact Bars */}
-            <div className="solutions-impact-chart-card">
-              <span className="chart-kicker">TIẾN ĐỘ & HIỆU QUẢ CAN THIỆP</span>
-              <h4>Biểu Đồ Hoàn Thành Giải Pháp (4 Trụ Cột)</h4>
-              <div className="sol-donut-and-bars">
-                <svg viewBox="0 0 100 100" className="sol-donut-svg">
-                  <circle cx="50" cy="50" r="36" fill="none" stroke="#e2e8f0" strokeWidth="11" />
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="36"
-                    fill="none"
-                    stroke="#0d9488"
-                    strokeWidth="11"
-                    strokeDasharray={`${Math.round((visualChartSuite.solutionsSummary.completionPct / 100) * 226)} 226`}
-                    strokeLinecap="round"
-                    transform="rotate(-90 50 50)"
-                  />
-                  <text x="50" y="47" textAnchor="middle" className="donut-big-num">
-                    {visualChartSuite.solutionsSummary.completedCount}/{visualChartSuite.solutionsSummary.total}
-                  </text>
-                  <text x="50" y="61" textAnchor="middle" className="donut-sub-txt">
-                    +{visualChartSuite.solutionsSummary.projectedGain}% Hồi phục
-                  </text>
-                </svg>
-
-                <div className="sol-impact-bars">
-                  {visualChartSuite.solutionsSummary.items.map((item, idx) => (
-                    <div key={item.id} className="sol-impact-row">
-                      <span>Trụ cột {idx + 1}</span>
-                      <div className="si-track">
-                        <div
-                          className="si-fill"
-                          style={{
-                            width: `${item.impactScore}%`,
-                            backgroundColor: item.completed ? "#0d9488" : "#3b82f6",
-                          }}
-                        />
-                      </div>
-                      <strong>{item.impactScore}%</strong>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* 4 Scannable Solution Pillar Cards */}
-            <div className="solutions-pillars-grid">
-              {personalizedSolutions.map((sol) => {
-                const isDone = Boolean(completedSolutions[sol.id]);
-                return (
-                  <div key={sol.id} className={`solution-pillar-card priority-${sol.priorityLevel} ${isDone ? "completed" : ""}`}>
-                    <div className="sol-card-top">
-                      <span className="sol-pillar-name">{sol.pillar}</span>
-                      <span className={`sol-priority-badge ${sol.priorityLevel}`}>{sol.priority}</span>
-                    </div>
-                    <h4 className="sol-card-title">{sol.title}</h4>
-                    <ul className="sol-steps-list">
-                      {sol.actionSteps.slice(0, 2).map((step, sIdx) => (
-                        <li key={sIdx}>
-                          <CheckCircle2 size={13} className="sol-step-icon" />
-                          <span>{step}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <div className="sol-card-actions">
-                      <button
-                        type="button"
-                        className={`sol-btn-check ${isDone ? "done" : ""}`}
-                        onClick={() =>
-                          setCompletedSolutions((prev) => ({ ...prev, [sol.id]: !prev[sol.id] }))
-                        }
-                      >
-                        <Check size={13} />
-                        <span>{isDone ? "Đã thực hiện" : "Đánh dấu hoàn thành"}</span>
-                      </button>
-                      <button
-                        type="button"
-                        className="sol-btn-chat"
-                        onClick={() => onNavigate?.("chat")}
-                      >
-                        <MessageSquare size={13} />
-                        <span>Hỏi AI</span>
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+      {sectionFilter === "anatomy" && (
+        <div className="twin-focus-2col-grid">
+          <div className="twin-col-anatomy">
+            {render3DAnatomicalModel()}
+            {renderOrganInspector()}
           </div>
-
-          {/* Chart 4B: 5 Vital Sign Sparkline & Gauge Cards */}
-          <div className="vitals-sparkline-strip">
-            <div className="vital-chart-card">
-              <div className="vc-top">
-                <span>1. Nhịp tim (ECG)</span>
-                <strong className="text-rose">{profile?.vitals?.heart_rate_bpm || 78} bpm</strong>
-              </div>
-              <svg viewBox="0 0 120 32" className="vc-spark-svg">
-                <polyline
-                  fill="none"
-                  stroke="#e11d48"
-                  strokeWidth="2"
-                  points="0,18 22,18 28,6 34,28 40,12 46,20 72,18 80,5 86,27 92,15 120,18"
-                />
-              </svg>
-            </div>
-
-            <div className="vital-chart-card">
-              <div className="vc-top">
-                <span>2. Huyết áp</span>
-                <strong className="text-blue">{profile?.vitals?.blood_pressure || "120/80"} mmHg</strong>
-              </div>
-              <div className="vc-dual-bars">
-                <div className="vc-bar-line"><span style={{ width: "75%", background: "#2563eb" }} /></div>
-                <div className="vc-bar-line"><span style={{ width: "55%", background: "#0d9488" }} /></div>
-              </div>
-            </div>
-
-            <div className="vital-chart-card">
-              <div className="vc-top">
-                <span>3. Thân nhiệt</span>
-                <strong className="text-amber">
-                  {profile?.vitals?.temperature_celsius || profile?.vitals?.body_temperature_c || 36.6} °C
-                </strong>
-              </div>
-              <div className="vc-thermometer-track">
-                <div
-                  className="vc-thermometer-fill"
-                  style={{
-                    width: `${Math.min(100, Math.max(25, (((profile?.vitals?.temperature_celsius || 36.6) - 36) / 4) * 100))}%`,
-                  }}
-                />
-              </div>
-            </div>
-
-            <div className="vital-chart-card">
-              <div className="vc-top">
-                <span>4. Oxy máu SpO2</span>
-                <strong className="text-teal">{profile?.vitals?.spo2_percent || 98}%</strong>
-              </div>
-              <div className="vc-thermometer-track">
-                <div
-                  className="vc-thermometer-fill teal"
-                  style={{ width: `${profile?.vitals?.spo2_percent || 98}%` }}
-                />
-              </div>
-            </div>
-
-            <div className="vital-chart-card">
-              <div className="vc-top">
-                <span>5. Thang đau VAS</span>
-                <strong className="text-amber">
-                  {profile?.vitals?.vas_pain_score ?? profile?.vitals?.overall_pain_level ?? 0}/10
-                </strong>
-              </div>
-              <div className="vc-vas-segments">
-                {Array.from({ length: 10 }).map((_, idx) => {
-                  const active = idx < (profile?.vitals?.vas_pain_score ?? 0);
-                  return (
-                    <span
-                      key={idx}
-                      className={`vas-seg ${active ? "active" : ""}`}
-                      style={{
-                        backgroundColor: active
-                          ? idx >= 6
-                            ? "#e11d48"
-                            : idx >= 3
-                            ? "#f59e0b"
-                            : "#10b981"
-                          : "#e2e8f0",
-                      }}
-                    />
-                  );
-                })}
-              </div>
-            </div>
+          <div className="twin-col-analytics">
+            {renderOrganRankingDonutAndBars()}
           </div>
-        </section>
+        </div>
+      )}
+
+      {sectionFilter === "bio" && (
+        <div className="twin-focus-2col-grid">
+          <div className="twin-col-left">
+            {renderBioRadarAndGauges()}
+          </div>
+          <div className="twin-col-right">
+            {renderOrganRankingDonutAndBars()}
+          </div>
+        </div>
+      )}
+
+      {sectionFilter === "episodic" && (
+        <div className="twin-focus-full-width">
+          {renderEpisodicAnalyticsSuite()}
+        </div>
+      )}
+
+      {sectionFilter === "solutions" && (
+        <div className="twin-focus-full-width">
+          {renderSolutionsCenter()}
+        </div>
       )}
     </div>
   );
