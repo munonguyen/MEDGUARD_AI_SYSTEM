@@ -464,13 +464,18 @@ function Conversation({
         // User just sent a message -> always scroll to reveal
         scrollToBottom(true);
       } else if (isAtBottomRef.current) {
-        // Show the start of a new answer. Pinning a long answer to its end
-        // hides the emergency action on small screens.
-        const replies = streamRef.current.querySelectorAll('.chat-assistant:not(.pending-premium)');
-        const reply = replies[replies.length - 1];
-        if (reply) {
-          const top = scroller.scrollTop + reply.getBoundingClientRect().top - scroller.getBoundingClientRect().top - 12;
-          scroller.scrollTo({ top: Math.max(0, top), behavior: 'instant' });
+        if (latest?.profileProposal || latest?.medicationProposal || latest?.appointmentProposal || latest?.navigationAction || latest?.navCommand) {
+          // An interactive proposal/navigation card is present -> scroll to reveal it immediately
+          scrollToBottom(true);
+        } else {
+          // Show the start of a new answer. Pinning a long answer to its end
+          // hides the emergency action on small screens.
+          const replies = streamRef.current.querySelectorAll('.chat-assistant:not(.pending-premium)');
+          const reply = replies[replies.length - 1];
+          if (reply) {
+            const top = scroller.scrollTop + reply.getBoundingClientRect().top - scroller.getBoundingClientRect().top - 12;
+            scroller.scrollTo({ top: Math.max(0, top), behavior: 'instant' });
+          }
         }
       } else {
         // User is reading history higher up -> DO NOT yank scroll, show new message pill

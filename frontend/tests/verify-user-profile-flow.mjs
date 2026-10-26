@@ -27,18 +27,18 @@ async function main() {
   console.log('Captured sidebar_user_popover_open.png');
 
   // Click "Hồ sơ cá nhân & Bảo hiểm"
-  console.log('4. Opening PatientProfileModal from popover menu...');
+  console.log('4. Opening Dedicated UserProfilePage from popover menu...');
   const profileMenuItem = await page.waitForSelector('.popover-menu-item.highlight');
   await profileMenuItem.click();
 
-  await page.waitForSelector('.profile-modal-container');
+  await page.waitForSelector('.user-profile-page-workspace');
   await page.waitForTimeout(350);
   await page.screenshot({ path: '/Users/munonguyen/.gemini/antigravity-ide/brain/5f07f175-5aee-4f44-bf99-cab381082a0b/patient_profile_modal_tab1.png' });
   console.log('Captured patient_profile_modal_tab1.png');
 
   // Click Tab 2: BHYT, BHXH & Nhân thọ
   console.log('5. Switching to Tab 2: BHYT, BHXH & Nhân thọ...');
-  const tab2Btn = await page.locator('.profile-tab-btn').nth(1);
+  const tab2Btn = await page.locator('.profile-master-tab').nth(1);
   await tab2Btn.click();
   await page.waitForTimeout(200);
   await page.screenshot({ path: '/Users/munonguyen/.gemini/antigravity-ide/brain/5f07f175-5aee-4f44-bf99-cab381082a0b/patient_profile_modal_tab2_insurance.png' });
@@ -46,16 +46,16 @@ async function main() {
 
   // Click Tab 3: Tiền sử Y tế & Khẩn cấp
   console.log('6. Switching to Tab 3: Tiền sử Y tế & Khẩn cấp...');
-  const tab3Btn = await page.locator('.profile-tab-btn').nth(2);
+  const tab3Btn = await page.locator('.profile-master-tab').nth(2);
   await tab3Btn.click();
   await page.waitForTimeout(200);
   await page.screenshot({ path: '/Users/munonguyen/.gemini/antigravity-ide/brain/5f07f175-5aee-4f44-bf99-cab381082a0b/patient_profile_modal_tab3_medical.png' });
   console.log('Captured patient_profile_modal_tab3_medical.png');
 
-  // Close modal
-  const closeBtn = await page.waitForSelector('.modal-close-btn');
-  await closeBtn.click();
-  await page.waitForTimeout(200);
+  // Back to chat
+  const backBtn = await page.waitForSelector('.btn-back-to-chat');
+  await backBtn.click();
+  await page.waitForTimeout(300);
 
   // Now test chatting: First, message about relative (third-party)
   console.log('7. Testing third-party message: "Bố tôi năm nay 68 tuổi bị cao huyết áp..."');
