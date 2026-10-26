@@ -1011,10 +1011,12 @@ export function HealthTwinPage({
   );
 
   // 4. Selected Organ Inspector & Future Risk Gauge
+  // 4. Selected Organ Inspector & Future Risk Gauge (Full-Width Executive Dossier)
   const renderOrganInspector = () => {
     if (!activeOrgan) return null;
     return (
-      <div className={`organ-inspector-card status-${activeOrgan.status}`} aria-label="Chi tiết cơ quan đang chọn">
+      <section className={`organ-inspector-card fullwidth-dossier status-${activeOrgan.status}`} aria-label="Chi tiết cơ quan đang chọn">
+        {/* Top Header Row */}
         <div className="inspector-header">
           <div className="organ-title-row">
             <div
@@ -1027,121 +1029,195 @@ export function HealthTwinPage({
               <HeartPulse size={20} />
             </div>
             <div>
-              <h3>{activeOrgan.vietnamese_name}</h3>
+              <div className="organ-name-badge-line">
+                <h3>{activeOrgan.vietnamese_name}</h3>
+                <span className={`status-pill ${activeOrgan.status}`}>
+                  {getStatusBadgeText(activeOrgan.status)}
+                </span>
+                <span className="organ-score-badge">
+                  Điểm sức khỏe: <strong>{activeOrgan.health_score}/100</strong>
+                </span>
+              </div>
               <span className="organ-en-name">{activeOrgan.clinical_notes || activeOrgan.name}</span>
             </div>
           </div>
-          <span className={`status-pill ${activeOrgan.status}`}>
-            {getStatusBadgeText(activeOrgan.status)}
-          </span>
-        </div>
 
-        {/* Quick Clinical Actions Bar */}
-        <div className="organ-quick-actions-bar">
-          <button
-            type="button"
-            className="organ-action-btn consult-btn"
-            onClick={() => {
-              onNavigate?.("chat");
-              window.dispatchEvent(
-                new CustomEvent("medguard:navigate", {
-                  detail: {
-                    view: "chat",
-                    message: `Tư vấn AI chuyên sâu về tình trạng cơ quan: ${activeOrgan.vietnamese_name}`,
-                  },
-                })
-              );
-            }}
-          >
-            <MessageSquare size={13} />
-            <span>Tư vấn AI</span>
-          </button>
-          <button
-            type="button"
-            className="organ-action-btn declare-btn"
-            onClick={() => {
-              setInputMessage(`Cập nhật triệu chứng tại ${activeOrgan.vietnamese_name}: `);
-              document.querySelector(".console-text-input")?.focus();
-            }}
-          >
-            <Plus size={13} />
-            <span>Khai báo thêm</span>
-          </button>
-          <button
-            type="button"
-            className="organ-action-btn recover-btn"
-            disabled={evaluating || activeOrgan.status === "normal"}
-            onClick={() =>
-              handleEvaluateProgress(
-                `Triệu chứng tại ${activeOrgan.vietnamese_name} của tôi đã khỏi và ổn định hoàn toàn.`
-              )
-            }
-          >
-            <CheckCircle2 size={13} />
-            <span>Báo đã khỏi</span>
-          </button>
-          <button
-            type="button"
-            className="organ-action-btn nav-btn"
-            onClick={() => onNavigate?.("navigation")}
-          >
-            <Navigation size={13} />
-            <span>Chỉ đường CSYT</span>
-          </button>
-        </div>
-
-        {/* Semi-Circular Risk Gauge + Concise Future Prognosis */}
-        {activeOrgan.future_risk && (
-          <div className="organ-risk-gauge-panel">
-            <div className="semi-gauge-col">
-              {(() => {
-                const rLevel = activeOrgan.future_risk.risk_level;
-                const rPct = rLevel === "high" ? 84 : rLevel === "moderate" ? 52 : 22;
-                const rColor = rLevel === "high" ? "#e11d48" : rLevel === "moderate" ? "#d97706" : "#0d9488";
-                const arcLen = Math.round((rPct / 100) * 125.6);
-                return (
-                  <svg viewBox="0 0 100 62" className="semi-risk-svg">
-                    <path
-                      d="M 10 52 A 40 40 0 0 1 90 52"
-                      fill="none"
-                      stroke="#e2e8f0"
-                      strokeWidth="9"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M 10 52 A 40 40 0 0 1 90 52"
-                      fill="none"
-                      stroke={rColor}
-                      strokeWidth="9"
-                      strokeDasharray={`${arcLen} 130`}
-                      strokeLinecap="round"
-                    />
-                    <text x="50" y="42" textAnchor="middle" className="semi-gauge-pct" fill={rColor}>
-                      {rPct}%
-                    </text>
-                    <text x="50" y="55" textAnchor="middle" className="semi-gauge-lbl">
-                      Rủi ro ({activeOrgan.future_risk.timeframe})
-                    </text>
-                  </svg>
+          {/* Quick Clinical Actions Bar */}
+          <div className="organ-quick-actions-bar">
+            <button
+              type="button"
+              className="organ-action-btn consult-btn"
+              onClick={() => {
+                onNavigate?.("chat");
+                window.dispatchEvent(
+                  new CustomEvent("medguard:navigate", {
+                    detail: {
+                      view: "chat",
+                      message: `Tư vấn AI chuyên sâu về tình trạng cơ quan: ${activeOrgan.vietnamese_name}`,
+                    },
+                  })
                 );
-              })()}
-            </div>
+              }}
+            >
+              <MessageSquare size={13} />
+              <span>Tư vấn AI</span>
+            </button>
+            <button
+              type="button"
+              className="organ-action-btn declare-btn"
+              onClick={() => {
+                setInputMessage(`Cập nhật triệu chứng tại ${activeOrgan.vietnamese_name}: `);
+                document.querySelector(".console-text-input")?.focus();
+              }}
+            >
+              <Plus size={13} />
+              <span>Khai báo thêm</span>
+            </button>
+            <button
+              type="button"
+              className="organ-action-btn recover-btn"
+              disabled={evaluating || activeOrgan.status === "normal"}
+              onClick={() =>
+                handleEvaluateProgress(
+                  `Triệu chứng tại ${activeOrgan.vietnamese_name} của tôi đã khỏi và ổn định hoàn toàn.`
+                )
+              }
+            >
+              <CheckCircle2 size={13} />
+              <span>Báo đã khỏi</span>
+            </button>
+            <button
+              type="button"
+              className="organ-action-btn nav-btn"
+              onClick={() => onNavigate?.("navigation")}
+            >
+              <Navigation size={13} />
+              <span>Chỉ đường CSYT</span>
+            </button>
+          </div>
+        </div>
 
-            <div className="risk-concise-info">
-              <span className="risk-vaccine-pill">{activeOrgan.future_risk.vaccination_status}</span>
-              <h5 className="risk-prognosis-title">{activeOrgan.future_risk.risk_title}</h5>
-              <ul className="risk-concise-list">
-                {(activeOrgan.future_risk.preventive_recommendations || []).slice(0, 2).map((rec, i) => (
-                  <li key={i}>
-                    <CheckCircle2 size={13} />
-                    <span>{rec}</span>
-                  </li>
-                ))}
-              </ul>
+        {/* 3-Column Diagnostic Dossier Grid */}
+        <div className="organ-dossier-grid">
+          {/* Col 1: Lâm sàng & Triệu chứng */}
+          <div className="dossier-col clinical-status-col">
+            <div className="dossier-col-head">
+              <Activity size={15} className="text-teal" />
+              <h5>Thực Trạng Sinh Lý & Lâm Sàng</h5>
+            </div>
+            <div className="dossier-content-box">
+              <div className="dossier-field">
+                <span className="field-lbl">Đánh giá cơ quan:</span>
+                <p className="field-val">{activeOrgan.clinical_notes || "Chức năng bình thường, chưa ghi nhận tổn thương."}</p>
+              </div>
+              <div className="dossier-field">
+                <span className="field-lbl">Mức độ đau / viêm:</span>
+                <span className="field-val-badge">
+                  Đau VAS: {activeOrgan.pain_level || 0}/10 • Viêm: {activeOrgan.inflammation_level === 'none' ? 'Không viêm' : activeOrgan.inflammation_level}
+                </span>
+              </div>
+              {activeOrgan.warning && (
+                <div className="dossier-alert-warning">
+                  <AlertCircle size={14} />
+                  <span>{activeOrgan.warning}</span>
+                </div>
+              )}
             </div>
           </div>
-        )}
-      </div>
+
+          {/* Col 2: Dự báo rủi ro 3 - 10 năm */}
+          <div className="dossier-col future-risk-col">
+            <div className="dossier-col-head">
+              <ShieldAlert size={15} className="text-amber" />
+              <h5>Tiên Lượng & Dự Báo Rủi Ro (3 - 10 Năm)</h5>
+            </div>
+            {activeOrgan.future_risk ? (
+              <div className="organ-risk-gauge-panel">
+                <div className="semi-gauge-col">
+                  {(() => {
+                    const rLevel = activeOrgan.future_risk.risk_level;
+                    const rPct = rLevel === "high" ? 84 : rLevel === "moderate" ? 52 : 22;
+                    const rColor = rLevel === "high" ? "#e11d48" : rLevel === "moderate" ? "#d97706" : "#0d9488";
+                    const arcLen = Math.round((rPct / 100) * 125.6);
+                    return (
+                      <svg viewBox="0 0 100 62" className="semi-risk-svg">
+                        <path
+                          d="M 10 52 A 40 40 0 0 1 90 52"
+                          fill="none"
+                          stroke="#e2e8f0"
+                          strokeWidth="9"
+                          strokeLinecap="round"
+                        />
+                        <path
+                          d="M 10 52 A 40 40 0 0 1 90 52"
+                          fill="none"
+                          stroke={rColor}
+                          strokeWidth="9"
+                          strokeDasharray={`${arcLen} 130`}
+                          strokeLinecap="round"
+                        />
+                        <text x="50" y="42" textAnchor="middle" className="semi-gauge-pct" fill={rColor}>
+                          {rPct}%
+                        </text>
+                        <text x="50" y="55" textAnchor="middle" className="semi-gauge-lbl">
+                          Rủi ro ({activeOrgan.future_risk.timeframe})
+                        </text>
+                      </svg>
+                    );
+                  })()}
+                </div>
+
+                <div className="risk-concise-info">
+                  <span className="risk-vaccine-pill">{activeOrgan.future_risk.vaccination_status}</span>
+                  <h5 className="risk-prognosis-title">{activeOrgan.future_risk.risk_title}</h5>
+                  <ul className="risk-concise-list">
+                    {(activeOrgan.future_risk.preventive_recommendations || []).slice(0, 2).map((rec, i) => (
+                      <li key={i}>
+                        <CheckCircle2 size={13} className="text-emerald" />
+                        <span>{rec}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            ) : (
+              <p className="no-risk-txt">Chưa ghi nhận rủi ro tiềm ẩn cho cơ quan này.</p>
+            )}
+          </div>
+
+          {/* Col 3: Dược lâm sàng & An toàn */}
+          <div className="dossier-col pharma-safety-col">
+            <div className="dossier-col-head">
+              <Pill size={15} className="text-rose" />
+              <h5>An Toàn Dược Lý & Trần Giá DAV</h5>
+            </div>
+            <div className="dossier-content-box">
+              <div className="dossier-field">
+                <span className="field-lbl">Thuốc liên quan / Chuyển hóa:</span>
+                <p className="field-val">
+                  {activeOrgan.related_medications?.length > 0
+                    ? activeOrgan.related_medications.join(', ')
+                    : 'Chưa dùng hoạt chất có gánh nặng chuyển hóa cao.'}
+                </p>
+              </div>
+              <div className="dossier-field">
+                <span className="field-lbl">Tương tác & Khuyến cáo:</span>
+                <p className="field-val sub-advice">
+                  {activeOrgan.id === 'liver'
+                    ? 'Tránh lạm dụng Paracetamol > 3000mg/24h. Ưu tiên kiểm tra men gan định kỳ.'
+                    : activeOrgan.id === 'stomach'
+                    ? 'Không phối hợp đồng thời nhiều thuốc NSAID. Kê đơn PPI đạt chuẩn GPP.'
+                    : 'Tuân thủ đúng phác đồ điều trị, đối chiếu giá trần niêm yết Cục Quản Lý Dược.'}
+                </p>
+              </div>
+              <div className="dossier-pharma-badge">
+                <ShieldCheck size={14} className="text-emerald" />
+                <span>BHYT hỗ trợ 80% • Đạt chuẩn GPP</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     );
   };
 
@@ -2112,10 +2188,9 @@ export function HealthTwinPage({
         <div className="twin-executive-master-wrapper">
           {/* Upper Deck: 3D Anatomical Stage (Left) & Biometrics / Organ Ranking (Right) */}
           <div className="twin-executive-grid">
-            {/* Left Wing: 3D Anatomical Twin & Selected Organ Inspector */}
+            {/* Left Wing: 3D Anatomical Twin */}
             <div className="twin-col-anatomy">
               {render3DAnatomicalModel()}
-              {renderOrganInspector()}
             </div>
 
             {/* Right Wing: Biometrics, 9-Organ Ranking */}
@@ -2124,6 +2199,9 @@ export function HealthTwinPage({
               {renderOrganRankingDonutAndBars()}
             </div>
           </div>
+
+          {/* Dedicated Full-Width Organ Diagnostic Dossier */}
+          {renderOrganInspector()}
 
           {/* Lower Clinical Deck: Full-Width Episodic Analytics & 4-Pillar Solutions */}
           <div className="twin-clinical-deck-full">
@@ -2134,14 +2212,16 @@ export function HealthTwinPage({
       )}
 
       {sectionFilter === "anatomy" && (
-        <div className="twin-focus-2col-grid">
-          <div className="twin-col-anatomy">
-            {render3DAnatomicalModel()}
-            {renderOrganInspector()}
+        <div className="twin-executive-master-wrapper">
+          <div className="twin-focus-2col-grid">
+            <div className="twin-col-anatomy">
+              {render3DAnatomicalModel()}
+            </div>
+            <div className="twin-col-analytics">
+              {renderOrganRankingDonutAndBars()}
+            </div>
           </div>
-          <div className="twin-col-analytics">
-            {renderOrganRankingDonutAndBars()}
-          </div>
+          {renderOrganInspector()}
         </div>
       )}
 

@@ -3671,9 +3671,18 @@
 
 .daylight-clinical-theme .twin-brand-badge h1 {
   color: #0f172a !important;
-  font-size: 1.22rem !important;
+  font-size: 1.25rem !important;
   font-weight: 800 !important;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.02em !important;
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  -webkit-text-fill-color: #0f172a !important;
+  margin: 0 !important;
+}
+
+.daylight-clinical-theme .twin-pulse-icon {
+  color: #0d9488 !important;
+  filter: drop-shadow(0 0 6px rgba(13, 148, 136, 0.4)) !important;
 }
 
 .daylight-clinical-theme .twin-subtitle {
@@ -3684,13 +3693,17 @@
 
 .daylight-clinical-theme .twin-subtitle strong {
   color: #0d9488 !important;
+  font-weight: 700 !important;
 }
 
 .daylight-clinical-theme .live-tag {
-  background: #ccfbf1 !important;
-  color: #0f766e !important;
-  border: 1px solid #99f6e4 !important;
-  font-weight: 700 !important;
+  background: #f0fdf4 !important;
+  color: #16a34a !important;
+  border: 1px solid #bbf7d0 !important;
+  font-size: 0.68rem !important;
+  font-weight: 750 !important;
+  padding: 3px 8px !important;
+  border-radius: 9999px !important;
 }
 
 .member-verified-pill {
@@ -3751,49 +3764,62 @@
   border-radius: 14px;
   padding: 8px 12px;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
-  flex-wrap: wrap;
 }
 
 .section-tabs-group {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .sec-filter-tab {
-  padding: 7px 13px;
-  border-radius: 9px;
-  border: 1px solid transparent;
-  background: transparent;
+  padding: 7px 14px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
   color: #475569;
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 650;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.18s ease;
   white-space: nowrap;
 }
 
 .sec-filter-tab:hover {
   background: #f1f5f9;
+  border-color: #cbd5e1;
   color: #0f172a;
 }
 
 .sec-filter-tab.active {
   background: #0d9488;
+  border-color: #0f766e;
   color: #ffffff;
-  font-weight: 700;
-  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.25);
+  font-weight: 750;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.28);
 }
 
 .daylight-clinical-theme .btn-open-chat-sync {
   background: #eff6ff !important;
   color: #1d4ed8 !important;
   border: 1px solid #bfdbfe !important;
-  border-radius: 9px !important;
-  padding: 7px 13px !important;
+  border-radius: 10px !important;
+  padding: 7px 14px !important;
   font-size: 0.8rem !important;
   font-weight: 700 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  cursor: pointer !important;
+  transition: all 0.18s ease !important;
+  white-space: nowrap !important;
+}
+
+.daylight-clinical-theme .btn-open-chat-sync:hover {
+  background: #dbeafe !important;
+  border-color: #93c5fd !important;
+  transform: translateY(-1px);
 }
 
 /* Shared Visual Section Card */
@@ -3930,12 +3956,11 @@
 }
 
 .radial-gauge-info span {
-  font-size: 0.72rem;
-  color: #64748b;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 0.73rem;
+  color: #475569;
+  font-weight: 650;
+  white-space: normal;
+  line-height: 1.25;
 }
 
 .radial-gauge-info strong {
@@ -5006,12 +5031,17 @@
   gap: 10px;
 }
 
-/* Clean Organ Inspector */
+/* Clean Organ Inspector (Full-Width Executive Dossier) */
 .daylight-clinical-theme .organ-inspector-card {
   border: 1px solid #e2e8f0 !important;
   border-radius: 16px !important;
-  padding: 16px 18px !important;
+  padding: 20px 22px !important;
   background: #ffffff !important;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04) !important;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
 }
 
 .daylight-clinical-theme .organ-inspector-card.status-normal {
@@ -5026,6 +5056,214 @@
 .daylight-clinical-theme .organ-inspector-card.status-adverse_reaction,
 .daylight-clinical-theme .organ-inspector-card.status-critical {
   border-left: 4px solid #e11d48 !important;
+}
+
+.organ-name-badge-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.organ-name-badge-line h3 {
+  margin: 0;
+  font-size: 1.18rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.organ-score-badge {
+  font-size: 0.78rem;
+  color: #475569;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 3px 8px;
+  border-radius: 8px;
+}
+
+.organ-score-badge strong {
+  color: #0d9488;
+}
+
+.organ-quick-actions-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.organ-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 13px;
+  border-radius: 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #334155;
+}
+
+.organ-action-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.organ-action-btn.consult-btn {
+  background: #f0fdfa;
+  border-color: #99f6e4;
+  color: #0f766e;
+}
+.organ-action-btn.consult-btn:hover {
+  background: #ccfbf1;
+  border-color: #5eead4;
+}
+
+.organ-action-btn.declare-btn {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+.organ-action-btn.declare-btn:hover {
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+
+.organ-action-btn.recover-btn {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #047857;
+}
+.organ-action-btn.recover-btn:hover:not(:disabled) {
+  background: #d1fae5;
+  border-color: #6ee7b7;
+}
+.organ-action-btn.recover-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: #f8fafc;
+}
+
+.organ-action-btn.nav-btn {
+  background: #faf5ff;
+  border-color: #e9d5ff;
+  color: #7e22ce;
+}
+.organ-action-btn.nav-btn:hover {
+  background: #f3e8ff;
+  border-color: #d8b4fe;
+}
+
+.organ-dossier-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.35fr 1fr;
+  gap: 16px;
+  align-items: stretch;
+}
+
+.dossier-col {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dossier-col-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 8px;
+}
+
+.dossier-col-head h5 {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #0f172a;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.dossier-content-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dossier-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.field-lbl {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.field-val {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #1e293b;
+  line-height: 1.4;
+}
+
+.field-val.sub-advice {
+  font-size: 0.78rem;
+  color: #475569;
+}
+
+.field-val-badge {
+  display: inline-block;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #0d9488;
+  background: #f0fdfa;
+  border: 1px solid #ccfbf1;
+  padding: 2px 8px;
+  border-radius: 6px;
+  width: fit-content;
+}
+
+.dossier-alert-warning {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+
+.dossier-pharma-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #047857;
+  font-size: 0.74rem;
+  font-weight: 750;
+  padding: 4px 8px;
+  border-radius: 8px;
+  margin-top: 4px;
+}
+
+@media (max-width: 1080px) {
+  .organ-dossier-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Responsive Overrides */
