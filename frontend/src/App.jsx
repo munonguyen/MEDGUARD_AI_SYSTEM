@@ -72,6 +72,7 @@ import { NavigationPage } from './navigation/NavigationPage';
 import { HealthTwinPage } from './health/HealthTwinPage';
 import { HealthcareSpendingPage } from './spending/HealthcareSpendingPage';
 import { PatientProfileModal } from './health/PatientProfileModal';
+import { UserProfilePage } from './health/UserProfilePage';
 import { SidebarUserCard } from './health/SidebarUserCard';
 import { ProfileUpdateConfirmationCard } from './health/ProfileUpdateConfirmationCard';
 import { extractUserProfileProposal } from './health/profileDisambiguation';
@@ -236,6 +237,7 @@ function Sidebar({
   onNavigationPage,
   onHealthPage,
   onSpendingPage,
+  onProfilePage,
   onSettings,
   onSystem,
   activeView,
@@ -279,6 +281,10 @@ function Sidebar({
           <span>Chi tiêu & Tiết kiệm Care</span>
           {isGuest && <span className="sidebar-lock-tag" title="Yêu cầu đăng nhập">🔒</span>}
         </button>
+        <button type="button" className={`nav-link-btn ${activeView === 'profile' ? 'active' : ''}`} onClick={() => { onProfilePage?.(); close(); }}>
+          <UserRound size={17} />
+          <span>Hồ sơ & Bảo hiểm</span>
+        </button>
         <button type="button" className={`nav-link-btn companion-nav-btn ${activeView === 'companion' ? 'active' : ''}`} onClick={() => { onCompanionPage?.(); close(); }}>
           <Sparkles size={17} />
           <span>Bác sĩ 3D Live</span>
@@ -294,7 +300,7 @@ function Sidebar({
           context={context}
           account={account}
           isGuest={isGuest}
-          onOpenProfile={() => { onOpenProfile?.(); close(); }}
+          onOpenProfile={() => { onProfilePage?.(); close(); }}
           onSettings={() => { onSettings(); close(); }}
           onLogout={onLogout}
           onRequireAuth={onRequireAuth}
@@ -302,6 +308,7 @@ function Sidebar({
             if (target === 'health') onHealthPage?.();
             else if (target === 'spending') onSpendingPage?.();
             else if (target === 'companion') onCompanionPage?.();
+            else if (target === 'profile') onProfilePage?.();
             close();
           }}
         />
@@ -893,7 +900,7 @@ export default function App({
       const sp = new URLSearchParams(window.location.search);
       const hash = window.location.hash.replace(/^#\/?/, '');
       const initial = sp.get('view') || hash;
-      if (['chat', 'companion', 'schedule', 'medication', 'navigation', 'health', 'spending', 'system'].includes(initial)) {
+      if (['chat', 'companion', 'schedule', 'medication', 'navigation', 'health', 'spending', 'system', 'profile'].includes(initial)) {
         return initial;
       }
     } catch {}
@@ -912,7 +919,7 @@ export default function App({
     const handleCustomNavigate = (e) => {
       const detail = e.detail;
       const target = typeof detail === 'string' ? detail : detail?.view;
-      if (['chat', 'companion', 'schedule', 'medication', 'navigation', 'health', 'spending', 'system'].includes(target)) {
+      if (['chat', 'companion', 'schedule', 'medication', 'navigation', 'health', 'spending', 'system', 'profile'].includes(target)) {
         if (detail && typeof detail === 'object' && detail.navigationContext) {
           setNavigationContext(detail.navigationContext);
         }
@@ -1433,9 +1440,7 @@ export default function App({
         }
         if (navCommand && navCommand.isNavCommand) {
           responseEntry.navCommand = navCommand;
-          if (navCommand.targetView === 'profile') {
-            setPatientOpen(true);
-          } else if (navCommand.targetView === 'settings') {
+          if (navCommand.targetView === 'settings') {
             setSettingsOpen(true);
           } else if (navCommand.targetView) {
             setView(navCommand.targetView);
@@ -1552,6 +1557,7 @@ export default function App({
       onNavigationPage={() => setView('navigation')}
       onHealthPage={() => setView('health')}
       onSpendingPage={() => setView('spending')}
+      onProfilePage={() => setView('profile')}
       onSettings={() => { setSettingsInitialTab('general'); setSettingsOpen(true); }}
       onSystem={() => { if (!account || account.role === 'admin') setView('system'); }}
       activeView={view}
@@ -1560,7 +1566,7 @@ export default function App({
       isGuest={isGuest || !account}
       context={context}
       account={account}
-      onOpenProfile={() => setPatientOpen(true)}
+      onOpenProfile={() => setView('profile')}
       onRequireAuth={onRequireAuth}
       onLogout={onLogout}
     />
@@ -1577,8 +1583,8 @@ export default function App({
             {sidebarCollapsed ? <PanelLeftOpen size={20} /> : <Menu size={20} />}
           </button>
           <div>
-            <h1>{view === 'system' ? 'Hệ thống & Kiểm toán' : view === 'spending' ? 'Chi Tiêu Y Tế & Tiết Kiệm Care' : view === 'schedule' ? 'Lịch khám bệnh' : view === 'medication' ? 'Lịch uống thuốc' : view === 'companion' ? 'Bác sĩ 3D Live' : view === 'navigation' ? 'Chỉ đường & Trạm Y Tế' : conversationTitle}</h1>
-            <span>{view === 'system' ? 'Trạng thái vận hành lâm sàng' : view === 'spending' ? 'Tối ưu hóa kinh tế y khoa, thuốc chuẩn GPP & Booking Care' : view === 'schedule' ? 'Thời khóa biểu ca khám bác sĩ' : view === 'medication' ? 'Thời khóa biểu nhắc thuốc cá nhân' : view === 'companion' ? 'Bác sĩ ảo 3D tư vấn trực tiếp qua giọng nói & cử chỉ' : view === 'navigation' ? 'Định tuyến 3D & Bản đồ GPP' : (context.display_name ? `Bệnh nhân: ${context.display_name}` : context.patient_ref || 'Hỗ trợ y khoa 24/7')}</span>
+            <h1>{view === 'system' ? 'Hệ thống & Kiểm toán' : view === 'spending' ? 'Chi Tiêu Y Tế & Tiết Kiệm Care' : view === 'schedule' ? 'Lịch khám bệnh' : view === 'medication' ? 'Lịch uống thuốc' : view === 'companion' ? 'Bác sĩ 3D Live' : view === 'navigation' ? 'Chỉ đường & Trạm Y Tế' : view === 'profile' ? 'Hồ Sơ Y Tế & Bảo Hiểm' : conversationTitle}</h1>
+            <span>{view === 'system' ? 'Trạng thái vận hành lâm sàng' : view === 'spending' ? 'Tối ưu hóa kinh tế y khoa, thuốc chuẩn GPP & Booking Care' : view === 'schedule' ? 'Thời khóa biểu ca khám bác sĩ' : view === 'medication' ? 'Thời khóa biểu nhắc thuốc cá nhân' : view === 'companion' ? 'Bác sĩ ảo 3D tư vấn trực tiếp qua giọng nói & cử chỉ' : view === 'navigation' ? 'Định tuyến 3D & Bản đồ GPP' : view === 'profile' ? 'Quản lý thông tin cá nhân, thể trạng, BHYT, BHXH & tiền sử bệnh' : (context.display_name ? `Bệnh nhân: ${context.display_name}` : context.patient_ref || 'Hỗ trợ y khoa 24/7')}</span>
           </div>
         </div>
         <div className="topbar-actions">
@@ -1670,6 +1676,17 @@ export default function App({
             >
               <WalletCards size={14} />
               <span>Chi tiêu y tế</span>
+            </button>
+            <button
+              role="tab"
+              aria-selected={view === "profile"}
+              className={`view-tab-btn ${view === "profile" ? "active" : ""}`}
+              type="button"
+              onClick={() => setView(view === "profile" ? "chat" : "profile")}
+              title="Quản lý hồ sơ bệnh nhân & bảo hiểm y tế"
+            >
+              <UserRound size={14} />
+              <span>Hồ sơ cá nhân</span>
             </button>
           </div>
 
@@ -1767,7 +1784,7 @@ export default function App({
                 className={`patient-button ${context.patient_ref || context.display_name ? 'selected' : ''}`}
                 type="button"
                 aria-label="Mở Profile cá nhân"
-                onClick={() => setPatientOpen(true)}
+                onClick={() => setView('profile')}
               >
                 <span>{context.display_name ? context.display_name.trim().slice(0, 2).toUpperCase() : context.patient_ref ? context.patient_ref.slice(0, 2) : <UserRound size={15} />}</span>
                 <div>
@@ -1988,6 +2005,15 @@ export default function App({
           onBackToChat={() => setView('chat')}
           onNotify={notify}
         />
+      ) : view === 'profile' ? (
+        <UserProfilePage
+          context={context}
+          account={account}
+          onSave={saveProfile}
+          onClear={clearProfile}
+          onBackToChat={() => setView('chat')}
+          onNotify={notify}
+        />
       ) : (
         <section id="main-chat-workspace" className={`chat-workspace ${entries.length ? 'has-messages' : ''}`} aria-live="polite">
           <div className="location-context-bar">
@@ -2031,14 +2057,14 @@ export default function App({
                 setSpeakingText={setSpeakingText}
                 onAcceptProfileProposal={handleAcceptProfileProposal}
                 onDeclineProfileProposal={handleDeclineProfileProposal}
-                onOpenProfile={() => setPatientOpen(true)}
+                onOpenProfile={() => setView('profile')}
                 onAcceptMedicationProposal={handleAcceptMedicationProposal}
                 onDeclineMedicationProposal={handleDeclineMedicationProposal}
                 onAcceptAppointmentProposal={handleAcceptAppointmentProposal}
                 onDeclineAppointmentProposal={handleDeclineAppointmentProposal}
                 onOpenNavigation={handleOpenNavigationAction}
                 onNavigate={(target) => {
-                  if (target === 'profile') setPatientOpen(true);
+                  if (target === 'profile') setView('profile');
                   else if (target === 'settings') setSettingsOpen(true);
                   else setView(target);
                 }}

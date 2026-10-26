@@ -107,13 +107,16 @@ export function detectConversationalNavigation(text = '') {
 
   // Profile / Hồ sơ bệnh nhân
   if (
-    /(?:mở|xem|chỉnh sửa|cập nhật)\s+(?:hồ sơ\s*bệnh nhân|hồ sơ\s*cá nhân|profile\s*cá nhân|thẻ\s*bhyt|thông tin cá nhân)/i.test(lower)
+    /(?:mở|xem|chỉnh sửa|cập nhật|sửa)\s+(?:trang\s+|màn\s+hình\s+|tab\s+)?(?:hồ sơ(?:\s*bệnh nhân|\s*cá nhân)?|profile(?:\s*cá nhân)?|thẻ\s*bhyt|thông tin cá nhân)/i.test(lower) ||
+    lower === 'hồ sơ' ||
+    lower === 'chỉnh sửa hồ sơ' ||
+    lower === 'sửa hồ sơ'
   ) {
     return {
       isNavCommand: true,
       targetView: NAV_COMMANDS.PROFILE,
       label: 'Hồ Sơ Y Tế & Xác Thực Bảo Hiểm',
-      reply: 'Đang mở cửa sổ Quản lý Hồ sơ Y tế & Xác thực BHYT.',
+      reply: 'Đã mở trang Quản lý Hồ sơ Y tế & Xác thực Bảo hiểm.',
     };
   }
 
