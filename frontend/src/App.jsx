@@ -585,7 +585,7 @@ function Conversation({
               <div className="assistant-header-meta">
                 <div className="assistant-identity">
                   <strong>MedGuard AI</strong>
-                  <span className="assistant-version-badge">Clinical v14</span>
+                  <span className="assistant-version-badge">Bác Sĩ Trợ Lý AI</span>
                   {entry.topic_label && (
                     <span
                       className={`assistant-topic-badge topic-${(entry.topic_mode || 'unrelated').toLowerCase().replace(/_/g, '-')}`}
@@ -595,9 +595,9 @@ function Conversation({
                     </span>
                   )}
                   {entry.verification_status === 'verified' && (
-                    <span className="assistant-verified-badge" title="Đã qua kiểm định an toàn lâm sàng">
+                    <span className="assistant-verified-badge" title="Đã qua kiểm định an toàn y tế">
                       <ShieldCheck size={12} />
-                      Đã kiểm chứng
+                      Đã đối soát an toàn y tế
                     </span>
                   )}
                 </div>
@@ -923,7 +923,10 @@ export default function App({
   useEffect(() => {
     const handleCustomNavigate = (e) => {
       const detail = e.detail;
-      const target = typeof detail === 'string' ? detail : detail?.view;
+      let target = typeof detail === 'string' ? detail : detail?.view;
+      if (target === 'twin') target = 'health';
+      if (target === 'appointments') target = 'schedule';
+      if (target === 'medications') target = 'medication';
       if (['chat', 'companion', 'schedule', 'medication', 'navigation', 'health', 'spending', 'system', 'profile'].includes(target)) {
         if (detail && typeof detail === 'object' && detail.navigationContext) {
           setNavigationContext(detail.navigationContext);

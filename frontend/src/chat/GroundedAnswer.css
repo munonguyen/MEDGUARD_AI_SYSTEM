@@ -3538,5 +3538,125 @@
   transform: translateY(-1px);
 }
 
+/* =====================================================================
+   CONNECTED ECOSYSTEM ACTION BAR (SMART CROSS-MODULE CHIPS)
+   ===================================================================== */
+.connected-ecosystem-action-bar {
+  margin-top: 14px;
+  margin-bottom: 8px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.ecosystem-bar-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  margin-bottom: 10px;
+}
+
+.ecosystem-bar-header .icon-sparkle {
+  color: #0d9488;
+}
+
+.ecosystem-chips-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ecosystem-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 650;
+  border: 1px solid transparent;
+  cursor: pointer;
+  background: #ffffff;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.ecosystem-chip-btn:hover {
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.ecosystem-chip-btn.chip-twin {
+  color: #0f766e;
+  border-color: #ccfbf1;
+  background: #f0fdfa;
+}
+.ecosystem-chip-btn.chip-twin:hover {
+  background: #ccfbf1;
+  border-color: #0d9488;
+}
+
+.ecosystem-chip-btn.chip-med {
+  color: #b45309;
+  border-color: #fef3c7;
+  background: #fffbeb;
+}
+.ecosystem-chip-btn.chip-med:hover {
+  background: #fef3c7;
+  border-color: #d97706;
+}
+
+.ecosystem-chip-btn.chip-appt {
+  color: #1d4ed8;
+  border-color: #dbeafe;
+  background: #eff6ff;
+}
+.ecosystem-chip-btn.chip-appt:hover {
+  background: #dbeafe;
+  border-color: #2563eb;
+}
+
+.ecosystem-chip-btn.chip-spending {
+  color: #be185d;
+  border-color: #fce7f3;
+  background: #fdf2f8;
+}
+.ecosystem-chip-btn.chip-spending:hover {
+  background: #fce7f3;
+  border-color: #db2777;
+}
+
+.ecosystem-chip-btn.chip-map {
+  color: #0369a1;
+  border-color: #e0f2fe;
+  background: #f0f9ff;
+}
+.ecosystem-chip-btn.chip-map:hover {
+  background: #e0f2fe;
+  border-color: #0284c7;
+}
+
+/* Agent unavailable reassuring notice */
+.agent-unavailable-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.45;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
 
 

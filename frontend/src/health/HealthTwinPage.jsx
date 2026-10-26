@@ -727,94 +727,99 @@ export function HealthTwinPage({
   // ============================================================================
 
   // 1. Executive Biometric Vitals Ribbon (5 Vital Signs)
-  const renderVitalsRibbon = () => (
-    <div className="vitals-sparkline-strip executive-vitals-bar" aria-label="5 Chỉ số Sinh hiệu Lâm sàng">
-      <div className="vital-chart-card">
-        <div className="vc-top">
-          <span>1. Nhịp tim (ECG)</span>
-          <strong className="text-rose">{profile?.vitals?.heart_rate_bpm || 78} bpm</strong>
-        </div>
-        <svg viewBox="0 0 120 32" className="vc-spark-svg" role="img" aria-label="Dải nhịp tim ECG">
-          <polyline
-            fill="none"
-            stroke="#e11d48"
-            strokeWidth="2"
-            points="0,18 22,18 28,6 34,28 40,12 46,20 72,18 80,5 86,27 92,15 120,18"
-          />
-        </svg>
-      </div>
+  const renderVitalsRibbon = () => {
+    const painScore = profile?.vitals?.vas_pain_score ?? profile?.vitals?.overall_pain_level ?? 0;
+    const painLabel = painScore === 0 ? "Không đau" : painScore <= 3 ? "Đau nhẹ" : painScore <= 6 ? "Đau vừa" : "Đau dữ dội";
 
-      <div className="vital-chart-card">
-        <div className="vc-top">
-          <span>2. Huyết áp</span>
-          <strong className="text-blue">{profile?.vitals?.blood_pressure || "120/80"} mmHg</strong>
+    return (
+      <div className="vitals-sparkline-strip executive-vitals-bar" aria-label="5 Chỉ số Sức khỏe Cơ bản">
+        <div className="vital-chart-card">
+          <div className="vc-top">
+            <span>1. Nhịp tim (Điện tâm đồ)</span>
+            <strong className="text-rose">{profile?.vitals?.heart_rate_bpm || 78} nhịp/phút</strong>
+          </div>
+          <svg viewBox="0 0 120 32" className="vc-spark-svg" role="img" aria-label="Dải nhịp tim ECG">
+            <polyline
+              fill="none"
+              stroke="#e11d48"
+              strokeWidth="2"
+              points="0,18 22,18 28,6 34,28 40,12 46,20 72,18 80,5 86,27 92,15 120,18"
+            />
+          </svg>
         </div>
-        <div className="vc-dual-bars">
-          <div className="vc-bar-line"><span style={{ width: "75%", background: "#2563eb" }} /></div>
-          <div className="vc-bar-line"><span style={{ width: "55%", background: "#0d9488" }} /></div>
-        </div>
-      </div>
 
-      <div className="vital-chart-card">
-        <div className="vc-top">
-          <span>3. Thân nhiệt</span>
-          <strong className="text-amber">
-            {profile?.vitals?.temperature_celsius || profile?.vitals?.body_temperature_c || 36.6} °C
-          </strong>
+        <div className="vital-chart-card">
+          <div className="vc-top">
+            <span>2. Huyết áp</span>
+            <strong className="text-blue">{profile?.vitals?.blood_pressure || "120/80"} mmHg</strong>
+          </div>
+          <div className="vc-dual-bars">
+            <div className="vc-bar-line"><span style={{ width: "75%", background: "#2563eb" }} /></div>
+            <div className="vc-bar-line"><span style={{ width: "55%", background: "#0d9488" }} /></div>
+          </div>
         </div>
-        <div className="vc-thermometer-track">
-          <div
-            className="vc-thermometer-fill"
-            style={{
-              width: `${Math.min(100, Math.max(25, (((profile?.vitals?.temperature_celsius || 36.6) - 36) / 4) * 100))}%`,
-            }}
-          />
-        </div>
-      </div>
 
-      <div className="vital-chart-card">
-        <div className="vc-top">
-          <span>4. Oxy máu SpO2</span>
-          <strong className="text-teal">{profile?.vitals?.spo2_percent || 98}%</strong>
+        <div className="vital-chart-card">
+          <div className="vc-top">
+            <span>3. Thân nhiệt</span>
+            <strong className="text-amber">
+              {profile?.vitals?.temperature_celsius || profile?.vitals?.body_temperature_c || 36.6} °C
+            </strong>
+          </div>
+          <div className="vc-thermometer-track">
+            <div
+              className="vc-thermometer-fill"
+              style={{
+                width: `${Math.min(100, Math.max(25, (((profile?.vitals?.temperature_celsius || 36.6) - 36) / 4) * 100))}%`,
+              }}
+            />
+          </div>
         </div>
-        <div className="vc-thermometer-track">
-          <div
-            className="vc-thermometer-fill teal"
-            style={{ width: `${profile?.vitals?.spo2_percent || 98}%` }}
-          />
-        </div>
-      </div>
 
-      <div className="vital-chart-card">
-        <div className="vc-top">
-          <span>5. Thang đau VAS</span>
-          <strong className="text-amber">
-            {profile?.vitals?.vas_pain_score ?? profile?.vitals?.overall_pain_level ?? 0}/10
-          </strong>
+        <div className="vital-chart-card">
+          <div className="vc-top">
+            <span>4. Nồng độ Oxy trong máu (SpO2)</span>
+            <strong className="text-teal">{profile?.vitals?.spo2_percent || 98}%</strong>
+          </div>
+          <div className="vc-thermometer-track">
+            <div
+              className="vc-thermometer-fill teal"
+              style={{ width: `${profile?.vitals?.spo2_percent || 98}%` }}
+            />
+          </div>
         </div>
-        <div className="vc-vas-segments">
-          {Array.from({ length: 10 }).map((_, idx) => {
-            const active = idx < (profile?.vitals?.vas_pain_score ?? 0);
-            return (
-              <span
-                key={idx}
-                className={`vas-seg ${active ? "active" : ""}`}
-                style={{
-                  backgroundColor: active
-                    ? idx >= 6
-                      ? "#e11d48"
-                      : idx >= 3
-                      ? "#f59e0b"
-                      : "#10b981"
-                    : "#e2e8f0",
-                }}
-              />
-            );
-          })}
+
+        <div className="vital-chart-card">
+          <div className="vc-top">
+            <span>5. Mức độ đau nhức (Thang 0-10)</span>
+            <strong className="text-amber">
+              {painScore}/10 ({painLabel})
+            </strong>
+          </div>
+          <div className="vc-vas-segments">
+            {Array.from({ length: 10 }).map((_, idx) => {
+              const active = idx < painScore;
+              return (
+                <span
+                  key={idx}
+                  className={`vas-seg ${active ? "active" : ""}`}
+                  style={{
+                    backgroundColor: active
+                      ? idx >= 6
+                        ? "#e11d48"
+                        : idx >= 3
+                        ? "#f59e0b"
+                        : "#10b981"
+                      : "#e2e8f0",
+                  }}
+                />
+              );
+            })}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // 2. Universal Smart Natural Intake Console & Quick Chips
   const renderSmartIntakeConsole = () => (
@@ -1074,7 +1079,25 @@ export function HealthTwinPage({
               }}
             >
               <MessageSquare size={13} />
-              <span>Tư vấn AI</span>
+              <span>Tư vấn Bác sĩ AI</span>
+            </button>
+            <button
+              type="button"
+              className="organ-action-btn med-btn"
+              onClick={() => onNavigate?.("medication")}
+              title="Xem danh sách thuốc điều trị"
+            >
+              <Pill size={13} />
+              <span>Thuốc điều trị</span>
+            </button>
+            <button
+              type="button"
+              className="organ-action-btn appt-btn"
+              onClick={() => onNavigate?.("schedule")}
+              title="Đặt lịch khám bác sĩ chuyên khoa"
+            >
+              <CalendarCheck size={13} />
+              <span>Đặt lịch khám</span>
             </button>
             <button
               type="button"
@@ -1127,7 +1150,7 @@ export function HealthTwinPage({
               <div className="dossier-field">
                 <span className="field-lbl">Mức độ đau / viêm:</span>
                 <span className="field-val-badge">
-                  Đau VAS: {activeOrgan.pain_level || 0}/10 • Viêm: {activeOrgan.inflammation_level === 'none' ? 'Không viêm' : activeOrgan.inflammation_level}
+                  Mức độ đau: {activeOrgan.pain_level || 0}/10 • Viêm: {activeOrgan.inflammation_level === 'none' ? 'Không viêm' : activeOrgan.inflammation_level === 'mild' ? 'Viêm nhẹ' : activeOrgan.inflammation_level === 'moderate' ? 'Viêm vừa' : 'Viêm nặng'}
                 </span>
               </div>
               {activeOrgan.warning && (
@@ -2167,10 +2190,10 @@ export function HealthTwinPage({
         <div className="section-tabs-group" role="tablist">
           {[
             { id: "all", label: "Tất cả Trực quan" },
-            { id: "anatomy", label: "1. Giải phẫu 3D (9 Cơ quan)" },
-            { id: "bio", label: "2. Radar Sinh học" },
-            { id: "episodic", label: "3. Diễn tiến Đợt" },
-            { id: "solutions", label: "4. Phác đồ 4 Trụ Cột" },
+            { id: "anatomy", label: "1. Bản đồ Cơ thể 3D (9 Cơ quan)" },
+            { id: "bio", label: "2. Cân bằng Thể trạng & Lối sống" },
+            { id: "episodic", label: "3. Nhật ký Diễn biến Theo ngày" },
+            { id: "solutions", label: "4. Lời khuyên Toàn diện (Thuốc & Ăn uống)" },
           ].map((tab) => (
             <button
               key={tab.id}

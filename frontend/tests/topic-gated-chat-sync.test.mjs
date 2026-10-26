@@ -117,7 +117,7 @@ describe('Suite 3: DUAL_HEALTH_AND_EXPENSE Gated Topic Sync', () => {
   it('12. Provides dual sync explanation and audit label', () => {
     const text = 'Hôm nay tôi vẫn còn đau rát thượng vị dạ dày nên đi khám và mua thuốc hết 650.000đ';
     const result = processUnifiedTopicGatedChat(text);
-    assert.match(result.label, /ĐỒNG BỘ KÉP/);
+    assert.equal(result.label, TOPIC_LABELS[TOPIC_MODES.DUAL_HEALTH_AND_EXPENSE]);
     assert.ok(result.healthMutation !== null && result.expenseMutation !== null);
   });
 });
@@ -129,10 +129,10 @@ describe('Suite 4: UNRELATED_NO_STATE_MUTATION Topic Preservation', () => {
     assert.equal(mode, TOPIC_MODES.UNRELATED_NO_STATE_MUTATION);
   });
 
-  it('14. Labels conversation as HỘI THOẠI CHUNG • KHÔNG CẬP NHẬT DỮ LIỆU', () => {
+  it('14. Labels conversation with unrelated topic label', () => {
     const text = 'Hôm nay thời tiết ngoài trời thế nào nhỉ?';
     const result = processUnifiedTopicGatedChat(text);
-    assert.equal(result.label, 'HỘI THOẠI CHUNG • KHÔNG CẬP NHẬT DỮ LIỆU');
+    assert.equal(result.label, TOPIC_LABELS[TOPIC_MODES.UNRELATED_NO_STATE_MUTATION]);
   });
 
   it('15. Strictly preserves 100% health metrics without mutation', () => {

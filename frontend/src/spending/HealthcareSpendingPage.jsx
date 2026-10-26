@@ -2058,19 +2058,19 @@ export function HealthcareSpendingPage({
             {/* 3 Open-Source Trust Metrics */}
             <div className="trust-metrics-summary-strip">
               <div className="trust-pill-item">
-                <span className="trust-pill-name">Wilson Score 95% CI:</span>
+                <span className="trust-pill-name">Độ uy tín cộng đồng:</span>
                 <strong className="text-pink">94.5%</strong>
-                <span className="trust-pill-hint">Độ tin cậy xếp hạng</span>
+                <span className="trust-pill-hint">Từ hàng ngàn người bệnh đánh giá</span>
               </div>
               <div className="trust-pill-item">
-                <span className="trust-pill-name">NLP Đánh Giá Thật:</span>
+                <span className="trust-pill-name">Xác thực đánh giá thật:</span>
                 <strong className="text-emerald">98.6%</strong>
-                <span className="trust-pill-hint">Lọc bot & review rác</span>
+                <span className="trust-pill-hint">Đã loại bỏ tin rác & đánh giá ảo</span>
               </div>
               <div className="trust-pill-item">
-                <span className="trust-pill-name">EigenTrust Nhà Thuốc:</span>
+                <span className="trust-pill-name">Độ tin cậy nhà thuốc:</span>
                 <strong className="text-cyan">0.96 / 1.0</strong>
-                <span className="trust-pill-hint">Mạng lưới GPP uy tín</span>
+                <span className="trust-pill-hint">Chuỗi nhà thuốc GPP niêm yết giá</span>
               </div>
             </div>
           </section>
@@ -2078,13 +2078,13 @@ export function HealthcareSpendingPage({
       </div>
 
       {/* ====================================================================
-          7. SMART RECOMMENDATIONS (KHUYẾN NGHỊ KINH TẾ DƯỢC HỌC THÔNG MINH)
+          7. SMART RECOMMENDATIONS (MẸO TIẾT KIỆM CHI PHÍ THUỐC & KHÁM CHỮA BỆNH)
           ==================================================================== */}
       <section className="smart-recommendations-section">
         <div className="recs-header-row">
           <div className="recs-title-box">
             <Sparkles size={18} className="text-pink" />
-            <h3 className="section-title">Khuyến Nghị Kinh Tế Dược Học Thông Minh (MedGuard AI)</h3>
+            <h3 className="section-title">Mẹo Tiết Kiệm Chi Phí Thuốc & Khám Chữa Bệnh Thông Minh</h3>
           </div>
           <span className="recs-badge">3 Giải Pháp Tối Ưu</span>
         </div>
@@ -2101,15 +2101,18 @@ export function HealthcareSpendingPage({
               Biệt dược Esomeprazole Stada 40mg đạt chuẩn tương đương sinh học 99.2% so với Nexium 40mg của AstraZeneca nhưng giá thành thấp hơn 40%.
             </p>
             <div className="rec-card-rationale">
-              <strong>Cơ sở lâm sàng: </strong>
-              <span>Được Cục Quản lý Dược cấp phép lưu hành Nhóm 1, nồng độ ức chế acid dạ dày tương đương, không gây tác dụng phụ.</span>
+              <strong>Cơ sở y khoa: </strong>
+              <span>Được Cục Quản lý Dược cấp phép lưu hành Nhóm 1, nồng độ ức chế acid dạ dày tương đương, hiệu quả điều trị an toàn như nhau.</span>
             </div>
             <button
               type="button"
               className="rec-cta-btn"
-              onClick={() => onNotify?.('Đã lưu đề xuất thuốc Generic EU-GMP vào danh mục gợi ý khi đi nhà thuốc!', 'success')}
+              onClick={() => {
+                onNavigate?.('medication');
+                onNotify?.('Đã chuyển sang Lịch uống thuốc để bạn kiểm tra đơn thuốc và dược chất tương đương!', 'success');
+              }}
             >
-              <span>Xem biệt dược thay thế</span>
+              <span>Xem Lịch uống thuốc</span>
               <ChevronRight size={14} />
             </button>
           </div>
@@ -2125,15 +2128,18 @@ export function HealthcareSpendingPage({
               Khi có giấy chuyển tuyến từ trung tâm y tế quận lên BV Đại học Y Dược, chi phí nội soi và tiền khám chuyên khoa được Quỹ BHYT chi trả 80%.
             </p>
             <div className="rec-card-rationale">
-              <strong>Cơ sở pháp lý: </strong>
-              <span>Áp dụng quy định thông tuyến BHYT theo Luật Bảo hiểm Y tế và Thông tư 20/2022/TT-BYT.</span>
+              <strong>Quyền lợi bảo hiểm: </strong>
+              <span>Áp dụng quy định thông tuyến BHYT theo Luật Bảo hiểm Y tế và Thông tư 20/2022/TT-BYT giúp giảm chi phí khám và xét nghiệm.</span>
             </div>
             <button
               type="button"
               className="rec-cta-btn"
-              onClick={() => onNotify?.('Đã mở hướng dẫn xin giấy chuyển tuyến BHYT đúng quy định!', 'info')}
+              onClick={() => {
+                onNavigate?.('schedule');
+                onNotify?.('Đã mở Lịch khám bác sĩ để bạn chọn cơ sở y tế đúng tuyến BHYT!', 'info');
+              }}
             >
-              <span>Hướng dẫn thủ tục BHYT</span>
+              <span>Đặt lịch khám BHYT</span>
               <ChevronRight size={14} />
             </button>
           </div>
@@ -2149,13 +2155,16 @@ export function HealthcareSpendingPage({
               Dùng kháng sinh cắt liều lẻ 2–3 ngày không đủ nồng độ ức chế MIC gây vi khuẩn kháng thuốc (AMR), dẫn đến bệnh tái phát 3–4 lần tốn kém hơn 500.000 ₫.
             </p>
             <div className="rec-card-rationale">
-              <strong>Cảnh báo y khoa: </strong>
+              <strong>Lời khuyên dược sĩ: </strong>
               <span>100% Thuốc điều trị cần mua đủ phác đồ tại chuỗi GPP có hóa đơn VAT và tư vấn của dược sĩ lâm sàng.</span>
             </div>
             <button
               type="button"
               className="rec-cta-btn"
-              onClick={() => onNotify?.('Đã mở bản đồ các nhà thuốc chuẩn GPP gần bạn nhất!', 'info')}
+              onClick={() => {
+                onNavigate?.('navigation');
+                onNotify?.('Đã mở bản đồ các nhà thuốc chuẩn GPP gần bạn nhất!', 'info');
+              }}
             >
               <span>Tìm nhà thuốc chuẩn GPP</span>
               <ChevronRight size={14} />

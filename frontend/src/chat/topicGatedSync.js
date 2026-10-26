@@ -14,10 +14,10 @@ export const TOPIC_MODES = {
 };
 
 export const TOPIC_LABELS = {
-  HEALTH_OVERVIEW_ONLY: 'TỔNG QUAN SỨC KHOẺ • ĐỒNG BỘ CƠ THỂ 3D',
-  EXPENSE_MANAGEMENT_ONLY: 'QUẢN LÝ CHI TIÊU • ĐỒNG BỘ HÓA ĐƠN & BHYT',
-  DUAL_HEALTH_AND_EXPENSE: 'ĐỒNG BỘ KÉP • SỨC KHOẺ & CHI TIÊU Y TẾ',
-  UNRELATED_NO_STATE_MUTATION: 'HỘI THOẠI CHUNG • KHÔNG CẬP NHẬT DỮ LIỆU',
+  HEALTH_OVERVIEW_ONLY: 'Đồng bộ tự động với Bản đồ Cơ thể 3D',
+  EXPENSE_MANAGEMENT_ONLY: 'Đồng bộ tự động với Sổ Chi Tiêu & BHYT',
+  DUAL_HEALTH_AND_EXPENSE: 'Đồng bộ Bản đồ Cơ thể 3D & Sổ Chi Tiêu',
+  UNRELATED_NO_STATE_MUTATION: 'Hội thoại thông thường',
 };
 
 /**

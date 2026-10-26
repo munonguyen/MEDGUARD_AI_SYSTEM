@@ -47,29 +47,29 @@ import {
 import './GroundedAnswer.css';
 
 const evidenceLabels = {
-  direct_rule_match: 'Khớp quy tắc trực tiếp',
-  bounded_result: 'Kết quả trong phạm vi dữ liệu',
-  operation_confirmed: 'Thao tác đã được hệ thống xác nhận',
-  partial_input: 'Chưa đủ dữ kiện',
+  direct_rule_match: 'Khớp theo phác đồ hướng dẫn y tế',
+  bounded_result: 'Nội dung dựa trên dữ liệu sức khỏe đã ghi nhận',
+  operation_confirmed: 'Thao tác đã được lưu vào hệ thống',
+  partial_input: 'Cần thêm thông tin để tư vấn chính xác hơn',
 };
 
 const verificationLabels = {
-  verified: 'Đã kiểm chứng qua gateway',
-  shadow_pending: 'Đã tiếp nhận vào hàng đợi kiểm định gateway',
-  shadow: 'Gateway đã hoàn tất kiểm định nền; nội dung an toàn ban đầu được giữ nguyên',
-  timed_out: 'Gateway quá thời gian; dùng kết quả an toàn dự phòng',
-  rejected: 'Gateway không đạt kiểm định; dùng kết quả an toàn dự phòng',
-  unavailable: 'Gateway bận hoặc chưa sẵn sàng; dùng kết quả an toàn dự phòng',
-  circuit_open: 'Gateway tạm ngắt; dùng kết quả an toàn dự phòng',
-  error: 'Gateway gặp lỗi; dùng kết quả an toàn dự phòng',
-  not_requested: 'Gateway chưa được yêu cầu; kết quả từ quy tắc y khoa',
+  verified: 'Đã đối soát an toàn y khoa',
+  shadow_pending: 'Đang rà soát an toàn bổ sung',
+  shadow: 'Đã hoàn tất rà soát; thông tin an toàn được đảm bảo',
+  timed_out: 'Khuyến nghị an toàn cơ bản (đang cập nhật phân tích chuyên sâu)',
+  rejected: 'Khuyến nghị an toàn cơ bản (vui lòng tham khảo thêm bác sĩ)',
+  unavailable: 'Khuyến nghị chăm sóc cơ bản ban đầu',
+  circuit_open: 'Khuyến nghị chăm sóc sức khỏe cơ bản',
+  error: 'Khuyến nghị chăm sóc cơ bản (hệ thống tư vấn dự phòng)',
+  not_requested: 'Khuyến nghị chuẩn theo hướng dẫn chăm sóc y tế',
 };
 
 const knowledgeLabels = {
-  approved: 'Nguồn nội bộ đã duyệt',
-  pending_review: 'Nguồn đang chờ chuyên gia duyệt',
-  mixed: 'Một phần nguồn đang chờ duyệt',
-  not_recorded: 'Nguồn chưa ghi nhận phê duyệt',
+  approved: 'Tài liệu y khoa chính thống đã kiểm duyệt',
+  pending_review: 'Tài liệu đang trong quy trình cập nhật định kỳ',
+  mixed: 'Tổng hợp từ nguồn y khoa chuẩn và thông tin tham khảo',
+  not_recorded: 'Thông tin tham khảo y tế đại chúng',
 };
 
 const clinicalIntents = new Set(['triage', 'safety', 'monitoring', 'followup', 'pharmacy']);
@@ -420,8 +420,8 @@ function statusConfig({ urgency, overallRisk, isClinical, intent, verificationSt
   }
   return {
     tone: 'routine',
-    label: 'Theo dõi / chăm sóc thông thường',
-    helper: 'Chưa ghi nhận tiêu chí cấp cứu từ dữ kiện hiện có',
+    label: 'Theo dõi & Chăm sóc thông thường',
+    helper: 'Tình trạng hiện tại ổn định, chưa có dấu hiệu nguy hiểm cần cấp cứu',
     icon: CheckCircle2,
   };
 }
@@ -1850,7 +1850,12 @@ export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQues
             </span>
           )}
           <h2>{answer.title}</h2>
-          {agentUnavailable && <p role="status" className="agent-unavailable-notice">Chưa hoàn tất thẩm định câu trả lời. Nội dung bên dưới là hướng dẫn dự phòng, không phải tư vấn đã được thẩm định.</p>}
+          {agentUnavailable && (
+            <p role="status" className="agent-unavailable-notice">
+              <AlertCircle size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} />
+              Lưu ý: Đây là hướng dẫn chăm sóc ban đầu an toàn. Nếu các triệu chứng kéo dài hoặc diễn tiến bất thường, bạn nên thăm khám bác sĩ chuyên khoa.
+            </p>
+          )}
           {!verifiedAgentPrimary && <p>{focusedRoutine && answer.display_summary ? answer.display_summary : answer.summary}</p>}
           {!isBrief && responseMeta.intent !== 'financial' && <small>{status.helper}</small>}
         </div>
@@ -2005,11 +2010,14 @@ export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQues
         <EnRouteTriageCard enroute={answer.enroute_triage} />
       )}
 
+      {/* Connected Ecosystem Action Bar linking Chat to 3D Twin, Meds, Appointments, Spending & Map */}
+      <ConnectedEcosystemActionBar answer={answer} result={result} responseMeta={responseMeta} />
+
       {!isBrief && limitations.length > 0 && (
         <div className="clinical-limitations">
           <AlertCircle size={15} />
           <div>
-            <strong>{isClinical ? 'Giới hạn đánh giá từ xa' : 'Giới hạn xử lý'}</strong>
+            <strong>{isClinical ? 'Lưu ý khi theo dõi sức khỏe tại nhà' : 'Giới hạn xử lý'}</strong>
             {limitations.map((item, index) => <p key={`${item}-${index}`}>{item}</p>)}
           </div>
         </div>
@@ -2092,4 +2100,77 @@ function HighlightedText({ text, emphasis = [] }) {
     cursor = match.index + match.phrase.length;
   }
   return parts;
+}
+
+function ConnectedEcosystemActionBar({ answer, result, responseMeta }) {
+  const handleNav = (targetView, options = {}) => {
+    window.dispatchEvent(
+      new CustomEvent('medguard:navigate', {
+        detail: {
+          view: targetView,
+          ...options,
+        },
+      })
+    );
+  };
+
+  return (
+    <div className="connected-ecosystem-action-bar" aria-label="Liên kết tính năng hệ sinh thái MedGuard">
+      <div className="ecosystem-bar-header">
+        <Sparkles size={14} className="icon-sparkle" />
+        <span>Khám phá tính năng liên quan đến câu trả lời:</span>
+      </div>
+      <div className="ecosystem-chips-grid">
+        <button
+          type="button"
+          className="ecosystem-chip-btn chip-twin"
+          onClick={() => handleNav('health')}
+          title="Xem vị trí cơ quan và chỉ số trên Bản đồ Cơ thể 3D"
+        >
+          <Activity size={14} />
+          <span>Bản đồ Cơ thể 3D</span>
+        </button>
+
+        <button
+          type="button"
+          className="ecosystem-chip-btn chip-med"
+          onClick={() => handleNav('medication')}
+          title="Quản lý phác đồ và hẹn giờ nhắc uống thuốc"
+        >
+          <Pill size={14} />
+          <span>Lịch uống thuốc</span>
+        </button>
+
+        <button
+          type="button"
+          className="ecosystem-chip-btn chip-appt"
+          onClick={() => handleNav('schedule')}
+          title="Đặt lịch tư vấn với Bác sĩ chuyên khoa"
+        >
+          <Calendar size={14} />
+          <span>Đặt lịch Bác sĩ</span>
+        </button>
+
+        <button
+          type="button"
+          className="ecosystem-chip-btn chip-spending"
+          onClick={() => handleNav('spending')}
+          title="Theo dõi chi phí y tế và quyền lợi BHYT"
+        >
+          <WalletCards size={14} />
+          <span>Sổ Chi Tiêu & BHYT</span>
+        </button>
+
+        <button
+          type="button"
+          className="ecosystem-chip-btn chip-map"
+          onClick={() => handleNav('navigation')}
+          title="Tìm bệnh viện, trạm y tế và nhà thuốc chuẩn GPP gần nhất"
+        >
+          <MapPin size={14} />
+          <span>Bản đồ Y tế Gần nhất</span>
+        </button>
+      </div>
+    </div>
+  );
 }
