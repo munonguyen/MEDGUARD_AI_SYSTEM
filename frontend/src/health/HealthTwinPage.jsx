@@ -95,10 +95,10 @@ const SCENARIOS = [
 ];
 
 const ORGAN_SYSTEMS = [
-  { id: 'all', label: 'Tất cả cơ quan (9)', icon: Activity },
-  { id: 'digestive', label: 'Tiêu hóa & Gan mật (2)', icon: Flame, organIds: ['stomach', 'liver'] },
-  { id: 'cardiopulmonary', label: 'Hô hấp & Tuần hoàn (3)', icon: HeartPulse, organIds: ['lungs', 'cardiovascular', 'ent'] },
-  { id: 'neuromuscular', label: 'Thần kinh & Vận động (4)', icon: Zap, organIds: ['head', 'spine_joints', 'kidneys', 'skin'] },
+  { id: 'all', label: 'Tất cả cơ quan (9)', shortLabel: 'Tất cả', count: 9, icon: Activity },
+  { id: 'digestive', label: 'Tiêu hóa & Gan mật (2)', shortLabel: 'Tiêu hóa', count: 2, icon: Flame, organIds: ['stomach', 'liver'] },
+  { id: 'cardiopulmonary', label: 'Hô hấp & Tuần hoàn (3)', shortLabel: 'Hô hấp', count: 3, icon: HeartPulse, organIds: ['lungs', 'cardiovascular', 'ent'] },
+  { id: 'neuromuscular', label: 'Thần kinh & Vận động (4)', shortLabel: 'Thần kinh', count: 4, icon: Zap, organIds: ['head', 'spine_joints', 'kidneys', 'skin'] },
 ];
 
 const DEFAULT_HEALTH_PROFILE = {
@@ -877,7 +877,7 @@ export function HealthTwinPage({
           onClick={() => handleEvaluateProgress("Tôi chưa tiêm phòng vắc-xin Viêm gan B, cần đánh giá rủi ro gan")}
         >
           <Syringe size={12} />
-          <span>💉 Chưa tiêm Viêm gan B</span>
+          <span>Chưa tiêm Viêm gan B</span>
         </button>
       </div>
     </section>
@@ -888,48 +888,62 @@ export function HealthTwinPage({
     <section className="body-silhouette-panel" aria-label="Mô hình 3D Giải phẫu Cơ thể">
       <div className="panel-header-bar">
         <div className="header-bar-title">
-          <Scan size={16} className="scan-icon" />
-          <span>Mô Hình Giải Phẫu 9 Cơ Quan (3D Twin)</span>
+          <div className="scan-icon-badge">
+            <Scan size={15} />
+          </div>
+          <div className="header-bar-text">
+            <h4>Giải Phẫu 3D (9 Cơ Quan)</h4>
+          </div>
         </div>
-        <div className="view-mode-pills">
+        <div className="view-mode-pills" role="radiogroup" aria-label="Chế độ hiển thị 3D">
           <button
             type="button"
+            role="radio"
+            aria-checked={modelViewMode === "3d_hologram"}
             className={`mode-pill ${modelViewMode === "3d_hologram" ? "active" : ""}`}
             onClick={() => setModelViewMode("3d_hologram")}
           >
-            <Layers size={12} />
+            <Layers size={13} />
             <span>3D Chuẩn</span>
           </button>
           <button
             type="button"
+            role="radio"
+            aria-checked={modelViewMode === "xray_scan"}
             className={`mode-pill ${modelViewMode === "xray_scan" ? "active" : ""}`}
             onClick={() => setModelViewMode("xray_scan")}
           >
-            <Eye size={12} />
+            <Eye size={13} />
             <span>Quét Mô</span>
           </button>
         </div>
       </div>
 
       {/* Organ System Filter Tabs */}
-      <div className="system-filter-bar" role="tablist">
-        {ORGAN_SYSTEMS.map((sys) => (
-          <button
-            key={sys.id}
-            type="button"
-            role="tab"
-            aria-selected={selectedSystem === sys.id}
-            className={`system-tab-btn ${selectedSystem === sys.id ? "active" : ""}`}
-            onClick={() => {
-              setSelectedSystem(sys.id);
-              if (sys.organIds && sys.organIds.length > 0 && !sys.organIds.includes(selectedOrganId)) {
-                setSelectedOrganId(sys.organIds[0]);
-              }
-            }}
-          >
-            {sys.label}
-          </button>
-        ))}
+      <div className="system-filter-bar" role="tablist" aria-label="Lọc nhóm cơ quan giải phẫu">
+        {ORGAN_SYSTEMS.map((sys) => {
+          const IconComp = sys.icon || Activity;
+          const isActive = selectedSystem === sys.id;
+          return (
+            <button
+              key={sys.id}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              className={`system-tab-btn ${isActive ? "active" : ""}`}
+              onClick={() => {
+                setSelectedSystem(sys.id);
+                if (sys.organIds && sys.organIds.length > 0 && !sys.organIds.includes(selectedOrganId)) {
+                  setSelectedOrganId(sys.organIds[0]);
+                }
+              }}
+            >
+              <IconComp size={13} className="sys-tab-icon" />
+              <span className="sys-tab-label">{sys.shortLabel || sys.label}</span>
+              <span className="sys-tab-badge">{sys.count}</span>
+            </button>
+          );
+        })}
       </div>
 
       <div className="human-canvas-wrapper">
@@ -2152,11 +2166,11 @@ export function HealthTwinPage({
       <nav className="health-section-switcher-bar" aria-label="Bộ lọc phân khu trực quan">
         <div className="section-tabs-group" role="tablist">
           {[
-            { id: "all", label: "Tất cả Trực quan (Toàn diện)" },
-            { id: "anatomy", label: "1. Giải phẫu 3D & 9 Cơ quan" },
-            { id: "bio", label: "2. Radar Sinh học & Chỉ số Thể trạng" },
-            { id: "episodic", label: "3. Diễn tiến Theo Đợt (Giờ/Ngày/Tuần/Tháng)" },
-            { id: "solutions", label: "4. Phác đồ Giải pháp 4 Trụ Cột" },
+            { id: "all", label: "Tất cả Trực quan" },
+            { id: "anatomy", label: "1. Giải phẫu 3D (9 Cơ quan)" },
+            { id: "bio", label: "2. Radar Sinh học" },
+            { id: "episodic", label: "3. Diễn tiến Đợt" },
+            { id: "solutions", label: "4. Phác đồ 4 Trụ Cột" },
           ].map((tab) => (
             <button
               key={tab.id}
