@@ -356,6 +356,12 @@ export function HealthcareSpendingPage({
   const [showCategoryDetail, setShowCategoryDetail] = useState(true);
   const [selectedTxForDetail, setSelectedTxForDetail] = useState(null);
 
+  // Interactive Chart Hover & Focus States
+  const [hoveredMonthIdx, setHoveredMonthIdx] = useState(null);
+  const [hoveredCatId, setHoveredCatId] = useState(null);
+  const [hoveredDrugIdx, setHoveredDrugIdx] = useState(null);
+  const [hoveredAllocId, setHoveredAllocId] = useState(null);
+
   // Search and filter in transaction list
   const [txSearchQuery, setTxSearchQuery] = useState('');
   const [txFilterTab, setTxFilterTab] = useState('all');
@@ -873,7 +879,7 @@ export function HealthcareSpendingPage({
         {/* MULTI-CHART SUITE FOR SPENDING: 6-Month Stacked Bar/Line + 5-Axis TES Radar + DAV Price Bars */}
         <div className="spending-multi-charts-suite">
           {/* Chart A: 6-Month Stacked Bar & Savings Trend SVG Chart */}
-          <div className="spending-chart-card">
+          <div className="spending-chart-card interactive-trend-card">
             <div className="sc-head">
               <div>
                 <span className="sc-kicker">BIỂU ĐỒ CỘT CHỒNG & XU HƯỚNG 6 THÁNG</span>
@@ -886,6 +892,24 @@ export function HealthcareSpendingPage({
               </div>
             </div>
             <svg viewBox="0 0 460 155" className="spending-trend-svg" role="img" aria-label="Biểu đồ xu hướng chi tiêu y tế 6 tháng">
+              <defs>
+                <filter id="barDropGlow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="3" stdDeviation="3.5" floodColor="#f43f5e" floodOpacity="0.45" />
+                </filter>
+                <filter id="tealDropGlow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="3" stdDeviation="3.5" floodColor="#0d9488" floodOpacity="0.45" />
+                </filter>
+                <linearGradient id="roseBarGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#fb7185" />
+                  <stop offset="100%" stopColor="#e11d48" />
+                </linearGradient>
+                <linearGradient id="tealBarGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#2dd4bf" />
+                  <stop offset="100%" stopColor="#0d9488" />
+                </linearGradient>
+              </defs>
+
+              {/* Grid lines */}
               {[0, 10, 20, 30].map((v) => {
                 const y = 128 - (v / 32) * 100;
                 return (
@@ -895,32 +919,209 @@ export function HealthcareSpendingPage({
                   </g>
                 );
               })}
+
+              {/* Active Column Guide & Background Highlight */}
+              {hoveredMonthIdx !== null && (() => {
+                const hx = 62 + hoveredMonthIdx * 66;
+                return (
+                  <g className="sc-active-guide-col" style={{ pointerEvents: 'none' }}>
+                    <rect x={hx - 22} y="12" width="44" height="118" rx="8" fill="#f8fafc" fillOpacity="0.9" stroke="#e2e8f0" strokeWidth="1" />
+                    <line x1={hx} y1="16" x2={hx} y2="128" stroke="#3b82f6" strokeWidth="1.5" strokeDasharray="3 3" opacity="0.85" />
+                  </g>
+                );
+              })()}
+
+              {/* Stacked Bars per Month with Entrance and Hover Animations */}
               {monthlyTrendSeries.map((m, idx) => {
                 const x = 62 + idx * 66;
                 const hOut = Math.min(72, (m.outOfPocket / 32) * 100);
                 const hBhyt = Math.min(45, (m.bhyt / 32) * 100);
                 const yOut = 128 - hOut;
                 const yBhyt = yOut - hBhyt;
+                const isHovered = hoveredMonthIdx === idx;
+                const isDimmed = hoveredMonthIdx !== null && !isHovered;
+
                 return (
-                  <g key={m.month}>
-                    <rect x={x - 13} y={yOut} width="26" height={hOut} rx="3" fill="#f43f5e" fillOpacity="0.82" />
-                    <rect x={x - 13} y={yBhyt} width="26" height={hBhyt} rx="3" fill="#0d9488" fillOpacity="0.88" />
-                    <text x={x} y={yBhyt - 5} textAnchor="middle" className="sc-val-txt">{m.outOfPocket}tr</text>
-                    <text x={x} y="145" textAnchor="middle" className="sc-x-txt">{m.month}</text>
+                  <g
+                    key={m.month}
+                    className={`sc-bar-group ${isHovered ? 'is-hovered' : ''} ${isDimmed ? 'is-dimmed' : ''}`}
+                    style={{
+                      transition: 'opacity 0.25s ease, transform 0.25s ease',
+                      opacity: isDimmed ? 0.35 : 1,
+                    }}
+                  >
+                    {/* Out of pocket bar (Rose) */}
+                    <rect
+                      x={x - 13}
+                      y={yOut}
+                      width="26"
+                      height={hOut}
+                      rx="3"
+                      fill={isHovered ? 'url(#roseBarGrad)' : '#f43f5e'}
+                      fillOpacity={isHovered ? 1 : 0.85}
+                      stroke={isHovered ? '#ffffff' : 'none'}
+                      strokeWidth="1.5"
+                      filter={isHovered ? 'url(#barDropGlow)' : undefined}
+                      className="sc-rect-bar out-bar"
+                      style={{
+                        transformOrigin: `${x}px 128px`,
+                        animationDelay: `${idx * 0.08}s`,
+                      }}
+                    />
+                    {/* BHYT covered bar (Teal) */}
+                    <rect
+                      x={x - 13}
+                      y={yBhyt}
+                      width="26"
+                      height={hBhyt}
+                      rx="3"
+                      fill={isHovered ? 'url(#tealBarGrad)' : '#0d9488'}
+                      fillOpacity={isHovered ? 1 : 0.88}
+                      stroke={isHovered ? '#ffffff' : 'none'}
+                      strokeWidth="1.5"
+                      filter={isHovered ? 'url(#tealDropGlow)' : undefined}
+                      className="sc-rect-bar bhyt-bar"
+                      style={{
+                        transformOrigin: `${x}px 128px`,
+                        animationDelay: `${idx * 0.08 + 0.04}s`,
+                      }}
+                    />
+                    {/* Value label */}
+                    <text
+                      x={x}
+                      y={yBhyt - 6}
+                      textAnchor="middle"
+                      className={`sc-val-txt ${isHovered ? 'hovered-val' : ''}`}
+                      style={{
+                        fontWeight: isHovered ? 900 : 800,
+                        fill: isHovered ? '#e11d48' : '#0f172a',
+                      }}
+                    >
+                      {m.outOfPocket}tr
+                    </text>
+                    {/* Month label */}
+                    <text
+                      x={x}
+                      y="145"
+                      textAnchor="middle"
+                      className={`sc-x-txt ${isHovered ? 'hovered-x' : ''}`}
+                      style={{
+                        fontWeight: isHovered ? 850 : 700,
+                        fill: isHovered ? '#0f172a' : '#475569',
+                      }}
+                    >
+                      {m.month}
+                    </text>
                   </g>
                 );
               })}
+
+              {/* Polyline for Generic Savings Trend with Draw Entrance */}
               <polyline
                 fill="none"
                 stroke="#2563eb"
                 strokeWidth="2.5"
+                className="sc-trend-polyline"
                 points={monthlyTrendSeries.map((m, idx) => `${62 + idx * 66},${128 - (m.genericSaved / 8) * 85}`).join(" ")}
               />
+
+              {/* Interactive Nodes on Polyline with Pulse Ring */}
+              {monthlyTrendSeries.map((m, idx) => {
+                const x = 62 + idx * 66;
+                const ySaved = 128 - (m.genericSaved / 8) * 85;
+                const isHovered = hoveredMonthIdx === idx;
+                return (
+                  <g key={`dot-${m.month}`}>
+                    {isHovered && (
+                      <circle
+                        cx={x}
+                        cy={ySaved}
+                        r="11"
+                        fill="none"
+                        stroke="#3b82f6"
+                        strokeWidth="1.8"
+                        className="trend-pulse-ring"
+                      />
+                    )}
+                    <circle
+                      cx={x}
+                      cy={ySaved}
+                      r={isHovered ? 6 : 3.5}
+                      fill={isHovered ? "#3b82f6" : "#2563eb"}
+                      stroke="#ffffff"
+                      strokeWidth="2"
+                      className="sc-trend-node"
+                      style={{ transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)' }}
+                    />
+                  </g>
+                );
+              })}
+
+              {/* Floating Tooltip Box */}
+              {hoveredMonthIdx !== null && (() => {
+                const selM = monthlyTrendSeries[hoveredMonthIdx];
+                const selX = 62 + hoveredMonthIdx * 66;
+                const ttW = 136;
+                const ttH = 74;
+                const ttX = hoveredMonthIdx >= 3 ? selX - ttW - 14 : selX + 16;
+                const ttY = Math.max(10, Math.min(128 - (selM.outOfPocket / 32) * 100 - 24, 52));
+
+                return (
+                  <g className="sc-tooltip-group" style={{ pointerEvents: 'none' }}>
+                    <rect
+                      x={ttX}
+                      y={ttY}
+                      width={ttW}
+                      height={ttH}
+                      rx="8"
+                      fill="#0f172a"
+                      fillOpacity="0.94"
+                      stroke="#334155"
+                      strokeWidth="1"
+                      filter="drop-shadow(0 6px 18px rgba(0,0,0,0.32))"
+                    />
+                    <text x={ttX + 10} y={ttY + 15} fill="#ffffff" fontSize="9" fontWeight="800">
+                      {selM.month} • Tổng: {(selM.outOfPocket + selM.bhyt).toFixed(1)} tr
+                    </text>
+                    <line x1={ttX + 8} y1={ttY + 21} x2={ttX + ttW - 8} y2={ttY + 21} stroke="#334155" strokeWidth="0.8" />
+                    <circle cx={ttX + 14} cy={ttY + 31} r="3" fill="#f43f5e" />
+                    <text x={ttX + 22} y={ttY + 34} fill="#fb7185" fontSize="8" fontWeight="700">
+                      Tự chi trả: {selM.outOfPocket} triệu ₫
+                    </text>
+                    <circle cx={ttX + 14} cy={ttY + 45} r="3" fill="#0d9488" />
+                    <text x={ttX + 22} y={ttY + 48} fill="#2dd4bf" fontSize="8" fontWeight="700">
+                      Quỹ BHYT: {selM.bhyt} triệu ₫
+                    </text>
+                    <circle cx={ttX + 14} cy={ttY + 59} r="3" fill="#3b82f6" />
+                    <text x={ttX + 22} y={ttY + 62} fill="#60a5fa" fontSize="8" fontWeight="700">
+                      Tiết kiệm: {selM.genericSaved} triệu ₫
+                    </text>
+                  </g>
+                );
+              })()}
+
+              {/* Invisible Hit Columns for Smooth Mouse Capture */}
+              {monthlyTrendSeries.map((m, idx) => {
+                const x = 62 + idx * 66;
+                return (
+                  <rect
+                    key={`hit-${m.month}`}
+                    x={x - 30}
+                    y="10"
+                    width="60"
+                    height="136"
+                    fill="transparent"
+                    style={{ cursor: 'pointer' }}
+                    onMouseEnter={() => setHoveredMonthIdx(idx)}
+                    onMouseLeave={() => setHoveredMonthIdx(null)}
+                  />
+                );
+              })}
             </svg>
           </div>
 
           {/* Chart B: Drug Price Savings Horizontal Bar Chart (Actual vs DAV Ceiling vs Generic EU-GMP) */}
-          <div className="spending-chart-card">
+          <div className="spending-chart-card interactive-dav-card">
             <div className="sc-head">
               <div>
                 <span className="sc-kicker">BIỂU ĐỒ ĐỐI SÁNH GIÁ DƯỢC PHẨM</span>
@@ -933,8 +1134,14 @@ export function HealthcareSpendingPage({
                 { name: "Esomeprazole 40mg (Dạ dày)", brand: 24000, generic: 14500, savePct: 40 },
                 { name: "Augmentin 1g (Kháng sinh)", brand: 21000, generic: 13200, savePct: 37 },
                 { name: "Amlodipine 5mg (Huyết áp)", brand: 5500, generic: 3400, savePct: 38 },
-              ].map((d) => (
-                <div key={d.name} className="dav-vbar-group">
+              ].map((d, idx) => (
+                <div
+                  key={d.name}
+                  className={`dav-vbar-group ${hoveredDrugIdx === idx ? 'hovered' : ''}`}
+                  onMouseEnter={() => setHoveredDrugIdx(idx)}
+                  onMouseLeave={() => setHoveredDrugIdx(null)}
+                  style={{ animationDelay: `${idx * 0.1}s` }}
+                >
                   <div className="dav-vbar-top">
                     <strong>{d.name}</strong>
                     <span className="dav-vbar-save">Tiết kiệm {d.savePct}% khi đổi Generic EU-GMP</span>
@@ -1001,7 +1208,11 @@ export function HealthcareSpendingPage({
 
         <div className="allocation-three-grid">
           {/* Card 1: 45% Khám Booking Care & BHYT */}
-          <div className="alloc-card card-45">
+          <div
+            className={`alloc-card card-45 ${hoveredAllocId === 'alloc45' ? 'is-hovered' : ''}`}
+            onMouseEnter={() => setHoveredAllocId('alloc45')}
+            onMouseLeave={() => setHoveredAllocId(null)}
+          >
             <div className="alloc-card-top">
               <div className="alloc-pct-bubble pink">45%</div>
               <strong className="alloc-amount-text">{formatVnd(allocation45, hideAmounts)}</strong>
@@ -1017,7 +1228,11 @@ export function HealthcareSpendingPage({
           </div>
 
           {/* Card 2: 35% Thuốc GPP & Generic Nhóm 1 */}
-          <div className="alloc-card card-35">
+          <div
+            className={`alloc-card card-35 ${hoveredAllocId === 'alloc35' ? 'is-hovered' : ''}`}
+            onMouseEnter={() => setHoveredAllocId('alloc35')}
+            onMouseLeave={() => setHoveredAllocId(null)}
+          >
             <div className="alloc-card-top">
               <div className="alloc-pct-bubble mint">35%</div>
               <strong className="alloc-amount-text">{formatVnd(allocation35, hideAmounts)}</strong>
@@ -1033,7 +1248,11 @@ export function HealthcareSpendingPage({
           </div>
 
           {/* Card 3: 20% Quỹ Dự Phòng Sức Khỏe */}
-          <div className="alloc-card card-20">
+          <div
+            className={`alloc-card card-20 ${hoveredAllocId === 'alloc20' ? 'is-hovered' : ''}`}
+            onMouseEnter={() => setHoveredAllocId('alloc20')}
+            onMouseLeave={() => setHoveredAllocId(null)}
+          >
             <div className="alloc-card-top">
               <div className="alloc-pct-bubble cyan">20%</div>
               <strong className="alloc-amount-text">{formatVnd(allocation20, hideAmounts)}</strong>
@@ -1086,102 +1305,91 @@ export function HealthcareSpendingPage({
                     strokeWidth="26"
                   />
 
-                  {/* Arc 1: Thuốc kê đơn & GPP (Pink 41%)
-                      Circumference = 2 * PI * 70 = 439.82
-                      41% = 180.33
-                  */}
-                  <circle
-                    cx="100"
-                    cy="100"
-                    r="70"
-                    fill="none"
-                    stroke="#f472b6"
-                    strokeWidth="26"
-                    strokeDasharray="180.33 259.49"
-                    strokeDashoffset="0"
-                    strokeLinecap="round"
-                    transform="rotate(-90 100 100)"
-                  />
-
-                  {/* Arc 2: Viện phí & Khám bệnh (Mint Green 33%)
-                      33% = 145.14, offset = -180.33
-                  */}
-                  <circle
-                    cx="100"
-                    cy="100"
-                    r="70"
-                    fill="none"
-                    stroke="#34d399"
-                    strokeWidth="26"
-                    strokeDasharray="145.14 294.68"
-                    strokeDashoffset="-180.33"
-                    strokeLinecap="round"
-                    transform="rotate(-90 100 100)"
-                  />
-
-                  {/* Arc 3: Xét nghiệm Cận lâm sàng (Cyan 14%)
-                      14% = 61.57, offset = -325.47
-                  */}
-                  <circle
-                    cx="100"
-                    cy="100"
-                    r="70"
-                    fill="none"
-                    stroke="#38bdf8"
-                    strokeWidth="26"
-                    strokeDasharray="61.57 378.25"
-                    strokeDashoffset="-325.47"
-                    strokeLinecap="round"
-                    transform="rotate(-90 100 100)"
-                  />
-
-                  {/* Arc 4: TPCN Dinh dưỡng (Orange 11%)
-                      11% = 48.38, offset = -387.04
-                  */}
-                  <circle
-                    cx="100"
-                    cy="100"
-                    r="70"
-                    fill="none"
-                    stroke="#fb923c"
-                    strokeWidth="26"
-                    strokeDasharray="48.38 391.44"
-                    strokeDashoffset="-387.04"
-                    strokeLinecap="round"
-                    transform="rotate(-90 100 100)"
-                  />
-
-                  {/* Arc 5: Vật tư khác (Gray 1%)
-                      1% = 4.40, offset = -435.42
-                  */}
-                  <circle
-                    cx="100"
-                    cy="100"
-                    r="70"
-                    fill="none"
-                    stroke="#94a3b8"
-                    strokeWidth="26"
-                    strokeDasharray="4.4 435.42"
-                    strokeDashoffset="-435.42"
-                    transform="rotate(-90 100 100)"
-                  />
+                  {/* 5 Dynamic SVG Arcs with Bidirectional Hover Sync */}
+                  {[
+                    { id: 'medication', color: '#f472b6', len: 180.33, gap: 259.49, offset: 0 },
+                    { id: 'clinic', color: '#34d399', len: 145.14, gap: 294.68, offset: -180.33 },
+                    { id: 'diagnostics', color: '#38bdf8', len: 61.57, gap: 378.25, offset: -325.47 },
+                    { id: 'supplements', color: '#fb923c', len: 48.38, gap: 391.44, offset: -387.04 },
+                    { id: 'supplies', color: '#94a3b8', len: 4.4, gap: 435.42, offset: -435.42 },
+                  ].map((arc) => {
+                    const isHovered = hoveredCatId === arc.id;
+                    const isDimmed = hoveredCatId !== null && !isHovered;
+                    return (
+                      <circle
+                        key={arc.id}
+                        cx="100"
+                        cy="100"
+                        r="70"
+                        fill="none"
+                        stroke={arc.color}
+                        strokeWidth={isHovered ? 32 : 26}
+                        strokeDasharray={`${arc.len} ${arc.gap}`}
+                        strokeDashoffset={arc.offset}
+                        strokeLinecap="round"
+                        transform="rotate(-90 100 100)"
+                        className={`donut-arc-segment ${isHovered ? 'arc-hovered' : ''}`}
+                        onMouseEnter={() => setHoveredCatId(arc.id)}
+                        onMouseLeave={() => setHoveredCatId(null)}
+                        style={{
+                          cursor: 'pointer',
+                          transition: 'stroke-width 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease, filter 0.28s ease',
+                          filter: isHovered ? `drop-shadow(0 0 10px ${arc.color}90)` : undefined,
+                          opacity: isDimmed ? 0.35 : 1,
+                        }}
+                      />
+                    );
+                  })}
                 </svg>
 
-                {/* Donut Core Center */}
-                <div className="web-donut-core">
-                  <span className="donut-core-kicker">Tổng Chi</span>
-                  <strong className="donut-core-number">
-                    {formatVnd(totalActualSpend, hideAmounts)}
-                  </strong>
-                </div>
+                {/* Donut Core Center with Interactive Hover Inspection */}
+                {(() => {
+                  const activeCat = DEFAULT_CATEGORIES.find((c) => c.id === hoveredCatId);
+                  return (
+                    <div className={`web-donut-core ${hoveredCatId ? 'has-active-focus' : ''}`}>
+                      {hoveredCatId && activeCat ? (
+                        <div className="donut-core-active-content">
+                          <span className="donut-core-kicker" style={{ color: activeCat.color }}>
+                            {activeCat.name.split('&')[0].trim()}
+                          </span>
+                          <strong className="donut-core-number" style={{ color: activeCat.color, fontSize: '0.84rem' }}>
+                            {formatVnd(activeCat.amount_vnd, hideAmounts)}
+                          </strong>
+                          <span className="donut-core-pct-badge" style={{ backgroundColor: `${activeCat.color}22`, color: activeCat.color }}>
+                            {activeCat.percentage}% Tổng chi
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="donut-core-default-content">
+                          <span className="donut-core-kicker">Tổng Chi</span>
+                          <strong className="donut-core-number">
+                            {formatVnd(totalActualSpend, hideAmounts)}
+                          </strong>
+                          <span className="donut-core-pct-badge neutral">100% Thực chi</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
 
-              {/* Category Breakdown Bars */}
+              {/* Category Breakdown Bars with Bidirectional Hover Sync */}
               <div className="category-bars-stack">
                 {DEFAULT_CATEGORIES.map((cat) => {
                   const CatIcon = cat.icon;
+                  const isHovered = hoveredCatId === cat.id;
+                  const isDimmed = hoveredCatId !== null && !isHovered;
                   return (
-                    <div key={cat.id} className="category-bar-row">
+                    <div
+                      key={cat.id}
+                      className={`category-bar-row ${isHovered ? 'active-hover' : ''} ${isDimmed ? 'dimmed' : ''}`}
+                      onMouseEnter={() => setHoveredCatId(cat.id)}
+                      onMouseLeave={() => setHoveredCatId(null)}
+                      style={{
+                        borderColor: isHovered ? cat.color : undefined,
+                        boxShadow: isHovered ? `0 6px 20px ${cat.color}25` : undefined,
+                      }}
+                    >
                       <div className="cat-bar-header">
                         <div className="cat-name-box">
                           <span className="cat-bullet-dot" style={{ backgroundColor: cat.color }} />
@@ -1198,7 +1406,7 @@ export function HealthcareSpendingPage({
                       </div>
                       <div className="cat-progress-track">
                         <div
-                          className="cat-progress-fill"
+                          className={`cat-progress-fill ${isHovered ? 'shimmer-active' : ''}`}
                           style={{ width: `${cat.percentage}%`, backgroundColor: cat.color }}
                         />
                       </div>

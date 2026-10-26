@@ -2236,6 +2236,320 @@
   background: linear-gradient(90deg, #0d9488, #10b981);
 }
 
+/* ====================================================================
+   CHART ENTRANCE ANIMATIONS & INTERACTIVE HOVER SUITE
+   ==================================================================== */
+
+@keyframes chartFadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes barRiseUp {
+  0% {
+    transform: scaleY(0);
+    opacity: 0.15;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+@keyframes trendLineDraw {
+  0% {
+    stroke-dashoffset: 750;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes pulseRing {
+  0% {
+    r: 6;
+    opacity: 0.95;
+  }
+  100% {
+    r: 15;
+    opacity: 0;
+  }
+}
+
+@keyframes growBarH {
+  0% {
+    width: 0% !important;
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes donutSpinIn {
+  0% {
+    transform: rotate(-180deg) scale(0.92);
+    opacity: 0;
+  }
+  100% {
+    transform: rotate(0deg) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes barShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* 1. Staggered Entrance Animations for Chart Cards */
+.spending-chart-card,
+.donut-breakdown-panel,
+.dav-benchmark-panel,
+.alloc-card,
+.web-kpi-card {
+  animation: chartFadeInUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.spending-chart-card:nth-child(1) { animation-delay: 0.08s; }
+.spending-chart-card:nth-child(2) { animation-delay: 0.18s; }
+.alloc-card.card-45 { animation-delay: 0.1s; }
+.alloc-card.card-35 { animation-delay: 0.2s; }
+.alloc-card.card-20 { animation-delay: 0.3s; }
+.donut-breakdown-panel { animation-delay: 0.12s; }
+.dav-benchmark-panel { animation-delay: 0.22s; }
+
+/* 2. Interactive Spending Chart Cards */
+.spending-chart-card {
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.28s ease;
+}
+
+.spending-chart-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  border-color: #cbd5e1;
+}
+
+.spending-chart-card.interactive-trend-card:hover {
+  border-color: #fca5a5;
+  box-shadow: 0 12px 32px rgba(244, 63, 94, 0.09);
+}
+
+.spending-chart-card.interactive-dav-card:hover {
+  border-color: #a7f3d0;
+  box-shadow: 0 12px 32px rgba(16, 185, 129, 0.09);
+}
+
+/* 3. SVG Stacked Bars & Trend Polyline */
+.sc-rect-bar {
+  animation: barRiseUp 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.sc-trend-polyline {
+  stroke-dasharray: 750;
+  stroke-dashoffset: 0;
+  animation: trendLineDraw 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+}
+
+.trend-pulse-ring {
+  animation: pulseRing 1.4s ease-out infinite;
+  transform-origin: center;
+}
+
+.sc-bar-group.is-hovered .sc-rect-bar {
+  filter: drop-shadow(0 4px 10px rgba(244, 63, 94, 0.45));
+}
+
+.sc-tooltip-group {
+  animation: chartFadeInUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* 4. DAV Drug Benchmark Visual Bars */
+.dav-vbar-fill {
+  animation: growBarH 0.85s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.dav-vbar-group {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+.dav-vbar-group:hover,
+.dav-vbar-group.hovered {
+  transform: translateY(-3px);
+  border-color: #34d399;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.12);
+}
+
+.dav-vbar-group:hover .dav-vbar-save,
+.dav-vbar-group.hovered .dav-vbar-save {
+  color: #059669;
+  font-weight: 850;
+  transform: scale(1.02);
+  transition: transform 0.2s ease;
+}
+
+.dav-vbar-group:hover .dav-vbar-fill.generic,
+.dav-vbar-group.hovered .dav-vbar-fill.generic {
+  background: linear-gradient(90deg, #0d9488 0%, #10b981 50%, #34d399 100%);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.45);
+}
+
+.dav-vbar-group:hover .dav-vbar-line b,
+.dav-vbar-group.hovered .dav-vbar-line b {
+  transform: scale(1.04);
+  transition: transform 0.2s ease;
+}
+
+/* 5. Donut Chart SVG & Center Core */
+.web-donut-svg {
+  animation: donutSpinIn 0.85s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: 100px 100px;
+}
+
+.donut-arc-segment {
+  transform-origin: 100px 100px;
+  transition: stroke-width 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.25s ease,
+              filter 0.25s ease;
+}
+
+.web-donut-core {
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.web-donut-core.has-active-focus {
+  transform: scale(1.05);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border: 1.5px solid #f1f5f9;
+}
+
+.donut-core-active-content,
+.donut-core-default-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: chartFadeInUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.donut-core-pct-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 999px;
+  margin-top: 2px;
+}
+
+.donut-core-pct-badge.neutral {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+/* 6. Category Breakdown Bars with Bidirectional Sync */
+.category-bar-row {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+.category-bar-row:hover,
+.category-bar-row.active-hover {
+  transform: translateX(4px);
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+.category-bar-row.dimmed {
+  opacity: 0.42;
+  filter: grayscale(0.2);
+}
+
+.category-bar-row.active-hover .cat-progress-track {
+  height: 8px;
+}
+
+.cat-progress-fill.shimmer-active {
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.55) 50%,
+    rgba(255, 255, 255, 0) 100%
+  ) !important;
+  background-size: 200% 100%;
+  animation: barShimmer 1.4s infinite linear;
+}
+
+/* 7. MedGuard 45 - 35 - 20 Allocation Cards */
+.alloc-card {
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.28s ease;
+  cursor: pointer;
+}
+
+.alloc-card:hover,
+.alloc-card.is-hovered {
+  transform: translateY(-6px);
+}
+
+.alloc-card.card-45:hover,
+.alloc-card.card-45.is-hovered {
+  border-color: #f43f5e;
+  box-shadow: 0 14px 32px rgba(244, 63, 94, 0.16);
+}
+
+.alloc-card.card-35:hover,
+.alloc-card.card-35.is-hovered {
+  border-color: #10b981;
+  box-shadow: 0 14px 32px rgba(16, 185, 129, 0.16);
+}
+
+.alloc-card.card-20:hover,
+.alloc-card.card-20.is-hovered {
+  border-color: #0284c7;
+  box-shadow: 0 14px 32px rgba(14, 165, 233, 0.16);
+}
+
+.alloc-card:hover .alloc-pct-bubble,
+.alloc-card.is-hovered .alloc-pct-bubble {
+  transform: scale(1.14) rotate(-3deg);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 8. Dual KPI Summary Cards Hover */
+.web-kpi-card {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.25s ease;
+}
+
+.web-kpi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
+}
+
+.web-kpi-card.expense-kpi-card:hover {
+  border-color: #fca5a5;
+}
+
+.web-kpi-card.income-kpi-card:hover {
+  border-color: #a7f3d0;
+}
+
 @media (max-width: 1024px) {
   .spending-multi-charts-suite {
     grid-template-columns: 1fr;
