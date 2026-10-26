@@ -38,6 +38,7 @@ const DEFAULT_SETTINGS = {
   reminderNight: '21:00',
   enablePushReminders: true,
   urgentReminder: true,
+  autoSubmitUpdates: false,
 };
 
 function loadStoredSettings() {
@@ -104,6 +105,12 @@ export function SettingsModal({
   }, [open, initialTab, context]);
 
   const updatePref = (key, value) => {
+    if (key === 'autoSubmitUpdates') {
+      try {
+        localStorage.setItem('medguard_auto_apply_sync_updates', String(value));
+        window.dispatchEvent(new CustomEvent('medguard:auto-submit-changed', { detail: value }));
+      } catch {}
+    }
     setPreferences((prev) => {
       const next = { ...prev, [key]: value };
       try {
@@ -288,6 +295,26 @@ export function SettingsModal({
                       className={`switch-toggle ${preferences.soundEnabled ? 'checked' : ''}`}
                       onClick={() => updatePref('soundEnabled', !preferences.soundEnabled)}
                       aria-label="Bật tắt âm thanh"
+                    >
+                      <span className="switch-knob" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="pane-divider" />
+
+                <div className="pane-section">
+                  <h3>Tự động Submit & Cấp quyền cập nhật</h3>
+                  <div className="toggle-row">
+                    <div>
+                      <strong>Tự động áp dụng cập nhật dữ liệu (Auto-submit)</strong>
+                      <p>Khi bật, MedGuard AI sẽ tự động đồng bộ dữ liệu vào Bản đồ Cơ thể 3D, Sổ chi tiêu và Hồ sơ mà không cần hỏi xác nhận từng lần.</p>
+                    </div>
+                    <button
+                      type="button"
+                      className={`switch-toggle ${preferences.autoSubmitUpdates ? 'checked' : ''}`}
+                      onClick={() => updatePref('autoSubmitUpdates', !preferences.autoSubmitUpdates)}
+                      aria-label="Tự động áp dụng cập nhật dữ liệu"
                     >
                       <span className="switch-knob" />
                     </button>

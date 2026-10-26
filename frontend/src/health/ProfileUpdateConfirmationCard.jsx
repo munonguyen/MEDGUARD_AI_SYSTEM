@@ -40,7 +40,9 @@ export function ProfileUpdateConfirmationCard({
   status = 'pending',
   onAccept,
   onDecline,
-  onOpenProfile
+  onOpenProfile,
+  autoSubmit = false,
+  onToggleAutoSubmit,
 }) {
   if (!proposal) return null;
 
@@ -122,6 +124,17 @@ export function ProfileUpdateConfirmationCard({
           <p className="prompt-confirm-text">
             Bạn có cho phép hệ thống tự động cập nhật các thông tin trên vào Hồ sơ cá nhân của bạn không?
           </p>
+          <div className="proposal-auto-submit-row" style={{ marginBottom: 10, display: 'flex', alignItems: 'center' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', fontSize: '12px', color: '#475569', userSelect: 'none' }}>
+              <input
+                type="checkbox"
+                checked={autoSubmit}
+                onChange={(e) => onToggleAutoSubmit?.(e.target.checked)}
+                style={{ width: '15px', height: '15px', accentColor: '#0d9488', cursor: 'pointer' }}
+              />
+              <span><strong>Tự động áp dụng cho các lần sau</strong> (Không cần hỏi lại khi phát hiện thông tin tương tự)</span>
+            </label>
+          </div>
           <div className="proposal-buttons-row">
             <button
               type="button"

@@ -86,6 +86,7 @@ import { MedicationProposalCard } from './chat/MedicationProposalCard';
 import { AppointmentProposalCard } from './chat/AppointmentProposalCard';
 import { NavigationActionCard } from './chat/NavigationActionCard';
 import { QuickNavActionCard } from './chat/QuickNavActionCard';
+import { ActionPermissionConfirmationCard } from './chat/ActionPermissionConfirmationCard';
 import { ErrorBoundary } from './common/ErrorBoundary';
 import { DataManagementAuthGate } from './common/DataManagementAuthGate';
 import { processUnifiedTopicGatedChat, TOPIC_MODES } from './chat/topicGatedSync';
@@ -387,6 +388,10 @@ function Conversation({
   onDeclineAppointmentProposal,
   onOpenNavigation,
   onNavigate,
+  onAcceptSyncProposal,
+  onDeclineSyncProposal,
+  autoSubmitUpdates = false,
+  onToggleAutoSubmit,
 }) {
   const streamRef = useRef(null);
   const latestRef = useRef(null);
@@ -464,7 +469,7 @@ function Conversation({
         // User just sent a message -> always scroll to reveal
         scrollToBottom(true);
       } else if (isAtBottomRef.current) {
-        if (latest?.profileProposal || latest?.medicationProposal || latest?.appointmentProposal || latest?.navigationAction || latest?.navCommand) {
+        if (latest?.profileProposal || latest?.medicationProposal || latest?.appointmentProposal || latest?.navigationAction || latest?.navCommand || latest?.syncProposal) {
           // An interactive proposal/navigation card is present -> scroll to reveal it immediately
           scrollToBottom(true);
         } else {
@@ -622,6 +627,19 @@ function Conversation({
                   onAccept={(prop) => onAcceptProfileProposal?.(prop, key)}
                   onDecline={() => onDeclineProfileProposal?.(key)}
                   onOpenProfile={onOpenProfile}
+                  autoSubmit={autoSubmitUpdates}
+                  onToggleAutoSubmit={onToggleAutoSubmit}
+                />
+              )}
+              {entry.syncProposal && (
+                <ActionPermissionConfirmationCard
+                  proposal={entry.syncProposal}
+                  status={entry.syncProposalStatus || 'pending'}
+                  onAccept={(prop) => onAcceptSyncProposal?.(prop, key)}
+                  onDecline={() => onDeclineSyncProposal?.(key)}
+                  autoSubmit={autoSubmitUpdates}
+                  onToggleAutoSubmit={onToggleAutoSubmit}
+                  onNavigate={onNavigate}
                 />
               )}
               {entry.medicationProposal && (
@@ -920,6 +938,23 @@ export default function App({
   const [navigationContext, setNavigationContext] = useState(null);
   const toastTimerRef = useRef(null);
 
+  // Global Auto-Submit Setting (ChatGPT Action Permission)
+  const [autoSubmitUpdates, setAutoSubmitUpdates] = useState(() => {
+    try {
+      return localStorage.getItem('medguard_auto_apply_sync_updates') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    const handleAutoSubmitChange = (e) => {
+      setAutoSubmitUpdates(!!e.detail);
+    };
+    window.addEventListener('medguard:auto-submit-changed', handleAutoSubmitChange);
+    return () => window.removeEventListener('medguard:auto-submit-changed', handleAutoSubmitChange);
+  }, []);
+
   useEffect(() => {
     const handleCustomNavigate = (e) => {
       const detail = e.detail;
@@ -1212,6 +1247,65 @@ export default function App({
     notify('Đã hủy bỏ cập nhật theo yêu cầu');
   };
 
+  const handleAcceptSyncProposal = (proposal, entryKey) => {
+    if (!proposal) return;
+    if (proposal.rememberAutoSubmit) {
+      setAutoSubmitUpdates(true);
+      try {
+        localStorage.setItem('medguard_auto_apply_sync_updates', 'true');
+      } catch {}
+    }
+
+    if (proposal.healthMutation) {
+      try {
+        localStorage.setItem('medguard_health_twin_profile', JSON.stringify(proposal.healthMutation));
+      } catch {}
+      window.dispatchEvent(
+        new CustomEvent('medguard:health-twin-updated', {
+          detail: { healthMutation: proposal.healthMutation },
+        })
+      );
+    }
+
+    if (proposal.expenseMutation) {
+      try {
+        localStorage.setItem('medguard_financial_assessment', JSON.stringify(proposal.expenseMutation));
+        if (proposal.expenseMutation.monthly_budget_target_vnd) {
+          localStorage.setItem('medguard_budget_target_vnd', String(proposal.expenseMutation.monthly_budget_target_vnd));
+        }
+      } catch {}
+      window.dispatchEvent(
+        new CustomEvent('medguard:financial-updated', {
+          detail: { expenseMutation: proposal.expenseMutation },
+        })
+      );
+    }
+
+    setEntries((prev) =>
+      prev.map((item, idx) => {
+        const key = item.id || idx;
+        if (key === entryKey) {
+          return { ...item, syncProposalStatus: 'accepted' };
+        }
+        return item;
+      })
+    );
+    notify(`Đã cấp quyền & cập nhật dữ liệu thành công vào ${proposal.moduleTitle || 'hệ sinh thái'}!`);
+  };
+
+  const handleDeclineSyncProposal = (entryKey) => {
+    setEntries((prev) =>
+      prev.map((item, idx) => {
+        const key = item.id || idx;
+        if (key === entryKey) {
+          return { ...item, syncProposalStatus: 'declined' };
+        }
+        return item;
+      })
+    );
+    notify('Đã từ chối cấp quyền cập nhật dữ liệu.');
+  };
+
   const handleAcceptMedicationProposal = (proposal, entryKey) => {
     if (!proposal?.medication) return;
     const med = proposal.medication;
@@ -1467,43 +1561,117 @@ export default function App({
           setPatientOpen(true);
         }
 
-        if (syncResult.topicMode === TOPIC_MODES.HEALTH_OVERVIEW_ONLY) {
+        // Build ChatGPT-Style Action & Permission Proposal if data mutations were detected
+        if (syncResult.healthMutation || syncResult.expenseMutation) {
+          const isDual = !!(syncResult.healthMutation && syncResult.expenseMutation);
+          const isHealth = !!syncResult.healthMutation && !syncResult.expenseMutation;
+
+          const moduleType = isDual ? 'dual' : isHealth ? 'health_twin' : 'spending';
+          const moduleTitle = isDual
+            ? 'Bản đồ Cơ thể 3D & Sổ Chi Tiêu'
+            : isHealth
+            ? 'Bản đồ Cơ thể 3D'
+            : 'Sổ Chi Tiêu & Quyền lợi BHYT';
+
+          const extractedItems = [];
+
           if (syncResult.healthMutation) {
-            try {
-              localStorage.setItem('medguard_health_twin_profile', JSON.stringify(syncResult.healthMutation));
-            } catch {}
+            const h = syncResult.healthMutation;
+            let organName = 'Dạ dày (Tiêu hóa)';
+            let organStatus = 'Kích ứng cấp / Cần theo dõi';
+            if (h.organs) {
+              const keys = Object.keys(h.organs);
+              for (const k of keys) {
+                if (h.organs[k]?.status && h.organs[k].status !== 'normal') {
+                  organName = h.organs[k].vietnamese_name || (k === 'stomach' ? 'Dạ dày' : k);
+                  organStatus = h.organs[k].clinical_notes || h.organs[k].status;
+                  break;
+                }
+              }
+            }
+            extractedItems.push({
+              icon: 'organ',
+              label: 'Cơ quan cập nhật',
+              value: organName,
+              subHint: organStatus,
+              tone: 'warning',
+            });
+            if (h.vitals?.vas_pain_score) {
+              extractedItems.push({
+                icon: 'pain',
+                label: 'Mức độ đau nhức',
+                value: `${h.vitals.vas_pain_score}/10 (${h.vitals.vas_pain_score >= 6 ? 'Đau dữ dội' : 'Đau vừa'})`,
+                tone: 'danger',
+              });
+            }
+            if (h.overall_health_score) {
+              extractedItems.push({
+                icon: 'shield',
+                label: 'Điểm thể trạng',
+                value: `${h.overall_health_score}/100`,
+                tone: 'neutral',
+              });
+            }
           }
-          window.dispatchEvent(new CustomEvent('medguard:health-twin-updated', { detail: { ...data, healthMutation: syncResult.healthMutation } }));
-          window.dispatchEvent(new CustomEvent('medguard:unified-chat-sync', { detail: syncResult }));
-        } else if (syncResult.topicMode === TOPIC_MODES.EXPENSE_MANAGEMENT_ONLY) {
-          const finAssess = syncResult.expenseMutation || data.answer?.financial_assessment_update?.assessment;
-          const budgetVal = syncResult.expenseMutation?.monthly_budget_target_vnd || data.result?.monthly_budget_target_vnd;
-          if (budgetVal) {
-            try {
-              localStorage.setItem('medguard_budget_target_vnd', String(budgetVal));
-            } catch {}
-          }
-          if (finAssess) {
-            try {
-              localStorage.setItem('medguard_financial_assessment', JSON.stringify(finAssess));
-            } catch {}
-          }
-          window.dispatchEvent(new CustomEvent('medguard:financial-updated', { detail: { ...data, expenseMutation: syncResult.expenseMutation } }));
-          window.dispatchEvent(new CustomEvent('medguard:unified-chat-sync', { detail: syncResult }));
-        } else if (syncResult.topicMode === TOPIC_MODES.DUAL_HEALTH_AND_EXPENSE) {
-          if (syncResult.healthMutation) {
-            try {
-              localStorage.setItem('medguard_health_twin_profile', JSON.stringify(syncResult.healthMutation));
-            } catch {}
-          }
+
           if (syncResult.expenseMutation) {
-            try {
-              localStorage.setItem('medguard_financial_assessment', JSON.stringify(syncResult.expenseMutation));
-            } catch {}
+            const exp = syncResult.expenseMutation;
+            const recentTx = exp.recent_transactions?.[0];
+            const amount = recentTx?.amount_vnd || 350000;
+            extractedItems.push({
+              icon: 'money',
+              label: 'Khoản chi y tế',
+              value: `${amount.toLocaleString('vi-VN')} ₫`,
+              subHint: recentTx?.title || 'Đơn thuốc / Khám chữa bệnh',
+              tone: 'success',
+            });
+            extractedItems.push({
+              icon: 'shield',
+              label: 'Ước tính BHYT',
+              value: 'BHYT chi trả ~80%',
+              subHint: 'Theo danh mục BHYT đúng tuyến',
+              tone: 'neutral',
+            });
           }
-          window.dispatchEvent(new CustomEvent('medguard:health-twin-updated', { detail: { ...data, healthMutation: syncResult.healthMutation } }));
-          window.dispatchEvent(new CustomEvent('medguard:financial-updated', { detail: { ...data, expenseMutation: syncResult.expenseMutation } }));
-          window.dispatchEvent(new CustomEvent('medguard:unified-chat-sync', { detail: syncResult }));
+
+          const syncProposal = {
+            moduleType,
+            moduleTitle,
+            summaryText: isDual
+              ? 'Phát hiện dữ liệu lâm sàng về cơ thể và chi phí y tế. Cần sự cho phép của bạn để cập nhật cả 2 hệ thống:'
+              : isHealth
+              ? 'Phát hiện triệu chứng mới ảnh hưởng đến cơ thể. Cần sự cho phép của bạn để đồng bộ vào Bản đồ Cơ thể 3D:'
+              : 'Phát hiện thông tin chi phí y tế / đơn thuốc. Cần sự cho phép của bạn để ghi nhận vào Sổ Chi Tiêu:',
+            extractedItems,
+            healthMutation: syncResult.healthMutation,
+            expenseMutation: syncResult.expenseMutation,
+          };
+
+          responseEntry.syncProposal = syncProposal;
+
+          if (autoSubmitUpdates) {
+            // User enabled auto-submit: apply immediately
+            if (syncResult.healthMutation) {
+              try {
+                localStorage.setItem('medguard_health_twin_profile', JSON.stringify(syncResult.healthMutation));
+              } catch {}
+              window.dispatchEvent(new CustomEvent('medguard:health-twin-updated', { detail: { ...data, healthMutation: syncResult.healthMutation } }));
+            }
+            if (syncResult.expenseMutation) {
+              try {
+                localStorage.setItem('medguard_financial_assessment', JSON.stringify(syncResult.expenseMutation));
+                if (syncResult.expenseMutation.monthly_budget_target_vnd) {
+                  localStorage.setItem('medguard_budget_target_vnd', String(syncResult.expenseMutation.monthly_budget_target_vnd));
+                }
+              } catch {}
+              window.dispatchEvent(new CustomEvent('medguard:financial-updated', { detail: { ...data, expenseMutation: syncResult.expenseMutation } }));
+            }
+            responseEntry.syncProposalStatus = 'accepted';
+            window.dispatchEvent(new CustomEvent('medguard:unified-chat-sync', { detail: syncResult }));
+          } else {
+            // Require user explicit permission
+            responseEntry.syncProposalStatus = 'pending';
+          }
         } else {
           // UNRELATED_NO_STATE_MUTATION: 100% metrics in both modules strictly preserved!
           window.dispatchEvent(new CustomEvent('medguard:unified-chat-sync', { detail: syncResult }));
@@ -2070,6 +2238,15 @@ export default function App({
                 onDeclineMedicationProposal={handleDeclineMedicationProposal}
                 onAcceptAppointmentProposal={handleAcceptAppointmentProposal}
                 onDeclineAppointmentProposal={handleDeclineAppointmentProposal}
+                onAcceptSyncProposal={handleAcceptSyncProposal}
+                onDeclineSyncProposal={handleDeclineSyncProposal}
+                autoSubmitUpdates={autoSubmitUpdates}
+                onToggleAutoSubmit={(val) => {
+                  setAutoSubmitUpdates(val);
+                  try {
+                    localStorage.setItem('medguard_auto_apply_sync_updates', String(val));
+                  } catch {}
+                }}
                 onOpenNavigation={handleOpenNavigationAction}
                 onNavigate={(target) => {
                   if (target === 'profile') setView('profile');
