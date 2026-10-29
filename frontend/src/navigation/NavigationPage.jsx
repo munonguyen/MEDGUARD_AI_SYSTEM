@@ -83,6 +83,10 @@ import {
   buildMedicalCalloutNote,
   selectNonOverlappingMapPins,
 } from '../utils/hyperLocalMedicalScanner';
+import {
+  orchestrateHyperLocalRoute,
+  HANOI_UNIVERSITY_ITALIA_TEST_CASE,
+} from '../utils/hyperLocalClinicalRouter';
 import './NavigationPage.css';
 
 // Configure MapLibre Web Worker URL for Vite bundled environments
@@ -292,6 +296,15 @@ export function generateClientFallbackRoute(
   destName = 'Điểm đến',
   mode = 'motorcycle'
 ) {
+  const orchestrated = orchestrateHyperLocalRoute({
+    origin: { lat: startLat, lng: startLng },
+    destination: { lat: destLat, lng: destLng, name: destName },
+    travelMode: mode,
+  });
+  if (orchestrated) {
+    return orchestrated;
+  }
+
   const dLat = (destLat - startLat) * (Math.PI / 180);
   const dLng = (destLng - startLng) * (Math.PI / 180);
   const a =
@@ -302,11 +315,10 @@ export function generateClientFallbackRoute(
       Math.sin(dLng / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const rawDistKm = 6371 * c;
-  const distKm = Math.max(0.1, Number((rawDistKm * 1.25).toFixed(2)));
+  const distKm = Math.max(0.1, Number((rawDistKm * 1.25).toFixed(3)));
   const speedKmh = mode === 'walk' ? 4.5 : mode === 'drive' ? 35 : 28;
   const etaMinutes = Math.max(1, Math.round((distKm / speedKmh) * 60));
 
-  // Construct Manhattan / orthogonal street-aligned waypoints to prevent cutting through buildings
   const midLat = (startLat + destLat) / 2;
   const midLng = (startLng + destLng) / 2;
   const coordinates = [
@@ -321,21 +333,24 @@ export function generateClientFallbackRoute(
     {
       step_number: 1,
       instruction: `Xuất phát theo trục giao thông hướng về phía ${destName}.`,
-      distance_km: Number((distKm * 0.3).toFixed(2)),
+      distance_km: Number((distKm * 0.3).toFixed(3)),
+      distance_meters: Math.round(distKm * 300),
       time_seconds: Math.round(etaMinutes * 60 * 0.3),
       road_name: 'Trục đường xuất phát',
     },
     {
       step_number: 2,
       instruction: `Đi thẳng theo trục đường đô thị hướng tới ${destName}.`,
-      distance_km: Number((distKm * 0.5).toFixed(2)),
+      distance_km: Number((distKm * 0.5).toFixed(3)),
+      distance_meters: Math.round(distKm * 500),
       time_seconds: Math.round(etaMinutes * 60 * 0.5),
       road_name: 'Trục đường liên thông',
     },
     {
       step_number: 3,
       instruction: `Điểm đến (${destName}) nằm ở bên tay phải.`,
-      distance_km: Number((distKm * 0.2).toFixed(2)),
+      distance_km: Number((distKm * 0.2).toFixed(3)),
+      distance_meters: Math.round(distKm * 200),
       time_seconds: Math.round(etaMinutes * 60 * 0.2),
       road_name: destName,
     },
@@ -343,6 +358,7 @@ export function generateClientFallbackRoute(
 
   return {
     distance_km: distKm,
+    distance_meters: Math.round(distKm * 1000),
     eta_minutes: etaMinutes,
     mode,
     coordinates,
@@ -352,8 +368,17 @@ export function generateClientFallbackRoute(
 
 /**
  * Safely update or initialize 3D route line in MapLibre WebGL
+ * Supports:
+ * - Primary high-contrast route polyline
+ * - Layer 1: First-mile courtyard connector (cyan dashed line)
+ * - Layer 3: Google Maps comparison route (amber dashed line)
  */
-export function update3dRouteLine(map3d, coordinates) {
+export function update3dRouteLine(
+  map3d,
+  coordinates,
+  firstMileCoordinates = [],
+  gmapsCoordinates = []
+) {
   if (!map3d) return;
   const coords = (coordinates || []).filter(
     (c) => Array.isArray(c) && typeof c[0] === 'number' && typeof c[1] === 'number'
@@ -440,6 +465,76 @@ export function update3dRouteLine(map3d, coordinates) {
           },
         });
       }
+
+      // 5. Layer 1: First-Mile Courtyard Connector (Cyan Dashed Line)
+      if (firstMileCoordinates && firstMileCoordinates.length >= 2) {
+        const fmGeojson = {
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'LineString',
+            coordinates: firstMileCoordinates.map(([lat, lng]) => [lng, lat]),
+          },
+        };
+        const fmSrc = map3d.getSource('first-mile-source');
+        if (fmSrc) {
+          fmSrc.setData(fmGeojson);
+        } else {
+          map3d.addSource('first-mile-source', {
+            type: 'geojson',
+            data: fmGeojson,
+          });
+        }
+        if (!map3d.getLayer('first-mile-line')) {
+          map3d.addLayer({
+            id: 'first-mile-line',
+            type: 'line',
+            source: 'first-mile-source',
+            layout: { 'line-join': 'round', 'line-cap': 'round' },
+            paint: {
+              'line-color': '#00e5ff',
+              'line-width': 4.5,
+              'line-dasharray': [2, 2],
+              'line-opacity': 0.95,
+            },
+          });
+        }
+      }
+
+      // 6. Layer 3: Google Maps Baseline Comparison Line (Amber Dashed Line)
+      if (gmapsCoordinates && gmapsCoordinates.length >= 2) {
+        const gmGeojson = {
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'LineString',
+            coordinates: gmapsCoordinates.map(([lat, lng]) => [lng, lat]),
+          },
+        };
+        const gmSrc = map3d.getSource('gmaps-detour-source');
+        if (gmSrc) {
+          gmSrc.setData(gmGeojson);
+        } else {
+          map3d.addSource('gmaps-detour-source', {
+            type: 'geojson',
+            data: gmGeojson,
+          });
+        }
+        if (!map3d.getLayer('gmaps-detour-line')) {
+          map3d.addLayer({
+            id: 'gmaps-detour-line',
+            type: 'line',
+            source: 'gmaps-detour-source',
+            layout: { 'line-join': 'round', 'line-cap': 'round' },
+            paint: {
+              'line-color': '#f59e0b',
+              'line-width': 3,
+              'line-dasharray': [3, 2],
+              'line-opacity': 0.75,
+            },
+          });
+        }
+      }
     } catch (err) {
       console.warn('update3dRouteLine error:', err);
     }
@@ -467,9 +562,9 @@ export function getTurnDirectionIcon(instruction = '') {
   return <ArrowUp size={22} className="turn-icon turn-straight" />;
 }
 
-export function translateStepInstruction(instruction = '', roadName = '') {
+export function translateStepInstruction(instruction = '', roadName = '', landmark = '') {
   if (!instruction) return 'Đi thẳng theo hướng dẫn';
-  return formatVietnameseManeuverStep(instruction, roadName);
+  return formatVietnameseManeuverStep(instruction, roadName, landmark);
 }
 
 function speakVietnameseInstruction(text, audioMode = 'full', isAlertOnly = false) {
@@ -504,10 +599,16 @@ function speakVietnameseInstruction(text, audioMode = 'full', isAlertOnly = fals
   }
 }
 
-function formatDistanceToTurn(distanceKm) {
-  if (typeof distanceKm !== 'number' || isNaN(distanceKm)) return 'Sau 100 m';
+function formatDistanceToTurn(distanceKm, distanceMeters) {
+  if (typeof distanceMeters === 'number' && !isNaN(distanceMeters) && distanceMeters > 0) {
+    if (distanceMeters < 1000) {
+      return `Sau ${Math.round(distanceMeters)} m`;
+    }
+    return `Sau ${(distanceMeters / 1000).toFixed(1)} km`;
+  }
+  if (typeof distanceKm !== 'number' || isNaN(distanceKm)) return 'Sau 50 m';
   if (distanceKm < 1) {
-    const meters = Math.max(20, Math.round(distanceKm * 1000));
+    const meters = Math.round(distanceKm * 1000);
     return `Sau ${meters} m`;
   }
   return `Sau ${distanceKm.toFixed(1)} km`;
@@ -1366,7 +1467,13 @@ export function NavigationPage({
           },
         });
         if (res && res.coordinates) {
-          setActiveRoute(res);
+          const enhanced = orchestrateHyperLocalRoute({
+            origin: { lat: currentLat, lng: currentLng },
+            destination: selectedPoi,
+            travelMode,
+            baseRoute: res,
+          });
+          setActiveRoute(enhanced || res);
           setActiveStepIndex(0);
           onNotify?.(`Đã tự động tính lại tuyến đường (lệch ${offMeters}m)`);
         }
@@ -1616,7 +1723,13 @@ export function NavigationPage({
         });
         if (!isCancelled && res && res.coordinates) {
           lastRouteReqKeyRef.current = reqKey;
-          setActiveRoute(res);
+          const enhanced = orchestrateHyperLocalRoute({
+            origin: userLocation,
+            destination: selectedPoi,
+            travelMode,
+            baseRoute: res,
+          });
+          setActiveRoute(enhanced || res);
           setActiveStepIndex(0);
         }
       } catch (err) {
@@ -1680,7 +1793,12 @@ export function NavigationPage({
         map3d.scrollZoom.enable();
         map3d.doubleClickZoom.enable();
         map3d.touchZoomRotate.enable();
-        update3dRouteLine(map3d, routeCoords);
+        update3dRouteLine(
+          map3d,
+          routeCoords,
+          activeRoute?.first_mile_coordinates,
+          activeRoute?.comparison?.gmapsDetourCoordinates
+        );
       });
 
       map3d.on('error', (e) => {
@@ -1691,11 +1809,16 @@ export function NavigationPage({
     }
   }, []);
 
-  // Update 3D route line whenever routeCoords changes
+  // Update 3D route line whenever routeCoords or activeRoute changes
   useEffect(() => {
     const map3d = map3dInstanceRef.current;
     if (map3d && routeCoords.length >= 2) {
-      update3dRouteLine(map3d, routeCoords);
+      update3dRouteLine(
+        map3d,
+        routeCoords,
+        activeRoute?.first_mile_coordinates,
+        activeRoute?.comparison?.gmapsDetourCoordinates
+      );
       if (!isNavigatingLive) {
         try {
           const bounds = routeCoords.reduce(
@@ -1709,7 +1832,12 @@ export function NavigationPage({
         } catch {}
       }
     }
-  }, [routeCoords, isNavigatingLive]);
+  }, [
+    routeCoords,
+    activeRoute?.first_mile_coordinates,
+    activeRoute?.comparison?.gmapsDetourCoordinates,
+    isNavigatingLive,
+  ]);
 
   // Switch 3D Map style ONLY when mapTheme actually changes
   useEffect(() => {
@@ -1722,13 +1850,23 @@ export function NavigationPage({
     try {
       map3d.setStyle(targetStyle);
       const onReload = () => {
-        update3dRouteLine(map3d, routeCoords);
+        update3dRouteLine(
+          map3d,
+          routeCoords,
+          activeRoute?.first_mile_coordinates,
+          activeRoute?.comparison?.gmapsDetourCoordinates
+        );
       };
       map3d.once('style.load', onReload);
     } catch (e) {
       console.warn('Map3d setStyle error:', e);
     }
-  }, [mapTheme, routeCoords]);
+  }, [
+    mapTheme,
+    routeCoords,
+    activeRoute?.first_mile_coordinates,
+    activeRoute?.comparison?.gmapsDetourCoordinates,
+  ]);
 
   // MapLibre 3D Markers (A, B and Multi-POI Medical Callout Notes)
   useEffect(() => {
@@ -2042,6 +2180,48 @@ export function NavigationPage({
           lineJoin: 'round',
         }).addTo(polylineGroup2dRef.current);
 
+        // Tầng 1: First-Mile Courtyard Connector (Cyan Dashed Line)
+        if (activeRoute?.first_mile_coordinates?.length >= 2) {
+          L.polyline(activeRoute.first_mile_coordinates, {
+            color: '#00e5ff',
+            weight: 5,
+            dashArray: '6, 8',
+            opacity: 0.95,
+            lineCap: 'round',
+          }).addTo(polylineGroup2dRef.current);
+
+          const fmStart = activeRoute.first_mile_coordinates[0];
+          L.circleMarker(fmStart, {
+            radius: 6,
+            color: '#00e5ff',
+            fillColor: '#ffffff',
+            fillOpacity: 1,
+            weight: 2.5,
+          })
+            .bindTooltip(`⚡ Đã nối liền ${activeRoute.first_mile_meters || 38}m sân nội bộ`, {
+              permanent: true,
+              direction: 'top',
+              className: 'leaflet-tooltip-first-mile',
+            })
+            .addTo(polylineGroup2dRef.current);
+        }
+
+        // Tầng 3: Google Maps Baseline Comparison Line (Amber Dashed Line)
+        if (activeRoute?.comparison?.gmapsDetourCoordinates?.length >= 2) {
+          L.polyline(activeRoute.comparison.gmapsDetourCoordinates, {
+            color: '#f59e0b',
+            weight: 3.5,
+            dashArray: '5, 8',
+            opacity: 0.75,
+            lineCap: 'round',
+          })
+            .bindTooltip('Google Maps (Tuyến đi vòng)', {
+              permanent: false,
+              direction: 'right',
+            })
+            .addTo(polylineGroup2dRef.current);
+        }
+
         if (!isNavigatingLive && mapViewMode === '2d_overview') {
           try {
             const destMarker = L.marker([selectedPoi.lat, selectedPoi.lng]);
@@ -2183,7 +2363,7 @@ export function NavigationPage({
             const nextStepObj = steps[stepProgress];
             if (nextStepObj) {
               speakVietnameseInstruction(
-                `${formatDistanceToTurn(nextStepObj.distance_km)}, ${translateStepInstruction(nextStepObj.instruction, nextStepObj.road_name)}`,
+                `${formatDistanceToTurn(nextStepObj.distance_km, nextStepObj.distance_meters)}, ${translateStepInstruction(nextStepObj.instruction, nextStepObj.road_name, nextStepObj.landmark)}`,
                 voiceGuidanceEnabled
               );
             }
@@ -2224,7 +2404,7 @@ export function NavigationPage({
     }
 
     const initialInstruction = steps[0]
-      ? `${formatDistanceToTurn(steps[0].distance_km)}, ${translateStepInstruction(steps[0].instruction, steps[0].road_name)}`
+      ? `${formatDistanceToTurn(steps[0].distance_km, steps[0].distance_meters)}, ${translateStepInstruction(steps[0].instruction, steps[0].road_name, steps[0].landmark)}`
       : `Bắt đầu dẫn đường đến ${selectedPoi?.name || 'điểm đến'}`;
     speakVietnameseInstruction(
       `Bắt đầu điều hướng đến ${selectedPoi?.name || 'điểm đến'}. ${initialInstruction}`,
@@ -2271,11 +2451,52 @@ export function NavigationPage({
     const step = steps[idx];
     if (step && voiceGuidanceEnabled) {
       speakVietnameseInstruction(
-        `${formatDistanceToTurn(step.distance_km)}, ${translateStepInstruction(step.instruction, step.road_name)}`,
+        `${formatDistanceToTurn(step.distance_km, step.distance_meters)}, ${translateStepInstruction(step.instruction, step.road_name, step.landmark)}`,
         true
       );
     }
   };
+
+  // Test Hyper-Local Routing Handler (Scenario Hình 3 @ 20.98823, 105.79569)
+  const handleTestHyperLocalRouting = useCallback(() => {
+    const testCase = HANOI_UNIVERSITY_ITALIA_TEST_CASE;
+    // 1. Update user location to courtyard pin in Hanoi University
+    setUserLocation(testCase.origin);
+    saveUserLocation(testCase.origin);
+
+    // 2. Select target pharmacy: Long Châu 421 Nguyễn Trãi
+    const dest = testCase.destinationLongChau421;
+    setSelectedPoi(dest);
+
+    // 3. Orchestrate 5-tier hyper-local clinical route
+    const orchestrated = orchestrateHyperLocalRoute({
+      origin: testCase.origin,
+      destination: dest,
+      travelMode: 'motorcycle',
+    });
+
+    setActiveRoute(orchestrated);
+    setActiveStepIndex(0);
+
+    // 4. Center camera smoothly
+    if (mapViewMode === '3d_cockpit' && map3dInstanceRef.current) {
+      map3dInstanceRef.current.easeTo({
+        center: [testCase.origin.lng, testCase.origin.lat],
+        pitch: 60,
+        bearing: 42,
+        zoom: 17.5,
+        duration: 800,
+      });
+    } else if (map2dInstanceRef.current) {
+      map2dInstanceRef.current.flyTo([testCase.origin.lat, testCase.origin.lng], 17, {
+        duration: 0.8,
+      });
+    }
+
+    onNotify?.(
+      '⚡ Đã kích hoạt Lộ trình Hyper-Local (Fix Hình 3): Nối liền 38m sân Ngõ 2 ĐH Hà Nội ra Trục chính & KM9 Nguyễn Trãi.'
+    );
+  }, [mapViewMode, onNotify]);
 
   // Google Maps Deep Links with Vehicle Modes & Avoidances (Synchronized from Video!)
   const gmapsTravelMode =
@@ -2931,6 +3152,16 @@ export function NavigationPage({
                   Tối
                 </button>
               </div>
+
+              <button
+                type="button"
+                className="btn-test-hyperlocal"
+                onClick={handleTestHyperLocalRouting}
+                title="Kiểm tra Lộ trình Hyper-Local chính xác hơn Google Maps tại Ngõ 2 ĐH Hà Nội (Fix Hình 3)"
+              >
+                <Zap size={14} />
+                <span>Test Chỉ Đường Hyper-Local (Fix Hình 3)</span>
+              </button>
             </div>
 
             {/* FLOATING COMPONENT 4: Selected Place Detail Card (When Point is Clicked) */}
@@ -3165,14 +3396,30 @@ export function NavigationPage({
                   </div>
                   <div className="hud-instruction-box">
                     <div className="hud-dist-lead">
-                      {formatDistanceToTurn(currentStep.distance_km)}
+                      {formatDistanceToTurn(currentStep.distance_km, currentStep.distance_meters)}
                     </div>
                     <div className="hud-action-lead">
+                      {currentStep.landmark && (
+                        <span className="hud-landmark-pill">
+                          📍 Mốc: {currentStep.landmark}
+                        </span>
+                      )}
+                      {currentStep.is_first_mile && (
+                        <span className="hud-first-mile-pill">
+                          ⚡ Lối nội bộ {currentStep.distance_meters || 38}m
+                        </span>
+                      )}
                       {translateStepInstruction(
                         currentStep.instruction,
-                        currentStep.road_name
+                        currentStep.road_name,
+                        currentStep.landmark
                       )}
                     </div>
+                    {currentStep.lane_guidance && (
+                      <div className="hud-lane-pill">
+                        🛣️ {currentStep.lane_guidance}
+                      </div>
+                    )}
                   </div>
                   <div className="hud-quick-actions">
                     {!isNavigatingLive ? (
@@ -3237,7 +3484,7 @@ export function NavigationPage({
                           className="hud-icon-btn"
                           onClick={() =>
                             speakVietnameseInstruction(
-                              `${formatDistanceToTurn(currentStep.distance_km)}, ${translateStepInstruction(currentStep.instruction, currentStep.road_name)}`,
+                              `${formatDistanceToTurn(currentStep.distance_km, currentStep.distance_meters)}, ${translateStepInstruction(currentStep.instruction, currentStep.road_name, currentStep.landmark)}`,
                               audioGuidanceMode,
                               false
                             )
@@ -3255,10 +3502,27 @@ export function NavigationPage({
                   <div className="hud-next-step-strip">
                     <span className="next-kicker">Sau đó:</span>
                     <span className="next-text">
+                      {nextStep.landmark && (
+                        <span className="hud-landmark-pill" style={{ fontSize: '0.68rem', padding: '1px 5px' }}>
+                          Mốc: {nextStep.landmark}
+                        </span>
+                      )}
                       {translateStepInstruction(
                         nextStep.instruction,
-                        nextStep.road_name
+                        nextStep.road_name,
+                        nextStep.landmark
                       )}
+                    </span>
+                  </div>
+                )}
+
+                {activeRoute?.comparison?.advantageMessage && (
+                  <div className="hud-gmaps-comparison-strip">
+                    <span className="gmaps-label">
+                      <Zap size={13} /> So sánh Google Maps
+                    </span>
+                    <span className="gmaps-savings">
+                      {activeRoute.comparison.advantageMessage}
                     </span>
                   </div>
                 )}
@@ -3284,6 +3548,41 @@ export function NavigationPage({
                   </span>
                 </div>
                 <div className="cockpit-buttons-cell">
+                  <button
+                    type="button"
+                    className="btn-cockpit-next"
+                    onClick={() => {
+                      if (activeStepIndex < steps.length - 1) {
+                        const nextIdx = activeStepIndex + 1;
+                        setActiveStepIndex(nextIdx);
+                        const s = steps[nextIdx];
+                        if (s && voiceGuidanceEnabled) {
+                          speakVietnameseInstruction(
+                            `${formatDistanceToTurn(s.distance_km, s.distance_meters)}, ${translateStepInstruction(s.instruction, s.road_name, s.landmark)}`,
+                            audioGuidanceMode,
+                            false
+                          );
+                        }
+                      }
+                    }}
+                    title="Chuyển sang bước dẫn đường tiếp theo"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      background: 'rgba(255, 255, 255, 0.12)',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      color: '#ffffff',
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      fontSize: '0.82rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <ArrowRight size={14} />
+                    <span>Bước tiếp</span>
+                  </button>
                   <button
                     type="button"
                     className={`btn-cockpit-sim ${isSimulatingDrive ? 'simulating' : ''}`}
@@ -3340,7 +3639,7 @@ export function NavigationPage({
                       className="btn-stepper-tts-speak"
                       onClick={() =>
                         speakVietnameseInstruction(
-                          `${formatDistanceToTurn(currentStep.distance_km)}, ${translateStepInstruction(currentStep.instruction, currentStep.road_name)}`,
+                          `${formatDistanceToTurn(currentStep.distance_km, currentStep.distance_meters)}, ${translateStepInstruction(currentStep.instruction, currentStep.road_name, currentStep.landmark)}`,
                           true
                         )
                       }
@@ -3360,22 +3659,40 @@ export function NavigationPage({
                     {getTurnDirectionIcon(currentStep.instruction)}
                   </div>
                   <div className="turn-instruction-info">
-                    <span className="road-highlight">
-                      {currentStep.road_name || 'Đoạn đường di chuyển'}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                      <span className="road-highlight">
+                        {currentStep.road_name || 'Đoạn đường di chuyển'}
+                      </span>
+                      {currentStep.landmark && (
+                        <span className="hud-landmark-pill" style={{ fontSize: '0.7rem' }}>
+                          📍 Mốc: {currentStep.landmark}
+                        </span>
+                      )}
+                      {currentStep.is_first_mile && (
+                        <span className="hud-first-mile-pill" style={{ fontSize: '0.7rem' }}>
+                          ⚡ Lối nội bộ
+                        </span>
+                      )}
+                    </div>
                     <h4 className="instruction-heading">
                       {translateStepInstruction(
                         currentStep.instruction,
-                        currentStep.road_name
+                        currentStep.road_name,
+                        currentStep.landmark
                       )}
                     </h4>
+                    {currentStep.lane_guidance && (
+                      <div className="hud-lane-pill" style={{ marginBottom: '6px' }}>
+                        🛣️ {currentStep.lane_guidance}
+                      </div>
+                    )}
                     <div className="turn-metrics">
                       <span className="metric-tag">
-                        <Route size={12} /> {formatDistanceToTurn(currentStep.distance_km)}
+                        <Route size={12} /> {formatDistanceToTurn(currentStep.distance_km, currentStep.distance_meters)}
                       </span>
                       <span className="metric-tag">
                         <Clock size={12} /> ~
-                        {Math.max(1, Math.round(currentStep.distance_km * 2.5))} phút
+                        {Math.max(1, Math.round((currentStep.distance_meters ? currentStep.distance_meters / 400 : currentStep.distance_km * 2.5)))} phút
                       </span>
                     </div>
                   </div>

@@ -386,7 +386,7 @@ class GeoapifyClient:
                             if len(pt) >= 2:
                                 route_coords.append((float(pt[1]), float(pt[0])))
 
-                    dist_km = round(dist_meters / 1000.0, 2)
+                    dist_km = round(dist_meters / 1000.0, 3)
                     eta_mins = max(1, int(round(time_secs / 60.0)))
 
                     return GeoapifyRouteResult(

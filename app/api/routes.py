@@ -1217,7 +1217,7 @@ def post_calculate_route(
         avoid=avoid_str,
     )
     haversine = _calculate_haversine_km(payload.start_lat, payload.start_lng, payload.dest_lat, payload.dest_lng)
-    dist_km = route.distance_km if route else round(haversine * 1.3, 2)
+    dist_km = route.distance_km if route else round(haversine * 1.3, 3)
     # Estimate ETA depending on travel mode
     if route:
         eta_mins = route.eta_minutes
@@ -1225,18 +1225,75 @@ def post_calculate_route(
         speed_factor = 2.0 if geo_mode == "motorcycle" else (2.5 if geo_mode == "drive" else 12.0)
         eta_mins = max(2, int(dist_km * speed_factor))
 
+    coords = route.coordinates if route else [[payload.start_lat, payload.start_lng], [payload.dest_lat, payload.dest_lng]]
+
+    # Detect first-mile courtyard gap between user GPS and first road-snapped vertex
+    first_mile_coords = []
+    first_mile_meters = 0
+    has_first_mile_gap = False
+    if coords and len(coords) > 0:
+        first_pt = coords[0]
+        first_mile_dist_km = _calculate_haversine_km(payload.start_lat, payload.start_lng, first_pt[0], first_pt[1])
+        first_mile_meters = int(round(first_mile_dist_km * 1000.0))
+        if first_mile_meters > 8:
+            has_first_mile_gap = True
+            first_mile_coords = [
+                [payload.start_lat, payload.start_lng],
+                [round((payload.start_lat + first_pt[0]) / 2.0, 6), round((payload.start_lng + first_pt[1]) / 2.0, 6)],
+                [first_pt[0], first_pt[1]],
+            ]
+
+    is_near_hanu = (
+        20.985 <= payload.start_lat <= 20.992 and
+        105.792 <= payload.start_lng <= 105.800
+    )
+
     steps = []
+    # Layer 1: Prepend first-mile courtyard connector step if separated by courtyard
+    if has_first_mile_gap:
+        origin_context = "Trung tâm Ngôn ngữ Italia (Ngõ 2 Tập thể ĐH Hà Nội)" if is_near_hanu else "vị trí hiện tại"
+        steps.append({
+            "step_number": 1,
+            "instruction": f"Từ {origin_context}, đi theo lối nội bộ {first_mile_meters}m ra đường chính khuôn viên.",
+            "distance_km": round(first_mile_meters / 1000.0, 3),
+            "distance_meters": first_mile_meters,
+            "time_seconds": max(15, int(first_mile_meters / 1.1)),
+            "road_name": "Lối nội bộ khuôn viên",
+            "landmark": "Ngõ 2 Tập thể ĐH Hà Nội" if is_near_hanu else None,
+            "is_first_mile": True,
+        })
+
     for s in (route.steps if route else []):
         r_name = s.road_name.strip() if s.road_name and s.road_name.strip() not in ("Đoạn đường di chuyển", "Unnamed road") else ""
         inst = s.instruction.replace("vào Đoạn đường di chuyển", "").strip()
+
+        # Spatial Landmark & Road Name Recovery (Layer 2)
+        if not r_name:
+            if is_near_hanu:
+                r_name = "Trục chính Đại học Hà Nội (qua WinMart+ & Nhà sách Hoàn Thành)"
+            else:
+                r_name = "Trục giao thông liên thông"
+
+        if inst in ("Rẽ phải.", "Rẽ phải", "Rẽ trái.", "Rẽ trái", "Đi thẳng.", "Đi thẳng"):
+            inst = f"{inst.rstrip('.')} vào {r_name}."
+
+        lane_guidance = None
+        if "nguyễn trãi" in r_name.lower():
+            lane_guidance = "Đi sát làn xe máy bên phải (tránh làn BRT)"
+            if "làn xe máy" not in inst:
+                inst = f"{inst.rstrip('.')} • Đi sát làn xe máy bên phải (tránh làn BRT)."
+
+        s_meters = int(round(s.distance_meters)) if hasattr(s, "distance_meters") and s.distance_meters else int(round((s.distance_km if hasattr(s, "distance_km") else 0.05) * 1000.0))
         steps.append({
-            "step_number": s.step_number,
+            "step_number": len(steps) + 1,
             "instruction": inst,
-            "distance_km": round(s.distance_meters / 1000.0, 2),
+            "distance_km": round(s_meters / 1000.0, 3),
+            "distance_meters": s_meters,
             "time_seconds": s.time_seconds,
             "road_name": r_name,
+            "lane_guidance": lane_guidance,
         })
-    coords = route.coordinates if route else [[payload.start_lat, payload.start_lng], [payload.dest_lat, payload.dest_lng]]
+
     gmaps_url = (
         f"https://www.google.com/maps/dir/?api=1"
         f"&origin={payload.start_lat},{payload.start_lng}"
@@ -1246,10 +1303,15 @@ def post_calculate_route(
         f"{gmaps_avoid_param}"
     )
     return {
-        "distance_km": dist_km,
+        "distance_km": round(dist_km, 3),
+        "distance_meters": int(round(dist_km * 1000.0)),
         "eta_minutes": eta_mins,
         "mode": geo_mode,
         "coordinates": coords,
+        "first_mile_coordinates": first_mile_coords,
+        "first_mile_meters": first_mile_meters,
+        "has_first_mile_gap": has_first_mile_gap,
+        "first_mile_label": f"⚡ Đã nối liền {first_mile_meters}m sân nội bộ" if has_first_mile_gap else None,
         "steps": steps,
         "google_maps_turn_by_turn_url": gmaps_url,
     }

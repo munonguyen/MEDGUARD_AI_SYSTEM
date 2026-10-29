@@ -121,7 +121,11 @@ export function isValidVerifiedMedicalPoiName(rawName: string): boolean {
  * 3. Chuẩn hóa chỉ dẫn điều hướng Turn-by-Turn tiếng Việt 100%
  * Khắc phục triệt để lỗi "Turn left." và "Rẽ trái vào Đoạn đường di chuyển" trong hàm K7 của /static/app.js
  */
-export function formatVietnameseManeuverStep(rawInstruction: string, rawRoadName?: string): string {
+export function formatVietnameseManeuverStep(
+  rawInstruction: string,
+  rawRoadName?: string,
+  contextualLandmark?: string
+): string {
   const cleanRoad =
     rawRoadName &&
     rawRoadName.trim() !== '' &&
@@ -133,6 +137,10 @@ export function formatVietnameseManeuverStep(rawInstruction: string, rawRoadName
   let text = (rawInstruction || '').trim();
 
   const replacements: Array<[RegExp, string]> = [
+    [/^Head\s+northeast\.?/i, 'Đi thẳng về hướng Đông Bắc'],
+    [/^Head\s+northwest\.?/i, 'Đi thẳng về hướng Tây Bắc'],
+    [/^Head\s+southeast\.?/i, 'Đi thẳng về hướng Đông Nam'],
+    [/^Head\s+southwest\.?/i, 'Đi thẳng về hướng Tây Nam'],
     [/^Head\s+north\.?/i, 'Đi thẳng về hướng Bắc'],
     [/^Head\s+south\.?/i, 'Đi thẳng về hướng Nam'],
     [/^Head\s+east\.?/i, 'Đi thẳng về hướng Đông'],
@@ -147,7 +155,7 @@ export function formatVietnameseManeuverStep(rawInstruction: string, rawRoadName
     [/^Keep\s+right\.?$/i, 'Đi sát làn bên phải'],
     [/^Make\s+a\s+U-turn\.?$/i, 'Quay đầu xe tại điểm mở dải phân cách'],
     [/^Continue\s+straight\.?$/i, 'Tiếp tục đi thẳng'],
-    [/^You\s+have\s+arrived.*/i, 'Đã đến cổng cơ sở y tế bên tay phải']
+    [/^You\s+have\s+arrived.*/i, 'Đã đến cổng cơ sở y tế bên tay phải'],
   ];
 
   for (const [pattern, viText] of replacements) {
@@ -160,8 +168,17 @@ export function formatVietnameseManeuverStep(rawInstruction: string, rawRoadName
   // Xóa cụm "vào Đoạn đường di chuyển" vô nghĩa
   text = text.replace(/\s*vào\s+Đoạn đường di chuyển\.?/gi, '');
 
-  if (cleanRoad && !text.toLowerCase().includes(cleanRoad.toLowerCase())) {
-    return `${text.replace(/\.$/, '')} vào ${cleanRoad}`;
+  const targetRoadOrCue = cleanRoad || contextualLandmark;
+  if (targetRoadOrCue && !text.toLowerCase().includes(targetRoadOrCue.toLowerCase())) {
+    return `${text.replace(/\.$/, '')} vào ${targetRoadOrCue}`;
+  }
+
+  // Khắc phục triệt để câu lệnh trơ trọi "Rẽ phải." / "Rẽ trái." khi không có tên đường
+  if (/^(rẽ phải|rẽ trái|đi thẳng|chếch nhẹ sang trái|chếch nhẹ sang phải)\.?$/i.test(text)) {
+    if (contextualLandmark) {
+      return `${text.replace(/\.$/, '')} tại ${contextualLandmark}`;
+    }
+    return `${text.replace(/\.$/, '')} theo trục đường nội bộ`;
   }
 
   return text;
