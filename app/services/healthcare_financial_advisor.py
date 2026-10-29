@@ -17,7 +17,13 @@ from app.models.financial_assessment import (
     SpendingBreakdown,
 )
 
-RUNTIME_STORAGE_PATH = Path(__file__).resolve().parent.parent.parent / ".runtime" / "financial_assessments.json"
+import os
+
+RUNTIME_STORAGE_PATH = (
+    Path("/tmp/financial_assessments.json")
+    if os.getenv("AWS_LAMBDA_FUNCTION_NAME") or os.getenv("LAMBDA_TASK_ROOT")
+    else Path(__file__).resolve().parent.parent.parent / ".runtime" / "financial_assessments.json"
+)
 
 RED_FLAG_SYMPTOMS: list[tuple[str, str]] = [
     (r"(đau ngực|thắt ngực|nặng ngực|đau tim)", "Đau thắt ngực hoặc áp lực vùng tim (Nguy cơ mạch vành)"),
@@ -150,16 +156,58 @@ class HealthcareFinancialAdvisorService:
 
     def get_assessment(self, patient_ref: str = "guest_patient") -> MonthlyFinancialAssessment:
         clean = self._clean_ref(patient_ref)
+        user_id = clean.replace("user-", "")
+        tenant_id = f"user-{user_id}" if not clean.startswith("user-") else clean
+
+        # If it's a real registered user, pull latest from TiDB via user_data_store
+        if clean not in {"guest_patient", "tenant-demo", "demo"}:
+            try:
+                from app.services.user_data_store import user_data_store
+                db_txs = user_data_store.get_spending(tenant_id, user_id)
+                db_budget = user_data_store.get_budget(tenant_id, user_id)
+                txs = [
+                    FinancialTransaction(
+                        id=row["id"],
+                        date=row.get("raw_date") or "2026-10-01",
+                        title=row["title"],
+                        amount_vnd=int(row["amount_vnd"]),
+                        source_type="gpp_pharmacy" if row.get("is_gpp") else "unofficial_retail",
+                        source_name=row.get("provider") or "Cơ sở y tế",
+                        category=row.get("category") or "medication",
+                        is_official_gpp=bool(row.get("is_gpp")),
+                        recurrence_flag=False,
+                        clinical_notes=f"Bác sĩ: {row.get('doctor')}" if row.get("doctor") else "",
+                    )
+                    for row in db_txs
+                ]
+                budget = db_budget if db_budget is not None else 10_000_000
+                assessment = MonthlyFinancialAssessment(
+                    patient_ref=clean,
+                    month_year="10/2026",
+                    monthly_budget_target_vnd=budget,
+                    transactions=txs,
+                )
+                self.recalculate(assessment)
+                self._assessments[clean] = assessment
+                return assessment
+            except Exception:
+                pass
+
         if clean not in self._assessments:
             self._assessments[clean] = self._create_initial_assessment(clean)
             self._save_to_disk()
         return self._assessments[clean]
 
     def _create_initial_assessment(self, patient_ref: str) -> MonthlyFinancialAssessment:
+        is_guest_demo = patient_ref in {"guest_patient", "tenant-demo", "demo"}
+        # For new registered users, start with empty transactions (0 VND)
+        txs = list(DEFAULT_TRANSACTIONS) if is_guest_demo else []
+        budget = 10_000_000
         assessment = MonthlyFinancialAssessment(
             patient_ref=patient_ref,
             month_year="10/2026",
-            transactions=list(DEFAULT_TRANSACTIONS),
+            monthly_budget_target_vnd=budget,
+            transactions=txs,
         )
         self.recalculate(assessment)
         return assessment
@@ -249,9 +297,19 @@ class HealthcareFinancialAdvisorService:
         assessment.last_updated = datetime.now().isoformat()
 
     def set_budget(
-        self, patient_ref: str = "guest_patient", budget_target_vnd: int = 3000000
+        self, patient_ref: str = "guest_patient", budget_target_vnd: int = 10000000
     ) -> MonthlyFinancialAssessment:
         clean = self._clean_ref(patient_ref)
+        user_id = clean.replace("user-", "")
+        tenant_id = f"user-{user_id}" if not clean.startswith("user-") else clean
+
+        if clean not in {"guest_patient", "tenant-demo", "demo"}:
+            try:
+                from app.services.user_data_store import user_data_store
+                user_data_store.set_budget(tenant_id, user_id, budget_target_vnd)
+            except Exception:
+                pass
+
         assessment = self.get_assessment(clean)
         assessment.monthly_budget_target_vnd = budget_target_vnd
         self.recalculate(assessment)
@@ -384,12 +442,24 @@ class HealthcareFinancialAdvisorService:
         if red_flags:
             override_applied = True
             safety_tier: SafetyTier = "urgent_medical_attention"
-            safety_msg = (
-                "CẢNH BÁO AN TOÀN LÂM SÀNG: Hệ thống phát hiện các dấu hiệu cảnh báo đỏ (nguy cơ bệnh lý tiềm ẩn: "
-                f"{', '.join(red_flags)}). Tuyệt đối KHÔNG tự ý cắt giảm thuốc, không tự điều trị tại nhà "
-                "hay trì hoãn đi khám để tiết kiệm chi phí. Bạn cần đặt lịch khám chuyên khoa ngay hoặc "
-                "đến cơ sở y tế gần nhất; để tối ưu viện phí, hãy chuẩn bị thẻ BHYT để được thanh toán theo quy định."
+            is_drug_adverse_reaction = bool(
+                re.search(
+                    r"(di ung|phan ve|sung moi|tho rit|nghen co|ngua sau khi|vua uong.*phut|sau khi uong|uong thuoc.*(ngua|sung|kho tho))",
+                    norm_user,
+                )
             )
+            if is_drug_adverse_reaction:
+                safety_msg = (
+                    "CẢNH BÁO AN TOÀN LÂM SÀNG: Nghi ngờ phản ứng dị ứng thuốc hoặc phản vệ nguy kịch cấp tính. "
+                    "Hãy NGƯNG NGAY LẬP TỨC thuốc vừa uống (giữ lại vỏ thuốc), không tự điều trị tại nhà và "
+                    "gọi Cấp cứu 115 hoặc đến cơ sở y tế gần nhất ngay lập tức, không được trì hoãn."
+                )
+            else:
+                safety_msg = (
+                    "CẢNH BÁO AN TOÀN LÂM SÀNG: Hệ thống phát hiện các dấu hiệu cảnh báo đỏ (nguy cơ bệnh lý tiềm ẩn: "
+                    f"{', '.join(red_flags)}). Tuyệt đối không tự ý trì hoãn đi khám để tiết kiệm chi phí. Bạn cần đặt lịch khám chuyên khoa ngay hoặc "
+                    "đến cơ sở y tế gần nhất; để tối ưu viện phí, hãy chuẩn bị thẻ BHYT để được thanh toán theo quy định."
+                )
             # Prepend emergency/urgent clinical instruction to advice
             revised_advice = f"{safety_msg}\n\n{revised_advice}"
         elif blocked_found:
@@ -489,9 +559,9 @@ class HealthcareFinancialAdvisorService:
         safety_status, _ = self.evaluate_clinical_safety_and_positivity(text, "")
         assessment.safety_status = safety_status
 
-        # If a financial transaction was detected, log it
+        # If a financial transaction was detected (and it's NOT a budget target update), log it
         new_transaction: FinancialTransaction | None = None
-        if detected_amount and detected_amount >= 10000:
+        if not is_budget_update and detected_amount and detected_amount >= 10000:
             tx_id = f"tx-chat-{len(assessment.transactions) + 1}"
             tx_title = "Thuốc tự điều trị qua hội thoại"
             if recurrence_flag:
@@ -552,9 +622,11 @@ class HealthcareFinancialAdvisorService:
 
         # Check for budget intent cues
         budget_intent_cues = [
-            "chi tiêu", "ngân sách", "hạn mức", "tối đa", "khoản chi", "chi phí",
+            "chi tiêu", "chỉ tiêu", "chi tieu", "chi tieu khoang", "chỉ tiêu khoảng",
+            "ngân sách", "hạn mức", "tối đa", "khoản chi", "chi phí",
             "dành ra", "chi khoảng", "muốn chi", "dự trù", "đặt ngân sách", "đặt hạn mức",
-            "chi tối đa", "giới hạn", "khống chế"
+            "chi tối đa", "giới hạn", "khống chế", "kế hoạch", "mục tiêu", "dự tính", "dự kiến",
+            "chỉ chi", "tiêu khoảng", "sẽ chi", "sẽ tiêu", "định chi"
         ]
         has_budget_intent = any(cue in norm for cue in budget_intent_cues)
         if not has_budget_intent:
@@ -563,7 +635,7 @@ class HealthcareFinancialAdvisorService:
         # Check for context keywords: healthcare/medical/monthly/medicine/exam
         context_cues = [
             "tháng", "thuốc", "khám", "sức khoẻ", "sức khỏe", "y tế", "bệnh",
-            "chữa bệnh", "booking care", "bác sĩ", "viện phí"
+            "chữa bệnh", "booking care", "bác sĩ", "viện phí", "tiền", "bhyt", "bảo hiểm"
         ]
         has_context = any(cue in norm for cue in context_cues)
         if not has_context:
@@ -618,7 +690,9 @@ class HealthcareFinancialAdvisorService:
         inquiry_cues = [
             "chi tiêu y tế", "quản lý chi tiêu", "tiết kiệm chi phí", "tiền thuốc",
             "tiết kiệm tiền", "sổ chi tiêu", "bảng chi tiêu", "ngân sách sức khoẻ",
-            "ngân sách sức khỏe", "tổng chi tiêu", "tiết kiệm thuốc", "tối ưu chi phí khám"
+            "ngân sách sức khỏe", "tổng chi tiêu", "tiết kiệm thuốc", "tối ưu chi phí khám",
+            "hạn mức chi tiêu", "chỉ tiêu y tế", "chi tiêu tháng", "ngân sách tháng",
+            "bhyt chi trả", "bảo hiểm y tế", "chi bao nhiêu", "tiêu bao nhiêu"
         ]
         return any(cue in norm for cue in inquiry_cues)
 
@@ -662,10 +736,16 @@ class HealthcareFinancialAdvisorService:
             else f"📊 **KẾ HOẠCH QUẢN TRỊ NGÂN SÁCH Y TẾ: {budget_str} / THÁNG**"
         )
 
+        waste_notice = (
+            f"(sổ chi tiêu của bạn hiện ghi nhận **{waste_str}** chi phí lãng phí do tái phát)."
+            if b.recurrence_waste_spent_vnd > 0
+            else "(chủ động mua thuốc đủ liều chuẩn GPP giúp bạn tránh nguy cơ tái phát và tiết kiệm chi phí)."
+        )
+
         reply = (
             f"{header_title}\n\n"
             f"MedGuard AI đã tự động cập nhật hạn mức chi tiêu y tế của bạn vào "
-            f"**[Bảng Quản Lý Chi Phí Sức Khỏe](http://localhost:8000/?view=spending)**. "
+            f"**[Bảng Quản Lý Chi Phí Sức Khỏe](/?view=spending)**. "
             f"Dưới đây là phân tích tiến độ thực tế và khuyến nghị kinh tế dược học tối ưu cho bạn:\n\n"
             f"### 📈 TIẾN ĐỘ THỰC HIỆN NGÂN SÁCH THÁNG 10/2026\n"
             f"- **Hạn mức đặt ra**: **{budget_str}**\n"
@@ -683,7 +763,7 @@ class HealthcareFinancialAdvisorService:
             f"   - **Lợi ích kinh tế**: Khám đúng bệnh ngay từ đầu giúp giải quyết dứt điểm nguyên nhân, tiết kiệm hàng triệu đồng so với việc để bệnh nặng phải cấp cứu hoặc điều trị nội trú.\n\n"
             f"2. **💊 35% (~{med_str}) — Mua thuốc chuẩn GPP & Biệt dược Generic tương đương sinh học**:\n"
             f"   - **Mua thuốc tại chuỗi GPP chính hãng** (Pharmacity, Long Châu, An Khang...): Đảm bảo hoạt chất đạt nồng độ ức chế tối thiểu (MIC), giúp khỏi dứt điểm trong 5-7 ngày.\n"
-            f"   - **Cảnh báo bẫy thuốc liều lẻ ngoài chợ/đầu ngõ**: Mua thuốc liều lẻ giá rẻ nhiều lần tưởng tiết kiệm nhưng thường thiếu liều, khiến vi khuẩn kháng thuốc (AMR), bệnh tái phát dai dẳng (sổ chi tiêu của bạn hiện ghi nhận **{waste_str}** chi phí lãng phí do tái phát).\n"
+            f"   - **Cảnh báo bẫy thuốc liều lẻ ngoài chợ/đầu ngõ**: Mua thuốc liều lẻ giá rẻ nhiều lần tưởng tiết kiệm nhưng thường thiếu liều, khiến vi khuẩn kháng thuốc (AMR), bệnh tái phát dai dẳng {waste_notice}\n"
             f"   - **Chủ động hỏi biệt dược Generic**: Yêu cầu dược sĩ tư vấn thuốc Generic tương đương sinh học (Bioequivalent) chuẩn GMP/WHO có cùng hoạt chất với biệt dược gốc để tiết kiệm **30% - 40%** tiền thuốc mà hiệu quả tương đương 100%.\n\n"
             f"3. **🛡️ 20% (~{reserve_str}) — Quỹ dự phòng sức khỏe & Chăm sóc phòng ngừa**:\n"
             f"   - Dành cho các xét nghiệm tầm soát định kỳ, mua dung dịch sát khuẩn, nước muối sinh lý, bù điện giải hoặc nâng cao miễn dịch phòng bệnh.\n\n"
@@ -693,7 +773,7 @@ class HealthcareFinancialAdvisorService:
             f"Hệ thống **tuyệt đối không bao giờ** khuyên bạn tự ý cắt giảm liều thuốc kê đơn, mua thuốc kém chất lượng "
             f"hay trì hoãn việc đi khám bác sĩ chỉ để giữ chỉ tiêu ngân sách. Khi có bất kỳ triệu chứng cảnh báo đỏ, "
             f"bạn cần đến cơ sở y tế gần nhất ngay lập tức.\n\n"
-            f"👉 **[Nhấn vào đây để xem Bảng Quản Trị Chi Tiêu & Biểu Đồ Chi Tiết (http://localhost:8000/?view=spending)](http://localhost:8000/?view=spending)**"
+            f"👉 **[Nhấn vào đây để xem Bảng Quản Trị Chi Tiêu & Biểu Đồ Chi Tiết](/?view=spending)**"
         )
         return reply
 

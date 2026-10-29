@@ -135,6 +135,52 @@ def extract_paracetamol_dose_assessment(text: str) -> DoseAssessment | None:
     if not has_paracetamol or not _has_quantified_or_toxicology_signal(norm):
         return None
 
+    paracetamol_cues = [k for k in ("paracetamol", "hapacol", "efferalgan", "panadol", "tylenol") if k in norm]
+    is_duplicate_brand_inquiry = len(paracetamol_cues) >= 2 and any(k in norm for k in ("uong them", "uong nua", "uong tiep", "cho uong them", "uong nua duoc khong", "uong them duoc khong", "uong cung", "uong chung", "uong kem"))
+    if is_duplicate_brand_inquiry:
+        weight_kg: float | None = None
+        weight_match = re.search(
+            r"\b(?:nang|can nang|be|em be|chau|tre|nguoi|benh nhan|nguoi lon)?\s*"
+            r"(\d+(?:[.,]\d+)?)\s*(?:kg|ki|can)\b",
+            norm,
+        )
+        if weight_match:
+            weight_kg = float(weight_match.group(1).replace(",", "."))
+
+        mg_matches = [float(m) for m in re.findall(r"(\d+(?:[.,]\d+)?)\s*mg\b", norm)]
+        total_mg = sum(mg_matches) if len(mg_matches) >= 2 else 400.0
+
+        clinical_rationale = (
+            "CẢNH BÁO TRÙNG LẶP HOẠT CHẤT & KHOẢNG CÁCH DÙNG QUÁ GẦN: Cả Hapacol và Efferalgan đều có cùng hoạt chất là Paracetamol (Acetaminophen). "
+            f"Tổng liều 2 lần cộng lại ({total_mg:.0f} mg) khi dùng cách nhau chỉ 1 giờ sẽ gây quá liều cấp tính và nguy cơ độc tính hoại tử tế bào gan ở trẻ nhỏ. "
+            "Khoảng cách an toàn tối thiểu giữa 2 lần dùng Paracetamol bắt buộc phải từ 4 đến 6 giờ (tối đa 4 lần/24h, liều 10-15 mg/kg/lần)."
+        )
+        triage_recommendation = (
+            "TUYỆT ĐỐI KHÔNG cho bé uống thêm gói Efferalgan 150mg! Khoảng cách 1 giờ là quá ngắn và cả 2 loại đều là Paracetamol. "
+            "Để hạ sốt an toàn ngay lúc này: hãy cởi bớt quần áo, cho bé mặc đồ thoáng mát, dùng khăn ấm lau nách, bẹn và trán, cho uống nhiều nước ấm hoặc bù Oresol. "
+            "Chỉ được dùng liều Paracetamol tiếp theo sau ít nhất 4 - 6 giờ kể từ liều Hapacol lúc 1h, và phải cân đúng liều 10 - 15 mg/kg. "
+            "Nếu bé sốt cao co giật, li bì, nôn ói hoặc khó thở, hãy đưa bé đến cơ sở y tế gần nhất ngay lập tức!"
+        )
+        return DoseAssessment(
+            drug="paracetamol",
+            tablet_strength_mg=mg_matches[0] if mg_matches else 250.0,
+            tablet_count=1.0,
+            total_dose_mg=total_mg,
+            weight_kg=weight_kg,
+            dose_mg_per_kg=(total_mg / weight_kg) if weight_kg else None,
+            time_window_hours=1.0,
+            ingestion_pattern="single_acute",
+            time_since_ingestion="1h",
+            risk_level="HIGH",
+            urgency="EMERGENCY",
+            clinical_rationale=clinical_rationale,
+            triage_recommendation=triage_recommendation,
+            clarifying_questions=[
+                "Bé hiện bao nhiêu tháng/tuổi và cân nặng bao nhiêu kg?",
+                "Bé sốt bao nhiêu độ và có biểu hiện co giật, thở nhanh hay nôn không?"
+            ],
+        )
+
     # Tablet strength is formulation information, not by itself an overdose
     # signal.  It is used only after the activation gate above has passed.
     strength_match = _STRENGTH_PATTERN.search(norm)

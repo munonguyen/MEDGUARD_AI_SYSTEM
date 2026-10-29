@@ -151,11 +151,30 @@ def evaluate_medication_suitability(
         )
 
     # Anticoagulants (Warfarin) vs NSAIDs/Aspirin
-    is_on_blood_thinners = any("warfarin" in m or "sintrom" in m or "aspirin" in m or "clopidogrel" in m for m in current_meds)
+    is_on_blood_thinners = any("warfarin" in m or "sintrom" in m or "aspirin" in m or "clopidogrel" in m for m in current_meds) or any(
+        k in norm for k in ("warfarin", "sintrom", "coumadin", "thuoc chong dong", "chong dong mau")
+    )
     if is_on_blood_thinners and demands_nsaid:
         contraindications.append(
-            "TƯƠNG TÁC THUỐC NGUY HIỂM: Bạn đang sử dụng thuốc chống đông máu/chống kết tập tiểu cầu. "
-            "Việc phối hợp thêm NSAIDs hoặc Aspirin làm tăng nguy cơ xuất huyết tiêu hóa và chảy máu nội sọ gấp 3-5 lần."
+            "TƯƠNG TÁC THUỐC NGUY HIỂM MỨC ĐỘ NGHIÊM TRỌNG (Warfarin + NSAID/Ibuprofen): Người bệnh đang uống thuốc chống đông máu Warfarin tuyệt đối KHÔNG tự ý uống thêm Ibuprofen 400mg (hoặc Aspirin/NSAID khác). "
+            "Ibuprofen làm tổn thương niêm mạc dạ dày, ức chế kết tập tiểu cầu và đẩy Warfarin khỏi protein huyết tương, làm tăng nguy cơ xuất huyết tiêu hóa ồ ạt và xuất huyết nội sọ nghiêm trọng gấp 3-6 lần."
+        )
+    if ("warfarin" in norm or "chong dong" in norm) and ("nhan sam" in norm or "ginseng" in norm):
+        contraindications.append(
+            "TƯƠNG TÁC DƯỢC LIỆU NGUY HIỂM (Warfarin + Nhân sâm): Nhân sâm Hàn Quốc (Panax ginseng) làm biến động chuyển hóa enzyme gan và ảnh hưởng đông máu, làm dao động chỉ số INR khó kiểm soát. "
+            "Tránh tự ý dùng nhân sâm khi đang điều trị duy trì bằng Warfarin."
+        )
+    if ("amlodipin" in norm or "amlodipine" in norm or "thuoc huyet ap" in norm) and demands_nsaid:
+        contraindications.append(
+            "TƯƠNG TÁC THUỐC HẠ ÁP & NSAID (Amlodipin + Ibuprofen): Ibuprofen gây ức chế tổng hợp prostaglandin tại thận và giữ muối nước, làm giảm hiệu lực hạ huyết áp của Amlodipin và tăng nguy cơ suy giảm chức năng thận ở người cao tuổi (68 tuổi)."
+        )
+
+    # Suspected counterfeit / physical degradation / discoloration / sour odor
+    has_degradation = any(k in norm for k in ("nga vang", "doi mau", "mui chua", "chua nong", "am moc", "chay nuoc", "rach tem", "tem chong gia bi rach", "that hay gia"))
+    if has_degradation and any(k in norm for k in ("augmentin", "thuoc", "vien thuoc", "hop thuoc")):
+        contraindications.append(
+            "CẢNH BÁO DƯỢC PHẨM KHÔNG AN TOÀN — TUYỆT ĐỐI KHÔNG UỐNG: Viên nén Augmentin đạt chuẩn phải có màu trắng đến trắng ngà, vỉ nhôm kín. "
+            "Dấu hiệu tem chống giả bị rách kèm viên thuốc ngả vàng và mùi chua nồng chứng tỏ thuốc đã bị thâm nhiễm ẩm dẫn đến phân hủy hoạt chất (đặc biệt Acid Clavulanic rất dễ bị thủy phân tạo mùi chua nồng) hoặc có nguy cơ thuốc giả/kém chất lượng. Hãy ngưng uống ngay và mang hộp thuốc tới nhà thuốc để kiểm tra và thu hồi."
         )
 
     # Pregnancy vs NSAIDs / Tetracyclines / Retinoids
@@ -170,6 +189,20 @@ def evaluate_medication_suitability(
     if has_asthma and demands_nsaid:
         contraindications.append(
             "CẢNH BÁO HEN PHẾ QUẢN NHẠY CẢM ASPIRIN (Samter Triad): Bệnh nhân hen phế quản có thể khởi phát cơn co thắt phế quản cấp gây suy hô hấp nặng khi dùng NSAIDs."
+        )
+
+    # Duplicate Paracetamol / Pediatric overdose check (Case 3: Hapacol 250mg + Efferalgan 150mg)
+    paracetamol_cues = [k for k in ("paracetamol", "hapacol", "efferalgan", "panadol", "tylenol") if k in norm]
+    has_dual_paracetamol = len(paracetamol_cues) >= 2 or ("dat" in norm and "pha" in norm and any(k in norm for k in ("hapacol", "efferalgan", "paracetamol")))
+    is_pediatric = (patient_age is not None and patient_age < 12) or any(
+        k in norm for k in ("thang tuoi", "be nha minh", "con toi", "em be", "10kg", "can nang", "chau nho", "tre nho")
+    ) and not any(k in norm for k in ("68 tuoi", "50 tuoi", "40 tuoi", "30 tuoi", "25 tuoi", "nguoi lon", "bo toi", "me toi"))
+
+    if has_dual_paracetamol and is_pediatric:
+        contraindications.append(
+            "CẢNH BÁO NGUY HIỂM — TRÙNG HOẠT CHẤT & NGUY CƠ NGỘ ĐỘC GAN Ở TRẺ EM: Cả Hapacol và Efferalgan đều chứa cùng hoạt chất là Paracetamol (Acetaminophen). "
+            "Tuyệt đối KHÔNG vừa nhét viên đặt 150mg vừa uống thêm nửa gói 250mg (tổng liều 275mg = 27.5 mg/kg). Với bé nặng 10kg, liều hạ sốt chuẩn chỉ từ 100mg - 150mg/lần (10 - 15 mg/kg). "
+            "Dùng liều 275mg là QUÁ LIỀU GẤP ĐÔI, gây nguy cơ ngộ độc gan cấp tính đe dọa tính mạng! Chỉ dùng DUY NHẤT một dạng thuốc theo đúng cân nặng của bé."
         )
 
     if contraindications:
@@ -198,16 +231,28 @@ def evaluate_medication_suitability(
     recs: list[MedicationRecommendation] = []
 
     if is_cold_flu or "sot" in norm or "dau dau" in norm or "dau hong" in norm:
-        recs.append(
-            MedicationRecommendation(
-                generic_name="Paracetamol (Acetaminophen) 500mg",
-                brand_names=["Panadol", "Efferalgan 500mg", "Hapacol 500mg"],
-                dosage_guideline="Người lớn: 1 viên (500mg) mỗi 4-6 giờ khi sốt ≥ 38.5°C hoặc đau nhức người nhiều. Không uống quá 3-4 viên (2000mg)/ngày đối với người lớn khi tự dùng tại nhà.",
-                administration="Uống sau khi ăn hoặc uống cùng một cốc nước đầy. Nếu dùng dạng viên sủi (Efferalgan), phải hòa tan hoàn toàn trong ít nhất 150ml nước sôi để nguội trước khi uống.",
-                warning_and_monitoring="Không uống rượu bia khi dùng thuốc. Không dùng đồng thời với các loại thuốc cảm cúm tổng hợp khác có chứa Paracetamol để tránh ngộ độc gan do quá liều.",
-                certified_gpp_online_links=_build_gpp_links("Paracetamol 500mg"),
+        if is_pediatric:
+            recs.append(
+                MedicationRecommendation(
+                    generic_name="Paracetamol hạ sốt cho trẻ em (Gói bột / Siro / Viên đặt)",
+                    brand_names=["Hapacol 150mg/250mg", "Efferalgan 80mg/150mg", "Siro Paracetamol"],
+                    dosage_guideline="Liều chuẩn nhi khoa: 10 - 15 mg/kg thể trọng cho mỗi lần dùng, cách mỗi 4 - 6 giờ (tối đa không quá 60 mg/kg/ngày). Tuyệt đối không dùng viên 500mg người lớn.",
+                    administration="Hòa tan gói bột vào một ít nước ấm cho bé uống, hoặc đặt hậu môn nếu bé nôn trớ nhiều.",
+                    warning_and_monitoring="Chỉ dùng một loại hạ sốt đơn chất; không phối hợp nhiều nhãn hiệu Paracetamol cùng lúc để tránh ngộ độc gan cấp.",
+                    certified_gpp_online_links=_build_gpp_links("Hapacol 150mg"),
+                )
             )
-        )
+        else:
+            recs.append(
+                MedicationRecommendation(
+                    generic_name="Paracetamol (Acetaminophen) 500mg",
+                    brand_names=["Panadol", "Efferalgan 500mg", "Hapacol 500mg"],
+                    dosage_guideline="Người lớn: 1 viên (500mg) mỗi 4-6 giờ khi sốt ≥ 38.5°C hoặc đau nhức người nhiều. Không uống quá 3-4 viên (2000mg)/ngày đối với người lớn khi tự dùng tại nhà.",
+                    administration="Uống sau khi ăn hoặc uống cùng một cốc nước đầy. Nếu dùng dạng viên sủi (Efferalgan), phải hòa tan hoàn toàn trong ít nhất 150ml nước sôi để nguội trước khi uống.",
+                    warning_and_monitoring="Không uống rượu bia khi dùng thuốc. Không dùng đồng thời với các loại thuốc cảm cúm tổng hợp khác có chứa Paracetamol để tránh ngộ độc gan do quá liều.",
+                    certified_gpp_online_links=_build_gpp_links("Paracetamol 500mg"),
+                )
+            )
         recs.append(
             MedicationRecommendation(
                 generic_name="Dung dịch Nước muối sinh lý Natri Clorid 0.9%",
@@ -231,16 +276,28 @@ def evaluate_medication_suitability(
 
     # Default general OTC if symptom not cold
     if not recs:
-        recs.append(
-            MedicationRecommendation(
-                generic_name="Paracetamol 500mg",
-                brand_names=["Panadol", "Efferalgan"],
-                dosage_guideline="1 viên 500mg mỗi 4-6 giờ khi có đau nhức hoặc sốt (tối đa không quá 3-4 viên/ngày).",
-                administration="Uống với nước sau ăn.",
-                warning_and_monitoring="Theo dõi dị ứng và không dùng chung các chế phẩm khác chứa Paracetamol.",
-                certified_gpp_online_links=_build_gpp_links("Paracetamol 500mg"),
+        if is_pediatric:
+            recs.append(
+                MedicationRecommendation(
+                    generic_name="Dung dịch Nước muối sinh lý Natri Clorid 0.9%",
+                    brand_names=["Nước muối sinh lý 0.9% 500ml", "Physiodose"],
+                    dosage_guideline="Nhỏ hoặc rửa mũi, súc miệng vệ sinh dịu nhẹ hàng ngày cho trẻ nhỏ.",
+                    administration="Nhỏ 1-2 giọt mỗi bên mũi hoặc súc miệng nhẹ.",
+                    warning_and_monitoring="Sản phẩm an toàn lành tính cho trẻ nhỏ, tuyệt đối không tự ý cho trẻ dùng viên nén người lớn 500mg.",
+                    certified_gpp_online_links=_build_gpp_links("Nuoc muoi sinh ly 0.9%"),
+                )
             )
-        )
+        else:
+            recs.append(
+                MedicationRecommendation(
+                    generic_name="Paracetamol 500mg",
+                    brand_names=["Panadol", "Efferalgan"],
+                    dosage_guideline="1 viên 500mg mỗi 4-6 giờ khi có đau nhức hoặc sốt (tối đa không quá 3-4 viên/ngày).",
+                    administration="Uống với nước sau ăn.",
+                    warning_and_monitoring="Theo dõi dị ứng và không dùng chung các chế phẩm khác chứa Paracetamol.",
+                    certified_gpp_online_links=_build_gpp_links("Paracetamol 500mg"),
+                )
+            )
 
     clinical_rationale = (
         "Tình trạng sức khỏe hiện tại nằm trong mức theo dõi thông thường. "

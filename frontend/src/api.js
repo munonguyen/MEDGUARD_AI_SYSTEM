@@ -15,6 +15,11 @@ export function createApiClient({ tenantId, apiKey, consentToken }) {
       headers['X-CSRF-Token'] = browserSession.csrf;
     }
 
+    const guestSid = localStorage.getItem('medguard_guest_sid') || sessionStorage.getItem('medguard_guest_sid');
+    if (!browserSession && guestSid) {
+      headers['X-Guest-Session-ID'] = guestSid;
+    }
+
     if (method !== 'GET') {
       headers['Idempotency-Key'] = options.idempotencyKey || crypto.randomUUID();
     }
@@ -41,12 +46,29 @@ export function createApiClient({ tenantId, apiKey, consentToken }) {
         body: options.formData || (options.body !== undefined ? JSON.stringify(options.body) : undefined),
         signal: controller.signal,
       });
+
+      const returnedGuestSid = response.headers.get('X-Guest-Session-ID');
+      if (returnedGuestSid) {
+        try {
+          localStorage.setItem('medguard_guest_sid', returnedGuestSid);
+        } catch {}
+      }
+      const remainingTurns = response.headers.get('X-Guest-Remaining-Turns');
+      if (remainingTurns !== null) {
+        try {
+          localStorage.setItem('medguard_guest_remaining_turns', remainingTurns);
+        } catch {}
+      }
+
       const contentType = response.headers.get('content-type') || '';
       const data = response.ok && options.responseType === 'blob'
         ? await response.blob()
         : contentType.includes('json') ? await response.json() : await response.text();
       if (!response.ok) {
         if (response.status === 401 && browserSession) window.dispatchEvent(new Event('medguard:session-expired'));
+        if (response.status === 403 && (data?.error_code === 'GUEST_QUOTA_EXCEEDED' || data?.code === 'GUEST_QUOTA_EXCEEDED')) {
+          window.dispatchEvent(new CustomEvent('medguard:guest-quota-exceeded', { detail: data }));
+        }
         const error = new Error(data?.message || data?.error_code || `HTTP ${response.status}`);
         error.status = response.status;
         error.code = data?.error_code || 'request_failed';

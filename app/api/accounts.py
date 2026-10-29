@@ -65,13 +65,14 @@ class ResetInput(TokenInput):
 
 
 def public(row):
+    uid = row.get("user_id") or row.get("id") or ""
     return {
-        "id": row["user_id"],
+        "id": uid,
         "email": row["email"],
-        "role": row["role"],
-        "email_verified": bool(row["verified"]),
-        "mfa_enabled": bool(row["mfa"]),
-        "scope": "user-" + row["user_id"],
+        "role": row.get("role", "patient"),
+        "email_verified": bool(row.get("verified", 1)),
+        "mfa_enabled": bool(row.get("mfa")),
+        "scope": "user-" + uid,
     }
 
 
@@ -125,9 +126,17 @@ def register(data: Registration, request: Request):
 def login(data: Credentials, request: Request, response: Response):
     throttled(request, "login")
     store(request).throttle("account:" + data.email)
-    token, csrf = store(request).login(
+    login_result = store(request).login(
         data.email, data.password, data.otp, request.headers.get("user-agent", "")
     )
+    if isinstance(login_result, tuple) and len(login_result) == 3:
+        token, csrf, user_dict = login_result
+        user_info = public(user_dict)
+    else:
+        token, csrf = login_result
+        user_info = public(
+            store(request).authenticate(_cookie_request(request, token), csrf=False)
+        )
     response.set_cookie(
         COOKIE,
         token,
@@ -139,9 +148,7 @@ def login(data: Credentials, request: Request, response: Response):
     )
     return {
         "csrf_token": csrf,
-        "user": public(
-            store(request).authenticate(_cookie_request(request, token), csrf=False)
-        ),
+        "user": user_info,
     }
 
 
@@ -156,17 +163,30 @@ def _cookie_request(request, token):
 
 @router.get("/me")
 def me(request: Request):
-    return {"user": public(store(request).authenticate(request))}
+    row = store(request).authenticate(request)
+    csrf_val = None
+    if row.get("csrf_secret"):
+        try:
+            csrf_val = store(request).key().decrypt(row["csrf_secret"].encode()).decode()
+        except Exception:
+            csrf_val = None
+    return {"user": public(row), "csrf_token": csrf_val}
 
 
 @router.get("/csrf")
 def csrf(request: Request):
     row = store(request).authenticate(request)
+    token = None
     if row.get("csrf_secret"):
-        token = store(request).key().decrypt(row["csrf_secret"].encode()).decode()
-    else:
+        try:
+            token = store(request).key().decrypt(row["csrf_secret"].encode()).decode()
+        except Exception:
+            token = None
+    if not token:
         token = secrets.token_urlsafe(32)
         encrypted = store(request).key().encrypt(token.encode()).decode()
+        if store(request).tidb:
+            store(request).tidb.update_csrf(row["token"], digest(token), encrypted)
         with store(request).db() as db:
             db.execute(
                 "UPDATE sessions SET csrf=?,csrf_secret=? WHERE token=?",
@@ -178,6 +198,8 @@ def csrf(request: Request):
 @router.post("/logout")
 def logout(request: Request, response: Response):
     row = store(request).authenticate(request)
+    if store(request).tidb:
+        store(request).tidb.delete_session_by_digest(row["token"])
     with store(request).db() as db:
         db.execute("DELETE FROM sessions WHERE token=?", (row["token"],))
         store(request).event(db, row["user_id"], "logout")
@@ -188,6 +210,8 @@ def logout(request: Request, response: Response):
 @router.post("/logout-all")
 def logout_all(request: Request, response: Response):
     row = store(request).authenticate(request)
+    if store(request).tidb:
+        store(request).tidb.delete_sessions_by_user(row["user_id"])
     with store(request).db() as db:
         db.execute("DELETE FROM sessions WHERE user_id=?", (row["user_id"],))
         store(request).event(db, row["user_id"], "sessions_revoked")
@@ -418,11 +442,21 @@ class AccountProfile(BaseModel):
 @router.get("/profile")
 def get_profile(request: Request):
     import json
+    from app.services.user_data_store import user_data_store
 
     row = store(request).authenticate(request)
+    user_id = row["user_id"]
+
+    try:
+        tidb_profile = user_data_store.get_user_profile("default", user_id)
+        if tidb_profile and (tidb_profile.get("display_name") or tidb_profile.get("citizen_id") or tidb_profile.get("bhyt_number")):
+            return {"profile": tidb_profile}
+    except Exception:
+        pass
+
     with store(request).db() as db:
         profile = db.execute(
-            "SELECT profile FROM users WHERE id=?", (row["user_id"],)
+            "SELECT profile FROM users WHERE id=?", (user_id,)
         ).fetchone()["profile"]
     return {
         "profile": (
@@ -435,8 +469,17 @@ def get_profile(request: Request):
 
 @router.put("/profile")
 def put_profile(data: AccountProfile, request: Request):
+    from app.services.user_data_store import user_data_store
+
     row = store(request).authenticate(request)
+    user_id = row["user_id"]
     encrypted = store(request).key().encrypt(data.model_dump_json().encode()).decode()
     with store(request).db() as db:
-        db.execute("UPDATE users SET profile=? WHERE id=?", (encrypted, row["user_id"]))
+        db.execute("UPDATE users SET profile=? WHERE id=?", (encrypted, user_id))
+
+    try:
+        user_data_store.save_user_profile("default", user_id, data.model_dump())
+    except Exception:
+        pass
+
     return {"message": "Đã lưu Profile"}

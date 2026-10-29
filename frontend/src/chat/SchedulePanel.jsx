@@ -93,7 +93,7 @@ export function SchedulePanel({ open, onClose, api, patientRef, onOpenSchedulePa
     setAdding(true);
     try {
       const todayStr = new Date().toISOString().slice(0, 10);
-      const scheduledIso = `${todayStr}T${medTime}:00Z`;
+      const scheduledIso = `${todayStr}T${medTime}:00+07:00`;
       await api.request('/v1/medication-schedules', {
         method: 'POST',
         body: {
@@ -138,7 +138,7 @@ export function SchedulePanel({ open, onClose, api, patientRef, onOpenSchedulePa
           patient_ref: patientRef || 'BN-CANHAN',
           medication_name: 'Amlodipine 5mg',
           dosage_text: '1 viên · Sau ăn sáng 30p',
-          scheduled_at: `${todayStr}T08:00:00Z`,
+          scheduled_at: `${todayStr}T08:00:00+07:00`,
           recurrence: 'daily',
           source: 'chat',
         },
@@ -146,7 +146,7 @@ export function SchedulePanel({ open, onClose, api, patientRef, onOpenSchedulePa
           patient_ref: patientRef || 'BN-CANHAN',
           medication_name: 'Metformin 500mg',
           dosage_text: '1 viên · Trong bữa trưa',
-          scheduled_at: `${todayStr}T12:30:00Z`,
+          scheduled_at: `${todayStr}T12:30:00+07:00`,
           recurrence: 'daily',
           source: 'chat',
         },
@@ -154,7 +154,7 @@ export function SchedulePanel({ open, onClose, api, patientRef, onOpenSchedulePa
           patient_ref: patientRef || 'BN-CANHAN',
           medication_name: 'Esomeprazole 40mg',
           dosage_text: '1 viên · Trước ăn tối 60p',
-          scheduled_at: `${todayStr}T18:00:00Z`,
+          scheduled_at: `${todayStr}T18:00:00+07:00`,
           recurrence: 'daily',
           source: 'chat',
         },
@@ -173,7 +173,13 @@ export function SchedulePanel({ open, onClose, api, patientRef, onOpenSchedulePa
 
   const groups = useMemo(() => {
     return schedules.reduce((result, item) => {
-      const key = dateFormatter.format(new Date(item.scheduled_at));
+      let key = 'Hôm nay';
+      if (item.scheduled_at) {
+        const d = new Date(item.scheduled_at);
+        if (!isNaN(d.getTime())) {
+          key = dateFormatter.format(d);
+        }
+      }
       result[key] = [...(result[key] || []), item];
       return result;
     }, {});
@@ -400,7 +406,16 @@ export function SchedulePanel({ open, onClose, api, patientRef, onOpenSchedulePa
                     >
                       <time className="schedule-time">
                         <Clock3 size={14} />
-                        {timeFormatter.format(new Date(item.scheduled_at))}
+                        {(() => {
+                          try {
+                            const d = new Date(item.scheduled_at);
+                            if (!isNaN(d.getTime())) return timeFormatter.format(d);
+                            if (typeof item.scheduled_at === 'string' && item.scheduled_at.includes(':')) {
+                              return item.scheduled_at.slice(0, 5);
+                            }
+                          } catch {}
+                          return '08:00';
+                        })()}
                       </time>
 
                       <div className="schedule-info">

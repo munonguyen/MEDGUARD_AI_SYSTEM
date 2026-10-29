@@ -81,14 +81,17 @@ import {
   extractMedicationProposal,
   extractAppointmentProposal,
   extractNavigationAction,
+  extractSpendingProposal,
 } from './chat/chatActionInteractions';
 import { MedicationProposalCard } from './chat/MedicationProposalCard';
 import { AppointmentProposalCard } from './chat/AppointmentProposalCard';
+import { SpendingProposalCard } from './chat/SpendingProposalCard';
 import { NavigationActionCard } from './chat/NavigationActionCard';
 import { QuickNavActionCard } from './chat/QuickNavActionCard';
 import { ActionPermissionConfirmationCard } from './chat/ActionPermissionConfirmationCard';
 import { ErrorBoundary } from './common/ErrorBoundary';
 import { DataManagementAuthGate } from './common/DataManagementAuthGate';
+import { WORKSPACE_ROUTE_POLICIES } from './common/workspaceNavigationConfig';
 import { processUnifiedTopicGatedChat, TOPIC_MODES } from './chat/topicGatedSync';
 import {
   getSavedUserLocation,
@@ -285,15 +288,24 @@ function Sidebar({
         <button type="button" className={`nav-link-btn ${activeView === 'profile' ? 'active' : ''}`} onClick={() => { onProfilePage?.(); close(); }}>
           <UserRound size={17} />
           <span>Hồ sơ & Bảo hiểm</span>
+          {isGuest && <span className="sidebar-lock-tag" title="Yêu cầu đăng nhập">🔒</span>}
         </button>
         <button type="button" className={`nav-link-btn companion-nav-btn ${activeView === 'companion' ? 'active' : ''}`} onClick={() => { onCompanionPage?.(); close(); }}>
           <Sparkles size={17} />
           <span>Bác sĩ 3D Live</span>
           <span className="sidebar-live-tag">LIVE</span>
         </button>
-        <button type="button" className={`nav-link-btn ${activeView === 'navigation' ? 'active' : ''}`} onClick={() => { onNavigationPage?.(); close(); }}><Route size={17} /><span>Chỉ đường Real-time</span></button>
-        <button type="button" className={`nav-link-btn ${activeView === 'schedule' ? 'active' : ''}`} onClick={() => { onSchedulePage(); close(); }}><CalendarClock size={17} /><span>Lịch khám</span></button>
-        <button type="button" className={`nav-link-btn ${activeView === 'medication' ? 'active' : ''}`} onClick={() => { onMedicationPage(); close(); }}><CalendarDays size={17} /><span>Lịch uống thuốc</span></button>
+        <button type="button" className={`nav-link-btn ${activeView === 'navigation' ? 'active' : ''}`} onClick={() => { onNavigationPage?.(); close(); }}><Route size={17} /><span>Bản đồ Cấp cứu & Google Places</span></button>
+        <button type="button" className={`nav-link-btn ${activeView === 'schedule' ? 'active' : ''}`} onClick={() => { onSchedulePage(); close(); }}>
+          <CalendarClock size={17} />
+          <span>Lịch khám</span>
+          {isGuest && <span className="sidebar-lock-tag" title="Yêu cầu đăng nhập">🔒</span>}
+        </button>
+        <button type="button" className={`nav-link-btn ${activeView === 'medication' ? 'active' : ''}`} onClick={() => { onMedicationPage(); close(); }}>
+          <CalendarDays size={17} />
+          <span>Lịch uống thuốc</span>
+          {isGuest && <span className="sidebar-lock-tag" title="Yêu cầu đăng nhập">🔒</span>}
+        </button>
         <button type="button" className="nav-link-btn" onClick={() => { onSettings(); close(); }}><Settings size={17} /><span>Cài đặt</span></button>
       </div>
       <div className="sidebar-foot-user">
@@ -386,6 +398,8 @@ function Conversation({
   onDeclineMedicationProposal,
   onAcceptAppointmentProposal,
   onDeclineAppointmentProposal,
+  onAcceptSpendingProposal,
+  onDeclineSpendingProposal,
   onOpenNavigation,
   onNavigate,
   onAcceptSyncProposal,
@@ -404,17 +418,24 @@ function Conversation({
   const isAtBottomRef = useRef(true);
   const prevEntriesLengthRef = useRef(entries.length);
 
-  // Dynamic clinical loading phases
+  // Dynamic clinical loading phases & elapsed timer
   const [loadingPhase, setLoadingPhase] = useState(0);
+  const [loadingElapsed, setLoadingElapsed] = useState(0);
 
   useEffect(() => {
     if (!busy) {
       setLoadingPhase(0);
+      setLoadingElapsed(0);
       return undefined;
     }
-    const timer1 = setTimeout(() => setLoadingPhase(1), 1600);
-    const timer2 = setTimeout(() => setLoadingPhase(2), 3400);
+    const startTime = Date.now();
+    const interval = setInterval(() => {
+      setLoadingElapsed(+((Date.now() - startTime) / 1000).toFixed(1));
+    }, 100);
+    const timer1 = setTimeout(() => setLoadingPhase(1), 1400);
+    const timer2 = setTimeout(() => setLoadingPhase(2), 3000);
     return () => {
+      clearInterval(interval);
       clearTimeout(timer1);
       clearTimeout(timer2);
     };
@@ -612,6 +633,7 @@ function Conversation({
                   answer={entry.answer}
                   result={entry.result}
                   responseMeta={entry}
+                  userQuery={entries[index - 1]?.text || entry.userQuery}
                   onSelectQuestion={onSelectQuestion}
                 />
               ) : (
@@ -660,6 +682,17 @@ function Conversation({
                   onAccept={(prop) => onAcceptAppointmentProposal?.(prop, key)}
                   onDecline={() => onDeclineAppointmentProposal?.(key)}
                   onOpenSchedule={() => onNavigate?.('schedule')}
+                  autoSubmit={autoSubmitUpdates}
+                  onToggleAutoSubmit={onToggleAutoSubmit}
+                />
+              )}
+              {entry.spendingProposal && (
+                <SpendingProposalCard
+                  proposal={entry.spendingProposal}
+                  status={entry.spendingProposalStatus || 'pending'}
+                  onAccept={(prop) => onAcceptSpendingProposal?.(prop, key)}
+                  onDecline={() => onDeclineSpendingProposal?.(key)}
+                  onOpenSpending={() => onNavigate?.('spending')}
                   autoSubmit={autoSubmitUpdates}
                   onToggleAutoSubmit={onToggleAutoSubmit}
                 />
@@ -729,27 +762,97 @@ function Conversation({
       {busy && (
         <article className="chat-assistant pending-premium message-enter">
           <div className="assistant-avatar-wrap">
-            <img className="assistant-avatar pulse-glow" src="/static/brand-mark.svg" alt="MedGuard AI" width="28" height="28" />
+            <div className="assistant-avatar-container pulse-glow">
+              <img className="assistant-avatar" src="/static/brand-mark.svg" alt="MedGuard AI" width="30" height="30" />
+              <span className="avatar-live-indicator" title="AI đang kết nối trực tiếp" />
+            </div>
           </div>
           <div className="assistant-content">
-            <strong>MedGuard AI</strong>
+            <div className="assistant-header-meta">
+              <strong>MedGuard AI</strong>
+              <span className="assistant-subtag">Bác Sĩ Trợ Lý AI • Clinical Intelligence</span>
+            </div>
+
             <div className="premium-thinking-card" role="status" aria-live="polite">
+              {/* Header: Phase Title & Live Timer */}
               <div className="thinking-header">
                 <div className="thinking-badge">
                   <span className="sr-only">MedGuard đang xử lý</span>
                   <span className="thinking-pulse-dot" />
                   <Sparkles className="spin-slow" size={14} />
                   <span className="thinking-phase-text">
-                    {loadingPhase === 0 && 'Đang phân tích triệu chứng lâm sàng…'}
-                    {loadingPhase === 1 && 'Đang đối chiếu phác đồ & cơ sở tri thức y khoa…'}
-                    {loadingPhase >= 2 && 'Đang chạy kiểm định an toàn qua Gateway…'}
+                    {loadingPhase === 0 && 'Phân tích ngữ cảnh & Nhận diện chủ đề…'}
+                    {loadingPhase === 1 && 'Tổng hợp dữ liệu hồ sơ & Cơ sở tri thức lâm sàng…'}
+                    {loadingPhase >= 2 && 'Kiểm định an toàn y khoa qua Clinical Safety Gate…'}
                   </span>
                 </div>
-                <div className="thinking-dots" aria-hidden="true">
-                  <i /><i /><i />
+                <div className="thinking-meta-right">
+                  <div className="thinking-timer-pill">
+                    <Activity size={12} className="ecg-pulse-icon" />
+                    <span>{loadingElapsed > 0 ? `${loadingElapsed}s` : 'Đang xử lý'}</span>
+                  </div>
+                  <div className="thinking-dots" aria-hidden="true">
+                    <i /><i /><i />
+                  </div>
                 </div>
               </div>
+
+              {/* 3-Step Pipeline Breadcrumb */}
+              <div className="thinking-pipeline-steps" aria-hidden="true">
+                <div className={`pipeline-step ${loadingPhase >= 0 ? 'active' : ''} ${loadingPhase > 0 ? 'completed' : ''}`}>
+                  <span className="step-num">{loadingPhase > 0 ? '✓' : '1'}</span>
+                  <span className="step-text">Ngữ cảnh & Chủ đề</span>
+                </div>
+                <div className="pipeline-divider">
+                  <span className={`pipeline-line-fill phase-${loadingPhase}`} />
+                </div>
+                <div className={`pipeline-step ${loadingPhase >= 1 ? 'active' : ''} ${loadingPhase > 1 ? 'completed' : ''}`}>
+                  <span className="step-num">{loadingPhase > 1 ? '✓' : '2'}</span>
+                  <span className="step-text">Tri thức & Hồ sơ</span>
+                </div>
+                <div className="pipeline-divider">
+                  <span className={`pipeline-line-fill phase-${loadingPhase >= 2 ? '2' : '1'}`} />
+                </div>
+                <div className={`pipeline-step ${loadingPhase >= 2 ? 'active' : ''}`}>
+                  <span className="step-num">3</span>
+                  <span className="step-text">Cổng An toàn</span>
+                </div>
+              </div>
+
+              {/* Animated ECG Pulse Waveform */}
+              <div className="thinking-ecg-container" aria-hidden="true">
+                <svg className="thinking-ecg-svg" viewBox="0 0 500 24" preserveAspectRatio="none">
+                  <path
+                    className="thinking-ecg-track"
+                    d="M 0,12 L 120,12 L 130,12 L 138,4 L 145,20 L 152,1 L 158,16 L 164,12 L 280,12 L 290,12 L 298,4 L 305,20 L 312,1 L 318,16 L 324,12 L 500,12"
+                    fill="none"
+                    stroke="#e2e8f0"
+                    strokeWidth="1.5"
+                  />
+                  <path
+                    className="thinking-ecg-pulse"
+                    d="M 0,12 L 120,12 L 130,12 L 138,4 L 145,20 L 152,1 L 158,16 L 164,12 L 280,12 L 290,12 L 298,4 L 305,20 L 312,1 L 318,16 L 324,12 L 500,12"
+                    fill="none"
+                    stroke="url(#ecg-gradient)"
+                    strokeWidth="2"
+                    strokeDasharray="90 410"
+                  />
+                  <defs>
+                    <linearGradient id="ecg-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#0d9488" stopOpacity="0.1" />
+                      <stop offset="50%" stopColor="#14b8a6" stopOpacity="1" />
+                      <stop offset="100%" stopColor="#38bdf8" stopOpacity="0.2" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+
+              {/* Shimmer Skeleton Placeholder */}
               <div className="skeleton-container" aria-hidden="true">
+                <div className="skeleton-row-top">
+                  <div className="skeleton-line skeleton-badge shimmer" />
+                  <div className="skeleton-line skeleton-status shimmer" />
+                </div>
                 <div className="skeleton-line skeleton-title shimmer" />
                 <div className="skeleton-line skeleton-p1 shimmer" />
                 <div className="skeleton-line skeleton-p2 shimmer" />
@@ -853,31 +956,42 @@ function Composer({ value, setValue, onSend, busy, selectedTool, setSelectedTool
 const newContext = (profile = emptyProfile) => ({ ...emptyProfile, ...profile, last_result: null });
 
 function clinicalContext(context, userLocation = null) {
+  const normalizedSex = (context.sex === 'male' || context.sex === 'female' || context.sex === 'other') ? context.sex : null;
   return {
     patient_ref: context.patient_ref || null,
     display_name: context.display_name || null,
-    age: context.age,
+    age: context.age ? Number(context.age) : null,
     dob: context.dob || null,
-    sex: context.sex,
+    sex: normalizedSex,
     blood_type: context.blood_type || null,
-    height_cm: context.height_cm,
-    weight_kg: context.weight_kg,
-    bmi: context.bmi,
+    height_cm: context.height_cm ? Number(context.height_cm) : null,
+    weight_kg: context.weight_kg ? Number(context.weight_kg) : null,
+    bmi: context.bmi ? Number(context.bmi) : null,
     bhyt_number: context.bhyt_number || null,
     bhyt_hospital: context.bhyt_hospital || null,
     bhyt_rate: context.bhyt_rate || 80,
     bhxh_number: context.bhxh_number || null,
     life_insurance_provider: context.life_insurance_provider || null,
-    coverage_limit_vnd: context.coverage_limit_vnd,
-    is_verified: context.is_verified,
-    current_medications: context.current_medications,
-    allergies: context.allergies,
-    conditions: context.conditions,
+    coverage_limit_vnd: context.coverage_limit_vnd ? Number(context.coverage_limit_vnd) : null,
+    is_verified: Boolean(context.is_verified),
+    current_medications: Array.isArray(context.current_medications) ? context.current_medications : [],
+    allergies: Array.isArray(context.allergies) ? context.allergies : [],
+    conditions: Array.isArray(context.conditions) ? context.conditions : [],
     emergency_contact_name: context.emergency_contact_name || null,
-    last_result: context.last_result,
+    last_result: context.last_result || null,
     user_location: userLocation || context.user_location || null,
   };
 }
+
+const getTwinKey = (acc) => {
+  const uid = acc?.user_id || acc?.id || acc?.email;
+  return uid ? `medguard_health_twin_profile_${uid}` : 'medguard_health_twin_profile_guest';
+};
+
+const getFinKey = (acc) => {
+  const uid = acc?.user_id || acc?.id || acc?.email;
+  return uid ? `medguard_financial_assessment_${uid}` : 'medguard_financial_assessment_guest';
+};
 
 export default function App({
   account = null,
@@ -956,6 +1070,23 @@ export default function App({
       setAutoSubmitUpdates(!!e.detail);
     };
     window.addEventListener('medguard:auto-submit-changed', handleAutoSubmitChange);
+
+    // Global sanitizer: Purge any legacy mock records from localStorage
+    try {
+      const rawAssessment = localStorage.getItem('medguard_financial_assessment');
+      if (rawAssessment && (rawAssessment.includes('22450') || rawAssessment.includes('8531') || rawAssessment.includes('2450000'))) {
+        localStorage.removeItem('medguard_financial_assessment');
+      }
+      const rawShifts = localStorage.getItem('medguard.shifts.data');
+      if (rawShifts && (rawShifts.includes('Nguyễn Văn An') || rawShifts.includes('Trần Thị Mai'))) {
+        localStorage.removeItem('medguard.shifts.data');
+      }
+      const rawSpending = localStorage.getItem('medguard_spending_transactions');
+      localStorage.removeItem('medguard_health_twin_profile');
+      localStorage.removeItem('medguard_financial_assessment');
+      localStorage.removeItem('medguard_spending_transactions');
+    } catch {}
+
     return () => window.removeEventListener('medguard:auto-submit-changed', handleAutoSubmitChange);
   }, []);
 
@@ -1044,12 +1175,23 @@ export default function App({
     (entry) => entry.role === 'assistant' && entry.verification_status === 'shadow_pending',
   );
 
-  const notify = (text) => {
+  const notify = (arg1, arg2) => {
     window.clearTimeout(toastTimerRef.current);
-    const msg = typeof text === 'string' ? text : text?.message || text?.text || (text ? String(text) : null);
+    let msg = '';
+    const knownTypes = new Set(['success', 'error', 'info', 'warning', 'danger']);
+    if (typeof arg1 === 'string' && knownTypes.has(arg1.toLowerCase()) && arg2) {
+      msg = arg2;
+    } else if (typeof arg2 === 'string' && knownTypes.has(arg2.toLowerCase()) && arg1) {
+      msg = arg1;
+    } else {
+      msg = arg1 || arg2;
+    }
+    if (typeof msg !== 'string') {
+      msg = msg?.message || msg?.text || (msg ? String(msg) : null);
+    }
     if (!msg) return;
     setToast(msg);
-    toastTimerRef.current = window.setTimeout(() => setToast(null), 2400);
+    toastTimerRef.current = window.setTimeout(() => setToast(null), 2800);
   };
 
   const clearAllConversations = async () => {
@@ -1105,18 +1247,32 @@ export default function App({
     ]).then(([health, history, compStatus]) => {
       if (!mounted) return;
       setReadiness(health.status === 'fulfilled' ? health.value : null);
-      setConversations(history.status === 'fulfilled' ? history.value.conversations || [] : []);
+      const convList = history.status === 'fulfilled' ? history.value.conversations || [] : [];
+      setConversations(convList);
       if (compStatus.status === 'fulfilled' && compStatus.value?.chat_timeout_ms) {
         setChatTimeoutMs(Math.max(compStatus.value.chat_timeout_ms, 35000));
       }
+      try {
+        const lastActiveId = sessionStorage.getItem('medguard_active_conversation_id');
+        const targetId = (lastActiveId && convList.some((c) => c.conversation_id === lastActiveId))
+          ? lastActiveId
+          : (convList.length > 0 ? convList[0].conversation_id : null);
+        if (targetId) {
+          selectConversation(targetId);
+        }
+      } catch {}
     });
     return () => { mounted = false; };
   }, [api]);
 
   useEffect(() => {
-    setConversationId(crypto.randomUUID());
-    setConversationTitle('Cuộc trò chuyện mới');
-    setEntries([]);
+    let activeId = null;
+    try { activeId = sessionStorage.getItem('medguard_active_conversation_id'); } catch {}
+    if (!activeId) {
+      setConversationId(crypto.randomUUID());
+      setConversationTitle('Cuộc trò chuyện mới');
+      setEntries([]);
+    }
     let mounted = true;
     if (account) api.request('/v1/auth/profile').then(d => { if (mounted) setContext(newContext(d.profile)); }).catch(() => {});
     else setContext(newContext(loadProfile(tenantId)));
@@ -1192,6 +1348,7 @@ export default function App({
   }, []);
 
   const startNew = () => {
+    try { sessionStorage.removeItem('medguard_active_conversation_id'); } catch {}
     setConversationId(crypto.randomUUID());
     setConversationTitle('Cuộc trò chuyện mới');
     setEntries([]);
@@ -1262,7 +1419,7 @@ export default function App({
 
     if (proposal.healthMutation) {
       try {
-        localStorage.setItem('medguard_health_twin_profile', JSON.stringify(proposal.healthMutation));
+        localStorage.setItem(getTwinKey(account), JSON.stringify(proposal.healthMutation));
       } catch {}
       window.dispatchEvent(
         new CustomEvent('medguard:health-twin-updated', {
@@ -1273,11 +1430,28 @@ export default function App({
 
     if (proposal.expenseMutation) {
       try {
-        localStorage.setItem('medguard_financial_assessment', JSON.stringify(proposal.expenseMutation));
+        localStorage.setItem(getFinKey(account), JSON.stringify(proposal.expenseMutation));
         if (proposal.expenseMutation.monthly_budget_target_vnd) {
-          localStorage.setItem('medguard_budget_target_vnd', String(proposal.expenseMutation.monthly_budget_target_vnd));
+          const budgetKey = account ? `medguard_budget_target_vnd_${account.user_id || account.id || account.email}` : 'medguard_budget_target_vnd';
+          localStorage.setItem(budgetKey, String(proposal.expenseMutation.monthly_budget_target_vnd));
         }
       } catch {}
+      if (api && proposal.expenseMutation.recent_transactions?.length) {
+        for (const tx of proposal.expenseMutation.recent_transactions) {
+          api.request('/v1/user/spending', {
+            method: 'POST',
+            body: {
+              title: tx.title,
+              amount_vnd: Math.abs(tx.amount_vnd || 480000),
+              category: tx.category || 'medication',
+              provider: 'Nhà thuốc Long Châu',
+              doctor: 'Dược sĩ lâm sàng',
+              is_gpp: true,
+              bhyt_covered_vnd: Math.round((tx.amount_vnd || 480000) * 0.8),
+            },
+          }).catch((err) => console.warn('Could not sync expense to DB:', err));
+        }
+      }
       window.dispatchEvent(
         new CustomEvent('medguard:financial-updated', {
           detail: { expenseMutation: proposal.expenseMutation },
@@ -1310,7 +1484,7 @@ export default function App({
     notify('Đã từ chối cấp quyền cập nhật dữ liệu.');
   };
 
-  const handleAcceptMedicationProposal = (proposal, entryKey) => {
+  const handleAcceptMedicationProposal = async (proposal, entryKey) => {
     if (!proposal?.medication) return;
     const med = proposal.medication;
     try {
@@ -1321,6 +1495,16 @@ export default function App({
       window.dispatchEvent(new CustomEvent('medguard:medication-added', { detail: med }));
     } catch (e) {
       console.warn('Error saving medication to localStorage', e);
+    }
+    if (api) {
+      try {
+        await api.request('/v1/medication/regimen', {
+          method: 'POST',
+          body: med,
+        });
+      } catch (err) {
+        console.warn('Could not sync medication to DB:', err);
+      }
     }
     setEntries((prev) =>
       prev.map((item, idx) => {
@@ -1347,7 +1531,7 @@ export default function App({
     notify('Đã bỏ qua lịch uống thuốc');
   };
 
-  const handleAcceptAppointmentProposal = (proposal, entryKey) => {
+  const handleAcceptAppointmentProposal = async (proposal, entryKey) => {
     if (!proposal?.appointment) return;
     const appt = proposal.appointment;
     try {
@@ -1358,6 +1542,16 @@ export default function App({
       window.dispatchEvent(new CustomEvent('medguard:appointment-booked', { detail: appt }));
     } catch (e) {
       console.warn('Error saving appointment to localStorage', e);
+    }
+    if (api) {
+      try {
+        await api.request('/v1/schedule/shifts', {
+          method: 'POST',
+          body: appt,
+        });
+      } catch (err) {
+        console.warn('Could not sync appointment to DB:', err);
+      }
     }
     setEntries((prev) =>
       prev.map((item, idx) => {
@@ -1382,6 +1576,45 @@ export default function App({
       })
     );
     notify('Đã hủy lịch hẹn khám');
+  };
+
+  const handleAcceptSpendingProposal = async (proposal, entryKey) => {
+    if (!proposal?.spending) return;
+    const spend = proposal.spending;
+    if (api) {
+      try {
+        await api.request('/v1/user/spending', {
+          method: 'POST',
+          body: spend,
+        });
+      } catch (err) {
+        console.warn('Could not sync spending to DB:', err);
+      }
+    }
+    setEntries((prev) =>
+      prev.map((item, idx) => {
+        const key = item.id || idx;
+        if (key === entryKey || (item.spendingProposal && item.spendingProposal.proposalId === proposal.proposalId)) {
+          return { ...item, spendingProposalStatus: 'accepted' };
+        }
+        return item;
+      })
+    );
+    window.dispatchEvent(new CustomEvent('medguard:spending-added', { detail: spend }));
+    notify(`Đã lưu khoản chi ${Math.abs(spend.amount_vnd).toLocaleString('vi-VN')} ₫ vào Sổ chi tiêu y tế!`);
+  };
+
+  const handleDeclineSpendingProposal = (entryKey) => {
+    setEntries((prev) =>
+      prev.map((item, idx) => {
+        const key = item.id || idx;
+        if (key === entryKey) {
+          return { ...item, spendingProposalStatus: 'declined' };
+        }
+        return item;
+      })
+    );
+    notify('Đã bỏ qua khoản chi tiêu');
   };
 
   const handleOpenNavigationAction = (navData) => {
@@ -1413,14 +1646,33 @@ export default function App({
   };
 
   const selectConversation = async (id) => {
+    try { sessionStorage.setItem('medguard_active_conversation_id', id); } catch {}
     setBusy(true);
     setView('chat');
     try {
       const data = await api.request(`/v1/chat/conversations/${encodeURIComponent(id)}`);
-      setConversationId(id);
-      setConversationTitle(data.conversation.title);
-      setContext((current) => ({ ...current, patient_ref: data.conversation.patient_ref || current.patient_ref }));
-      setEntries(data.messages.map((item) => ({ id: item.message_id, requestId: item.request_id, role: item.role, text: item.content, intent: item.intent, status: item.status, result: item.result, answer: item.answer, answer_origin: item.answer_origin, verification_status: item.verification_status, knowledge_approval: item.knowledge_approval })));
+      if (data && data.conversation) {
+        setConversationId(id);
+        setConversationTitle(data.conversation.title || 'Cuộc trò chuyện');
+        setContext((current) => ({ ...current, patient_ref: data.conversation.patient_ref || current.patient_ref }));
+        setEntries((data.messages || []).map((item) => ({
+          id: item.message_id,
+          requestId: item.request_id,
+          role: item.role,
+          text: item.content,
+          intent: item.intent,
+          status: item.status,
+          result: item.result,
+          answer: item.answer,
+          answer_origin: item.answer_origin,
+          verification_status: item.verification_status,
+          knowledge_approval: item.knowledge_approval
+        })));
+      } else {
+        setConversationId(id);
+        setConversationTitle('Cuộc trò chuyện');
+        setEntries([]);
+      }
     } catch (error) {
       setEntries([{ role: 'error', error }]);
     } finally {
@@ -1469,6 +1721,7 @@ export default function App({
     const navCommand = detectConversationalNavigation(shownText);
     const medProposal = extractMedicationProposal(shownText);
     const apptProposal = extractAppointmentProposal(shownText, context);
+    const spendProposal = extractSpendingProposal(shownText, context, currentAttachment);
     const navAction = extractNavigationAction(shownText);
 
     try {
@@ -1480,7 +1733,26 @@ export default function App({
         formData.append('conversation_id', conversationId);
         formData.append('message', shownText);
         const data = await api.request('/v1/prescription/extract', { method: 'POST', formData });
-        const { answer: ocrAnswer, ...ocrResult } = data;
+        let finalOcrData = data;
+        if (data?.poll_url || data?.status === 'accepted' || data?.status === 'processing') {
+          const pollUrl = data.poll_url || `/v1/jobs/${data.job_id}`;
+          for (let attempt = 0; attempt < 12; attempt++) {
+            await new Promise((res) => setTimeout(res, 1500));
+            try {
+              const pollRes = await api.request(pollUrl, { method: 'GET' });
+              if (pollRes?.status === 'completed' || pollRes?.status === 'succeeded' || pollRes?.status === 'answered' || pollRes?.answer) {
+                finalOcrData = pollRes;
+                break;
+              }
+              if (pollRes?.status === 'failed' || pollRes?.status === 'error') {
+                break;
+              }
+            } catch {
+              break;
+            }
+          }
+        }
+        const { answer: ocrAnswer, ...ocrResult } = finalOcrData;
         responseEntry = { role: 'assistant', text: ocrAnswer?.summary || 'Đã tiếp nhận ảnh đơn thuốc. Kết quả nhận diện cần dược sĩ hoặc bác sĩ xác nhận trước khi tạo lịch thuốc.', intent: 'ocr', status: 'answered', result: ocrResult, answer: ocrAnswer };
         if (profileProposal && profileProposal.hasProposal) {
           responseEntry.profileProposal = profileProposal;
@@ -1489,6 +1761,15 @@ export default function App({
         if (medProposal && medProposal.hasProposal) {
           responseEntry.medicationProposal = medProposal;
           responseEntry.medicationProposalStatus = 'pending';
+        }
+        if (spendProposal && spendProposal.hasProposal) {
+          responseEntry.spendingProposal = spendProposal;
+          if (autoSubmitUpdates) {
+            responseEntry.spendingProposalStatus = 'accepted';
+            handleAcceptSpendingProposal(spendProposal, responseEntry.id);
+          } else {
+            responseEntry.spendingProposalStatus = 'pending';
+          }
         }
       } else {
         const messages = previous.filter((item) => item.role === 'user' || item.role === 'assistant').slice(-18).map((item) => ({ role: item.role, content: item.text }));
@@ -1500,12 +1781,12 @@ export default function App({
         });
         let savedHealth = null;
         try {
-          const raw = localStorage.getItem('medguard_health_twin_profile');
+          const raw = localStorage.getItem(getTwinKey(account));
           if (raw) savedHealth = JSON.parse(raw);
         } catch {}
         let savedFin = null;
         try {
-          const raw = localStorage.getItem('medguard_financial_assessment');
+          const raw = localStorage.getItem(getFinKey(account));
           if (raw) savedFin = JSON.parse(raw);
         } catch {}
 
@@ -1534,9 +1815,14 @@ export default function App({
           if (autoSubmitUpdates) {
             responseEntry.profileProposalStatus = 'accepted';
             try {
-              const updated = { ...patientProfile, ...profileProposal.updates };
-              setPatientProfile(updated);
+              const rawProfile = localStorage.getItem('medguard_patient_demographics') || localStorage.getItem(`medguard.profile.${tenantId}`) || '{}';
+              let baseProfile = {};
+              try { baseProfile = JSON.parse(rawProfile); } catch {}
+              const updates = profileProposal.fields || profileProposal.updates || {};
+              const updated = { ...context, ...baseProfile, ...updates };
+              setContext((prev) => ({ ...prev, ...updates }));
               localStorage.setItem('medguard_patient_demographics', JSON.stringify(updated));
+              localStorage.setItem(`medguard.profile.${tenantId}`, JSON.stringify(updated));
             } catch (e) {
               console.warn('Auto-submit profile failed', e);
             }
@@ -1580,6 +1866,15 @@ export default function App({
             responseEntry.appointmentProposalStatus = 'pending';
           }
         }
+        if (spendProposal && spendProposal.hasProposal) {
+          responseEntry.spendingProposal = spendProposal;
+          if (autoSubmitUpdates) {
+            responseEntry.spendingProposalStatus = 'accepted';
+            handleAcceptSpendingProposal(spendProposal, responseEntry.id);
+          } else {
+            responseEntry.spendingProposalStatus = 'pending';
+          }
+        }
         if (navAction && navAction.hasAction) {
           responseEntry.navigationAction = navAction;
         }
@@ -1620,13 +1915,13 @@ export default function App({
 
           if (syncResult.healthMutation) {
             const h = syncResult.healthMutation;
-            let organName = 'Dạ dày (Tiêu hóa)';
-            let organStatus = 'Kích ứng cấp / Cần theo dõi';
+            let organName = h.detected_organ?.name || 'Não bộ & Thần kinh';
+            let organStatus = h.detected_organ?.notes || 'Cần theo dõi và đánh giá lâm sàng';
             if (h.organs) {
               const keys = Object.keys(h.organs);
               for (const k of keys) {
                 if (h.organs[k]?.status && h.organs[k].status !== 'normal') {
-                  organName = h.organs[k].vietnamese_name || (k === 'stomach' ? 'Dạ dày' : k);
+                  organName = h.organs[k].vietnamese_name || h.organs[k].name || (k === 'stomach' ? 'Dạ dày' : k);
                   organStatus = h.organs[k].clinical_notes || h.organs[k].status;
                   break;
                 }
@@ -1660,21 +1955,38 @@ export default function App({
           if (syncResult.expenseMutation) {
             const exp = syncResult.expenseMutation;
             const recentTx = exp.recent_transactions?.[0];
-            const amount = recentTx?.amount_vnd || 350000;
-            extractedItems.push({
-              icon: 'money',
-              label: 'Khoản chi y tế',
-              value: `${amount.toLocaleString('vi-VN')} ₫`,
-              subHint: recentTx?.title || 'Đơn thuốc / Khám chữa bệnh',
-              tone: 'success',
-            });
-            extractedItems.push({
-              icon: 'shield',
-              label: 'Ước tính BHYT',
-              value: 'BHYT chi trả ~80%',
-              subHint: 'Theo danh mục BHYT đúng tuyến',
-              tone: 'neutral',
-            });
+            const validAmount = recentTx?.amount_vnd ? Math.abs(recentTx.amount_vnd) : null;
+            if (recentTx && recentTx.id?.startsWith('tx_') && validAmount && validAmount > 0) {
+              extractedItems.push({
+                icon: 'money',
+                label: 'Khoản chi y tế',
+                value: `${validAmount.toLocaleString('vi-VN')} ₫`,
+                subHint: recentTx?.title || 'Đơn thuốc / Khám chữa bệnh',
+                tone: 'success',
+              });
+              extractedItems.push({
+                icon: 'shield',
+                label: 'Ước tính BHYT',
+                value: 'BHYT chi trả ~80%',
+                subHint: 'Theo danh mục BHYT đúng tuyến',
+                tone: 'neutral',
+              });
+            } else if (exp.monthly_budget_target_vnd) {
+              extractedItems.push({
+                icon: 'money',
+                label: 'Hạn mức ngân sách y tế',
+                value: `${exp.monthly_budget_target_vnd.toLocaleString('vi-VN')} ₫`,
+                subHint: 'Thiết lập hạn mức ngân sách tháng 10/2026',
+                tone: 'success',
+              });
+              extractedItems.push({
+                icon: 'shield',
+                label: 'Cơ cấu phân bổ (45 - 35 - 20)',
+                value: 'BHYT • Thuốc GPP • Dự phòng',
+                subHint: 'Tối ưu hóa kinh tế y tế & Dược lâm sàng',
+                tone: 'neutral',
+              });
+            }
           }
 
           const syncProposal = {
@@ -1696,15 +2008,16 @@ export default function App({
             // User enabled auto-submit: apply immediately
             if (syncResult.healthMutation) {
               try {
-                localStorage.setItem('medguard_health_twin_profile', JSON.stringify(syncResult.healthMutation));
+                localStorage.setItem(getTwinKey(account), JSON.stringify(syncResult.healthMutation));
               } catch {}
               window.dispatchEvent(new CustomEvent('medguard:health-twin-updated', { detail: { ...data, healthMutation: syncResult.healthMutation } }));
             }
             if (syncResult.expenseMutation) {
               try {
-                localStorage.setItem('medguard_financial_assessment', JSON.stringify(syncResult.expenseMutation));
+                localStorage.setItem(getFinKey(account), JSON.stringify(syncResult.expenseMutation));
                 if (syncResult.expenseMutation.monthly_budget_target_vnd) {
-                  localStorage.setItem('medguard_budget_target_vnd', String(syncResult.expenseMutation.monthly_budget_target_vnd));
+                  const budgetKey = account ? `medguard_budget_target_vnd_${account.user_id || account.id || account.email}` : 'medguard_budget_target_vnd';
+                  localStorage.setItem(budgetKey, String(syncResult.expenseMutation.monthly_budget_target_vnd));
                 }
               } catch {}
               window.dispatchEvent(new CustomEvent('medguard:financial-updated', { detail: { ...data, expenseMutation: syncResult.expenseMutation } }));
@@ -1802,8 +2115,8 @@ export default function App({
             {sidebarCollapsed ? <PanelLeftOpen size={20} /> : <Menu size={20} />}
           </button>
           <div>
-            <h1>{view === 'system' ? 'Hệ thống & Kiểm toán' : view === 'spending' ? 'Chi Tiêu Y Tế & Tiết Kiệm Care' : view === 'schedule' ? 'Lịch khám bệnh' : view === 'medication' ? 'Lịch uống thuốc' : view === 'companion' ? 'Bác sĩ 3D Live' : view === 'navigation' ? 'Chỉ đường & Trạm Y Tế' : view === 'profile' ? 'Hồ Sơ Y Tế & Bảo Hiểm' : conversationTitle}</h1>
-            <span>{view === 'system' ? 'Trạng thái vận hành lâm sàng' : view === 'spending' ? 'Tối ưu hóa kinh tế y khoa, thuốc chuẩn GPP & Booking Care' : view === 'schedule' ? 'Thời khóa biểu ca khám bác sĩ' : view === 'medication' ? 'Thời khóa biểu nhắc thuốc cá nhân' : view === 'companion' ? 'Bác sĩ ảo 3D tư vấn trực tiếp qua giọng nói & cử chỉ' : view === 'navigation' ? 'Định tuyến 3D & Bản đồ GPP' : view === 'profile' ? 'Quản lý thông tin cá nhân, thể trạng, BHYT, BHXH & tiền sử bệnh' : (context.display_name ? `Bệnh nhân: ${context.display_name}` : context.patient_ref || 'Hỗ trợ y khoa 24/7')}</span>
+            <h1>{view === 'system' ? 'Hệ thống & Kiểm toán' : view === 'spending' ? 'Chi Tiêu Y Tế & Tiết Kiệm Care' : view === 'schedule' ? 'Lịch khám bệnh' : view === 'medication' ? 'Lịch uống thuốc' : view === 'companion' ? 'Bác sĩ 3D Live' : view === 'navigation' ? 'Bản đồ Cấp cứu, Tìm Thuốc & Google Places' : view === 'profile' ? 'Hồ Sơ Y Tế & Bảo Hiểm' : conversationTitle}</h1>
+            <span>{view === 'system' ? 'Trạng thái vận hành lâm sàng' : view === 'spending' ? 'Tối ưu hóa kinh tế y khoa, thuốc chuẩn GPP & Booking Care' : view === 'schedule' ? 'Thời khóa biểu ca khám bác sĩ' : view === 'medication' ? 'Thời khóa biểu nhắc thuốc cá nhân' : view === 'companion' ? 'Bác sĩ ảo 3D tư vấn trực tiếp qua giọng nói & cử chỉ' : view === 'navigation' ? 'Google Maps Places API Reputation • Cổng Cấp cứu A9 Bạch Mai • Dẫn đường 2 giai đoạn' : view === 'profile' ? 'Quản lý thông tin cá nhân, thể trạng, BHYT, BHXH & tiền sử bệnh' : (context.display_name ? `Bệnh nhân: ${context.display_name}` : context.patient_ref || 'Hỗ trợ y khoa 24/7')}</span>
           </div>
         </div>
         <div className="topbar-actions">
@@ -1818,184 +2131,113 @@ export default function App({
           )}
 
 
-          <div className="topbar-view-tabs" role="tablist">
-            <button
-              role="tab"
-              aria-selected={view === "chat"}
-              className={`view-tab-btn ${view === "chat" ? "active" : ""}`}
-              type="button"
-              onClick={() => setView("chat")}
-              title="Phòng trò chuyện"
-            >
-              <MessageSquare size={14} />
-              <span>Hội thoại</span>
-            </button>
-            <button
-              role="tab"
-              aria-selected={view === "navigation"}
-              className={`view-tab-btn ${view === "navigation" ? "active" : ""}`}
-              type="button"
-              onClick={() => setView(view === "navigation" ? "chat" : "navigation")}
-              title="Chỉ đường & Trạm Y Tế Real-time"
-            >
-              <Route size={14} />
-              <span>Chỉ đường</span>
-            </button>
-            <button
-              role="tab"
-              aria-selected={view === "health"}
-              className={`view-tab-btn ${view === "health" ? "active" : ""}`}
-              type="button"
-              onClick={() => setView(view === "health" ? "chat" : "health")}
-              title="Chuẩn đoán & Bản đồ Cơ thể Giải phẫu Real-time"
-            >
-              <HeartPulse size={14} />
-              <span>Cơ thể & Sức khoẻ</span>
-            </button>
-            <button
-              role="tab"
-              aria-selected={view === "companion"}
-              className={`view-tab-btn ${view === "companion" ? "active" : ""}`}
-              type="button"
-              onClick={() => setView("companion")}
-              title="Bác sĩ 3D Live tương tác trực tiếp"
-            >
-              <Sparkles size={14} />
-              <span>Bác sĩ 3D Live</span>
-            </button>
-            <button
-              role="tab"
-              aria-selected={view === "schedule"}
-              className={`view-tab-btn ${view === "schedule" ? "active" : ""}`}
-              type="button"
-              onClick={() => setView(view === "schedule" ? "chat" : "schedule")}
-              title="Lịch khám bác sĩ"
-            >
-              <CalendarClock size={14} />
-              <span>Lịch khám</span>
-            </button>
-            <button
-              role="tab"
-              aria-selected={view === "medication"}
-              className={`view-tab-btn ${view === "medication" ? "active" : ""}`}
-              type="button"
-              onClick={() => setView(view === "medication" ? "chat" : "medication")}
-              title="Lịch uống thuốc"
-            >
-              <Pill size={14} />
-              <span>Lịch thuốc</span>
-            </button>
-            <button
-              role="tab"
-              aria-selected={view === "spending"}
-              className={`view-tab-btn ${view === "spending" ? "active" : ""}`}
-              type="button"
-              onClick={() => setView(view === "spending" ? "chat" : "spending")}
-              title="Đánh giá chi tiêu y tế & Tối ưu Booking Care"
-            >
-              <WalletCards size={14} />
-              <span>Chi tiêu y tế</span>
-            </button>
-            <button
-              role="tab"
-              aria-selected={view === "profile"}
-              className={`view-tab-btn ${view === "profile" ? "active" : ""}`}
-              type="button"
-              onClick={() => setView(view === "profile" ? "chat" : "profile")}
-              title="Quản lý hồ sơ bệnh nhân & bảo hiểm y tế"
-            >
-              <UserRound size={14} />
-              <span>Hồ sơ cá nhân</span>
-            </button>
-          </div>
-
-          <div className="location-anchor">
-            <button
-              className={`location-topbar-pill ${userLocation.is_gps ? 'gps-active' : ''}`}
-              type="button"
-              aria-label="Cài đặt vị trí & chỉ đường"
-              onClick={() => setLocationPromptOpen(!locationPromptOpen)}
-              title={`Vị trí: ${userLocation.name} (${userLocation.address})`}
-            >
-              <MapPin size={14} className="location-pin-icon" />
-              <div className="location-pill-text">
-                <strong>{userLocation.name || 'Vị trí'}</strong>
-                <small>{userLocation.city === 'hanoi' ? 'Hà Nội' : userLocation.city === 'hcm' ? 'TP.HCM' : 'Đà Nẵng'}</small>
-              </div>
-              <ChevronDown size={13} className="location-chevron" />
-            </button>
-            {locationPromptOpen && (
-              <div className="location-popover" role="dialog" aria-label="Định vị & Chỉ đường">
-                <div className="location-popover-header">
-                  <div className="loc-title-row">
-                    <LocateFixed size={16} />
-                    <strong>Vị trí & Chỉ đường Real-time</strong>
-                  </div>
-                  <p>Hệ thống tự động quét quầy thuốc GPP và vẽ lộ trình thời gian thực quanh điểm này.</p>
-                </div>
-
-                <div className="location-current-status">
-                  <div className="current-status-badge">
-                    <span className={`status-dot ${userLocation.is_gps ? 'gps' : 'preset'}`} />
-                    <span>{userLocation.is_gps ? 'GPS Trực tiếp (Chính xác)' : 'Địa điểm chỉ định'}</span>
-                  </div>
-                  <p className="current-address-text">{userLocation.address}</p>
-                  <span className="current-coords">Tọa độ: {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}</span>
-                </div>
-
-                {userLocation.permission_status === 'denied' && (
-                  <div className="location-denied-alert">
-                    <AlertTriangle size={15} />
-                    <span>Trình duyệt đang chặn quyền vị trí. Vui lòng cấp quyền trong cài đặt trình duyệt hoặc chọn cơ sở bên dưới.</span>
-                  </div>
-                )}
-
-                <button
-                  type="button"
-                  className="gps-acquire-btn"
-                  disabled={requestingGps}
-                  onClick={handleRequestGps}
-                >
-                  {requestingGps ? (
-                    <>
-                      <LoaderCircle size={15} className="spin" />
-                      <span>Đang xin quyền & lấy GPS...</span>
-                    </>
-                  ) : (
-                    <>
-                      <LocateFixed size={15} />
-                      <span>Cấp quyền & Lấy vị trí GPS của tôi</span>
-                    </>
-                  )}
-                </button>
-
-                <div className="location-divider"><span>HOẶC CHỌN KHU VỰC SẴN CÓ</span></div>
-
-                <div className="location-presets-list">
-                  {LOCATION_PRESETS.map((p) => {
-                    const isSelected = !userLocation.is_gps && userLocation.name === p.name;
-                    return (
-                      <button
-                        key={p.id}
-                        type="button"
-                        className={`preset-item-btn ${isSelected ? 'selected' : ''}`}
-                        onClick={() => handleSelectPreset(p)}
-                      >
-                        <div className="preset-item-icon">
-                          <MapPin size={14} />
-                        </div>
-                        <div className="preset-item-info">
-                          <strong>{p.name}</strong>
-                          <span>{p.address}</span>
-                        </div>
-                        {isSelected && <Check size={14} className="preset-check" />}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+          <div className="topbar-active-context">
+            <span className="topbar-active-badge">Phân hệ:</span>
+            <strong className="topbar-active-title">
+              {WORKSPACE_ROUTE_POLICIES[view]?.label || 'Hội thoại'}
+            </strong>
+            {view !== 'chat' && (
+              <button
+                type="button"
+                className="topbar-return-chat-btn"
+                onClick={() => setView('chat')}
+                title="Quay lại Phòng Hội Thoại"
+              >
+                <ArrowLeft size={12} />
+                <span>Về Chat</span>
+              </button>
             )}
           </div>
+
+          {view !== 'navigation' && (
+            <div className="location-anchor">
+              <button
+                className={`location-topbar-pill ${userLocation.is_gps ? 'gps-active' : ''}`}
+                type="button"
+                aria-label="Cài đặt vị trí & chỉ đường"
+                onClick={() => setLocationPromptOpen(!locationPromptOpen)}
+                title={`Vị trí: ${userLocation.name} (${userLocation.address})`}
+              >
+                <MapPin size={14} className="location-pin-icon" />
+                <div className="location-pill-text">
+                  <strong>{userLocation.name || 'Vị trí'}</strong>
+                  <small>{userLocation.city === 'hanoi' ? 'Hà Nội' : userLocation.city === 'hcm' ? 'TP.HCM' : 'Đà Nẵng'}</small>
+                </div>
+                <ChevronDown size={13} className="location-chevron" />
+              </button>
+              {locationPromptOpen && (
+                <div className="location-popover" role="dialog" aria-label="Định vị & Chỉ đường">
+                  <div className="location-popover-header">
+                    <div className="loc-title-row">
+                      <LocateFixed size={16} />
+                      <strong>Vị trí & Chỉ đường Real-time</strong>
+                    </div>
+                    <p>Hệ thống tự động quét quầy thuốc GPP và vẽ lộ trình thời gian thực quanh điểm này.</p>
+                  </div>
+
+                  <div className="location-current-status">
+                    <div className="current-status-badge">
+                      <span className={`status-dot ${userLocation.is_gps ? 'gps' : 'preset'}`} />
+                      <span>{userLocation.is_gps ? 'GPS Trực tiếp (Chính xác)' : 'Địa điểm chỉ định'}</span>
+                    </div>
+                    <p className="current-address-text">{userLocation.address}</p>
+                    <span className="current-coords">Tọa độ: {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}</span>
+                  </div>
+
+                  {userLocation.permission_status === 'denied' && (
+                    <div className="location-denied-alert">
+                      <AlertTriangle size={15} />
+                      <span>Trình duyệt đang chặn quyền vị trí. Vui lòng cấp quyền trong cài đặt trình duyệt hoặc chọn cơ sở bên dưới.</span>
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    className="gps-acquire-btn"
+                    disabled={requestingGps}
+                    onClick={handleRequestGps}
+                  >
+                    {requestingGps ? (
+                      <>
+                        <LoaderCircle size={15} className="spin" />
+                        <span>Đang xin quyền & lấy GPS...</span>
+                      </>
+                    ) : (
+                      <>
+                        <LocateFixed size={15} />
+                        <span>Cấp quyền & Lấy vị trí GPS của tôi</span>
+                      </>
+                    )}
+                  </button>
+
+                  <div className="location-divider"><span>HOẶC CHỌN KHU VỰC SẴN CÓ</span></div>
+
+                  <div className="location-presets-list">
+                    {LOCATION_PRESETS.map((p) => {
+                      const isSelected = !userLocation.is_gps && userLocation.name === p.name;
+                      return (
+                        <button
+                          key={p.id}
+                          type="button"
+                          className={`preset-item-btn ${isSelected ? 'selected' : ''}`}
+                          onClick={() => handleSelectPreset(p)}
+                        >
+                          <div className="preset-item-icon">
+                            <MapPin size={14} />
+                          </div>
+                          <div className="preset-item-info">
+                            <strong>{p.name}</strong>
+                            <span>{p.address}</span>
+                          </div>
+                          {isSelected && <Check size={14} className="preset-check" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {view === 'chat' && (
             <div className="profile-anchor">
@@ -2106,7 +2348,16 @@ export default function App({
         </div>
       </header>
       {view === 'system' ? (
-        <div className="system-workspace"><SystemModule api={api} tenantId={tenantId} /></div>
+        account?.role === 'admin' ? (
+          <div className="system-workspace"><SystemModule api={api} tenantId={tenantId} /></div>
+        ) : (
+          <DataManagementAuthGate
+            moduleTitle="Hệ Thống & Kiểm Toán Lâm Sàng dành cho Quản Trị Viên"
+            moduleType="profile"
+            onRequireAuth={onRequireAuth}
+            onBackToChat={() => setView('chat')}
+          />
+        )
       ) : view === 'schedule' ? (
         <div className="schedule-workspace">
           {(isGuest || !account) ? (
@@ -2220,19 +2471,34 @@ export default function App({
         <NavigationPage
           api={api}
           userLocation={userLocation}
+          onUpdateLocation={(loc) => {
+            setUserLocation(loc);
+            saveUserLocation(loc);
+          }}
           navigationContext={navigationContext}
           onBackToChat={() => setView('chat')}
           onNotify={notify}
         />
       ) : view === 'profile' ? (
-        <UserProfilePage
-          context={context}
-          account={account}
-          onSave={saveProfile}
-          onClear={clearProfile}
-          onBackToChat={() => setView('chat')}
-          onNotify={notify}
-        />
+        <ErrorBoundary title="Hồ Sơ Y Tế & Xác Thực Bảo Hiểm" onBackToChat={() => setView('chat')}>
+          {(isGuest || !account) ? (
+            <DataManagementAuthGate
+              moduleTitle="Hồ Sơ Định Danh Bệnh Nhân & Thẻ BHYT"
+              moduleType="profile"
+              onRequireAuth={onRequireAuth}
+              onBackToChat={() => setView('chat')}
+            />
+          ) : (
+            <UserProfilePage
+              context={context}
+              account={account}
+              onSave={saveProfile}
+              onClear={clearProfile}
+              onBackToChat={() => setView('chat')}
+              onNotify={notify}
+            />
+          )}
+        </ErrorBoundary>
       ) : (
         <section id="main-chat-workspace" className={`chat-workspace ${entries.length ? 'has-messages' : ''}`} aria-live="polite">
           <div className="location-context-bar">
@@ -2281,6 +2547,8 @@ export default function App({
                 onDeclineMedicationProposal={handleDeclineMedicationProposal}
                 onAcceptAppointmentProposal={handleAcceptAppointmentProposal}
                 onDeclineAppointmentProposal={handleDeclineAppointmentProposal}
+                onAcceptSpendingProposal={handleAcceptSpendingProposal}
+                onDeclineSpendingProposal={handleDeclineSpendingProposal}
                 onAcceptSyncProposal={handleAcceptSyncProposal}
                 onDeclineSyncProposal={handleDeclineSyncProposal}
                 autoSubmitUpdates={autoSubmitUpdates}
@@ -2325,7 +2593,7 @@ export default function App({
     </main>
     <QrScanner open={qrOpen} onClose={() => setQrOpen(false)} onDetected={(raw) => { setQrOpen(false); sendText(`Kiểm tra QR hàng giả: ${raw}`, 'authenticity'); }} />
     <SchedulePanel open={scheduleOpen} onClose={() => setScheduleOpen(false)} api={api} patientRef={context.patient_ref} onOpenSchedulePage={() => setView('schedule')} onNotify={notify} />
-    <SettingsModal allowSystem={!account || account.role === 'admin'} open={settingsOpen} onClose={() => setSettingsOpen(false)} initialTab={settingsInitialTab} context={context} onSaveProfile={saveProfile} onClearProfile={clearProfile} api={api} tenantId={tenantId} onClearAllChat={clearAllConversations} onExportData={exportClinicalData} onNotify={notify} />
+    <SettingsModal allowSystem={Boolean(account && account.role === 'admin')} open={settingsOpen} onClose={() => setSettingsOpen(false)} initialTab={settingsInitialTab} context={context} onSaveProfile={saveProfile} onClearProfile={clearProfile} api={api} tenantId={tenantId} onClearAllChat={clearAllConversations} onExportData={exportClinicalData} onNotify={notify} />
     <PatientProfileModal open={patientOpen} context={context} onSave={saveProfile} onClear={clearProfile} onClose={() => setPatientOpen(false)} />
     {toast && <div className="ui-toast" role="status" aria-live="polite" aria-atomic="true"><Check size={16} /><span>{typeof toast === 'string' ? toast : toast?.message || String(toast)}</span></div>}
   </div>;

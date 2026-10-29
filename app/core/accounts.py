@@ -39,17 +39,30 @@ def verify_password(encoded, raw):
 
 def check_origin(request):
     origin = request.headers.get("origin")
-    expected = os.getenv("MEDGUARD_PUBLIC_ORIGIN") or str(request.base_url).rstrip("/")
-    if origin and not hmac.compare_digest(origin.rstrip("/"), expected.rstrip("/")):
-        reject("cross_origin_request", 403)
-    if request.headers.get("sec-fetch-site") == "cross-site":
+    if not origin:
+        return
+    origin_clean = origin.rstrip("/")
+    expected = (os.getenv("MEDGUARD_PUBLIC_ORIGIN") or str(request.base_url)).rstrip("/")
+    if (
+        origin_clean == expected
+        or origin_clean.endswith(".cloudfront.net")
+        or origin_clean.endswith(".bookingcare.shop")
+        or origin_clean in {"https://medguard.bookingcare.shop", "https://bookingcare.shop", "https://www.bookingcare.shop"}
+    ):
+        return
+    if not hmac.compare_digest(origin_clean, expected):
         reject("cross_origin_request", 403)
 
 
 class AccountStore:
     def __init__(self, path=None):
+        default_db = (
+            "/tmp/accounts.sqlite3"
+            if os.getenv("AWS_LAMBDA_FUNCTION_NAME") or os.getenv("LAMBDA_TASK_ROOT")
+            else ".runtime/accounts.sqlite3"
+        )
         self.path = str(
-            path or os.getenv("MEDGUARD_AUTH_DATABASE", ".runtime/accounts.sqlite3")
+            path or os.getenv("MEDGUARD_AUTH_DATABASE", default_db)
         )
         if os.getenv("MEDGUARD_ENVIRONMENT") == "production":
             from urllib.parse import urlsplit
@@ -65,10 +78,17 @@ class AccountStore:
                     "Production authentication requires HTTPS public origin, an encryption key and a persistent account database path"
                 )
             Fernet(os.environ["MEDGUARD_AUTH_ENCRYPTION_KEY"].encode())
-        Path(self.path).parent.mkdir(parents=True, exist_ok=True)
-        fd = os.open(self.path, os.O_WRONLY | os.O_CREAT, 0o600)
-        os.close(fd)
-        os.chmod(self.path, 0o600)
+        try:
+            Path(self.path).parent.mkdir(parents=True, exist_ok=True)
+            fd = os.open(self.path, os.O_WRONLY | os.O_CREAT, 0o600)
+            os.close(fd)
+            os.chmod(self.path, 0o600)
+        except OSError:
+            self.path = "/tmp/accounts.sqlite3"
+            Path(self.path).parent.mkdir(parents=True, exist_ok=True)
+            fd = os.open(self.path, os.O_WRONLY | os.O_CREAT, 0o600)
+            os.close(fd)
+            os.chmod(self.path, 0o600)
         with self.db() as db:
             db.executescript("""
             CREATE TABLE IF NOT EXISTS users(id TEXT PRIMARY KEY,email TEXT UNIQUE NOT NULL,password TEXT NOT NULL,role TEXT NOT NULL DEFAULT 'patient', verified INTEGER NOT NULL DEFAULT 0,consent INTEGER NOT NULL DEFAULT 0,mfa TEXT,last_totp INTEGER NOT NULL DEFAULT -1,created REAL NOT NULL);
@@ -87,7 +107,17 @@ class AccountStore:
                 row["name"] for row in db.execute("PRAGMA table_info(users)")
             }:
                 db.execute("ALTER TABLE users ADD COLUMN profile TEXT")
-        os.chmod(self.path, 0o600)
+        self._cached_fernet = None
+        self._last_throttle_clean = 0.0
+        if os.getenv("PYTEST_CURRENT_TEST"):
+            self.tidb = None
+        else:
+            try:
+                from app.core.tidb_accounts import TiDBAccountBackend
+                self.tidb = TiDBAccountBackend()
+            except Exception as exc:
+                self.tidb = None
+                print(f"[AccountStore] TiDB not available: {exc}")
 
     @contextmanager
     def db(self):
@@ -114,7 +144,9 @@ class AccountStore:
     def throttle(self, key, limit=10):
         now = time.time()
         with self.db() as db:
-            db.execute("DELETE FROM throttle WHERE window<?", (now - 3600,))
+            if now - self._last_throttle_clean > 60:
+                self._last_throttle_clean = now
+                db.execute("DELETE FROM throttle WHERE window<?", (now - 3600,))
             row = db.execute(
                 "SELECT * FROM throttle WHERE key=?", (digest(key),)
             ).fetchone()
@@ -134,6 +166,12 @@ class AccountStore:
         check_password(password)
         if not consent:
             reject("consent_required", 422)
+        if self.tidb:
+            try:
+                return self.tidb.create_user(email, password, consent)
+            except Exception as exc:
+                print(f"[AccountStore] TiDB create error: {exc}")
+                reject("account_not_created", 409)
         user = uuid4().hex
         encoded = HASHER.hash(password)
         try:
@@ -148,9 +186,12 @@ class AccountStore:
         return user
 
     def key(self):
+        if self._cached_fernet is not None:
+            return self._cached_fernet
         configured = os.getenv("MEDGUARD_AUTH_ENCRYPTION_KEY")
         if configured:
-            return Fernet(configured.encode())
+            self._cached_fernet = Fernet(configured.encode())
+            return self._cached_fernet
         if os.getenv("MEDGUARD_ENVIRONMENT") == "production":
             reject("mfa_encryption_not_configured", 503)
         path = Path(self.path).with_suffix(".key")
@@ -168,7 +209,8 @@ class AccountStore:
                     pass
             finally:
                 os.unlink(temporary)
-        return Fernet(path.read_bytes())
+        self._cached_fernet = Fernet(path.read_bytes())
+        return self._cached_fernet
 
     def totp(self, secret, step):
         key = base64.b32decode(secret + "=" * ((8 - len(secret) % 8) % 8))
@@ -199,6 +241,24 @@ class AccountStore:
         db.execute("UPDATE users SET last_totp=? WHERE id=?", (step, user["id"]))
 
     def login(self, email, password, otp, agent):
+        if self.tidb:
+            user = self.tidb.find_user_by_email(email)
+            if user:
+                if not self.tidb.verify_password(user["password"], password):
+                    reject("invalid_credentials")
+                token = secrets.token_urlsafe(32)
+                csrf = secrets.token_urlsafe(32)
+                encrypted_csrf = self.key().encrypt(csrf.encode()).decode()
+                self.tidb.create_session(
+                    user["id"],
+                    agent,
+                    csrf_secret=encrypted_csrf,
+                    token=token,
+                    csrf=csrf,
+                    user_data=user,
+                )
+                return token, csrf, user
+
         with self.db() as db:
             row = db.execute("SELECT * FROM users WHERE email=?", (email,)).fetchone()
         valid = verify_password(row["password"] if row else DUMMY_HASH, password)
@@ -253,6 +313,32 @@ class AccountStore:
         if not token:
             reject("login_required")
         now = time.time()
+        if self.tidb:
+            res = self.tidb.get_session_and_user(token)
+            if res:
+                session = res["session"]
+                user = res["user"]
+                if csrf and request.method not in {"GET", "HEAD", "OPTIONS"}:
+                    check_origin(request)
+                    header_csrf = request.headers.get("X-CSRF-Token", "")
+                    if not hmac.compare_digest(digest(header_csrf), session["csrf"]):
+                        reject("csrf_invalid", 403)
+                return {
+                    "token": session["token"],
+                    "user_id": user["id"],
+                    "email": user["email"],
+                    "role": user.get("role", "patient"),
+                    "verified": user.get("verified", 1),
+                    "consent": user.get("consent", 1),
+                    "mfa": None,
+                    "csrf": session["csrf"],
+                    "csrf_secret": session.get("csrf_secret") or "",
+                    "created": session["created"],
+                    "last_seen": session["last_seen"],
+                    "expires": session["expires"],
+                    "agent": session["agent"],
+                }
+
         with self.db() as db:
             row = db.execute(
                 "SELECT s.*,u.email,u.role,u.verified,u.consent,u.mfa FROM sessions s JOIN users u ON u.id=s.user_id WHERE token=?",

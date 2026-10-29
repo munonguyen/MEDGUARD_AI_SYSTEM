@@ -190,10 +190,11 @@ def test_complete_e2e_patient_clinical_journey():
         "discharge_date": date.today().isoformat(),
         "conditions": ["tăng huyết áp", "bệnh mạch vành"],
     }
+    import uuid
     resp_followup = client.post(
         "/v1/followup/plan",
         json=followup_req,
-        headers={**HEADERS, "Idempotency-Key": "e2e-step7-followup-001"},
+        headers={**HEADERS, "Idempotency-Key": f"e2e-step7-{uuid.uuid4().hex[:8]}"},
     )
     assert resp_followup.status_code == 200, resp_followup.text
     plan = resp_followup.json()

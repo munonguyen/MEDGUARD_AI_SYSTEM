@@ -48,6 +48,27 @@ def reports_current_appendix_pain(text: str) -> bool:
     )) and not re.search(r"\b(?:doc ve|tim hieu|da khoi|nam ngoai)\b", norm)
 
 
+def reports_acute_stroke_fast(text: str) -> bool:
+    """Detect acute stroke / TIA symptoms (FAST protocol) regardless of normal vitals."""
+    norm = normalize_search_text(text)
+    conditional = _CONDITIONAL_START.search(norm)
+    if conditional:
+        norm = norm[:conditional.start()]
+    stroke_cues = (
+        "meo mieng", "lech mat", "liu luoi", "noi liu luoi", "noi do", "noi kho",
+        "cam dua bi roi", "yeu tay", "yeu chan", "te nua nguoi", "liet nua nguoi",
+        "man suong che", "nhin mo han", "mo mat dot ngot", "mat thi luc dot ngot",
+    )
+    matched = [cue for cue in stroke_cues if cue in norm]
+    if len(matched) >= 1 and any(
+        k in norm for k in ("liu luoi", "meo mieng", "cam dua bi roi", "yeu tay", "te nua nguoi", "liet nua nguoi", "noi kho", "noi do")
+    ):
+        return True
+    if ("nhin mo" in norm or "man suong" in norm) and ("liu luoi" in norm or "cam dua" in norm or "yeu tay" in norm or "roi dua" in norm):
+        return True
+    return False
+
+
 @dataclass(frozen=True)
 class ClinicalSafetyFloor:
     disposition: SafetyFloorDisposition
@@ -173,6 +194,11 @@ def evaluate_clinical_safety_floor(
     bounded_anticoagulant_epistaxis = _anticoagulant_epistaxis_without_major_loss(detector_text)
 
     candidates: list[tuple[SafetyFloorDisposition, float, str, str]] = []
+    if reports_acute_stroke_fast(detector_text):
+        candidates.append((
+            "EMERGENCY", 0.99, "stroke_fast_protocol",
+            "Cảnh báo cờ đỏ Đột quỵ não cấp (FAST): Triệu chứng thần kinh khu trú cấp tính (nhìn mờ, líu lưỡi, yếu tay cầm đũa rơi) cần gọi Cấp cứu 115 ngay lập tức trong giờ vàng.",
+        ))
     if reports_current_appendix_pain(detector_text):
         candidates.append((
             "URGENT", 0.86, "reported_appendix_pain",

@@ -1,8 +1,8 @@
 {
   "_meta": {
     "version": "1.0.0",
-    "updated_at": "2026-10-24T17:04:39.883591+00:00",
-    "total_captured": 3092
+    "updated_at": "2026-10-28T09:22:16.400578+00:00",
+    "total_captured": 3113
   },
   "cases": [
     {
@@ -138958,6 +138958,756 @@
           "kind": "paragraph",
           "text": "Bạn có thể chia sẻ cụ thể hơn về triệu chứng, vị trí khó chịu hoặc băn khoăn sức khỏe của bạn không?",
           "emphasis": []
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261026-0CCBAD89",
+      "timestamp": "2026-10-26T06:38:19.665159+00:00",
+      "tenant_id": "tenant-demo",
+      "conversation_id": "23bb3ca7-0544-464f-9a51-3644792b30c9",
+      "request_id": "ui-7a55504a-d4fe-4fdc-81c0-4127390f398a",
+      "user_query": "Tôi tên là Nguyễn Văn An, số thẻ BHYT của tôi là DN 4 79 79 12345678, KCB ban đầu tại BV Chợ Rẫy, cao 1m75 nặng 70kg, dị ứng penicillin",
+      "detected_intent": "triage",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay; không tự lái xe. Các dấu hiệu bạn mô tả nằm trong nhóm cảnh báo cần đánh giá khẩn cấp. Tin nhắn không đủ để xác định nguyên nhân, vì vậy ưu tiên lúc này là tiếp cận cấp cứu ngay. Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; không thể khẳng định chẩn đoán từ xa.",
+      "narrative": [
+        {
+          "kind": "urgent",
+          "text": "Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay lập tức; không tự lái xe và không trì hoãn để tiếp tục hỏi trực tuyến.",
+          "emphasis": [
+            "Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay lập tức"
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; không thể khẳng định chẩn đoán từ xa.",
+          "emphasis": []
+        },
+        {
+          "kind": "paragraph",
+          "text": "Tình trạng hiện tại của người bệnh có dấu hiệu nguy hiểm cần được xử trí y tế khẩn cấp, không thể tự ý sử dụng thuốc huyết áp tại nhà hay chờ đợi thêm.",
+          "emphasis": []
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261026-66BC45CF",
+      "timestamp": "2026-10-26T06:47:03.798349+00:00",
+      "tenant_id": "tenant-demo",
+      "conversation_id": "31ee3112-6179-47b5-9475-6d2c698578ac",
+      "request_id": "ui-c7346ff5-ac1f-4999-8e4c-39c5bbe4c9a1",
+      "user_query": "Tôi tên là Nguyễn Văn An, số thẻ BHYT của tôi là DN 4 79 79 12345678, KCB ban đầu tại BV Chợ Rẫy, cao 1m75 nặng 70kg, dị ứng penicillin",
+      "detected_intent": "triage",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay; không tự lái xe. Các dấu hiệu bạn mô tả nằm trong nhóm cảnh báo cần đánh giá khẩn cấp. Tin nhắn không đủ để xác định nguyên nhân, vì vậy ưu tiên lúc này là tiếp cận cấp cứu ngay. Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; không thể khẳng định chẩn đoán từ xa.",
+      "narrative": [
+        {
+          "kind": "paragraph",
+          "text": "Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay lập tức; không tự lái xe và không trì hoãn để tiếp tục hỏi trực tuyến.",
+          "emphasis": []
+        },
+        {
+          "kind": "paragraph",
+          "text": "Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; không thể khẳng định chẩn đoán từ xa.",
+          "emphasis": []
+        },
+        {
+          "kind": "urgent",
+          "text": "Dấu hiệu đã được xác nhận từ bệnh cảnh hiện tại: Phơi nhiễm độc chất kịch độc hoặc uống chất độc tự sát; nguy cơ suy đa tạng tử vong tối khẩn.",
+          "emphasis": []
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261026-35340F2D",
+      "timestamp": "2026-10-26T06:49:42.750627+00:00",
+      "tenant_id": "tenant-demo",
+      "conversation_id": "1c1e7bc5-a780-4f5f-bd1a-2ce05cf8614c",
+      "request_id": "ui-53b07973-49e6-49be-8c7d-421dee0a4163",
+      "user_query": "Tôi tên là Nguyễn Văn An, số thẻ BHYT của tôi là DN 4 79 79 12345678, KCB ban đầu tại BV Chợ Rẫy, cao 1m75 nặng 70kg, dị ứng penicillin",
+      "detected_intent": "triage",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay; không tự lái xe. Các dấu hiệu bạn mô tả nằm trong nhóm cảnh báo cần đánh giá khẩn cấp. Tin nhắn không đủ để xác định nguyên nhân, vì vậy ưu tiên lúc này là tiếp cận cấp cứu ngay. Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; không thể khẳng định chẩn đoán từ xa.",
+      "narrative": [
+        {
+          "kind": "urgent",
+          "text": "Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay lập tức; không tự lái xe và không trì hoãn để tiếp tục hỏi trực tuyến.",
+          "emphasis": []
+        },
+        {
+          "kind": "paragraph",
+          "text": "Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; không thể khẳng định chẩn đoán từ xa.",
+          "emphasis": []
+        },
+        {
+          "kind": "paragraph",
+          "text": "Tình trạng hiện tại được ghi nhận thuộc mức độ cấp cứu tối khẩn, không thích hợp để kê đơn hay tư vấn thuốc điều trị tăng huyết áp thông thường tại thời điểm này. Việc tự ý cho uống thuốc hạ áp khi chưa rõ toàn trạng có thể gây nguy hiểm nghiêm trọng.",
+          "emphasis": []
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261026-45FB0FA5",
+      "timestamp": "2026-10-26T07:16:26.155562+00:00",
+      "tenant_id": "tenant-demo",
+      "conversation_id": "9ef1dcfc-754d-4f2f-8f4e-e6af23e20eb3",
+      "request_id": "ui-773cdf9f-dbd5-4846-b132-b0b897249f1b",
+      "user_query": "Chỉ đường đến Bệnh viện Chợ Rẫy",
+      "detected_intent": "general",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Mình chưa có đủ thông tin y tế để đưa ra hướng dẫn an toàn. Bạn hãy mô tả triệu chứng và vị trí khó chịu, thời điểm bắt đầu, mức độ, dấu hiệu kèm theo; hoặc gửi tên thuốc/chỉ số sức khỏe cần kiểm tra.",
+      "narrative": [
+        {
+          "kind": "paragraph",
+          "text": "Cần thêm thông tin để hỗ trợ bạn. Mình chưa có đủ thông tin y tế để đưa ra hướng dẫn an toàn. Bạn hãy mô tả triệu chứng và vị trí khó chịu, thời điểm bắt đầu, mức độ, dấu hiệu kèm theo; hoặc gửi tên thuốc/chỉ số sức khỏe cần kiểm tra.",
+          "emphasis": [
+            "Cần thêm thông tin để hỗ trợ bạn"
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Bạn cho mình biết thêm: Bạn có thể chia sẻ cụ thể hơn về triệu chứng, vị trí khó chịu hoặc băn khoăn sức khỏe của bạn không?",
+          "emphasis": [
+            "Bạn cho mình biết thêm"
+          ]
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261026-11E89C55",
+      "timestamp": "2026-10-26T07:18:26.079135+00:00",
+      "tenant_id": "tenant-demo",
+      "conversation_id": "7c4cf146-f11a-49b7-a2fd-e1e2395fe0d8",
+      "request_id": "ui-e3a8639d-6119-46f6-8408-864b791c43d2",
+      "user_query": "Chỉ đường đến Bệnh viện Chợ Rẫy",
+      "detected_intent": "general",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Mình chưa có đủ thông tin y tế để đưa ra hướng dẫn an toàn. Bạn hãy mô tả triệu chứng và vị trí khó chịu, thời điểm bắt đầu, mức độ, dấu hiệu kèm theo; hoặc gửi tên thuốc/chỉ số sức khỏe cần kiểm tra.",
+      "narrative": [
+        {
+          "kind": "paragraph",
+          "text": "Cần thêm thông tin để hỗ trợ bạn. Mình chưa có đủ thông tin y tế để đưa ra hướng dẫn an toàn. Bạn hãy mô tả triệu chứng và vị trí khó chịu, thời điểm bắt đầu, mức độ, dấu hiệu kèm theo; hoặc gửi tên thuốc/chỉ số sức khỏe cần kiểm tra.",
+          "emphasis": [
+            "Cần thêm thông tin để hỗ trợ bạn"
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Bạn cho mình biết thêm: Bạn có thể chia sẻ cụ thể hơn về triệu chứng, vị trí khó chịu hoặc băn khoăn sức khỏe của bạn không?",
+          "emphasis": [
+            "Bạn cho mình biết thêm"
+          ]
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261026-4945A071",
+      "timestamp": "2026-10-26T07:21:17.085845+00:00",
+      "tenant_id": "user-1801f22da9f741ed8d86eee8c7708751",
+      "conversation_id": "49534a4f-e0c1-403a-93b5-f22127cd5204",
+      "request_id": "ui-23330edd-7b22-4fb9-ad2a-784171a8e1d0",
+      "user_query": "Chỉ đường đến Bệnh viện Chợ Rẫy",
+      "detected_intent": "general",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Mình chưa có đủ thông tin y tế để đưa ra hướng dẫn an toàn. Bạn hãy mô tả triệu chứng và vị trí khó chịu, thời điểm bắt đầu, mức độ, dấu hiệu kèm theo; hoặc gửi tên thuốc/chỉ số sức khỏe cần kiểm tra.",
+      "narrative": [
+        {
+          "kind": "paragraph",
+          "text": "Cần thêm thông tin để hỗ trợ bạn. Mình chưa có đủ thông tin y tế để đưa ra hướng dẫn an toàn. Bạn hãy mô tả triệu chứng và vị trí khó chịu, thời điểm bắt đầu, mức độ, dấu hiệu kèm theo; hoặc gửi tên thuốc/chỉ số sức khỏe cần kiểm tra.",
+          "emphasis": [
+            "Cần thêm thông tin để hỗ trợ bạn"
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Bạn cho mình biết thêm: Bạn có thể chia sẻ cụ thể hơn về triệu chứng, vị trí khó chịu hoặc băn khoăn sức khỏe của bạn không?",
+          "emphasis": [
+            "Bạn cho mình biết thêm"
+          ]
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261026-0E143AB0",
+      "timestamp": "2026-10-26T07:21:23.289028+00:00",
+      "tenant_id": "user-1801f22da9f741ed8d86eee8c7708751",
+      "conversation_id": "49534a4f-e0c1-403a-93b5-f22127cd5204",
+      "request_id": "ui-26513ff7-9553-4335-9841-6459fd32f741",
+      "user_query": "Mở trang sức khỏe",
+      "detected_intent": "general",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Mình chưa có đủ thông tin y tế để đưa ra hướng dẫn an toàn. Bạn hãy mô tả triệu chứng và vị trí khó chịu, thời điểm bắt đầu, mức độ, dấu hiệu kèm theo; hoặc gửi tên thuốc/chỉ số sức khỏe cần kiểm tra.",
+      "narrative": [
+        {
+          "kind": "paragraph",
+          "text": "Bạn có thể chia sẻ cụ thể hơn về triệu chứng, vị trí khó chịu hoặc băn khoăn sức khỏe của bạn không?",
+          "emphasis": []
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261026-89A68E53",
+      "timestamp": "2026-10-26T10:28:43.856006+00:00",
+      "tenant_id": "user-7d74ebee0823494fa96f44d9ecd2e793",
+      "conversation_id": "8efcd700-ffbc-4b35-96dd-e7e7eb064fc0",
+      "request_id": "ui-c9bb7611-e16b-4e6a-883e-2b5e8f775cd2",
+      "user_query": "Chỉ đường đến Bệnh viện Chợ Rẫy",
+      "detected_intent": "general",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Mình chưa có đủ thông tin y tế để đưa ra hướng dẫn an toàn. Bạn hãy mô tả triệu chứng và vị trí khó chịu, thời điểm bắt đầu, mức độ, dấu hiệu kèm theo; hoặc gửi tên thuốc/chỉ số sức khỏe cần kiểm tra.",
+      "narrative": [
+        {
+          "kind": "paragraph",
+          "text": "Cần thêm thông tin để hỗ trợ bạn. Mình chưa có đủ thông tin y tế để đưa ra hướng dẫn an toàn. Bạn hãy mô tả triệu chứng và vị trí khó chịu, thời điểm bắt đầu, mức độ, dấu hiệu kèm theo; hoặc gửi tên thuốc/chỉ số sức khỏe cần kiểm tra.",
+          "emphasis": [
+            "Cần thêm thông tin để hỗ trợ bạn"
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Bạn cho mình biết thêm: Bạn có thể chia sẻ cụ thể hơn về triệu chứng, vị trí khó chịu hoặc băn khoăn sức khỏe của bạn không?",
+          "emphasis": [
+            "Bạn cho mình biết thêm"
+          ]
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261026-CCE3039A",
+      "timestamp": "2026-10-26T10:28:49.531667+00:00",
+      "tenant_id": "user-7d74ebee0823494fa96f44d9ecd2e793",
+      "conversation_id": "8efcd700-ffbc-4b35-96dd-e7e7eb064fc0",
+      "request_id": "ui-11b2e922-bda0-430e-a7f1-f547390719b9",
+      "user_query": "Mở trang sức khỏe",
+      "detected_intent": "general",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Mình chưa có đủ thông tin y tế để đưa ra hướng dẫn an toàn. Bạn hãy mô tả triệu chứng và vị trí khó chịu, thời điểm bắt đầu, mức độ, dấu hiệu kèm theo; hoặc gửi tên thuốc/chỉ số sức khỏe cần kiểm tra.",
+      "narrative": [
+        {
+          "kind": "paragraph",
+          "text": "Bạn có thể chia sẻ cụ thể hơn về triệu chứng, vị trí khó chịu hoặc băn khoăn sức khỏe của bạn không?",
+          "emphasis": []
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261026-7A60FBA6",
+      "timestamp": "2026-10-26T10:30:39.867565+00:00",
+      "tenant_id": "tenant-demo",
+      "conversation_id": "01dce8b4-b0dd-4e74-ba96-2a8b95eb8398",
+      "request_id": "ui-2fad015e-13ef-4985-a203-e6e9e3f88a08",
+      "user_query": "Tôi tên là Nguyễn Văn An, số thẻ BHYT của tôi là DN 4 79 79 12345678, KCB ban đầu tại BV Chợ Rẫy, cao 1m75 nặng 70kg, dị ứng penicillin",
+      "detected_intent": "triage",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay; không tự lái xe. Các dấu hiệu bạn mô tả nằm trong nhóm cảnh báo cần đánh giá khẩn cấp. Tin nhắn không đủ để xác định nguyên nhân, vì vậy ưu tiên lúc này là tiếp cận cấp cứu ngay. Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; không thể khẳng định chẩn đoán từ xa.",
+      "narrative": [
+        {
+          "kind": "urgent",
+          "text": "Không trì hoãn việc gọi 115 hoặc đến khoa Cấp cứu ngay lập tức; tuyệt đối không chần chừ tại nhà.",
+          "emphasis": [
+            "Không trì hoãn việc gọi 115 hoặc đến khoa Cấp cứu ngay lập tức; tuyệt đối không chần chừ tại nhà."
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; không thể khẳng định chẩn đoán từ xa.",
+          "emphasis": []
+        },
+        {
+          "kind": "urgent",
+          "text": "Gọi 115 hoặc đến khoa Cấp cứu ngay. Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay; không tự lái xe. Các dấu hiệu bạn mô tả nằm trong nhóm cảnh báo cần đánh giá khẩn cấp.",
+          "emphasis": [
+            "Gọi 115 hoặc đến khoa Cấp cứu ngay"
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Hệ thống nhận diện từ thông tin bạn cung cấp: Dấu hiệu được nhận diện: Phơi nhiễm độc chất kịch độc hoặc uống chất độc tự sát; nguy cơ suy đa tạng tử vong tối khẩn.",
+          "emphasis": [
+            "Dấu hiệu được nhận diện: Phơi nhiễm độc chất kịch độc hoặc uống chất độc tự sát; nguy cơ suy đa tạng tử vong tối khẩn."
+          ]
+        },
+        {
+          "kind": "urgent",
+          "text": "Phơi nhiễm độc chất kịch độc hoặc uống chất độc tự sát; nguy cơ suy đa tạng tử vong tối khẩn. Cần liên hệ cấp cứu 115 hoặc đến bệnh viện gần nhất ngay lập tức. Dừng ngay mọi hoạt động đang làm hoặc gắng sức, ở nơi an toàn và nhờ người bên cạnh hỗ trợ trong khi liên hệ cấp cứu. Tuyệt đối không tự điều trị hoặc trì hoãn việc đánh giá y tế khẩn cấp.",
+          "emphasis": [
+            "Phơi nhiễm độc chất kịch độc hoặc uống chất độc tự sát; nguy cơ suy đa tạng tử vong tối khẩn. Cần liên hệ cấp cứu 115 hoặc đến bệnh viện gần nhất ngay lập tức."
+          ]
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261026-1DAF1A39",
+      "timestamp": "2026-10-26T10:33:00.299488+00:00",
+      "tenant_id": "user-aa012222b2784835b43f15c6efd1b87d",
+      "conversation_id": "d1439316-1466-406c-a7c8-172e9944bd07",
+      "request_id": "ui-55627923-27a4-42e5-8aa8-45697c72f320",
+      "user_query": "Chỉ đường đến Bệnh viện Chợ Rẫy",
+      "detected_intent": "general",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Mình chưa có đủ thông tin y tế để đưa ra hướng dẫn an toàn. Bạn hãy mô tả triệu chứng và vị trí khó chịu, thời điểm bắt đầu, mức độ, dấu hiệu kèm theo; hoặc gửi tên thuốc/chỉ số sức khỏe cần kiểm tra.",
+      "narrative": [
+        {
+          "kind": "paragraph",
+          "text": "Cần thêm thông tin để hỗ trợ bạn. Mình chưa có đủ thông tin y tế để đưa ra hướng dẫn an toàn. Bạn hãy mô tả triệu chứng và vị trí khó chịu, thời điểm bắt đầu, mức độ, dấu hiệu kèm theo; hoặc gửi tên thuốc/chỉ số sức khỏe cần kiểm tra.",
+          "emphasis": [
+            "Cần thêm thông tin để hỗ trợ bạn"
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Bạn cho mình biết thêm: Bạn có thể chia sẻ cụ thể hơn về triệu chứng, vị trí khó chịu hoặc băn khoăn sức khỏe của bạn không?",
+          "emphasis": [
+            "Bạn cho mình biết thêm"
+          ]
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261026-540D01D0",
+      "timestamp": "2026-10-26T10:33:06.832749+00:00",
+      "tenant_id": "user-aa012222b2784835b43f15c6efd1b87d",
+      "conversation_id": "d1439316-1466-406c-a7c8-172e9944bd07",
+      "request_id": "ui-a3c12534-fd6d-4ecf-a69b-7986fea09c7a",
+      "user_query": "Mở trang sức khỏe",
+      "detected_intent": "general",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Mình chưa có đủ thông tin y tế để đưa ra hướng dẫn an toàn. Bạn hãy mô tả triệu chứng và vị trí khó chịu, thời điểm bắt đầu, mức độ, dấu hiệu kèm theo; hoặc gửi tên thuốc/chỉ số sức khỏe cần kiểm tra.",
+      "narrative": [
+        {
+          "kind": "paragraph",
+          "text": "Bạn có thể chia sẻ cụ thể hơn về triệu chứng, vị trí khó chịu hoặc băn khoăn sức khỏe của bạn không?",
+          "emphasis": []
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261026-F982D715",
+      "timestamp": "2026-10-26T11:00:30.317750+00:00",
+      "tenant_id": "user-0579a95ca1b944f7bad408d65eee5999",
+      "conversation_id": "8a51aa45-5c2d-4e03-8fbe-f153714ff7cd",
+      "request_id": "ui-a2df81c4-5248-4977-a9c1-5452db1ff72c",
+      "user_query": "Tôi bị đau dạ dày dữ dội sau khi uống thuốc",
+      "detected_intent": "triage",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Với các dữ kiện hiện có, bệnh cảnh đang ở mức theo dõi thường quy. Chưa thể xác định nguyên nhân chỉ từ tin nhắn; hãy làm theo hướng chăm sóc và dấu hiệu cảnh báo bên dưới.",
+      "narrative": [
+        {
+          "kind": "paragraph",
+          "text": "Đánh giá ban đầu: mức theo dõi thường quy. Với các dữ kiện hiện có, bệnh cảnh đang ở mức theo dõi thường quy. Chưa thể xác định nguyên nhân chỉ từ tin nhắn; hãy làm theo hướng chăm sóc và dấu hiệu cảnh báo bên dưới.",
+          "emphasis": [
+            "Đánh giá ban đầu: mức theo dõi thường quy"
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Cần thêm đánh giá lâm sàng toàn diện.",
+          "emphasis": []
+        },
+        {
+          "kind": "paragraph",
+          "text": "Bạn cho mình biết thêm: Vị trí đau cụ thể ở vùng nào (thượng vị, quanh rốn hay bụng dưới) và đau âm ỉ hay quặn từng cơn?",
+          "emphasis": [
+            "Bạn cho mình biết thêm"
+          ]
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261026-F5044109",
+      "timestamp": "2026-10-26T11:02:03.776091+00:00",
+      "tenant_id": "user-8c6c39f59bb141589bcfc3e9878bd658",
+      "conversation_id": "f5410b35-e2a7-41ca-8d44-6cf4447ac7b2",
+      "request_id": "ui-bada54b4-641d-4199-a6c4-5f5ea6fc39d8",
+      "user_query": "Tôi bị đau dạ dày dữ dội sau khi uống thuốc",
+      "detected_intent": "triage",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Với các dữ kiện hiện có, bệnh cảnh đang ở mức theo dõi thường quy. Chưa thể xác định nguyên nhân chỉ từ tin nhắn; hãy làm theo hướng chăm sóc và dấu hiệu cảnh báo bên dưới.",
+      "narrative": [
+        {
+          "kind": "paragraph",
+          "text": "Đánh giá ban đầu: mức theo dõi thường quy. Với các dữ kiện hiện có, bệnh cảnh đang ở mức theo dõi thường quy. Chưa thể xác định nguyên nhân chỉ từ tin nhắn; hãy làm theo hướng chăm sóc và dấu hiệu cảnh báo bên dưới.",
+          "emphasis": [
+            "Đánh giá ban đầu: mức theo dõi thường quy"
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Cần thêm đánh giá lâm sàng toàn diện.",
+          "emphasis": []
+        },
+        {
+          "kind": "paragraph",
+          "text": "Bạn cho mình biết thêm: Vị trí đau cụ thể ở vùng nào (thượng vị, quanh rốn hay bụng dưới) và đau âm ỉ hay quặn từng cơn?",
+          "emphasis": [
+            "Bạn cho mình biết thêm"
+          ]
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261026-0C3A9F1B",
+      "timestamp": "2026-10-26T11:02:22.169572+00:00",
+      "tenant_id": "user-8c6c39f59bb141589bcfc3e9878bd658",
+      "conversation_id": "8691dc3a-e1e8-4648-8aa5-452a35b341a6",
+      "request_id": "ui-ef91379f-c845-42bd-9272-685363e6b77e",
+      "user_query": "Lên lịch cho tôi uống thuốc Nexium 40mg sáng 1 viên sau ăn lúc 8h",
+      "detected_intent": "triage",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Với các dữ kiện hiện có, bệnh cảnh đang ở mức theo dõi thường quy. Chưa thể xác định nguyên nhân chỉ từ tin nhắn; hãy làm theo hướng chăm sóc và dấu hiệu cảnh báo bên dưới.",
+      "narrative": [
+        {
+          "kind": "paragraph",
+          "text": "Đánh giá ban đầu: mức theo dõi thường quy. Với các dữ kiện hiện có, bệnh cảnh đang ở mức theo dõi thường quy. Chưa thể xác định nguyên nhân chỉ từ tin nhắn; hãy làm theo hướng chăm sóc và dấu hiệu cảnh báo bên dưới.",
+          "emphasis": [
+            "Đánh giá ban đầu: mức theo dõi thường quy"
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Cần thêm đánh giá lâm sàng toàn diện.",
+          "emphasis": []
+        },
+        {
+          "kind": "paragraph",
+          "text": "Bạn cho mình biết thêm: Triệu chứng đã kéo dài bao nhiêu ngày và bạn có dùng thuốc súc họng hay hạ sốt nào chưa?",
+          "emphasis": [
+            "Bạn cho mình biết thêm"
+          ]
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261026-80A210C5",
+      "timestamp": "2026-10-26T11:02:41.958327+00:00",
+      "tenant_id": "user-8c6c39f59bb141589bcfc3e9878bd658",
+      "conversation_id": "8691dc3a-e1e8-4648-8aa5-452a35b341a6",
+      "request_id": "ui-0f3a65a4-973e-4094-b67f-2f7b892d7b3b",
+      "user_query": "Cập nhật thông tin của tôi: chiều cao 175cm và cân nặng 70kg",
+      "detected_intent": "triage",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Các triệu chứng bạn mô tả cần được nhân viên y tế đánh giá trực tiếp sớm. Hệ thống không thể xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn; hãy ưu tiên hướng xử trí bên dưới.",
+      "narrative": [
+        {
+          "kind": "paragraph",
+          "text": "Bạn cần được nhân viên y tế đánh giá sớm trong ngày; nếu triệu chứng nặng lên, hãy đến cơ sở cấp cứu.",
+          "emphasis": []
+        },
+        {
+          "kind": "paragraph",
+          "text": "Triệu chứng xuất hiện từ từ hay khởi phát đột ngột và đạt mức nặng trong vài phút?",
+          "emphasis": []
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261026-62B9D8E9",
+      "timestamp": "2026-10-26T11:12:55.989752+00:00",
+      "tenant_id": "user-d5687476e34f47e98b1dfcd7e231bce3",
+      "conversation_id": "07f4181b-6749-4433-b27b-b6e365ecbb33",
+      "request_id": "ui-57c5e67b-462a-49c5-aa69-847c1c9a6bff",
+      "user_query": "Tôi bị đau dạ dày dữ dội sau khi uống thuốc",
+      "detected_intent": "triage",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Với các dữ kiện hiện có, bệnh cảnh đang ở mức theo dõi thường quy. Chưa thể xác định nguyên nhân chỉ từ tin nhắn; hãy làm theo hướng chăm sóc và dấu hiệu cảnh báo bên dưới.",
+      "narrative": [
+        {
+          "kind": "paragraph",
+          "text": "Đánh giá ban đầu: mức theo dõi thường quy. Với các dữ kiện hiện có, bệnh cảnh đang ở mức theo dõi thường quy. Chưa thể xác định nguyên nhân chỉ từ tin nhắn; hãy làm theo hướng chăm sóc và dấu hiệu cảnh báo bên dưới.",
+          "emphasis": [
+            "Đánh giá ban đầu: mức theo dõi thường quy"
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Cần thêm đánh giá lâm sàng toàn diện.",
+          "emphasis": []
+        },
+        {
+          "kind": "paragraph",
+          "text": "Bạn cho mình biết thêm: Vị trí đau cụ thể ở vùng nào (thượng vị, quanh rốn hay bụng dưới) và đau âm ỉ hay quặn từng cơn?",
+          "emphasis": [
+            "Bạn cho mình biết thêm"
+          ]
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261026-6E942071",
+      "timestamp": "2026-10-26T11:14:36.667235+00:00",
+      "tenant_id": "user-9519e015c8454d0998074c3c498e835e",
+      "conversation_id": "19a3b882-9a7f-4a15-97dd-2f1b881b72bd",
+      "request_id": "ui-66afc38a-861b-482a-a0b1-3508143729c8",
+      "user_query": "Tôi bị đau dạ dày dữ dội sau khi uống thuốc",
+      "detected_intent": "triage",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Với các dữ kiện hiện có, bệnh cảnh đang ở mức theo dõi thường quy. Chưa thể xác định nguyên nhân chỉ từ tin nhắn; hãy làm theo hướng chăm sóc và dấu hiệu cảnh báo bên dưới.",
+      "narrative": [
+        {
+          "kind": "paragraph",
+          "text": "Tình trạng đau dạ dày dữ dội xuất hiện ngay sau khi uống thuốc cần được theo dõi sát sao tại chuyên khoa Tiêu hóa để loại trừ các tổn thương cấp tính ở dạ dày hoặc phản ứng bất lợi do thuốc.",
+          "emphasis": []
+        },
+        {
+          "kind": "paragraph",
+          "text": "Bụng có cứng, đau tăng rõ khi ấn hoặc khi di chuyển, ho hay hít sâu không?",
+          "emphasis": []
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261026-99664B8A",
+      "timestamp": "2026-10-26T11:16:04.311342+00:00",
+      "tenant_id": "user-9269574354ff4ddabc33c2b1c51bd80f",
+      "conversation_id": "89eb6a70-ff78-4e46-b34b-6ba5bfa6d029",
+      "request_id": "ui-3869a8ed-dae8-4a05-9502-96922bb659de",
+      "user_query": "Tôi bị đau dạ dày dữ dội sau khi uống thuốc",
+      "detected_intent": "triage",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Với các dữ kiện hiện có, bệnh cảnh đang ở mức theo dõi thường quy. Chưa thể xác định nguyên nhân chỉ từ tin nhắn; hãy làm theo hướng chăm sóc và dấu hiệu cảnh báo bên dưới.",
+      "narrative": [
+        {
+          "kind": "paragraph",
+          "text": "Tình trạng đau dạ dày dữ dội xuất hiện ngay sau khi uống thuốc cần được theo dõi sát chuyên khoa Tiêu hóa để loại trừ tổn thương cấp tính niêm mạc hoặc phản ứng nghiêm trọng với thuốc.",
+          "emphasis": []
+        },
+        {
+          "kind": "paragraph",
+          "text": "Bụng có cứng, đau tăng rõ khi ấn hoặc khi di chuyển, ho hay hít sâu không?",
+          "emphasis": []
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261026-BC94175A",
+      "timestamp": "2026-10-26T11:18:01.201952+00:00",
+      "tenant_id": "user-ef26caa36c374b9998a329fba784dfd6",
+      "conversation_id": "f5e651fd-a503-4f2e-af09-77920b1cb9ce",
+      "request_id": "ui-a9fbe068-a06e-4209-ab69-80c135d6385e",
+      "user_query": "Tôi bị đau dạ dày dữ dội sau khi uống thuốc",
+      "detected_intent": "triage",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Với các dữ kiện hiện có, bệnh cảnh đang ở mức theo dõi thường quy. Chưa thể xác định nguyên nhân chỉ từ tin nhắn; hãy làm theo hướng chăm sóc và dấu hiệu cảnh báo bên dưới.",
+      "narrative": [
+        {
+          "kind": "paragraph",
+          "text": "Đánh giá ban đầu: mức theo dõi thường quy. Với các dữ kiện hiện có, bệnh cảnh đang ở mức theo dõi thường quy. Chưa thể xác định nguyên nhân chỉ từ tin nhắn; hãy làm theo hướng chăm sóc và dấu hiệu cảnh báo bên dưới.",
+          "emphasis": [
+            "Đánh giá ban đầu: mức theo dõi thường quy"
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Cần thêm đánh giá lâm sàng toàn diện.",
+          "emphasis": []
+        },
+        {
+          "kind": "paragraph",
+          "text": "Bạn cho mình biết thêm: Vị trí đau cụ thể ở vùng nào (thượng vị, quanh rốn hay bụng dưới) và đau âm ỉ hay quặn từng cơn?",
+          "emphasis": [
+            "Bạn cho mình biết thêm"
+          ]
+        }
+      ],
+      "verifier_status": "deterministic",
+      "verifier_scores": {},
+      "citations": [],
+      "clinical_review_status": "pending_review",
+      "training_eligible": false,
+      "metadata": {}
+    },
+    {
+      "case_id": "AL-20261028-B8BB8CA8",
+      "timestamp": "2026-10-28T09:22:16.355903+00:00",
+      "tenant_id": "guest_bb863cbea5e8c102b749b4f03ceb1be0",
+      "conversation_id": "conversation-chat-triage-1",
+      "request_id": "req_156f3f3c0baf4aa4",
+      "user_query": "Bệnh nhân BN-CHAT-001 đau ngực lan tay trái và khó thở, cần phân luồng.",
+      "detected_intent": "triage",
+      "suggested_intent": "triage",
+      "suggested_domain": "clinical",
+      "answer_summary": "Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay; không tự lái xe. Các dấu hiệu bạn mô tả nằm trong nhóm cảnh báo cần đánh giá khẩn cấp. Tin nhắn không đủ để xác định nguyên nhân, vì vậy ưu tiên lúc này là tiếp cận cấp cứu ngay. Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; không thể khẳng định chẩn đoán từ xa.",
+      "narrative": [
+        {
+          "kind": "urgent",
+          "text": "Các triệu chứng này có thể liên quan đến tình trạng nghiêm trọng ở tim hoặc phổi và cần được đánh giá cấp cứu ngay. Gọi 115 hoặc đến khoa Cấp cứu; không tự lái xe.",
+          "emphasis": [
+            "Các triệu chứng này có thể liên quan đến tình trạng nghiêm trọng ở tim hoặc phổi và cần được đánh giá cấp cứu ngay. Gọi 115 hoặc đến khoa Cấp cứu; không tự lái xe."
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; không thể khẳng định chẩn đoán từ xa.",
+          "emphasis": []
+        },
+        {
+          "kind": "urgent",
+          "text": "Gọi 115 hoặc đến khoa Cấp cứu ngay. Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay; không tự lái xe. Các dấu hiệu bạn mô tả nằm trong nhóm cảnh báo cần đánh giá khẩn cấp.",
+          "emphasis": [
+            "Gọi 115 hoặc đến khoa Cấp cứu ngay"
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Hệ thống nhận diện từ thông tin bạn cung cấp: Dấu hiệu được nhận diện: đau ngực. Dấu hiệu được nhận diện: đau ngực lan tay. Dấu hiệu được nhận diện: khó thở. Dấu hiệu được nhận diện: Cảm giác nặng hoặc đau tức ngực kèm theo khó thở, vã mồ hôi, đau lan hoặc gần ngất là tổ hợp cảnh báo bệnh cảnh tim mạch/cardiopulmonary cấp cần được đánh giá khẩn cấp. Dấu hiệu được nhận diện: Hội chứng đè nghẹt ngực cấp kèm triệu chứng thần kinh tự chủ hoặc lan tỏa (nghi thiếu máu cơ tim/ACS).",
+          "emphasis": [
+            "Dấu hiệu được nhận diện: đau ngực"
+          ]
+        },
+        {
+          "kind": "urgent",
+          "text": "Không trì hoãn việc gọi 115 hoặc đến khoa Cấp cứu ngay lập tức; tuyệt đối không chần chừ tại nhà.",
+          "emphasis": [
+            "Không trì hoãn việc gọi 115 hoặc đến khoa Cấp cứu ngay lập tức"
+          ]
+        },
+        {
+          "kind": "urgent",
+          "text": "Dừng ngay mọi hoạt động đang làm hoặc gắng sức, ở nơi an toàn và nhờ người bên cạnh hỗ trợ trong khi liên hệ cấp cứu. Tuyệt đối không tự điều trị hoặc trì hoãn việc đánh giá y tế khẩn cấp.",
+          "emphasis": [
+            "Dừng ngay mọi hoạt động đang làm hoặc gắng sức, ở nơi an toàn và nhờ người bên cạnh hỗ trợ trong khi liên hệ cấp cứu."
+          ]
         }
       ],
       "verifier_status": "deterministic",

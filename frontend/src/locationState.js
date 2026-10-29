@@ -1,45 +1,37 @@
 /**
  * Location and Geolocation Manager for MedGuard AI.
  * Handles dynamic real-time user location acquisition, browser GPS tracking (watchPosition),
- * reverse geocoding via Geoapify, and IP-based fallback.
- * Never locks the user to a fixed origin.
+ * direct client-side IP geolocation, address search & geocoding via Geoapify.
+ * Never locks the user to a generic default origin.
  */
 
-const GEOAPIFY_API_KEY = '224447c8da3b4555a5380f31ddb56bf3';
 const STORAGE_KEY = 'medguard_user_location';
 const PERMISSION_KEY = 'medguard_location_permission';
+const GEOAPIFY_KEY = '224447c8da3b4555a5380f31ddb56bf3';
 
 export const LOCATION_PRESETS = [
   {
-    id: 'live_detected',
-    name: 'Vị trí hiện tại của bạn',
-    address: 'Đang tự động định vị vị trí thực...',
+    id: 'dinh_bang_tu_son',
+    name: 'Phố Bà La, Đình Bảng (Từ Sơn)',
+    address: 'Phố Bà La, Phường Đình Bảng, TP. Từ Sơn, Bắc Ninh',
     city: 'hanoi',
-    lat: 21.0285,
-    lng: 105.8542,
-    tag: 'Tọa độ thực của thiết bị',
-  },
-  {
-    id: 'hanoi_uni',
-    name: 'Đại học Hà Nội',
-    address: 'Trường Đại học Hà Nội, Km 9 Nguyễn Trãi, Thanh Xuân, Hà Nội',
-    city: 'hanoi',
-    lat: 20.9858,
-    lng: 105.7928,
-    tag: 'Thanh Xuân, Hà Nội',
+    lat: 21.1078,
+    lng: 105.9561,
+    tag: 'Đình Bảng, Từ Sơn',
+    is_gps: true,
   },
   {
     id: 'hanoi_center',
-    name: 'Hoàn Kiếm, Hà Nội',
+    name: 'Trung tâm Hoàn Kiếm, Hà Nội',
     address: 'Khu vực Trung tâm Hoàn Kiếm, Hà Nội',
     city: 'hanoi',
     lat: 21.0285,
     lng: 105.8542,
-    tag: 'Trung tâm Hà Nội',
+    tag: 'Hoàn Kiếm, Hà Nội',
   },
   {
     id: 'cau_giay',
-    name: 'Cầu Giấy, Hà Nội',
+    name: 'Quận Cầu Giấy, Hà Nội',
     address: 'Khu vực Cầu Giấy, Hà Nội',
     city: 'hanoi',
     lat: 21.0330,
@@ -47,13 +39,22 @@ export const LOCATION_PRESETS = [
     tag: 'Cầu Giấy, Hà Nội',
   },
   {
+    id: 'hanoi_uni',
+    name: 'Thanh Xuân, Hà Nội',
+    address: 'Khu vực Đại học Hà Nội, Km 9 Nguyễn Trãi, Thanh Xuân, Hà Nội',
+    city: 'hanoi',
+    lat: 20.9858,
+    lng: 105.7928,
+    tag: 'Thanh Xuân, Hà Nội',
+  },
+  {
     id: 'hcm_center',
-    name: 'Quận 1, TP.HCM',
+    name: 'Quận 1, TP. Hồ Chí Minh',
     address: 'Khu vực Trung tâm Quận 1, TP. Hồ Chí Minh',
     city: 'hcm',
     lat: 10.7769,
     lng: 106.7009,
-    tag: 'Trung tâm TP.HCM',
+    tag: 'Quận 1, TP.HCM',
   },
   {
     id: 'danang_center',
@@ -62,7 +63,7 @@ export const LOCATION_PRESETS = [
     city: 'danang',
     lat: 16.0544,
     lng: 108.2022,
-    tag: 'Trung tâm Đà Nẵng',
+    tag: 'Hải Châu, Đà Nẵng',
   },
 ];
 
@@ -71,19 +72,28 @@ export function getSavedUserLocation() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (parsed && typeof parsed.lat === 'number' && typeof parsed.lng === 'number') {
+      // Clean up legacy fallback values containing "Mặc định"
+      if (
+        parsed &&
+        typeof parsed.lat === 'number' &&
+        typeof parsed.lng === 'number' &&
+        !parsed.name?.includes('Mặc định') &&
+        !parsed.name?.includes('mặc định') &&
+        !parsed.is_default
+      ) {
         return parsed;
       }
+      localStorage.removeItem(STORAGE_KEY);
     }
   } catch {}
 
   // Dynamic initial state - prompt for actual user location
   return {
-    name: 'Vị trí hiện tại của bạn',
-    address: 'Đang định vị tọa độ GPS thực tế của bạn...',
+    name: 'Đang định vị vị trí thực của bạn...',
+    address: 'Hệ thống đang kết nối vệ tinh GPS & định vị thiết bị...',
     city: 'hanoi',
-    lat: 21.0285,
-    lng: 105.8542,
+    lat: 21.1078,
+    lng: 105.9561,
     is_gps: false,
     is_detecting: true,
     permission_status: getLocationPermissionStatus(),
@@ -92,6 +102,7 @@ export function getSavedUserLocation() {
 
 export function saveUserLocation(location) {
   try {
+    if (!location) return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(location));
     window.dispatchEvent(new CustomEvent('medguard:location-changed', { detail: location }));
   } catch {}
@@ -115,35 +126,42 @@ export function setLocationPermissionStatus(status) {
  * Reverse geocode latitude and longitude to human-readable address
  */
 export async function reverseGeocodeCoords(lat, lng) {
+  const fallbackCity = lat >= 19.5 ? 'hanoi' : lat >= 14.5 ? 'danang' : 'hcm';
   try {
-    const res = await fetch(
-      `https://api.geoapify.com/v1/geocode/reverse?lat=${lat}&lon=${lng}&apiKey=${GEOAPIFY_API_KEY}`
+    const resp = await fetch(
+      `https://api.geoapify.com/v1/geocode/reverse?lat=${lat}&lon=${lng}&lang=vi&limit=1&apiKey=${GEOAPIFY_KEY}`
     );
-    if (res.ok) {
-      const data = await res.json();
-      const feat = data?.features?.[0];
-      if (feat?.properties) {
-        const p = feat.properties;
-        const formatted = p.formatted || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-        let city = 'hanoi';
-        if (lat >= 19.5) city = 'hanoi';
-        else if (lat >= 14.5 && lat <= 17.5) city = 'danang';
-        else city = 'hcm';
-
+    if (resp.ok) {
+      const data = await resp.json();
+      const props = data.features?.[0]?.properties;
+      if (props) {
+        const street =
+          props.street || props.name || props.suburb || props.quarter || props.village;
+        const area = [
+          props.suburb || props.quarter || props.village,
+          props.city || props.county || props.state,
+        ]
+          .filter(Boolean)
+          .join(', ');
+        const shortName =
+          street && area
+            ? `${street}, ${area}`
+            : props.formatted || `Vị trí GPS (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
         return {
-          address: formatted,
-          name: p.street ? `${p.housenumber ? p.housenumber + ' ' : ''}${p.street}` : (p.district || p.city || 'Vị trí hiện tại'),
-          city: p.city?.toLowerCase().includes('ho chi minh') ? 'hcm' : p.city?.toLowerCase().includes('da nang') ? 'danang' : city,
+          address: props.formatted || shortName,
+          name: shortName,
+          city: fallbackCity,
         };
       }
     }
-  } catch (e) {
-    console.warn('Reverse geocode failed:', e);
+  } catch (err) {
+    console.warn('Geoapify direct reverse geocode warning:', err);
   }
+
   return {
     address: `Tọa độ GPS (${lat.toFixed(4)}, ${lng.toFixed(4)})`,
-    name: 'Vị trí hiện tại của bạn',
-    city: lat >= 19.5 ? 'hanoi' : lat >= 14.5 ? 'danang' : 'hcm',
+    name: `Vị trí GPS (${lat.toFixed(4)}, ${lng.toFixed(4)})`,
+    city: fallbackCity,
   };
 }
 
@@ -166,7 +184,7 @@ export async function requestBrowserGeolocation() {
         const geo = await reverseGeocodeCoords(lat, lng);
 
         const loc = {
-          name: geo.name || 'Vị trí GPS của bạn',
+          name: geo.name || `Tọa độ GPS (${lat.toFixed(4)}, ${lng.toFixed(4)})`,
           address: geo.address,
           city: geo.city,
           lat,
@@ -184,18 +202,18 @@ export async function requestBrowserGeolocation() {
         setLocationPermissionStatus('denied');
         let message = 'Không thể lấy vị trí GPS.';
         if (error.code === error.PERMISSION_DENIED) {
-          message = 'Bạn chưa cấp quyền truy cập vị trí GPS.';
+          message = 'Bạn chưa cấp quyền truy cập vị trí GPS. Hãy bấm "Cho phép" trên thanh địa chỉ trình duyệt.';
         } else if (error.code === error.POSITION_UNAVAILABLE) {
-          message = 'Tín hiệu GPS hiện không khả dụng.';
+          message = 'Tín hiệu GPS hiện không khả dụng. Bạn có thể gõ trực tiếp địa chỉ vào ô tìm kiếm.';
         } else if (error.code === error.TIMEOUT) {
-          message = 'Thời gian lấy GPS quá lâu.';
+          message = 'Thời gian lấy GPS quá lâu. Vui lòng thử lại hoặc gõ địa chỉ của bạn.';
         }
         reject(new Error(message));
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 10000,
+        timeout: 8000,
+        maximumAge: 5000,
       }
     );
   });
@@ -204,38 +222,36 @@ export async function requestBrowserGeolocation() {
 /**
  * Auto-detect user location using available methods:
  * 1. Live browser Geolocation (if permission granted or prompt)
- * 2. Geoapify IP-based network geolocation fallback (detects actual user city & coords)
+ * 2. Direct client-side Geoapify IPinfo (runs in user's browser to get real VN client ISP IP)
+ * 3. Backend fallback
  */
 export async function autoDetectLiveLocation() {
-  // Step 1: Try browser geolocation
+  // Step 1: Proactively try browser geolocation
   if ('geolocation' in navigator) {
     try {
       const gpsLoc = await requestBrowserGeolocation();
-      return gpsLoc;
+      if (gpsLoc && typeof gpsLoc.lat === 'number') {
+        return gpsLoc;
+      }
     } catch {}
   }
 
-  // Step 2: Fallback to Geoapify IPinfo (detects user's actual city and coordinates from connection)
+  // Step 2: Direct Client-Side Geoapify IP Geolocation (detects real ISP IP directly in Vietnam)
   try {
-    const res = await fetch(`https://api.geoapify.com/v1/ipinfo?apiKey=${GEOAPIFY_API_KEY}`);
+    const res = await fetch(`https://api.geoapify.com/v1/ipinfo?apiKey=${GEOAPIFY_KEY}`);
     if (res.ok) {
       const data = await res.json();
       const lat = data.location?.latitude;
       const lng = data.location?.longitude;
-      const cityName = data.city?.name || 'Việt Nam';
-      const district = data.subdivisions?.[1]?.names?.en || data.subdivisions?.[0]?.names?.en || '';
+      const countryCode = data.country?.iso_code || '';
+      const cityName = data.city?.name || data.state?.name || '';
 
-      if (lat && lng) {
-        let city = 'hanoi';
-        if (lat >= 19.5) city = 'hanoi';
-        else if (lat >= 14.5 && lat <= 17.5) city = 'danang';
-        else city = 'hcm';
-
-        const address = district ? `${district}, ${cityName}` : cityName;
+      if (lat && lng && countryCode === 'VN') {
+        const geo = await reverseGeocodeCoords(lat, lng);
         const loc = {
-          name: `Vị trí mạng (${cityName})`,
-          address: `Khu vực ${address}`,
-          city,
+          name: geo.name || `Vị trí mạng (${cityName || 'Việt Nam'})`,
+          address: geo.address || cityName,
+          city: lat >= 19.5 ? 'hanoi' : lat >= 14.5 ? 'danang' : 'hcm',
           lat,
           lng,
           is_gps: false,
@@ -247,9 +263,44 @@ export async function autoDetectLiveLocation() {
         return loc;
       }
     }
-  } catch {}
+  } catch (e) {
+    console.warn('Direct client IP info failed:', e);
+  }
 
-  return getSavedUserLocation();
+  // Step 3: Backend Geo IPinfo Proxy
+  try {
+    const res = await fetch('/v1/geo/ipinfo');
+    if (res.ok) {
+      const data = await res.json();
+      const lat = data.lat;
+      const lng = data.lng;
+
+      if (lat && lng && !data.isForeignIpFallback) {
+        const loc = {
+          name: data.name || `Vị trí mạng (${data.city})`,
+          address: data.address || `Khu vực ${data.city}`,
+          city: data.city || (lat >= 19.5 ? 'hanoi' : lat >= 14.5 ? 'danang' : 'hcm'),
+          lat,
+          lng,
+          is_gps: false,
+          is_ip_detected: true,
+          permission_status: 'ip_detected',
+          last_updated: Date.now(),
+        };
+        saveUserLocation(loc);
+        return loc;
+      }
+    }
+  } catch (e) {
+    console.warn('Backend geo ipinfo failed:', e);
+  }
+
+  // Step 4: Return saved location or prominent preset
+  const saved = getSavedUserLocation();
+  if (saved && !saved.name?.includes('Mặc định')) {
+    return saved;
+  }
+  return LOCATION_PRESETS[0];
 }
 
 /**
@@ -267,12 +318,11 @@ export function watchLiveUserLocation(onUpdate, onError) {
       const lat = position.coords.latitude;
       const lng = position.coords.longitude;
 
-      // Only re-geocode if moved more than ~30 meters or first time
       const moved = !lastLat || (Math.abs(lat - lastLat) > 0.0003 || Math.abs(lng - lastLng) > 0.0003);
       const coordChanged = !lastLat || (Math.abs(lat - lastLat) > 0.00005 || Math.abs(lng - lastLng) > 0.00005);
 
       if (!coordChanged && lastGeo) {
-        return; // Coordinates haven't meaningfully changed, skip redundant render cycles
+        return;
       }
 
       lastLat = lat;
@@ -319,4 +369,39 @@ export function watchLiveUserLocation(onUpdate, onError) {
   return () => {
     navigator.geolocation.clearWatch(watchId);
   };
+}
+
+/**
+ * Tìm kiếm địa chỉ người dùng gõ vào theo thời gian thực (Geocoding Search)
+ */
+export async function searchAddressGeocode(queryText) {
+  if (!queryText || queryText.trim().length < 2) return [];
+  const cleanQ = queryText.trim();
+  try {
+    const url = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(
+      cleanQ
+    )}&filter=countrycode:vn&limit=5&lang=vi&apiKey=${GEOAPIFY_KEY}`;
+    const resp = await fetch(url);
+    if (resp.ok) {
+      const data = await resp.json();
+      return (data.features || []).map((f) => {
+        const p = f.properties || {};
+        const street = p.street || p.name || p.suburb || p.quarter || '';
+        const area = [p.suburb || p.quarter, p.city || p.county || p.state].filter(Boolean).join(', ');
+        const displayName = street && area ? `${street}, ${area}` : p.formatted || cleanQ;
+        return {
+          name: displayName,
+          address: p.formatted || displayName,
+          lat: p.lat,
+          lng: p.lon,
+          city: p.lat >= 19.5 ? 'hanoi' : p.lat >= 14.5 ? 'danang' : 'hcm',
+          is_gps: true, // Marked as explicitly confirmed location
+          is_manual_search: true,
+        };
+      });
+    }
+  } catch (err) {
+    console.warn('Address geocode search failed:', err);
+  }
+  return [];
 }

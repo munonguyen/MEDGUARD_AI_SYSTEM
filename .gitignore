@@ -24,8 +24,8 @@ artifacts/
 *.log
 .DS_Store
 
-# React / Vite / browser test output
-frontend/node_modules/
+node_modules/
+**/node_modules/
 frontend/dist/
 frontend/coverage/
 frontend/playwright-report/

@@ -122,7 +122,7 @@ export function UserProfilePage({
     display_name: context.display_name || account?.name || '',
     patient_ref: context.patient_ref || '',
     dob: context.dob || '',
-    age: context.age ?? '',
+    age: (context.age && Number(context.age) > 0) ? context.age : '',
     sex: context.sex || '',
     phone: context.phone || '',
     email: context.email || account?.email || '',
@@ -133,7 +133,7 @@ export function UserProfilePage({
     weight_kg: context.weight_kg ?? '',
     bhyt_number: context.bhyt_number || '',
     bhyt_hospital: context.bhyt_hospital || '',
-    bhyt_rate: context.bhyt_rate ?? 80,
+    bhyt_rate: context.bhyt_rate || (context.bhyt_number ? 80 : ''),
     bhxh_number: context.bhxh_number || '',
     vssid_status: context.vssid_status || (context.bhxh_number ? 'verified' : 'unlinked'),
     life_insurance_provider: context.life_insurance_provider || '',
@@ -207,12 +207,29 @@ export function UserProfilePage({
 
   const handleReset = () => {
     setDraft(initialValues);
-    onNotify?.('info', 'Đã hủy các thay đổi chưa lưu');
+    onNotify?.('Đã hủy các thay đổi chưa lưu', 'info');
   };
 
   const handleSave = async (e) => {
     e?.preventDefault();
     setSaving(true);
+
+    const cleanBhyt = draft.bhyt_number.trim().toUpperCase();
+    const cleanCccd = draft.citizen_id.trim();
+
+    const isBhytFormatValid = cleanBhyt === '' || /^([A-Z]{2}\d{13}|\d{10})$/.test(cleanBhyt);
+    const isCccdFormatValid = cleanCccd === '' || /^\d{12}$/.test(cleanCccd);
+
+    if (cleanBhyt && !isBhytFormatValid) {
+      setSaving(false);
+      onNotify?.('Mã số thẻ BHYT không đúng định dạng (yêu cầu 10 số BHXH hoặc 15 ký tự chuẩn Bộ Y Tế).', 'error');
+      return;
+    }
+    if (cleanCccd && !isCccdFormatValid) {
+      setSaving(false);
+      onNotify?.('Số Căn cước công dân (CCCD) phải gồm đúng 12 chữ số.', 'error');
+      return;
+    }
 
     const patientRef =
       draft.patient_ref.trim().toUpperCase() ||
@@ -229,11 +246,11 @@ export function UserProfilePage({
       phone: draft.phone.trim(),
       email: draft.email.trim(),
       address: draft.address.trim(),
-      citizen_id: draft.citizen_id.trim(),
+      citizen_id: cleanCccd,
       blood_type: draft.blood_type || null,
       height_cm: draft.height_cm === '' ? null : Number(draft.height_cm),
       weight_kg: draft.weight_kg === '' ? null : Number(draft.weight_kg),
-      bhyt_number: draft.bhyt_number.trim().toUpperCase(),
+      bhyt_number: cleanBhyt,
       bhyt_hospital: draft.bhyt_hospital.trim(),
       bhyt_rate: draft.bhyt_rate === '' ? 80 : Number(draft.bhyt_rate),
       bhxh_number: draft.bhxh_number.trim(),
@@ -241,7 +258,7 @@ export function UserProfilePage({
       life_insurance_provider: draft.life_insurance_provider.trim(),
       life_insurance_policy_no: draft.life_insurance_policy_no.trim(),
       coverage_limit_vnd: draft.coverage_limit_vnd === '' ? null : Number(draft.coverage_limit_vnd),
-      is_verified: Boolean(draft.bhyt_number.trim() || draft.citizen_id.trim()),
+      is_verified: Boolean((isBhytFormatValid && cleanBhyt.length >= 10) || (isCccdFormatValid && cleanCccd.length === 12)),
       current_medications: draft.current_medications,
       allergies: draft.allergies,
       conditions: draft.conditions,
@@ -255,10 +272,10 @@ export function UserProfilePage({
       setSaving(false);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
-      onNotify?.('success', 'Đã lưu Hồ sơ y tế & Xác thực bảo hiểm thành công!');
+      onNotify?.('Đã lưu Hồ sơ y tế & Xác thực bảo hiểm thành công!', 'success');
     } catch (err) {
       setSaving(false);
-      onNotify?.('error', 'Lỗi khi lưu hồ sơ: ' + (err.message || 'Thử lại sau'));
+      onNotify?.('Lỗi khi lưu hồ sơ: ' + (err.message || 'Thử lại sau'), 'error');
     }
   };
 
@@ -374,7 +391,7 @@ export function UserProfilePage({
               <div className="dossier-quick-meta-row">
                 <span className="meta-pill">
                   <User size={13} />
-                  <span>{draft.age ? `${draft.age} tuổi` : 'Chưa rõ tuổi'}</span>
+                  <span>{draft.age && Number(draft.age) > 0 ? `${draft.age} tuổi` : 'Chưa cập nhật tuổi'}</span>
                   <span className="dot">•</span>
                   <span>{draft.sex === 'male' || draft.sex === 'Nam' ? 'Nam' : draft.sex === 'female' || draft.sex === 'Nữ' ? 'Nữ' : 'Khác'}</span>
                 </span>
@@ -446,13 +463,13 @@ export function UserProfilePage({
               </div>
               <div className="stat-card-main">
                 <div className="stat-value-row">
-                  <strong className="stat-big-number text-blue">
-                    {draft.bhyt_rate || 80}%
+                  <strong className={`stat-big-number ${draft.bhyt_number ? 'text-blue' : 'text-slate-400'}`}>
+                    {draft.bhyt_number ? `${draft.bhyt_rate || 80}%` : '--%'}
                   </strong>
-                  <span className="stat-unit">mức hưởng</span>
+                  <span className="stat-unit">{draft.bhyt_number ? 'mức hưởng' : 'chưa quét thẻ'}</span>
                 </div>
                 <div className="bhyt-number-preview">
-                  <span>{draft.bhyt_number || 'Chưa nhập số thẻ BHYT'}</span>
+                  <span>{draft.bhyt_number || 'Chưa liên kết thẻ BHYT'}</span>
                 </div>
               </div>
               <div className="stat-card-sub">

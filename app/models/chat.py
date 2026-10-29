@@ -105,6 +105,31 @@ class ChatContext(BaseModel):
     last_result: dict[str, Any] | None = None
     user_location: dict[str, Any] | None = None
 
+    @field_validator("sex", mode="before")
+    @classmethod
+    def normalize_sex(cls, value: Any) -> str | None:
+        if not value or str(value).strip() == "" or str(value).lower() in ("null", "none"):
+            return None
+        v = str(value).lower()
+        if v in ("male", "nam", "m"):
+            return "male"
+        if v in ("female", "nu", "nữ", "f"):
+            return "female"
+        if v in ("other", "khac", "khác"):
+            return "other"
+        return None
+
+    @field_validator("age", mode="before")
+    @classmethod
+    def normalize_age(cls, value: Any) -> int | None:
+        if value is None or value == "" or value == 0:
+            return None
+        try:
+            val = int(value)
+            return val if 0 <= val <= 120 else None
+        except Exception:
+            return None
+
 
 class CompanionVoicePreference(BaseModel):
     persona: Literal["dr_tuan", "dr_mai"] = "dr_tuan"

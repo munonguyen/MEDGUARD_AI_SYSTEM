@@ -1,8 +1,9 @@
-from __future__ import annotations
-
+import json
 import re
+import time
 from datetime import datetime
 from typing import Any
+from app.core.database import db_manager
 from app.models.health_twin import (
     FutureRiskPrognosis,
     OrganCoordinates,
@@ -85,7 +86,7 @@ def _get_default_organs() -> list[OrganStatus]:
             pain_level=0,
             inflammation_level="none",
             symptoms=[],
-            clinical_notes="Huyết áp 120/80 mmHg, nhịp tim đều 78 bpm, không đau ngực.",
+            clinical_notes="Chức năng tim mạch và tuần hoàn bình thường. Chưa ghi nhận triệu chứng bất thường.",
             related_medications=[],
             coordinates=OrganCoordinates(x=52.0, y=28.5),
             future_risk=FutureRiskPrognosis(
@@ -286,72 +287,293 @@ def _get_default_organs() -> list[OrganStatus]:
     ]
 
 
+def _get_healthy_organs() -> list[OrganStatus]:
+    organs = _get_default_organs()
+    for organ in organs:
+        organ.status = "normal"
+        organ.health_score = 100
+        organ.pain_level = 0
+        organ.inflammation_level = "none"
+        organ.symptoms = []
+        organ.clinical_notes = "Chức năng bình thường, chỉ số tối ưu."
+        organ.warning = None
+        organ.is_adverse_reaction = False
+        organ.contraindicated_actions = []
+    return organs
+
+
+def _get_unassessed_organs() -> list[OrganStatus]:
+    organs = _get_default_organs()
+    for organ in organs:
+        organ.status = "unassessed"
+        organ.health_score = 0
+        organ.pain_level = 0
+        organ.inflammation_level = "none"
+        organ.symptoms = []
+        organ.clinical_notes = "Chưa có dữ liệu khám lâm sàng. Cần trò chuyện với Bác sĩ AI hoặc cập nhật chỉ số để phân tích thể trạng."
+        organ.warning = None
+        organ.is_adverse_reaction = False
+        organ.contraindicated_actions = []
+        organ.future_risk = None
+    return organs
+
+
 class PatientHealthTwinService:
     """Manages the interactive anatomical health twin, recovery timeline,
-    and clinical safety guardrails for patient episodes."""
+    and clinical safety guardrails for patient episodes with TiDB persistence."""
 
     def __init__(self) -> None:
         now_str = datetime.now().strftime("%H:%M %d/%m/%Y")
-        self._current_profile: PatientHealthProfile = self._build_healthy_profile(now_str)
+        self._fallback_profile: PatientHealthProfile = self._build_unassessed_profile(now_str)
 
-    def get_profile(self) -> PatientHealthProfile:
-        return self._current_profile
+    def _load_or_create_user_profile(self, user_id: str, tenant_id: str = "system") -> PatientHealthProfile:
+        try:
+            with db_manager.tenant_context(tenant_id) as session:
+                rows = session.execute(
+                    "SELECT * FROM medguard_health_twins WHERE user_id = ? LIMIT 1",
+                    (user_id,),
+                )
+                if rows:
+                    r = rows[0]
+                    try:
+                        organs_data = json.loads(r["organs_json"]) if r.get("organs_json") else []
+                        vitals_data = json.loads(r["vitals_json"]) if r.get("vitals_json") else {}
+                        timeline_data = json.loads(r["timeline_json"]) if r.get("timeline_json") else []
+                        active_meds = json.loads(r["active_medications_json"]) if r.get("active_medications_json") else []
+                        disc_meds = json.loads(r["discontinued_medications_json"]) if r.get("discontinued_medications_json") else []
+                        directives = json.loads(r["clinical_directives_json"]) if r.get("clinical_directives_json") else []
+                        guardrail = json.loads(r["safe_guardrail_alert_json"]) if r.get("safe_guardrail_alert_json") else None
 
-    def reset_profile(self) -> PatientHealthProfile:
+                        organs = [OrganStatus.model_validate(o) for o in organs_data] if organs_data else _get_unassessed_organs()
+                        vitals = VitalSignsSummary(**vitals_data) if vitals_data else VitalSignsSummary()
+                        timeline = [RecoveryTimelinePoint.model_validate(t) for t in timeline_data] if timeline_data else []
+                        alert = SafeGuardrailAlert.model_validate(guardrail) if guardrail else None
+
+                        patient_name = user_id
+                        age = None
+                        gender = None
+                        try:
+                            from app.services.user_data_store import user_data_store
+                            u_prof = user_data_store.get_user_profile(tenant_id, user_id)
+                            if u_prof:
+                                patient_name = u_prof.get("name") or u_prof.get("full_name") or user_id
+                                age = u_prof.get("age")
+                                gender = u_prof.get("gender")
+                        except Exception:
+                            pass
+
+                        return PatientHealthProfile(
+                            patient_id=user_id,
+                            patient_name=patient_name,
+                            age=age,
+                            gender=gender,
+                            overall_health_score=int(r.get("overall_health_score", 0)),
+                            health_trend=r.get("health_trend", "unassessed"),
+                            active_diagnosis=r.get("active_diagnosis", "Chưa có dữ liệu đánh giá lâm sàng — Chờ thu thập triệu chứng"),
+                            vitals=vitals,
+                            organs=organs,
+                            active_medications=active_meds,
+                            discontinued_medications=disc_meds,
+                            clinical_directives=directives,
+                            safe_guardrail_alert=alert,
+                            timeline=timeline,
+                        )
+                    except Exception as exc:
+                        print(f"[HealthTwin] Error parsing profile for {user_id}: {exc}")
+        except Exception as e:
+            print(f"[HealthTwin] DB lookup warning for {user_id}: {e}")
+
+        # If not in DB, create initial clean unassessed baseline for this user and persist
         now_str = datetime.now().strftime("%H:%M %d/%m/%Y")
-        self._current_profile = self._build_healthy_profile(now_str)
-        return self._current_profile
+        clean_profile = self._build_unassessed_profile(now_str)
+        clean_profile.patient_id = user_id
+        try:
+            from app.services.user_data_store import user_data_store
+            u_prof = user_data_store.get_user_profile(tenant_id, user_id)
+            if u_prof:
+                clean_profile.patient_name = u_prof.get("name") or u_prof.get("full_name") or user_id
+                clean_profile.age = u_prof.get("age")
+                clean_profile.gender = u_prof.get("gender")
+        except Exception:
+            pass
+        try:
+            self._save_user_profile(user_id, clean_profile, tenant_id)
+        except Exception:
+            pass
+        return clean_profile
 
-    def switch_scenario(self, scenario_id: str) -> PatientHealthProfile:
+    def _save_user_profile(self, user_id: str, profile: PatientHealthProfile, tenant_id: str = "system") -> None:
+        now = time.time()
+        organs_json = json.dumps([o.model_dump(mode="json") for o in profile.organs], ensure_ascii=False)
+        vitals_json = json.dumps(profile.vitals.model_dump(mode="json"), ensure_ascii=False)
+        timeline_json = json.dumps([t.model_dump(mode="json") for t in profile.timeline[-15:]], ensure_ascii=False)
+        active_meds_json = json.dumps(profile.active_medications, ensure_ascii=False)
+        disc_meds_json = json.dumps(profile.discontinued_medications, ensure_ascii=False)
+        contra_json = json.dumps(profile.contraindicated_regimens, ensure_ascii=False)
+        directives_json = json.dumps(profile.clinical_directives, ensure_ascii=False)
+        alert_json = json.dumps(profile.safe_guardrail_alert.model_dump(mode="json") if profile.safe_guardrail_alert else None, ensure_ascii=False)
+
+        try:
+            with db_manager.tenant_context(tenant_id) as session:
+                if session.dialect in ("mysql", "tidb"):
+                    session.execute(
+                        """
+                        INSERT INTO medguard_health_twins (
+                            user_id, overall_health_score, health_trend, active_diagnosis,
+                            vitals_json, organs_json, active_medications_json,
+                            discontinued_medications_json, contraindicated_regimens_json,
+                            clinical_directives_json, safe_guardrail_alert_json,
+                            timeline_json, updated_at
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        ON DUPLICATE KEY UPDATE
+                            overall_health_score = VALUES(overall_health_score),
+                            health_trend = VALUES(health_trend),
+                            active_diagnosis = VALUES(active_diagnosis),
+                            vitals_json = VALUES(vitals_json),
+                            organs_json = VALUES(organs_json),
+                            active_medications_json = VALUES(active_medications_json),
+                            discontinued_medications_json = VALUES(discontinued_medications_json),
+                            contraindicated_regimens_json = VALUES(contraindicated_regimens_json),
+                            clinical_directives_json = VALUES(clinical_directives_json),
+                            safe_guardrail_alert_json = VALUES(safe_guardrail_alert_json),
+                            timeline_json = VALUES(timeline_json),
+                            updated_at = VALUES(updated_at)
+                        """,
+                        (
+                            user_id,
+                            profile.overall_health_score,
+                            profile.health_trend,
+                            profile.active_diagnosis,
+                            vitals_json,
+                            organs_json,
+                            active_meds_json,
+                            disc_meds_json,
+                            contra_json,
+                            directives_json,
+                            alert_json,
+                            timeline_json,
+                            now,
+                        ),
+                    )
+                else:
+                    session.execute(
+                        """
+                        INSERT INTO medguard_health_twins (
+                            user_id, overall_health_score, health_trend, active_diagnosis,
+                            vitals_json, organs_json, active_medications_json,
+                            discontinued_medications_json, contraindicated_regimens_json,
+                            clinical_directives_json, safe_guardrail_alert_json,
+                            timeline_json, updated_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        ON CONFLICT (user_id) DO UPDATE SET
+                            overall_health_score = excluded.overall_health_score,
+                            health_trend = excluded.health_trend,
+                            active_diagnosis = excluded.active_diagnosis,
+                            vitals_json = excluded.vitals_json,
+                            organs_json = excluded.organs_json,
+                            active_medications_json = excluded.active_medications_json,
+                            discontinued_medications_json = excluded.discontinued_medications_json,
+                            contraindicated_regimens_json = excluded.contraindicated_regimens_json,
+                            clinical_directives_json = excluded.clinical_directives_json,
+                            safe_guardrail_alert_json = excluded.safe_guardrail_alert_json,
+                            timeline_json = excluded.timeline_json,
+                            updated_at = excluded.updated_at
+                        """,
+                        (
+                            user_id,
+                            profile.overall_health_score,
+                            profile.health_trend,
+                            profile.active_diagnosis,
+                            vitals_json,
+                            organs_json,
+                            active_meds_json,
+                            disc_meds_json,
+                            contra_json,
+                            directives_json,
+                            alert_json,
+                            timeline_json,
+                            now,
+                        ),
+                    )
+        except Exception as exc:
+            print(f"[HealthTwin] Error saving profile for {user_id}: {exc}")
+
+    def get_profile(self, user_id: str = "default", tenant_id: str = "system") -> PatientHealthProfile:
+        return self._load_or_create_user_profile(user_id, tenant_id)
+
+    def reset_profile(self, user_id: str = "default", tenant_id: str = "system") -> PatientHealthProfile:
+        now_str = datetime.now().strftime("%H:%M %d/%m/%Y")
+        new_profile = self._build_healthy_profile(now_str)
+        new_profile.patient_id = user_id
+        self._save_user_profile(user_id, new_profile, tenant_id)
+        return new_profile
+
+    def switch_scenario(self, scenario_id: str, user_id: str = "default", tenant_id: str = "system") -> PatientHealthProfile:
         now_str = datetime.now().strftime("%H:%M %d/%m/%Y")
         if scenario_id == "initial_flu":
-            self._current_profile = self._build_default_flu_profile()
+            p = self._build_default_flu_profile()
         elif scenario_id == "recovered_headache":
-            self._current_profile = self._build_recovered_profile(now_str)
+            p = self._build_recovered_profile(now_str)
         elif scenario_id == "adr_stomach_nsaid":
-            self._current_profile = self._build_adr_stomach_profile(now_str)
+            p = self._build_adr_stomach_profile(now_str)
         elif scenario_id == "severe_fever_progression":
-            self._current_profile = self._build_severe_progression_profile(now_str)
+            p = self._build_severe_progression_profile(now_str)
         elif scenario_id == "healthy_baseline":
-            self._current_profile = self._build_healthy_profile(now_str)
-        return self._current_profile
+            p = self._build_healthy_profile(now_str)
+        else:
+            p = self._build_healthy_profile(now_str)
+        p.patient_id = user_id
+        self._save_user_profile(user_id, p, tenant_id)
+        return p
 
     def evaluate_progress(
         self,
         message: str,
         current_medications: list[str] | None = None,
         vital_updates: dict[str, Any] | None = None,
+        user_id: str = "default",
+        tenant_id: str = "system",
     ) -> dict[str, Any]:
         """Analyzes patient's latest update, adjusts anatomical organ status,
         updates overall health score, and enforces AI safety directives."""
         norm = message.lower().strip()
         now_str = datetime.now().strftime("%H:%M %d/%m/%Y")
-        profile = self._current_profile
+        profile = self._load_or_create_user_profile(user_id, tenant_id)
+
+        # Strip negated symptom clauses to avoid false triggers
+        norm_no_neg = re.sub(
+            r"\b(không|chẳng|chưa|hết|đã hết|ko)\s+(?:hề\s+|còn\s+)?(?:bị\s+|có\s+|thấy\s+)?(đau\s+đầu|nhức\s+đầu|đau\s+dạ\s+dày|đau\s+bao\s+tử|đau\s+bụng|cồn\s+cào|buồn\s+nôn|nôn|rát\s+thượng\s+vị|ợ\s+chua|ợ\s+hơi|đầy\s+bụng|khó\s+tiêu|trào\s+ngược|viêm\s+dạ\s+dày|sốt|ho|khó\s+thở|đau\s+khớp|mỏi\s+mắt|đau\s+ngực)\b",
+            " ",
+            norm,
+        )
 
         # 1. Detect Improvement / Recovery
-        # E.g., "hết đau đầu", "hết sổ mũi", "hết sốt", "khỏe hơn", "khỏi bệnh", "đỡ nhiều"
+        # E.g., "hết đau đầu", "hết sổ mũi", "hết sốt", "khỏe hơn", "khỏi bệnh", "đỡ nhiều", "hoàn toàn khỏe mạnh"
         recovery_patterns = [
-            r"hết\s*(đau đầu|nhức đầu|sổ mũi|nghẹt mũi|sốt|rát họng|ho)",
-            r"không còn\s*(sốt|đau đầu|sổ mũi|mệt)",
+            r"hết\s*(đau đầu|nhức đầu|sổ mũi|nghẹt mũi|sốt|rát họng|ho|đau dạ dày|bệnh)",
+            r"không còn\s*(sốt|đau đầu|sổ mũi|mệt|đau)",
             r"(đỡ|khỏi|bớt)\s*(hẳn|nhiều|rồi|bệnh)",
             r"khỏe hơn\s*(nhiều|rồi)",
+            r"(?:hoàn toàn\s+)?(?:khỏe mạnh|bình thường|rất khỏe)",
+            r"không\s+(?:hề\s+)?(?:bị\s+)?(?:đau|sốt|ho|bệnh|mệt)",
+            r"hoàn\s+toàn\s+khỏe",
         ]
         is_recovery = any(re.search(pat, norm) for pat in recovery_patterns)
 
         # 2. Detect Deterioration / Adverse Drug Reaction (ADR)
-        # E.g., "uống thuốc vào bị đau dạ dày", "đau bao tử", "cồn cào", "buồn nôn sau uống", "nổi mẩn ngứa"
+        # Scan on norm_no_neg to prevent "không đau dạ dày" from falsely triggering ADR!
         adr_stomach_patterns = [
             r"(uống thuốc|dùng thuốc|sau khi uống).*?(đau dạ dày|đau bao tử|đau bụng|cồn cào|buồn nôn|nôn|rát thượng vị)",
             r"(đau dạ dày|đau bao tử|rát thượng vị|cồn cào).*?(dữ dội|nặng hơn|sau khi uống)",
             r"(đau bụng|nôn nao|buồn nôn)\s*(nhiều|hơn|dữ)",
         ]
-        is_adr_stomach = any(re.search(pat, norm) for pat in adr_stomach_patterns)
+        is_adr_stomach = any(re.search(pat, norm_no_neg) for pat in adr_stomach_patterns)
 
         # 3. Detect Allergic Reaction / Rash
         allergy_patterns = [
             r"(nổi mẩn|phát ban|mày đay|ngứa ngáy|sưng môi|phù mặt|khó thở dị ứng)",
         ]
-        is_allergy = any(re.search(pat, norm) for pat in allergy_patterns)
+        is_allergy = any(re.search(pat, norm_no_neg) for pat in allergy_patterns)
 
         # 4. Detect Severe Disease Escalation
         escalation_patterns = [
@@ -430,7 +652,7 @@ class PatientHealthTwinService:
                 profile, now_str, message, norm, vital_updates
             )
 
-        self._current_profile = profile
+        self._save_user_profile(user_id, profile, tenant_id)
         return {
             "status": "success",
             "detected_event": detected_event,
@@ -728,59 +950,53 @@ class PatientHealthTwinService:
         )
 
     def _build_healthy_profile(self, now_str: str) -> PatientHealthProfile:
-        organs = _get_default_organs()
-        for organ in organs:
-            organ.status = "normal"
-            organ.health_score = 99
-            organ.pain_level = 0
-            organ.inflammation_level = "none"
-            organ.symptoms = []
-            organ.clinical_notes = "Chức năng bình thường, chỉ số tối ưu."
-            organ.warning = None
-            organ.is_adverse_reaction = False
-            organ.contraindicated_actions = []
-
+        organs = _get_healthy_organs()
         return PatientHealthProfile(
-            patient_id="demo-patient-001",
-            patient_name="Bệnh nhân MedGuard",
-            age=34,
-            gender="Nam",
-            active_diagnosis="Thể trạng Khỏe mạnh - Bình thường",
-            overall_health_score=98,
+            patient_id="default",
+            patient_name="Bệnh nhân",
+            age=None,
+            gender=None,
+            active_diagnosis="Thể trạng bình thường — Chưa ghi nhận bệnh lý cấp tính",
+            overall_health_score=100,
             health_trend="stable",
-            vitals=VitalSignsSummary(
-                heart_rate_bpm=72,
-                blood_pressure_systolic=118,
-                blood_pressure_diastolic=78,
-                temperature_celsius=36.7,
-                spo2_percent=99,
-                overall_pain_level=0,
-            ),
+            vitals=VitalSignsSummary(),
             organs=organs,
             active_medications=[],
             discontinued_medications=[],
             contraindicated_regimens=[],
             clinical_directives=[
-                "Duy trì chế độ ăn giàu dinh dưỡng và tập thể dục 30 phút/ngày",
-                "Uống đủ 2 lít nước mỗi ngày",
-                "Ngủ đủ 7-8 tiếng",
+                "Duy trì chế độ ăn giàu dinh dưỡng và vận động thể lực đều đặn",
+                "Uống đủ nước mỗi ngày",
+                "Ngủ đủ giấc và sinh hoạt điều độ",
             ],
             safe_guardrail_alert=None,
-            timeline=[
-                RecoveryTimelinePoint(
-                    id="t1",
-                    timestamp="Hiện tại",
-                    phase="fully_resolved",
-                    title="Trạng thái hoàn hảo",
-                    trigger_message="Kiểm tra tổng quan sức khoẻ.",
-                    health_score=98,
-                    status_label="Hoàn toàn bình thường",
-                    clinical_summary="Tất cả các cơ quan hoạt động tối ưu, không có bệnh lý hoạt động.",
-                    ai_directive="Duy trì lối sống lành mạnh.",
-                    medications_adjusted=[],
-                )
-            ],
+            timeline=[],
             overall_future_risks=self._extract_overall_future_risks(organs),
+            last_updated=now_str,
+        )
+
+    def _build_unassessed_profile(self, now_str: str) -> PatientHealthProfile:
+        organs = _get_unassessed_organs()
+        return PatientHealthProfile(
+            patient_id="default",
+            patient_name="Bệnh nhân",
+            age=None,
+            gender=None,
+            active_diagnosis="Chưa có dữ liệu đánh giá lâm sàng — Chờ thu thập triệu chứng",
+            overall_health_score=0,
+            health_trend="unassessed",
+            vitals=VitalSignsSummary(),
+            organs=organs,
+            active_medications=[],
+            discontinued_medications=[],
+            contraindicated_regimens=[],
+            clinical_directives=[
+                "Bắt đầu phiên tư vấn với Bác sĩ AI hoặc đo các chỉ số sinh tồn để cá nhân hóa Bản đồ Cơ thể 3D.",
+                "Chia sẻ các triệu chứng hoặc tiền sử bệnh lý nếu có.",
+            ],
+            safe_guardrail_alert=None,
+            timeline=[],
+            overall_future_risks=[],
             last_updated=now_str,
         )
 
@@ -799,30 +1015,84 @@ class PatientHealthTwinService:
         ai_directives: list[str] = []
         detected_event = "symptom_update"
 
+        # Strip negated symptom clauses to avoid false triggers ("không đau đầu", "không sốt", "không đau dạ dày")
+        cleaned_norm = re.sub(
+            r"\b(không|chẳng|chưa|hết|đã hết|ko)\s+(?:hề\s+|còn\s+)?(?:bị\s+|có\s+|thấy\s+)?(đau\s+đầu|nhức\s+đầu|đau\s+dạ\s+dày|đau\s+bao\s+tử|đau\s+bụng|cồn\s+cào|buồn\s+nôn|nôn|rát\s+thượng\s+vị|ợ\s+chua|ợ\s+hơi|đầy\s+bụng|khó\s+tiêu|trào\s+ngược|viêm\s+dạ\s+dày|sốt|ho|khó\s+thở|đau\s+khớp|mỏi\s+mắt|đau\s+ngực)\b",
+            " ",
+            norm,
+        )
+
+        is_healthy_claim = any(
+            phrase in norm
+            for phrase in (
+                "hoàn toàn khỏe",
+                "khỏe mạnh",
+                "hết bệnh",
+                "bình thường rồi",
+                "không có triệu chứng",
+                "khỏi hẳn rồi",
+                "rất khỏe",
+            )
+        )
+
+        if is_healthy_claim:
+            for o in p.organs:
+                o.status = "normal"
+                o.health_score = 96
+                o.pain_level = 0
+                o.inflammation_level = "none"
+                o.symptoms = []
+                o.clinical_notes = "Khỏe mạnh bình thường. Không ghi nhận triệu chứng bệnh lý."
+                o.warning = None
+                o.is_adverse_reaction = False
+            p.vitals.temperature_celsius = 36.6
+            p.vitals.overall_pain_level = 0
+            p.overall_health_score = 96
+            p.health_trend = "stable"
+            p.active_diagnosis = "Thể trạng khỏe mạnh, không ghi nhận triệu chứng bệnh lý"
+            ai_analysis = "AI MedGuard ghi nhận: Thể trạng của bạn hoàn toàn khỏe mạnh, không có dấu hiệu bất thường trên các cơ quan giải phẫu. Điểm sức khỏe toàn thân đạt 96/100."
+            action_plan = "Duy trì chế độ ăn uống khoa học, uống đủ nước và tập luyện thể dục đều đặn."
+            detected_event = "recovery"
+            p.safe_guardrail_alert = None
+            p.timeline = p.timeline[-14:]
+            p.timeline.append(
+                RecoveryTimelinePoint(
+                    id=f"t{len(p.timeline)+1}",
+                    timestamp=now_str,
+                    day_label="Hiện tại",
+                    overall_score=96,
+                    temperature=36.6,
+                    primary_event="Thể trạng hoàn toàn khỏe mạnh",
+                    medications_adjusted=[],
+                )
+            )
+            p.last_updated = now_str
+            return p, detected_event, ai_analysis, action_plan
+
         # 1. Temperature detection
-        temp_match = re.search(r"sốt\s*([34][0-9](?:[\.,][0-9])?)\s*(?:độ|°c)?", norm)
+        temp_match = re.search(r"sốt\s*([34][0-9](?:[\.,][0-9])?)\s*(?:độ|°c)?", cleaned_norm)
         if temp_match:
             val = float(temp_match.group(1).replace(",", "."))
             p.vitals.temperature_celsius = val
             detected_symptoms.append(f"Sốt {val}°C")
-        elif "sốt" in norm:
+        elif re.search(r"(?<![a-zà-ỹ])sốt(?![a-zà-ỹ])", cleaned_norm):
             p.vitals.temperature_celsius = 38.2
             detected_symptoms.append("Sốt")
 
         # 2. Blood pressure detection
-        bp_match = re.search(r"huyết áp\s*([0-9]{2,3})\s*[\/]\s*([0-9]{2,3})", norm)
+        bp_match = re.search(r"huyết áp\s*([0-9]{2,3})\s*[\/]\s*([0-9]{2,3})", cleaned_norm)
         if bp_match:
             p.vitals.blood_pressure_systolic = int(bp_match.group(1))
             p.vitals.blood_pressure_diastolic = int(bp_match.group(2))
             detected_symptoms.append(f"Huyết áp {p.vitals.blood_pressure_systolic}/{p.vitals.blood_pressure_diastolic} mmHg")
 
         # 3. Heart rate detection
-        hr_match = re.search(r"(?:nhịp tim|mạch)\s*([0-9]{2,3})", norm)
+        hr_match = re.search(r"(?:nhịp tim|mạch)\s*([0-9]{2,3})", cleaned_norm)
         if hr_match:
             p.vitals.heart_rate_bpm = int(hr_match.group(1))
 
         # 4. Pain level detection
-        pain_match = re.search(r"đau\s*([0-9]|10)\s*(?:\/10|điểm)", norm)
+        pain_match = re.search(r"đau\s*([0-9]|10)\s*(?:\/10|điểm)", cleaned_norm)
         if pain_match:
             p.vitals.overall_pain_level = int(pain_match.group(1))
 
@@ -837,15 +1107,15 @@ class PatientHealthTwinService:
             ("Xịt mũi nước muối", r"xịt mũi|nước muối biển|rửa mũi"),
         ]
         for med_label, pat in med_rules:
-            if re.search(pat, norm):
+            if re.search(pat, cleaned_norm):
                 if med_label not in p.active_medications:
                     p.active_medications.append(med_label)
 
         # 6. Organ: Head & Brain
-        if re.search(r"đau đầu|nhức đầu|nặng trán|nặng đầu|hoa mắt|chóng mặt|buốt trán|mất ngủ|stress|căng thẳng|đau nửa đầu", norm):
+        if re.search(r"(?<![a-zà-ỹ])(đau\s+đầu|nhức\s+đầu|nặng\s+trán|nặng\s+đầu|hoa\s+mắt|chóng\s+mặt|buốt\s+trán|mất\s+ngủ|stress|căng\s+thẳng|đau\s+nửa\s+đầu)(?![a-zà-ỹ])", cleaned_norm):
             head = next((o for o in p.organs if o.id == "head"), None)
             if head:
-                is_severe = "dữ dội" in norm or "kinh khủng" in norm or "quá mức" in norm
+                is_severe = "dữ dội" in cleaned_norm or "kinh khủng" in cleaned_norm or "quá mức" in cleaned_norm
                 head.status = "inflamed" if is_severe else "monitoring"
                 head.health_score = 65 if is_severe else 72
                 head.pain_level = 5 if is_severe else 3
@@ -856,7 +1126,7 @@ class PatientHealthTwinService:
                 ai_directives.append("Nghỉ ngơi tại phòng thoáng, tránh ánh sáng xanh màn hình")
 
         # 7. Organ: Ear, Nose & Throat (ENT)
-        if re.search(r"đau họng|rát họng|ngứa cổ|sổ mũi|chảy nước mũi|chảy mũi|nghẹt mũi|tắc mũi|viêm xoang|hắt hơi|khàn tiếng|mất tiếng|viêm họng|viêm amiđan", norm):
+        if re.search(r"(?<![a-zà-ỹ])(đau\s+họng|rát\s+họng|ngứa\s+cổ|sổ\s+mũi|chảy\s+nước\s+mũi|chảy\s+mũi|nghẹt\s+mũi|tắc\s+mũi|viêm\s+xoang|hắt\s+hơi|khàn\s+tiếng|mất\s+tiếng|viêm\s+họng|viêm\s+amiđan)(?![a-zà-ỹ])", cleaned_norm):
             ent = next((o for o in p.organs if o.id == "ent"), None)
             if ent:
                 ent.status = "inflamed"
@@ -864,9 +1134,9 @@ class PatientHealthTwinService:
                 ent.pain_level = 3
                 ent.inflammation_level = "moderate"
                 ent_syms = []
-                if re.search(r"đau họng|rát họng|ngứa cổ", norm): ent_syms.append("Đau rát họng")
-                if re.search(r"sổ mũi|chảy nước mũi|chảy mũi", norm): ent_syms.append("Sổ mũi nước trong")
-                if re.search(r"nghẹt mũi|tắc mũi", norm): ent_syms.append("Nghẹt mũi")
+                if re.search(r"đau\s+họng|rát\s+họng|ngứa\s+cổ", cleaned_norm): ent_syms.append("Đau rát họng")
+                if re.search(r"sổ\s+mũi|chảy\s+nước\s+mũi|chảy\s+mũi", cleaned_norm): ent_syms.append("Sổ mũi nước trong")
+                if re.search(r"nghẹt\s+mũi|tắc\s+mũi", cleaned_norm): ent_syms.append("Nghẹt mũi")
                 if not ent_syms: ent_syms.append("Kích ứng niêm mạc mũi họng")
                 ent.symptoms = ent_syms
                 ent.clinical_notes = f"Ghi nhận từ phản ánh của bạn: {message}"
@@ -874,10 +1144,11 @@ class PatientHealthTwinService:
                 ai_directives.append("Súc họng nước muối ấm 0.9%, xịt rửa mũi đẳng trương")
 
         # 8. Organ: Lungs & Respiratory
-        if re.search(r"ho|ho khan|ho có đờm|ho đờm|khó thở|hụt hơi|thở dốc|tức ngực|khò khè|viêm phế quản|viêm phổi", norm):
+        # Word boundary ensures "hoàn toàn" does not match "ho"!
+        if re.search(r"(?<![a-zà-ỹ])(ho\s+khan|ho\s+có\s+đờm|ho\s+đờm|khó\s+thở|hụt\s+hơi|thở\s+dốc|tức\s+ngực|khò\s+khè|viêm\s+phế\s+quản|viêm\s+phổi|bị\s+ho|ho\s+nhiều|ho)(?![a-zà-ỹ])", cleaned_norm):
             lungs = next((o for o in p.organs if o.id == "lungs"), None)
             if lungs:
-                is_severe = "khó thở" in norm or "tức ngực" in norm
+                is_severe = "khó thở" in cleaned_norm or "tức ngực" in cleaned_norm
                 lungs.status = "inflamed" if is_severe else "monitoring"
                 lungs.health_score = 68 if is_severe else 78
                 lungs.pain_level = 3 if is_severe else 1
@@ -888,7 +1159,7 @@ class PatientHealthTwinService:
                 ai_directives.append("Giữ ấm vùng ngực cổ, uống nhiều nước ấm, theo dõi sát nhịp thở")
 
         # 9. Organ: Cardiovascular
-        if re.search(r"tim đập nhanh|hồi hộp|đánh trống ngực|đau thắt ngực|nhói tim|tăng huyết áp|huyết áp cao|tụt huyết áp", norm):
+        if re.search(r"tim đập nhanh|hồi hộp|đánh trống ngực|đau thắt ngực|nhói tim|tăng huyết áp|huyết áp cao|tụt huyết áp", cleaned_norm):
             cardio = next((o for o in p.organs if o.id == "cardiovascular"), None)
             if cardio:
                 cardio.status = "monitoring"
@@ -899,7 +1170,7 @@ class PatientHealthTwinService:
                 ai_directives.append("Nghỉ ngơi yên tĩnh, đo lại huyết áp và nhịp tim sau 15 phút")
 
         # 10. Organ: Stomach & Digestion
-        if re.search(r"đau dạ dày|đau bao tử|đau bụng|cồn cào|ợ chua|ợ hơi|rát thượng vị|buồn nôn|nôn|khó tiêu|đầy bụng|tiêu chảy|trào ngược", norm):
+        if re.search(r"(?<![a-zà-ỹ])(đau\s+dạ\s+dày|đau\s+bao\s+tử|đau\s+bụng|cồn\s+cào|ợ\s+chua|ợ\s+hơi|rát\s+thượng\s+vị|buồn\s+nôn|nôn|khó\s+tiêu|đầy\s+bụng|tiêu\s+chảy|trào\s+ngược)(?![a-zà-ỹ])", cleaned_norm):
             stomach = next((o for o in p.organs if o.id == "stomach"), None)
             if stomach:
                 stomach.status = "inflamed"
@@ -912,7 +1183,7 @@ class PatientHealthTwinService:
                 ai_directives.append("Không uống thuốc khi bụng đói, chia nhỏ bữa ăn và kiêng đồ chua cay")
 
         # 11. Organ: Liver & Hepatitis B Vaccine Status
-        if re.search(r"chưa tiêm (phòng)?\s*(vắc[- ]?xin|vacxin)?\s*(viêm gan b|hbv)|anti-?hbs âm tính|chưa chích ngừa viêm gan", norm):
+        if re.search(r"chưa tiêm (phòng)?\s*(vắc[- ]?xin|vacxin)?\s*(viêm gan b|hbv)|anti-?hbs âm tính|chưa chích ngừa viêm gan", cleaned_norm):
             liver = next((o for o in p.organs if o.id == "liver"), None)
             if liver and liver.future_risk:
                 liver.future_risk.risk_level = "high"
@@ -924,7 +1195,7 @@ class PatientHealthTwinService:
                 detected_event = "vaccine_risk_alert"
                 ai_directives.append("Thực hiện tiêm vắc-xin Viêm gan B đủ 3 mũi (Tháng 0, 1, 6) càng sớm càng tốt để ngừa ung thư gan HCC")
 
-        elif re.search(r"đã tiêm (đủ)?\s*(?:3 mũi|phòng|vắc[- ]?xin|vacxin)?\s*(?:viêm gan b|hbv)|anti-?hbs dương tính|có kháng thể viêm gan b|đã chích ngừa viêm gan", norm):
+        elif re.search(r"đã tiêm (đủ)?\s*(?:3 mũi|phòng|vắc[- ]?xin|vacxin)?\s*(?:viêm gan b|hbv)|anti-?hbs dương tính|có kháng thể viêm gan b|đã chích ngừa viêm gan", cleaned_norm):
             liver = next((o for o in p.organs if o.id == "liver"), None)
             if liver and liver.future_risk:
                 liver.future_risk.risk_level = "low"
@@ -936,7 +1207,7 @@ class PatientHealthTwinService:
                 detected_event = "vaccine_verified"
                 ai_directives.append("Định kỳ kiểm tra hiệu giá kháng thể Anti-HBs sau mỗi 5-10 năm")
 
-        elif re.search(r"men gan cao|vàng da|uống nhiều rượu|uống rượu bia|nhiễm viêm gan", norm):
+        elif re.search(r"men gan cao|vàng da|uống nhiều rượu|uống rượu bia|nhiễm viêm gan", cleaned_norm):
             liver = next((o for o in p.organs if o.id == "liver"), None)
             if liver:
                 liver.status = "monitoring"
@@ -947,7 +1218,7 @@ class PatientHealthTwinService:
                 ai_directives.append("Hạn chế tối đa rượu bia, không dùng Paracetamol quá 3000mg/24h")
 
         # 12. Organ: Kidneys
-        if re.search(r"tiểu buốt|tiểu rắt|tiểu đêm|tiểu ra máu|đau thắt lưng hông|đau hố thận", norm):
+        if re.search(r"tiểu buốt|tiểu rắt|tiểu đêm|tiểu ra máu|đau thắt lưng hông|đau hố thận", cleaned_norm):
             kidneys = next((o for o in p.organs if o.id == "kidneys"), None)
             if kidneys:
                 kidneys.status = "monitoring"
@@ -958,7 +1229,7 @@ class PatientHealthTwinService:
                 ai_directives.append("Uống đủ 2-2.5 lít nước ấm mỗi ngày, không nhịn tiểu")
 
         # 13. Organ: Spine & Musculoskeletal
-        if re.search(r"đau lưng|mỏi lưng|đau cổ|mỏi gáy|đau vai gáy|đau khớp|cứng khớp|mỏi người|đau cột sống", norm):
+        if re.search(r"đau lưng|mỏi lưng|đau cổ|mỏi gáy|đau vai gáy|đau khớp|cứng khớp|mỏi người|đau cột sống", cleaned_norm):
             spine = next((o for o in p.organs if o.id == "spine_joints"), None)
             if spine:
                 spine.status = "monitoring"
@@ -970,7 +1241,7 @@ class PatientHealthTwinService:
                 ai_directives.append("Vận động nhẹ nhàng, điều chỉnh tư thế ngồi công thái học")
 
         # 14. Organ: Skin & Immunity
-        if re.search(r"nổi mẩn|phát ban|ngứa da|dị ứng da", norm):
+        if re.search(r"nổi mẩn|phát ban|ngứa da|dị ứng da", cleaned_norm):
             skin = next((o for o in p.organs if o.id == "skin"), None)
             if skin:
                 skin.status = "inflamed"
@@ -980,10 +1251,30 @@ class PatientHealthTwinService:
                 matched_organs.append("Da liễu & Hệ miễn dịch")
                 ai_directives.append("Theo dõi sát phản ứng da, ngưng các loại mỹ phẩm hoặc thuốc nghi ngờ")
 
-        # Compute dynamic overall health score
-        avg_score = round(sum(o.health_score for o in p.organs) / len(p.organs))
+        # If user explicitly states they are healthy and no symptoms were detected:
+        if is_healthy_claim and not matched_organs:
+            for o in p.organs:
+                o.status = "normal"
+                o.health_score = 95
+                o.pain_level = 0
+                o.inflammation_level = "none"
+                o.symptoms = []
+                o.clinical_notes = "Khỏe mạnh bình thường. Chưa ghi nhận triệu chứng bất thường."
+                o.warning = None
+            p.vitals.temperature_celsius = 36.6
+            p.vitals.overall_pain_level = 0
+            p.overall_health_score = 95
+            p.health_trend = "stable"
+            p.active_diagnosis = "Thể trạng khỏe mạnh, không ghi nhận triệu chứng bệnh lý"
+            ai_analysis = "AI MedGuard ghi nhận: Thể trạng của bạn hoàn toàn khỏe mạnh, không có dấu hiệu bất thường trên các cơ quan giải phẫu. Điểm sức khỏe toàn thân đạt 95/100."
+            action_plan = "Duy trì chế độ ăn uống khoa học, uống đủ nước và tập luyện thể dục đều đặn."
+            detected_event = "recovery"
+
+        # Compute dynamic overall health score (default unassessed/zero scores to 95 baseline)
+        scores = [o.health_score if (o.health_score is not None and o.health_score > 0) else 95 for o in p.organs]
+        avg_score = round(sum(scores) / len(scores)) if scores else 95
         p.overall_health_score = avg_score
-        p.health_trend = "declining" if avg_score < 80 else "stable"
+        p.health_trend = "deteriorating" if avg_score < 80 else "stable"
 
         if matched_organs:
             p.active_diagnosis = f"Ghi nhận phản ánh từ bạn: {', '.join(matched_organs)}"
@@ -1168,14 +1459,17 @@ class PatientHealthTwinService:
         p.vitals.heart_rate_bpm = 74
 
         for organ in p.organs:
-            if organ.id in ["head", "ent", "lungs", "spine_joints"]:
-                organ.status = "normal"
-                organ.health_score = 96
-                organ.pain_level = 0
-                organ.inflammation_level = "none"
-                organ.symptoms = []
-                organ.clinical_notes = "Đã thuyên giảm hoàn toàn, không còn triệu chứng khó chịu."
-                organ.warning = None
+            organ.status = "normal"
+            organ.health_score = 96
+            organ.pain_level = 0
+            organ.inflammation_level = "none"
+            organ.symptoms = []
+            organ.clinical_notes = "Đã thuyên giảm hoàn toàn, không còn triệu chứng khó chịu."
+            organ.warning = None
+            organ.is_adverse_reaction = False
+
+        scores = [o.health_score for o in p.organs if o.health_score]
+        p.overall_health_score = round(sum(scores) / len(scores)) if scores else 96
 
         if "Paracetamol 500mg" in p.active_medications:
             p.active_medications.remove("Paracetamol 500mg")
@@ -1188,6 +1482,7 @@ class PatientHealthTwinService:
             "Bổ sung vitamin, nghỉ ngơi hợp lý để duy trì thể trạng tối ưu",
         ]
 
+        p.timeline = p.timeline[-14:]
         p.timeline.append(
             RecoveryTimelinePoint(
                 id=f"t{len(p.timeline)+1}",

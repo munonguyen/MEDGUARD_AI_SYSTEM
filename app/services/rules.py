@@ -1096,9 +1096,40 @@ def _escalate_risk(current: str, candidate: str) -> str:
     return current
 
 
+VIETNAMESE_BRAND_TO_INN = {
+    "hapacol": "paracetamol",
+    "efferalgan": "paracetamol",
+    "panadol": "paracetamol",
+    "tylenol": "paracetamol",
+    "acetaminophen": "paracetamol",
+    "paracetamol": "paracetamol",
+    "brufen": "ibuprofen",
+    "advil": "ibuprofen",
+    "ibuprofen": "ibuprofen",
+    "coumadin": "warfarin",
+    "sintrom": "warfarin",
+    "warfarin": "warfarin",
+    "norvasc": "amlodipine",
+    "amlodipin": "amlodipine",
+    "amlodipine": "amlodipine",
+    "nhan sam": "ginseng",
+    "nhansam": "ginseng",
+    "ginseng": "ginseng",
+    "augmentin": "amoxicillin_clavulanate",
+    "aspirin": "aspirin",
+    "stilnox": "zolpidem",
+    "zolpidem": "zolpidem",
+}
+
+
 def _normalize_ingredient(name: str | None, active_ingredient: str | None) -> str:
-    value = (active_ingredient or name or "").strip().lower()
-    return value.replace(" ", "")
+    raw = (active_ingredient or name or "").strip().lower()
+    cleaned = re.sub(r"\b\d+(?:[.,]\d+)?\s*(?:mg|g|mcg|ml)\b", "", raw).strip()
+    norm_space = re.sub(r"\s+", " ", cleaned)
+    for brand, inn in VIETNAMESE_BRAND_TO_INN.items():
+        if brand in norm_space:
+            return inn
+    return cleaned.replace(" ", "")
 
 
 def _check_allergy_cross_reactivity(

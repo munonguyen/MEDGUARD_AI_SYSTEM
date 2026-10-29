@@ -22,10 +22,17 @@ def document_digest(title, content, source_url, domain):
 class KnowledgePool:
     def __init__(self, path: str | Path):
         self.path = Path(path)
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        fd = os.open(self.path, os.O_CREAT | os.O_WRONLY, 0o600)
-        os.close(fd)
-        os.chmod(self.path, 0o600)
+        try:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            fd = os.open(self.path, os.O_CREAT | os.O_WRONLY, 0o600)
+            os.close(fd)
+            os.chmod(self.path, 0o600)
+        except OSError:
+            self.path = Path("/tmp") / self.path.name
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            fd = os.open(self.path, os.O_CREAT | os.O_WRONLY, 0o600)
+            os.close(fd)
+            os.chmod(self.path, 0o600)
         with self.db() as db:
             db.executescript('''
               CREATE TABLE IF NOT EXISTS documents (
@@ -148,7 +155,12 @@ def _pool(path):
 
 
 def get_knowledge_pool():
-    return _pool(os.getenv('MEDGUARD_KNOWLEDGE_POOL_DATABASE', '.runtime/knowledge_pool.sqlite3'))
+    default_db = (
+        "/tmp/knowledge_pool.sqlite3"
+        if os.getenv("AWS_LAMBDA_FUNCTION_NAME") or os.getenv("LAMBDA_TASK_ROOT")
+        else ".runtime/knowledge_pool.sqlite3"
+    )
+    return _pool(os.getenv('MEDGUARD_KNOWLEDGE_POOL_DATABASE', default_db))
 
 
 def approved_pool_documents(domain):

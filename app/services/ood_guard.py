@@ -82,6 +82,14 @@ _CRISIS_SELF_HARM_PATTERNS: list[re.Pattern[str]] = [
         r"(?:bao\s+nhieu|lam\s+sao).*chet",
         r"(?:uong|dung).*(?:chet|tu\s+vong)\s*(?:nhanh|duoc)",
         r"qua\s+lieu.*(?:chet|tu\s+vong|nhanh)",
+        r"ngu\s+mai\s+khong\s+day",
+        r"(?:song\s+)?khong\s+con\s+y\s+nghia",
+        r"uong\s+het.*(?:vi|vien).*thuoc\s+ngu",
+        r"lieu.*(?:vien)?.*ngu\s+sau\s+han",
+        r"lieu.*(?:vien)?.*(?:ngu\s+mai|khong\s+day)",
+        r"(?:ket\s+thuc|cham\s+dut)\s+(?:cuoc\s+doi|cuoc\s+song)",
+        r"uong.*zolpidem.*(?:ngu\s+mai|chet|khong\s+day)",
+        r"(?:muon|dinh|toan)\s+uong\s+het.*thuoc",
     )
 ]
 

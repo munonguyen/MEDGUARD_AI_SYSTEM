@@ -65,93 +65,6 @@ const DAY_NAMES = [
 
 const TODAY_STR = new Date().toISOString().slice(0, 10);
 
-const DEFAULT_MEDS = [
-  {
-    id: 'MED-001',
-    name: 'Amlodipine',
-    activeSubstance: 'Amlodipine besylate',
-    strength: '5mg',
-    dosage: '1 viên',
-    slot: 'morning',
-    timing: '08:00',
-    instruction: 'Uống sau bữa ăn sáng 30 phút, nuốt nguyên viên cùng nước lọc',
-    purpose: 'Kiểm soát tăng huyết áp, bảo vệ thành mạch tim mạch',
-    warnings: 'Không uống cùng nước bưởi chùm. Theo dõi nếu có phù mắt cá chân nhẹ.',
-    doctor: 'BS. CKII Trần Quốc Huy (Tim mạch)',
-    colorTheme: 'blue',
-  },
-  {
-    id: 'MED-002',
-    name: 'Amoxicillin',
-    activeSubstance: 'Amoxicillin trihydrate',
-    strength: '500mg',
-    dosage: '1 viên',
-    slot: 'morning',
-    timing: '08:30',
-    instruction: 'Uống sau ăn no, uống đủ liều đúng 7 ngày theo đơn chỉ định',
-    purpose: 'Kháng sinh điều trị nhiễm khuẩn đường hô hấp trên',
-    warnings: 'Tuyệt đối không tự ý ngưng thuốc khi thấy giảm triệu chứng.',
-    doctor: 'BS. CKI Nguyễn Minh Tuấn (Tai Mũi Họng)',
-    colorTheme: 'teal',
-  },
-  {
-    id: 'MED-003',
-    name: 'Metformin',
-    activeSubstance: 'Metformin hydrochloride',
-    strength: '500mg',
-    dosage: '1 viên',
-    slot: 'noon',
-    timing: '12:30',
-    instruction: 'Uống ngay trong hoặc sau bữa ăn trưa để tránh cồn cào dạ dày',
-    purpose: 'Kiểm soát đường huyết, tăng nhạy cảm insulin (Đái tháo đường type 2)',
-    warnings: 'Tránh uống rượu bia khi đang dùng thuốc.',
-    doctor: 'ThS. BS Lê Hoàng Nam (Nội tiết)',
-    colorTheme: 'purple',
-  },
-  {
-    id: 'MED-004',
-    name: 'Esomeprazole',
-    activeSubstance: 'Esomeprazole magnesium',
-    strength: '40mg',
-    dosage: '1 viên',
-    slot: 'evening',
-    timing: '18:00',
-    instruction: 'Uống trước bữa ăn tối 60 phút, nuốt nguyên viên không nhai nghiền',
-    purpose: 'Ức chế tiết acid dạ dày, điều trị trào ngược dạ dày thực quản (GERD)',
-    warnings: 'Không bẻ đôi hoặc nhai nát viên thuốc bao tan trong ruột.',
-    doctor: 'BS. CKII Đặng Bích Thảo (Tiêu hóa)',
-    colorTheme: 'amber',
-  },
-  {
-    id: 'MED-005',
-    name: 'Atorvastatin',
-    activeSubstance: 'Atorvastatin calcium',
-    strength: '20mg',
-    dosage: '1 viên',
-    slot: 'evening',
-    timing: '20:00',
-    instruction: 'Uống sau ăn tối, tốt nhất vào một giờ cố định mỗi ngày',
-    purpose: 'Hạ cholesterol máu, ổn định mảng xơ vữa động mạch',
-    warnings: 'Báo bác sĩ nếu có đau cơ hoặc mệt mỏi bất thường.',
-    doctor: 'BS. CKII Trần Quốc Huy (Tim mạch)',
-    colorTheme: 'indigo',
-  },
-  {
-    id: 'MED-006',
-    name: 'Magnesium B6',
-    activeSubstance: 'Magnesi lactat + Pyridoxin HCl',
-    strength: '470mg/5mg',
-    dosage: '1 viên',
-    slot: 'night',
-    timing: '21:30',
-    instruction: 'Uống trước khi đi ngủ 30 phút cùng nhiều nước',
-    purpose: 'Bổ sung magie và vitamin B6, hỗ trợ giảm căng cơ, an thần nhẹ',
-    warnings: 'Không uống cùng thời điểm với thuốc bổ sung canxi hoặc sắt.',
-    doctor: 'BS. Đơn thuốc bổ trợ',
-    colorTheme: 'emerald',
-  },
-];
-
 const TIME_SLOTS = [
   { id: 'morning', label: 'Cữ Sáng', timeRange: '06:00 - 09:00', icon: '🌅', desc: 'Sau ăn sáng / Trước ăn sáng' },
   { id: 'noon', label: 'Cữ Trưa', timeRange: '11:30 - 13:00', icon: '☀️', desc: 'Sau ăn trưa / Cùng bữa ăn' },
@@ -163,14 +76,7 @@ export function MedicationPage({ api, onBackToChat, onOpenSchedulePage, onConsul
   const [currentBaseDate, setCurrentBaseDate] = useState(new Date());
   const weekDates = useMemo(() => getWeekDates(currentBaseDate), [currentBaseDate]);
 
-  const [meds, setMeds] = useState(() => {
-    try {
-      const saved = localStorage.getItem('medguard.user_meds.data');
-      return saved ? JSON.parse(saved) : DEFAULT_MEDS;
-    } catch {
-      return DEFAULT_MEDS;
-    }
-  });
+  const [meds, setMeds] = useState([]);
 
   const [takenMap, setTakenMap] = useState(() => {
     try {
@@ -184,6 +90,8 @@ export function MedicationPage({ api, onBackToChat, onOpenSchedulePage, onConsul
   const [viewMode, setViewMode] = useState('timetable'); // 'timetable' | 'tracker'
   const [searchQuery, setSearchQuery] = useState('');
   const [slotFilter, setSlotFilter] = useState('all');
+  const [loadingMeds, setLoadingMeds] = useState(false);
+  const [dbConnected, setDbConnected] = useState(false);
 
   // Hover Popover
   const [hoveredMed, setHoveredMed] = useState(null);
@@ -209,7 +117,7 @@ export function MedicationPage({ api, onBackToChat, onOpenSchedulePage, onConsul
     doctor: '',
   });
 
-  // Sync meds
+  // Sync meds to local storage cache for offline fallback
   useEffect(() => {
     try {
       localStorage.setItem('medguard.user_meds.data', JSON.stringify(meds));
@@ -226,6 +134,66 @@ export function MedicationPage({ api, onBackToChat, onOpenSchedulePage, onConsul
       // ignore
     }
   }, [takenMap]);
+
+  // Load medication regimen and taken records from Database (TiDB Cloud)
+  const loadMedsFromDb = async () => {
+    if (!api) return;
+    setLoadingMeds(true);
+    try {
+      const res = await api.request('/v1/medication/regimen');
+      if (res && Array.isArray(res.medications)) {
+        setMeds(res.medications);
+        if (res.takenMap && typeof res.takenMap === 'object') {
+          setTakenMap(res.takenMap);
+        }
+        setDbConnected(true);
+      }
+    } catch (err) {
+      console.warn('Could not load medication regimen from DB:', err);
+    } finally {
+      setLoadingMeds(false);
+    }
+  };
+
+  const handleSeedSampleMeds = async () => {
+    if (!api) return;
+    setLoadingMeds(true);
+    try {
+      const res = await api.request('/v1/medication/seed-sample', { method: 'POST' });
+      if (res && Array.isArray(res.medications)) {
+        setMeds(res.medications);
+        setDbConnected(true);
+        onNotify?.('✓ Đã nạp đơn thuốc mẫu Demo vào Database thành công!');
+      }
+    } catch (err) {
+      console.warn('Failed to seed sample medications in DB:', err);
+      onNotify?.('Không thể nạp dữ liệu mẫu.');
+    } finally {
+      setLoadingMeds(false);
+    }
+  };
+
+  const handleClearMeds = async () => {
+    if (!api) return;
+    if (!window.confirm('Bạn có chắc chắn muốn xóa toàn bộ phác đồ thuốc trong cơ sở dữ liệu?')) return;
+    setLoadingMeds(true);
+    try {
+      await api.request('/v1/medication/clear', { method: 'POST' });
+      setMeds([]);
+      setTakenMap({});
+      setDbConnected(true);
+      onNotify?.('✓ Đã xóa sạch phác đồ thuốc khỏi Database.');
+    } catch (err) {
+      console.warn('Failed to clear medications in DB:', err);
+      onNotify?.('Không thể xóa thuốc khỏi Database.');
+    } finally {
+      setLoadingMeds(false);
+    }
+  };
+
+  useEffect(() => {
+    loadMedsFromDb();
+  }, [api]);
 
   // Week navigation
   const handlePrevWeek = () => {
@@ -248,13 +216,29 @@ export function MedicationPage({ api, onBackToChat, onOpenSchedulePage, onConsul
     setCurrentBaseDate(new Date());
   };
 
-  // Toggle taken status for a specific date & med
-  const toggleTaken = (dateStr, medId, e) => {
+  // Toggle taken status for a specific date & med - with instant DB persistence
+  const toggleTaken = async (dateStr, medId, e) => {
     e?.stopPropagation();
     const key = `${dateStr}_${medId}`;
     const nextState = !takenMap[key];
     setTakenMap((prev) => ({ ...prev, [key]: nextState }));
     onNotify?.(nextState ? '✓ Đã điểm danh uống thuốc thành công!' : 'Đã hoàn tác trạng thái uống thuốc.');
+
+    if (api) {
+      try {
+        await api.request('/v1/medication/toggle-taken', {
+          method: 'POST',
+          body: {
+            med_id: medId,
+            date_str: dateStr,
+            taken: nextState,
+          },
+        });
+        setDbConnected(true);
+      } catch (err) {
+        console.warn('Failed to persist toggle taken status to DB:', err);
+      }
+    }
   };
 
   // Hover handlers
@@ -312,89 +296,101 @@ export function MedicationPage({ api, onBackToChat, onOpenSchedulePage, onConsul
     setHoveredMed(null);
   };
 
-  // Save Modal
-  const handleSaveModal = (e) => {
+  // Save Modal - with DB persistence
+  const handleSaveModal = async (e) => {
     e.preventDefault();
     if (!form.name.trim()) return;
 
     if (modalMode === 'create') {
+      const tempId = `MED-${Date.now().toString().slice(-4)}`;
       const newMed = {
-        id: `MED-${Date.now().toString().slice(-4)}`,
+        id: tempId,
         ...form,
         colorTheme: form.slot === 'morning' ? 'blue' : form.slot === 'noon' ? 'purple' : form.slot === 'evening' ? 'amber' : 'emerald',
       };
       setMeds((prev) => [...prev, newMed]);
       onNotify?.(`Đã thêm cữ thuốc: ${form.name}`);
+
+      if (api) {
+        try {
+          const res = await api.request('/v1/medication/regimen', {
+            method: 'POST',
+            body: newMed,
+          });
+          if (res?.medication?.id) {
+            setMeds((prev) =>
+              prev.map((item) => (item.id === tempId ? res.medication : item))
+            );
+          }
+          setDbConnected(true);
+        } catch (err) {
+          console.warn('Failed to save medication to DB:', err);
+        }
+      }
     } else if (editingMed) {
+      const updatedMed = { ...editingMed, ...form };
       setMeds((prev) =>
-        prev.map((item) => (item.id === editingMed.id ? { ...item, ...form } : item))
+        prev.map((item) => (item.id === editingMed.id ? updatedMed : item))
       );
       onNotify?.(`Đã cập nhật thông tin thuốc: ${form.name}`);
+
+      if (api) {
+        try {
+          await api.request(`/v1/medication/regimen/${editingMed.id}`, {
+            method: 'PUT',
+            body: form,
+          });
+          setDbConnected(true);
+        } catch (err) {
+          console.warn('Failed to update medication in DB:', err);
+        }
+      }
     }
     setModalOpen(false);
   };
 
-  // Delete Medication
-  const handleDeleteMed = (id) => {
+  // Delete Medication - with DB persistence
+  const handleDeleteMed = async (id) => {
     setMeds((prev) => prev.filter((m) => m.id !== id));
     setDeleteConfirm(null);
     setHoveredMed(null);
     onNotify?.('Đã xóa cữ thuốc khỏi phác đồ.');
+
+    if (api) {
+      try {
+        await api.request(`/v1/medication/regimen/${id}`, {
+          method: 'DELETE',
+        });
+        setDbConnected(true);
+      } catch (err) {
+        console.warn('Failed to delete medication from DB:', err);
+      }
+    }
   };
 
-  // Load Sample Regimen
-  const handleLoadSample = (regimenType) => {
-    if (regimenType === 'cardio') {
-      setMeds(DEFAULT_MEDS);
-      onNotify?.('Đã nạp phác đồ mẫu: Tim mạch & Đái tháo đường');
-    } else {
-      const respiratory = [
-        {
-          id: `MED-${Date.now()}-1`,
-          name: 'Amoxicillin + Clavulanic',
-          activeSubstance: 'Amoxicillin 875mg / Clavulanate 125mg',
-          strength: '1000mg',
-          dosage: '1 viên',
-          slot: 'morning',
-          timing: '08:00',
-          instruction: 'Uống ngay đầu bữa ăn sáng để tránh kích ứng dạ dày',
-          purpose: 'Kháng sinh phổ rộng điều trị nhiễm khuẩn hô hấp',
-          warnings: 'Uống đủ 7 ngày liên tục.',
-          doctor: 'BS. Hô Hấp',
-          colorTheme: 'teal',
-        },
-        {
-          id: `MED-${Date.now()}-2`,
-          name: 'Acetylcysteine',
-          activeSubstance: 'Acetylcystein 200mg',
-          strength: '200mg',
-          dosage: '1 gói',
-          slot: 'noon',
-          timing: '12:30',
-          instruction: 'Hòa tan vào 100ml nước đun sôi để nguội, uống sau bữa ăn',
-          purpose: 'Long đờm, tiêu chất nhầy đường thở',
-          warnings: 'Uống nhiều nước trong ngày.',
-          doctor: 'BS. Hô Hấp',
-          colorTheme: 'blue',
-        },
-        {
-          id: `MED-${Date.now()}-3`,
-          name: 'Cetirizine',
-          activeSubstance: 'Cetirizine 10mg',
-          strength: '10mg',
-          dosage: '1 viên',
-          slot: 'night',
-          timing: '21:00',
-          instruction: 'Uống trước khi đi ngủ 30 phút',
-          purpose: 'Kháng histamin chống dị ứng đường hô hấp, giảm ngứa họng ho đêm',
-          warnings: 'Có thể gây buồn ngủ nhẹ.',
-          doctor: 'BS. Hô Hấp',
-          colorTheme: 'purple',
-        },
-      ];
-      setMeds((prev) => [...prev, ...respiratory]);
-      onNotify?.('Đã thêm phác đồ mẫu: Nhiễm khuẩn hô hấp & Long đờm');
+  // Load Sample Regimen - with DB reset & reload
+  const handleLoadSample = async (regimenType) => {
+    if (api) {
+      setLoadingMeds(true);
+      try {
+        const res = await api.request('/v1/medication/reset-sample', {
+          method: 'POST',
+          body: { regimen_type: regimenType },
+        });
+        if (res && Array.isArray(res.medications)) {
+          setMeds(res.medications);
+          setDbConnected(true);
+          onNotify?.(regimenType === 'cardio' ? 'Đã nạp phác đồ mẫu: Tim mạch & Đái tháo đường' : 'Đã thêm phác đồ mẫu: Nhiễm khuẩn hô hấp & Long đờm');
+          return;
+        }
+      } catch (err) {
+        console.warn('Failed to reset sample regimen in DB:', err);
+      } finally {
+        setLoadingMeds(false);
+      }
     }
+
+    onNotify?.('Chưa thể kết nối CSDL đơn thuốc. Vui lòng thử lại sau.');
   };
 
   // Stats calculation for the selected week
@@ -411,7 +407,7 @@ export function MedicationPage({ api, onBackToChat, onOpenSchedulePage, onConsul
       });
     });
 
-    const rate = totalDoses ? Math.round((takenDoses / totalDoses) * 100) : 100;
+    const rate = totalDoses > 0 ? Math.round((takenDoses / totalDoses) * 100) : null;
     return { totalDoses, takenDoses, rate };
   }, [weekDates, meds, takenMap]);
 
@@ -497,13 +493,51 @@ export function MedicationPage({ api, onBackToChat, onOpenSchedulePage, onConsul
             <span>Xem Lịch khám</span>
           </button>
 
+          <div className="db-sync-badge" title="Đồng bộ hồ sơ lâm sàng bảo mật & thời gian thực">
+            <span className={`pulse-dot ${dbConnected ? 'live' : ''}`} />
+            <span>Đồng bộ Trực tuyến</span>
+          </div>
+
+          <button
+            type="button"
+            className="btn-refresh"
+            onClick={loadMedsFromDb}
+            title="Làm mới dữ liệu từ Database"
+          >
+            <RefreshCw size={15} className={loadingMeds ? 'spin' : ''} />
+            <span>Làm mới</span>
+          </button>
+
+          {meds.length === 0 ? (
+            <button
+              type="button"
+              className="btn-sample-regimen"
+              onClick={handleSeedSampleMeds}
+              title="Nạp mẫu thuốc Tim mạch & Tiểu đường vào Database"
+            >
+              <Sparkles size={15} />
+              <span>Nạp mẫu Demo</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="btn-sample-regimen"
+              style={{ borderColor: 'rgba(239, 68, 68, 0.4)', color: '#dc2626' }}
+              onClick={handleClearMeds}
+              title="Xóa toàn bộ phác đồ thuốc trong Database"
+            >
+              <Trash2 size={15} />
+              <span>Xóa sạch</span>
+            </button>
+          )}
+
           <button
             type="button"
             className="btn-primary-add"
             onClick={() => openCreateModal('morning')}
           >
             <Plus size={16} />
-            <span>Thêm Thuốc Mới</span>
+            <span>+ Thêm Thuốc Mới</span>
           </button>
         </div>
       </header>
@@ -514,7 +548,11 @@ export function MedicationPage({ api, onBackToChat, onOpenSchedulePage, onConsul
           <div className="stat-icon"><Activity size={20} /></div>
           <div className="stat-info">
             <span className="stat-label">Hôm nay ({formatDateVietnamese(TODAY_STR)})</span>
-            <strong className="stat-value">{todayStats.takenToday} / {todayStats.totalToday} liều</strong>
+            <strong className="stat-value">
+              {todayStats.totalToday > 0
+                ? `${todayStats.takenToday} / ${todayStats.totalToday} liều`
+                : '0 liều (Chưa có thuốc)'}
+            </strong>
           </div>
           <div className="stat-bar-wrap">
             <div className="stat-bar" style={{ width: `${todayStats.percent}%` }} />
@@ -525,7 +563,17 @@ export function MedicationPage({ api, onBackToChat, onOpenSchedulePage, onConsul
           <div className="stat-icon"><CheckCircle2 size={20} /></div>
           <div className="stat-info">
             <span className="stat-label">Tuân thủ tuần này</span>
-            <strong className="stat-value">{weekStats.rate}% <small>({weekStats.takenDoses}/{weekStats.totalDoses} liều)</small></strong>
+            <strong className="stat-value">
+              {weekStats.totalDoses > 0 ? (
+                <>
+                  {weekStats.rate}% <small>({weekStats.takenDoses}/{weekStats.totalDoses} liều)</small>
+                </>
+              ) : (
+                <>
+                  --% <small>(Chưa có lịch uống)</small>
+                </>
+              )}
+            </strong>
           </div>
         </div>
 
@@ -537,18 +585,68 @@ export function MedicationPage({ api, onBackToChat, onOpenSchedulePage, onConsul
           </div>
         </div>
 
-        <div className="med-sample-actions">
-          <button
-            type="button"
-            className="btn-sample-regimen"
-            onClick={() => handleLoadSample('cardio')}
-            title="Nạp mẫu thuốc Tim mạch & Tiểu đường"
-          >
-            <Sparkles size={14} />
-            <span>Nạp phác đồ mẫu</span>
-          </button>
+        <div className="med-stat-card med-regimen-card">
+          <div className="stat-icon" style={{ background: '#f5f3ff', color: '#7c3aed' }}><Pill size={20} /></div>
+          <div className="stat-info">
+            <span className="stat-label">Tủ thuốc điều trị</span>
+            <strong className="stat-value">{meds.length} <small>cữ thuốc đang theo dõi</small></strong>
+          </div>
         </div>
       </section>
+
+      {/* Empty State Banner when user has 0 meds in DB */}
+      {meds.length === 0 && !loadingMeds && (
+        <div style={{
+          margin: '0 0 20px 0',
+          padding: '24px',
+          background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(99, 102, 241, 0.05))',
+          border: '1px dashed rgba(59, 130, 246, 0.3)',
+          borderRadius: '16px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          textAlign: 'center',
+          gap: '12px'
+        }}>
+          <div style={{
+            width: '48px',
+            height: '48px',
+            borderRadius: '50%',
+            background: 'rgba(59, 130, 246, 0.12)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#3b82f6'
+          }}>
+            <Pill size={24} />
+          </div>
+          <div>
+            <h3 style={{ margin: '0 0 6px 0', fontSize: '1.1rem', fontWeight: 600 }}>Tài khoản của bạn chưa có đơn thuốc nào</h3>
+            <p style={{ margin: 0, color: '#64748b', fontSize: '0.9rem', maxWidth: '520px' }}>
+              Dữ liệu được lấy trực tiếp từ TiDB Cloud theo đúng tài khoản của bạn. Bạn có thể tự thêm cữ thuốc thực tế hoặc nạp đơn mẫu Demo để trải nghiệm các tính năng thời khóa biểu & nhắc lịch.
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: '10px', marginTop: '6px' }}>
+            <button
+              type="button"
+              className="btn-primary-add"
+              onClick={() => openCreateModal('morning')}
+            >
+              <Plus size={16} />
+              <span>Thêm cữ thuốc mới</span>
+            </button>
+            <button
+              type="button"
+              className="btn-sample-regimen"
+              style={{ background: 'rgba(59, 130, 246, 0.1)', borderColor: 'rgba(59, 130, 246, 0.4)', color: '#3b82f6' }}
+              onClick={handleSeedSampleMeds}
+            >
+              <Sparkles size={15} />
+              <span>Nạp đơn thuốc mẫu Demo</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* MAIN VIEW 1: WEEKLY PILL TIMETABLE */}
       {viewMode === 'timetable' ? (
@@ -673,9 +771,15 @@ export function MedicationPage({ api, onBackToChat, onOpenSchedulePage, onConsul
                                   );
                                 })
                               ) : (
-                                <div className="empty-cell-slot">
-                                  <span>—</span>
-                                </div>
+                                <button
+                                  type="button"
+                                  className="med-empty-add-slot-btn"
+                                  onClick={() => openCreateModal(slot.id)}
+                                  title={`Thêm thuốc vào ${slot.label} (${formatDateVietnamese(dateStr)})`}
+                                >
+                                  <Plus size={12} />
+                                  <span>Thêm thuốc</span>
+                                </button>
                               )}
                             </div>
                           </td>
@@ -872,13 +976,20 @@ export function MedicationPage({ api, onBackToChat, onOpenSchedulePage, onConsul
         <div className="modal-backdrop">
           <div className="med-modal-dialog">
             <div className="modal-header">
-              <h2>{modalMode === 'create' ? 'Thêm Cữ Thuốc Mới' : 'Chỉnh Sửa Cữ Thuốc'}</h2>
+              <div className="modal-title-wrap">
+                <Pill size={18} />
+                <h2>{modalMode === 'create' ? 'Thêm Cữ Thuốc Mới' : 'Chỉnh Sửa Cữ Thuốc'}</h2>
+              </div>
               <button type="button" className="btn-close-modal" onClick={() => setModalOpen(false)}>
                 <X size={18} />
               </button>
             </div>
 
             <form onSubmit={handleSaveModal} className="med-form-body">
+              <div className="form-section-divider">
+                <span>1. Định danh dược chất & Liều dùng</span>
+              </div>
+
               <div className="form-row-2">
                 <div className="form-field">
                   <label>Tên thuốc <span className="req">*</span></label>
@@ -923,6 +1034,10 @@ export function MedicationPage({ api, onBackToChat, onOpenSchedulePage, onConsul
                 </div>
               </div>
 
+              <div className="form-section-divider">
+                <span>2. Thời gian uống trong ngày</span>
+              </div>
+
               <div className="form-row-2">
                 <div className="form-field">
                   <label>Cữ uống trong ngày</label>
@@ -948,6 +1063,10 @@ export function MedicationPage({ api, onBackToChat, onOpenSchedulePage, onConsul
                     onChange={(e) => setForm({ ...form, timing: e.target.value })}
                   />
                 </div>
+              </div>
+
+              <div className="form-section-divider">
+                <span>3. Chỉ định & Hướng dẫn y khoa</span>
               </div>
 
               <div className="form-field">
@@ -995,7 +1114,8 @@ export function MedicationPage({ api, onBackToChat, onOpenSchedulePage, onConsul
                   Hủy
                 </button>
                 <button type="submit" className="btn-save">
-                  {modalMode === 'create' ? 'Tạo Cữ Thuốc' : 'Lưu Thay Đổi'}
+                  <Check size={16} />
+                  <span>{modalMode === 'create' ? 'Tạo Cữ Thuốc' : 'Lưu Thay Đổi'}</span>
                 </button>
               </div>
             </form>

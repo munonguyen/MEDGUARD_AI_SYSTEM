@@ -55,49 +55,98 @@ class GeoapifyRouteResult:
 
 
 def translate_step_instruction(text: str, road: str | None = None) -> str:
-    """Translates raw routing instructions into natural Vietnamese instructions."""
+    """Translates raw routing instructions into 100% natural Vietnamese instructions."""
     if not text:
-        return f"Đi tiếp vào {road}" if road else "Tiếp tục di chuyển."
+        return f"Đi tiếp vào {road}." if (road and road != "Đoạn đường di chuyển") else "Tiếp tục di chuyển."
     t = text.strip()
 
+    # Clean fake road names
+    clean_road = road.strip() if road and road.strip() not in ("Đoạn đường di chuyển", "Unnamed road") else None
+
     if "destination is on the left" in t.lower():
-        return "Bạn đã đến nơi. Quầy thuốc GPP nằm ở bên trái của bạn."
+        return "Bạn đã đến nơi. Cơ sở y tế nằm ở bên trái của bạn."
     if "destination is on the right" in t.lower():
-        return "Bạn đã đến nơi. Quầy thuốc GPP nằm ở bên phải của bạn."
+        return "Bạn đã đến nơi. Cơ sở y tế nằm ở bên phải của bạn."
     if "destination" in t.lower():
-        return "Điểm đến (Quầy thuốc GPP) ở ngay phía trước."
+        return "Điểm đến ở ngay phía trước."
     if "arrive" in t.lower():
-        return f"Bạn đã đến nơi: {road or 'Quầy thuốc GPP'}."
+        return f"Bạn đã đến nơi: {clean_road or 'Cơ sở y tế'}."
 
     m_round = re.search(r"take the (\d+)(?:st|nd|rd|th)? exit onto (.+)", t, re.IGNORECASE)
     if m_round:
         return f"Đi vào vòng xuyến, theo lối ra thứ {m_round.group(1)} vào {m_round.group(2).rstrip('.')}."
     if "enter the roundabout" in t.lower():
-        return f"Đi vào vòng xuyến theo hướng {road or 'tuyến đường'}."
+        return f"Đi vào vòng xuyến theo hướng {clean_road or 'tuyến đường'}."
     if "exit the roundabout" in t.lower():
-        return f"Rời vòng xuyến vào {road or 'tuyến đường tiếp theo'}."
+        return f"Rời vòng xuyến vào {clean_road or 'tuyến đường tiếp theo'}."
 
-    m_uturn = re.search(r"make a (?:left|right)?\s*u-turn at (.+?)(?: to stay on (.+))?$", t, re.IGNORECASE)
+    m_uturn = re.search(r"make a (?:left|right)?\s*u-turn(?: at (.+?))?(?: to stay on (.+))?\.?$", t, re.IGNORECASE)
     if m_uturn:
-        at_st = m_uturn.group(1).rstrip(".")
-        stay_st = m_uturn.group(2)
-        return f"Quay đầu xe (chữ U) tại {at_st} để tiếp tục trên {stay_st.rstrip('.')}." if stay_st else f"Quay đầu xe (chữ U) tại {at_st}."
+        at_st = m_uturn.group(1).rstrip(".") if m_uturn.group(1) else None
+        stay_st = m_uturn.group(2).rstrip(".") if m_uturn.group(2) else None
+        if at_st and stay_st:
+            return f"Quay đầu xe (chữ U) tại {at_st} để tiếp tục trên {stay_st}."
+        if at_st:
+            return f"Quay đầu xe (chữ U) tại {at_st}."
+        return "Quay đầu xe (chữ U) tại điểm mở dải phân cách."
 
-    m_tr = re.search(r"turn right onto (.+)", t, re.IGNORECASE)
+    m_sharp_left = re.search(r"^turn sharp left(?: onto (.+))?\.?$", t, re.IGNORECASE)
+    if m_sharp_left:
+        r = m_sharp_left.group(1).rstrip(".") if m_sharp_left.group(1) else clean_road
+        return f"Rẽ ngoặt sang trái vào {r}." if r else "Rẽ ngoặt sang trái."
+
+    m_sharp_right = re.search(r"^turn sharp right(?: onto (.+))?\.?$", t, re.IGNORECASE)
+    if m_sharp_right:
+        r = m_sharp_right.group(1).rstrip(".") if m_sharp_right.group(1) else clean_road
+        return f"Rẽ ngoặt sang phải vào {r}." if r else "Rẽ ngoặt sang phải."
+
+    m_slight_left = re.search(r"^turn slight left(?: onto (.+))?\.?$", t, re.IGNORECASE)
+    if m_slight_left:
+        r = m_slight_left.group(1).rstrip(".") if m_slight_left.group(1) else clean_road
+        return f"Chếch nhẹ sang trái vào {r}." if r else "Chếch nhẹ sang trái."
+
+    m_slight_right = re.search(r"^turn slight right(?: onto (.+))?\.?$", t, re.IGNORECASE)
+    if m_slight_right:
+        r = m_slight_right.group(1).rstrip(".") if m_slight_right.group(1) else clean_road
+        return f"Chếch nhẹ sang phải vào {r}." if r else "Chếch nhẹ sang phải."
+
+    m_tr = re.search(r"^turn right(?: onto (.+))?\.?$", t, re.IGNORECASE)
     if m_tr:
-        return f"Rẽ phải vào {m_tr.group(1).rstrip('.')}."
-    m_tl = re.search(r"turn left onto (.+)", t, re.IGNORECASE)
+        r = m_tr.group(1).rstrip(".") if m_tr.group(1) else clean_road
+        return f"Rẽ phải vào {r}." if r else "Rẽ phải."
+
+    m_tl = re.search(r"^turn left(?: onto (.+))?\.?$", t, re.IGNORECASE)
     if m_tl:
-        return f"Rẽ trái vào {m_tl.group(1).rstrip('.')}."
+        r = m_tl.group(1).rstrip(".") if m_tl.group(1) else clean_road
+        return f"Rẽ trái vào {r}." if r else "Rẽ trái."
 
-    m_kr = re.search(r"keep right(?: onto (.+))?", t, re.IGNORECASE)
+    m_stay = re.search(r"^keep (right|left) to stay on (.+)\.?$", t, re.IGNORECASE)
+    if m_stay:
+        side = "bên phải" if m_stay.group(1).lower() == "right" else "bên trái"
+        return f"Đi sát làn {side} để tiếp tục trên {m_stay.group(2).rstrip('.')}."
+
+    m_kr = re.search(r"^keep right(?: onto (.+))?\.?$", t, re.IGNORECASE)
     if m_kr:
-        return f"Đi chếch sang phải vào {m_kr.group(1).rstrip('.')}." if m_kr.group(1) else "Đi chếch sang phải."
-    m_kl = re.search(r"keep left(?: onto (.+))?", t, re.IGNORECASE)
-    if m_kl:
-        return f"Đi chếch sang trái vào {m_kl.group(1).rstrip('.')}." if m_kl.group(1) else "Đi chếch sang trái."
+        r = m_kr.group(1).rstrip(".") if m_kr.group(1) else clean_road
+        return f"Đi sát làn bên phải vào {r}." if r else "Đi sát làn bên phải."
 
-    m_drive = re.search(r"drive (northeast|northwest|southeast|southwest|north|south|east|west)", t, re.IGNORECASE)
+    m_kl = re.search(r"^keep left(?: onto (.+))?\.?$", t, re.IGNORECASE)
+    if m_kl:
+        r = m_kl.group(1).rstrip(".") if m_kl.group(1) else clean_road
+        return f"Đi sát làn bên trái vào {r}." if r else "Đi sát làn bên trái."
+
+    m_head = re.search(r"^head (northeast|northwest|southeast|southwest|north|south|east|west)(?: on (.+))?\.?$", t, re.IGNORECASE)
+    if m_head:
+        dirs = {
+            "northeast": "hướng Đông Bắc", "northwest": "hướng Tây Bắc",
+            "southeast": "hướng Đông Nam", "southwest": "hướng Tây Nam",
+            "north": "hướng Bắc", "south": "hướng Nam", "east": "hướng Đông", "west": "hướng Tây"
+        }
+        dn = dirs.get(m_head.group(1).lower(), m_head.group(1))
+        r = m_head.group(2).rstrip(".") if m_head.group(2) else clean_road
+        return f"Đi thẳng về {dn}{(' trên ' + r) if r else ''}."
+
+    m_drive = re.search(r"^drive (northeast|northwest|southeast|southwest|north|south|east|west)(?: on (.+))?\.?$", t, re.IGNORECASE)
     if m_drive:
         dirs = {
             "northeast": "hướng Đông Bắc", "northwest": "hướng Tây Bắc",
@@ -105,17 +154,21 @@ def translate_step_instruction(text: str, road: str | None = None) -> str:
             "north": "phía Bắc", "south": "phía Nam", "east": "phía Đông", "west": "phía Tây"
         }
         dn = dirs.get(m_drive.group(1).lower(), m_drive.group(1))
-        return f"Đi thẳng về {dn}{(' trên ' + road) if road else ''}."
+        r = m_drive.group(2).rstrip(".") if m_drive.group(2) else clean_road
+        return f"Đi thẳng về {dn}{(' trên ' + r) if r else ''}."
 
-    m_cont = re.search(r"continue onto (.+)", t, re.IGNORECASE)
+    m_cont = re.search(r"^continue(?: straight)?(?: onto (.+))?\.?$", t, re.IGNORECASE)
     if m_cont:
-        return f"Tiếp tục đi thẳng trên {m_cont.group(1).rstrip('.')}."
+        r = m_cont.group(1).rstrip(".") if m_cont.group(1) else clean_road
+        return f"Tiếp tục đi thẳng trên {r}." if r else "Tiếp tục đi thẳng."
 
-    m_ramp = re.search(r"stay straight to take the (.+) ramp", t, re.IGNORECASE)
+    m_ramp = re.search(r"stay straight to take the (.+) ramp\.?$", t, re.IGNORECASE)
     if m_ramp:
         return f"Đi thẳng lên đường dẫn {m_ramp.group(1).rstrip('.')}."
 
-    return t
+    # Strip any dangling "vào Đoạn đường di chuyển"
+    res = t.replace("vào Đoạn đường di chuyển", "").strip()
+    return res
 
 
 class GeoapifyClient:
@@ -347,22 +400,54 @@ class GeoapifyClient:
         except Exception as e:
             logger.warning(f"Geoapify routing API failed: {e}")
 
-        return None
-
-    def reverse_geocode(self, lat: float, lon: float) -> str | None:
-        """Reverse geocode coordinates to human-readable street address."""
-        url = f"https://api.geoapify.com/v1/geocode/reverse?lat={lat}&lon={lon}&apiKey={self.api_key}"
+    def get_ip_info(self, ip: str = "") -> dict[str, Any]:
+        """Lookup IP geolocation and sanitize to Vietnam boundaries."""
+        url = f"https://api.geoapify.com/v1/ipinfo?apiKey={self.api_key}"
+        if ip and ip not in ("127.0.0.1", "localhost", "::1", "testclient"):
+            url += f"&ip={urllib.parse.quote(ip)}"
         try:
             with httpx.Client(timeout=self.timeout) as client:
                 res = client.get(url)
                 if res.status_code == 200:
                     data = res.json()
-                    features = data.get("features", [])
-                    if features:
-                        return features[0].get("properties", {}).get("formatted")
+                    country_code = (data.get("country", {}).get("iso_code") or "").upper()
+                    # If foreign IP (e.g., Tokyo, AWS US, etc.), do NOT blend foreign coordinates with Vietnam cities!
+                    if country_code and country_code != "VN":
+                        return {
+                            "city": "hanoi",
+                            "name": "Đang định vị vị trí thực của bạn",
+                            "address": "Phố Bà La, Phường Đình Bảng, TP. Từ Sơn, Bắc Ninh",
+                            "lat": 21.1078,
+                            "lng": 105.9561,
+                            "isForeignIpFallback": True,
+                        }
+                    city_name = data.get("city", {}).get("name") or "Đình Bảng, Từ Sơn"
+                    loc = data.get("location", {})
+                    lat = float(loc.get("latitude", 21.1078))
+                    lng = float(loc.get("longitude", 105.9561))
+                    city_id = "hanoi"
+                    if lat < 14.5:
+                        city_id = "hcm"
+                    elif lat < 17.5:
+                        city_id = "danang"
+                    return {
+                        "city": city_id,
+                        "name": f"Vị trí mạng ({city_name})",
+                        "address": city_name,
+                        "lat": lat,
+                        "lng": lng,
+                        "isForeignIpFallback": False,
+                    }
         except Exception as e:
-            logger.warning(f"Geoapify reverse geocode failed for ({lat}, {lon}): {e}")
-        return None
+            logger.warning(f"Geoapify ipinfo lookup failed: {e}")
+        return {
+            "city": "hanoi",
+            "name": "Vị trí thực tế của bạn",
+            "address": "Phố Bà La, Phường Đình Bảng, TP. Từ Sơn, Bắc Ninh",
+            "lat": 21.1078,
+            "lng": 105.9561,
+            "isForeignIpFallback": True,
+        }
 
 
 # Global singleton client

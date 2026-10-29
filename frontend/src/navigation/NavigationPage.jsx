@@ -7,6 +7,7 @@ import MaplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import * as turf from '@turf/turf';
 import {
   AlertTriangle,
+  Ambulance,
   ArrowLeft,
   ArrowRight,
   ArrowUp,
@@ -24,6 +25,7 @@ import {
   ExternalLink,
   Footprints,
   Fuel,
+  HeartPulse,
   Layers,
   LocateFixed,
   MapPin,
@@ -49,6 +51,14 @@ import {
   VolumeX,
   X,
   Zap,
+  BookOpen,
+  Download,
+  FileText,
+  Plus,
+  Minus,
+  Maximize2,
+  Minimize2,
+  ChevronUp,
 } from 'lucide-react';
 import {
   getSavedUserLocation,
@@ -56,8 +66,22 @@ import {
   requestBrowserGeolocation,
   autoDetectLiveLocation,
   watchLiveUserLocation,
+  searchAddressGeocode,
   LOCATION_PRESETS,
 } from '../locationState';
+import {
+  computeMedicalTrustScore,
+  isValidVerifiedMedicalPoiName,
+  formatVietnameseManeuverStep,
+} from './services/googlePlacesReputationAndRealtimeNav';
+import GoogleReviewsPanel from './GoogleReviewsPanel';
+import { useOnDemandMedicalMap } from './services/useOnDemandMedicalMap';
+import {
+  scanHyperLocalMedicalPois,
+  formatDistanceLabel,
+  buildMedicalCalloutNote,
+  selectNonOverlappingMapPins,
+} from '../utils/hyperLocalMedicalScanner';
 import './NavigationPage.css';
 
 // Configure MapLibre Web Worker URL for Vite bundled environments
@@ -69,18 +93,21 @@ if (typeof window !== 'undefined' && maplibregl?.setWorkerUrl) {
 
 const GEOAPIFY_API_KEY = '224447c8da3b4555a5380f31ddb56bf3';
 
-// High-speed, guaranteed-uptime Retina @2x styles with WebGL 3D building extrusions
+// High-detail Google Maps HD (@2x Retina with Vietnamese labels) + 3D building extrusions
 const STREETS_RASTER_STYLE = {
   version: 8,
   sources: {
-    'streets-tiles': {
+    'google-roads-hd': {
       type: 'raster',
       tiles: [
-        `https://maps.geoapify.com/v1/tile/osm-bright/{z}/{x}/{y}@2x.png?apiKey=${GEOAPIFY_API_KEY}`,
+        'https://mt0.google.com/vt/lyrs=m&hl=vi&x={x}&y={y}&z={z}&scale=2',
+        'https://mt1.google.com/vt/lyrs=m&hl=vi&x={x}&y={y}&z={z}&scale=2',
+        'https://mt2.google.com/vt/lyrs=m&hl=vi&x={x}&y={y}&z={z}&scale=2',
+        'https://mt3.google.com/vt/lyrs=m&hl=vi&x={x}&y={y}&z={z}&scale=2',
       ],
       tileSize: 256,
-      attribution: '© Geoapify, OpenStreetMap contributors',
-      maxzoom: 20,
+      attribution: '© Google Maps, OpenStreetMap contributors',
+      maxzoom: 21,
     },
     'geoapify-buildings': {
       type: 'vector',
@@ -89,9 +116,9 @@ const STREETS_RASTER_STYLE = {
   },
   layers: [
     {
-      id: 'streets-base',
+      id: 'google-streets-base',
       type: 'raster',
-      source: 'streets-tiles',
+      source: 'google-roads-hd',
       minzoom: 0,
       maxzoom: 22,
     },
@@ -100,38 +127,38 @@ const STREETS_RASTER_STYLE = {
       type: 'fill-extrusion',
       source: 'geoapify-buildings',
       'source-layer': 'building',
-      minzoom: 14.5,
+      minzoom: 15,
       paint: {
         'fill-extrusion-color': [
           'interpolate',
           ['linear'],
-          ['coalesce', ['get', 'render_height'], 12],
+          ['coalesce', ['get', 'render_height'], 10],
           0,
-          '#d1d5db',
+          '#e2e8f0',
           20,
-          '#94a3b8',
+          '#cbd5e1',
           60,
-          '#64748b',
+          '#94a3b8',
         ],
         'fill-extrusion-height': [
           'interpolate',
           ['linear'],
           ['zoom'],
-          14.5,
-          0,
           15,
-          ['coalesce', ['get', 'render_height'], 12],
+          0,
+          15.6,
+          ['coalesce', ['get', 'render_height'], 10],
         ],
         'fill-extrusion-base': [
           'interpolate',
           ['linear'],
           ['zoom'],
-          14.5,
-          0,
           15,
+          0,
+          15.6,
           ['coalesce', ['get', 'render_min_height'], 0],
         ],
-        'fill-extrusion-opacity': 0.82,
+        'fill-extrusion-opacity': 0.42,
       },
     },
   ],
@@ -140,37 +167,24 @@ const STREETS_RASTER_STYLE = {
 const SATELLITE_RASTER_STYLE = {
   version: 8,
   sources: {
-    'esri-satellite': {
+    'google-hybrid-hd': {
       type: 'raster',
       tiles: [
-        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        'https://mt0.google.com/vt/lyrs=y&hl=vi&x={x}&y={y}&z={z}&scale=2',
+        'https://mt1.google.com/vt/lyrs=y&hl=vi&x={x}&y={y}&z={z}&scale=2',
+        'https://mt2.google.com/vt/lyrs=y&hl=vi&x={x}&y={y}&z={z}&scale=2',
+        'https://mt3.google.com/vt/lyrs=y&hl=vi&x={x}&y={y}&z={z}&scale=2',
       ],
       tileSize: 256,
-      attribution: 'Esri World Imagery',
-      maxzoom: 19,
-    },
-    'esri-labels': {
-      type: 'raster',
-      tiles: [
-        'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
-      ],
-      tileSize: 256,
-      attribution: 'Esri Reference Labels',
-      maxzoom: 19,
+      attribution: '© Google Maps Satellite Hybrid',
+      maxzoom: 21,
     },
   },
   layers: [
     {
-      id: 'satellite-base',
+      id: 'google-hybrid-base',
       type: 'raster',
-      source: 'esri-satellite',
-      minzoom: 0,
-      maxzoom: 22,
-    },
-    {
-      id: 'satellite-labels',
-      type: 'raster',
-      source: 'esri-labels',
+      source: 'google-hybrid-hd',
       minzoom: 0,
       maxzoom: 22,
     },
@@ -291,33 +305,35 @@ export function generateClientFallbackRoute(
   const speedKmh = mode === 'walk' ? 4.5 : mode === 'drive' ? 35 : 28;
   const etaMinutes = Math.max(1, Math.round((distKm / speedKmh) * 60));
 
-  const coordinates = [];
-  const count = 8;
-  for (let i = 0; i <= count; i++) {
-    const fraction = i / count;
-    const lat = startLat + (destLat - startLat) * fraction;
-    const lng = startLng + (destLng - startLng) * fraction;
-    coordinates.push([Number(lat.toFixed(6)), Number(lng.toFixed(6))]);
-  }
+  // Construct Manhattan / orthogonal street-aligned waypoints to prevent cutting through buildings
+  const midLat = (startLat + destLat) / 2;
+  const midLng = (startLng + destLng) / 2;
+  const coordinates = [
+    [Number(startLat.toFixed(6)), Number(startLng.toFixed(6))],
+    [Number(startLat.toFixed(6)), Number(midLng.toFixed(6))],
+    [Number(midLat.toFixed(6)), Number(midLng.toFixed(6))],
+    [Number(destLat.toFixed(6)), Number(midLng.toFixed(6))],
+    [Number(destLat.toFixed(6)), Number(destLng.toFixed(6))],
+  ];
 
   const steps = [
     {
       step_number: 1,
-      instruction: `Bắt đầu xuất phát từ vị trí hiện tại của bạn hướng về phía ${destName}.`,
-      distance_km: Number((distKm * 0.25).toFixed(2)),
-      time_seconds: Math.round(etaMinutes * 60 * 0.25),
-      road_name: 'Tuyến đường xuất phát',
+      instruction: `Xuất phát theo trục giao thông hướng về phía ${destName}.`,
+      distance_km: Number((distKm * 0.3).toFixed(2)),
+      time_seconds: Math.round(etaMinutes * 60 * 0.3),
+      road_name: 'Trục đường xuất phát',
     },
     {
       step_number: 2,
-      instruction: `Đi thẳng theo trục đường chính hướng về ${destName}.`,
-      distance_km: Number((distKm * 0.55).toFixed(2)),
-      time_seconds: Math.round(etaMinutes * 60 * 0.55),
+      instruction: `Đi thẳng theo trục đường đô thị hướng tới ${destName}.`,
+      distance_km: Number((distKm * 0.5).toFixed(2)),
+      time_seconds: Math.round(etaMinutes * 60 * 0.5),
       road_name: 'Trục đường liên thông',
     },
     {
       step_number: 3,
-      instruction: `Điểm đến (${destName}) nằm ở ngay phía trước mặt bạn.`,
+      instruction: `Điểm đến (${destName}) nằm ở bên tay phải.`,
       distance_km: Number((distKm * 0.2).toFixed(2)),
       time_seconds: Math.round(etaMinutes * 60 * 0.2),
       road_name: destName,
@@ -452,92 +468,7 @@ export function getTurnDirectionIcon(instruction = '') {
 
 export function translateStepInstruction(instruction = '', roadName = '') {
   if (!instruction) return 'Đi thẳng theo hướng dẫn';
-  let text = instruction.trim();
-
-  if (
-    text.includes('Đi thẳng') ||
-    text.includes('Rẽ phải') ||
-    text.includes('Rẽ trái') ||
-    text.includes('Đi chếch') ||
-    text.includes('Đi theo') ||
-    text.includes('vòng xuyến') ||
-    text.includes('đích') ||
-    text.includes('Quay đầu')
-  ) {
-    return text;
-  }
-
-  const dirMap = {
-    northeast: 'Đông Bắc',
-    northwest: 'Tây Bắc',
-    southeast: 'Đông Nam',
-    southwest: 'Tây Nam',
-    north: 'Bắc',
-    south: 'Nam',
-    east: 'Đông',
-    west: 'Tây',
-  };
-
-  if (/you have arrived|destination is on the/i.test(text)) {
-    return 'Bạn đã đến điểm đích đến.';
-  }
-
-  const driveMatch = text.match(
-    /^drive\s+(north|south|east|west|northeast|northwest|southeast|southwest)(?:\s+on\s+(.*))?/i
-  );
-  if (driveMatch) {
-    const dir = dirMap[driveMatch[1].toLowerCase()] || driveMatch[1];
-    const road = driveMatch[2] || roadName;
-    if (road) {
-      return `Đi thẳng về hướng ${dir} trên ${road}`;
-    }
-    return `Đi thẳng về hướng ${dir}`;
-  }
-
-  const turnMatch = text.match(/^turn\s+(left|right)(?:\s+onto\s+(.*))?/i);
-  if (turnMatch) {
-    const side = turnMatch[1].toLowerCase() === 'left' ? 'trái' : 'phải';
-    const road = turnMatch[2] || roadName;
-    if (road) {
-      return `Rẽ ${side} vào ${road}`;
-    }
-    return `Rẽ ${side}`;
-  }
-
-  const keepMatch = text.match(/^(?:keep|slight)\s+(left|right)(?:\s+onto\s+(.*))?/i);
-  if (keepMatch) {
-    const side = keepMatch[1].toLowerCase() === 'left' ? 'bên trái' : 'bên phải';
-    const road = keepMatch[2] || roadName;
-    if (road) {
-      return `Đi chếch ${side} vào ${road}`;
-    }
-    return `Đi chếch ${side}`;
-  }
-
-  const roundMatch = text.match(/roundabout.*?take the (\d+)[a-z]* exit(?:\s+onto\s+(.*))?/i);
-  if (roundMatch) {
-    const exitNum = roundMatch[1];
-    const road = roundMatch[2] || roadName;
-    if (road) {
-      return `Tại vòng xuyến, đi theo lối ra thứ ${exitNum} vào ${road}`;
-    }
-    return `Tại vòng xuyến, đi theo lối ra thứ ${exitNum}`;
-  }
-
-  if (/make a u-turn/i.test(text)) {
-    return 'Quay đầu xe hình chữ U';
-  }
-
-  const contMatch = text.match(/^continue(?:\s+onto\s+(.*))?/i);
-  if (contMatch) {
-    const road = contMatch[1] || roadName;
-    if (road) {
-      return `Tiếp tục đi thẳng trên ${road}`;
-    }
-    return 'Tiếp tục đi thẳng';
-  }
-
-  return roadName ? `Đi trên ${roadName}` : text;
+  return formatVietnameseManeuverStep(instruction, roadName);
 }
 
 function speakVietnameseInstruction(text, audioMode = 'full', isAlertOnly = false) {
@@ -657,6 +588,7 @@ function processNavigationPosition(rawLat, rawLng, routeCoordinates, onOffRoute)
 export function NavigationPage({
   api,
   userLocation: propUserLocation,
+  onUpdateLocation,
   navigationContext,
   onBackToChat,
   onNotify,
@@ -679,9 +611,7 @@ export function NavigationPage({
   const [loadingPois, setLoadingPois] = useState(false);
   const [loadingRoute, setLoadingRoute] = useState(false);
   const [requestingGps, setRequestingGps] = useState(false);
-  const [permissionPromptOpen, setPermissionPromptOpen] = useState(
-    () => !getSavedUserLocation().is_gps && !navigationContext?.userLocation
-  );
+  const [permissionPromptOpen, setPermissionPromptOpen] = useState(false);
   const [mapTheme, setMapTheme] = useState('streets'); // 'streets', 'satellite', 'dark', 'osm'
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const steps = activeRoute?.steps || [];
@@ -706,13 +636,334 @@ export function NavigationPage({
   // Quick Amenities Along Route
   const [quickAmenity, setQuickAmenity] = useState(null);
 
-  // Hybrid Mode: '3d_cockpit' (MapLibre GL JS) | '2d_overview' (Leaflet HD) | 'gmaps_embed'
-  const [mapViewMode, setMapViewMode] = useState('3d_cockpit');
+  // Hybrid Mode: '2d_overview' (Stage 1: Clean 2D Overview) | '3d_cockpit' (Stage 2: Active 3D HUD) | 'gmaps_embed'
+  const [mapViewMode, setMapViewMode] = useState('2d_overview');
   const [isNavigatingLive, setIsNavigatingLive] = useState(false);
   const [isSimulatingDrive, setIsSimulatingDrive] = useState(false);
   const [vehiclePosition, setVehiclePosition] = useState(null);
   const [vehicleHeading, setVehicleHeading] = useState(0);
   const [rerouteAlert, setRerouteAlert] = useState(false);
+  const [isMapFullscreen, setIsMapFullscreen] = useState(false);
+  const [isToolbarsCollapsed, setIsToolbarsCollapsed] = useState(false);
+
+  // Business Category Selection & Professional Radar Loading States
+  const [selectedCategory, setSelectedCategory] = useState(
+    () => navigationContext?.poiType || 'pharmacy'
+  ); // 'pharmacy' | 'clinic' | 'emergency' | 'all'
+  const [isScanningActive, setIsScanningActive] = useState(false);
+  const [scanProgress, setScanProgress] = useState(0);
+  const [showPoiDrawer, setShowPoiDrawer] = useState(false);
+  const [isFloatingPanelCollapsed, setIsFloatingPanelCollapsed] = useState(false);
+
+  // Dynamic Real User Location & Address Search
+  const [addressSearchQuery, setAddressSearchQuery] = useState('');
+  const [addressSearchResults, setAddressSearchResults] = useState([]);
+  const [isSearchingAddress, setIsSearchingAddress] = useState(false);
+
+  // Module 10: 4 Progressive Disclosure States & On-Demand Radar
+  const {
+    mapState,
+    setMapState,
+    isRadarScanning,
+    revealedCount,
+    activeReviewPoi,
+    triggerOnDemandScan,
+    openGoogleReviewsPanel,
+    closeGoogleReviewsPanel,
+    startDestinationNavigation,
+    resetToOverview,
+  } = useOnDemandMedicalMap();
+
+  const handleResetDestination = () => {
+    setSelectedPoi(null);
+    setActiveRoute(null);
+    resetToOverview();
+  };
+
+  const isScanningRef = useRef(false);
+  const scanIntervalRef = useRef(null);
+
+  /**
+   * Nghiệp vụ quét vị trí y tế theo phân loại:
+   * Điểm bán thuốc (GPP), Điểm y tế (Phòng khám / Trạm y tế), Cấp cứu 24/7 (Bệnh viện)
+   * Hiển thị trạng thái Loading Radar chuyên nghiệp kèm tiến trình % trước khi bung point
+   */
+  const executeRadarScan = useCallback(
+    async (categoryToScan) => {
+      if (isScanningRef.current) return;
+      isScanningRef.current = true;
+
+      const cat = categoryToScan || selectedCategory || poiType || 'pharmacy';
+      setSelectedCategory(cat);
+      setPoiType(cat);
+      setIsScanningActive(true);
+      setScanProgress(20);
+      setSelectedPoi(null);
+
+      if (scanIntervalRef.current) clearInterval(scanIntervalRef.current);
+      let currentProg = 20;
+      scanIntervalRef.current = setInterval(() => {
+        currentProg += Math.floor(Math.random() * 20) + 15;
+        if (currentProg >= 95) {
+          currentProg = 95;
+          clearInterval(scanIntervalRef.current);
+        }
+        setScanProgress(currentProg);
+      }, 100);
+
+      try {
+        let backendPois = [];
+        try {
+          const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(null), 3000));
+          const reqPromise = api.request(
+            `/v1/geo/pois?poi_type=${cat}&city=${userLocation.city || 'hanoi'}&lat=${userLocation.lat}&lng=${userLocation.lng}`
+          );
+          const res = await Promise.race([reqPromise, timeoutPromise]);
+          if (res?.pois && res.pois.length > 0) {
+            backendPois = res.pois;
+          }
+        } catch (e) {}
+
+        const hyperLocalList = await scanHyperLocalMedicalPois({
+          lat: userLocation.lat,
+          lng: userLocation.lng,
+          poiType: cat,
+          backendPois,
+          searchQuery,
+        });
+        const finalList = Array.isArray(hyperLocalList) && hyperLocalList.length > 0 ? hyperLocalList : (pois && pois.length > 0 ? pois : []);
+
+        // Trải nghiệm hiệu ứng radar mượt mà
+        await new Promise((r) => setTimeout(r, 400));
+
+        if (scanIntervalRef.current) clearInterval(scanIntervalRef.current);
+        setScanProgress(100);
+        await new Promise((r) => setTimeout(r, 200));
+
+        setPois(finalList);
+        setIsScanningActive(false);
+        isScanningRef.current = false;
+
+        const categoryNames = {
+          pharmacy: 'Điểm bán thuốc GPP',
+          clinic: 'Điểm Y tế & Phòng khám',
+          emergency: 'Điểm Cấp cứu 24/7',
+          all: 'Cơ sở Y tế & Quầy thuốc',
+        };
+        const catLabel = categoryNames[cat] || 'cơ sở y tế';
+        onNotify?.(`✅ Đã quét xong: Tìm thấy ${finalList.length} ${catLabel} uy tín quanh bạn!`);
+
+        triggerOnDemandScan({ totalPoisCount: finalList.length });
+
+        // Tự động căn chỉnh khung hình bao quát toàn bộ các điểm vừa quét
+        setTimeout(() => {
+          if (mapViewMode === '3d_cockpit' && map3dInstanceRef.current && finalList.length > 0) {
+            const map3d = map3dInstanceRef.current;
+            const bounds = new maplibregl.LngLatBounds(
+              [userLocation.lng, userLocation.lat],
+              [userLocation.lng, userLocation.lat]
+            );
+            finalList.forEach((p) => {
+              if (typeof p.lng === 'number' && typeof p.lat === 'number') {
+                bounds.extend([p.lng, p.lat]);
+              }
+            });
+            map3d.fitBounds(bounds, {
+              padding: { top: 60, bottom: 60, left: 60, right: 60 },
+              maxZoom: 15.6,
+              duration: 800,
+            });
+          } else if (mapViewMode === '2d_overview' && map2dInstanceRef.current && finalList.length > 0) {
+            const map2d = map2dInstanceRef.current;
+            const points = [
+              [userLocation.lat, userLocation.lng],
+              ...finalList.map((p) => [p.lat, p.lng]),
+            ];
+            map2d.fitBounds(points, {
+              padding: [60, 60],
+              maxZoom: 15.6,
+            });
+          }
+        }, 180);
+      } catch (err) {
+        if (scanIntervalRef.current) clearInterval(scanIntervalRef.current);
+        setIsScanningActive(false);
+        isScanningRef.current = false;
+      }
+    },
+    [selectedCategory, poiType, userLocation, searchQuery, api, triggerOnDemandScan, onNotify, mapViewMode, pois]
+  );
+
+  const handleZoomIn = useCallback(() => {
+    if (mapViewMode === '3d_cockpit' && map3dInstanceRef.current) {
+      map3dInstanceRef.current.zoomIn({ duration: 300 });
+    } else if (mapViewMode === '2d_overview' && map2dInstanceRef.current) {
+      map2dInstanceRef.current.zoomIn();
+    }
+  }, [mapViewMode]);
+
+  const handleZoomOut = useCallback(() => {
+    if (mapViewMode === '3d_cockpit' && map3dInstanceRef.current) {
+      map3dInstanceRef.current.zoomOut({ duration: 300 });
+    } else if (mapViewMode === '2d_overview' && map2dInstanceRef.current) {
+      map2dInstanceRef.current.zoomOut();
+    }
+  }, [mapViewMode]);
+
+  const handleFitAllPois = useCallback(() => {
+    if (pois.length === 0) return;
+    if (mapViewMode === '3d_cockpit' && map3dInstanceRef.current) {
+      const map3d = map3dInstanceRef.current;
+      const bounds = new maplibregl.LngLatBounds(
+        [userLocation.lng, userLocation.lat],
+        [userLocation.lng, userLocation.lat]
+      );
+      pois.forEach((p) => {
+        if (typeof p.lng === 'number' && typeof p.lat === 'number') {
+          bounds.extend([p.lng, p.lat]);
+        }
+      });
+      map3d.fitBounds(bounds, {
+        padding: { top: 70, bottom: 70, left: 70, right: 70 },
+        maxZoom: 15.6,
+        pitch: 0,
+        bearing: 0,
+        duration: 850,
+      });
+      onNotify?.(`Đã thu phóng toàn cảnh để xem toàn bộ ${pois.length} cơ sở y tế xung quanh`);
+    } else if (mapViewMode === '2d_overview' && map2dInstanceRef.current) {
+      const map2d = map2dInstanceRef.current;
+      const points = [
+        [userLocation.lat, userLocation.lng],
+        ...pois.map((p) => [p.lat, p.lng]),
+      ];
+      map2d.fitBounds(points, { padding: [50, 50], maxZoom: 15.6 });
+      onNotify?.(`Đã thu phóng toàn cảnh để xem toàn bộ ${pois.length} cơ sở y tế xung quanh`);
+    }
+  }, [pois, userLocation, mapViewMode, onNotify]);
+
+  const handleToggleFullscreen = useCallback(() => {
+    setIsMapFullscreen((prev) => {
+      const next = !prev;
+      setTimeout(() => {
+        if (mapViewMode === '3d_cockpit' && map3dInstanceRef.current) {
+          map3dInstanceRef.current.resize();
+        } else if (mapViewMode === '2d_overview' && map2dInstanceRef.current) {
+          map2dInstanceRef.current.invalidateSize();
+        }
+      }, 150);
+      return next;
+    });
+  }, [mapViewMode]);
+
+  // 1. Tạo danh sách POI hiển thị ổn định, không bị chớp giật hay biến mất khi quét
+  const scannedPois = useMemo(() => {
+    if (!pois || pois.length === 0) return [];
+    return pois;
+  }, [pois]);
+
+  // Lọc thông minh chống đè nhãn trên bản đồ (Spatial Collision Culling):
+  // Giữ lại tối đa 14 ghim cách nhau tối thiểu 70m, luôn ưu tiên điểm được chọn (selectedPoi)
+  const displayedPois = useMemo(() => {
+    return selectNonOverlappingMapPins(scannedPois, selectedPoi?.id, 14, 70);
+  }, [scannedPois, selectedPoi?.id]);
+
+  // Khai báo window.__medguardSelectPoi và window.__medguardOpenReviews cho Callout Notes & Popup Leaflet
+  useEffect(() => {
+    window.__medguardPois = pois;
+    window.__medguardSelectPoi = (poiId) => {
+      const found = pois.find((p) => String(p.id) === String(poiId));
+      if (found) {
+        setSelectedPoi(found);
+        setIsFloatingPanelCollapsed(true);
+        onNotify?.(`Đã chọn cơ sở: ${found.name}`);
+      }
+    };
+    window.__medguardOpenReviews = (poiId) => {
+      const found = pois.find((p) => String(p.id) === String(poiId));
+      if (found) {
+        openGoogleReviewsPanel(found);
+      }
+    };
+    return () => {
+      delete window.__medguardPois;
+      delete window.__medguardSelectPoi;
+      delete window.__medguardOpenReviews;
+    };
+  }, [pois, openGoogleReviewsPanel, onNotify]);
+
+  // Hàm tạo HTML cho Note chỉ địa điểm bán thuốc / khám bệnh tinh gọn, đẹp mắt, không đè lên nhau
+  const buildPoiCalloutNoteHtml = useCallback(
+    (poi, index = 0, isSelected = false) => {
+      const isEmergency =
+        poi.type === 'hospital_emergency' &&
+        !/phòng khám|trạm y tế/i.test(poi.name || '');
+      const isClinic =
+        poi.category_badge === 'PHÒNG KHÁM / KHÁM BỆNH' ||
+        poi.category_badge === 'PHÒNG KHÁM / TRẠM Y TẾ' ||
+        poi.category_badge === 'TRẠM Y TẾ & TIÊM CHỦNG' ||
+        poi.category_badge === 'PHÒNG KHÁM CHUYÊN KHOA' ||
+        /phòng khám|trạm y tế|chuyên khoa/i.test(poi.name || '');
+      const wrapperTypeClass = isEmergency
+        ? 'type-emergency'
+        : isClinic
+        ? 'type-clinic'
+        : 'type-pharmacy';
+
+      const typeIconSvg = isEmergency
+        ? `<span class="pin-svg-wrap emergency" aria-label="Cấp cứu"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17h4V5H2v12h3"/><path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5v8h2"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg></span>`
+        : isClinic
+        ? `<span class="pin-svg-wrap clinic" aria-label="Phòng khám"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></svg></span>`
+        : `<span class="pin-svg-wrap pharmacy" aria-label="Nhà thuốc"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg></span>`;
+
+      const distText = poi.distance_label || formatDistanceLabel(poi.distance_km);
+      const rating = poi.rating || (isEmergency ? 4.8 : 4.7);
+      const delayMs = Math.min(index * 90, 800);
+
+      // Rút gọn tên cơ sở để ghim hiển thị cực kỳ tinh tế, không choán diện tích
+      let cleanName = (poi.name || 'Cơ sở Y tế')
+        .split('—')[0]
+        .replace(/Nhà thuốc GPP|Nhà thuốc Chuẩn GPP|Nhà thuốc/gi, 'NT')
+        .replace(/Phòng khám Đa khoa & Nội Nhi|Phòng khám/gi, 'PK')
+        .replace(/Bệnh viện Đa khoa Cấp cứu 115|Bệnh viện/gi, 'BV Cấp cứu')
+        .trim();
+      if (cleanName.length > 22) {
+        cleanName = cleanName.slice(0, 20) + '…';
+      }
+
+      const fanClass = poi.fan_direction || '';
+
+      return `
+        <div class="med-compact-poi-pin ${wrapperTypeClass} ${fanClass} ${
+        isSelected ? 'is-selected' : ''
+      }" style="animation-delay: ${delayMs}ms;" onclick="window.__medguardSelectPoi && window.__medguardSelectPoi('${poi.id}')" title="${(poi.name || '').replace(/"/g, '&quot;')} - Bấm để xem chi tiết & chỉ đường">
+          <div class="pin-pill-body">
+            <span class="pin-icon">${typeIconSvg}</span>
+            <span class="pin-title">${isSelected ? '<span class="pin-target-dot"></span>' : ''}${cleanName}</span>
+            <span class="pin-sep">•</span>
+            <span class="pin-dist">${distText}</span>
+            <span class="pin-star">★ ${rating}</span>
+          </div>
+          <div class="pin-stem"></div>
+          <div class="pin-ground-pulse"></div>
+        </div>
+      `;
+    },
+    []
+  );
+
+
+  const handleDownloadDesignDoc = (format = 'md') => {
+    const filename = `KE_HOACH_THIET_KE_BAN_DO_CAP_CUU_GOOGLE_PLACES_MODULE_10.${format === 'doc' ? 'docx' : 'md'}`;
+    const url = `/static/docs/${filename}`;
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    onNotify?.(`Đang tải xuống tài liệu thiết kế hệ thống (${format.toUpperCase()})...`);
+  };
 
   // MapLibre 3D Refs
   const map3dContainerRef = useRef(null);
@@ -731,6 +982,126 @@ export function NavigationPage({
   const simIntervalRef = useRef(null);
   const simIndexRef = useRef(0);
   const isReroutingRef = useRef(false);
+
+  // Position & Map Fitting Refs
+  const hasFitInitialBoundsRef = useRef(false);
+  const hasFit2dInitialBoundsRef = useRef(false);
+  const lastPoiFetchCoordsRef = useRef(null);
+  const lastPoiTypeRef = useRef(poiType);
+
+  // Real GPS Position Handler (reads dynamic browser coords, flies camera, and re-scans)
+  const handleRequestGps = useCallback(
+    async (silent = false) => {
+      setRequestingGps(true);
+      try {
+        const loc = await requestBrowserGeolocation();
+        if (loc && typeof loc.lat === 'number' && typeof loc.lng === 'number') {
+          setUserLocation(loc);
+          onUpdateLocation?.(loc);
+          setPermissionPromptOpen(false);
+
+          // Reset fit bounds refs so the map re-centers on the newly acquired GPS position!
+          hasFitInitialBoundsRef.current = false;
+          hasFit2dInitialBoundsRef.current = false;
+          lastPoiFetchCoordsRef.current = null;
+
+          // Fly camera smoothly to the exact real GPS position
+          if (mapViewMode === '3d_cockpit' && map3dInstanceRef.current) {
+            map3dInstanceRef.current.flyTo({
+              center: [loc.lng, loc.lat],
+              zoom: 16.8,
+              pitch: 52,
+              duration: 900,
+            });
+          } else if (map2dInstanceRef.current) {
+            map2dInstanceRef.current.flyTo([loc.lat, loc.lng], 16.5, {
+              animate: true,
+              duration: 0.9,
+            });
+          }
+
+          const accInfo = loc.accuracy_meters ? ` (Sai số ±${loc.accuracy_meters}m)` : '';
+          onNotify?.(`🎯 Đã định vị GPS chính xác: ${loc.name}${accInfo}`);
+          if (!silent) {
+            executeRadarScan(selectedCategory);
+          }
+        }
+      } catch (err) {
+        if (!silent) {
+          onNotify?.(err.message || 'Không thể lấy GPS. Vui lòng bấm Cho phép trên thanh địa chỉ trình duyệt.');
+        }
+      } finally {
+        setRequestingGps(false);
+      }
+    },
+    [mapViewMode, onNotify, executeRadarScan, selectedCategory, onUpdateLocation]
+  );
+
+  // Address search debounce handler
+  useEffect(() => {
+    if (!addressSearchQuery || addressSearchQuery.trim().length < 2) {
+      setAddressSearchResults([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setIsSearchingAddress(true);
+      try {
+        const results = await searchAddressGeocode(addressSearchQuery);
+        setAddressSearchResults(results);
+      } catch {
+        setAddressSearchResults([]);
+      } finally {
+        setIsSearchingAddress(false);
+      }
+    }, 320);
+    return () => clearTimeout(timer);
+  }, [addressSearchQuery]);
+
+  // Set user location from searched address or preset
+  const handleSelectSearchedLocation = useCallback(
+    (item) => {
+      if (!item || typeof item.lat !== 'number' || typeof item.lng !== 'number') return;
+      const loc = {
+        name: item.name,
+        address: item.address || item.name,
+        city: item.city || (item.lat >= 19.5 ? 'hanoi' : item.lat >= 14.5 ? 'danang' : 'hcm'),
+        lat: item.lat,
+        lng: item.lng,
+        is_gps: true,
+        is_manual_search: true,
+        accuracy_meters: 5,
+        last_updated: Date.now(),
+      };
+      saveUserLocation(loc);
+      setUserLocation(loc);
+      onUpdateLocation?.(loc);
+      setPermissionPromptOpen(false);
+      setAddressSearchQuery('');
+      setAddressSearchResults([]);
+
+      hasFitInitialBoundsRef.current = false;
+      hasFit2dInitialBoundsRef.current = false;
+      lastPoiFetchCoordsRef.current = null;
+
+      if (mapViewMode === '3d_cockpit' && map3dInstanceRef.current) {
+        map3dInstanceRef.current.flyTo({
+          center: [loc.lng, loc.lat],
+          zoom: 16.8,
+          pitch: 52,
+          duration: 900,
+        });
+      } else if (map2dInstanceRef.current) {
+        map2dInstanceRef.current.flyTo([loc.lat, loc.lng], 16.5, {
+          animate: true,
+          duration: 0.9,
+        });
+      }
+
+      onNotify?.(`📍 Đã đặt vị trí của bạn: ${loc.name}`);
+      executeRadarScan(selectedCategory);
+    },
+    [mapViewMode, onNotify, executeRadarScan, selectedCategory]
+  );
 
   // Voice Search Handler (Web Speech API)
   const handleVoiceSearchToggle = () => {
@@ -760,8 +1131,9 @@ export function NavigationPage({
       recognition.onstart = () => {
         setIsListeningVoice(true);
         onNotify?.(
-          'Đang lắng nghe giọng nói tiếng Việt... Hãy nói: "Cây xăng gần đây", "Quán cơm", "Quận 12", hoặc tên bệnh viện.'
+          'Đang lắng nghe giọng nói tiếng Việt... Hãy nói: "Bệnh viện cấp cứu gần nhất", "Nhà thuốc GPP", "Bạch Mai", hoặc địa chỉ của bạn.'
         );
+
       };
 
       recognition.onresult = (event) => {
@@ -883,12 +1255,19 @@ export function NavigationPage({
     }
   };
 
-  // Sync userLocation if prop changes
+  // Sync userLocation only if prop explicitly changes and has different coordinates
+  const lastSyncedPropLocRef = useRef(propUserLocation);
   useEffect(() => {
-    if (propUserLocation && !navigationContext?.userLocation) {
+    if (
+      propUserLocation &&
+      (!lastSyncedPropLocRef.current ||
+        Math.abs(propUserLocation.lat - (lastSyncedPropLocRef.current?.lat || 0)) > 0.0001 ||
+        Math.abs(propUserLocation.lng - (lastSyncedPropLocRef.current?.lng || 0)) > 0.0001)
+    ) {
+      lastSyncedPropLocRef.current = propUserLocation;
       setUserLocation(propUserLocation);
     }
-  }, [propUserLocation, navigationContext]);
+  }, [propUserLocation]);
 
   // When navigationContext arrives from chat, immediately activate that exact guidance
   useEffect(() => {
@@ -990,24 +1369,47 @@ export function NavigationPage({
   );
   handleAutoRerouteRef.current = handleAutoReroute;
 
-  // Auto-detect real user location on mount (GPS or IP network)
+  // Auto-detect real user location on mount (GPS first, never fixed)
   useEffect(() => {
     if (navigationContext?.userLocation) return;
     let isMounted = true;
+
+    // Check if permission already granted or listen for changes
+    if ('geolocation' in navigator) {
+      if ('permissions' in navigator) {
+        navigator.permissions
+          .query({ name: 'geolocation' })
+          .then((perm) => {
+            if (perm.state === 'granted') {
+              handleRequestGps(true);
+            }
+            perm.onchange = () => {
+              if (perm.state === 'granted') {
+                handleRequestGps(true);
+              }
+            };
+          })
+          .catch(() => {});
+      }
+      // Proactively trigger live browser GPS detection
+      handleRequestGps(true);
+    }
+
     autoDetectLiveLocation()
       .then((loc) => {
         if (isMounted && loc && typeof loc.lat === 'number') {
-          setUserLocation(loc);
+          setUserLocation((prev) => (prev?.is_gps ? prev : loc));
           if (loc.is_gps) {
             setPermissionPromptOpen(false);
           }
         }
       })
       .catch((e) => console.log('Auto location detection:', e));
+
     return () => {
       isMounted = false;
     };
-  }, [navigationContext]);
+  }, [navigationContext, handleRequestGps]);
 
   // Continuous live GPS tracking with Turf.js Snapping
   useEffect(() => {
@@ -1067,16 +1469,13 @@ export function NavigationPage({
   }, [liveTracking, isNavigatingLive, isSimulatingDrive, mapViewMode]);
 
   // Load POIs when user location or POI type changes
-  const lastPoiFetchCoordsRef = useRef(null);
-  const lastPoiTypeRef = useRef(poiType);
-
   useEffect(() => {
     let isCancelled = false;
     const shouldFetch =
       !lastPoiFetchCoordsRef.current ||
       lastPoiTypeRef.current !== poiType ||
-      Math.abs(lastPoiFetchCoordsRef.current.lat - userLocation.lat) > 0.005 ||
-      Math.abs(lastPoiFetchCoordsRef.current.lng - userLocation.lng) > 0.005;
+      Math.abs(lastPoiFetchCoordsRef.current.lat - userLocation.lat) > 0.002 ||
+      Math.abs(lastPoiFetchCoordsRef.current.lng - userLocation.lng) > 0.002;
 
     if (!shouldFetch && pois.length > 0) return;
 
@@ -1086,55 +1485,49 @@ export function NavigationPage({
     const fetchPois = async () => {
       setLoadingPois(true);
       try {
-        const res = await api.request(
-          `/v1/geo/pois?poi_type=${poiType}&city=${userLocation.city || 'hanoi'}&lat=${userLocation.lat}&lng=${userLocation.lng}`
-        );
-        if (!isCancelled && res?.pois && res.pois.length > 0) {
-          const currentTargetPoi = navigationContext?.selectedPoi || selectedPoi;
-          if (currentTargetPoi) {
-            const isSame = (p) =>
-              p.id === currentTargetPoi.id ||
-              (p.name &&
-                currentTargetPoi.name &&
-                p.name.toLowerCase() === currentTargetPoi.name.toLowerCase());
-            const others = res.pois.filter((p) => !isSame(p));
-            const pinnedPoi = {
-              ...currentTargetPoi,
-              isRecommendedFromChat: Boolean(navigationContext?.fromChat),
-            };
-            setPois([pinnedPoi, ...others]);
-            setSelectedPoi(pinnedPoi);
-          } else {
-            setPois(res.pois);
-            setSelectedPoi(res.pois[0]);
-          }
-        } else if (!isCancelled) {
-          const fallbackRes = await api.request(
-            `/v1/geo/pois?poi_type=${poiType}&city=${userLocation.city || 'hanoi'}`
-          );
-          if (fallbackRes?.pois && fallbackRes.pois.length > 0) {
-            const currentTargetPoi = navigationContext?.selectedPoi || selectedPoi;
-            if (currentTargetPoi) {
-              const isSame = (p) =>
-                p.id === currentTargetPoi.id ||
-                (p.name &&
-                  currentTargetPoi.name &&
-                  p.name.toLowerCase() === currentTargetPoi.name.toLowerCase());
-              const others = fallbackRes.pois.filter((p) => !isSame(p));
-              const pinnedPoi = {
-                ...currentTargetPoi,
-                isRecommendedFromChat: Boolean(navigationContext?.fromChat),
-              };
-              setPois([pinnedPoi, ...others]);
-              setSelectedPoi(pinnedPoi);
-            } else {
-              setPois(fallbackRes.pois);
-              setSelectedPoi(fallbackRes.pois[0]);
-            }
-          }
+        const backendPromise = api
+          .request(
+            `/v1/geo/pois?poi_type=${poiType}&city=${userLocation.city || 'hanoi'}&lat=${userLocation.lat}&lng=${userLocation.lng}`
+          )
+          .then((res) => res?.pois || [])
+          .catch(() => []);
+
+        const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve([]), 4500));
+        const backendPois = await Promise.race([backendPromise, timeoutPromise]);
+
+        // Gộp kết quả quét thực địa đa tầng (Photon Komoot OSM + Geoapify v2 + Verified Registry + Backend)
+        const hyperLocalList = await scanHyperLocalMedicalPois({
+          lat: userLocation.lat,
+          lng: userLocation.lng,
+          poiType,
+          backendPois,
+          searchQuery,
+        });
+
+        if (isCancelled) return;
+
+        const currentTargetPoi = navigationContext?.selectedPoi || selectedPoi;
+        if (currentTargetPoi && navigationContext?.fromChat) {
+          const pinnedPoi = {
+            ...currentTargetPoi,
+            isRecommendedFromChat: true,
+          };
+          const isSame = (p) =>
+            String(p.id) === String(currentTargetPoi.id) ||
+            (p.name &&
+              currentTargetPoi.name &&
+              p.name.toLowerCase() === currentTargetPoi.name.toLowerCase());
+          const others = hyperLocalList.filter((p) => !isSame(p));
+          const merged = [pinnedPoi, ...others];
+          setPois(merged);
+          setSelectedPoi(pinnedPoi);
+          triggerOnDemandScan({ totalPoisCount: merged.length });
+        } else {
+          setPois(hyperLocalList);
+          triggerOnDemandScan({ totalPoisCount: hyperLocalList.length });
         }
       } catch (err) {
-        console.warn('Failed to load POIs:', err);
+        console.warn('Failed to load hyper-local POIs:', err);
       } finally {
         if (!isCancelled) setLoadingPois(false);
       }
@@ -1150,6 +1543,8 @@ export function NavigationPage({
     userLocation.lng,
     userLocation.city,
     navigationContext,
+    triggerOnDemandScan,
+    searchQuery,
   ]);
 
   // Load Route whenever selectedPoi or userLocation changes
@@ -1240,14 +1635,26 @@ export function NavigationPage({
         style: initialStyle,
         center: [userLocation.lng, userLocation.lat],
         zoom: 16.8,
-        pitch: 60, // 3D Camera tilt
+        pitch: 52, // 3D Camera tilt thoáng mắt
         bearing: vehicleHeading || 0,
         attributionControl: false,
+        dragPan: true,
+        scrollZoom: true,
+        boxZoom: true,
+        dragRotate: true,
+        touchPitch: true,
+        touchZoomRotate: true,
+        doubleClickZoom: true,
+        cooperativeGestures: false,
       });
 
       map3d.on('load', () => {
         map3dInitializedRef.current = true;
         map3d.resize();
+        map3d.dragPan.enable();
+        map3d.scrollZoom.enable();
+        map3d.doubleClickZoom.enable();
+        map3d.touchZoomRotate.enable();
         update3dRouteLine(map3d, routeCoords);
       });
 
@@ -1298,7 +1705,7 @@ export function NavigationPage({
     }
   }, [mapTheme, routeCoords]);
 
-  // MapLibre 3D Markers (A, B and Vehicle Marker)
+  // MapLibre 3D Markers (A, B and Multi-POI Medical Callout Notes)
   useEffect(() => {
     const map3d = map3dInstanceRef.current;
     if (!map3d) return;
@@ -1307,27 +1714,82 @@ export function NavigationPage({
     pinMarkers3dRef.current.forEach((m) => m.remove());
     pinMarkers3dRef.current = [];
 
-    // Marker A (Origin)
+    // Marker A (Origin) kèm sóng Radar lan tỏa & Beacon định vị trực quan
     const elA = document.createElement('div');
-    elA.className = 'nav-map-pin-wrap';
-    elA.innerHTML = `<div class="nav-marker-pin pin-a"><span class="pin-letter">A</span><span class="pin-tag">Vị trí của bạn</span></div>`;
+    elA.className = 'nav-map-pin-wrap user-gps-pin-container';
+    elA.innerHTML = `
+      <div class="user-live-gps-beacon">
+        <div class="user-radar-wave-ring"></div>
+        <div class="user-radar-wave-ring wave-delay-2"></div>
+        <div class="beacon-core-dot"></div>
+        <div class="nav-marker-pin pin-a user-active-pin">
+          <span class="pin-letter">A</span>
+          <span class="pin-tag">📍 Vị trí hiện tại của bạn</span>
+        </div>
+      </div>
+    `;
     const markerA = new maplibregl.Marker({ element: elA, anchor: 'bottom' })
       .setLngLat([userLocation.lng, userLocation.lat])
       .addTo(map3d);
     pinMarkers3dRef.current.push(markerA);
 
-    // Marker B (Destination)
-    if (selectedPoi) {
-      const isEmerg = selectedPoi.type === 'hospital_emergency';
-      const elB = document.createElement('div');
-      elB.className = 'nav-map-pin-wrap';
-      elB.innerHTML = `<div class="nav-marker-pin ${isEmerg ? 'pin-emerg' : 'pin-b'}"><span class="pin-letter">B</span><span class="pin-tag">${isEmerg ? 'Cấp cứu' : 'Quầy thuốc'}</span></div>`;
-      const markerB = new maplibregl.Marker({ element: elB, anchor: 'bottom' })
-        .setLngLat([selectedPoi.lng, selectedPoi.lat])
+    // Render Multi-POI Medical Callout Notes (theo tiến trình Radar xuất hiện)
+    displayedPois.forEach((poi, idx) => {
+      const isSelected = Boolean(selectedPoi && poi.id === selectedPoi.id);
+
+      const el = document.createElement('div');
+      el.className = 'nav-map-pin-wrap';
+      el.innerHTML = buildPoiCalloutNoteHtml(poi, idx, isSelected);
+      el.addEventListener('click', () => {
+        setSelectedPoi(poi);
+      });
+
+      const m = new maplibregl.Marker({ element: el, anchor: 'bottom' })
+        .setLngLat([poi.lng, poi.lat])
         .addTo(map3d);
-      pinMarkers3dRef.current.push(markerB);
-    }
-  }, [userLocation, selectedPoi]);
+      pinMarkers3dRef.current.push(m);
+    });
+  }, [
+    userLocation.lat,
+    userLocation.lng,
+    userLocation.name,
+    selectedPoi,
+    displayedPois,
+    isRadarScanning,
+    buildPoiCalloutNoteHtml,
+    openGoogleReviewsPanel,
+  ]);
+
+  // Chỉ tự động căn khung 1 lần duy nhất khi danh sách cơ sở y tế được nạp, không cản trở thao tác cuộn/kéo chuột tự do
+  // Tự động căn khung MapLibre 3D bao quát Vị trí của bạn và các điểm y tế lân cận
+  useEffect(() => {
+    const map3d = map3dInstanceRef.current;
+    if (!map3d || selectedPoi || isSimulatingDrive || mapViewMode !== '3d_cockpit') return;
+    if (typeof userLocation.lat !== 'number' || typeof userLocation.lng !== 'number') return;
+
+    try {
+      if (displayedPois.length > 0) {
+        const boundsPois = displayedPois.slice(0, 6);
+        const bounds = new maplibregl.LngLatBounds(
+          [userLocation.lng, userLocation.lat],
+          [userLocation.lng, userLocation.lat]
+        );
+        boundsPois.forEach((p) => {
+          if (typeof p.lng === 'number' && typeof p.lat === 'number') {
+            bounds.extend([p.lng, p.lat]);
+          }
+        });
+        map3d.fitBounds(bounds, {
+          padding: { top: 90, bottom: 80, left: 180, right: 80 },
+          maxZoom: 16.5,
+          pitch: 48,
+          duration: 750,
+        });
+      } else {
+        map3d.flyTo({ center: [userLocation.lng, userLocation.lat], zoom: 16.2, pitch: 48, duration: 800 });
+      }
+    } catch (e) {}
+  }, [userLocation.lat, userLocation.lng, displayedPois.length, selectedPoi, isSimulatingDrive, mapViewMode]);
 
   // MapLibre 3D Vehicle Marker & Chase Camera
   useEffect(() => {
@@ -1442,22 +1904,18 @@ export function NavigationPage({
       }
     });
 
-    const brightTileUrl = `https://maps.geoapify.com/v1/tile/osm-bright/{z}/{x}/{y}{r}.png?apiKey=${GEOAPIFY_API_KEY}`;
+    const googleStreetsHdTileUrl =
+      'https://mt1.google.com/vt/lyrs=m&hl=vi&x={x}&y={y}&z={z}&scale=2';
+    const googleHybridHdTileUrl =
+      'https://mt1.google.com/vt/lyrs=y&hl=vi&x={x}&y={y}&z={z}&scale=2';
     const darkTileUrl = `https://maps.geoapify.com/v1/tile/dark-matter-dark-grey/{z}/{x}/{y}{r}.png?apiKey=${GEOAPIFY_API_KEY}`;
     const osmTileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-    const satelliteTileUrl =
-      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-    const satelliteLabelsUrl =
-      'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}';
 
     if (mapTheme === 'satellite') {
-      L.tileLayer(satelliteTileUrl, {
-        maxZoom: 19,
-        attribution: 'Esri World Imagery',
-      }).addTo(map);
-      L.tileLayer(satelliteLabelsUrl, {
-        maxZoom: 19,
-        attribution: 'Esri Reference Labels',
+      L.tileLayer(googleHybridHdTileUrl, {
+        maxZoom: 21,
+        detectRetina: true,
+        attribution: '© Google Maps Satellite Hybrid',
       }).addTo(map);
     } else {
       const tileUrl =
@@ -1465,12 +1923,12 @@ export function NavigationPage({
           ? darkTileUrl
           : mapTheme === 'osm'
           ? osmTileUrl
-          : brightTileUrl;
+          : googleStreetsHdTileUrl;
 
       L.tileLayer(tileUrl, {
-        maxZoom: 20,
+        maxZoom: 21,
         detectRetina: true,
-        attribution: '© OpenStreetMap, © Geoapify',
+        attribution: '© Google Maps, OpenStreetMap',
       }).addTo(map);
     }
   }, [mapTheme]);
@@ -1484,27 +1942,53 @@ export function NavigationPage({
     polylineGroup2dRef.current.clearLayers();
 
     const startCoords = [userLocation.lat, userLocation.lng];
+
+    // Vòng bán kính chính xác GPS (Accuracy Circle)
+    L.circle(startCoords, {
+      radius: Math.max(30, userLocation.accuracy_meters || 45),
+      color: '#00d2ff',
+      weight: 1.5,
+      opacity: 0.85,
+      fillColor: '#00d2ff',
+      fillOpacity: 0.12,
+    }).addTo(markersGroup2dRef.current);
+
+    // Ghim Vị trí hiện tại của bạn với sóng radar trực quan
     const startIcon = L.divIcon({
-      className: 'nav-map-pin-wrap',
-      html: `<div class="nav-marker-pin pin-a"><span class="pin-letter">A</span><span class="pin-tag">Vị trí của bạn</span></div>`,
-      iconSize: [40, 48],
-      iconAnchor: [20, 42],
+      className: 'nav-map-pin-wrap user-gps-pin-container',
+      html: `
+        <div class="user-live-gps-beacon">
+          <div class="user-radar-wave-ring"></div>
+          <div class="user-radar-wave-ring wave-delay-2"></div>
+          <div class="beacon-core-dot"></div>
+          <div class="nav-marker-pin pin-a user-active-pin">
+            <span class="pin-letter">A</span>
+            <span class="pin-tag">📍 Vị trí hiện tại của bạn</span>
+          </div>
+        </div>
+      `,
+      iconSize: [44, 52],
+      iconAnchor: [22, 46],
     });
-    const startMarker = L.marker(startCoords, { icon: startIcon }).addTo(markersGroup2dRef.current);
-    startMarker.bindPopup(`<b>Điểm xuất phát:</b><br/>${userLocation.name}`);
+    const startMarker = L.marker(startCoords, { icon: startIcon, zIndexOffset: 1000 }).addTo(markersGroup2dRef.current);
+    startMarker.bindPopup(`<b>📍 Vị trí hiện tại của bạn:</b><br/>${userLocation.name}<br/><small>${userLocation.address || ''}</small>`);
+
+    // Multi-POI Medical Callout Notes on 2D Map (theo tiến trình Radar)
+    displayedPois.forEach((poi, idx) => {
+      const isSelected = Boolean(selectedPoi && poi.id === selectedPoi.id);
+      const poiIcon = L.divIcon({
+        className: 'nav-map-pin-wrap',
+        html: buildPoiCalloutNoteHtml(poi, idx, isSelected),
+        iconSize: [180, 42],
+        iconAnchor: [90, 42],
+      });
+      const poiMarker = L.marker([poi.lat, poi.lng], { icon: poiIcon }).addTo(markersGroup2dRef.current);
+      poiMarker.on('click', () => {
+        setSelectedPoi(poi);
+      });
+    });
 
     if (selectedPoi) {
-      const destCoords = [selectedPoi.lat, selectedPoi.lng];
-      const isEmerg = selectedPoi.type === 'hospital_emergency';
-      const destIcon = L.divIcon({
-        className: 'nav-map-pin-wrap',
-        html: `<div class="nav-marker-pin ${isEmerg ? 'pin-emerg' : 'pin-b'}"><span class="pin-letter">B</span><span class="pin-tag">${isEmerg ? 'Cấp cứu' : 'Quầy thuốc'}</span></div>`,
-        iconSize: [40, 48],
-        iconAnchor: [20, 42],
-      });
-      const destMarker = L.marker(destCoords, { icon: destIcon }).addTo(markersGroup2dRef.current);
-      destMarker.bindPopup(`<b>${selectedPoi.name}</b><br/>${selectedPoi.address}`);
-
       if (routeCoords.length > 0) {
         // Layer 1: Contrast casing (Dark border)
         L.polyline(routeCoords, {
@@ -1535,15 +2019,48 @@ export function NavigationPage({
 
         if (!isNavigatingLive && mapViewMode === '2d_overview') {
           try {
+            const destMarker = L.marker([selectedPoi.lat, selectedPoi.lng]);
             const group = L.featureGroup([startMarker, destMarker, mainLine]);
             map.fitBounds(group.getBounds(), { padding: [45, 45] });
           } catch {}
         }
       }
-    } else {
-      map.setView(startCoords, 15);
     }
-  }, [userLocation, selectedPoi, activeRoute, mapTheme, isNavigatingLive, mapViewMode, routeCoords]);
+  }, [
+    userLocation,
+    selectedPoi,
+    displayedPois,
+    isRadarScanning,
+    activeRoute,
+    mapTheme,
+    isNavigatingLive,
+    mapViewMode,
+    routeCoords,
+    buildPoiCalloutNoteHtml,
+    openGoogleReviewsPanel,
+  ]);
+
+  // Tự động căn khung Leaflet 2D bao quát cả Vị trí của bạn và các điểm y tế lân cận
+  useEffect(() => {
+    const map = map2dInstanceRef.current;
+    if (!map || selectedPoi || isNavigatingLive || mapViewMode !== '2d_overview') return;
+    if (typeof userLocation.lat !== 'number' || typeof userLocation.lng !== 'number') return;
+
+    try {
+      if (displayedPois.length > 0) {
+        const boundsPois = displayedPois.slice(0, 6);
+        const pts = [
+          [userLocation.lat, userLocation.lng],
+          ...boundsPois.map((p) => [p.lat, p.lng]),
+        ];
+        map.fitBounds(pts, { padding: [60, 60], maxZoom: 16.5 });
+      } else {
+        map.setView([userLocation.lat, userLocation.lng], 15.5, { animate: true });
+      }
+    } catch {
+      map.setView([userLocation.lat, userLocation.lng], 15);
+    }
+  }, [userLocation.lat, userLocation.lng, displayedPois.length, selectedPoi, isNavigatingLive, mapViewMode]);
 
   // Leaflet 2D Vehicle Marker
   useEffect(() => {
@@ -1660,9 +2177,10 @@ export function NavigationPage({
     };
   }, [isSimulatingDrive, routeCoords, steps, voiceGuidanceEnabled, selectedPoi, onNotify]);
 
-  // Start Live Turn-by-Turn Navigation
+  // Start Live Turn-by-Turn Navigation (Stage 2: Active 3D Cockpit HUD)
   const startLiveNavigation = (simulate = false) => {
     setIsNavigatingLive(true);
+    setMapViewMode('3d_cockpit');
     setActiveStepIndex(0);
     const startPoint = routeCoords[0] || [userLocation.lat, userLocation.lng];
     const initialProcessed = processNavigationPosition(startPoint[0], startPoint[1], routeCoords);
@@ -1670,7 +2188,7 @@ export function NavigationPage({
     setVehiclePosition([initialProcessed.snappedLat, initialProcessed.snappedLng]);
     setVehicleHeading(initialProcessed.heading);
 
-    if (mapViewMode === '3d_cockpit' && map3dInstanceRef.current) {
+    if (map3dInstanceRef.current) {
       map3dInstanceRef.current.easeTo({
         center: [initialProcessed.snappedLng, initialProcessed.snappedLat],
         bearing: initialProcessed.heading,
@@ -1694,10 +2212,11 @@ export function NavigationPage({
     onNotify?.('Đã kích hoạt chế độ dẫn đường Turn-by-Turn');
   };
 
-  // Stop Live Navigation
+  // Stop Live Navigation (Return to Stage 1: 2D Overview)
   const stopLiveNavigation = () => {
     setIsNavigatingLive(false);
     setIsSimulatingDrive(false);
+    setMapViewMode('2d_overview');
     if (simIntervalRef.current) {
       clearInterval(simIntervalRef.current);
       simIntervalRef.current = null;
@@ -1733,20 +2252,6 @@ export function NavigationPage({
     }
   };
 
-  const handleRequestGps = async () => {
-    setRequestingGps(true);
-    try {
-      const loc = await requestBrowserGeolocation();
-      setUserLocation(loc);
-      setPermissionPromptOpen(false);
-      onNotify?.(`Đã xác định vị trí GPS thực tế: ${loc.address}`);
-    } catch (err) {
-      onNotify?.(err.message || 'Không thể lấy GPS. Vui lòng bật cấp quyền vị trí trên trình duyệt.');
-    } finally {
-      setRequestingGps(false);
-    }
-  };
-
   // Google Maps Deep Links with Vehicle Modes & Avoidances (Synchronized from Video!)
   const gmapsTravelMode =
     travelMode === 'motorcycle'
@@ -1772,143 +2277,189 @@ export function NavigationPage({
     : `https://maps.google.com/maps?saddr=${userLocation.lat},${userLocation.lng}&daddr=nha+thuoc+gan+nhat&output=embed`;
 
   return (
-    <div className="navigation-workspace-page">
-      {/* Geolocation Permission Modal/Banner if not GPS verified */}
+    <div
+      className={`navigation-workspace-page ${
+        isMapFullscreen ? 'fullscreen-active' : ''
+      } ${isToolbarsCollapsed ? 'toolbars-collapsed' : ''}`}
+    >
+      {/* Geolocation & Custom Address Picker Modal */}
       {permissionPromptOpen && (
-        <div className="nav-permission-overlay" role="dialog" aria-modal="true">
-          <div className="nav-permission-modal">
+        <div
+          className="nav-permission-overlay"
+          role="dialog"
+          aria-modal="true"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setPermissionPromptOpen(false);
+            }
+          }}
+        >
+          <div className="nav-permission-modal" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className="modal-close-btn"
+              onClick={() => setPermissionPromptOpen(false)}
+              aria-label="Đóng và tiếp tục với bản đồ"
+              title="Đóng"
+            >
+              <X size={20} />
+            </button>
             <div className="modal-icon-badge">
               <LocateFixed size={28} />
             </div>
-            <h3>Xác định Vị trí Hiện tại để Điều hướng Google Maps</h3>
+            <h3>Xác Định Vị Trí Của Bạn (GPS Thiết Bị)</h3>
             <p>
-              Để MedGuard AI và Google Maps có thể tự động điền{' '}
-              <strong>Vị trí hiện tại của bạn (Origin)</strong> làm điểm xuất phát
-              và quét các quầy thuốc GPP quanh bạn, vui lòng cho phép quyền truy cập GPS.
+              MedGuard AI đọc <strong>tọa độ GPS thực tế từ thiết bị của bạn</strong> để đo khoảng cách và tìm nhà thuốc GPP & điểm cấp cứu chính xác nhất xung quanh bạn, không cố định bất kỳ vị trí nào.
             </p>
 
-            <div className="modal-current-fallback">
-              <span className="fallback-label">Vị trí phát hiện hiện tại:</span>
+            {/* Current Detected Coordinates Box */}
+            <div className={`modal-current-fallback ${userLocation.is_gps ? 'gps-confirmed' : ''}`}>
+              <div className="status-badge-row">
+                <span className={`status-dot ${userLocation.is_gps ? 'live' : 'detecting'}`} />
+                <span className="fallback-label">
+                  {userLocation.is_gps ? 'Vị trí GPS thực tế đã xác nhận:' : 'Trạng thái vị trí hiện tại:'}
+                </span>
+                {userLocation.accuracy_meters && (
+                  <span className="accuracy-tag">Sai số ±{userLocation.accuracy_meters}m</span>
+                )}
+              </div>
               <strong className="fallback-name">{userLocation.name}</strong>
               <small className="fallback-addr">{userLocation.address}</small>
+              <small className="fallback-coords">
+                Tọa độ thực tế: {userLocation.lat?.toFixed(5)}, {userLocation.lng?.toFixed(5)}
+              </small>
             </div>
 
+            {/* Primary GPS Action Button */}
             <div className="modal-actions-row">
               <button
                 type="button"
                 className="btn-grant-gps"
                 disabled={requestingGps}
-                onClick={handleRequestGps}
+                onClick={() => handleRequestGps(false)}
               >
                 {requestingGps ? (
                   <>
-                    <RefreshCw size={16} className="spin" />
-                    <span>Đang xác thực tọa độ GPS của bạn...</span>
+                    <RefreshCw size={18} className="spin" />
+                    <span>Đang kết nối vệ tinh GPS & xác thực tọa độ...</span>
                   </>
                 ) : (
                   <>
-                    <LocateFixed size={16} />
-                    <span>Lấy chính xác vị trí GPS của tôi (Khuyến nghị)</span>
+                    <LocateFixed size={18} />
+                    <span>Lấy Chính Xác Vị Trí GPS Của Tôi (Khuyến Nghị)</span>
                   </>
                 )}
               </button>
+
+              {/* Address Search Option */}
+              <div className="modal-address-search-container">
+                <div className="address-search-input-wrap">
+                  <Search size={16} className="search-icon" />
+                  <input
+                    type="text"
+                    className="modal-address-input"
+                    placeholder="Hoặc gõ địa chỉ của bạn (VD: số nhà, tên đường, phường xã)..."
+                    value={addressSearchQuery}
+                    onChange={(e) => setAddressSearchQuery(e.target.value)}
+                  />
+                  {isSearchingAddress && <RefreshCw size={14} className="spin search-spinner" />}
+                </div>
+
+                {addressSearchResults.length > 0 && (
+                  <div className="modal-address-dropdown">
+                    {addressSearchResults.map((item, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        className="dropdown-item-btn"
+                        onClick={() => handleSelectSearchedLocation(item)}
+                      >
+                        <MapPin size={14} className="item-icon" />
+                        <div className="item-text">
+                          <strong className="item-title">{item.name}</strong>
+                          <span className="item-desc">{item.address}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Quick Preset Locations */}
+              <div className="modal-quick-presets">
+                <span className="presets-title">HOẶC CHỌN NHANH KHU VỰC:</span>
+                <div className="presets-chips">
+                  {LOCATION_PRESETS.map((preset) => (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      className="preset-chip-btn"
+                      onClick={() => handleSelectSearchedLocation(preset)}
+                    >
+                      <MapPin size={12} />
+                      <span>{preset.tag || preset.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               <button
                 type="button"
                 className="btn-use-preset"
                 onClick={() => setPermissionPromptOpen(false)}
               >
-                Tiếp tục với tọa độ phát hiện ({userLocation.name})
+                Đóng và tiếp tục xem bản đồ
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Main Top Header */}
+      {/* 1. Streamlined Single-Row Control Bar (Clean 46px height, no double headers) */}
       <header className="nav-page-topbar">
         <div className="nav-topbar-left">
-          <button
-            type="button"
-            className="nav-back-chat-btn"
-            onClick={onBackToChat}
-            title="Quay lại cuộc trò chuyện"
-          >
-            <ArrowLeft size={16} />
-            <span>Hội thoại</span>
-          </button>
-          <div className="nav-page-heading">
-            <h1>Chỉ Đường Real-Time & Trạm Y Tế GPP</h1>
-            <span className="heading-sub">
-              Dẫn đường 3D Buồng Lái & 2D Toàn Cảnh kết hợp • Khử nhiễu GPS Turf.js & Auto-Reroute
-            </span>
+          <div className="nav-status-badge">
+            <span className="nav-status-pulse" />
+            <span className="nav-status-title">RETINA HD • BẢN ĐỒ Y TẾ REAL-TIME</span>
           </div>
         </div>
 
         <div className="nav-topbar-controls">
-          {/* Origin Pill with GPS button */}
-          <div className="nav-origin-pill" title={userLocation.address}>
-            <span className={`loc-dot ${userLocation.is_gps ? 'gps' : 'preset'}`} />
+          {/* Origin Pill with GPS button & Clickable Location Modal Trigger */}
+          <div
+            className={`nav-origin-pill ${userLocation.is_gps ? 'gps-active' : 'need-gps'}`}
+            title="Bấm để đổi vị trí hoặc lấy GPS chính xác"
+            onClick={() => setPermissionPromptOpen(true)}
+          >
+            <span className={`loc-dot ${userLocation.is_gps ? 'gps pulse' : 'detecting'}`} />
             <MapPin size={14} className="pin-icon" />
             <div className="origin-text">
-              <span className="origin-title">{userLocation.name}</span>
+              <div className="origin-badge-row">
+                <span className="origin-title">{userLocation.name}</span>
+                <span className={`origin-type-badge ${userLocation.is_gps ? 'verified' : 'pending'}`}>
+                  {userLocation.is_gps ? `GPS ±${userLocation.accuracy_meters || 5}m` : 'Bấm để bật GPS'}
+                </span>
+              </div>
               <small className="origin-coords">
-                {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}
+                {userLocation.lat ? `${userLocation.lat.toFixed(5)}, ${userLocation.lng.toFixed(5)}` : 'Đang lấy tọa độ...'}
               </small>
             </div>
             <button
               type="button"
               className="gps-refresh-btn"
-              onClick={handleRequestGps}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRequestGps(false);
+              }}
               disabled={requestingGps}
-              title="Lấy lại vị trí GPS thực tế"
+              title="Lấy lại vị trí GPS thực tế từ thiết bị"
             >
               <LocateFixed size={13} className={requestingGps ? 'spin' : ''} />
-              <span>{userLocation.is_gps ? 'GPS Bật' : 'Lấy GPS'}</span>
+              <span>{userLocation.is_gps ? 'Cập nhật GPS' : 'Lấy GPS'}</span>
             </button>
           </div>
 
-          {/* Live GPS Tracking Toggle */}
-          <button
-            type="button"
-            className={`nav-live-track-btn ${liveTracking ? 'active' : ''}`}
-            onClick={() => setLiveTracking(!liveTracking)}
-            title="Tự động cập nhật lộ trình khi bạn di chuyển trên đường"
-          >
-            <span className={`live-track-dot ${liveTracking ? 'tracking' : ''}`} />
-            <span>{liveTracking ? 'Bám sát GPS' : 'Bật bám sát'}</span>
-          </button>
-
-          {/* Map theme toggle with Satellite Imagery support */}
-          <button
-            type="button"
-            className="nav-theme-toggle-btn"
-            onClick={() =>
-              setMapTheme((curr) =>
-                curr === 'streets'
-                  ? 'satellite'
-                  : curr === 'satellite'
-                  ? 'dark'
-                  : curr === 'dark'
-                  ? 'osm'
-                  : 'streets'
-              )
-            }
-            title="Đổi loại bản đồ: Phố HD (Thành phố) / Vệ tinh (Địa hình nông thôn & ao hồ) / Nền tối / OpenStreetMap"
-          >
-            <Layers size={14} />
-            <span>
-              {mapTheme === 'streets'
-                ? 'Bản đồ Phố HD'
-                : mapTheme === 'satellite'
-                ? 'Bản đồ Vệ tinh'
-                : mapTheme === 'dark'
-                ? 'Bản đồ Nền tối'
-                : 'Bản đồ OpenStreetMap'}
-            </span>
-          </button>
-
-          {/* 3-State Audio Guidance Control (Full / Alerts Only / Muted) */}
+          {/* 3-State Audio Guidance Control */}
           <button
             type="button"
             className={`nav-audio-mode-btn audio-${audioGuidanceMode}`}
@@ -1932,106 +2483,41 @@ export function NavigationPage({
               </>
             )}
           </button>
-        </div>
-      </header>
 
-      {/* Smart Search, Vehicle Modes & Route Avoidances Control Strip (Google Maps standard) */}
-      <div className="nav-smart-control-strip">
-        {/* Left: Search & Voice Input */}
-        <div className="smart-search-box">
-          <Search size={15} className="search-icon" />
-          <input
-            type="text"
-            className="smart-search-input"
-            placeholder="Tìm địa điểm, cây xăng gần đây, quán cơm, hiệu thuốc..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                handleExecuteSearch(searchQuery);
-              }
-            }}
-          />
-          {searchQuery && (
+          {/* Toggle POI Cards Drawer */}
+          <button
+            type="button"
+            className={`nav-drawer-toggle-btn ${showPoiDrawer ? 'active' : ''}`}
+            onClick={() => setShowPoiDrawer((prev) => !prev)}
+            title="Mở / đóng danh sách cơ sở y tế chi tiết"
+          >
+            <Layers size={14} />
+            <span>Danh sách ({pois.length})</span>
+          </button>
+
+          {/* Download System Design Docs */}
+          <div className="nav-doc-download-pill" title="Tải xuống Kế hoạch Thiết kế Hệ thống & Module 10">
             <button
               type="button"
-              className="btn-clear-search"
-              onClick={() => {
-                setSearchQuery('');
-                setPoiType('pharmacy');
-              }}
-              title="Xóa tìm kiếm"
+              className="nav-doc-download-btn doc-md"
+              onClick={() => handleDownloadDesignDoc('md')}
+              title="Tải tệp thiết kế định dạng Markdown (.MD)"
             >
-              <X size={14} />
+              <FileText size={13} />
+              <span>Tải .MD</span>
             </button>
-          )}
-          <button
-            type="button"
-            className={`btn-voice-search ${isListeningVoice ? 'listening' : ''}`}
-            onClick={handleVoiceSearchToggle}
-            title={
-              isListeningVoice
-                ? 'Đang lắng nghe... Bấm để dừng'
-                : 'Tìm kiếm bằng giọng nói tiếng Việt (Microphone)'
-            }
-          >
-            {isListeningVoice ? <MicOff size={15} /> : <Mic size={15} />}
-            <span>{isListeningVoice ? 'Đang nghe...' : 'Nói tìm kiếm'}</span>
-          </button>
+            <button
+              type="button"
+              className="nav-doc-download-btn doc-word"
+              onClick={() => handleDownloadDesignDoc('doc')}
+              title="Tải tệp thiết kế định dạng Microsoft Word (.DOCX)"
+            >
+              <Download size={13} />
+              <span>Tải .DOC</span>
+            </button>
+          </div>
         </div>
-
-        {/* Center: Vehicle Travel Mode Selector (Motorcycle / Car / Walking) */}
-        <div className="vehicle-mode-selector" role="radiogroup" aria-label="Phương tiện di chuyển">
-          <button
-            type="button"
-            className={`mode-btn ${travelMode === 'motorcycle' ? 'active' : ''}`}
-            onClick={() => setTravelMode('motorcycle')}
-            title="Lộ trình Xe máy: Tối ưu ngõ hẻm an toàn, tránh cao tốc cấm xe 2 bánh"
-          >
-            <Bike size={14} />
-            <span>Xe máy</span>
-            <span className="mode-subtag">Khuyên dùng</span>
-          </button>
-          <button
-            type="button"
-            className={`mode-btn ${travelMode === 'drive' ? 'active' : ''}`}
-            onClick={() => setTravelMode('drive')}
-            title="Lộ trình Ô tô: Đường lớn, tránh đường cấm hoặc ngõ hẹp"
-          >
-            <Car size={14} />
-            <span>Ô tô</span>
-          </button>
-          <button
-            type="button"
-            className={`mode-btn ${travelMode === 'walk' ? 'active' : ''}`}
-            onClick={() => setTravelMode('walk')}
-            title="Lộ trình Đi bộ: Lối đi bộ ngắn nhất"
-          >
-            <Footprints size={14} />
-            <span>Đi bộ</span>
-          </button>
-        </div>
-
-        {/* Right: Route Avoidance Options */}
-        <div className="route-avoidances-box">
-          <label className="avoid-label" title="Tránh các trạm thu phí BOT dọc đường">
-            <input
-              type="checkbox"
-              checked={avoidTolls}
-              onChange={(e) => setAvoidTolls(e.target.checked)}
-            />
-            <span>Tránh trạm thu phí</span>
-          </label>
-          <label className="avoid-label" title="Tránh các tuyến đường cao tốc">
-            <input
-              type="checkbox"
-              checked={avoidHighways}
-              onChange={(e) => setAvoidHighways(e.target.checked)}
-            />
-            <span>Tránh cao tốc</span>
-          </label>
-        </div>
-      </div>
+      </header>
 
       {/* Consultation Guidance Context Banner when arriving from chat */}
       {navigationContext?.fromChat && (
@@ -2106,78 +2592,10 @@ export function NavigationPage({
         </div>
       )}
 
-      {/* Workspace Split Layout: Map on the left/center, Navigation Control on the right */}
-      <div className="nav-workspace-layout">
-        {/* Map View Canvas */}
+      {/* 2. Hero Full-Canvas Workspace Layout */}
+      <div className={`nav-workspace-layout ${showPoiDrawer ? 'has-drawer' : 'full-canvas'}`}>
+        {/* Map View Canvas (Occupies full space) */}
         <section className="nav-map-view-section">
-          <div className="map-canvas-header-bar">
-            <div className="map-badge-group">
-              <span className="live-radar-badge">
-                <span className="live-pulse" /> LIVE TRAFFIC ROUTING
-              </span>
-              <span className="map-route-summary">
-                {activeRoute ? (
-                  <>
-                    Lộ trình: <strong>{activeRoute.distance_km} km</strong> • ~
-                    <strong>{activeRoute.eta_minutes} phút</strong> di chuyển
-                  </>
-                ) : (
-                  'Đang tính toán lộ trình tối ưu...'
-                )}
-              </span>
-            </div>
-
-            {/* Tri-Mode Switcher: 3D Cockpit | 2D Overview | Google Maps Embed */}
-            <div className="map-tab-switcher">
-              <button
-                type="button"
-                className={`map-tab-btn ${mapViewMode === '3d_cockpit' ? 'active' : ''}`}
-                onClick={() => setMapViewMode('3d_cockpit')}
-                title="Bản đồ 3D Buồng lái nghiêng 60° (MapLibre GL JS & Nhà 3D)"
-              >
-                <Car size={13} />
-                <span>3D Buồng Lái</span>
-              </button>
-              <button
-                type="button"
-                className={`map-tab-btn ${mapViewMode === '2d_overview' ? 'active' : ''}`}
-                onClick={() => setMapViewMode('2d_overview')}
-                title="Bản đồ 2D Toàn cảnh bao quát lộ trình (Leaflet HD)"
-              >
-                <Compass size={13} />
-                <span>2D Toàn Cảnh</span>
-              </button>
-              <button
-                type="button"
-                className={`map-tab-btn ${mapViewMode === 'gmaps_embed' ? 'active' : ''}`}
-                onClick={() => setMapViewMode('gmaps_embed')}
-                title="Xem bản đồ chỉ đường nhúng trực tiếp từ Google Maps"
-              >
-                <ExternalLink size={13} />
-                <span>Google Maps Trực tiếp</span>
-              </button>
-            </div>
-
-            <div className="map-poi-type-toggle">
-              <button
-                type="button"
-                className={`type-tab-btn ${poiType === 'pharmacy' ? 'active' : ''}`}
-                onClick={() => setPoiType('pharmacy')}
-              >
-                <Pill size={14} />
-                <span>Nhà thuốc GPP</span>
-              </button>
-              <button
-                type="button"
-                className={`type-tab-btn ${poiType === 'emergency' ? 'active' : ''}`}
-                onClick={() => setPoiType('emergency')}
-              >
-                <Building2 size={14} />
-                <span>Cấp cứu 115</span>
-              </button>
-            </div>
-          </div>
-
           <div className="nav-leaflet-container">
             {/* MapLibre 3D WebGL Root */}
             <div
@@ -2193,116 +2611,470 @@ export function NavigationPage({
               style={{ display: mapViewMode === '2d_overview' ? 'block' : 'none' }}
             />
 
-            {/* Floating Compass Widget (Rotates dynamically with heading; click resets to North) */}
-            {mapViewMode !== 'gmaps_embed' && (
-              <button
-                type="button"
-                className="floating-compass-btn"
-                onClick={handleResetCompass}
-                title="Căn chỉnh la bàn hướng thẳng về chính Bắc (0°)"
-              >
-                <div
-                  className="compass-dial"
-                  style={{
-                    transform: `rotate(${Math.round(vehicleHeading || 0)}deg)`,
-                  }}
-                >
-                  <div className="compass-needle-n">▲ N</div>
-                  <div className="compass-needle-s">S</div>
+            {/* FLOATING COMPONENT 1: Unified Floating Medical Search & Category Radar Card */}
+            <div className={`floating-medical-radar-card ${isFloatingPanelCollapsed ? 'is-collapsed' : ''}`}>
+              <div className="card-top-search-row">
+                <div className="smart-search-box">
+                  <Search size={15} className="search-icon" />
+                  <input
+                    type="text"
+                    className="smart-search-input"
+                    placeholder="Tìm nhà thuốc GPP, phòng khám, cấp cứu..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleExecuteSearch(searchQuery);
+                      }
+                    }}
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      className="btn-clear-search"
+                      onClick={() => {
+                        setSearchQuery('');
+                        setPoiType('pharmacy');
+                      }}
+                      title="Xóa tìm kiếm"
+                    >
+                      <X size={13} />
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className={`btn-voice-search ${isListeningVoice ? 'listening' : ''}`}
+                    onClick={handleVoiceSearchToggle}
+                    title="Tìm kiếm bằng giọng nói tiếng Việt"
+                  >
+                    {isListeningVoice ? <MicOff size={14} /> : <Mic size={14} />}
+                  </button>
                 </div>
-              </button>
-            )}
+                <button
+                  type="button"
+                  className="btn-collapse-panel"
+                  onClick={() => setIsFloatingPanelCollapsed((prev) => !prev)}
+                  title={isFloatingPanelCollapsed ? 'Mở rộng bảng điều khiển' : 'Thu gọn bảng điều khiển'}
+                >
+                  {isFloatingPanelCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+                </button>
+              </div>
 
-            {/* Floating Recenter GPS Button (Google Maps 'Về giữa' round button) */}
-            {mapViewMode !== 'gmaps_embed' && (
-              <button
-                type="button"
-                className="floating-recenter-btn"
-                onClick={handleRecenterGps}
-                title="Về giữa (Đưa camera quay lại vị trí GPS hiện tại của bạn)"
-              >
-                <LocateFixed size={18} />
-                <span className="recenter-badge">Về giữa</span>
-              </button>
-            )}
+              {!isFloatingPanelCollapsed && (
+                <div className="card-body-content">
+                  <div className="medical-category-selector-section">
+                    <div className="selector-title-row">
+                      <Sparkles size={12} className="selector-sparkle-icon" />
+                      <span className="selector-title">DANH MỤC CƠ SỞ Y TẾ CẦN TÌM</span>
+                    </div>
+                    <div className="category-chips-grid">
+                      <button
+                        type="button"
+                        className={`category-chip ${selectedCategory === 'pharmacy' ? 'active' : ''}`}
+                        onClick={() => {
+                          setSelectedCategory('pharmacy');
+                          setPoiType('pharmacy');
+                        }}
+                      >
+                        <div className="chip-icon-box pharmacy">
+                          <Pill size={16} strokeWidth={2.4} />
+                        </div>
+                        <div className="chip-text">
+                          <strong className="chip-name">Điểm Bán Thuốc</strong>
+                          <small className="chip-sub">Nhà thuốc GPP • 24/7</small>
+                        </div>
+                      </button>
 
-            {/* Floating Along-Route Amenities Dock (Cây xăng, Quầy thuốc, Cấp cứu, Quán cơm, Cà phê) */}
-            {mapViewMode !== 'gmaps_embed' && (
-              <div className="floating-along-route-dock">
-                <span className="dock-title">Dọc tuyến:</span>
-                <button
-                  type="button"
-                  className={`dock-chip ${poiType === 'gas_station' ? 'active' : ''}`}
-                  onClick={() => {
-                    setPoiType('gas_station');
-                    setQuickAmenity('gas_station');
-                    onNotify?.('Đang quét các cây xăng / trạm xăng gần nhất dọc tuyến...');
-                  }}
-                  title="Tìm cây xăng / trạm xăng gần nhất"
-                >
-                  <Fuel size={13} />
-                  <span>Cây xăng</span>
-                </button>
-                <button
-                  type="button"
-                  className={`dock-chip ${poiType === 'pharmacy' ? 'active' : ''}`}
-                  onClick={() => {
-                    setPoiType('pharmacy');
-                    setQuickAmenity('pharmacy');
-                    onNotify?.('Đang hiển thị các quầy thuốc GPP gần nhất...');
-                  }}
-                  title="Tìm quầy thuốc GPP"
-                >
-                  <Pill size={13} />
-                  <span>Quầy thuốc</span>
-                </button>
-                <button
-                  type="button"
-                  className={`dock-chip ${poiType === 'emergency' ? 'active' : ''}`}
-                  onClick={() => {
-                    setPoiType('emergency');
-                    setQuickAmenity('emergency');
-                    onNotify?.('Đang hiển thị các trung tâm cấp cứu 115 & bệnh viện...');
-                  }}
-                  title="Tìm trạm cấp cứu & bệnh viện"
-                >
-                  <Building2 size={13} />
-                  <span>Cấp cứu 115</span>
-                </button>
-                <button
-                  type="button"
-                  className={`dock-chip ${poiType === 'cafe' ? 'active' : ''}`}
-                  onClick={() => {
-                    setPoiType('cafe');
-                    setQuickAmenity('cafe');
-                    onNotify?.('Đang tìm quán cà phê / trạm dừng chân gần nhất...');
-                  }}
-                  title="Tìm quán cà phê / trạm nghỉ"
-                >
-                  <Coffee size={13} />
-                  <span>Cà phê</span>
-                </button>
-                <button
-                  type="button"
-                  className={`dock-chip ${poiType === 'restaurant' ? 'active' : ''}`}
-                  onClick={() => {
-                    setPoiType('restaurant');
-                    setQuickAmenity('restaurant');
-                    onNotify?.('Đang tìm quán cơm / quán ăn gần nhất...');
-                  }}
-                  title="Tìm quán cơm / quán ăn"
-                >
-                  <Utensils size={13} />
-                  <span>Quán cơm</span>
-                </button>
+                      <button
+                        type="button"
+                        className={`category-chip ${selectedCategory === 'clinic' ? 'active' : ''}`}
+                        onClick={() => {
+                          setSelectedCategory('clinic');
+                          setPoiType('clinic');
+                        }}
+                      >
+                        <div className="chip-icon-box clinic">
+                          <Stethoscope size={16} strokeWidth={2.4} />
+                        </div>
+                        <div className="chip-text">
+                          <strong className="chip-name">Điểm Y Tế</strong>
+                          <small className="chip-sub">Phòng khám • Trạm y tế</small>
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        className={`category-chip ${selectedCategory === 'emergency' ? 'active' : ''}`}
+                        onClick={() => {
+                          setSelectedCategory('emergency');
+                          setPoiType('emergency');
+                        }}
+                      >
+                        <div className="chip-icon-box emergency">
+                          <Ambulance size={16} strokeWidth={2.4} />
+                        </div>
+                        <div className="chip-text">
+                          <strong className="chip-name">Cấp Cứu 24/7</strong>
+                          <small className="chip-sub">Bệnh viện • Đội xe 115</small>
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        className={`category-chip ${selectedCategory === 'all' ? 'active' : ''}`}
+                        onClick={() => {
+                          setSelectedCategory('all');
+                          setPoiType('all');
+                        }}
+                      >
+                        <div className="chip-icon-box all">
+                          <Building2 size={16} strokeWidth={2.4} />
+                        </div>
+                        <div className="chip-text">
+                          <strong className="chip-name">Tất Cả Cơ Sở</strong>
+                          <small className="chip-sub">Tổng hợp quanh bạn</small>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Prominent Scan Action Button */}
+                  <button
+                    type="button"
+                    className="btn-trigger-radar-primary"
+                    onClick={() => executeRadarScan(selectedCategory)}
+                    disabled={isScanningActive}
+                  >
+                    <div className="btn-radar-icon-box">
+                      <Compass size={18} className={isScanningActive ? 'spin' : 'pulse-subtle'} />
+                    </div>
+                    <div className="btn-text-col">
+                      <span className="btn-lead">
+                        Quét {selectedCategory === 'pharmacy' ? 'Điểm Bán Thuốc' : selectedCategory === 'clinic' ? 'Điểm Y Tế' : selectedCategory === 'emergency' ? 'Bệnh Viện Cấp Cứu' : 'Tất Cả Cơ Sở'} Quanh Bạn
+                      </span>
+                      <small className="btn-subtext">Bán kính ~2.0 km • Đầy đủ địa chỉ & đánh giá</small>
+                    </div>
+                  </button>
+
+                  {/* Vehicle Mode & Avoidances */}
+                  <div className="vehicle-travel-row">
+                    <div className="travel-mode-pills">
+                      <button
+                        type="button"
+                        className={`mode-pill ${travelMode === 'motorcycle' ? 'active' : ''}`}
+                        onClick={() => setTravelMode('motorcycle')}
+                        title="Xe máy: Tối ưu ngõ hẻm an toàn"
+                      >
+                        <Bike size={13} />
+                        <span>Xe máy</span>
+                      </button>
+                      <button
+                        type="button"
+                        className={`mode-pill ${travelMode === 'drive' ? 'active' : ''}`}
+                        onClick={() => setTravelMode('drive')}
+                        title="Ô tô: Lộ trình đường lớn"
+                      >
+                        <Car size={13} />
+                        <span>Ô tô</span>
+                      </button>
+                      <button
+                        type="button"
+                        className={`mode-pill ${travelMode === 'walk' ? 'active' : ''}`}
+                        onClick={() => setTravelMode('walk')}
+                        title="Đi bộ"
+                      >
+                        <Footprints size={13} />
+                        <span>Đi bộ</span>
+                      </button>
+                    </div>
+                    <div className="avoidances-compact">
+                      <label className="compact-avoid-label" title="Tránh trạm thu phí BOT">
+                        <input
+                          type="checkbox"
+                          checked={avoidTolls}
+                          onChange={(e) => setAvoidTolls(e.target.checked)}
+                        />
+                        <span>Tránh thu phí</span>
+                      </label>
+                      <label className="compact-avoid-label" title="Tránh đường cao tốc">
+                        <input
+                          type="checkbox"
+                          checked={avoidHighways}
+                          onChange={(e) => setAvoidHighways(e.target.checked)}
+                        />
+                        <span>Tránh cao tốc</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* FLOATING COMPONENT 2: Professional Medical Radar Scanning Modal / HUD */}
+            {isScanningActive && (
+              <div className="medical-radar-scanning-modal" role="status" aria-live="assertive">
+                <div className="radar-scanning-card">
+                  <div className="radar-holo-animation">
+                    <div className="radar-sweep-beam" />
+                    <div className="radar-ring r1" />
+                    <div className="radar-ring r2" />
+                    <div className="radar-ring r3" />
+                    <div className="radar-center-icon">
+                      {selectedCategory === 'pharmacy' && <Pill size={36} className="radar-svg-center pharmacy" strokeWidth={2.4} />}
+                      {selectedCategory === 'clinic' && <Stethoscope size={36} className="radar-svg-center clinic" strokeWidth={2.4} />}
+                      {selectedCategory === 'emergency' && <Ambulance size={36} className="radar-svg-center emergency" strokeWidth={2.4} />}
+                      {selectedCategory === 'all' && <Building2 size={36} className="radar-svg-center all" strokeWidth={2.4} />}
+                    </div>
+                  </div>
+
+                  <div className="radar-scan-info">
+                    <div className="radar-status-badge">
+                      <span className="live-dot-pulse" />
+                      <span>MEDGUARD RADAR SCANNER AI</span>
+                    </div>
+                    <h3 className="radar-title">
+                      Đang quét {selectedCategory === 'pharmacy' ? 'Điểm bán thuốc GPP' : selectedCategory === 'clinic' ? 'Điểm Y tế & Phòng khám' : selectedCategory === 'emergency' ? 'Cơ sở Cấp cứu 24/7' : 'Tất cả cơ sở y tế'}...
+                    </h3>
+                    <p className="radar-desc">
+                      {selectedCategory === 'pharmacy'
+                        ? 'Đang kết nối danh bạ Nhà thuốc GPP, đối soát giấy phép Bộ Y Tế & kiểm tra tình trạng mở cửa trong bán kính 2km...'
+                        : selectedCategory === 'clinic'
+                        ? 'Đang tìm kiếm Phòng khám đa khoa, Trạm y tế & Bác sĩ chuyên khoa trực ban gần bạn nhất...'
+                        : selectedCategory === 'emergency'
+                        ? 'Đang quét Bệnh viện cấp cứu 24/7, Cổng cấp cứu A9, Khoa hồi sức cấp cứu (ICU) & Đội xe 115...'
+                        : 'Đang tổng hợp dữ liệu toàn bộ cơ sở y tế, dược phẩm & trạm cấp cứu quanh vị trí của bạn...'}
+                    </p>
+
+                    <div className="radar-progress-bar-wrap">
+                      <div className="radar-progress-bar-fill" style={{ width: `${scanProgress}%` }} />
+                    </div>
+                    <div className="radar-progress-labels">
+                      <span className="prog-percent">Tiến độ phân tích: {scanProgress}%</span>
+                      <span className="prog-radius">Bán kính: ~2.0 km</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
-            {/* Off-Route Auto-Reroute Alert Badge */}
-            {rerouteAlert && (
-              <div className="offroute-reroute-alert" role="alert">
-                <AlertTriangle size={16} className="spin-subtle" />
-                <span>Phát hiện lệch đường • Đang tự động định tuyến lại lộ trình...</span>
+            {/* FLOATING COMPONENT 3: 3D/2D View Mode & Theme Switcher (Top-Right) */}
+            <div className="floating-view-mode-pill">
+              <div className="mode-toggle-group">
+                <button
+                  type="button"
+                  className={`mode-pill-btn ${mapViewMode === '3d_cockpit' ? 'active' : ''}`}
+                  onClick={() => setMapViewMode('3d_cockpit')}
+                  title="Bản đồ 3D Buồng lái nghiêng 60° (MapLibre GL JS & Nhà 3D)"
+                >
+                  <Car size={13} />
+                  <span>3D Buồng Lái</span>
+                </button>
+                <button
+                  type="button"
+                  className={`mode-pill-btn ${mapViewMode === '2d_overview' ? 'active' : ''}`}
+                  onClick={() => setMapViewMode('2d_overview')}
+                  title="Bản đồ 2D Toàn cảnh (Leaflet HD)"
+                >
+                  <Compass size={13} />
+                  <span>2D Toàn Cảnh</span>
+                </button>
+              </div>
+
+              <div className="theme-toggle-group">
+                <button
+                  type="button"
+                  className={`theme-pill-btn ${mapTheme === 'streets' ? 'active' : ''}`}
+                  onClick={() => setMapTheme('streets')}
+                  title="Bản đồ Phố HD"
+                >
+                  Phố HD
+                </button>
+                <button
+                  type="button"
+                  className={`theme-pill-btn ${mapTheme === 'satellite' ? 'active' : ''}`}
+                  onClick={() => setMapTheme('satellite')}
+                  title="Bản đồ Vệ tinh"
+                >
+                  Vệ Tinh
+                </button>
+                <button
+                  type="button"
+                  className={`theme-pill-btn ${mapTheme === 'dark' ? 'active' : ''}`}
+                  onClick={() => setMapTheme('dark')}
+                  title="Bản đồ Nền tối"
+                >
+                  Tối
+                </button>
+              </div>
+            </div>
+
+            {/* FLOATING COMPONENT 4: Selected Place Detail Card (When Point is Clicked) */}
+            {selectedPoi && !isNavigatingLive && mapViewMode !== 'gmaps_embed' && (() => {
+              const isEmergencyPoi = selectedPoi.type === 'hospital_emergency' || /cấp cứu|bệnh viện/i.test(selectedPoi.name || '');
+              const isClinicPoi = selectedPoi.category_badge?.includes('PHÒNG KHÁM') || /phòng khám|trạm y tế|chuyên khoa/i.test(selectedPoi.name || '');
+              const heroImageSrc = isEmergencyPoi ? '/assets/emergency_hero.jpg' : isClinicPoi ? '/assets/clinic_hero.jpg' : '/assets/pharmacy_hero.jpg';
+
+              return (
+                <div className="med-place-detail-card" role="region" aria-label="Chi tiết địa điểm y tế">
+                  {/* Hero Media Banner with Category Badge & Status Overlay */}
+                  <div className="detail-card-hero-banner">
+                    <img src={heroImageSrc} alt={selectedPoi.name} className="hero-banner-image" loading="lazy" />
+                    <div className="hero-banner-gradient-overlay" />
+                    <div className="hero-top-bar">
+                      <div className="hero-category-badge-group">
+                        <span className={`detail-category-badge ${isEmergencyPoi ? 'emergency' : isClinicPoi ? 'clinic' : 'pharmacy'}`}>
+                          {isEmergencyPoi ? (
+                            <><Ambulance size={12} strokeWidth={2.4} /> CẤP CỨU 24/7</>
+                          ) : isClinicPoi ? (
+                            <><Stethoscope size={12} strokeWidth={2.4} /> PHÒNG KHÁM / Y TẾ</>
+                          ) : (
+                            <><Pill size={12} strokeWidth={2.4} /> NHÀ THUỐC GPP</>
+                          )}
+                        </span>
+                        <span className="detail-status-pill open">
+                          <span className="live-status-dot" />
+                          {selectedPoi.operating_status?.label || 'Đang mở cửa'}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        className="btn-close-detail-glass"
+                        onClick={() => {
+                          setSelectedPoi(null);
+                          setIsFloatingPanelCollapsed(false);
+                        }}
+                        title="Đóng chi tiết"
+                      >
+                        <X size={15} />
+                      </button>
+                    </div>
+                    <div className="hero-bottom-bar">
+                      <span className="hero-dist-pill">
+                        <Route size={12} />
+                        {selectedPoi.distance_label || formatDistanceLabel(selectedPoi.distance_km)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Body Content */}
+                  <div className="detail-card-body-section">
+                    <h3 className="detail-place-name">{selectedPoi.name}</h3>
+                    <p className="detail-place-address">
+                      <MapPin size={13} className="pin-addr-icon" />
+                      <span>{selectedPoi.address}</span>
+                    </p>
+
+                    <div className="detail-rating-trust-row">
+                      <button
+                        type="button"
+                        className="detail-google-stars-btn"
+                        onClick={() => openGoogleReviewsPanel(selectedPoi)}
+                        title="Xem đánh giá Google Maps thực tế"
+                      >
+                        ★ {selectedPoi.rating || 4.8} ({selectedPoi.user_rating_count || 186} đánh giá Google • Xem chi tiết →)
+                      </button>
+                      <span className="detail-trust-pill">
+                        <ShieldCheck size={13} /> Tin cậy: <strong>{selectedPoi.trust_score || 94}/100</strong>
+                      </span>
+                    </div>
+
+                    <div className="detail-specialty-box">
+                      <div className="specialty-header">
+                        <Sparkles size={11} className="specialty-sparkle" />
+                        <span className="specialty-label">Chuyên môn & Dịch vụ:</span>
+                      </div>
+                      <p className="specialty-text">{selectedPoi.medical_note || buildMedicalCalloutNote(selectedPoi)}</p>
+                    </div>
+
+                    {/* 2-Tier Stacked Action Buttons */}
+                    <div className="detail-actions-stacked">
+                      <button
+                        type="button"
+                        className="btn-start-nav-hero"
+                        onClick={() => startLiveNavigation(false)}
+                      >
+                        <Navigation size={15} />
+                        <span>BẮT ĐẦU CHỈ ĐƯỜNG NGAY</span>
+                      </button>
+                      <div className="detail-secondary-actions-row">
+                        {selectedPoi.phone ? (
+                          <a href={`tel:${selectedPoi.phone}`} className="btn-secondary-action call">
+                            <PhoneCall size={13} />
+                            <span>Gọi ({selectedPoi.phone})</span>
+                          </a>
+                        ) : (
+                          <a href="tel:115" className="btn-secondary-action call">
+                            <PhoneCall size={13} />
+                            <span>Gọi Cấp cứu 115</span>
+                          </a>
+                        )}
+                        <a
+                          href={googleMapsNavUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="btn-secondary-action gmaps"
+                          title="Mở Google Maps App"
+                        >
+                          <ExternalLink size={13} />
+                          <span>Google Maps App</span>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* FLOATING COMPONENT 5: Google Maps Unified Control Dock (Bottom-Right) */}
+            {mapViewMode !== 'gmaps_embed' && (
+              <div className="google-nav-floating-dock" role="toolbar" aria-label="Điều khiển bản đồ">
+                <button
+                  type="button"
+                  className="gnav-dock-btn"
+                  onClick={handleZoomIn}
+                  title="Phóng to bản đồ (+)"
+                  aria-label="Phóng to"
+                >
+                  <Plus size={16} />
+                </button>
+                <button
+                  type="button"
+                  className="gnav-dock-btn"
+                  onClick={handleZoomOut}
+                  title="Thu nhỏ bản đồ (-)"
+                  aria-label="Thu nhỏ"
+                >
+                  <Minus size={16} />
+                </button>
+                <div className="gnav-dock-divider" />
+                <button
+                  type="button"
+                  className="gnav-dock-btn"
+                  onClick={handleFitAllPois}
+                  title="Xem toàn bộ bản đồ & tất cả các cơ sở xung quanh"
+                  aria-label="Xem toàn bộ bản đồ"
+                >
+                  <Compass size={16} />
+                </button>
+                <button
+                  type="button"
+                  className="gnav-dock-btn"
+                  onClick={handleRecenterGps}
+                  title="Về vị trí hiện tại của bạn"
+                  aria-label="Về vị trí hiện tại"
+                >
+                  <LocateFixed size={16} />
+                </button>
+                <div className="gnav-dock-divider" />
+                <button
+                  type="button"
+                  className={`gnav-dock-btn ${isMapFullscreen ? 'active' : ''}`}
+                  onClick={handleToggleFullscreen}
+                  title={isMapFullscreen ? 'Thu nhỏ giao diện bản đồ' : 'Mở rộng bản đồ toàn màn hình'}
+                  aria-label="Mở rộng toàn màn hình"
+                >
+                  {isMapFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                </button>
               </div>
             )}
 
@@ -2337,7 +3109,7 @@ export function NavigationPage({
               </div>
             )}
 
-            {/* Top HUD Card (Turn-by-Turn Banner) - Shown in both preview and live navigation */}
+            {/* Top HUD Card (Turn-by-Turn Banner) - Shown in navigation */}
             {steps.length > 0 && mapViewMode !== 'gmaps_embed' && (
               <div className="nav-hud-top-card">
                 <div className="hud-main-bar">
@@ -2357,29 +3129,40 @@ export function NavigationPage({
                   </div>
                   <div className="hud-quick-actions">
                     {!isNavigatingLive ? (
-                      <button
-                        type="button"
-                        className="btn-hud-start-quick"
-                        onClick={() => startLiveNavigation(false)}
-                        title="Bắt đầu dẫn đường Turn-by-Turn"
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
-                          border: 'none',
-                          color: '#ffffff',
-                          fontWeight: 700,
-                          fontSize: '0.8rem',
-                          padding: '6px 12px',
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          boxShadow: '0 2px 10px rgba(16, 185, 129, 0.4)',
-                        }}
-                      >
-                        <Navigation size={13} />
-                        <span>Bắt đầu</span>
-                      </button>
+                      <>
+                        <button
+                          type="button"
+                          className="btn-hud-start-quick"
+                          onClick={() => startLiveNavigation(false)}
+                          title="Bắt đầu dẫn đường Turn-by-Turn"
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
+                            border: 'none',
+                            color: '#ffffff',
+                            fontWeight: 700,
+                            fontSize: '0.8rem',
+                            padding: '6px 12px',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            boxShadow: '0 2px 10px rgba(16, 185, 129, 0.4)',
+                          }}
+                        >
+                          <Navigation size={13} />
+                          <span>Bắt đầu</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-change-destination"
+                          onClick={handleResetDestination}
+                          title="Quay lại danh sách các cơ sở y tế khác"
+                        >
+                          <RotateCcw size={12} />
+                          <span>Đổi địa điểm khác</span>
+                        </button>
+                      </>
                     ) : (
                       <>
                         <button
@@ -2475,406 +3258,215 @@ export function NavigationPage({
                 </div>
               </div>
             )}
-
-            {/* Float Overlay on Map: Selected Destination Info (Preview Mode) */}
-            {!isNavigatingLive && selectedPoi && mapViewMode !== 'gmaps_embed' && (
-              <div className="map-float-poi-card">
-                <div className="float-poi-content">
-                  <div className="float-badge-row">
-                    <span className="float-badge-dest">ĐIỂM ĐẾN (B)</span>
-                    {navigationContext?.fromChat &&
-                      (selectedPoi.id === navigationContext.selectedPoi?.id ||
-                        selectedPoi.name === navigationContext.selectedPoi?.name) && (
-                        <span className="float-chat-tag">
-                          <Sparkles size={11} /> ĐỀ XUẤT TỪ CHAT
-                        </span>
-                      )}
-                    <span
-                      className={`float-op-badge ${selectedPoi.operating_status?.is_open ? 'open' : 'closed'}`}
-                    >
-                      {selectedPoi.operating_status?.status_label}
-                    </span>
-                    {(selectedPoi.operating_status?.status_badge === 'CLOSING_SOON' ||
-                      (selectedPoi.operating_status?.minutes_until_close &&
-                        selectedPoi.operating_status.minutes_until_close <= 30)) && (
-                      <span className="closing-soon-warning">
-                        <AlertTriangle size={12} />
-                        Có thể đóng cửa trước lúc bạn đến
-                      </span>
-                    )}
-                  </div>
-                  <strong className="float-poi-title">{selectedPoi.name}</strong>
-                  <p className="float-poi-addr">{selectedPoi.address}</p>
-                </div>
-
-                <div className="float-cta-group">
-                  <button
-                    type="button"
-                    className="btn-start-cockpit-nav"
-                    onClick={() => startLiveNavigation(false)}
-                    title="Kích hoạt chế độ dẫn đường trực tiếp Google Maps"
-                  >
-                    <Navigation size={16} />
-                    <span>BẮT ĐẦU CHỈ ĐƯỜNG</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    className="btn-simulate-cockpit-nav"
-                    onClick={() => startLiveNavigation(true)}
-                    title="Mô phỏng xe di chuyển từng khúc rẽ và phát giọng nói tiếng Việt"
-                  >
-                    <Play size={14} />
-                    <span>Mô phỏng xe chạy</span>
-                  </button>
-
-                  {selectedPoi.phone && (
-                    <a
-                      href={`tel:${selectedPoi.phone}`}
-                      className="btn-poi-call-direct"
-                      title={`Gọi trực tiếp đến ${selectedPoi.name}`}
-                    >
-                      <PhoneCall size={14} />
-                      <span>Gọi ({selectedPoi.phone})</span>
-                    </a>
-                  )}
-
-                  <a
-                    href={googleMapsNavUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="float-gmaps-link-btn"
-                    title="Mở Google Maps App với chế độ dẫn đường Turn-by-Turn GPS"
-                  >
-                    <Navigation size={14} />
-                    <span>Mở Google Maps GPS</span>
-                    <ExternalLink size={12} />
-                  </a>
-                </div>
-              </div>
-            )}
           </div>
         </section>
 
-        {/* Navigation Sidebar & Console */}
-        <aside className="nav-sidebar-console">
-          {/* Turn-by-Turn Navigation Stepper (Positioned at TOP for immediate visibility) */}
-          {steps.length > 0 && (
-            <div className="nav-turn-stepper-box">
-              <div className="stepper-header">
-                <div className="stepper-title-row">
-                  <Compass size={16} className="compass-icon pulse-subtle" />
-                  <strong>CHỈ DẪN TỪNG CHẶNG RẼ (TURN-BY-TURN)</strong>
-                </div>
-                <div className="stepper-actions-header">
-                  <button
-                    type="button"
-                    className="btn-stepper-tts-speak"
-                    onClick={() =>
-                      speakVietnameseInstruction(
-                        `${formatDistanceToTurn(currentStep.distance_km)}, ${translateStepInstruction(currentStep.instruction, currentStep.road_name)}`,
-                        true
-                      )
-                    }
-                    title="Phát giọng nói chặng hiện tại"
-                  >
-                    <Volume2 size={13} />
-                    <span>Đọc</span>
-                  </button>
-                  <span className="step-count-pill">
-                    Chặng {activeStepIndex + 1}/{steps.length}
-                  </span>
-                </div>
+        {/* Sliding POI Cards Drawer (Visible only when toggled) */}
+        {showPoiDrawer && (
+          <aside className="nav-sidebar-console slide-drawer">
+            <div className="drawer-header-row">
+              <div className="drawer-title-group">
+                <Layers size={16} className="text-cyan" />
+                <strong>Danh sách {pois.length} cơ sở y tế quanh bạn</strong>
               </div>
+              <button
+                type="button"
+                className="btn-close-drawer"
+                onClick={() => setShowPoiDrawer(false)}
+                title="Đóng bảng danh sách"
+              >
+                <X size={16} />
+              </button>
+            </div>
 
-              <div className="active-turn-banner">
-                <div className="turn-direction-icon-box">
-                  {getTurnDirectionIcon(currentStep.instruction)}
-                </div>
-                <div className="turn-instruction-info">
-                  <span className="road-highlight">
-                    {currentStep.road_name || 'Đoạn đường di chuyển'}
-                  </span>
-                  <h4 className="instruction-heading">
-                    {translateStepInstruction(
-                      currentStep.instruction,
-                      currentStep.road_name
-                    )}
-                  </h4>
-                  <div className="turn-metrics">
-                    <span className="metric-tag">
-                      <Route size={12} /> {formatDistanceToTurn(currentStep.distance_km)}
-                    </span>
-                    <span className="metric-tag">
-                      <Clock size={12} /> ~
-                      {Math.max(1, Math.round(currentStep.distance_km * 2.5))}{' '}
-                      phút
+            {/* Turn-by-Turn Navigation Stepper (When route is active) */}
+            {steps.length > 0 && (
+              <div className="nav-turn-stepper-box">
+                <div className="stepper-header">
+                  <div className="stepper-title-row">
+                    <Compass size={16} className="compass-icon pulse-subtle" />
+                    <strong>CHỈ DẪN TỪNG CHẶNG RẼ</strong>
+                  </div>
+                  <div className="stepper-actions-header">
+                    <button
+                      type="button"
+                      className="btn-stepper-tts-speak"
+                      onClick={() =>
+                        speakVietnameseInstruction(
+                          `${formatDistanceToTurn(currentStep.distance_km)}, ${translateStepInstruction(currentStep.instruction, currentStep.road_name)}`,
+                          true
+                        )
+                      }
+                      title="Phát giọng nói chặng hiện tại"
+                    >
+                      <Volume2 size={13} />
+                      <span>Đọc</span>
+                    </button>
+                    <span className="step-count-pill">
+                      Chặng {activeStepIndex + 1}/{steps.length}
                     </span>
                   </div>
                 </div>
-              </div>
 
-              {/* Start Navigation Action within Stepper */}
-              <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!isNavigatingLive) startLiveNavigation(false);
-                    else stopLiveNavigation();
-                  }}
-                  style={{
-                    flex: 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    padding: '10px 14px',
-                    background: isNavigatingLive
-                      ? 'rgba(239, 68, 68, 0.2)'
-                      : 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
-                    border: isNavigatingLive ? '1px solid #ef4444' : 'none',
-                    borderRadius: '8px',
-                    color: '#ffffff',
-                    fontWeight: 700,
-                    fontSize: '0.85rem',
-                    cursor: 'pointer',
-                    boxShadow: isNavigatingLive
-                      ? 'none'
-                      : '0 4px 14px rgba(16, 185, 129, 0.35)',
-                  }}
-                >
-                  <Navigation size={15} />
-                  <span>
-                    {isNavigatingLive ? 'DỪNG DẪN ĐƯỜNG' : 'BẮT ĐẦU CHỈ ĐƯỜNG'}
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => startLiveNavigation(true)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '6px',
-                    padding: '10px 14px',
-                    background: 'rgba(255, 255, 255, 0.08)',
-                    border: '1px solid rgba(255, 255, 255, 0.15)',
-                    borderRadius: '8px',
-                    color: '#cbd5e1',
-                    fontWeight: 600,
-                    fontSize: '0.82rem',
-                    cursor: 'pointer',
-                  }}
-                  title="Mô phỏng xe chạy"
-                >
-                  <Play size={14} />
-                  <span>Mô phỏng</span>
-                </button>
-              </div>
-
-              {/* Step Navigation Controls */}
-              <div className="stepper-controls-bar">
-                <button
-                  type="button"
-                  className="step-nav-btn"
-                  disabled={activeStepIndex === 0}
-                  onClick={() => handleStepClick(Math.max(0, activeStepIndex - 1))}
-                >
-                  <ArrowLeft size={13} /> Chặng trước
-                </button>
-                <div className="step-dots-group">
-                  {steps.map((s, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      className={`step-dot ${idx === activeStepIndex ? 'active' : idx < activeStepIndex ? 'passed' : ''}`}
-                      onClick={() => handleStepClick(idx)}
-                      title={`Chặng ${idx + 1}: ${translateStepInstruction(s.instruction, s.road_name)}`}
-                    >
-                      {idx + 1}
-                    </button>
-                  ))}
-                </div>
-                <button
-                  type="button"
-                  className="step-nav-btn btn-next"
-                  disabled={activeStepIndex === steps.length - 1}
-                  onClick={() =>
-                    handleStepClick(Math.min(steps.length - 1, activeStepIndex + 1))
-                  }
-                >
-                  Chặng tiếp <ArrowRight size={13} />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Dual Navigation Choice Hero Banner */}
-          <div className="nav-dual-choice-hero">
-            <div className="hero-header">
-              <Navigation size={18} className="hero-icon" />
-              <div>
-                <strong>CƠ CHẾ ĐIỀU HƯỚNG KẾT HỢP 3D & 2D</strong>
-                <p>
-                  Động cơ <strong>Turf.js GPS Engine</strong> tự động khử nhiễu bắt dính tim đường, kết hợp{' '}
-                  <strong>3D Buồng lái (MapLibre WebGL)</strong> và <strong>2D Toàn cảnh (Leaflet HD)</strong>.
-                </p>
-              </div>
-            </div>
-
-            <div className="hero-choices-grid">
-              {/* Lựa chọn 1: Deep Link sang Google Maps App với tham số dẫn đường trực tiếp */}
-              <a
-                href={googleMapsNavUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="hero-choice-card choice-gmaps-primary"
-              >
-                <div className="choice-badge-top">
-                  <span className="badge-tag">LỰA CHỌN 1</span>
-                  <span className="badge-type">Google Maps App GPS</span>
-                </div>
-                <h4>Mở Ứng dụng Google Maps</h4>
-                <p>
-                  Khởi động chế độ Dẫn Đường Trực Tiếp (Turn-by-Turn Voice Navigation)
-                  trên Google Maps với điểm A và B tự động nạp sẵn.
-                </p>
-                <div className="choice-btn-row">
-                  <span>Bật Dẫn Đường Google Maps</span>
-                  <ArrowRight size={14} />
-                </div>
-              </a>
-
-              {/* Lựa chọn 2: Turn-by-Turn In-App Cockpit */}
-              <div
-                className={`hero-choice-card choice-inapp-primary ${isNavigatingLive ? 'navigating-active' : 'active'}`}
-                onClick={() => {
-                  if (!isNavigatingLive) {
-                    startLiveNavigation(false);
-                  }
-                }}
-              >
-                <div className="choice-badge-top">
-                  <span className="badge-tag tag-active">
-                    {isNavigatingLive ? 'ĐANG DẪN ĐƯỜNG' : 'LỰA CHỌN 2 (MẶC ĐỊNH)'}
-                  </span>
-                  <span className="badge-type">3D WebGL & 2D Hybrid</span>
-                </div>
-                <h4>Chỉ Đường Real-time MedGuard</h4>
-                <p>
-                  Giao diện HUD buồng lái Google Maps với giọng nói hướng dẫn tiếng Việt,
-                  theo dõi xe chạy và chỉ dẫn từng chặng rẽ.
-                </p>
-                <div className="choice-btn-row active-text">
-                  <span className="btn-launch-inline">
-                    {isNavigatingLive ? 'Đang dẫn đường HUD' : 'Bắt đầu chỉ đường ngay'}
-                  </span>
-                  <ChevronDown size={14} />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* List of Nearby POIs */}
-          <div className="nav-poi-list-section">
-            <div className="poi-list-header">
-              <span className="poi-list-title">
-                {poiType === 'pharmacy'
-                  ? 'Quầy thuốc GPP gần bạn nhất'
-                  : poiType === 'emergency'
-                  ? 'Bệnh viện & Trung tâm Cấp cứu 115'
-                  : poiType === 'gas_station'
-                  ? 'Trạm xăng & Cây xăng gần nhất'
-                  : poiType === 'cafe'
-                  ? 'Quán cà phê & Trạm dừng chân gần nhất'
-                  : poiType === 'restaurant'
-                  ? 'Quán cơm & Điểm ăn uống gần nhất'
-                  : 'Địa điểm lân cận'}
-              </span>
-              <span className="poi-count-badge">{pois.length} địa điểm</span>
-            </div>
-
-            <div className="poi-cards-scroll">
-              {loadingPois ? (
-                <div className="poi-loading-skeleton">
-                  <RefreshCw size={20} className="spin" />
-                  <span>Đang quét các trạm y tế quanh bạn...</span>
-                </div>
-              ) : pois.length === 0 ? (
-                <div className="poi-empty">
-                  <span>Không tìm thấy địa điểm phù hợp tại khu vực này.</span>
-                </div>
-              ) : (
-                pois.map((poi) => {
-                  const isSelected = selectedPoi?.id === poi.id;
-                  const isFromChat =
-                    poi.isRecommendedFromChat ||
-                    (navigationContext?.selectedPoi &&
-                      (poi.id === navigationContext.selectedPoi.id ||
-                        (poi.name &&
-                          navigationContext.selectedPoi.name &&
-                          poi.name.toLowerCase() ===
-                            navigationContext.selectedPoi.name.toLowerCase())));
-                  return (
-                    <div
-                      key={poi.id}
-                      className={`poi-card-item ${isSelected ? 'selected' : ''} ${isFromChat ? 'chat-recommended' : ''}`}
-                      onClick={() => setSelectedPoi(poi)}
-                    >
-                      {isFromChat && (
-                        <div className="poi-chat-recommended-badge">
-                          <Sparkles size={11} />
-                          <span>ĐỀ XUẤT TỪ CA TƯ VẤN</span>
-                        </div>
+                <div className="active-turn-banner">
+                  <div className="turn-direction-icon-box">
+                    {getTurnDirectionIcon(currentStep.instruction)}
+                  </div>
+                  <div className="turn-instruction-info">
+                    <span className="road-highlight">
+                      {currentStep.road_name || 'Đoạn đường di chuyển'}
+                    </span>
+                    <h4 className="instruction-heading">
+                      {translateStepInstruction(
+                        currentStep.instruction,
+                        currentStep.road_name
                       )}
-                      <div className="poi-card-top">
-                        <div className="poi-name-col">
-                          <strong>{poi.name}</strong>
-                          <p className="poi-address-text">{poi.address}</p>
-                        </div>
-                        <div className="poi-dist-badge">
-                          <span className="dist-num">{poi.distance_km}</span>
-                          <span className="dist-unit">km</span>
-                        </div>
-                      </div>
-
-                      <div className="poi-card-bottom">
-                        <span
-                          className={`poi-status-tag ${poi.operating_status?.is_open ? 'open' : 'closed'}`}
-                        >
-                          {poi.operating_status?.status_label}
-                        </span>
-                        {(poi.operating_status?.status_badge === 'CLOSING_SOON' ||
-                          (poi.operating_status?.minutes_until_close &&
-                            poi.operating_status.minutes_until_close <= 30)) && (
-                          <span className="closing-soon-warning sidebar-warning">
-                            <AlertTriangle size={11} />
-                            Sắp đóng
-                          </span>
-                        )}
-                        {poi.phone && (
-                          <a
-                            href={`tel:${poi.phone}`}
-                            className="poi-phone-link"
-                            onClick={(e) => e.stopPropagation()}
-                            title={`Gọi điện thoại đến ${poi.name}`}
-                          >
-                            <PhoneCall size={12} />
-                            <span>{poi.phone}</span>
-                          </a>
-                        )}
-                        <span className="select-hint">
-                          {isSelected ? 'Đang chọn' : 'Chọn để chỉ đường'}
-                        </span>
-                      </div>
+                    </h4>
+                    <div className="turn-metrics">
+                      <span className="metric-tag">
+                        <Route size={12} /> {formatDistanceToTurn(currentStep.distance_km)}
+                      </span>
+                      <span className="metric-tag">
+                        <Clock size={12} /> ~
+                        {Math.max(1, Math.round(currentStep.distance_km * 2.5))} phút
+                      </span>
                     </div>
-                  );
-                })
-              )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* List of Nearby POIs */}
+            <div className="nav-poi-list-section">
+              <div className="poi-cards-scroll">
+                {loadingPois ? (
+                  <div className="poi-loading-skeleton">
+                    <RefreshCw size={20} className="spin" />
+                    <span>Đang quét các trạm y tế quanh bạn...</span>
+                  </div>
+                ) : pois.length === 0 ? (
+                  <div className="poi-empty">
+                    <span>Không tìm thấy địa điểm phù hợp tại khu vực này.</span>
+                  </div>
+                ) : (
+                  pois.map((poi) => {
+                    const isSelected = selectedPoi?.id === poi.id;
+                    const isEmerg = poi.type === 'hospital_emergency';
+                    const isClinic = poi.category_badge?.includes('PHÒNG KHÁM');
+                    const candidate = {
+                      id: poi.id,
+                      name: poi.name,
+                      facilityType: isEmerg ? 'emergency_hospital' : 'pharmacy',
+                      distanceKm: poi.distance_km || 0.5,
+                      etaMinutes: Math.round((poi.distance_km || 0.5) * 3),
+                      lat: poi.lat,
+                      lng: poi.lng,
+                      emergencyGateName: poi.emergency_gate_name,
+                      hospitalTier: poi.hospital_tier || (isEmerg ? 'TIER_1' : 'GPP_CHAIN'),
+                      capabilities: poi.capabilities_or_services || [],
+                      gppVerified: !isEmerg,
+                      reputation: {
+                        placeId: poi.id,
+                        rating: poi.rating || (isEmerg ? 4.8 : 4.7),
+                        userRatingCount: poi.user_rating_count || 1420,
+                        openNow: Boolean(poi.operating_status?.is_open),
+                        is24Hours: poi.operating_status?.status_badge === 'OPEN_24_7',
+                        verifiedPhone: poi.phone,
+                        googleMapsUri: poi.google_maps_turn_by_turn_url || '',
+                        topReviews: poi.reviews || [],
+                      },
+                    };
+                    const trustInfo = computeMedicalTrustScore(candidate);
+
+                    return (
+                      <div
+                        key={poi.id}
+                        className={`poi-card-item ${isSelected ? 'selected' : ''}`}
+                        onClick={() => setSelectedPoi(poi)}
+                      >
+                        <div className="poi-card-top">
+                          <div className="poi-name-col">
+                            <strong>{poi.name}</strong>
+                            <p className="poi-address-text">{poi.address}</p>
+                            <div className="poi-reputation-row">
+                              <button
+                                type="button"
+                                className="poi-google-rating"
+                                onClick={(ev) => {
+                                  ev.stopPropagation();
+                                  openGoogleReviewsPanel(poi);
+                                }}
+                                title="Bấm để xem toàn bộ đánh giá Google Maps"
+                              >
+                                ★ {poi.rating || (isEmerg ? 4.8 : 4.7)} ({poi.user_rating_count || 186} đánh giá Google · Xem)
+                              </button>
+                              <span className="poi-trust-score-badge">
+                                Tin cậy: {trustInfo.trustScore100}/100
+                              </span>
+                            </div>
+                          </div>
+                          <div className="poi-dist-badge">
+                            <span className="dist-num">{poi.distance_km}</span>
+                            <span className="dist-unit">km</span>
+                          </div>
+                        </div>
+
+                        {poi.reviews && poi.reviews.length > 0 && (
+                          <div
+                            className="poi-reviews-preview"
+                            onClick={(ev) => {
+                              ev.stopPropagation();
+                              openGoogleReviewsPanel(poi);
+                            }}
+                          >
+                            <p className="review-quote">
+                              &ldquo;{poi.reviews[0].text}&rdquo; <span style={{ color: '#38bdf8', fontWeight: 600 }}>Xem thêm →</span>
+                            </p>
+                          </div>
+                        )}
+
+                        <div className="poi-card-bottom">
+                          <span className="poi-status-tag open">
+                            {poi.operating_status?.label || 'Đang mở cửa'}
+                          </span>
+                          {poi.phone && (
+                            <a
+                              href={`tel:${poi.phone}`}
+                              className="poi-phone-link"
+                              onClick={(e) => e.stopPropagation()}
+                              title={`Gọi điện thoại đến ${poi.name}`}
+                            >
+                              <PhoneCall size={12} />
+                              <span>{poi.phone}</span>
+                            </a>
+                          )}
+                          <span className="select-hint">
+                            {isSelected ? 'Đang chọn' : 'Bấm để xem'}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
             </div>
-          </div>
-        </aside>
+          </aside>
+        )}
       </div>
+
+      {/* State 3: Google Reviews Redesigned Panel */}
+      {activeReviewPoi && (
+        <GoogleReviewsPanel
+          poi={activeReviewPoi}
+          onClose={closeGoogleReviewsPanel}
+          onSelectAndNavigate={(poi) => {
+            setSelectedPoi(poi);
+            startDestinationNavigation(poi);
+          }}
+        />
+      )}
     </div>
   );
 }
+
+

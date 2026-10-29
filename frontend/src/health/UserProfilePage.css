@@ -5,12 +5,42 @@
 .user-profile-page-workspace {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  flex: 1 1 0%;
+  width: 100%;
+  height: calc(100vh - 66px);
+  max-height: calc(100vh - 66px);
+  min-height: 0;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  scroll-behavior: smooth;
   background: #f8fafc;
   color: #0f172a;
-  padding: 0 0 60px 0;
+  padding: 0 0 100px 0;
   position: relative;
   font-family: inherit;
+}
+
+@media (max-width: 640px) {
+  .user-profile-page-workspace {
+    height: calc(100vh - 58px);
+    max-height: calc(100vh - 58px);
+  }
+}
+
+.user-profile-page-workspace::-webkit-scrollbar {
+  width: 8px;
+}
+.user-profile-page-workspace::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+.user-profile-page-workspace::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+.user-profile-page-workspace::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 /* 1. TOP BREADCRUMB & ACTIONS BAR */

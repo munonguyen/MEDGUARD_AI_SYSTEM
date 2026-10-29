@@ -430,7 +430,95 @@ function statusConfig({ urgency, overallRisk, isClinical, intent, verificationSt
  * Generate contextual user follow-up questions to ask the AI assistant.
  * (Questions from user -> assistant, NOT system asking user).
  */
-function getContextualFollowups(answer, intent, tone) {
+function getContextualFollowups(answer, intent, tone, userQuery = '') {
+  const queryLower = (userQuery || '').toLowerCase();
+
+  // 1. RULE 1: Only generate suggestions from the USER's prompt, never hallucinate from AI response text
+  if (queryLower) {
+    // Crisis / Self-harm
+    if (['ngủ mãi không dậy', 'không còn ý nghĩa', 'muốn chết', 'tự tử', 'tự sát', 'uống hết 2 vỉ', 'kết thúc cuộc đời', 'chấm dứt cuộc sống'].some(k => queryLower.includes(k))) {
+      return [
+        'Kết nối ngay với tổng đài hỗ trợ tâm lý khẩn cấp 24/7',
+        'Hướng dẫn người nhà xử trí an toàn tại chỗ trong lúc chờ hỗ trợ',
+      ];
+    }
+
+    // Emergency red flags (FAST Stroke / Chest pain)
+    if (
+      ['mờ mắt', 'nói líu lưỡi', 'nói khó', 'nói đớ', 'méo miệng', 'lệch mặt', 'cầm đũa', 'yếu tay', 'liệt', 'tê nửa người'].some(k => queryLower.includes(k)) ||
+      ['đau thắt ngực', 'đau ngực trái', 'lan lên hàm', 'vã mồ hôi lạnh', 'khó thở dữ dội'].some(k => queryLower.includes(k)) ||
+      tone === 'emergency'
+    ) {
+      return [
+        'Những việc cần làm và tuyệt đối tránh trong lúc chờ xe cấp cứu 115?',
+        'Danh sách bệnh viện có Đơn vị Đột quỵ / Tim mạch can thiệp gần nhất?',
+      ];
+    }
+
+    // Headache / Fever
+    if (queryLower.includes('đau đầu') || queryLower.includes('nhức đầu') || queryLower.includes('sốt')) {
+      return [
+        'Sốt kèm đau đầu khi nào là dấu hiệu cảnh báo viêm màng não hoặc sốt xuất huyết?',
+        'Cách hạ sốt và bù nước điện giải an toàn tại nhà theo từng mức nhiệt độ?',
+        'Những dấu hiệu nào xuất hiện thêm thì cần đi khám cấp cứu ngay trong ngày?',
+      ];
+    }
+
+    // Suspected counterfeit / Quality / DAV
+    if (
+      /\bvn-\d+/i.test(queryLower) ||
+      ['số lô', 'tem chống giả', 'thật hay giả', 'ngả vàng', 'mùi chua', 'thuốc giả', 'đổi màu'].some(k => queryLower.includes(k))
+    ) {
+      return [
+        'Cách đối chiếu số đăng ký thuốc trên hệ thống Cục Quản lý Dược (DAV)?',
+        'Dấu hiệu nhận biết viên thuốc kháng sinh bị ẩm mốc hoặc biến chất?',
+      ];
+    }
+
+    // Anticoagulants / Drug interactions
+    if (['warfarin', 'aspirin', 'chống đông', 'tương tác', 'xuất huyết', 'nsaid', 'ibuprofen', 'amlodipin'].some(k => queryLower.includes(k))) {
+      return [
+        'Những dấu hiệu xuất huyết hoặc quá liều thuốc nào cần đi cấp cứu ngay?',
+        'Thuốc giảm đau / hạ sốt nào an toàn hơn trong trường hợp này?',
+      ];
+    }
+
+    // Pediatric dosing
+    if (['bé', 'trẻ', 'tháng tuổi', 'kg', 'hapacol', 'efferalgan'].some(k => queryLower.includes(k))) {
+      return [
+        'Liều dùng thuốc hạ sốt an toàn cho trẻ theo từng mốc cân nặng (mg/kg)?',
+        'Khi nào trẻ sốt cần đưa đi khám bác sĩ Nhi khoa ngay?',
+      ];
+    }
+
+    // Eye symptoms (ONLY if user explicitly mentioned eyes)
+    if (['kết mạc', 'đau mắt', 'đỏ mắt', 'cộm mắt', 'chảy nước mắt', 'mắt đỏ'].some(k => queryLower.includes(k))) {
+      return [
+        'Cách dùng nước muối sinh lý vệ sinh mắt đúng cách hàng ngày?',
+        'Dấu hiệu viêm mắt nào cảnh báo nguy hiểm cần khám bác sĩ ngay?',
+        'Đau mắt đỏ có lây không và cần làm gì để phòng ngừa cho người xung quanh?',
+      ];
+    }
+
+    // Dental
+    if (['đau răng', 'sâu răng', 'nhức răng', 'sưng nướu', 'viêm lợi', 'tủy răng'].some(k => queryLower.includes(k))) {
+      return [
+        'Có cách nào giảm ê buốt và đau răng nhanh tại nhà an toàn không?',
+        'Thuốc giảm đau nào an toàn và phù hợp cho đau răng không cần kê đơn?',
+        'Khi nào đau răng là dấu hiệu tủy răng bị tổn thương cần đi nha sĩ ngay?',
+      ];
+    }
+
+    // Gastric
+    if (['dạ dày', 'loét', 'đau bụng', 'thượng vị', 'ợ chua', 'trào ngược'].some(k => queryLower.includes(k))) {
+      return [
+        'Nên ăn uống và kiêng gì khi đang bị đau dạ dày cấp?',
+        'Dấu hiệu xuất huyết tiêu hóa cần nhập viện kiểm tra là gì?',
+        'Thuốc giảm đau nào không làm tổn hại niêm mạc dạ dày?',
+      ];
+    }
+  }
+
   if (intent === 'financial') {
     return [
       'Làm sao để đặt lịch khám đúng tuyến BHYT để tiết kiệm chi phí?',
@@ -446,66 +534,16 @@ function getContextualFollowups(answer, intent, tone) {
     ];
   }
 
-  const combined = `${answer?.title || ''} ${answer?.summary || ''} ${(answer?.key_points || []).join(' ')} ${(answer?.safety_notes || []).join(' ')}`.toLowerCase();
-
-  if (['warfarin', 'aspirin', 'chống đông', 'tương tác', 'xuất huyết', 'nsaid', 'chảy máu'].some((k) => combined.includes(k))) {
-    return [
-      'Có loại thuốc giảm đau nào thay thế an toàn khi đang dùng warfarin không?',
-      'Dấu hiệu xuất huyết nguy hiểm nào cần đi bệnh viện cấp cứu ngay?',
-      'Nếu tôi đã lỡ uống một liều aspirin thì cần theo dõi và xử trí như thế nào?',
-    ];
-  }
-
-  if (['đau răng', 'sâu răng', 'nha khoa', 'nhức răng', 'sưng nướu', 'viêm lợi', 'sưng lợi', 'ê buốt răng', 'tủy răng', 'dental', 'nha sĩ'].some((k) => combined.includes(k))) {
-    return [
-      'Có cách nào giảm ê buốt và đau răng nhanh tại nhà an toàn không?',
-      'Thuốc giảm đau nào an toàn và phù hợp cho đau răng không cần kê đơn?',
-      'Khi nào đau răng là dấu hiệu tủy răng bị tổn thương cần đi nha sĩ ngay?',
-    ];
-  }
-
-  if (['mắt', 'kết mạc', 'đỏ mắt', 'cộm', 'nhãn cầu', 'chảy nước mắt'].some((k) => combined.includes(k))) {
-    return [
-      'Cách dùng nước muối sinh lý vệ sinh mắt đúng cách hàng ngày?',
-      'Dấu hiệu viêm mắt nào cảnh báo nguy hiểm cần khám bác sĩ ngay?',
-      'Đau mắt đỏ có lây không và cần làm gì để phòng ngừa cho người xung quanh?',
-    ];
-  }
-
-  if (['ngứa', 'mẩn', 'ban đỏ', 'mề đay', 'dị ứng', 'da liễu'].some((k) => combined.includes(k))) {
-    return [
-      'Có loại thuốc bôi hoặc thuốc uống dị ứng nào an toàn không?',
-      'Dấu hiệu dị ứng nặng nào cần đến bệnh viện cấp cứu ngay?',
-      'Cần kiêng ăn uống hoặc tránh tiếp xúc với những gì để đỡ ngứa?',
-    ];
-  }
-
-  if (['khó thở', 'đau ngực', 'tức ngực', 'hô hấp', 'thở dốc'].some((k) => combined.includes(k))) {
-    return [
-      'Dấu hiệu nào cho thấy cần gọi cấp cứu 115 ngay lập tức?',
-      'Tư thế nghỉ ngơi nào giúp dễ thở hơn trong lúc chờ nhân viên y tế?',
-      'Khi nào cơn khó thở cần can thiệp y tế khẩn cấp?',
-    ];
-  }
-
-  if (['dạ dày', 'loét', 'đau bụng', 'tiêu hóa', 'hp', 'trào ngược'].some((k) => combined.includes(k))) {
-    return [
-      'Nên ăn uống và kiêng gì khi đang bị đau dạ dày cấp?',
-      'Dấu hiệu xuất huyết tiêu hóa cần nhập viện kiểm tra là gì?',
-      'Thuốc giảm đau nào không làm tổn hại niêm mạc dạ dày?',
-    ];
-  }
-
   if (clinicalIntents.has(intent)) {
     return [
-      'Khi nào tôi cần đi khám bác sĩ trực tiếp thay vì tự theo dõi tại nhà?',
-      'Cần theo dõi thêm những triệu chứng bất thường nào tại nhà?',
-      'Chế độ ăn uống và sinh hoạt nào phù hợp nhất với tình trạng này?',
+      'Khi nào các triệu chứng hiện tại cần đi khám bác sĩ chuyên khoa trực tiếp?',
+      'Cần theo dõi thêm những dấu hiệu cảnh báo nào tại nhà trong 24 giờ tới?',
     ];
   }
 
   return [];
 }
+
 
 function ClinicalSection({
   title,
@@ -1715,7 +1753,7 @@ function HealthTwinUpdateCard({ update }) {
   );
 }
 
-export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQuestion }) {
+export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQuestion, userQuery = '' }) {
   if (!answer) return null;
 
   const hasNarrative = answer.narrative?.length > 0;
@@ -1761,7 +1799,7 @@ export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQues
     ...new Set([
       ...(Array.isArray(answer.suggested_followups) && answer.suggested_followups.length > 0
         ? answer.suggested_followups
-        : (!verifiedAgentPrimary ? getContextualFollowups(answer, responseMeta.intent, status.tone) : [])),
+        : (!verifiedAgentPrimary ? getContextualFollowups(answer, responseMeta.intent, status.tone, userQuery || responseMeta.userQuery) : [])),
     ]),
   ].slice(0, 3);
 
@@ -1860,6 +1898,51 @@ export function GroundedAnswer({ answer, result, responseMeta = {}, onSelectQues
           {!isBrief && responseMeta.intent !== 'financial' && <small>{status.helper}</small>}
         </div>
       </section>
+
+      {/* P0 CRITICAL EMERGENCY ACTION BAR (ZERO-CLICK EMERGENCY ACTION) */}
+      {(status.tone === 'emergency' || structuredUrgency === 'EMERGENCY') && (
+        <div className="emergency-action-banner" role="alert" aria-live="assertive">
+          <div className="emergency-banner-top">
+            <div className="emergency-beacon-wrap">
+              <span className="emergency-pulse-ring" />
+              <ShieldAlert size={24} className="emergency-icon-svg" />
+            </div>
+            <div className="emergency-banner-texts">
+              <strong className="emergency-title">TÌNH TRẠNG NGUY KỊCH • HÀNH ĐỘNG CẤP CỨU NGAY</strong>
+              <p className="emergency-desc">
+                Dấu hiệu đe dọa tính mạng (nghi nhồi máu cơ tim, đột quỵ, khó thở cấp). Không tự lái xe, hãy ấn gọi cấp cứu ngay hoặc đến khoa cấp cứu gần nhất!
+              </p>
+            </div>
+          </div>
+          <div className="emergency-banner-actions">
+            <a
+              href="tel:115"
+              className="btn-emergency-call"
+              title="Gọi Cấp Cứu 115 ngay lập tức (Miễn phí)"
+            >
+              <PhoneCall size={20} className="phone-icon-wiggle" />
+              <div className="btn-call-text-col">
+                <span className="btn-call-headline">GỌI CẤP CỨU 115</span>
+                <span className="btn-call-subline">Ấn gọi ngay • 24/7 toàn quốc</span>
+              </div>
+            </a>
+            <button
+              type="button"
+              className="btn-emergency-nav"
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent('medguard:navigate', { detail: 'navigation' }));
+              }}
+              title="Mở bản đồ tìm Khoa Cấp cứu & Bệnh viện gần nhất"
+            >
+              <Navigation size={19} />
+              <div className="btn-call-text-col">
+                <span className="btn-call-headline">TÌM CẤP CỨU GẦN NHẤT</span>
+                <span className="btn-call-subline">Bản đồ định tuyến MedGuard</span>
+              </div>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Anti-counterfeit / Product Registry Verification Card */}
       {(responseMeta.intent === 'authenticity' || result?.verification_status) && (

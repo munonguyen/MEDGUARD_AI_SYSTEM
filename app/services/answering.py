@@ -566,6 +566,8 @@ def _safety_answer(result: dict[str, Any], sources: list[ChatEvidenceSource]) ->
             summary += " Có cảnh báo tương tác thuốc; đây là nguy cơ cần rà soát, không phải xác nhận bạn đã bị biến chứng."
         if any("xuất huyết" in str(w.get("clinical_consequence", "")).lower() for w in hard_stops):
             summary += " Phối hợp này có thể tăng nguy cơ chảy máu."
+        if any(w.get("type") == "DEGRADED_OR_COUNTERFEIT_MEDICATION" for w in hard_stops):
+            summary += " Thuốc có dấu hiệu biến chất hoặc đổi màu, hư hỏng; tuyệt đối không được uống để tránh ngộ độc."
     elif warnings:
         ingestion_warns = [w for w in warnings if w.get("type") == "REPORTED_ACUTE_INGESTION"]
         if ingestion_warns:
@@ -732,15 +734,15 @@ def _authenticity_answer(result: dict[str, Any], sources: list[ChatEvidenceSourc
 
 
 def _financial_answer(result: dict[str, Any], reply: str) -> GroundedAnswer:
-    budget_val = result.get("monthly_budget_target_vnd") or 3000000
+    budget_val = result.get("monthly_budget_target_vnd") if result.get("monthly_budget_target_vnd") is not None else 10000000
     budget_str = f"{budget_val:,}đ".replace(",", ".")
-    spent_val = result.get("total_spent_vnd") or 1250000
+    spent_val = result.get("total_spent_vnd") if result.get("total_spent_vnd") is not None else 0
     spent_str = f"{spent_val:,}đ".replace(",", ".")
-    remaining_val = result.get("remaining_budget_vnd") or max(0, budget_val - spent_val)
+    remaining_val = result.get("remaining_budget_vnd") if result.get("remaining_budget_vnd") is not None else max(0, budget_val - spent_val)
     remaining_str = f"{remaining_val:,}đ".replace(",", ".")
     pct = round((spent_val / budget_val) * 100, 1) if budget_val > 0 else 0.0
-    tes = result.get("treatment_efficiency_score") or 54
-    roi_rank = result.get("health_roi_rank") or "C"
+    tes = result.get("treatment_efficiency_score") if result.get("treatment_efficiency_score") is not None else 86
+    roi_rank = result.get("health_roi_rank") or "A"
 
     doctor_val = int(budget_val * 0.45)
     med_val = int(budget_val * 0.35)
@@ -750,12 +752,20 @@ def _financial_answer(result: dict[str, Any], reply: str) -> GroundedAnswer:
     reserve_str = f"{reserve_val:,}đ".replace(",", ".")
 
     title = f"Hạn mức ngân sách y tế: {budget_str} / Tháng"
-    summary = (
-        f"MedGuard AI đã ghi nhận và áp dụng hạn mức chi tiêu y tế {budget_str}/tháng vào hồ sơ của bạn. "
-        f"Hiện bạn đã chi {spent_str} ({pct}%), ngân sách khả dụng còn lại {remaining_str} (✅ An toàn trong tầm kiểm soát). "
-        f"Điểm Hiệu Quả Điều Trị (TES) đạt {tes}/100 (Hạng {roi_rank}). "
-        f"👉 Theo dõi chi tiết tại [Bảng Quản Lý Chi Phí Sức Khỏe](http://localhost:8000/?view=spending)."
-    )
+    if spent_val == 0:
+        summary = (
+            f"MedGuard AI đã ghi nhận và áp dụng hạn mức chi tiêu y tế {budget_str}/tháng vào hồ sơ của bạn. "
+            f"Hiện bạn chưa có khoản chi tiêu nào (0đ / 0%), ngân sách khả dụng còn lại trọn vẹn {remaining_str} (✅ Sẵn sàng cho kế hoạch chăm sóc sức khỏe tháng này). "
+            f"Điểm Hiệu Quả Điều Trị (TES) đạt {tes}/100 (Hạng {roi_rank}). "
+            f"👉 Theo dõi chi tiết tại [Bảng Quản Lý Chi Phí Sức Khỏe](/?view=spending)."
+        )
+    else:
+        summary = (
+            f"MedGuard AI đã ghi nhận và áp dụng hạn mức chi tiêu y tế {budget_str}/tháng vào hồ sơ của bạn. "
+            f"Hiện bạn đã chi {spent_str} ({pct}%), ngân sách khả dụng còn lại {remaining_str} (✅ An toàn trong tầm kiểm soát). "
+            f"Điểm Hiệu Quả Điều Trị (TES) đạt {tes}/100 (Hạng {roi_rank}). "
+            f"👉 Theo dõi chi tiết tại [Bảng Quản Lý Chi Phí Sức Khỏe](/?view=spending)."
+        )
 
     blocks = [
         AnswerNarrativeBlock(

@@ -362,8 +362,8 @@ export function parseOsrmStepsToRouteSteps(
   
   rawSteps.forEach((st, idx) => {
     const isLast = idx === rawSteps.length - 1;
-    const cleanRaw = (st.name || '').trim();
-    const roadName = cleanRaw
+    const isBogusRoad = !cleanRaw || cleanRaw.toLowerCase().includes('đoạn đường di chuyển') || cleanRaw.toLowerCase().includes('unnamed road');
+    const roadName = !isBogusRoad
       ? (cleanRaw.startsWith('Đường') || cleanRaw.startsWith('Phố') || cleanRaw.startsWith('Hẻm') || cleanRaw.startsWith('Đại lộ')
           ? cleanRaw
           : `Đường ${cleanRaw}`)
@@ -430,6 +430,13 @@ export function parseOsrmStepsToRouteSteps(
       laneInstruction = 'Duy trì đi thẳng làn giữa';
     }
 
+    // Clean up any remaining "vào Đoạn đường di chuyển" or English commands
+    instruction = instruction
+      .replace(/\s*vào\s+Đường\s+Đoạn đường di chuyển/gi, '')
+      .replace(/\s*vào\s+Đoạn đường di chuyển/gi, '')
+      .replace(/\s*trên\s+Đoạn đường di chuyển/gi, '')
+      .replace(/\s*trên\s+Đường\s+Đoạn đường di chuyển/gi, '');
+
     const loc: [number, number] = st.maneuver?.location
       ? [st.maneuver.location[1], st.maneuver.location[0]]
       : [0, 0];
@@ -437,7 +444,7 @@ export function parseOsrmStepsToRouteSteps(
     steps.push({
       step_number: idx + 1,
       instruction,
-      road_name: roadName,
+      road_name: isBogusRoad ? 'Đường trục chính' : roadName,
       distance_meters: distMeters,
       duration_seconds: durationSec,
       maneuver_type: maneuverType,

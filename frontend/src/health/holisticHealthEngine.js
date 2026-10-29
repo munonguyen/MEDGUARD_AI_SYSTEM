@@ -142,8 +142,13 @@ export function evaluateHolisticHealthInput(currentProfile, rawMessage = '', fal
 
   // 1. Recovery / Positive feeling signals
   const isRecovery =
-    /(khỏe hơn|đỡ nhiều|hết sốt|cắt sốt|hết đau|đỡ đau|hồi phục|ngủ ngon|ngủ sâu|dễ chịu hơn|khỏi bệnh|bình thường trở lại)/i.test(lower) &&
+    /(khỏe hơn|đỡ nhiều|hết sốt|cắt sốt|hết đau|đỡ đau|hồi phục|ngủ ngon|ngủ sâu|dễ chịu hơn|khỏi bệnh|bình thường trở lại|hoàn toàn khỏe|khỏe mạnh|rất khỏe|không có triệu chứng|hết bệnh)/i.test(lower) &&
     !/(không đỡ|chưa đỡ|vẫn đau|vẫn sốt)/i.test(lower);
+
+  const cleanWithoutNegation = lower.replace(
+    /\b(không|chẳng|chưa|hết|đã hết|ko)\s+(?:hề\s+|còn\s+)?(?:bị\s+|có\s+|thấy\s+)?(đau\s+đầu|nhức\s+đầu|đau\s+dạ\s+dày|đau\s+bao\s+tử|đau\s+thượng\s+vị|đau\s+bụng|cồn\s+cào|ợ\s+chua|ợ\s+hơi|đầy\s+bụng|khó\s+tiêu|trào\s+ngược|viêm\s+dạ\s+dày|sốt|ho|khó\s+thở|đau\s+ngực)/giu,
+    ' '
+  );
 
   if (isRecovery) {
     detectedEvent = 'recovery';
@@ -166,7 +171,7 @@ export function evaluateHolisticHealthInput(currentProfile, rawMessage = '', fal
       organs[idx] = {
         ...o,
         status: 'normal',
-        health_score: Math.min(98, Math.max(92, (o.health_score || 85) + 18)),
+        health_score: 96,
         pain_level: 0,
         inflammation_level: 'none',
         symptoms: [],
@@ -182,96 +187,99 @@ export function evaluateHolisticHealthInput(currentProfile, rawMessage = '', fal
     directives.add('Ngừng thuốc giảm đau/hạ sốt khi các triệu chứng cấp tính đã chấm dứt hoàn toàn');
     directives.add('Duy trì uống 2 - 2.5 lít nước ấm/ngày và vận động nhẹ 20 phút mỗi sáng');
     directives.add('Tiếp tục theo dõi biểu đồ sức khoẻ Đợt 3 để củng cố miễn dịch bền vững');
-  }
-
-  // 2. Head / Brain / Eyes / Sleep / Stress / Dizziness feelings
-  if (/(đau đầu|nhức đầu|chóng mặt|hoa mắt|tiền đình|mất ngủ|khó ngủ|căng thẳng|stress|lo âu|mỏi mắt|nhìn mờ|nặng đầu)/i.test(lower)) {
-    matchedTags.push('Thần kinh, Giấc ngủ & Thị giác');
-    const isSevereHead = /(dữ dội|như búa bổ|không ngủ được cả đêm|choáng váng)/i.test(lower);
-    updateOrgan('head', {
-      status: isSevereHead ? 'inflamed' : 'monitoring',
-      health_score: isSevereHead ? 64 : 75,
-      pain_level: isSevereHead ? 6 : 4,
-      inflammation_level: isSevereHead ? 'moderate' : 'mild',
-      symptoms: [
-        ...(lower.includes('đau đầu') || lower.includes('nhức đầu') ? ['Đau căng đầu'] : []),
-        ...(lower.includes('chóng mặt') || lower.includes('hoa mắt') ? ['Chóng mặt / Choáng nhẹ'] : []),
-        ...(lower.includes('mất ngủ') || lower.includes('khó ngủ') ? ['Rối loạn giấc ngủ'] : []),
-        ...(lower.includes('mỏi mắt') || lower.includes('nhìn mờ') ? ['Mỏi điều tiết mắt'] : []),
-      ],
-      clinical_notes: 'Ghi nhận cảm giác đau đầu / căng thẳng thần kinh hoặc thiếu ngủ. Cần giảm tải ánh sáng xanh và nghỉ ngơi tĩnh dưỡng.',
-      warning: isSevereHead ? 'Theo dõi sát cơn đau đầu kèm huyết áp; tránh thức khuya quá 23h.' : null,
-    });
-    vitals.overall_pain_level = Math.max(vitals.overall_pain_level, isSevereHead ? 6 : 4);
-    vitals.vas_pain_score = vitals.overall_pain_level;
-    vitals.heart_rate_bpm = Math.max(vitals.heart_rate_bpm, 84);
-    wellbeing.sleep_quality_score = lower.includes('mất ngủ') || lower.includes('khó ngủ') ? 54 : 68;
-    wellbeing.stress_level_label = 'Cao (Căng thẳng thần kinh)';
-    wellbeing.energy_battery_percent = Math.min(wellbeing.energy_battery_percent, 62);
-    wellbeing.detected_feelings = Array.from(
-      new Set([...wellbeing.detected_feelings.filter((f) => f !== 'Thể trạng cân bằng'), 'Căng thẳng / Nặng đầu', 'Thiếu ngủ & mỏi mắt'])
-    );
-    directives.add('Thực hiện quy tắc 20-20-20 bảo vệ mắt, ngắt thiết bị điện tử 60 phút trước khi ngủ');
-    directives.add('Uống trà hoa cúc ấm hoặc tập thở cơ hoành 4-7-8 để hạ nhịp giao cảm và dễ vào giấc ngủ');
-  }
-
-  // 3. Stomach / GI / ADR / Nausea / Reflux
-  if (/(dạ dày|thượng vị|ợ chua|ợ nóng|trào ngược|buồn nôn|đau bụng|cồn cào|đầy hơi|khó tiêu|tiêu chảy|ibuprofen|nsaid)/i.test(lower)) {
-    matchedTags.push('Dạ dày & Hệ tiêu hoá');
-    const isAdr = /(uống thuốc|ibuprofen|kháng viêm|giảm đau|dữ dội|buồn nôn|rát thượng vị)/i.test(lower);
-    if (isAdr) detectedEvent = 'adr_detected';
-    updateOrgan('stomach', {
-      status: isAdr ? 'adverse_reaction' : 'inflamed',
-      health_score: isAdr ? 42 : 62,
-      pain_level: isAdr ? 7 : 5,
-      inflammation_level: isAdr ? 'severe' : 'moderate',
-      is_adverse_reaction: isAdr,
-      symptoms: [
-        ...(lower.includes('thượng vị') || lower.includes('dạ dày') ? ['Đau rát thượng vị dạ dày'] : []),
-        ...(lower.includes('ợ chua') || lower.includes('ợ nóng') || lower.includes('trào ngược') ? ['Trào ngược axit / Ợ chua'] : []),
-        ...(lower.includes('buồn nôn') ? ['Buồn nôn kích ứng niêm mạc'] : []),
-        ...(lower.includes('đầy hơi') || lower.includes('khó tiêu') ? ['Chướng bụng khó tiêu'] : []),
-      ],
-      clinical_notes: isAdr
-        ? 'CẢNH BÁO ADR: Tổn thương kích ứng niêm mạc dạ dày cấp tính liên quan thuốc giảm đau/kháng viêm.'
-        : 'Đang có biểu hiện tăng tiết axit và viêm kích ứng niêm mạc dạ dày - tá tràng.',
-      warning: isAdr ? 'NGỪNG NGAY thuốc giảm đau kháng viêm NSAID/Ibuprofen!' : 'Chia nhỏ bữa ăn, tránh đồ chua cay và cà phê khi bụng rỗng.',
-    });
-    vitals.overall_pain_level = Math.max(vitals.overall_pain_level, isAdr ? 7 : 5);
-    vitals.vas_pain_score = vitals.overall_pain_level;
-    wellbeing.energy_battery_percent = Math.min(wellbeing.energy_battery_percent, 58);
-    wellbeing.detected_feelings = Array.from(
-      new Set([...wellbeing.detected_feelings.filter((f) => f !== 'Thể trạng cân bằng'), 'Đau rát vùng thượng vị', 'Cồn cào & buồn nôn'])
-    );
-    if (isAdr) {
-      stoppedMeds.add('Ibuprofen / NSAID (Ngừng khẩn cấp do gây kích ứng đau rát thượng vị dạ dày)');
-      activeMeds.add('Esomeprazole 40mg / Hỗn dịch bao niêm mạc dạ dày (Theo chỉ định bảo vệ niêm mạc)');
-      safeGuardrailAlert = {
-        alert_level: 'danger',
-        title: 'CẢNH BÁO AN TOÀN THUỐC (ADR): Đau rát thượng vị dạ dày cấp',
-        cause_identified: 'Kích ứng niêm mạc dạ dày do hoạt chất kháng viêm hoặc tăng tiết axit cấp tính.',
-        contraindicated_item: 'Thuốc giảm đau kháng viêm NSAID (Ibuprofen, Aspirin, Diclofenac) uống lúc đói',
-        required_action: 'DỪNG NGAY liều thuốc kháng viêm cũ để ngăn nguy cơ xuất huyết tiêu hoá.',
-        alternative_recommendation: 'Sử dụng gói trung hòa axit (Phosphalugel/Almagate) hoặc PPI (Esomeprazole) và ăn cháo ấm dễ tiêu.',
-        seek_emergency: false,
-      };
-      adrAlert = {
-        active: true,
-        severity: 'CRITICAL',
-        title: 'Phản ứng có hại của thuốc (ADR): Viêm rát thượng vị dạ dày',
-        action_directive: 'DỪNG NGAY NSAID / IBUPROFEN',
-        safe_alternative: 'Bảo vệ niêm mạc bằng Phosphalugel / Esomeprazole 40mg, chuyển sang Paracetamol nếu cần hạ sốt.',
-      };
+  } else {
+    // 2. Head / Brain / Eyes / Sleep / Stress / Dizziness feelings
+    if (/(đau đầu|nhức đầu|chóng mặt|hoa mắt|tiền đình|mất ngủ|khó ngủ|căng thẳng|stress|lo âu|mỏi mắt|nhìn mờ|nặng đầu)/i.test(cleanWithoutNegation)) {
+      matchedTags.push('Thần kinh, Giấc ngủ & Thị giác');
+      const isSevereHead = /(dữ dội|như búa bổ|không ngủ được cả đêm|choáng váng)/i.test(cleanWithoutNegation);
+      updateOrgan('head', {
+        status: isSevereHead ? 'inflamed' : 'monitoring',
+        health_score: isSevereHead ? 64 : 75,
+        pain_level: isSevereHead ? 6 : 4,
+        inflammation_level: isSevereHead ? 'moderate' : 'mild',
+        symptoms: [
+          ...(cleanWithoutNegation.includes('đau đầu') || cleanWithoutNegation.includes('nhức đầu') ? ['Đau căng đầu'] : []),
+          ...(cleanWithoutNegation.includes('chóng mặt') || cleanWithoutNegation.includes('hoa mắt') ? ['Chóng mặt / Choáng nhẹ'] : []),
+          ...(cleanWithoutNegation.includes('mất ngủ') || cleanWithoutNegation.includes('khó ngủ') ? ['Rối loạn giấc ngủ'] : []),
+          ...(cleanWithoutNegation.includes('mỏi mắt') || cleanWithoutNegation.includes('nhìn mờ') ? ['Mỏi điều tiết mắt'] : []),
+        ],
+        clinical_notes: 'Ghi nhận cảm giác đau đầu / căng thẳng thần kinh hoặc thiếu ngủ. Cần giảm tải ánh sáng xanh và nghỉ ngơi tĩnh dưỡng.',
+        warning: isSevereHead ? 'Theo dõi sát cơn đau đầu kèm huyết áp; tránh thức khuya quá 23h.' : null,
+      });
+      vitals.overall_pain_level = Math.max(vitals.overall_pain_level, isSevereHead ? 6 : 4);
+      vitals.vas_pain_score = vitals.overall_pain_level;
+      vitals.heart_rate_bpm = Math.max(vitals.heart_rate_bpm, 84);
+      wellbeing.sleep_quality_score = cleanWithoutNegation.includes('mất ngủ') || cleanWithoutNegation.includes('khó ngủ') ? 54 : 68;
+      wellbeing.stress_level_label = 'Cao (Căng thẳng thần kinh)';
+      wellbeing.energy_battery_percent = Math.min(wellbeing.energy_battery_percent, 62);
+      wellbeing.detected_feelings = Array.from(
+        new Set([...wellbeing.detected_feelings.filter((f) => f !== 'Thể trạng cân bằng'), 'Căng thẳng / Nặng đầu', 'Thiếu ngủ & mỏi mắt'])
+      );
+      directives.add('Thực hiện quy tắc 20-20-20 bảo vệ mắt, ngắt thiết bị điện tử 60 phút trước khi ngủ');
+      directives.add('Uống trà hoa cúc ấm hoặc tập thở cơ hoành 4-7-8 để hạ nhịp giao cảm và dễ vào giấc ngủ');
     }
-    directives.add('Tuyệt đối không dùng thuốc giảm đau kháng viêm khi bụng đói; ưu tiên thức ăn mềm ấm');
-    directives.add('Kê cao đầu giường 15-20cm và không nằm ngay trong vòng 2 giờ sau ăn để chống trào ngược');
-  }
 
-  // 4. ENT & Lungs / Respiratory / Fever / Cough
-  if (/(ho|rát họng|đau họng|sổ mũi|nghẹt mũi|viêm xoang|khó thở|tức ngực|hụt hơi|khò khè|viêm phổi|sốt)/i.test(lower)) {
-    matchedTags.push('Hô hấp & Tai Mũi Họng');
-    const hasFever = lower.includes('sốt') || vitals.temperature_celsius >= 38.0;
-    const hasDyspnea = /(khó thở|hụt hơi|tức ngực|khò khè)/i.test(lower);
+    // 3. Stomach / GI / ADR / Nausea / Reflux
+    const hasStomachSymptom = /(dạ dày|thượng vị|ợ chua|ợ nóng|trào ngược|buồn nôn|đau bụng|cồn cào|đầy hơi|khó tiêu|tiêu chảy|viêm dạ dày)/i.test(cleanWithoutNegation);
+    const mentionsIbuprofenTaken = /(uống\s+ibuprofen|dùng\s+ibuprofen|uống\s+thuốc\s+giảm\s+đau\s+xong|uống\s+nsaid|dùng\s+nsaid)/i.test(cleanWithoutNegation) ||
+      (/(ibuprofen|nsaid)/i.test(cleanWithoutNegation) && /(uống|dùng|sau\s+khi)/i.test(cleanWithoutNegation));
+    const isAdr = hasStomachSymptom && mentionsIbuprofenTaken;
+
+    if (hasStomachSymptom) {
+      matchedTags.push('Dạ dày & Hệ tiêu hoá');
+      if (isAdr) detectedEvent = 'adr_detected';
+      updateOrgan('stomach', {
+        status: isAdr ? 'adverse_reaction' : 'inflamed',
+        health_score: isAdr ? 42 : 62,
+        pain_level: isAdr ? 7 : 5,
+        inflammation_level: isAdr ? 'severe' : 'moderate',
+        is_adverse_reaction: isAdr,
+        symptoms: [
+          ...(cleanWithoutNegation.includes('thượng vị') || cleanWithoutNegation.includes('dạ dày') ? ['Đau rát thượng vị dạ dày'] : []),
+          ...(cleanWithoutNegation.includes('ợ chua') || cleanWithoutNegation.includes('ợ nóng') || cleanWithoutNegation.includes('trào ngược') ? ['Trào ngược axit / Ợ chua'] : []),
+          ...(cleanWithoutNegation.includes('buồn nôn') ? ['Buồn nôn kích ứng niêm mạc'] : []),
+          ...(cleanWithoutNegation.includes('đầy hơi') || cleanWithoutNegation.includes('khó tiêu') ? ['Chướng bụng khó tiêu'] : []),
+        ],
+        clinical_notes: isAdr
+          ? 'CẢNH BÁO ADR: Tổn thương kích ứng niêm mạc dạ dày cấp tính liên quan thuốc giảm đau/kháng viêm.'
+          : 'Đang có biểu hiện tăng tiết axit và viêm kích ứng niêm mạc dạ dày - tá tràng.',
+        warning: isAdr ? 'NGỪNG NGAY thuốc giảm đau kháng viêm NSAID/Ibuprofen!' : 'Chia nhỏ bữa ăn, tránh đồ chua cay và cà phê khi bụng rỗng.',
+      });
+      vitals.overall_pain_level = Math.max(vitals.overall_pain_level, isAdr ? 7 : 5);
+      vitals.vas_pain_score = vitals.overall_pain_level;
+      wellbeing.energy_battery_percent = Math.min(wellbeing.energy_battery_percent, 58);
+      wellbeing.detected_feelings = Array.from(
+        new Set([...wellbeing.detected_feelings.filter((f) => f !== 'Thể trạng cân bằng'), 'Đau rát vùng thượng vị', 'Cồn cào & buồn nôn'])
+      );
+      if (isAdr) {
+        stoppedMeds.add('Ibuprofen / NSAID (Ngừng khẩn cấp do gây kích ứng đau rát thượng vị dạ dày)');
+        activeMeds.add('Esomeprazole 40mg / Hỗn dịch bao niêm mạc dạ dày (Theo chỉ định bảo vệ niêm mạc)');
+        safeGuardrailAlert = {
+          alert_level: 'danger',
+          title: 'CẢNH BÁO AN TOÀN THUỐC (ADR): Đau rát thượng vị dạ dày cấp',
+          cause_identified: 'Kích ứng niêm mạc dạ dày do hoạt chất kháng viêm hoặc tăng tiết axit cấp tính.',
+          contraindicated_item: 'Thuốc giảm đau kháng viêm NSAID (Ibuprofen, Aspirin, Diclofenac) uống lúc đói',
+          required_action: 'DỪNG NGAY liều thuốc kháng viêm cũ để ngăn nguy cơ xuất huyết tiêu hoá.',
+          alternative_recommendation: 'Sử dụng gói trung hòa axit (Phosphalugel/Almagate) hoặc PPI (Esomeprazole) và ăn cháo ấm dễ tiêu.',
+          seek_emergency: false,
+        };
+        adrAlert = {
+          active: true,
+          severity: 'CRITICAL',
+          title: 'Phản ứng có hại của thuốc (ADR): Viêm rát thượng vị dạ dày',
+          action_directive: 'DỪNG NGAY NSAID / IBUPROFEN',
+          safe_alternative: 'Bảo vệ niêm mạc bằng Phosphalugel / Esomeprazole 40mg, chuyển sang Paracetamol nếu cần hạ sốt.',
+        };
+      }
+      directives.add('Tuyệt đối không dùng thuốc giảm đau kháng viêm khi bụng đói; ưu tiên thức ăn mềm ấm');
+      directives.add('Kê cao đầu giường 15-20cm và không nằm ngay trong vòng 2 giờ sau ăn để chống trào ngược');
+    }
+
+    // 4. ENT & Lungs / Respiratory / Fever / Cough
+    if (/(ho|rát họng|đau họng|sổ mũi|nghẹt mũi|viêm xoang|khó thở|tức ngực|hụt hơi|khò khè|viêm phổi|sốt)/i.test(cleanWithoutNegation)) {
+      matchedTags.push('Hô hấp & Tai Mũi Họng');
+      const hasFever = cleanWithoutNegation.includes('sốt') || vitals.temperature_celsius >= 38.0;
+      const hasDyspnea = /(khó thở|hụt hơi|tức ngực|khò khè)/i.test(cleanWithoutNegation);
     if (hasFever && vitals.temperature_celsius < 38.3) {
       vitals.temperature_celsius = lower.includes('sốt cao') ? 39.2 : 38.5;
     }
@@ -412,6 +420,7 @@ export function evaluateHolisticHealthInput(currentProfile, rawMessage = '', fal
     });
     directives.add('Ngừng ngay thuốc hoặc thực phẩm vừa dùng nghi gây dị ứng; theo dõi sát dấu hiệu phản vệ');
   }
+  }
 
   // Fallback: if user typed a general feeling/condition not matching specific keywords above, still record it holistically!
   if (!isRecovery && matchedTags.length === 0) {
@@ -498,11 +507,12 @@ export function evaluateHolisticHealthInput(currentProfile, rawMessage = '', fal
  * grouped into 3 distinct clinical batches (Đợt 1, Đợt 2, Đợt 3 - Hiện tại).
  */
 export function computeEpisodicHealthAnalytics(profile, timeframe = 'DAY') {
-  const currentScore = profile?.overall_health_score ?? 86;
-  const currentPain = profile?.vitals?.vas_pain_score ?? profile?.vitals?.overall_pain_level ?? 2;
-  const currentTemp = profile?.vitals?.temperature_celsius ?? profile?.vitals?.body_temperature_c ?? 36.8;
-  const currentHr = profile?.vitals?.heart_rate_bpm ?? 76;
-  const currentSleep = profile?.wellbeing?.sleep_quality_score ?? 84;
+  const organs = Array.isArray(profile?.organs) ? profile.organs : [];
+  const isUnassessed =
+    profile?.overall_health_score == null ||
+    profile?.overall_health_score === 0 ||
+    profile?.health_trend === 'unassessed' ||
+    (organs.length > 0 && organs.every((o) => o.status === 'unassessed' || o.health_score == null));
 
   const configs = {
     HOUR: {
@@ -632,6 +642,25 @@ export function computeEpisodicHealthAnalytics(profile, timeframe = 'DAY') {
   };
 
   const cfg = configs[timeframe] || configs.DAY;
+
+  if (isUnassessed) {
+    return {
+      isUnassessed: true,
+      timeframeLabel: cfg.label,
+      timeframeUnit: cfg.unit,
+      overallDelta: 0,
+      batches: [],
+      chartSeries: [],
+      summary: 'Tài khoản mới: Chưa ghi nhận triệu chứng lâm sàng hoặc chỉ số sinh tồn để lập biểu đồ diễn tiến theo đợt.',
+    };
+  }
+
+  const currentScore = profile?.overall_health_score ?? 86;
+  const currentPain = profile?.vitals?.vas_pain_score ?? profile?.vitals?.overall_pain_level ?? 2;
+  const currentTemp = profile?.vitals?.temperature_celsius ?? profile?.vitals?.body_temperature_c ?? 36.8;
+  const currentHr = profile?.vitals?.heart_rate_bpm ?? 76;
+  const currentSleep = profile?.wellbeing?.sleep_quality_score ?? 84;
+
   const b1Score = Math.max(45, Math.min(92, currentScore - 12));
   const b2Score = Math.max(50, Math.min(95, Math.round((b1Score + currentScore) / 2) + 2));
   const b3Score = currentScore;
@@ -732,7 +761,12 @@ export function computeEpisodicHealthAnalytics(profile, timeframe = 'DAY') {
  */
 export function computePersonalizedHealthSolutions(profile) {
   const organs = Array.isArray(profile?.organs) ? profile.organs : [];
-  const affectedOrgans = organs.filter((o) => o.status !== 'normal' || (o.health_score ?? 95) < 88);
+  const affectedOrgans = organs.filter(
+    (o) =>
+      o.status !== 'unassessed' &&
+      o.health_score !== null &&
+      (o.status !== 'normal' || o.health_score < 88)
+  );
   const hasAdr = Boolean(profile?.safe_guardrail_alert || profile?.adr_alert?.active || organs.some((o) => o.status === 'adverse_reaction'));
   const temp = profile?.vitals?.temperature_celsius ?? profile?.vitals?.body_temperature_c ?? 36.8;
   const pain = profile?.vitals?.vas_pain_score ?? profile?.vitals?.overall_pain_level ?? 0;
@@ -863,6 +897,71 @@ export function checkDataPageAccess(account, isGuest = false, view = 'health') {
  */
 export function computeHolisticVisualChartSuite(profile, completedSolutions = {}) {
   const organs = Array.isArray(profile?.organs) ? profile.organs : [];
+  const isUnassessed =
+    profile?.overall_health_score == null ||
+    profile?.overall_health_score === 0 ||
+    profile?.health_trend === 'unassessed' ||
+    (organs.length > 0 && organs.every((o) => o.status === 'unassessed' || o.health_score == null));
+
+  const cx = 110;
+  const cy = 110;
+  const maxR = 72;
+
+  if (isUnassessed) {
+    const rawAxes = [
+      { id: 'sleep', label: 'Giấc ngủ', shortLabel: 'Giấc ngủ', value: 0, color: '#94a3b8' },
+      { id: 'neuro', label: 'An thần', shortLabel: 'Thần kinh', value: 0, color: '#94a3b8' },
+      { id: 'energy', label: 'Năng lượng', shortLabel: 'Pin cơ thể', value: 0, color: '#94a3b8' },
+      { id: 'hydration', label: 'Điện giải', shortLabel: 'Bù nước', value: 0, color: '#94a3b8' },
+      { id: 'immunity', label: 'Miễn dịch', shortLabel: 'Đề kháng', value: 0, color: '#94a3b8' },
+      { id: 'circulation', label: 'Tuần hoàn', shortLabel: 'Tim phổi', value: 0, color: '#94a3b8' },
+    ];
+
+    const radarAxes = rawAxes.map((axis, idx) => {
+      const angle = -Math.PI / 2 + (idx * 2 * Math.PI) / rawAxes.length;
+      const x = cx;
+      const y = cy;
+      const outerX = +(cx + maxR * Math.cos(angle)).toFixed(1);
+      const outerY = +(cy + maxR * Math.sin(angle)).toFixed(1);
+      const labelX = +(cx + (maxR + 24) * Math.cos(angle)).toFixed(1);
+      const labelY = +(cy + (maxR + 20) * Math.sin(angle)).toFixed(1);
+      return { ...axis, angle, x, y, outerX, outerY, labelX, labelY, displayValue: '--' };
+    });
+
+    const organRanking = [...organs].map((o) => ({
+      id: o.id,
+      name: o.vietnamese_name || o.name,
+      score: null,
+      pain: o.pain_level ?? 0,
+      status: o.status || 'unassessed',
+      color: '#94a3b8',
+      riskLevel: 'unassessed',
+      riskPct: 0,
+    }));
+
+    return {
+      isUnassessed: true,
+      radarAxes,
+      radarPolygonPoints: '',
+      radarAverage: null,
+      organRanking,
+      organDistribution: {
+        total: organRanking.length || 9,
+        normal: 0,
+        warning: 0,
+        critical: 0,
+        unassessed: organRanking.length || 9,
+      },
+      solutionsSummary: {
+        total: 0,
+        completedCount: 0,
+        completionPct: 0,
+        projectedGain: 0,
+        items: [],
+      },
+    };
+  }
+
   const sleep = Math.max(20, Math.min(100, profile?.wellbeing?.sleep_quality_score ?? 88));
   const energy = Math.max(20, Math.min(100, profile?.wellbeing?.energy_battery_percent ?? 90));
   const hydration = Math.max(20, Math.min(100, profile?.wellbeing?.hydration_balance_percent ?? 92));
@@ -887,10 +986,6 @@ export function computeHolisticVisualChartSuite(profile, completedSolutions = {}
     { id: 'circulation', label: 'Tuần hoàn', shortLabel: 'Tim phổi', value: circulation, color: '#10b981' },
   ];
 
-  const cx = 110;
-  const cy = 110;
-  const maxR = 72;
-
   const radarAxes = rawAxes.map((axis, idx) => {
     const angle = -Math.PI / 2 + (idx * 2 * Math.PI) / rawAxes.length;
     const r = (axis.value / 100) * maxR;
@@ -900,7 +995,7 @@ export function computeHolisticVisualChartSuite(profile, completedSolutions = {}
     const outerY = +(cy + maxR * Math.sin(angle)).toFixed(1);
     const labelX = +(cx + (maxR + 24) * Math.cos(angle)).toFixed(1);
     const labelY = +(cy + (maxR + 20) * Math.sin(angle)).toFixed(1);
-    return { ...axis, angle, x, y, outerX, outerY, labelX, labelY };
+    return { ...axis, angle, x, y, outerX, outerY, labelX, labelY, displayValue: axis.value };
   });
 
   const radarPolygonPoints = radarAxes.map((a) => `${a.x},${a.y}`).join(' ');

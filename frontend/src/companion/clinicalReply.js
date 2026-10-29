@@ -15,7 +15,42 @@ export function clinicalReply(data) {
   return parts.join('\n\n') || 'Chưa nhận được nội dung tư vấn. Bạn vui lòng thử lại.';
 }
 
+export function sanitizeAndCondenseFor3DDoctorSpeech(rawChatText = '') {
+  if (!rawChatText || typeof rawChatText !== 'string') return '';
+
+  const cleaned = rawChatText
+    .replace(/AI chưa trả lời được;[^.\n]*[.\n]?/gi, '')
+    .replace(/Kiểm tra kết nối AI trong Cài đặt\.?/gi, '')
+    .replace(/CẢNH BÁO AN TOÀN LÂM SÀNG:\s*/gi, '')
+    .replace(/CẢNH BÁO KHẨN CẤP:\s*/gi, '')
+    .replace(/Nội dung dựa trên quy tắc hỗ trợ y tế của hệ thống\.?/gi, '')
+    .replace(/Đang kiểm tra câu trả lời AI\.?/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // Deduplicate identical or near-identical sentences (e.g. repeated 115 emergency calls)
+  const rawSentences = cleaned
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const uniqueSentences = [];
+  const seenNormalized = new Set();
+
+  for (const sentence of rawSentences) {
+    const key = sentence.toLowerCase().replace(/[^a-zà-ỹ0-9]/g, '');
+    if (key.length >= 8 && !seenNormalized.has(key)) {
+      seenNormalized.add(key);
+      uniqueSentences.push(sentence);
+    }
+    if (uniqueSentences.length >= 3) break; // Maximum 3 concise sentences for live 3D speech
+  }
+
+  return uniqueSentences.length ? uniqueSentences.join(' ') : cleaned.slice(0, 180);
+}
+
 export function verificationNotice(data) {
+
   const status = data?.verification_status;
   if (status === 'verified') return 'Câu trả lời đã qua kiểm tra của hệ thống.';
   if (status === 'shadow_pending') return 'Đang kiểm tra câu trả lời AI. Nội dung hiện tại dựa trên quy tắc.';

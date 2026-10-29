@@ -65,8 +65,9 @@ def verify_tenant_credentials(
         allowed = (
             "/v1/chat",
             "/v1/triage",
-            "/v1/medication/safety-check",
+            "/v1/medication",
             "/v1/medication-schedules",
+            "/v1/schedule",
             "/v1/monitoring/ingest",
             "/v1/product/verify",
             "/v1/followup/plan",
@@ -74,6 +75,8 @@ def verify_tenant_credentials(
             "/v1/prescription/extract",
             "/v1/health-twin",
             "/v1/geo",
+            "/v1/financial",
+            "/v1/user",
         )
         path = request.url.path
         patient_job = request.method == "GET" and re.fullmatch(r"/v1/jobs/[^/]+", path)

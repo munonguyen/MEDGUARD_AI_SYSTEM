@@ -1,12 +1,21 @@
-import { Lock, ShieldCheck, BarChart2, HeartPulse, WalletCards, ArrowLeft, LogIn, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Lock, ShieldCheck, BarChart2, HeartPulse, WalletCards, CalendarClock, Pill, UserRound, ArrowLeft, LogIn, Sparkles, CheckCircle2 } from 'lucide-react';
+import { WORKSPACE_ROUTE_POLICIES } from './workspaceNavigationConfig';
 
 export function DataManagementAuthGate({
-  moduleTitle = 'Hồ Sơ Sức Khoẻ & Giải Phẫu Thời Gian Thực',
+  moduleTitle,
   moduleType = 'health',
   onRequireAuth,
   onBackToChat,
 }) {
+  const policy = WORKSPACE_ROUTE_POLICIES[moduleType] || WORKSPACE_ROUTE_POLICIES.health;
   const isSpending = moduleType === 'spending';
+  const isSchedule = moduleType === 'schedule';
+  const isMedication = moduleType === 'medication';
+  const isProfile = moduleType === 'profile';
+
+  const title = moduleTitle || policy.authGateTitle;
+  const description = policy.authGateDescription;
+  const bullets = policy.authGateBullets || [];
 
   return (
     <div className="dm-auth-gate-shell" data-testid="data-management-auth-gate">
@@ -18,36 +27,41 @@ export function DataManagementAuthGate({
           </span>
           <span className="dm-auth-hipaa-tag">
             <ShieldCheck size={13} />
-            <span>Chuẩn Bảo Mật Hồ Sơ Lâm Sàng</span>
+            <span>Chuẩn Bảo Mật Hồ Sơ Lâm Sàng HIPAA</span>
           </span>
         </div>
 
         <div className="dm-auth-hero-grid">
           <div className="dm-auth-left">
             <div className="dm-auth-icon-circle">
-              {isSpending ? <WalletCards size={28} /> : <HeartPulse size={28} />}
+              {isSpending ? (
+                <WalletCards size={28} />
+              ) : isSchedule ? (
+                <CalendarClock size={28} />
+              ) : isMedication ? (
+                <Pill size={28} />
+              ) : isProfile ? (
+                <UserRound size={28} />
+              ) : (
+                <HeartPulse size={28} />
+              )}
             </div>
             <h2 className="dm-auth-title">
-              {moduleTitle} chỉ dành cho Thành viên đã Đăng nhập
+              {title} chỉ dành cho Thành viên đã Đăng nhập
             </h2>
             <p className="dm-auth-subtitle">
-              Để bảo vệ quyền riêng tư y tế và lưu trữ đồng bộ biểu đồ sức khoẻ theo đợt (Giờ / Ngày / Tuần / Tháng), bản đồ 9 cơ quan giải phẫu cũng như sổ quản lý chi tiêu BHYT của riêng bạn, hệ thống phân quyền chỉ cho phép <strong>tài khoản đã xác thực</strong> truy cập trang quản lý dữ liệu này.
+              {description} Để bảo vệ quyền riêng tư y tế, hệ thống phân quyền chỉ cho phép <strong>tài khoản đã xác thực</strong> truy cập trang dữ liệu này.
             </p>
 
             <div className="dm-auth-feature-pills">
-              <div className="dm-feat-item">
-                <CheckCircle2 size={15} />
-                <span>Biểu đồ Radar 6 chiều & Thống kê sức khoẻ theo từng Đợt</span>
-              </div>
-              <div className="dm-feat-item">
-                <CheckCircle2 size={15} />
-                <span>Tự động cập nhật mọi triệu chứng & cảm giác từ khung Chat</span>
-              </div>
-              <div className="dm-feat-item">
-                <CheckCircle2 size={15} />
-                <span>Quản trị chi phí y tế, BHYT & Đối sánh giá trần Cục Dược DAV</span>
-              </div>
+              {bullets.map((bullet, idx) => (
+                <div className="dm-feat-item" key={idx}>
+                  <CheckCircle2 size={15} />
+                  <span>{bullet}</span>
+                </div>
+              ))}
             </div>
+
 
             <div className="dm-auth-actions-row">
               <button

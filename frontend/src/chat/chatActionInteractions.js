@@ -141,9 +141,20 @@ export function extractMedicationProposal(text = '') {
   if (!text || typeof text !== 'string') return null;
   const lower = text.toLowerCase();
 
-  // Trigger keywords for medication scheduling
-  const isMedIntent = /(?:lên\s*lịch|tạo\s*lịch|đặt\s*lịch|thêm\s*lịch|nhắc\s*(?:tôi\s*)?uống|uống\s*thuốc|dùng\s*thuốc|uống\s+ngay|kê\s*lịch|nhắc\s*liều)\b/i.test(text) ||
-    /(?:sáng\s+\d+\s*viên|tối\s+\d+\s*viên|trưa\s+\d+\s*viên|sau\s*ăn|trước\s*ăn)\b/i.test(text);
+  // SAFETY GUARDRAIL (Module 1, 2, 11):
+  // Suppress medication reminder proposals on questions ('?'), adverse reactions,
+  // interactions, anaphylaxis, preeclampsia, or crisis overdose.
+  if (
+    text.includes('?') ||
+    /(?:được không|sao không|có nên|nguy hiểm|tác dụng phụ|tương tác|dị ứng|quá liều|tự tử|tự sát|ngủ mãi|mờ mắt|líu lưỡi|sưng môi|thở rít|nghẹn cổ|huyết áp|đường huyết|tiền sản giật|phản vệ)/i.test(lower)
+  ) {
+    return null;
+  }
+
+  // Trigger keywords for medication scheduling (must be an affirmative scheduling command)
+  const isMedIntent =
+    /(?:lên\s*lịch|tạo\s*lịch|đặt\s*lịch|thêm\s*lịch|nhắc\s*(?:tôi\s*)?uống|kê\s*lịch|nhắc\s*liều)\b/i.test(text) ||
+    (/(?:uống|dùng)\s+thuốc\s+(?:hàng ngày|mỗi ngày|cữ|vào lúc|đều đặn)\b/i.test(lower) && !lower.includes('không'));
 
   if (!isMedIntent) return null;
 
@@ -215,11 +226,14 @@ export function extractMedicationProposal(text = '') {
     if (hourVal < 11) slot = 'morning';
     else if (hourVal < 14) slot = 'noon';
     else if (hourVal < 20) slot = 'evening';
-    else slot = 'bedtime';
+    else slot = 'night';
   } else {
     // Relative slot check
-    if (/(?:tối|đêm|trước khi ngủ)\b/i.test(lower)) {
-      timing = '20:00';
+    if (/(?:trước khi ngủ|khuya|đêm)\b/i.test(lower)) {
+      timing = '21:30';
+      slot = 'night';
+    } else if (/(?:tối)\b/i.test(lower)) {
+      timing = '18:00';
       slot = 'evening';
     } else if (/(?:trưa)\b/i.test(lower)) {
       timing = '12:00';
@@ -380,16 +394,16 @@ export function extractAppointmentProposal(text = '', context = {}) {
       date: dateStr,
       patientRef: context.patient_ref || 'BN-ONLINE-CARE',
       patientName: context.display_name || 'Bệnh nhân MedGuard',
-      age: context.age || 35,
-      sex: context.sex === 'female' ? 'Nữ' : 'Nam',
-      phone: context.phone || '0912 345 678',
+      age: context.age || null,
+      sex: context.sex === 'female' ? 'Nữ' : (context.sex === 'male' ? 'Nam' : 'Chưa cập nhật'),
+      phone: context.phone || '',
       doctor: defaultDoctor,
       department,
       room,
       hospital,
       purpose: `Khám & Hội chẩn chuyên khoa ${department} theo hẹn trực tuyến MedGuard AI`,
-      vitals: { bp: '120/80 mmHg', hr: '75 bpm', spo2: '99%', temp: '36.8°C' },
-      prepNotes: 'Có mặt trước giờ khám 15 phút. Xuất trình thẻ BHYT / CCCD tại quầy tiếp đón số 03.',
+      vitals: context.vitals || { bp: '--', hr: '--', spo2: '--', temp: '--' },
+      prepNotes: 'Có mặt trước giờ khám 15 phút. Xuất trình thẻ BHYT / CCCD tại quầy tiếp đón.',
       status: 'scheduled',
       priority: 'high',
       currentMeds: context.current_medications || [],
@@ -457,6 +471,103 @@ export function extractNavigationAction(text = '') {
       duration,
       address,
       coordinates,
+    },
+  };
+}
+
+// =====================================================================
+// 5. CONVERSATIONAL HEALTHCARE SPENDING EXTRACTION
+// =====================================================================
+
+export function extractSpendingProposal(text = '', context = {}, attachment = null) {
+  if ((!text || typeof text !== 'string') && !attachment) return null;
+  const lower = (text || '').toLowerCase();
+
+  // Trigger keywords for medical expense and invoice images
+  const isSpendingIntent =
+    /(?:mua\s*thuốc|tiền\s*thuốc|viện\s*phí|tiền\s*khám|khám\s*hết|mua\s*hết|chi\s*phí|thanh\s*toán|hóa\s*đơn|hoá\s*đơn|chi\s*tiêu\s*y\s*tế|phiếu\s*thu|biên\s*lai|toa\s*thuốc|đơn\s*thuốc|ảnh\s*hoá\s*đơn|ảnh\s*hóa\s*đơn|chụp\s*hóa\s*đơn|chụp\s*hoá\s*đơn)\b/i.test(lower) ||
+    Boolean(
+      attachment &&
+      (attachment.file?.name?.match(/(?:hoa_don|hoadon|invoice|receipt|bill|thuoc|don_thuoc)/i) ||
+       lower.includes('hóa đơn') ||
+       lower.includes('hoá đơn') ||
+       lower.includes('ảnh') ||
+       lower.includes('chụp') ||
+       lower.includes('đơn thuốc'))
+    );
+
+  if (!isSpendingIntent) return null;
+
+  // Extract amount in VND
+  let amount = 0;
+  const amountMatch = lower.match(/(?:hết|mất|khoảng|chi|tiêu|giá|thuốc|đơn|toán)?\s*(\d+[\d\.,]*)\s*(tr(?:iệu)?|k|nghìn|ngàn|đ|vnd|đồng)?/i);
+  if (amountMatch) {
+    let numStr = amountMatch[1].replace(/\./g, '').replace(/,/g, '.');
+    let val = parseFloat(numStr);
+    const unit = (amountMatch[2] || '').toLowerCase();
+    if (unit === 'k' || unit === 'nghìn' || unit === 'ngàn') {
+      amount = Math.round(val * 1000);
+    } else if (unit.startsWith('tr')) {
+      amount = Math.round(val * 1000000);
+    } else {
+      amount = Math.round(val);
+      if (amount > 0 && amount < 2000) {
+        amount *= 1000;
+      }
+    }
+  }
+
+  // If amount was not typed in text:
+  if (!amount || amount <= 0) {
+    return null; // Never fabricate a draft 350.000 ₫ invoice without explicit monetary amounts
+  }
+
+  // Determine category & provider
+  let category = 'medication';
+  let categoryName = 'Thuốc kê đơn GPP';
+  let title = attachment || lower.includes('hóa đơn') || lower.includes('hoá đơn')
+    ? 'Hóa đơn thuốc từ ảnh chụp'
+    : 'Mua thuốc điều trị';
+  let provider = 'Nhà thuốc đạt chuẩn GPP';
+
+  if (/(?:khám|bệnh\s*viện|phòng\s*khám|bác\s*sĩ)/i.test(lower)) {
+    category = 'clinic';
+    categoryName = 'Khám chuyên khoa';
+    title = 'Khám & Viện phí điều trị';
+    provider = 'Bệnh viện / Cơ sở y tế';
+  } else if (/(?:xét\s*nghiệm|nội\s*soi|siêu\s*âm|chụp\s*x-quang|máu)/i.test(lower)) {
+    category = 'diagnostics';
+    categoryName = 'Xét nghiệm cận lâm sàng';
+    title = 'Xét nghiệm y khoa';
+    provider = 'Trung tâm xét nghiệm y khoa';
+  }
+
+  if (lower.includes('long châu')) provider = 'Nhà thuốc Long Châu - Chuẩn GPP';
+  else if (lower.includes('pharmacity')) provider = 'Nhà thuốc Pharmacity - Chuẩn GPP';
+  else if (lower.includes('an khang')) provider = 'Nhà thuốc An Khang - Chuẩn GPP';
+  else if (lower.includes('bạch mai')) provider = 'Bệnh viện Bạch Mai';
+  else if (lower.includes('đại học y dược')) provider = 'BV Đại học Y Dược TP.HCM';
+
+  let bhytCovered = 0;
+  if (lower.includes('bhyt') || lower.includes('bảo hiểm')) {
+    bhytCovered = Math.round(amount * 0.8);
+  }
+
+  return {
+    hasProposal: true,
+    proposalId: `spend_prop_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+    spending: {
+      id: `tx_${Date.now().toString().slice(-4)}`,
+      raw_date: new Date().toISOString().slice(0, 10),
+      title,
+      category,
+      category_name: categoryName,
+      provider,
+      doctor: 'BS. Tư vấn MedGuard AI',
+      amount_vnd: -Math.abs(amount),
+      bhyt_covered_vnd: bhytCovered,
+      is_gpp: category === 'medication',
+      verified: true,
     },
   };
 }

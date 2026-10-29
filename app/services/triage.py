@@ -530,7 +530,18 @@ def evaluate_triage(
             "upper_abdominal_discomfort": ("GASTROENTEROLOGY", "Tiêu hóa"),
             "headache": ("NEUROLOGY", "Thần kinh"),
         }.get(str(guidance.get("topic", "")))
-    if final_urgency == "URGENT" and reports_current_appendix_pain(analysis_text):
+    from app.services.clinical_safety_floor import reports_acute_stroke_fast
+    is_stroke_fast = reports_acute_stroke_fast(analysis_text) or reports_acute_stroke_fast(payload.symptoms_text)
+
+    if final_urgency == "EMERGENCY" and is_stroke_fast:
+        specialty = RecommendedSpecialty(code="NEUROLOGY_EMERGENCY", label="Cấp cứu - Đột quỵ Não", confidence=0.99)
+        advice = (
+            "CẢNH BÁO ĐỘT QUỴ CẤP (FAST): Triệu chứng mờ mắt đột ngột, líu lưỡi/nói khó và yếu tay cầm đũa rơi là dấu hiệu tổn thương mạch máu não cấp tính. "
+            "Cần GỌI CẤP CỨU 115 hoặc đưa người bệnh đến Trung tâm Đột quỵ / Bệnh viện gần nhất NGAY LẬP TỨC để tận dụng GIỜ VÀNG (trong vòng 3 - 4.5 giờ đầu). "
+            "Tuyệt đối không tự lái xe, không nằm nghỉ chờ triệu chứng tự hết!"
+        )
+        guidance_summary = "Dấu hiệu thần kinh khu trú cấp tính (nghi ngờ đột quỵ não / TIA). Bắt buộc nhập viện cấp cứu ngay lập tức."
+    elif final_urgency == "URGENT" and reports_current_appendix_pain(analysis_text):
         specialty = RecommendedSpecialty(code="SURGERY", label="Ngoại khoa", confidence=0.86)
     elif guidance_specialty:
         specialty = RecommendedSpecialty(
@@ -545,18 +556,19 @@ def evaluate_triage(
             confidence=1.0 if emergency_flag else 0.78,
         )
 
-    advice = rule.advice
-    if hypothetical_scope and not analysis_text and final_urgency == "ROUTINE":
-        advice = (
-            "Các dấu hiệu bạn nêu đang ở dạng giả định, không phải triệu chứng hiện tại đã được xác nhận. "
-            "Nếu sưng môi/lưỡi, nghẹn họng, khó thở, ngất hoặc đau ngực nặng thực sự xuất hiện, hãy gọi 115 hoặc đến khoa Cấp cứu ngay."
-        )
-    elif final_urgency == "EMERGENCY" and rule.urgency != "EMERGENCY":
-        advice = "Tình trạng có dấu hiệu nguy kịch cần liên hệ cấp cứu 115 hoặc đến cơ sở y tế gần nhất ngay lập tức."
-    elif final_urgency == "URGENT" and rule.urgency in ("ROUTINE", "UNRESOLVED"):
-        advice = "Nên được nhân viên y tế đánh giá sớm trong ngày; nếu triệu chứng nặng lên, hãy đến cơ sở cấp cứu."
-    elif use_guidance_actions and guidance and guidance.get("advice"):
-        advice = str(guidance.get("advice"))
+    if not is_stroke_fast:
+        advice = rule.advice
+        if hypothetical_scope and not analysis_text and final_urgency == "ROUTINE":
+            advice = (
+                "Các dấu hiệu bạn nêu đang ở dạng giả định, không phải triệu chứng hiện tại đã được xác nhận. "
+                "Nếu sưng môi/lưỡi, nghẹn họng, khó thở, ngất hoặc đau ngực nặng thực sự xuất hiện, hãy gọi 115 hoặc đến khoa Cấp cứu ngay."
+            )
+        elif final_urgency == "EMERGENCY" and rule.urgency != "EMERGENCY":
+            advice = "Tình trạng có dấu hiệu nguy kịch cần liên hệ cấp cứu 115 hoặc đến cơ sở y tế gần nhất ngay lập tức."
+        elif final_urgency == "URGENT" and rule.urgency in ("ROUTINE", "UNRESOLVED"):
+            advice = "Nên được nhân viên y tế đánh giá sớm trong ngày; nếu triệu chứng nặng lên, hãy đến cơ sở cấp cứu."
+        elif use_guidance_actions and guidance and guidance.get("advice"):
+            advice = str(guidance.get("advice"))
 
     from app.services.clinical_reasoning.chest_calibration import bounded_chest_assessment
     bounded_chest = bounded_chest_assessment(analysis_text)

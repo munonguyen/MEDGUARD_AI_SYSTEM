@@ -23,6 +23,7 @@ OrganStatusType = Literal[
     "inflamed",
     "critical",
     "adverse_reaction",
+    "unassessed",
 ]
 
 TimelinePhase = Literal[
@@ -70,11 +71,11 @@ class OrganStatus(BaseModel):
 
 
 class VitalSignsSummary(BaseModel):
-    heart_rate_bpm: int = 76
-    blood_pressure_systolic: int = 120
-    blood_pressure_diastolic: int = 80
-    temperature_celsius: float = 37.0
-    spo2_percent: int = 98
+    heart_rate_bpm: int | None = None
+    blood_pressure_systolic: int | None = None
+    blood_pressure_diastolic: int | None = None
+    temperature_celsius: float | None = None
+    spo2_percent: int | None = None
     overall_pain_level: int = 0
 
 
@@ -102,13 +103,13 @@ class SafeGuardrailAlert(BaseModel):
 
 
 class PatientHealthProfile(BaseModel):
-    patient_id: str = "demo-patient-001"
-    patient_name: str = "Bệnh nhân MedGuard"
-    age: int = 34
-    gender: str = "Nam"
-    active_diagnosis: str = "Theo dõi cảm cúm & tiến triển lâm sàng"
-    overall_health_score: int = Field(default=82, ge=0, le=100)
-    health_trend: Literal["improving", "deteriorating", "stable", "critical_alert"] = "stable"
+    patient_id: str = "default"
+    patient_name: str = "Bệnh nhân"
+    age: int | None = None
+    gender: str | None = None
+    active_diagnosis: str = "Thể trạng bình thường — Chưa ghi nhận bệnh lý cấp tính"
+    overall_health_score: int = Field(default=100, ge=0, le=100)
+    health_trend: Literal["improving", "deteriorating", "stable", "critical_alert", "unassessed"] = "stable"
     vitals: VitalSignsSummary = Field(default_factory=VitalSignsSummary)
     organs: list[OrganStatus] = Field(default_factory=list)
     active_medications: list[str] = Field(default_factory=list)

@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Clock,
   Droplet,
+  Edit3,
   Eye,
   FileBadge,
   FileText,
@@ -102,341 +103,191 @@ const ORGAN_SYSTEMS = [
 ];
 
 const DEFAULT_HEALTH_PROFILE = {
-  patient_id: 'demo-patient-001',
-  patient_name: 'Bệnh nhân MedGuard',
-  age: 34,
-  gender: 'Nam',
-  active_diagnosis: 'Chưa ghi nhận bệnh lý cấp tính — Thể trạng bình thường',
-  overall_health_score: 98,
-  health_trend: 'stable',
+  patient_id: 'default',
+  patient_name: 'Bệnh nhân',
+  age: null,
+  gender: null,
+  active_diagnosis: 'Chưa có dữ liệu đánh giá lâm sàng — Chờ thu thập triệu chứng',
+  overall_health_score: null,
+  health_trend: 'unassessed',
   vitals: {
-    heart_rate_bpm: 72,
-    blood_pressure_systolic: 120,
-    blood_pressure_diastolic: 80,
-    temperature_celsius: 36.8,
-    spo2_percent: 99,
-    overall_pain_level: 0,
+    heart_rate_bpm: null,
+    blood_pressure_systolic: null,
+    blood_pressure_diastolic: null,
+    temperature_celsius: null,
+    spo2_percent: null,
+    overall_pain_level: null,
   },
   organs: [
     {
       id: 'head',
       name: 'Head & Brain',
       vietnamese_name: 'Đầu & Thần kinh',
-      status: 'normal',
-      health_score: 98,
+      status: 'unassessed',
+      health_score: null,
       pain_level: 0,
       inflammation_level: 'none',
       symptoms: [],
-      clinical_notes: 'Chức năng bình thường. Chưa ghi nhận triệu chứng bất thường từ người dùng.',
+      clinical_notes: 'Chưa có dữ liệu khám. Bác sĩ AI sẽ phân tích khi bạn chia sẻ triệu chứng hoặc kết quả khám.',
       related_medications: [],
       warning: null,
       is_adverse_reaction: false,
       contraindicated_actions: [],
       coordinates: { x: 50.0, y: 11.0 },
-      future_risk: {
-        risk_level: 'low',
-        risk_title: 'Rủi ro Đau đầu mạn tính do lạm dụng thuốc giảm đau (MOH)',
-        timeframe: '1 - 2 năm',
-        vaccination_status: 'THẦN KINH: Chưa ghi nhận tổn thương thực thể',
-        latent_risk_description: 'Đau đầu hiện tại do đáp ứng sốt virus. Nguy cơ hình thành thói quen phụ thuộc thuốc giảm đau cấp nếu dùng Paracetamol liên tục trên 15 ngày/tháng.',
-        potential_progression: 'Đau đầu cấp tính -> Lạm dụng thuốc giảm đau -> Đau đầu dội ngược kháng trị (MOH)',
-        preventive_recommendations: [
-          'Không uống thuốc giảm đau quá 3-4 ngày liên tục mà không có chỉ định bác sĩ.',
-          'Đảm bảo ngủ đủ 7-8 tiếng, hạn chế nhìn màn hình xanh quá 2 giờ liên tục khi đang sốt.',
-          'Bổ sung Magie và Vitamin B2 để hỗ trợ ổn định dẫn truyền thần kinh.',
-        ],
-        screening_tests: [
-          'Ghi chép nhật ký cơn đau đầu (Headache Diary)',
-          'Khám chuyên khoa thần kinh nếu xuất hiện dấu hiệu cờ đỏ (nôn vọt, cứng gáy)',
-        ],
-      },
+      future_risk: null,
     },
     {
       id: 'ent',
       name: 'Ear, Nose & Throat',
       vietnamese_name: 'Tai Mũi Họng',
-      status: 'normal',
-      health_score: 98,
+      status: 'unassessed',
+      health_score: null,
       pain_level: 0,
       inflammation_level: 'none',
       symptoms: [],
-      clinical_notes: 'Đường thở trên thông thoáng, niêm mạc bình thường.',
+      clinical_notes: 'Chưa có dữ liệu khám. Bác sĩ AI sẽ phân tích khi bạn chia sẻ triệu chứng hoặc kết quả khám.',
       related_medications: [],
       warning: null,
       is_adverse_reaction: false,
       contraindicated_actions: [],
       coordinates: { x: 50.0, y: 18.0 },
-      future_risk: {
-        risk_level: 'low',
-        risk_title: 'Rủi ro Viêm xoang mạn tính & Viêm họng hạt tái diễn',
-        timeframe: '1 - 2 năm',
-        vaccination_status: 'ĐƯỜNG THỞ TRÊN: Thông thoáng, không phù nề',
-        latent_risk_description: 'Niêm mạc cuốn mũi đang xung huyết phù nề. Nếu ứ đọng dịch nhầy kéo dài dễ dẫn đến bội nhiễm vi khuẩn cơ hội tại các xoang cạnh mũi.',
-        potential_progression: 'Viêm mũi họng cấp tính -> Tắc lỗ thông xoang -> Viêm xoang sàng/hàm mạn tính hoặc Viêm amiđan hốc mủ',
-        preventive_recommendations: [
-          'Rửa mũi bằng dung dịch nước muối sinh lý đẳng trương ấm 2-3 lần/ngày.',
-          'Súc họng sâu với nước muối hoặc dung dịch Povidone Iodine 1% khi ra ngoài về.',
-          'Giữ ấm vùng cổ ngực, uống nhiều nước ấm để làm loãng dịch đờm.',
-        ],
-        screening_tests: [
-          'Nội soi Tai Mũi Họng ống mềm định kỳ nếu triệu chứng kéo dài > 10 ngày',
-          'Chụp CT xoang liều thấp khi nghi ngờ viêm xoang tắc nghẽn',
-        ],
-      },
+      future_risk: null,
     },
     {
       id: 'cardiovascular',
       name: 'Cardiovascular',
       vietnamese_name: 'Tim mạch & Tuần hoàn',
-      status: 'normal',
-      health_score: 95,
+      status: 'unassessed',
+      health_score: null,
       pain_level: 0,
       inflammation_level: 'none',
       symptoms: [],
-      clinical_notes: 'Huyết áp 120/80 mmHg, nhịp tim đều 78 bpm, không đau ngực.',
+      clinical_notes: 'Chưa có dữ liệu khám. Bác sĩ AI sẽ phân tích khi bạn chia sẻ triệu chứng hoặc kết quả khám.',
       related_medications: [],
       warning: null,
       is_adverse_reaction: false,
       contraindicated_actions: [],
       coordinates: { x: 52.0, y: 28.5 },
-      future_risk: {
-        risk_level: 'moderate',
-        risk_title: 'Rủi ro Xơ vữa mạch vành & Biến cố Tim mạch (Thang SCORE/Framingham)',
-        timeframe: '5 - 10 năm',
-        vaccination_status: 'TIÊM PHÒNG CÚM HÀNG NĂM: Cần tiêm nhắc để ngừa biến cố tim mạch',
-        latent_risk_description: 'Huyết áp 120-122 mmHg ngưỡng tiền tăng huyết áp. Thói quen ngồi nhiều kết hợp áp lực công việc làm tăng stress oxy hóa thành mạch.',
-        potential_progression: 'Rối loạn nội mạc mạch máu -> Lắng đọng mảng xơ vữa thành mạch vành -> Cơn đau thắt ngực & Nhồi máu cơ tim (MACE)',
-        preventive_recommendations: [
-          'Duy trì huyết áp mục tiêu < 120/80 mmHg, kiểm soát lượng muối ăn < 5g/ngày.',
-          'Vận động thể thao nhịp điệu (đi bộ nhanh, bơi lội, đạp xe) tối thiểu 150 phút/tuần.',
-          'Tiêm phòng vắc-xin Cúm mùa định kỳ hàng năm (giúp giảm 20-30% nguy cơ biến cố tim mạch).',
-        ],
-        screening_tests: [
-          'Điện tâm đồ (ECG 12 chuyển đạo) & Siêu âm tim Doppler định kỳ hàng năm',
-          'Xét nghiệm bộ mỡ máu Lipid panel (Cholesterol toàn phần, LDL-C, HDL-C, Triglyceride)',
-        ],
-      },
+      future_risk: null,
     },
     {
       id: 'lungs',
       name: 'Respiratory & Lungs',
       vietnamese_name: 'Phổi & Hô hấp',
-      status: 'normal',
-      health_score: 98,
+      status: 'unassessed',
+      health_score: null,
       pain_level: 0,
       inflammation_level: 'none',
       symptoms: [],
-      clinical_notes: 'SpO2 99%, phế bào êm, không ran, đường thở dưới thông thoáng.',
+      clinical_notes: 'Chưa có dữ liệu khám. Bác sĩ AI sẽ phân tích khi bạn chia sẻ triệu chứng hoặc kết quả khám.',
       related_medications: [],
       warning: null,
       is_adverse_reaction: false,
       contraindicated_actions: [],
       coordinates: { x: 43.5, y: 28.0 },
-      future_risk: {
-        risk_level: 'low',
-        risk_title: 'Rủi ro Viêm phế quản mạn & Tăng phản ứng phế quản',
-        timeframe: '2 - 5 năm',
-        vaccination_status: 'VẮC-XIN PHẾ CẦU: Vui lòng khai báo tiền sử tiêm phòng phế cầu',
-        latent_risk_description: 'Đường thở trên đang viêm virus. Nếu thường xuyên tiếp xúc khói bụi hoặc thời tiết lạnh mà chưa có kháng thể phế cầu khuẩn sẽ dễ bị viêm phổi thứ phát.',
-        potential_progression: 'Nhiễm virus hô hấp tái diễn -> Tổn thương biểu mô lông chuyển -> Viêm phế quản mạn tính & Giảm dung tích sống FEV1',
-        preventive_recommendations: [
-          'Tiêm phòng vắc-xin ngừa phế cầu khuẩn (Streptococcus pneumoniae) để bảo vệ phế nang.',
-          'Đeo khẩu trang chuẩn lọc bụi mịn N95 khi di chuyển ngoài đường phố đô thị.',
-          'Tránh hoàn toàn khói thuốc lá thụ động và các chất khí độc hại.',
-        ],
-        screening_tests: [
-          'Đo chức năng hô hấp (Hô hấp ký Spirometry)',
-          'Chụp X-quang phổi thẳng định kỳ 1-2 năm/lần',
-        ],
-      },
+      future_risk: null,
     },
     {
       id: 'stomach',
       name: 'Gastrointestinal & Stomach',
       vietnamese_name: 'Dạ dày & Tiêu hoá',
-      status: 'normal',
-      health_score: 92,
+      status: 'unassessed',
+      health_score: null,
       pain_level: 0,
       inflammation_level: 'none',
       symptoms: [],
-      clinical_notes: 'Bụng mềm, không chướng, tiêu hóa bình thường. Cần lưu ý uống thuốc sau ăn.',
+      clinical_notes: 'Chưa có dữ liệu khám. Bác sĩ AI sẽ phân tích khi bạn chia sẻ triệu chứng hoặc kết quả khám.',
       related_medications: [],
       warning: null,
       is_adverse_reaction: false,
       contraindicated_actions: [],
       coordinates: { x: 53.5, y: 36.5 },
-      future_risk: {
-        risk_level: 'high',
-        risk_title: 'Rủi ro Viêm loét dạ dày tá tràng thủng & Biến chứng Ung thư dạ dày',
-        timeframe: '1 - 3 năm',
-        vaccination_status: 'TẦM SOÁT KHUẨN HP: Chưa kiểm tra vi khuẩn Helicobacter pylori',
-        latent_risk_description: 'Dạ dày rất dễ bị tổn thương nếu lạm dụng thuốc kháng viêm giảm đau (NSAID) hoặc nhiễm vi khuẩn HP âm thầm mà không phát hiện sớm.',
-        potential_progression: 'Kích ứng niêm mạc cấp -> Ổ loét sâu thành dạ dày xuất huyết/thủng -> Viêm teo & Dị sản ruột -> Nguy cơ Ung thư dạ dày',
-        preventive_recommendations: [
-          'Tuyệt đối không uống thuốc giảm đau chống viêm khi đói; dừng ngay nếu thấy cồn cào đau thượng vị.',
-          'Xét nghiệm test thở hoặc nội soi tầm soát vi khuẩn Helicobacter pylori (HP).',
-          'Ăn uống đúng giờ, tránh thói quen ăn đồ quá cay nóng, nhiều muối hoặc thực phẩm muối chua.',
-        ],
-        screening_tests: [
-          'Nội soi thực quản - dạ dày - tá tràng (EGD) có tiền mê',
-          'Test hơi thở C13/C14 Urea Breath Test tìm vi khuẩn HP',
-        ],
-      },
+      future_risk: null,
     },
     {
       id: 'liver',
       name: 'Liver & Metabolism',
       vietnamese_name: 'Gan & Chuyển hoá',
-      status: 'normal',
-      health_score: 96,
+      status: 'unassessed',
+      health_score: null,
       pain_level: 0,
       inflammation_level: 'none',
       symptoms: [],
-      clinical_notes: 'Chức năng chuyển hóa ổn định. Chú ý không dùng Paracetamol quá 3000mg/24h.',
+      clinical_notes: 'Chưa có dữ liệu khám. Bác sĩ AI sẽ phân tích khi bạn chia sẻ triệu chứng hoặc kết quả khám.',
       related_medications: [],
       warning: null,
       is_adverse_reaction: false,
       contraindicated_actions: [],
       coordinates: { x: 43.5, y: 35.0 },
-      future_risk: {
-        risk_level: 'high',
-        risk_title: 'Nguy cơ Nhiễm HBV mạn tính, Xơ gan tiến triển & Ung thư gan (HCC)',
-        timeframe: '3 - 10 năm',
-        vaccination_status: 'CHƯA TIÊM PHÒNG: Chưa tiêm vắc-xin Viêm gan B (Kháng thể Anti-HBs âm tính)',
-        latent_risk_description: 'Cơ thể chưa có kháng thể bảo vệ trước virus Viêm gan B (HBV). Nếu phơi nhiễm nguồn lây qua máu, dịch tiết, thủ thuật y tế hoặc tiếp xúc cộng đồng, nguy cơ chuyển thành thể mạn tính chiếm tới 10-15%.',
-        potential_progression: 'Nhiễm HBV mạn tính âm thầm -> Viêm hoại tử tế bào gan -> Xơ gan tiến triển (Cirrhosis) -> Ung thư biểu mô tế bào gan (HCC)',
-        preventive_recommendations: [
-          'Thực hiện tiêm phòng vắc-xin Viêm gan B đủ phác đồ chuẩn 3 mũi (Tháng 0, 1, 6) càng sớm càng tốt.',
-          'Xét nghiệm kiểm tra lại hiệu giá kháng thể Anti-HBs sau mũi 3 đạt > 10 mIU/mL để đảm bảo miễn dịch.',
-          'Hạn chế tối đa rượu bia, không dùng Paracetamol quá liều (> 3000mg/ngày) để giảm tải giải độc cho tế bào gan.',
-        ],
-        screening_tests: [
-          'Xét nghiệm cặp HBsAg & Anti-HBs kiểm tra tình trạng nhiễm và kháng thể',
-          'Định lượng men gan (AST, ALT, GGT) và chức năng gan tổng quát',
-          'Siêu âm Doppler gan & Xét nghiệm chỉ dấu ung thư gan Alpha-fetoprotein (AFP) mỗi 6 tháng',
-        ],
-      },
+      future_risk: null,
     },
     {
       id: 'kidneys',
       name: 'Kidneys & Urinary',
       vietnamese_name: 'Thận & Tiết niệu',
-      status: 'normal',
-      health_score: 98,
+      status: 'unassessed',
+      health_score: null,
       pain_level: 0,
       inflammation_level: 'none',
       symptoms: [],
-      clinical_notes: 'Đào thải bình thường, duy trì uống đủ 2 lít nước ấm mỗi ngày.',
+      clinical_notes: 'Chưa có dữ liệu khám. Bác sĩ AI sẽ phân tích khi bạn chia sẻ triệu chứng hoặc kết quả khám.',
       related_medications: [],
       warning: null,
       is_adverse_reaction: false,
       contraindicated_actions: [],
       coordinates: { x: 44.5, y: 40.5 },
-      future_risk: {
-        risk_level: 'low',
-        risk_title: 'Rủi ro Suy giảm mức lọc cầu thận & Bệnh thận do thuốc',
-        timeframe: '3 - 5 năm',
-        vaccination_status: 'CHỨC NĂNG THẬN: Ổn định, không protein niệu',
-        latent_risk_description: 'Thận đóng vai trò đào thải chất chuyển hóa của thuốc. Nguy cơ tổn thương mô kẽ thận nếu dùng thuốc giảm đau liều cao kéo dài hoặc cơ thể thiếu nước.',
-        potential_progression: 'Tổn thương tế bào ống thận âm thầm nếu lạm dụng thuốc kéo dài -> Giảm mức lọc cầu thận (eGFR) -> Bệnh thận mạn giai đoạn sớm',
-        preventive_recommendations: [
-          'Duy trì thói quen uống đủ 2 - 2.5 lít nước ấm mỗi ngày để bảo vệ chức năng bài tiết cầu thận.',
-          'Tuyệt đối không tự ý phối hợp nhiều loại thuốc hạ sốt giảm đau cùng lúc mà không có ý kiến bác sĩ.',
-        ],
-        screening_tests: [
-          'Xét nghiệm Creatinine huyết thanh & Ước tính mức lọc cầu thận eGFR',
-          'Tổng phân tích nước tiểu 10 thông số định kỳ hàng năm',
-        ],
-      },
+      future_risk: null,
     },
     {
       id: 'spine_joints',
       name: 'Spine & Musculoskeletal',
       vietnamese_name: 'Cơ xương khớp & Cột sống',
-      status: 'normal',
-      health_score: 98,
+      status: 'unassessed',
+      health_score: null,
       pain_level: 0,
       inflammation_level: 'none',
       symptoms: [],
-      clinical_notes: 'Vận động bình thường, không co cứng cơ, không đau mỏi.',
+      clinical_notes: 'Chưa có dữ liệu khám. Bác sĩ AI sẽ phân tích khi bạn chia sẻ triệu chứng hoặc kết quả khám.',
       related_medications: [],
       warning: null,
       is_adverse_reaction: false,
       contraindicated_actions: [],
       coordinates: { x: 50.0, y: 43.5 },
-      future_risk: {
-        risk_level: 'low',
-        risk_title: 'Rủi ro Thoái hóa cột sống cổ - thắt lưng & Co cứng cơ mạn tính',
-        timeframe: '3 - 5 năm',
-        vaccination_status: 'VẬN ĐỘNG HỌC: Cần cải thiện tư thế công thái học',
-        latent_risk_description: 'Triệu chứng mỏi cơ hiện tại do phản ứng viêm với sốt, kết hợp thói quen làm việc văn phòng ngồi nhiều giờ liên tục ít thay đổi tư thế.',
-        potential_progression: 'Căng cơ cổ vai gáy và thắt lưng mạn tính -> Giảm chiều cao đĩa đệm -> Thoái hóa cột sống & Thoát vị đĩa đệm sớm',
-        preventive_recommendations: [
-          'Thực hiện bài tập giãn cơ 5 phút sau mỗi 45-60 phút ngồi làm việc máy tính.',
-          'Điều chỉnh ghế và màn hình máy tính theo chuẩn công thái học (Ergonomics).',
-          'Bổ sung Canxi và Vitamin D3 qua thực phẩm hoặc tắm nắng buổi sớm.',
-        ],
-        screening_tests: [
-          'Khám chuyên khoa Cơ Xương Khớp & Đánh giá biên độ vận động cột sống',
-        ],
-      },
+      future_risk: null,
     },
     {
       id: 'skin',
       name: 'Skin & Immune System',
       vietnamese_name: 'Da liễu & Hệ miễn dịch',
-      status: 'normal',
-      health_score: 95,
+      status: 'unassessed',
+      health_score: null,
       pain_level: 0,
       inflammation_level: 'none',
       symptoms: [],
-      clinical_notes: 'Da ấm, không phát ban, không nổi mề đay dị ứng thuốc.',
+      clinical_notes: 'Chưa có dữ liệu khám. Bác sĩ AI sẽ phân tích khi bạn chia sẻ triệu chứng hoặc kết quả khám.',
       related_medications: [],
       warning: null,
       is_adverse_reaction: false,
       contraindicated_actions: [],
       coordinates: { x: 32.5, y: 33.5 },
-      future_risk: {
-        risk_level: 'low',
-        risk_title: 'Rủi ro Dị ứng thuốc phản vệ & Lão hóa quang hóa do tia UV',
-        timeframe: '2 - 5 năm',
-        vaccination_status: 'MIỄN DỊCH HỌC: Đang đáp ứng bảo vệ bình thường',
-        latent_risk_description: 'Hệ miễn dịch đang tập trung sản xuất kháng thể chống virus cảm cúm. Cần lưu ý theo dõi các biểu hiện dị ứng nổi mề đay nếu đổi thuốc mới.',
-        potential_progression: 'Dị ứng thuốc nhẹ không nhận biết -> Tái sử dụng dẫn đến phản ứng quá mẫn typ I hoặc hội chứng Stevens-Johnson',
-        preventive_recommendations: [
-          'Thông báo ngay cho bác sĩ nếu từng có tiền sử dị ứng với bất kỳ loại kháng sinh hoặc thuốc giảm đau nào.',
-          'Sử dụng kem chống nắng SPF 50+ phổ rộng khi hoạt động ngoài trời để bảo vệ màng tế bào biểu bì.',
-        ],
-        screening_tests: [
-          'Test áp bì hoặc định lượng IgE đặc hiệu nếu có tiền sử dị ứng thuốc nghi ngờ',
-        ],
-      },
+      future_risk: null,
     },
   ],
   active_medications: [],
   discontinued_medications: [],
   contraindicated_regimens: [],
   clinical_directives: [
-    'Cung cấp triệu chứng hoặc tiền sử tiêm chủng để AI đánh giá chuyên sâu',
-    'Duy trì uống đủ 2-2.5 lít nước ấm mỗi ngày',
-    'Chế độ ăn cân đối dinh dưỡng và nghỉ ngơi hợp lý',
+    'Trò chuyện với Bác sĩ AI hoặc cập nhật dấu hiệu sinh tồn để kích hoạt mô hình sinh học cá nhân hóa.',
+    'Duy trì uống đủ nước và sinh hoạt điều độ',
   ],
   safe_guardrail_alert: null,
-  timeline: [
-    {
-      id: 't1',
-      timestamp: 'Hiện tại',
-      phase: 'baseline',
-      title: 'Khởi tạo Hồ sơ Sức khoẻ Thực tế',
-      trigger_message: 'Hệ thống sẵn sàng tiếp nhận thông tin từ người dùng.',
-      health_score: 98,
-      status_label: 'Thể trạng bình thường',
-      clinical_summary: 'Chưa có thông tin bệnh lý. Bản đồ cơ thể và dự báo rủi ro sẽ chỉ cập nhật dựa trên thông tin thực tế do bạn cung cấp.',
-      ai_directive: 'Vui lòng chia sẻ cảm nhận cơ thể, triệu chứng hoặc tiền sử tiêm chủng nếu có bất thường.',
-      medications_adjusted: [],
-    },
-  ],
-  last_updated: 'Hiện tại',
+  timeline: [],
+  last_updated: 'Chưa cập nhật',
+};
+
+export const getTwinCacheKey = (acc) => {
+  const uid = acc?.user_id || acc?.id || acc?.email;
+  return uid ? `medguard_health_twin_profile_${uid}` : 'medguard_health_twin_profile_guest';
 };
 
 export function HealthTwinPage({
@@ -468,6 +319,41 @@ export function HealthTwinPage({
   const [episodicTimeframe, setEpisodicTimeframe] = useState("DAY");
   const [selectedBatchId, setSelectedBatchId] = useState("all");
   const [completedSolutions, setCompletedSolutions] = useState({});
+  const [showVitalsModal, setShowVitalsModal] = useState(false);
+  const [manualVitals, setManualVitals] = useState({
+    heart_rate_bpm: '',
+    blood_pressure_systolic: '',
+    blood_pressure_diastolic: '',
+    body_temperature_c: '',
+    spo2_percent: '',
+    vas_pain_score: 0,
+  });
+
+  const handleSaveManualVitals = (e) => {
+    e.preventDefault();
+    const updatedVitals = {
+      ...(profile.vitals || {}),
+      heart_rate_bpm: manualVitals.heart_rate_bpm ? parseInt(manualVitals.heart_rate_bpm, 10) : profile.vitals?.heart_rate_bpm,
+      blood_pressure_systolic: manualVitals.blood_pressure_systolic ? parseInt(manualVitals.blood_pressure_systolic, 10) : profile.vitals?.blood_pressure_systolic,
+      blood_pressure_diastolic: manualVitals.blood_pressure_diastolic ? parseInt(manualVitals.blood_pressure_diastolic, 10) : profile.vitals?.blood_pressure_diastolic,
+      body_temperature_c: manualVitals.body_temperature_c ? parseFloat(manualVitals.body_temperature_c) : profile.vitals?.body_temperature_c,
+      spo2_percent: manualVitals.spo2_percent ? parseInt(manualVitals.spo2_percent, 10) : profile.vitals?.spo2_percent,
+      vas_pain_score: parseInt(manualVitals.vas_pain_score || 0, 10),
+      is_estimated: false,
+      last_manual_measurement: new Date().toISOString(),
+    };
+    const newProfile = {
+      ...profile,
+      vitals: updatedVitals,
+    };
+    setProfile(newProfile);
+    try {
+      localStorage.setItem(getTwinCacheKey(account), JSON.stringify(newProfile));
+    } catch {}
+    window.dispatchEvent(new CustomEvent('medguard:health-twin-updated', { detail: { healthMutation: newProfile } }));
+    setShowVitalsModal(false);
+    onNotify?.('Đã cập nhật chỉ số sinh tồn đo thực tế!');
+  };
 
   const handleResetProfile = async () => {
     try {
@@ -483,14 +369,14 @@ export function HealthTwinPage({
         setProfile(DEFAULT_HEALTH_PROFILE);
       }
       try {
-        localStorage.removeItem("medguard_health_twin_profile");
+        localStorage.removeItem(getTwinCacheKey(account));
       } catch {}
       setActionNotice("Đã đặt lại thể trạng bình thường ban đầu thành công.");
       setTimeout(() => setActionNotice(null), 3500);
     } catch {
       setProfile(DEFAULT_HEALTH_PROFILE);
       try {
-        localStorage.removeItem("medguard_health_twin_profile");
+        localStorage.removeItem(getTwinCacheKey(account));
       } catch {}
       setActionNotice("Đã đặt lại thể trạng ban đầu.");
       setTimeout(() => setActionNotice(null), 3500);
@@ -527,6 +413,7 @@ export function HealthTwinPage({
   };
 
   const fetchProfile = async () => {
+    const cacheKey = getTwinCacheKey(account);
     try {
       setLoading(true);
       const data = await api.request("/v1/health-twin/profile");
@@ -537,10 +424,13 @@ export function HealthTwinPage({
           organs: normalizeOrgansArray(data.organs, DEFAULT_HEALTH_PROFILE.organs),
         };
         setProfile(normalized);
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify(normalized));
+        } catch {}
       }
     } catch {
       try {
-        const raw = localStorage.getItem("medguard_health_twin_profile");
+        const raw = localStorage.getItem(cacheKey);
         if (raw) {
           const parsed = JSON.parse(raw);
           setProfile((prev) => {
@@ -587,7 +477,7 @@ export function HealthTwinPage({
       window.removeEventListener("medguard:health-twin-updated", handleSync);
       window.removeEventListener("medguard:unified-chat-sync", handleUnifiedChatSync);
     };
-  }, []);
+  }, [api, account]);
 
   const handleEvaluateProgress = async (textToEvaluate) => {
     const text = (textToEvaluate ?? inputMessage ?? "").trim();
@@ -609,7 +499,7 @@ export function HealthTwinPage({
       setProfile((prev) => {
         const computed = nextProfile || evaluateHolisticHealthInput(prev, text, DEFAULT_HEALTH_PROFILE);
         try {
-          localStorage.setItem("medguard_health_twin_profile", JSON.stringify(computed));
+          localStorage.setItem(getTwinCacheKey(account), JSON.stringify(computed));
         } catch {}
         return computed;
       });
@@ -649,9 +539,11 @@ export function HealthTwinPage({
   );
 
   const getStatusColor = (status, score) => {
+    if (status === "unassessed") return "#94a3b8";
     if (status === "adverse_reaction" || status === "critical") return "#e11d48";
     if (status === "inflamed") return "#d97706";
     if (status === "monitoring") return "#2563eb";
+    if (score == null) return "#94a3b8";
     if (score < 60) return "#e11d48";
     if (score < 85) return "#d97706";
     return "#0d9488";
@@ -659,6 +551,8 @@ export function HealthTwinPage({
 
   const getStatusBadgeText = (status) => {
     switch (status) {
+      case "unassessed":
+        return "CHƯA ĐÁNH GIÁ";
       case "adverse_reaction":
         return "PHẢN ỨNG THUỐC (ADR)";
       case "critical":
@@ -720,7 +614,13 @@ export function HealthTwinPage({
   });
   const tempPolyline = tempPoints.map((p) => `${p.x},${p.y}`).join(" ");
 
-  const overallScore = profile?.overall_health_score ?? 96;
+  const isUnassessed =
+    profile?.overall_health_score == null ||
+    profile?.overall_health_score === 0 ||
+    profile?.health_trend === 'unassessed' ||
+    Boolean(visualChartSuite?.isUnassessed);
+
+  const overallScore = isUnassessed ? null : profile?.overall_health_score;
 
   // ============================================================================
   // MODULAR RENDERERS FOR INTUITIVE CLINICAL LAYOUT
@@ -728,93 +628,161 @@ export function HealthTwinPage({
 
   // 1. Executive Biometric Vitals Ribbon (5 Vital Signs)
   const renderVitalsRibbon = () => {
-    const painScore = profile?.vitals?.vas_pain_score ?? profile?.vitals?.overall_pain_level ?? 0;
-    const painLabel = painScore === 0 ? "Không đau" : painScore <= 3 ? "Đau nhẹ" : painScore <= 6 ? "Đau vừa" : "Đau dữ dội";
+    const painScore = profile?.vitals?.overall_pain_level ?? profile?.vitals?.vas_pain_score ?? 0;
+    const painLabel = painScore === 0 ? "Bình thường" : painScore <= 3 ? "Đau nhẹ" : painScore <= 6 ? "Đau vừa" : "Đau dữ dội";
+
+    const hr = profile?.vitals?.heart_rate_bpm;
+    const bpSystolic = profile?.vitals?.blood_pressure_systolic;
+    const bpDiastolic = profile?.vitals?.blood_pressure_diastolic;
+    const bp = profile?.vitals?.blood_pressure || (bpSystolic ? `${bpSystolic}/${bpDiastolic || 80}` : null);
+    const temp = profile?.vitals?.temperature_celsius ?? profile?.vitals?.body_temperature_c;
+    const spo2 = profile?.vitals?.spo2_percent;
+    const isEstimated = profile?.vitals?.is_estimated !== false;
 
     return (
-      <div className="vitals-sparkline-strip executive-vitals-bar" aria-label="5 Chỉ số Sức khỏe Cơ bản">
-        <div className="vital-chart-card">
-          <div className="vc-top">
-            <span>1. Nhịp tim (Điện tâm đồ)</span>
-            <strong className="text-rose">{profile?.vitals?.heart_rate_bpm || 78} nhịp/phút</strong>
-          </div>
-          <svg viewBox="0 0 120 32" className="vc-spark-svg" role="img" aria-label="Dải nhịp tim ECG">
-            <polyline
-              fill="none"
-              stroke="#e11d48"
-              strokeWidth="2"
-              points="0,18 22,18 28,6 34,28 40,12 46,20 72,18 80,5 86,27 92,15 120,18"
-            />
-          </svg>
+      <div className="vitals-ribbon-container">
+        <div className="vitals-ribbon-header">
+          <span className="vitals-header-tag">
+            <Activity size={13} />
+            <strong>5 Chỉ Số Sinh Tồn</strong>
+            <span>{isEstimated ? '• Ước tính lâm sàng từ AI' : '• Đã xác nhận đo thực tế'}</span>
+          </span>
+          <button
+            type="button"
+            className="btn-open-vitals-modal"
+            onClick={() => {
+              setManualVitals({
+                heart_rate_bpm: hr || '',
+                blood_pressure_systolic: bpSystolic || '',
+                blood_pressure_diastolic: bpDiastolic || '',
+                body_temperature_c: temp || '',
+                spo2_percent: spo2 || '',
+                vas_pain_score: painScore || 0,
+              });
+              setShowVitalsModal(true);
+            }}
+            title="Nhập chỉ số huyết áp, nhiệt độ, nhịp tim thực tế từ máy đo tại nhà"
+          >
+            <Edit3 size={13} />
+            <span>Nhập chỉ số thực tế của bạn</span>
+          </button>
         </div>
 
-        <div className="vital-chart-card">
-          <div className="vc-top">
-            <span>2. Huyết áp</span>
-            <strong className="text-blue">{profile?.vitals?.blood_pressure || "120/80"} mmHg</strong>
+        <div className="vitals-sparkline-strip executive-vitals-bar" aria-label="5 Chỉ số Sức khỏe Cơ bản">
+          <div className="vital-chart-card">
+            <div className="vc-top">
+              <span className="vc-name-wrap">
+                <span>1. Nhịp tim (ECG)</span>
+                <small className={`vc-estimate-badge ${isEstimated ? 'estimated' : 'actual'}`}>
+                  {isEstimated ? 'Ước tính lâm sàng' : 'Đo thực tế'}
+                </small>
+              </span>
+              <strong className="text-rose">
+                {hr ? `${hr} nhịp/phút` : '-- nhịp/phút (Chưa đo)'}
+              </strong>
+            </div>
+            <svg viewBox="0 0 120 32" className="vc-spark-svg" role="img" aria-label="Dải nhịp tim ECG">
+              <polyline
+                fill="none"
+                stroke="#e11d48"
+                strokeWidth="2"
+                points="0,18 22,18 28,6 34,28 40,12 46,20 72,18 80,5 86,27 92,15 120,18"
+              />
+            </svg>
           </div>
-          <div className="vc-dual-bars">
-            <div className="vc-bar-line"><span style={{ width: "75%", background: "#2563eb" }} /></div>
-            <div className="vc-bar-line"><span style={{ width: "55%", background: "#0d9488" }} /></div>
-          </div>
-        </div>
 
-        <div className="vital-chart-card">
-          <div className="vc-top">
-            <span>3. Thân nhiệt</span>
-            <strong className="text-amber">
-              {profile?.vitals?.temperature_celsius || profile?.vitals?.body_temperature_c || 36.6} °C
-            </strong>
+          <div className="vital-chart-card">
+            <div className="vc-top">
+              <span className="vc-name-wrap">
+                <span>2. Huyết áp</span>
+                <small className={`vc-estimate-badge ${isEstimated ? 'estimated' : 'actual'}`}>
+                  {isEstimated ? 'Ước tính lâm sàng' : 'Đo thực tế'}
+                </small>
+              </span>
+              <strong className="text-blue">
+                {bp ? `${bp} mmHg` : '-- mmHg (Chưa đo)'}
+              </strong>
+            </div>
+            <div className="vc-dual-bars">
+              <div className="vc-bar-line"><span style={{ width: bpSystolic ? "75%" : "0%", background: "#2563eb" }} /></div>
+              <div className="vc-bar-line"><span style={{ width: bpDiastolic ? "55%" : "0%", background: "#0d9488" }} /></div>
+            </div>
           </div>
-          <div className="vc-thermometer-track">
-            <div
-              className="vc-thermometer-fill"
-              style={{
-                width: `${Math.min(100, Math.max(25, (((profile?.vitals?.temperature_celsius || 36.6) - 36) / 4) * 100))}%`,
-              }}
-            />
-          </div>
-        </div>
 
-        <div className="vital-chart-card">
-          <div className="vc-top">
-            <span>4. Nồng độ Oxy trong máu (SpO2)</span>
-            <strong className="text-teal">{profile?.vitals?.spo2_percent || 98}%</strong>
+          <div className="vital-chart-card">
+            <div className="vc-top">
+              <span className="vc-name-wrap">
+                <span>3. Thân nhiệt</span>
+                <small className={`vc-estimate-badge ${isEstimated ? 'estimated' : 'actual'}`}>
+                  {isEstimated ? 'Ước tính lâm sàng' : 'Đo thực tế'}
+                </small>
+              </span>
+              <strong className="text-amber">
+                {temp ? `${temp} °C` : '-- °C (Chưa đo)'}
+              </strong>
+            </div>
+            <div className="vc-thermometer-track">
+              <div
+                className="vc-thermometer-fill"
+                style={{
+                  width: temp ? `${Math.min(100, Math.max(25, ((temp - 36) / 4) * 100))}%` : '0%',
+                }}
+              />
+            </div>
           </div>
-          <div className="vc-thermometer-track">
-            <div
-              className="vc-thermometer-fill teal"
-              style={{ width: `${profile?.vitals?.spo2_percent || 98}%` }}
-            />
-          </div>
-        </div>
 
-        <div className="vital-chart-card">
-          <div className="vc-top">
-            <span>5. Mức độ đau nhức (Thang 0-10)</span>
-            <strong className="text-amber">
-              {painScore}/10 ({painLabel})
-            </strong>
+          <div className="vital-chart-card">
+            <div className="vc-top">
+              <span className="vc-name-wrap">
+                <span>4. SpO2 (Oxy máu)</span>
+                <small className={`vc-estimate-badge ${isEstimated ? 'estimated' : 'actual'}`}>
+                  {isEstimated ? 'Ước tính lâm sàng' : 'Đo thực tế'}
+                </small>
+              </span>
+              <strong className="text-teal">
+                {spo2 ? `${spo2}%` : '-- % (Chưa đo)'}
+              </strong>
+            </div>
+            <div className="vc-thermometer-track">
+              <div
+                className="vc-thermometer-fill teal"
+                style={{ width: spo2 ? `${spo2}%` : '0%' }}
+              />
+            </div>
           </div>
-          <div className="vc-vas-segments">
-            {Array.from({ length: 10 }).map((_, idx) => {
-              const active = idx < painScore;
-              return (
-                <span
-                  key={idx}
-                  className={`vas-seg ${active ? "active" : ""}`}
-                  style={{
-                    backgroundColor: active
-                      ? idx >= 6
-                        ? "#e11d48"
-                        : idx >= 3
-                        ? "#f59e0b"
-                        : "#10b981"
-                      : "#e2e8f0",
-                  }}
-                />
-              );
-            })}
+
+          <div className="vital-chart-card">
+            <div className="vc-top">
+              <span className="vc-name-wrap">
+                <span>5. Thang đau VAS</span>
+                <small className={`vc-estimate-badge ${isEstimated ? 'estimated' : 'actual'}`}>
+                  {isEstimated ? 'Ước tính lâm sàng' : 'Đo thực tế'}
+                </small>
+              </span>
+              <strong className="text-amber">
+                {isUnassessed || painScore == null ? '--/10 (Chưa đo)' : painScore > 0 ? `${painScore}/10 (${painLabel})` : '0/10 (Bình thường)'}
+              </strong>
+            </div>
+            <div className="vc-vas-segments">
+              {Array.from({ length: 10 }).map((_, idx) => {
+                const active = idx < painScore;
+                return (
+                  <span
+                    key={idx}
+                    className={`vas-seg ${active ? "active" : ""}`}
+                    style={{
+                      backgroundColor: active
+                        ? idx >= 6
+                          ? "#e11d48"
+                          : idx >= 3
+                          ? "#f59e0b"
+                          : "#10b981"
+                        : "#e2e8f0",
+                    }}
+                  />
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
@@ -1266,7 +1234,7 @@ export function HealthTwinPage({
           <Sparkles size={16} className="icon-teal" />
           <h4>Cân Bằng Sinh Học & Chỉ Số Thể Trạng</h4>
         </div>
-        <span className="radar-avg-badge">TB: {visualChartSuite.radarAverage}/100</span>
+        <span className="radar-avg-badge">{isUnassessed || visualChartSuite.radarAverage == null ? 'Chưa đánh giá' : `TB: ${visualChartSuite.radarAverage}/100`}</span>
       </div>
 
       <div className="bio-radar-and-gauges-row">
@@ -1367,7 +1335,7 @@ export function HealthTwinPage({
                     dominantBaseline="middle"
                     className={`radar-axis-label ${isHovered ? "active" : ""}`}
                     fill={isHovered ? a.color : "#334155"}
-                    fontWeight={isHovered ? "800" : "700"}
+                    fontWeight={isHovered ? "700" : "600"}
                   >
                     {a.shortLabel} ({a.value})
                   </text>
@@ -1409,39 +1377,39 @@ export function HealthTwinPage({
             {
               id: "sleep",
               label: "Giấc ngủ & Phục hồi",
-              val: profile?.wellbeing?.sleep_quality_score ?? 88,
+              val: isUnassessed ? null : (profile?.wellbeing?.sleep_quality_score ?? 88),
               unit: "/100",
-              color: "#0d9488",
-              hint: "Chất lượng ngủ sâu REM đạt 7.5h",
+              color: isUnassessed ? "#94a3b8" : "#0d9488",
+              hint: isUnassessed ? "Chưa có dữ liệu theo dõi giấc ngủ" : "Chất lượng ngủ sâu REM đạt 7.5h",
             },
             {
               id: "neuro",
               label: "An thần & Tâm lý",
-              val: String(profile?.wellbeing?.stress_level_label || "").includes("Cao") ? 52 : String(profile?.wellbeing?.stress_level_label || "").includes("Trung") ? 74 : 92,
+              val: isUnassessed ? null : (String(profile?.wellbeing?.stress_level_label || "").includes("Cao") ? 52 : String(profile?.wellbeing?.stress_level_label || "").includes("Trung") ? 74 : 92),
               unit: "%",
-              subText: profile?.wellbeing?.stress_level_label || "Thấp (Ổn định)",
-              color: "#2563eb",
-              hint: "Tâm lý thư thái, chỉ số căng thẳng thấp",
+              subText: isUnassessed ? "Chưa đánh giá" : (profile?.wellbeing?.stress_level_label || "Thấp (Ổn định)"),
+              color: isUnassessed ? "#94a3b8" : "#2563eb",
+              hint: isUnassessed ? "Chưa có dữ liệu đánh giá tâm lý" : "Tâm lý thư thái, chỉ số căng thẳng thấp",
             },
             {
               id: "energy",
               label: "Pin Năng lượng",
-              val: profile?.wellbeing?.energy_battery_percent ?? 90,
+              val: isUnassessed ? null : (profile?.wellbeing?.energy_battery_percent ?? 90),
               unit: "%",
-              color: "#d97706",
-              hint: "Mức năng lượng tế bào đạt 90%",
+              color: isUnassessed ? "#94a3b8" : "#d97706",
+              hint: isUnassessed ? "Chưa có dữ liệu đo năng lượng" : "Mức năng lượng tế bào đạt 90%",
             },
             {
               id: "hydration",
               label: "Nước & Điện giải",
-              val: profile?.wellbeing?.hydration_balance_percent ?? 92,
+              val: isUnassessed ? null : (profile?.wellbeing?.hydration_balance_percent ?? 92),
               unit: "%",
-              color: "#0284c7",
-              hint: "Đã nạp 2.2L nước, điện giải cân bằng",
+              color: isUnassessed ? "#94a3b8" : "#0284c7",
+              hint: isUnassessed ? "Chưa có dữ liệu bù nước & điện giải" : "Đã nạp 2.2L nước, điện giải cân bằng",
             },
           ].map((g) => {
             const isHovered = hoveredGaugeId === g.id;
-            const dash = Math.round((Math.max(10, Math.min(100, g.val)) / 100) * 113);
+            const dash = g.val !== null ? Math.round((Math.max(10, Math.min(100, g.val)) / 100) * 113) : 0;
             return (
               <div
                 key={g.id}
@@ -1480,12 +1448,12 @@ export function HealthTwinPage({
                       fontWeight: isHovered ? "900" : "800",
                     }}
                   >
-                    {g.val}
+                    {g.val !== null ? g.val : '--'}
                   </text>
                 </svg>
                 <div className="radial-gauge-info">
                   <span>{g.label}</span>
-                  <strong style={{ color: g.color }}>{g.subText || `${g.val}${g.unit}`}</strong>
+                  <strong style={{ color: g.color }}>{g.subText || (g.val !== null ? `${g.val}${g.unit}` : 'Chưa đánh giá')}</strong>
                   {isHovered && <span className="gauge-hover-hint">{g.hint}</span>}
                 </div>
               </div>
@@ -1607,8 +1575,39 @@ export function HealthTwinPage({
         </div>
       </div>
 
-      {/* 3 Compact Batch Filter Cards with Visual Progress Bars */}
-      <div className="episodic-batches-grid">
+      {episodicAnalytics.isUnassessed || !episodicAnalytics.batches?.length ? (
+        <div className="episodic-empty-state-box">
+          <div className="episodic-empty-icon-ring">
+            <Activity size={32} />
+          </div>
+          <span className="episodic-empty-badge">TÀI KHOẢN MỚI • CHƯA CÓ DỮ LIỆU BỆNH ÁN</span>
+          <h4 className="episodic-empty-title">Chưa Có Dữ Liệu Diễn Tiến Lâm Sàng</h4>
+          <p className="episodic-empty-desc">
+            Hệ thống MedGuard AI phân tách và bảo mật dữ liệu độc lập cho từng tài khoản. Tài khoản của bạn hiện ở trạng thái cơ sở ban đầu (chưa ghi nhận triệu chứng hoặc lịch sử khám).
+          </p>
+          <div className="episodic-empty-actions">
+            <button
+              type="button"
+              className="btn-empty-start-chat"
+              onClick={() => (onNavigate ? onNavigate("chat") : onBackToChat?.())}
+            >
+              <Sparkles size={15} />
+              <span>Trò chuyện với Bác sĩ AI để khám ban đầu</span>
+            </button>
+            <button
+              type="button"
+              className="btn-empty-input-vitals"
+              onClick={() => setShowVitalsModal(true)}
+            >
+              <HeartPulse size={15} />
+              <span>Nhập chỉ số sinh tồn (Huyết áp, Nhịp tim, Thân nhiệt)</span>
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* 3 Compact Batch Filter Cards with Visual Progress Bars */}
+          <div className="episodic-batches-grid">
         {episodicAnalytics.batches.map((batch) => {
           const isSelected = selectedBatchId === batch.id;
           return (
@@ -1981,6 +1980,8 @@ export function HealthTwinPage({
           </svg>
         </div>
       </div>
+        </>
+      )}
     </section>
   );
 
@@ -2139,16 +2140,16 @@ export function HealthTwinPage({
                 cy="18"
                 r="15"
                 fill="none"
-                stroke={getStatusColor("normal", overallScore)}
+                stroke={isUnassessed ? "#94a3b8" : getStatusColor("normal", overallScore)}
                 strokeWidth="3.5"
-                strokeDasharray={`${Math.round((overallScore / 100) * 94.2)} 95`}
+                strokeDasharray={isUnassessed ? "0 95" : `${Math.round((overallScore / 100) * 94.2)} 95`}
                 strokeLinecap="round"
                 transform="rotate(-90 18 18)"
               />
             </svg>
             <div className="mini-ring-text">
               <span>Thể trạng</span>
-              <strong>{overallScore}%</strong>
+              <strong>{isUnassessed ? '--' : `${overallScore}%`}</strong>
             </div>
           </div>
 
@@ -2282,6 +2283,140 @@ export function HealthTwinPage({
       {sectionFilter === "solutions" && (
         <div className="twin-focus-full-width">
           {renderSolutionsCenter()}
+        </div>
+      )}
+
+      {/* Manual Vitals Input Modal */}
+      {showVitalsModal && (
+        <div
+          className="vitals-modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowVitalsModal(false);
+          }}
+        >
+          <div className="vitals-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="vitals-modal-header">
+              <h3>
+                <Activity size={18} className="text-teal" />
+                <span>Nhập Chỉ Số Sinh Tồn Đo Thực Tế</span>
+              </h3>
+              <button
+                type="button"
+                className="modal-close-btn"
+                style={{ position: 'static' }}
+                onClick={() => setShowVitalsModal(false)}
+                title="Đóng"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveManualVitals}>
+              <div className="vitals-modal-grid">
+                <div className="vitals-modal-field">
+                  <label htmlFor="hr-input">Nhịp tim (nhịp/phút)</label>
+                  <input
+                    id="hr-input"
+                    type="number"
+                    min="40"
+                    max="220"
+                    placeholder="VD: 75"
+                    value={manualVitals.heart_rate_bpm}
+                    onChange={(e) => setManualVitals({ ...manualVitals, heart_rate_bpm: e.target.value })}
+                  />
+                </div>
+
+                <div className="vitals-modal-field">
+                  <label htmlFor="spo2-input">SpO2 (% Oxy máu)</label>
+                  <input
+                    id="spo2-input"
+                    type="number"
+                    min="70"
+                    max="100"
+                    placeholder="VD: 98"
+                    value={manualVitals.spo2_percent}
+                    onChange={(e) => setManualVitals({ ...manualVitals, spo2_percent: e.target.value })}
+                  />
+                </div>
+
+                <div className="vitals-modal-field">
+                  <label htmlFor="bp-sys-input">Huyết áp Tâm Thu (mmHg)</label>
+                  <input
+                    id="bp-sys-input"
+                    type="number"
+                    min="70"
+                    max="240"
+                    placeholder="VD: 120"
+                    value={manualVitals.blood_pressure_systolic}
+                    onChange={(e) => setManualVitals({ ...manualVitals, blood_pressure_systolic: e.target.value })}
+                  />
+                </div>
+
+                <div className="vitals-modal-field">
+                  <label htmlFor="bp-dia-input">Huyết áp Tâm Trương (mmHg)</label>
+                  <input
+                    id="bp-dia-input"
+                    type="number"
+                    min="40"
+                    max="140"
+                    placeholder="VD: 80"
+                    value={manualVitals.blood_pressure_diastolic}
+                    onChange={(e) => setManualVitals({ ...manualVitals, blood_pressure_diastolic: e.target.value })}
+                  />
+                </div>
+
+                <div className="vitals-modal-field">
+                  <label htmlFor="temp-input">Thân nhiệt (°C)</label>
+                  <input
+                    id="temp-input"
+                    type="number"
+                    step="0.1"
+                    min="35"
+                    max="43"
+                    placeholder="VD: 36.8"
+                    value={manualVitals.body_temperature_c}
+                    onChange={(e) => setManualVitals({ ...manualVitals, body_temperature_c: e.target.value })}
+                  />
+                </div>
+
+                <div className="vitals-modal-field">
+                  <label htmlFor="pain-select">Mức độ đau VAS (0-10)</label>
+                  <select
+                    id="pain-select"
+                    value={manualVitals.vas_pain_score}
+                    onChange={(e) => setManualVitals({ ...manualVitals, vas_pain_score: e.target.value })}
+                  >
+                    <option value="0">0 - Không đau</option>
+                    <option value="1">1 - Rất nhẹ</option>
+                    <option value="2">2 - Nhẹ</option>
+                    <option value="3">3 - Nhẹ vừa</option>
+                    <option value="4">4 - Đau vừa</option>
+                    <option value="5">5 - Đau rõ rệt</option>
+                    <option value="6">6 - Khá đau</option>
+                    <option value="7">7 - Rất đau</option>
+                    <option value="8">8 - Đau dữ dội</option>
+                    <option value="9">9 - Cực kỳ dữ dội</option>
+                    <option value="10">10 - Đau không chịu nổi</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="vitals-modal-actions">
+                <button
+                  type="button"
+                  className="btn-vitals-cancel"
+                  onClick={() => setShowVitalsModal(false)}
+                >
+                  Hủy bỏ
+                </button>
+                <button type="submit" className="btn-vitals-save">
+                  Lưu Chỉ Số Đo Thực Tế
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

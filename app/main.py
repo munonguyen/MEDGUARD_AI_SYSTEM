@@ -125,14 +125,21 @@ def create_app() -> FastAPI:
         from urllib.parse import urlsplit
         from starlette.middleware.trustedhost import TrustedHostMiddleware
 
-        app.add_middleware(
-            TrustedHostMiddleware,
-            allowed_hosts=[urlsplit(os.environ["MEDGUARD_PUBLIC_ORIGIN"]).hostname],
-        )
+        origin = os.getenv("MEDGUARD_PUBLIC_ORIGIN")
+        if origin:
+            try:
+                host = urlsplit(origin).hostname
+                allowed = [host, "*.bookingcare.shop", "*.cloudfront.net", "*.on.aws", "localhost", "127.0.0.1"] if host else ["*"]
+                app.add_middleware(
+                    TrustedHostMiddleware,
+                    allowed_hosts=allowed,
+                )
+            except Exception:
+                pass
 
     static_dir = Path(__file__).parent / "static"
     if static_dir.exists():
-        app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+        app.mount("/static", StaticFiles(directory=str(static_dir), html=True), name="static")
         models_dir = static_dir / "models"
         if models_dir.exists():
             app.mount("/models", StaticFiles(directory=str(models_dir)), name="models")

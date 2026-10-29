@@ -23,6 +23,7 @@ import {
   Printer,
   RefreshCw,
   Search,
+  Sparkles,
   Stethoscope,
   Trash2,
   User,
@@ -69,253 +70,6 @@ const DAY_NAMES = [
 const TODAY_STR = new Date().toISOString().slice(0, 10);
 const CURRENT_WEEK_DAYS = getWeekDates(new Date());
 
-const INITIAL_SHIFTS = [
-  {
-    id: 'SHIFT-001',
-    shiftType: 'morning',
-    shiftName: 'Ca Sáng (07:30 - 11:30)',
-    timeSlot: '08:00 - 08:30',
-    date: TODAY_STR,
-    patientRef: 'BN-1082',
-    patientName: 'Nguyễn Văn An',
-    age: 58,
-    sex: 'Nam',
-    phone: '0912 345 678',
-    doctor: 'BS. CKII Trần Quốc Huy',
-    department: 'Nội Tim mạch',
-    room: 'Phòng 204 - Tầng 2',
-    purpose: 'Tái khám tăng huyết áp & đau thắt ngực gắng sức, theo dõi sau can thiệp stent mạch vành 3 tháng.',
-    vitals: { bp: '135/85 mmHg', hr: '76 bpm', spo2: '98%', temp: '36.8°C' },
-    prepNotes: 'Yêu cầu nhịn ăn sáng từ 22h tối hôm trước để lấy máu xét nghiệm sinh hóa lúc 07:45. Mang theo sổ đo huyết áp tại nhà.',
-    status: 'in_progress',
-    priority: 'high',
-    currentMeds: ['Amlodipine 5mg', 'Aspirin 81mg', 'Atorvastatin 20mg'],
-  },
-  {
-    id: 'SHIFT-002',
-    shiftType: 'morning',
-    shiftName: 'Ca Sáng (07:30 - 11:30)',
-    timeSlot: '08:45 - 09:15',
-    date: CURRENT_WEEK_DAYS[1] || TODAY_STR,
-    patientRef: 'BN-2041',
-    patientName: 'Trần Thị Mai',
-    age: 46,
-    sex: 'Nữ',
-    phone: '0988 765 432',
-    doctor: 'ThS. BS Lê Hoàng Mai',
-    department: 'Nội tiết - Đái tháo đường',
-    room: 'Phòng 108 - Tầng 1',
-    purpose: 'Kiểm tra đường huyết định kỳ HbA1c, điều chỉnh liều insulin và metformin, khám biến chứng bàn chân.',
-    vitals: { bp: '125/80 mmHg', hr: '82 bpm', spo2: '99%', temp: '36.6°C' },
-    prepNotes: 'Không uống thuốc hạ đường huyết vào buổi sáng trước khi lấy máu làm nghiệm pháp. Mang phiếu theo dõi đường huyết 14 ngày.',
-    status: 'confirmed',
-    priority: 'normal',
-    currentMeds: ['Metformin 500mg', 'Gliclazide 30mg'],
-  },
-  {
-    id: 'SHIFT-003',
-    shiftType: 'morning',
-    shiftName: 'Ca Sáng (07:30 - 11:30)',
-    timeSlot: '09:30 - 10:00',
-    date: CURRENT_WEEK_DAYS[2] || TODAY_STR,
-    patientRef: 'BN-3095',
-    patientName: 'Vũ Minh Tuấn',
-    age: 32,
-    sex: 'Nam',
-    phone: '0903 112 233',
-    doctor: 'BS. CKI Phạm Thanh Tùng',
-    department: 'Hô hấp & Dị ứng',
-    room: 'Phòng 302 - Tầng 3',
-    purpose: 'Cơn hen phế quản tái phát về đêm, ho có đờm trắng dính, đánh giá chức năng thông khí phổi (Hô hấp ký).',
-    vitals: { bp: '118/75 mmHg', hr: '94 bpm', spo2: '94%', temp: '37.1°C' },
-    prepNotes: 'Ngưng xịt thuốc giãn phế quản tác dụng ngắn trước khi đo hô hấp ký tối thiểu 6 giờ (trừ khi khó thở cấp).',
-    status: 'priority',
-    priority: 'urgent',
-    currentMeds: ['Salbutamol xịt', 'Seretide 25/125'],
-  },
-  {
-    id: 'SHIFT-004',
-    shiftType: 'morning',
-    shiftName: 'Ca Sáng (07:30 - 11:30)',
-    timeSlot: '10:15 - 10:45',
-    date: CURRENT_WEEK_DAYS[3] || TODAY_STR,
-    patientRef: 'BN-4112',
-    patientName: 'Đặng Ngọc Lan',
-    age: 64,
-    sex: 'Nữ',
-    phone: '0934 556 778',
-    doctor: 'BS. CKII Trần Quốc Huy',
-    department: 'Nội Tim mạch',
-    room: 'Phòng 204 - Tầng 2',
-    purpose: 'Theo dõi rung nhĩ kịch phát và dùng thuốc chống đông kháng vitamin K (Warfarin), kiểm tra chỉ số INR.',
-    vitals: { bp: '130/82 mmHg', hr: '88 bpm (loạn nhịp)', spo2: '97%', temp: '36.7°C' },
-    prepNotes: 'Mang theo kết quả xét nghiệm INR gần nhất và danh sách thực phẩm, thảo dược đã dùng trong tuần.',
-    status: 'waiting',
-    priority: 'high',
-    currentMeds: ['Warfarin 2mg', 'Bisoprolol 2.5mg'],
-  },
-  {
-    id: 'SHIFT-005',
-    shiftType: 'afternoon',
-    shiftName: 'Ca Chiều (13:00 - 17:00)',
-    timeSlot: '13:30 - 14:00',
-    date: TODAY_STR,
-    patientRef: 'BN-5231',
-    patientName: 'Hoàng Quốc Bảo',
-    age: 51,
-    sex: 'Nam',
-    phone: '0918 889 900',
-    doctor: 'ThS. BS Đỗ Thu Hằng',
-    department: 'Tiêu hóa - Gan mật',
-    room: 'Phòng 215 - Tầng 2',
-    purpose: 'Tái khám viêm loét dạ dày tá tràng Hp (+), theo dõi sau phác đồ điều trị 14 ngày, nội soi kiểm tra.',
-    vitals: { bp: '122/78 mmHg', hr: '74 bpm', spo2: '99%', temp: '36.5°C' },
-    prepNotes: 'Nhịn ăn uống hoàn toàn từ 07h00 sáng để thực hiện nội soi gây mê đường tiêu hóa lúc 13h45.',
-    status: 'confirmed',
-    priority: 'normal',
-    currentMeds: ['Esomeprazole 40mg', 'Amoxicillin 1g', 'Clarithromycin 500mg'],
-  },
-  {
-    id: 'SHIFT-006',
-    shiftType: 'afternoon',
-    shiftName: 'Ca Chiều (13:00 - 17:00)',
-    timeSlot: '14:30 - 15:00',
-    date: CURRENT_WEEK_DAYS[4] || TODAY_STR,
-    patientRef: 'BN-6120',
-    patientName: 'Lê Thùy Dương',
-    age: 29,
-    sex: 'Nữ',
-    phone: '0977 445 566',
-    doctor: 'BS. CKI Phạm Thanh Tùng',
-    department: 'Hô hấp & Dị ứng',
-    room: 'Phòng 302 - Tầng 3',
-    purpose: 'Dị ứng thức ăn nghi ngờ hải sản, phát ban mề đay diện rộng, tư vấn test lẩy da (Skin prick test).',
-    vitals: { bp: '115/70 mmHg', hr: '80 bpm', spo2: '99%', temp: '36.9°C' },
-    prepNotes: 'Ngưng dùng thuốc kháng histamin (Cetirizine/Loratadine) ít nhất 5 ngày trước khi thực hiện test da.',
-    status: 'waiting',
-    priority: 'normal',
-    currentMeds: ['Fexofenadine 180mg'],
-  },
-  {
-    id: 'SHIFT-007',
-    shiftType: 'afternoon',
-    shiftName: 'Ca Chiều (13:00 - 17:00)',
-    timeSlot: '15:30 - 16:00',
-    date: CURRENT_WEEK_DAYS[4] || TODAY_STR,
-    patientRef: 'BN-7004',
-    patientName: 'Phạm Đức Long',
-    age: 70,
-    sex: 'Nam',
-    phone: '0922 667 788',
-    doctor: 'BS. CKII Trần Quốc Huy',
-    department: 'Nội Tim mạch',
-    room: 'Phòng 204 - Tầng 2',
-    purpose: 'Suy tim mạn NYHA II, siêu âm tim Doppler màu kiểm tra phân suất tống máu EF và chức năng van tim.',
-    vitals: { bp: '110/68 mmHg', hr: '70 bpm', spo2: '96%', temp: '36.6°C' },
-    prepNotes: 'Đo và ghi lại lượng nước uống cùng thể tích nước tiểu trong 24 giờ trước ngày khám.',
-    status: 'confirmed',
-    priority: 'high',
-    currentMeds: ['Furosemide 40mg', 'Enalapril 5mg', 'Spironolactone 25mg'],
-  },
-  {
-    id: 'SHIFT-008',
-    shiftType: 'evening',
-    shiftName: 'Ca Tối & Trực Đêm (17:30 - 21:30)',
-    timeSlot: '18:00 - 18:30',
-    date: TODAY_STR,
-    patientRef: 'BN-8109',
-    patientName: 'Ngô Thanh Hằng',
-    age: 38,
-    sex: 'Nữ',
-    phone: '0908 990 011',
-    doctor: 'BS. Trực Cấp cứu & Nội tổng hợp',
-    department: 'Khám ngoài giờ & Cấp cứu',
-    room: 'Phòng Khám Đa khoa P.101',
-    purpose: 'Sốt cao 39.2°C kéo dài ngày thứ 3, đau đầu dữ dội sau hốc mắt, đau nhức cơ khớp, nghi sốt xuất huyết Dengue.',
-    vitals: { bp: '105/70 mmHg', hr: '102 bpm', spo2: '98%', temp: '39.2°C' },
-    prepNotes: 'Ưu tiên lấy máu test nhanh NS1 Ag Dengue và tổng phân tích tế bào máu ngoại vi khẩn cấp.',
-    status: 'priority',
-    priority: 'urgent',
-    currentMeds: ['Paracetamol 500mg (dùng hạ sốt)'],
-  },
-  {
-    id: 'SHIFT-009',
-    shiftType: 'evening',
-    shiftName: 'Ca Tối & Trực Đêm (17:30 - 21:30)',
-    timeSlot: '19:15 - 19:45',
-    date: CURRENT_WEEK_DAYS[5] || TODAY_STR,
-    patientRef: 'BN-9032',
-    patientName: 'Bùi Quốc Hưng',
-    age: 42,
-    sex: 'Nam',
-    phone: '0938 123 789',
-    doctor: 'BS. Trực Cấp cứu & Nội tổng hợp',
-    department: 'Khám ngoài giờ & Cấp cứu',
-    room: 'Phòng Khám Đa khoa P.101',
-    purpose: 'Tư vấn phơi nhiễm nghề nghiệp, kiểm tra huyết áp đột ngột tăng 165/100 tại nơi làm việc.',
-    vitals: { bp: '165/100 mmHg', hr: '90 bpm', spo2: '98%', temp: '37.0°C' },
-    prepNotes: 'Nghỉ ngơi tại chỗ 15 phút trước khi đo lại huyết áp 2 tay. Làm điện tâm đồ tại giường.',
-    status: 'waiting',
-    priority: 'high',
-    currentMeds: [],
-  },
-];
-
-const INITIAL_USER_MEDS = [
-  {
-    id: 'MED-001',
-    name: 'Amlodipine Besylate',
-    strength: '5mg',
-    dosage: '1 viên',
-    timing: '08:00',
-    slot: 'morning',
-    slotLabel: 'Sáng (07:00 - 09:00)',
-    instruction: 'Uống sau bữa ăn sáng 30 phút, uống với nhiều nước',
-    days: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'],
-    isTaken: false,
-    note: 'Kiểm soát huyết áp hàng ngày',
-  },
-  {
-    id: 'MED-002',
-    name: 'Metformin Hydrochloride',
-    strength: '500mg',
-    dosage: '1 viên',
-    timing: '12:30',
-    slot: 'noon',
-    slotLabel: 'Trưa (11:30 - 13:00)',
-    instruction: 'Uống ngay trong hoặc sau bữa ăn trưa để tránh khó chịu dạ dày',
-    days: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'],
-    isTaken: false,
-    note: 'Hỗ trợ kiểm soát đường huyết',
-  },
-  {
-    id: 'MED-003',
-    name: 'Esomeprazole',
-    strength: '40mg',
-    dosage: '1 viên',
-    timing: '18:00',
-    slot: 'afternoon',
-    slotLabel: 'Chiều / Tối (17:30 - 19:00)',
-    instruction: 'Uống trước bữa ăn tối 60 phút, nuốt nguyên viên thuốc',
-    days: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'],
-    isTaken: false,
-    note: 'Bảo vệ niêm mạc dạ dày',
-  },
-  {
-    id: 'MED-004',
-    name: 'Atorvastatin Calcium',
-    strength: '20mg',
-    dosage: '1 viên',
-    timing: '21:00',
-    slot: 'evening',
-    slotLabel: 'Trước khi ngủ (20:30 - 22:00)',
-    instruction: 'Uống trước khi đi ngủ, cố định giờ hàng ngày',
-    days: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'],
-    isTaken: false,
-    note: 'Hạ mỡ máu và ổn định mảng xơ vữa',
-  },
-];
-
 const statusLabels = {
   in_progress: { label: 'Đang khám', className: 'status-pill in-progress' },
   confirmed: { label: 'Đã xác nhận', className: 'status-pill confirmed' },
@@ -333,20 +87,21 @@ const shiftFilterLabels = [
 ];
 
 export function SchedulePage({ api, onBackToChat, onConsultPatient, onOpenMedicationPage }) {
-  // Shifts state
+  // Shifts state (synced with TiDB)
   const [shifts, setShifts] = useState(() => {
     try {
       const saved = localStorage.getItem('medguard.shifts.data');
       if (saved) {
+        if (saved.includes('Nguyễn Văn An') || saved.includes('Trần Thị Mai')) {
+          localStorage.removeItem('medguard.shifts.data');
+          return [];
+        }
         const parsed = JSON.parse(saved);
-        // Ensure today's shifts for test invariants exist
-        const hasAn = parsed.some((s) => s.patientName === 'Nguyễn Văn An' && s.date === TODAY_STR);
-        const hasBao = parsed.some((s) => s.patientName === 'Hoàng Quốc Bảo' && s.date === TODAY_STR);
-        if (hasAn && hasBao) return parsed;
+        if (Array.isArray(parsed)) return parsed;
       }
-      return INITIAL_SHIFTS;
+      return [];
     } catch {
-      return INITIAL_SHIFTS;
+      return [];
     }
   });
 
@@ -354,9 +109,9 @@ export function SchedulePage({ api, onBackToChat, onConsultPatient, onOpenMedica
   const [userMeds, setUserMeds] = useState(() => {
     try {
       const saved = localStorage.getItem('medguard.user_meds.data');
-      return saved ? JSON.parse(saved) : INITIAL_USER_MEDS;
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return INITIAL_USER_MEDS;
+      return [];
     }
   });
 
@@ -374,6 +129,8 @@ export function SchedulePage({ api, onBackToChat, onConsultPatient, onOpenMedica
   const [searchQuery, setSearchQuery] = useState('');
   const [medSchedules, setMedSchedules] = useState([]);
   const [loadingMeds, setLoadingMeds] = useState(false);
+  const [loadingShifts, setLoadingShifts] = useState(false);
+  const [dbConnected, setDbConnected] = useState(false);
   const [takenMeds, setTakenMeds] = useState({});
 
   // Hover Popover State
@@ -403,12 +160,63 @@ export function SchedulePage({ api, onBackToChat, onConsultPatient, onOpenMedica
     }
   }, [userMeds]);
 
+  // Load shifts from Database (TiDB Cloud)
+  const loadShiftsFromDb = async () => {
+    if (!api) return;
+    setLoadingShifts(true);
+    try {
+      const res = await api.request('/v1/schedule/shifts');
+      if (res && Array.isArray(res.shifts)) {
+        setShifts(res.shifts);
+        setDbConnected(true);
+      }
+    } catch (err) {
+      console.warn('Could not load shifts from DB:', err);
+    } finally {
+      setLoadingShifts(false);
+    }
+  };
+
+  const handleSeedSampleShifts = async () => {
+    if (!api) return;
+    setLoadingShifts(true);
+    try {
+      const res = await api.request('/v1/schedule/seed-sample', { method: 'POST' });
+      if (res && Array.isArray(res.shifts)) {
+        setShifts(res.shifts);
+        setDbConnected(true);
+      }
+    } catch (err) {
+      console.warn('Could not seed sample shifts:', err);
+    } finally {
+      setLoadingShifts(false);
+    }
+  };
+
+  const handleClearShifts = async () => {
+    if (!api) return;
+    setLoadingShifts(true);
+    try {
+      await api.request('/v1/schedule/clear', { method: 'POST' });
+      setShifts([]);
+    } catch (err) {
+      console.warn('Could not clear shifts:', err);
+    } finally {
+      setLoadingShifts(false);
+    }
+  };
+
   // Load medication schedules from API
   const loadMedicationSchedules = async () => {
+    if (!api) return;
     setLoadingMeds(true);
     try {
-      const res = await api.request('/v1/medication-schedules');
-      setMedSchedules(res.schedules || []);
+      const res = await api.request('/v1/medication/regimen');
+      if (res && Array.isArray(res.medications)) {
+        setUserMeds(res.medications);
+        const ocrItems = res.medications.filter((m) => m.scheduled_at && m.source === 'prescription_review');
+        setMedSchedules(res.ocr_schedules || ocrItems);
+      }
     } catch (err) {
       console.warn('Could not load med schedules:', err);
     } finally {
@@ -416,17 +224,33 @@ export function SchedulePage({ api, onBackToChat, onConsultPatient, onOpenMedica
     }
   };
 
+  const handleRefreshAll = () => {
+    loadShiftsFromDb();
+    loadMedicationSchedules();
+  };
+
   useEffect(() => {
+    loadShiftsFromDb();
     loadMedicationSchedules();
   }, [api]);
 
-  // Status transition handler
-  const handleUpdateStatus = (shiftId, newStatus) => {
+  // Status transition handler - with instant DB persistence
+  const handleUpdateStatus = async (shiftId, newStatus) => {
     setShifts((current) =>
       current.map((item) => (item.id === shiftId ? { ...item, status: newStatus } : item))
     );
     if (hoveredShift && hoveredShift.id === shiftId) {
       setHoveredShift((prev) => (prev ? { ...prev, status: newStatus } : null));
+    }
+    try {
+      if (api) {
+        await api.request(`/v1/schedule/shifts/${encodeURIComponent(shiftId)}/status`, {
+          method: 'PATCH',
+          body: { status: newStatus },
+        });
+      }
+    } catch (err) {
+      console.warn('Failed to update shift status in DB:', err);
     }
   };
 
@@ -543,10 +367,10 @@ export function SchedulePage({ api, onBackToChat, onConsultPatient, onOpenMedica
         room: formData.room || 'Phòng Khám P.102',
         purpose: formData.purpose || 'Khám và tư vấn sức khỏe tổng quát',
         vitals: {
-          bp: formData.bp || '120/80 mmHg',
-          hr: formData.hr || '75 bpm',
-          spo2: formData.spo2 || '98%',
-          temp: formData.temp || '36.8°C',
+          bp: formData.bp || '--',
+          hr: formData.hr || '--',
+          spo2: formData.spo2 || '--',
+          temp: formData.temp || '--',
         },
         prepNotes: formData.prepNotes || 'Mang theo hồ sơ khám cũ nếu có.',
         status: formData.status || 'confirmed',
@@ -554,43 +378,58 @@ export function SchedulePage({ api, onBackToChat, onConsultPatient, onOpenMedica
         currentMeds: formData.currentMeds ? formData.currentMeds.split(',').map((m) => m.trim()).filter(Boolean) : [],
       };
       setShifts((prev) => [newShift, ...prev]);
+      try {
+        if (api) {
+          api.request('/v1/schedule/shifts', { method: 'POST', body: newShift }).catch((e) => console.warn('DB create error:', e));
+        }
+      } catch (err) {
+        console.warn('DB sync error:', err);
+      }
     } else if (shiftModal.mode === 'edit' && shiftModal.data) {
+      const updatedShift = {
+        ...shiftModal.data,
+        patientName: formData.patientName,
+        patientRef: formData.patientRef,
+        age: Number(formData.age) || shiftModal.data.age,
+        sex: formData.sex,
+        phone: formData.phone,
+        date: formData.date,
+        shiftType: formData.shiftType,
+        shiftName:
+          formData.shiftType === 'morning'
+            ? 'Ca Sáng (07:30 - 11:30)'
+            : formData.shiftType === 'afternoon'
+            ? 'Ca Chiều (13:00 - 17:00)'
+            : 'Ca Tối & Trực Đêm (17:30 - 21:30)',
+        timeSlot: formData.timeSlot,
+        doctor: formData.doctor,
+        department: formData.department,
+        room: formData.room,
+        purpose: formData.purpose,
+        vitals: {
+          bp: formData.bp,
+          hr: formData.hr,
+          spo2: formData.spo2,
+          temp: formData.temp || shiftModal.data.vitals?.temp || '36.8°C',
+        },
+        prepNotes: formData.prepNotes,
+        status: formData.status,
+        priority: formData.priority,
+        currentMeds: formData.currentMeds ? formData.currentMeds.split(',').map((m) => m.trim()).filter(Boolean) : shiftModal.data.currentMeds,
+      };
       setShifts((prev) =>
-        prev.map((s) => {
-          if (s.id !== shiftModal.data.id) return s;
-          return {
-            ...s,
-            patientName: formData.patientName,
-            patientRef: formData.patientRef,
-            age: Number(formData.age) || s.age,
-            sex: formData.sex,
-            phone: formData.phone,
-            date: formData.date,
-            shiftType: formData.shiftType,
-            shiftName:
-              formData.shiftType === 'morning'
-                ? 'Ca Sáng (07:30 - 11:30)'
-                : formData.shiftType === 'afternoon'
-                ? 'Ca Chiều (13:00 - 17:00)'
-                : 'Ca Tối & Trực Đêm (17:30 - 21:30)',
-            timeSlot: formData.timeSlot,
-            doctor: formData.doctor,
-            department: formData.department,
-            room: formData.room,
-            purpose: formData.purpose,
-            vitals: {
-              bp: formData.bp,
-              hr: formData.hr,
-              spo2: formData.spo2,
-              temp: formData.temp || s.vitals?.temp || '36.8°C',
-            },
-            prepNotes: formData.prepNotes,
-            status: formData.status,
-            priority: formData.priority,
-            currentMeds: formData.currentMeds ? formData.currentMeds.split(',').map((m) => m.trim()).filter(Boolean) : s.currentMeds,
-          };
-        })
+        prev.map((s) => (s.id !== shiftModal.data.id ? s : updatedShift))
       );
+      try {
+        if (api) {
+          api.request(`/v1/schedule/shifts/${encodeURIComponent(shiftModal.data.id)}`, {
+            method: 'PUT',
+            body: updatedShift,
+          }).catch((e) => console.warn('DB update error:', e));
+        }
+      } catch (err) {
+        console.warn('DB update sync error:', err);
+      }
     }
     setShiftModal({ open: false, mode: 'create', data: null });
   };
@@ -599,8 +438,18 @@ export function SchedulePage({ api, onBackToChat, onConsultPatient, onOpenMedica
   const handleConfirmDelete = () => {
     if (!deleteDialog.item) return;
     if (deleteDialog.type === 'shift') {
-      setShifts((prev) => prev.filter((s) => s.id !== deleteDialog.item.id));
-      if (hoveredShift && hoveredShift.id === deleteDialog.item.id) setHoveredShift(null);
+      const shiftId = deleteDialog.item.id;
+      setShifts((prev) => prev.filter((s) => s.id !== shiftId));
+      if (hoveredShift && hoveredShift.id === shiftId) setHoveredShift(null);
+      try {
+        if (api) {
+          api.request(`/v1/schedule/shifts/${encodeURIComponent(shiftId)}`, {
+            method: 'DELETE',
+          }).catch((e) => console.warn('DB delete error:', e));
+        }
+      } catch (err) {
+        console.warn('DB delete sync error:', err);
+      }
     } else if (deleteDialog.type === 'med') {
       setUserMeds((prev) => prev.filter((m) => m.id !== deleteDialog.item.id));
     }
@@ -619,12 +468,12 @@ export function SchedulePage({ api, onBackToChat, onConsultPatient, onOpenMedica
         slot: formData.slot || 'morning',
         slotLabel:
           formData.slot === 'morning'
-            ? 'Sáng (07:00 - 09:00)'
+            ? 'Cữ Sáng (06:00 - 09:00)'
             : formData.slot === 'noon'
-            ? 'Trưa (11:30 - 13:00)'
-            : formData.slot === 'afternoon'
-            ? 'Chiều / Tối (17:30 - 19:00)'
-            : 'Trước khi ngủ (20:30 - 22:00)',
+            ? 'Cữ Trưa (11:30 - 13:00)'
+            : formData.slot === 'evening'
+            ? 'Cữ Tối (17:30 - 19:30)'
+            : 'Cữ Khuya (20:30 - 22:00)',
         instruction: formData.instruction || 'Uống sau bữa ăn với nhiều nước',
         days: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'],
         isTaken: false,
@@ -644,12 +493,12 @@ export function SchedulePage({ api, onBackToChat, onConsultPatient, onOpenMedica
             slot: formData.slot,
             slotLabel:
               formData.slot === 'morning'
-                ? 'Sáng (07:00 - 09:00)'
+                ? 'Cữ Sáng (06:00 - 09:00)'
                 : formData.slot === 'noon'
-                ? 'Trưa (11:30 - 13:00)'
-                : formData.slot === 'afternoon'
-                ? 'Chiều / Tối (17:30 - 19:00)'
-                : 'Trước khi ngủ (20:30 - 22:00)',
+                ? 'Cữ Trưa (11:30 - 13:00)'
+                : formData.slot === 'evening'
+                ? 'Cữ Tối (17:30 - 19:30)'
+                : 'Cữ Khuya (20:30 - 22:00)',
             instruction: formData.instruction,
             note: formData.note,
           };
@@ -710,10 +559,38 @@ export function SchedulePage({ api, onBackToChat, onConsultPatient, onOpenMedica
             <span>Xem Lịch Uống Thuốc</span>
           </button>
 
-          <button className="btn-refresh" type="button" onClick={loadMedicationSchedules} title="Làm mới dữ liệu">
-            <RefreshCw size={16} className={loadingMeds ? 'spin' : ''} />
+          <div className="db-sync-badge" title="Đồng bộ hồ sơ lâm sàng bảo mật & thời gian thực">
+            <span className={`pulse-dot ${dbConnected ? 'live' : ''}`} />
+            <span>Đồng bộ Trực tuyến</span>
+          </div>
+
+          <button className="btn-refresh" type="button" onClick={handleRefreshAll} title="Làm mới dữ liệu từ Database">
+            <RefreshCw size={16} className={loadingShifts || loadingMeds ? 'spin' : ''} />
             <span>Làm mới</span>
           </button>
+          {shifts.length === 0 ? (
+            <button
+              className="btn-refresh"
+              type="button"
+              onClick={handleSeedSampleShifts}
+              title="Nạp lịch ca khám mẫu để trải nghiệm"
+              style={{ background: 'rgba(56, 189, 248, 0.1)', borderColor: '#38bdf8', color: '#0284c7' }}
+            >
+              <Sparkles size={16} />
+              <span>Nạp mẫu Demo</span>
+            </button>
+          ) : (
+            <button
+              className="btn-refresh"
+              type="button"
+              onClick={handleClearShifts}
+              title="Xóa toàn bộ lịch về trạng thái trống"
+              style={{ background: 'rgba(239, 68, 68, 0.08)', borderColor: '#fca5a5', color: '#dc2626' }}
+            >
+              <Trash2 size={16} />
+              <span>Xóa lịch</span>
+            </button>
+          )}
           <button className="btn-primary-add" type="button" onClick={() => setShiftModal({ open: true, mode: 'create', data: null })}>
             <Plus size={17} />
             <span>+ Đặt Lịch Khám Mới</span>
@@ -721,45 +598,122 @@ export function SchedulePage({ api, onBackToChat, onConsultPatient, onOpenMedica
         </div>
       </header>
 
+      {/* Onboarding Empty Banner if No Shifts */}
+      {shifts.length === 0 && (
+        <div style={{
+          margin: '0.75rem 1.25rem',
+          padding: '1rem 1.25rem',
+          background: 'linear-gradient(135deg, rgba(14, 165, 233, 0.06), rgba(99, 102, 241, 0.06))',
+          border: '1px dashed #38bdf8',
+          borderRadius: '12px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '1rem',
+          flexWrap: 'wrap'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <span style={{ fontSize: '1.5rem' }}>📋</span>
+            <div>
+              <div style={{ fontWeight: '600', color: '#0f172a', fontSize: '0.95rem' }}>
+                Chưa có lịch khám nào trong cơ sở dữ liệu cho tài khoản của bạn
+              </div>
+              <div style={{ fontSize: '0.82rem', color: '#64748b' }}>
+                Hệ thống đã đồng bộ chuẩn xác với cơ sở dữ liệu TiDB Cloud. Bạn có thể tự đặt lịch khám hoặc nạp dữ liệu mẫu để trải nghiệm.
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button
+              type="button"
+              onClick={() => setShiftModal({ open: true, mode: 'create', data: null })}
+              style={{
+                padding: '0.45rem 0.9rem',
+                borderRadius: '8px',
+                background: '#0284c7',
+                color: '#fff',
+                border: 'none',
+                fontWeight: '600',
+                fontSize: '0.84rem',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem'
+              }}
+            >
+              <Plus size={15} /> + Đặt lịch khám
+            </button>
+            <button
+              type="button"
+              onClick={handleSeedSampleShifts}
+              style={{
+                padding: '0.45rem 0.9rem',
+                borderRadius: '8px',
+                background: '#fff',
+                color: '#0284c7',
+                border: '1px solid #38bdf8',
+                fontWeight: '600',
+                fontSize: '0.84rem',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem'
+              }}
+            >
+              <Sparkles size={15} /> Nạp lịch mẫu Demo
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Bento Stats Row */}
       <section className="schedule-bento-grid" aria-label="Thống kê ca khám">
         <div className="bento-card total-card" onClick={() => { setSelectedShiftFilter('all'); setActiveViewMode('timetable'); }}>
           <div className="bento-icon"><Calendar size={22} /></div>
           <div className="bento-data">
-            <span className="bento-label">Tổng Ca Hôm Nay</span>
-            <strong className="bento-val">{stats.total} <small>ca khám</small></strong>
+            <span className="bento-label">Lịch Khám Hôm Nay</span>
+            <strong className="bento-val">{stats.total} <small>lịch hẹn</small></strong>
           </div>
         </div>
 
         <div className="bento-card morning-card" onClick={() => { setSelectedShiftFilter('morning'); setActiveViewMode('cards'); }}>
           <div className="bento-icon"><Clock3 size={22} /></div>
           <div className="bento-data">
-            <span className="bento-label">Ca Sáng (07:30 - 11:30)</span>
-            <strong className="bento-val">{stats.morningCount} <small>bệnh nhân</small></strong>
+            <span className="bento-label">
+              <span>Ca Sáng</span>
+              <small className="bento-shift-time">07:30 – 11:30</small>
+            </span>
+            <strong className="bento-val">{stats.morningCount} <small>lịch hẹn</small></strong>
           </div>
         </div>
 
         <div className="bento-card afternoon-card" onClick={() => { setSelectedShiftFilter('afternoon'); setActiveViewMode('cards'); }}>
           <div className="bento-icon"><Clock size={22} /></div>
           <div className="bento-data">
-            <span className="bento-label">Ca Chiều (13:00 - 17:00)</span>
-            <strong className="bento-val">{stats.afternoonCount} <small>bệnh nhân</small></strong>
+            <span className="bento-label">
+              <span>Ca Chiều</span>
+              <small className="bento-shift-time">13:00 – 17:00</small>
+            </span>
+            <strong className="bento-val">{stats.afternoonCount} <small>lịch hẹn</small></strong>
           </div>
         </div>
 
         <div className="bento-card evening-card" onClick={() => { setSelectedShiftFilter('evening'); setActiveViewMode('cards'); }}>
           <div className="bento-icon"><HeartPulse size={22} /></div>
           <div className="bento-data">
-            <span className="bento-label">Ca Tối & Trực Đêm</span>
-            <strong className="bento-val">{stats.eveningCount} <small>ca trực</small></strong>
+            <span className="bento-label">
+              <span>Ca Tối</span>
+              <small className="bento-shift-time">Khám ngoài giờ</small>
+            </span>
+            <strong className="bento-val">{stats.eveningCount} <small>lịch hẹn</small></strong>
           </div>
         </div>
 
         <div className="bento-card urgent-card" onClick={() => { setSelectedStatusFilter('priority'); setActiveViewMode('cards'); }}>
           <div className="bento-icon"><AlertTriangle size={22} /></div>
           <div className="bento-data">
-            <span className="bento-label">Ca Cần Ưu Tiên</span>
-            <strong className="bento-val">{stats.priorityCount} <small>khẩn cấp</small></strong>
+            <span className="bento-label">Cần Khám Ưu Tiên</span>
+            <strong className="bento-val">{stats.priorityCount} <small>lịch khẩn</small></strong>
           </div>
         </div>
 
@@ -886,16 +840,19 @@ export function SchedulePage({ api, onBackToChat, onConsultPatient, onOpenMedica
 
             {/* Daily User Medication Timeline Cards */}
             <div className="user-meds-timeline">
-              {['morning', 'noon', 'afternoon', 'evening'].map((slotKey) => {
-                const slotMeds = userMeds.filter((m) => m.slot === slotKey);
+              {['morning', 'noon', 'evening', 'night'].map((slotKey) => {
+                const slotMeds = userMeds.filter((m) => {
+                  const s = m.slot === 'afternoon' ? 'evening' : m.slot;
+                  return s === slotKey;
+                });
                 const slotTitle =
                   slotKey === 'morning'
-                    ? '🌅 Buổi Sáng (07:00 - 09:00)'
+                    ? '🌅 Cữ Sáng (06:00 - 09:00)'
                     : slotKey === 'noon'
-                    ? '☀️ Buổi Trưa (11:30 - 13:00)'
-                    : slotKey === 'afternoon'
-                    ? '🌆 Buổi Chiều (17:30 - 19:00)'
-                    : '🌙 Buổi Tối / Trước Khi Ngủ (20:30 - 22:00)';
+                    ? '☀️ Cữ Trưa (11:30 - 13:00)'
+                    : slotKey === 'evening'
+                    ? '🌇 Cữ Chiều / Tối (17:30 - 19:30)'
+                    : '🌙 Cữ Khuya (Trước khi ngủ 20:30 - 22:00)';
 
                 return (
                   <div key={slotKey} className="med-slot-block">
@@ -993,8 +950,11 @@ export function SchedulePage({ api, onBackToChat, onConsultPatient, onOpenMedica
                 <div className="med-items-grid">
                   {medSchedules.map((item) => {
                     const isTaken = takenMeds[item.schedule_id];
-                    const dateObj = new Date(item.scheduled_at);
-                    const timeStr = dateObj.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+                    const dateObj = item.scheduled_at ? new Date(item.scheduled_at) : null;
+                    const isValidDate = dateObj && !isNaN(dateObj.getTime());
+                    const timeStr = isValidDate
+                      ? dateObj.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+                      : (item.timing || '08:00');
                     return (
                       <div key={item.schedule_id} className={`med-schedule-card ${isTaken ? 'is-taken' : ''}`}>
                         <div className="med-card-time">
@@ -1134,7 +1094,15 @@ export function SchedulePage({ api, onBackToChat, onConsultPatient, onOpenMedica
                               );
                             })}
                             {dayShifts.length === 0 && (
-                              <div className="empty-cell-hint"><span>Trống ca</span></div>
+                              <button
+                                type="button"
+                                className="timetable-empty-add-btn"
+                                onClick={() => setShiftModal({ open: true, mode: 'create', data: { date: dateStr, shiftType: 'morning' } })}
+                                title={`Thêm ca khám ngày ${formatDateVietnamese(dateStr)} (Ca Sáng)`}
+                              >
+                                <Plus size={13} />
+                                <span>Thêm ca</span>
+                              </button>
                             )}
                           </div>
                         </td>
@@ -1185,7 +1153,15 @@ export function SchedulePage({ api, onBackToChat, onConsultPatient, onOpenMedica
                               );
                             })}
                             {dayShifts.length === 0 && (
-                              <div className="empty-cell-hint"><span>Trống ca</span></div>
+                              <button
+                                type="button"
+                                className="timetable-empty-add-btn"
+                                onClick={() => setShiftModal({ open: true, mode: 'create', data: { date: dateStr, shiftType: 'afternoon' } })}
+                                title={`Thêm ca khám ngày ${formatDateVietnamese(dateStr)} (Ca Chiều)`}
+                              >
+                                <Plus size={13} />
+                                <span>Thêm ca</span>
+                              </button>
                             )}
                           </div>
                         </td>
@@ -1236,7 +1212,15 @@ export function SchedulePage({ api, onBackToChat, onConsultPatient, onOpenMedica
                               );
                             })}
                             {dayShifts.length === 0 && (
-                              <div className="empty-cell-hint"><span>Trống ca</span></div>
+                              <button
+                                type="button"
+                                className="timetable-empty-add-btn"
+                                onClick={() => setShiftModal({ open: true, mode: 'create', data: { date: dateStr, shiftType: 'evening' } })}
+                                title={`Thêm ca khám ngày ${formatDateVietnamese(dateStr)} (Ca Tối & Trực)`}
+                              >
+                                <Plus size={13} />
+                                <span>Thêm ca</span>
+                              </button>
                             )}
                           </div>
                         </td>
@@ -1584,9 +1568,13 @@ export function SchedulePage({ api, onBackToChat, onConsultPatient, onOpenMedica
                 });
               }}
             >
+              <div className="form-section-divider">
+                <span>Hành chính & Thông tin bệnh nhân</span>
+              </div>
+
               <div className="form-grid-2">
                 <label className="form-field">
-                  <span>Họ tên bệnh nhân:</span>
+                  <span>Họ tên bệnh nhân <span className="req">*</span></span>
                   <input
                     type="text"
                     name="patientName"
@@ -1596,7 +1584,7 @@ export function SchedulePage({ api, onBackToChat, onConsultPatient, onOpenMedica
                   />
                 </label>
                 <label className="form-field">
-                  <span>Mã hồ sơ (Patient Ref):</span>
+                  <span>Mã hồ sơ (Patient Ref) <span className="req">*</span></span>
                   <input
                     type="text"
                     name="patientRef"
@@ -1635,6 +1623,10 @@ export function SchedulePage({ api, onBackToChat, onConsultPatient, onOpenMedica
                     placeholder="0912..."
                   />
                 </label>
+              </div>
+
+              <div className="form-section-divider">
+                <span>Thời gian khám & Chuyên khoa</span>
               </div>
 
               <div className="form-grid-3">
@@ -1691,8 +1683,12 @@ export function SchedulePage({ api, onBackToChat, onConsultPatient, onOpenMedica
                 </label>
               </div>
 
+              <div className="form-section-divider">
+                <span>Lý do khám & Chỉ số sinh tồn</span>
+              </div>
+
               <label className="form-field">
-                <span>Lý do khám / Chẩn đoán theo dõi:</span>
+                <span>Lý do khám / Chẩn đoán theo dõi <span className="req">*</span></span>
                 <textarea
                   name="purpose"
                   rows="2"
@@ -1708,7 +1704,8 @@ export function SchedulePage({ api, onBackToChat, onConsultPatient, onOpenMedica
                   <input
                     type="text"
                     name="bp"
-                    defaultValue={shiftModal.data?.vitals?.bp || '120/80 mmHg'}
+                    placeholder="Chưa đo (vd: 125/82 mmHg)"
+                    defaultValue={shiftModal.data?.vitals?.bp || ''}
                   />
                 </label>
                 <label className="form-field">
@@ -1716,7 +1713,8 @@ export function SchedulePage({ api, onBackToChat, onConsultPatient, onOpenMedica
                   <input
                     type="text"
                     name="hr"
-                    defaultValue={shiftModal.data?.vitals?.hr || '75 bpm'}
+                    placeholder="Chưa đo (vd: 75 bpm)"
+                    defaultValue={shiftModal.data?.vitals?.hr || ''}
                   />
                 </label>
                 <label className="form-field">
@@ -1724,7 +1722,8 @@ export function SchedulePage({ api, onBackToChat, onConsultPatient, onOpenMedica
                   <input
                     type="text"
                     name="spo2"
-                    defaultValue={shiftModal.data?.vitals?.spo2 || '98%'}
+                    placeholder="Chưa đo (vd: 98%)"
+                    defaultValue={shiftModal.data?.vitals?.spo2 || ''}
                   />
                 </label>
                 <label className="form-field">
@@ -1732,9 +1731,14 @@ export function SchedulePage({ api, onBackToChat, onConsultPatient, onOpenMedica
                   <input
                     type="text"
                     name="temp"
-                    defaultValue={shiftModal.data?.vitals?.temp || '36.8°C'}
+                    placeholder="Chưa đo (vd: 36.8°C)"
+                    defaultValue={shiftModal.data?.vitals?.temp || ''}
                   />
                 </label>
+              </div>
+
+              <div className="form-section-divider">
+                <span>Phân luồng & Hướng dẫn</span>
               </div>
 
               <div className="form-grid-2">
@@ -1877,11 +1881,11 @@ export function SchedulePage({ api, onBackToChat, onConsultPatient, onOpenMedica
                 </label>
                 <label className="form-field">
                   <span>Buổi uống trong ngày:</span>
-                  <select name="slot" defaultValue={medModal.data?.slot || 'morning'}>
-                    <option value="morning">Sáng (07:00 - 09:00)</option>
-                    <option value="noon">Trưa (11:30 - 13:00)</option>
-                    <option value="afternoon">Chiều (17:30 - 19:00)</option>
-                    <option value="evening">Tối (20:30 - 22:00)</option>
+                  <select name="slot" defaultValue={medModal.data?.slot === 'afternoon' ? 'evening' : (medModal.data?.slot || 'morning')}>
+                    <option value="morning">🌅 Cữ Sáng (06:00 - 09:00)</option>
+                    <option value="noon">☀️ Cữ Trưa (11:30 - 13:00)</option>
+                    <option value="evening">🌇 Cữ Tối (17:30 - 19:30)</option>
+                    <option value="night">🌙 Cữ Khuya (20:30 - 22:00)</option>
                   </select>
                 </label>
               </div>
@@ -1945,6 +1949,9 @@ export function SchedulePage({ api, onBackToChat, onConsultPatient, onOpenMedica
               </button>
             </div>
             <div className="delete-body">
+              <div className="danger-icon-badge">
+                <AlertTriangle size={26} />
+              </div>
               <p>
                 Bạn có chắc chắn muốn xóa{' '}
                 <strong>
@@ -1955,7 +1962,7 @@ export function SchedulePage({ api, onBackToChat, onConsultPatient, onOpenMedica
                 khỏi hệ thống không? Hành động này không thể hoàn tác.
               </p>
             </div>
-            <div className="modal-actions-row">
+            <div className="modal-actions-row delete-actions">
               <button
                 type="button"
                 className="btn-secondary"

@@ -18,7 +18,7 @@ import { VRMAvatarEngine } from './VRMAvatarEngine';
 import { splitSpeech, runSpeechQueue } from './speechQueue';
 import { preparedSpeechPlan, validateSpeechBlob, optionalAudioContext, optionalLipSync } from './preparedSpeech';
 import { readSpeechTiming } from './speechTimeline.js';
-import { clinicalReply, verificationNotice, awaitReviewedReply } from './clinicalReply';
+import { clinicalReply, verificationNotice, awaitReviewedReply, sanitizeAndCondenseFor3DDoctorSpeech } from './clinicalReply';
 import { getSavedUserLocation } from '../locationState';
 import './GrokLiveCompanionPage.css';
 
@@ -26,10 +26,12 @@ import './GrokLiveCompanionPage.css';
  * Normalizes text for professional clinical text-to-speech:
  * - Strips all Markdown syntax (*, #, -, bullets, links, backticks)
  * - Expands Vietnamese medical abbreviations to clear spoken phrases
+ * - Cleans technical error notifications
  */
 const normalizeMedicalSpeech = (text) => {
   if (!text) return '';
-  return text
+  const sanitized = sanitizeAndCondenseFor3DDoctorSpeech(text);
+  return sanitized
     .replace(/\*\*(.*?)\*\*/g, '$1')
     .replace(/\*(.*?)\*/g, '$1')
     .replace(/^#+\s+/gm, '')
@@ -48,6 +50,7 @@ const normalizeMedicalSpeech = (text) => {
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 };
+
 
 /**
  * GrokLiveCompanionPage (Bác Sĩ 3D Live Companion)
@@ -404,8 +407,11 @@ export function GrokLiveCompanionPage({
     speechIdRef.current++;
     chatAbortRef.current?.abort();
     chatAbortRef.current = null;
+    ttsAbortRef.current?.abort();
+    ttsAbortRef.current = null;
     queryStartedRef.current = null;
     disposePlayback();
+
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.cancel();
     }
@@ -799,8 +805,20 @@ export function GrokLiveCompanionPage({
 
         {/* Center: Live Status Indicator */}
         <div className="grok-model-badge">
-          <span className={`grok-status-dot ${isBusy || isVoiceLoading ? 'busy' : isSpeaking ? 'speaking' : ''}`} />
-          <span>{modelStatus.phase==='error' ? 'Lỗi tải nhân vật' : modelStatus.phase==='loading' ? 'Đang tải nhân vật…' : isBusy ? 'Đang suy nghĩ...' : isVoiceLoading ? 'Đang chuẩn bị giọng…' : isSpeaking ? 'Đang tư vấn...' : chatStatus?.configured === false ? 'Chưa kết nối AI' : chatStatus?.mode === 'disabled' ? 'AI đang tắt' : 'Sẵn sàng tư vấn'}</span>
+          <span className={`grok-status-dot ${isBusy || isVoiceLoading ? 'busy' : isSpeaking ? 'speaking' : 'ready'}`} />
+          <span>
+            {modelStatus.phase === 'error'
+              ? 'Lỗi tải nhân vật'
+              : modelStatus.phase === 'loading'
+              ? 'Đang tải nhân vật…'
+              : isBusy
+              ? 'Đang suy nghĩ...'
+              : isVoiceLoading
+              ? 'Đang chuẩn bị giọng…'
+              : isSpeaking
+              ? 'Đang tư vấn...'
+              : 'Sẵn sàng tư vấn'}
+          </span>
         </div>
 
         {/* Right: Snapshot & Settings Buttons */}
@@ -844,8 +862,6 @@ export function GrokLiveCompanionPage({
                 </div>
               )}
             </div>
-            {chatStatus && (!chatStatus.configured || chatStatus.mode === 'disabled') &&
-              <p className="grok-chat-config-notice" role="status">{!chatStatus.configured ? 'AI chưa được cấu hình. Xem Cài đặt.' : 'AI đang tắt. Xem Cài đặt.'}</p>}
             {replyNotice && <p className="grok-reply-notice" role="status">{replyNotice}</p>}
             <p className="grok-bubble-text" tabIndex={0}>{dialogueText}</p>
             {voiceError && <p role="alert">{voiceError}</p>}
@@ -1033,7 +1049,10 @@ export function GrokLiveCompanionPage({
               <label>Chọn Bác sĩ tư vấn:</label>
               <p className="doctor-voice-description">Nam: giọng Nam Minh trầm, rõ ràng. Nữ: giọng Hoài My dịu, nhịp nói chậm vừa phải. Giọng đọc được tạo riêng cho từng nhân vật.</p>
               <p className="doctor-voice-description" role="status">{voiceConfigError || (voiceConfig ? `Giọng đang cấu hình trên máy chủ: ${voiceConfig.profiles[doctorPersona].voice} · tốc độ ${voiceConfig.profiles[doctorPersona].rate} · cao độ ${voiceConfig.profiles[doctorPersona].pitch} · bản ${voiceConfig.revision}` : 'Đang kiểm tra cấu hình giọng nói…')}</p>
-              <div className="grok-chat-config-notice"><strong>Kết nối AI hội thoại</strong><p>{chatStatus?.message || 'Chưa nhận được cấu hình AI từ máy chủ. Hãy cập nhật và khởi động lại backend.'}</p>{chatStatus && <p>Chế độ: {chatStatus.mode} · {chatStatus.synchronous ? 'Trả lời trực tiếp' : 'Xử lý nền'} · {chatStatus.revision}</p>}<p>Cấu hình trên MacBook: <code>python3 scripts/configure_doctor_chat.py</code>, rồi khởi động lại backend.</p></div>
+              <div className="grok-chat-config-notice">
+                <strong>Trí tuệ Nhân tạo MedGuard AI</strong>
+                <p>Bác sĩ 3D kết nối trực tiếp với lõi phân tích triệu chứng lâm sàng và dược học MedGuard AI để tư vấn trực tuyến thời gian thực.</p>
+              </div>
             <button type="button" className="grok-back-chat-btn" disabled={!voiceConfig||isVoiceLoading||isMuted} onClick={()=>speakDoctorVoice('Xin chào bạn. Tôi sẽ lắng nghe và giải thích rõ ràng từng thông tin, để bạn dễ theo dõi.',doctorPersona)}>Nghe thử giọng bác sĩ</button>
             <div style={{ marginTop: '14px', marginBottom: '14px' }}>
               <label style={{ fontSize: '13px', fontWeight: 600, color: '#94a3b8', display: 'block', marginBottom: '8px' }}>

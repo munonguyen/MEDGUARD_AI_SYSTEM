@@ -200,6 +200,10 @@ class ChatHistoryStore:
             if not existing:
                 return False
             session.execute(
+                "DELETE FROM chat_messages WHERE tenant_id = ? AND conversation_id = ?",
+                (tenant_id, conversation_id),
+            )
+            session.execute(
                 "DELETE FROM chat_conversations WHERE tenant_id = ? AND conversation_id = ?",
                 (tenant_id, conversation_id),
             )

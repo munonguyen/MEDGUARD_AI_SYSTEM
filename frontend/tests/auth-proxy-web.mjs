@@ -4,7 +4,8 @@ import {mkdtemp,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {randomUUID} from 'node:crypto';
 import {chromium} from 'playwright-core';
-const root=new URL('../../',import.meta.url).pathname;
+import {fileURLToPath} from 'node:url';
+const root=fileURLToPath(new URL('../../',import.meta.url));
 const temp=await mkdtemp(`${tmpdir()}/medguard-auth-proxy-`);
 const port=5295;
 const env={...process.env,MEDGUARD_ENVIRONMENT:'development',MEDGUARD_AUTH_DATABASE:`${temp}/accounts.sqlite3`};
@@ -15,7 +16,7 @@ async function ready(url){for(let i=0;i<100;i++){try{const r=await fetch(url,{si
 try{
  launch(process.env.MEDGUARD_TEST_PYTHON||'python3',['-m','uvicorn','app.main:app','--host','127.0.0.1','--port','8000','--no-proxy-headers'],root);
  await ready('http://127.0.0.1:8000/v1/health');
- launch('npm',['run','dev','--','--host','127.0.0.1','--port',String(port),'--strictPort'],`${root}/frontend`);
+ launch(process.execPath,['node_modules/vite/bin/vite.js','--host','127.0.0.1','--port',String(port),'--strictPort'],`${root}/frontend`);
  await ready(`http://127.0.0.1:${port}/static/`);
  browser=await chromium.launch({executablePath:process.env.CHROME_PATH,headless:true,args:['--no-sandbox']});
  if(process.argv.includes('--expect-origin-rejection')){

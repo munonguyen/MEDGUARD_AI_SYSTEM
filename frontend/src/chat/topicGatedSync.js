@@ -209,16 +209,17 @@ export function classifyTopic(text = '') {
     'tiêu hóa', 'viêm', 'kháng viêm', 'ibuprofen', 'paracetamol'
   ];
 
-  // 3. Expense Intent Signals:
+  // 3. Expense Intent Signals (MUST NOT include plain 'mua' which causes questions like "mình vừa mua thuốc augmentin..." to trigger expense sync!)
   const expenseKeywords = [
-    'mua thuốc', 'mua', 'chi phí', 'hóa đơn', 'ngân sách', 'tiền thuốc', 'thanh toán',
-    'nhà thuốc', 'bảo hiểm', 'bhyt', 'tiết kiệm', 'generic', 'eu-gmp',
-    'dav', 'kê khai', 'hạn mức', 'đơn giá', 'tổng chi', 'chi tiêu', 'long châu', 'pharmacity', 'an khang'
+    'mua thuốc hết', 'mua hết', 'hóa đơn', 'hoá đơn', 'ảnh hoá đơn', 'ảnh hóa đơn', 'chụp hoá đơn', 'chụp hóa đơn',
+    'phiếu thu', 'biên lai', 'ngân sách', 'tiền thuốc', 'thanh toán',
+    'bảo hiểm', 'bhyt', 'tiết kiệm care', 'đơn giá', 'tổng chi', 'chi tiêu y tế'
   ];
 
-  // Regex patterns for financial values e.g. "480.000đ", "12 triệu", "650.000", "500k", "hết 480"
-  const moneyPattern = /(?:\d+[\d.,]*\s*(?:đ|đồng|₫|vnd|triệu|nghìn|tr|k)\b|hết\s+\d+|ngân\s+sách|chi\s+\d+)/i;
-  const hasExpense = moneyPattern.test(lower) || expenseKeywords.some((sig) => lower.includes(sig));
+  // Regex patterns for financial values e.g. "480.000đ", "12 triệu", "500k"
+  // MUST require an actual currency token (đ, đồng, ₫, vnd, vnđ, k, triệu, tr, ngàn, nghìn)
+  const moneyPattern = /\b\d+(?:[.,]\d+)?\s*(?:đ|đồng|₫|vnd|vnđ|triệu|nghìn|ngàn|tr|k)\b/i;
+  const hasExpense = moneyPattern.test(lower) || (expenseKeywords.some((sig) => lower.includes(sig)) && /\d+/.test(lower));
 
   const hasActiveSymptom = activeSymptomSignals.some((sig) => lower.includes(sig));
   const hasMedicalEntity = medicalEntitySignals.some((sig) => lower.includes(sig));
@@ -242,6 +243,158 @@ export function classifyTopic(text = '') {
   return TOPIC_MODES.UNRELATED_NO_STATE_MUTATION;
 }
 
+
+/**
+ * Intelligent Symptom-to-Organ Anatomical Classifier.
+ * Maps patient reported symptoms to one of the 9 official MedGuard systems.
+ *
+ * @param {string} message
+ * @returns {Object|null}
+ */
+export function detectAffectedOrgan(message = '') {
+  const lower = (message || '')
+    .toLowerCase()
+    .replace(/\b(không|chẳng|chưa|hết|đã hết|ko)\s+(?:hề\s+|còn\s+)?(?:bị\s+|có\s+|thấy\s+)?(đau\s+đầu|nhức\s+đầu|đau\s+dạ\s+dày|đau\s+bao\s+tử|đau\s+thượng\s+vị|đau\s+bụng|cồn\s+cào|ợ\s+chua|ợ\s+hơi|đầy\s+bụng|khó\s+tiêu|trào\s+ngược|viêm\s+dạ\s+dày|sốt|ho|khó\s+thở|đau\s+ngực)/giu, ' ');
+
+  // 0. Acute Focal Neurological Deficits / FAST Stroke -> Brain & Central Nervous System
+  if (
+    (lower.includes('mờ mắt') || lower.includes('nhìn mờ')) &&
+    (lower.includes('líu lưỡi') || lower.includes('nói khó') || lower.includes('nói đớ') || lower.includes('rơi đũa') || lower.includes('yếu tay') || lower.includes('méo miệng') || lower.includes('liệt'))
+  ) {
+    return {
+      key: 'brain',
+      name: 'Não bộ & Hệ Thần Kinh',
+      notes: 'Cảnh báo dấu hiệu thần kinh khu trú cấp tính (Nghi ngờ Đột quỵ Não / TIA)',
+      defaultScore: 35,
+      painScore: 7,
+    };
+  }
+
+  // Acute cardiac chest pain
+  if (lower.includes('đau thắt ngực') || lower.includes('đau ngực trái') || (lower.includes('đau ngực') && (lower.includes('lan lên hàm') || lower.includes('khó thở')))) {
+    return {
+      key: 'cardiovascular',
+      name: 'Tim mạch & Tuần hoàn',
+      notes: 'Cảnh báo đau ngực cấp tính nghi ngờ Hội chứng Vành Cấp (ACS)',
+      defaultScore: 40,
+      painScore: 8,
+    };
+  }
+
+  // 1. Brain & Neurology (Đầu & Thần kinh)
+
+  if (/(đau đầu|nhức đầu|nửa đầu|chóng mặt|choáng|tiền đình|mất ngủ|khó ngủ|căng thẳng|stress|lo âu|co giật|ngất|tai biến|não|thần kinh)/i.test(lower)) {
+    return {
+      key: 'brain',
+      name: 'Não bộ & Thần kinh',
+      notes: 'Triệu chứng đau đầu / căng thẳng thần kinh cần theo dõi và nghỉ ngơi',
+      defaultScore: 74,
+      painScore: 5,
+    };
+  }
+
+  // 2. Eyes & Vision (Mắt & Thị giác)
+  if (/(mắt|mỏi mắt|nhìn mờ|chảy nước mắt|đỏ mắt|thị lực|hoa mắt)/i.test(lower)) {
+    return {
+      key: 'eyes',
+      name: 'Mắt & Thị giác',
+      notes: 'Kích ứng / mỏi điều tiết mắt cần giảm căng thẳng màn hình',
+      defaultScore: 80,
+      painScore: 3,
+    };
+  }
+
+  // 3. ENT (Tai Mũi Họng)
+  if (/(họng|viêm họng|đau họng|rát họng|nuốt đau|ho|sổ mũi|nghẹt mũi|chảy mũi|viêm xoang|tai|ù tai)/i.test(lower)) {
+    return {
+      key: 'ent',
+      name: 'Tai Mũi Họng',
+      notes: 'Biểu hiện viêm đường hô hấp trên / nhiễm khuẩn tai mũi họng',
+      defaultScore: 70,
+      painScore: 4,
+    };
+  }
+
+  // 4. Cardiovascular (Tim mạch)
+  if (/(tim|đau ngực|thắt ngực|hồi hộp|đánh trống ngực|huyết áp|mạch nhanh|nhồi máu)/i.test(lower)) {
+    return {
+      key: 'cardiovascular',
+      name: 'Tim mạch & Tuần hoàn',
+      notes: 'Dấu hiệu tim mạch cần theo dõi huyết áp và kiểm tra chuyên khoa',
+      defaultScore: 60,
+      painScore: 7,
+    };
+  }
+
+  // 5. Respiratory (Phổi & Hô hấp)
+  if (/(phổi|khó thở|hụt hơi|thở khò khè|viêm phế quản|ho đờm|tức ngực khi thở)/i.test(lower)) {
+    return {
+      key: 'respiratory',
+      name: 'Phổi & Hô hấp',
+      notes: 'Dấu hiệu kích ứng hoặc viêm đường hô hấp dưới',
+      defaultScore: 68,
+      painScore: 5,
+    };
+  }
+
+  // 6. Stomach & Digestive (Dạ dày & Tiêu hóa)
+  if (/(dạ dày|thượng vị|ợ chua|ợ nóng|trào ngược|buồn nôn|nôn|đau bụng|tiêu chảy|táo bón|cồn cào|đầy bụng|khó tiêu|tiêu hóa)/i.test(lower)) {
+    return {
+      key: 'stomach',
+      name: 'Dạ Dày & Tiêu Hóa',
+      notes: 'Kích ứng niêm mạc dạ dày - tiêu hóa cần điều chỉnh phác đồ',
+      defaultScore: 65,
+      painScore: 6,
+    };
+  }
+
+  // 7. Liver (Gan & Mật)
+  if (/(gan|men gan|vàng da|vàng mắt|hạ sườn phải|mật|giải độc gan)/i.test(lower)) {
+    return {
+      key: 'liver',
+      name: 'Gan & Mật',
+      notes: 'Cần chú ý men gan và đào thải độc chất qua gan',
+      defaultScore: 72,
+      painScore: 3,
+    };
+  }
+
+  // 8. Kidney (Thận & Tiết niệu)
+  if (/(thận|tiết niệu|tiểu buốt|tiểu rắt|tiểu đêm|đau hông lưng|nước tiểu sẫm)/i.test(lower)) {
+    return {
+      key: 'kidney',
+      name: 'Thận & Tiết Niệu',
+      notes: 'Kích ứng hệ tiết niệu cần uống đủ nước và kiểm tra chức năng thận',
+      defaultScore: 74,
+      painScore: 4,
+    };
+  }
+
+  // 9. Musculoskeletal (Cơ Xương Khớp)
+  if (/(xương|khớp|đau lưng|mỏi gáy|vai gáy|cột sống|thoát vị|thoái hóa|gối|đau cơ)/i.test(lower)) {
+    return {
+      key: 'musculoskeletal',
+      name: 'Cơ Xương Khớp',
+      notes: 'Căng cơ hoặc đau mỏi hệ vận động cần giãn cơ và nghỉ ngơi',
+      defaultScore: 76,
+      painScore: 4,
+    };
+  }
+
+  // 10. General Systemic / Fever (Toàn thân / Sốt)
+  if (/(sốt|nhiệt độ|nóng sốt|mệt mỏi|uể oải|kiệt sức)/i.test(lower)) {
+    return {
+      key: 'brain',
+      name: 'Toàn thân & Thần kinh',
+      notes: 'Phản ứng sốt / suy nhược toàn thân cần theo dõi thân nhiệt và bù nước',
+      defaultScore: 75,
+      painScore: 3,
+    };
+  }
+
+  return null;
+}
+
 /**
  * Extracts numeric VND amount from a sentence.
  * Handles strings like "480.000đ", "12 triệu", "650.000", "50k", "2.5tr"
@@ -254,34 +407,36 @@ export function extractVndAmount(text = '') {
   const lower = text.toLowerCase();
 
   // Pattern: "12 triệu" or "12 tr" or "12.5 triệu"
-  const millionMatch = lower.match(/(\d+(?:[.,]\d+)?)\s*(?:triệu|tr\b)/i);
+  const millionMatch = lower.match(/\b(\d+(?:[.,]\d+)?)\s*(?:triệu|tr)\b/i);
   if (millionMatch) {
     const val = parseFloat(millionMatch[1].replace(',', '.'));
     return Math.round(val * 1000000);
   }
 
-  // Pattern: "480.000đ" or "480,000 đ" or "650.000"
-  const formattedMatch = lower.match(/(\d{1,3}(?:[.,]\d{3})+)(?:\s*(?:đ|đồng|₫|vnd))?/i);
+  // Pattern: "480.000đ" or "480,000 đ" or "480.000 đồng"
+  const formattedMatch = lower.match(/\b(\d{1,3}(?:[.,]\d{3})+)\s*(?:đ|đồng|₫|vnd|vnđ)\b/i);
   if (formattedMatch) {
     const rawDigits = formattedMatch[1].replace(/[.,]/g, '');
     return parseInt(rawDigits, 10);
   }
 
-  // Pattern: "480k" or "150 k"
-  const kMatch = lower.match(/(\d+)\s*k\b/i);
-  if (kMatch) {
-    return parseInt(kMatch[1], 10) * 1000;
+  // Pattern: "480k" or "150 k" or "480 nghìn" or "150 ngàn"
+  const thousandMatch = lower.match(/\b(\d+(?:[.,]\d+)?)\s*(?:k|nghìn|ngàn)\b/i);
+  if (thousandMatch) {
+    const val = parseFloat(thousandMatch[1].replace(',', '.'));
+    return Math.round(val * 1000);
   }
 
-  // Fallback: look for "hết X"
-  const hetMatch = lower.match(/hết\s+(\d+)(?:\s*(?:đ|đồng|₫|vnd))?/i);
-  if (hetMatch) {
-    const num = parseInt(hetMatch[1], 10);
-    return num < 10000 ? num * 1000 : num;
+  // Pattern: "50000 đ" or "50000 đồng"
+  const directMatch = lower.match(/\b(\d{4,9})\s*(?:đ|đồng|₫|vnd|vnđ)\b/i);
+  if (directMatch) {
+    return parseInt(directMatch[1], 10);
   }
 
+  // Strictly DO NOT extract bare numbers without currency units (prevents "2 vỉ", "14 tháng", "10kg", "1g" false captures)
   return null;
 }
+
 
 /**
  * Core Orchestrator: processUnifiedTopicGatedChat
@@ -315,8 +470,50 @@ export function processUnifiedTopicGatedChat(message = '', currentContext = {}) 
       let newOverallScore = baseHealth.overall_health_score || 81;
       let adrAlert = baseHealth.adr_alert || null;
 
-      // Case: Ibuprofen / NSAID gastric pain
-      if (lowerMsg.includes('ibuprofen') || (lowerMsg.includes('dạ dày') && (lowerMsg.includes('đau') || lowerMsg.includes('ợ chua')))) {
+      // 1. Detect body temperature if mentioned (e.g., "sốt 38 độ C", "38.5 độ")
+      const tempMatch = lowerMsg.match(/(?:sốt|thân nhiệt|nhiệt độ)?\s*([34]\d(?:[.,]\d+)?)\s*(?:độ|°c|c\b)/i);
+      if (tempMatch) {
+        const tVal = parseFloat(tempMatch[1].replace(',', '.'));
+        if (tVal >= 35 && tVal <= 43) {
+          updatedVitals.body_temperature_c = tVal;
+        }
+      }
+
+      // 1. Khử toàn bộ cụm phủ định trước khi kiểm tra từ khóa cơ quan
+      const cleanTextWithoutNegation = lowerMsg
+        .replace(/\b(không|chẳng|chưa|hết|đã hết|ko)\s+(?:hề\s+|còn\s+)?(?:bị\s+|có\s+|thấy\s+)?(đau\s+đầu|nhức\s+đầu|đau\s+dạ\s+dày|đau\s+bao\s+tử|đau\s+thượng\s+vị|đau\s+bụng|cồn\s+cào|ợ\s+chua|ợ\s+hơi|đầy\s+bụng|khó\s+tiêu|trào\s+ngược|viêm\s+dạ\s+dày|sốt|ho|khó\s+thở|đau\s+ngực)/giu, ' ');
+
+      // 2. Nhận diện trạng thái hoàn toàn khỏe mạnh / hồi phục
+      const isHealthyClaim = /\b(hoàn\s+toàn\s+khỏe|khỏe\s+mạnh|hết\s+bệnh|bình\s+thường\s+rồi|khỏi\s+hẳn|không\s+còn\s+triệu\s+chứng|rất\s+khỏe)\b/iu.test(lowerMsg) ||
+        (/\b(khỏe|bình\s+thường)\b/iu.test(lowerMsg) && /\b(không\s+đau|không\s+sốt|không\s+bị)\b/iu.test(lowerMsg));
+
+      // 3. Tách riêng trường hợp ADR do Ibuprofen (phải thực sự có từ "ibuprofen" hoặc "nsaid" và đã uống)
+      // với trường hợp đau dạ dày thông thường:
+      const hasStomachSymptom = /\b(đau\s+dạ\s+dày|đau\s+bao\s+tử|đau\s+thượng\s+vị|ợ\s+chua|viêm\s+dạ\s+dày|cồn\s+cào)\b/iu.test(cleanTextWithoutNegation);
+      const mentionsIbuprofenTaken = /\b(uống\s+ibuprofen|dùng\s+ibuprofen|uống\s+thuốc\s+giảm\s+đau\s+xong|uống\s+nsaid|dùng\s+nsaid)\b/iu.test(cleanTextWithoutNegation) ||
+        (/\b(ibuprofen|nsaid)\b/iu.test(cleanTextWithoutNegation) && /\b(uống|dùng|sau\s+khi)\b/iu.test(cleanTextWithoutNegation));
+
+      const affected = isHealthyClaim ? null : detectAffectedOrgan(cleanTextWithoutNegation);
+      let detectedOrganMeta = null;
+
+      if (isHealthyClaim) {
+        newOverallScore = 96;
+        updatedVitals.body_temperature_c = 36.6;
+        updatedVitals.vas_pain_score = 0;
+        updatedVitals.heart_rate_bpm = 72;
+        adrAlert = null;
+        Object.keys(updatedOrgans).forEach((k) => {
+          updatedOrgans[k] = {
+            ...updatedOrgans[k],
+            health_score: 96,
+            vas_pain_score: 0,
+            status: 'normal',
+            clinical_notes: 'Khỏe mạnh bình thường. Không ghi nhận triệu chứng bệnh lý.',
+          };
+        });
+        detectedOrganMeta = null;
+      } else if (hasStomachSymptom && mentionsIbuprofenTaken) {
+        // Chỉ bật cảnh báo ADR Ibuprofen khi bệnh nhân thực sự uống Ibuprofen kèm đau dạ dày
         if (updatedOrgans.stomach) {
           updatedOrgans.stomach = {
             ...updatedOrgans.stomach,
@@ -331,6 +528,7 @@ export function processUnifiedTopicGatedChat(message = '', currentContext = {}) 
         updatedVitals.blood_pressure_systolic = 135;
         updatedVitals.blood_pressure_diastolic = 88;
         updatedVitals.vas_pain_score = 7;
+        detectedOrganMeta = { key: 'stomach', name: 'Dạ Dày & Tiêu Hóa', notes: 'Kích ứng niêm mạc thượng vị do thuốc' };
         adrAlert = {
           active: true,
           level: 'danger',
@@ -341,10 +539,45 @@ export function processUnifiedTopicGatedChat(message = '', currentContext = {}) 
           transfer_emergency_suggested: true,
           detected_at: new Date().toISOString(),
         };
-      } else if (lowerMsg.includes('sốt cao') || lowerMsg.includes('39.5')) {
+      } else if (hasStomachSymptom) {
+        // Đau dạ dày thông thường -> cập nhật cơ quan stomach, KHÔNG gán giả culprit_drug = "Ibuprofen"!
+        if (updatedOrgans.stomach) {
+          updatedOrgans.stomach = {
+            ...updatedOrgans.stomach,
+            health_score: 65,
+            vas_pain_score: 4,
+            status: 'attention',
+            clinical_notes: 'Ghi nhận dấu hiệu đau thượng vị dạ dày / ợ chua.',
+          };
+        }
+        newOverallScore = Math.min(newOverallScore, 68);
+        updatedVitals.vas_pain_score = 4;
+        detectedOrganMeta = { key: 'stomach', name: 'Dạ Dày & Tiêu Hóa', notes: 'Theo dõi đau rát thượng vị' };
+      } else if (cleanTextWithoutNegation.includes('sốt cao') || cleanTextWithoutNegation.includes('39.5')) {
         newOverallScore = 55;
         updatedVitals.body_temperature_c = 39.5;
         updatedVitals.heart_rate_bpm = 112;
+        detectedOrganMeta = { key: 'brain', name: 'Não bộ & Thần kinh', notes: 'Sốt cao co giật / suy nhược toàn thân' };
+      } else if (affected) {
+        const k = affected.key;
+        if (updatedOrgans[k]) {
+          updatedOrgans[k] = {
+            ...updatedOrgans[k],
+            health_score: affected.defaultScore,
+            vas_pain_score: affected.painScore,
+            status: 'attention',
+            clinical_notes: affected.notes,
+          };
+        }
+        detectedOrganMeta = affected;
+        updatedVitals.vas_pain_score = affected.painScore;
+        newOverallScore = Math.min(newOverallScore, affected.defaultScore + 2);
+      }
+
+      // Safeguard against unrealistic health score collapses:
+      // Mild or common symptoms must never drop health score to 0/100 or 8/100
+      if (newOverallScore < 35 && !lowerMsg.includes('ngừng tim') && !lowerMsg.includes('hôn mê')) {
+        newOverallScore = Math.max(35, newOverallScore);
       }
 
       healthMutation = {
@@ -352,6 +585,7 @@ export function processUnifiedTopicGatedChat(message = '', currentContext = {}) 
         overall_health_score: newOverallScore,
         organs: updatedOrgans,
         vitals: updatedVitals,
+        detected_organ: detectedOrganMeta,
         adr_alert: adrAlert,
         raw_message: message,
         last_updated: new Date().toISOString(),
@@ -362,20 +596,50 @@ export function processUnifiedTopicGatedChat(message = '', currentContext = {}) 
 
     case TOPIC_MODES.EXPENSE_MANAGEMENT_ONLY: {
       explanation = 'Tin nhắn chỉ liên quan đến tài chính, mua thuốc hoặc hạn mức. Cập nhật Quản Lý Chi Tiêu; bảo toàn 100% điểm hệ cơ quan.';
-      const baseExpense = prevExpense || getDefaultFinancialAssessment();
+      const baseExpense = prevExpense || {
+        total_actual_spend_vnd: 0,
+        monthly_budget_target_vnd: 10000000,
+        recent_transactions: [],
+      };
       const extractedAmount = extractVndAmount(message);
+      if (!extractedAmount) {
+        // No valid amount with currency unit found; cancel expense mutation
+        expenseMutation = null;
+        healthMutation = null;
+        break;
+      }
 
-      let updatedTotalSpend = baseExpense.total_actual_spend_vnd || 2450000;
+      let updatedTotalSpend = baseExpense.total_actual_spend_vnd || 0;
       let updatedBudget = baseExpense.monthly_budget_target_vnd || 10000000;
       const updatedTx = [...(baseExpense.recent_transactions || [])];
 
-      // Check for budget setting
-      if (lowerMsg.includes('ngân sách') && extractedAmount) {
+      // Check for budget declaration vs actual outflow
+      const isBudgetDeclaration =
+        lowerMsg.includes('ngân sách') ||
+        lowerMsg.includes('chỉ tiêu') ||
+        lowerMsg.includes('chi tiêu khoảng') ||
+        lowerMsg.includes('tiêu khoảng') ||
+        lowerMsg.includes('hạn mức') ||
+        lowerMsg.includes('kế hoạch') ||
+        lowerMsg.includes('mục tiêu') ||
+        lowerMsg.includes('dự trù') ||
+        lowerMsg.includes('dự định') ||
+        (lowerMsg.includes('khoảng') && (lowerMsg.includes('triệu') || lowerMsg.includes('tr')));
+
+      const isActualPurchase =
+        lowerMsg.includes('mua') ||
+        lowerMsg.includes('hóa đơn') ||
+        lowerMsg.includes('thanh toán') ||
+        lowerMsg.includes('đã chi') ||
+        lowerMsg.includes('hết ') ||
+        lowerMsg.includes('vừa mua');
+
+      if (isBudgetDeclaration && extractedAmount) {
         updatedBudget = extractedAmount;
-      } else if (extractedAmount) {
+      } else if (isActualPurchase && extractedAmount) {
         // New medicine purchase / invoice
         updatedTotalSpend += extractedAmount;
-        const itemName = lowerMsg.includes('nexium') ? 'Thuốc dạ dày Nexium 40mg (GPP)' : 'Hóa đơn nhà thuốc GPP';
+        const itemName = lowerMsg.includes('nexium') ? 'Thuốc dạ dày Nexium 40mg (GPP)' : 'Hóa đơn chi tiêu y tế GPP';
         updatedTx.unshift({
           id: `tx_${Date.now()}`,
           title: itemName,
@@ -385,6 +649,10 @@ export function processUnifiedTopicGatedChat(message = '', currentContext = {}) 
           dav_compliant: true,
           bhyt_eligible: lowerMsg.includes('nexium'),
         });
+      } else {
+        expenseMutation = null;
+        healthMutation = null;
+        break;
       }
 
       // Recalculate breakdown
@@ -393,11 +661,12 @@ export function processUnifiedTopicGatedChat(message = '', currentContext = {}) 
         total_actual_spend_vnd: updatedTotalSpend,
         monthly_budget_target_vnd: updatedBudget,
         recent_transactions: updatedTx.slice(0, 20),
-        market_optimization_score: 92,
+        market_optimization_score: 95,
         bhyt_paid_vnd: Math.round(updatedTotalSpend * 0.35),
-        eu_gmp_saving_potential_vnd: 420000,
+        eu_gmp_saving_potential_vnd: Math.round(updatedBudget * 0.15),
         last_updated: new Date().toISOString(),
       };
+
       healthMutation = null; // 100% unchanged
       break;
     }
@@ -434,28 +703,32 @@ export function processUnifiedTopicGatedChat(message = '', currentContext = {}) 
         last_updated: new Date().toISOString(),
       };
 
-      // 2. Expense update
+      // 2. Expense update: Strictly requires extracted currency amount; NO arbitrary 650.000đ fallback!
       const baseExpense = prevExpense || getDefaultFinancialAssessment();
-      const extractedAmount = extractVndAmount(message) || 650000;
-      const updatedTotalSpend = (baseExpense.total_actual_spend_vnd || 2450000) + extractedAmount;
-      const updatedTx = [...(baseExpense.recent_transactions || [])];
-      updatedTx.unshift({
-        id: `tx_${Date.now()}`,
-        title: 'Khám thượng vị dạ dày & Mua thuốc điều trị',
-        amount_vnd: extractedAmount,
-        category: 'doctor',
-        timestamp: new Date().toISOString(),
-        dav_compliant: true,
-        bhyt_eligible: true,
-      });
+      const extractedAmount = extractVndAmount(message);
+      if (extractedAmount && extractedAmount > 0) {
+        const updatedTotalSpend = (baseExpense.total_actual_spend_vnd || 0) + extractedAmount;
+        const updatedTx = [...(baseExpense.recent_transactions || [])];
+        updatedTx.unshift({
+          id: `tx_${Date.now()}`,
+          title: 'Chi phí khám & mua thuốc theo khai báo',
+          amount_vnd: extractedAmount,
+          category: 'medication',
+          timestamp: new Date().toISOString(),
+          dav_compliant: true,
+          bhyt_eligible: true,
+        });
 
-      expenseMutation = {
-        ...baseExpense,
-        total_actual_spend_vnd: updatedTotalSpend,
-        recent_transactions: updatedTx.slice(0, 20),
-        bhyt_paid_vnd: Math.round(updatedTotalSpend * 0.38),
-        last_updated: new Date().toISOString(),
-      };
+        expenseMutation = {
+          ...baseExpense,
+          total_actual_spend_vnd: updatedTotalSpend,
+          recent_transactions: updatedTx.slice(0, 20),
+          bhyt_paid_vnd: Math.round(updatedTotalSpend * 0.38),
+          last_updated: new Date().toISOString(),
+        };
+      } else {
+        expenseMutation = null;
+      }
       break;
     }
 
