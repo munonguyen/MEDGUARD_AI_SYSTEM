@@ -701,7 +701,6 @@ export function NavigationPage({
       setScanProgress(20);
       setSelectedPoi(null);
       setActiveRoute(null);
-      setSteps([]);
       setActiveStepIndex(0);
       setIsNavigatingLive(false);
 
@@ -792,7 +791,9 @@ export function NavigationPage({
           }
         }, 180);
       } catch (err) {
+        console.error('Radar scan error:', err);
         if (scanIntervalRef.current) clearInterval(scanIntervalRef.current);
+        setScanProgress(100);
         setIsScanningActive(false);
         isScanningRef.current = false;
       }
@@ -2966,7 +2967,6 @@ export function NavigationPage({
                         onClick={() => {
                           setSelectedPoi(null);
                           setActiveRoute(null);
-                          setSteps([]);
                           setActiveStepIndex(0);
                           setIsNavigatingLive(false);
                           setIsFloatingPanelCollapsed(false);
