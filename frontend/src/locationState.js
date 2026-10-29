@@ -100,9 +100,41 @@ export function getSavedUserLocation() {
   };
 }
 
+export const LOCATION_AUTHORITY = {
+  MANUAL: 50,
+  HARDWARE_GPS: 40,
+  CACHED_GPS: 30,
+  PRESET: 20,
+  IP_FALLBACK: 10,
+  UNKNOWN: 0,
+};
+
+export function getLocationAuthorityLevel(loc) {
+  if (!loc || typeof loc.lat !== 'number' || typeof loc.lng !== 'number') return LOCATION_AUTHORITY.UNKNOWN;
+  if (loc.is_manual_search) return LOCATION_AUTHORITY.MANUAL;
+  if (loc.is_gps && (loc.permission_status === 'granted' || loc.accuracy_meters <= 100)) return LOCATION_AUTHORITY.HARDWARE_GPS;
+  if (loc.is_gps) return LOCATION_AUTHORITY.CACHED_GPS;
+  if (loc.id && !loc.is_ip_detected) return LOCATION_AUTHORITY.PRESET;
+  if (loc.is_ip_detected || !loc.is_gps) return LOCATION_AUTHORITY.IP_FALLBACK;
+  return LOCATION_AUTHORITY.IP_FALLBACK;
+}
+
 export function saveUserLocation(location) {
   try {
     if (!location) return;
+    const current = getSavedUserLocation();
+    const currentAuth = getLocationAuthorityLevel(current);
+    const newAuth = getLocationAuthorityLevel(location);
+
+    // Enforce Location Authority Hierarchy:
+    // A lower authority source (e.g. IP fallback [10]) can NEVER overwrite a higher authority source (e.g. GPS [30/40] or MANUAL [50])
+    if (newAuth < currentAuth) {
+      console.warn(
+        `[LocationAuthority] Blocked lower authority update (${newAuth} < ${currentAuth}). Retaining: ${current?.name}, Blocked: ${location?.name}`
+      );
+      return;
+    }
+
     localStorage.setItem(STORAGE_KEY, JSON.stringify(location));
     window.dispatchEvent(new CustomEvent('medguard:location-changed', { detail: location }));
   } catch {}
@@ -226,6 +258,10 @@ export async function requestBrowserGeolocation() {
  * 3. Backend fallback
  */
 export async function autoDetectLiveLocation() {
+  // Check if we already have a high-authority location (GPS or manual) saved
+  const currentSaved = getSavedUserLocation();
+  const currentAuth = getLocationAuthorityLevel(currentSaved);
+
   // Step 1: Proactively try browser geolocation
   if ('geolocation' in navigator) {
     try {
@@ -234,6 +270,11 @@ export async function autoDetectLiveLocation() {
         return gpsLoc;
       }
     } catch {}
+  }
+
+  // If we already have saved GPS or manual location, do NOT let IP fallback override it!
+  if (currentSaved && currentAuth >= LOCATION_AUTHORITY.CACHED_GPS) {
+    return currentSaved;
   }
 
   // Step 2: Direct Client-Side Geoapify IP Geolocation (detects real ISP IP directly in Vietnam)

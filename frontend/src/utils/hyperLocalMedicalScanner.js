@@ -296,11 +296,12 @@ export async function scanHyperLocalMedicalPois({
   lat,
   lng,
   poiType = "pharmacy",
+  radiusKm = 2.0,
   backendPois = [],
   searchQuery = "",
 }) {
   const results = [];
-  const maxRadiusKm = 24.0; // Bán kính phủ sóng thực tế bao quát cả nội thành và ngoại thành/tỉnh
+  const maxRadiusKm = radiusKm || 2.0; // Đồng bộ bán kính thực tế quanh người dùng (mặc định 2.0 km)
 
   const pushCandidate = (cand) => {
     if (!cand || typeof cand.lat !== "number" || typeof cand.lng !== "number") return;
@@ -363,12 +364,7 @@ export async function scanHyperLocalMedicalPois({
 
     if (poiType === "pharmacy") {
       if (role !== "pharmacy") {
-        // Tích hợp quầy thuốc / khoa dược của Bệnh viện & Cơ sở y tế cho khu vực thiếu quầy thuốc độc lập
-        cleanName = cleanName.includes("Khoa Dược") || cleanName.includes("Quầy thuốc")
-          ? cleanName
-          : `Khoa Dược & Cấp phát thuốc • ${cleanName}`;
-        categoryBadge = "QUẦY THUỐC BỆNH VIỆN / CƠ SỞ Y TẾ";
-        role = "pharmacy";
+        return; // Tab pharmacy CHỈ tìm và hiển thị nhà thuốc / quầy thuốc GPP thực thụ! Tuyệt đối không biến Bệnh viện thành quầy thuốc!
       }
     } else if (poiType === "clinic") {
       if (role !== "clinic" && !/trạm y tế|trung tâm y tế/i.test(cleanName) && !cand.isRecommendedFromChat) {
@@ -429,11 +425,11 @@ export async function scanHyperLocalMedicalPois({
   );
 
   // Tầng 3: Truy vấn song song Geoapify Places v2 + Photon Komoot OSM
-  const delta = 0.045;
+  const delta = Math.max(0.018, (maxRadiusKm / 111.0) * 1.15); // Bounding box thích ứng theo bán kính maxRadiusKm (~2km)
   const bbox = `${lng - delta},${lat - delta},${lng + delta},${lat + delta}`;
   const photonKeywords =
     poiType === "pharmacy"
-      ? ["Quầy thuốc", "Pharmacity", "Nhà thuốc", "Long Châu"]
+      ? ["Quầy thuốc", "Pharmacity", "Nhà thuốc", "Long Châu", "An Khang"]
       : poiType === "clinic"
       ? ["Phòng khám", "Trạm y tế", "VNVC"]
       : poiType === "emergency"
@@ -444,10 +440,13 @@ export async function scanHyperLocalMedicalPois({
     poiType === "emergency"
       ? "healthcare.hospital"
       : poiType === "clinic"
-      ? "healthcare.clinic_or_praxis,healthcare.dentist,healthcare.hospital"
-      : "healthcare,healthcare.hospital,healthcare.clinic_or_praxis,healthcare.pharmacy";
+      ? "healthcare.clinic_or_praxis,healthcare.dentist"
+      : poiType === "pharmacy"
+      ? "healthcare.pharmacy"
+      : "healthcare.pharmacy,healthcare.clinic_or_praxis,healthcare.hospital";
 
-  const placesUrl = `https://api.geoapify.com/v2/places?categories=${catParam}&filter=circle:${lng},${lat},15000&bias=proximity:${lng},${lat}&limit=35&lang=vi&apiKey=${GEOAPIFY_API_KEY}`;
+  const circleRadiusMeters = Math.min(10000, Math.round(maxRadiusKm * 1000 * 1.25));
+  const placesUrl = `https://api.geoapify.com/v2/places?categories=${catParam}&filter=circle:${lng},${lat},${circleRadiusMeters}&bias=proximity:${lng},${lat}&limit=35&lang=vi&apiKey=${GEOAPIFY_API_KEY}`;
 
   const [placesRes, ...photonResponses] = await Promise.all([
     fetchWithTimeout(placesUrl, {}, 4500)

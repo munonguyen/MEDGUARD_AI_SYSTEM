@@ -68,6 +68,7 @@ import {
   watchLiveUserLocation,
   searchAddressGeocode,
   LOCATION_PRESETS,
+  getLocationAuthorityLevel,
 } from '../locationState';
 import {
   computeMedicalTrustScore,
@@ -699,6 +700,10 @@ export function NavigationPage({
       setIsScanningActive(true);
       setScanProgress(20);
       setSelectedPoi(null);
+      setActiveRoute(null);
+      setSteps([]);
+      setActiveStepIndex(0);
+      setIsNavigatingLive(false);
 
       if (scanIntervalRef.current) clearInterval(scanIntervalRef.current);
       let currentProg = 20;
@@ -728,6 +733,7 @@ export function NavigationPage({
           lat: userLocation.lat,
           lng: userLocation.lng,
           poiType: cat,
+          radiusKm: 2.0,
           backendPois,
           searchQuery,
         });
@@ -1265,7 +1271,14 @@ export function NavigationPage({
         Math.abs(propUserLocation.lng - (lastSyncedPropLocRef.current?.lng || 0)) > 0.0001)
     ) {
       lastSyncedPropLocRef.current = propUserLocation;
-      setUserLocation(propUserLocation);
+      setUserLocation((prev) => {
+        const prevAuth = getLocationAuthorityLevel(prev);
+        const newAuth = getLocationAuthorityLevel(propUserLocation);
+        if (newAuth < prevAuth) {
+          return prev; // Giữ nguyên GPS Đại học Hà Nội, chặn IP Thạch Thất ghi đè!
+        }
+        return propUserLocation;
+      });
     }
   }, [propUserLocation]);
 
@@ -1398,7 +1411,12 @@ export function NavigationPage({
     autoDetectLiveLocation()
       .then((loc) => {
         if (isMounted && loc && typeof loc.lat === 'number') {
-          setUserLocation((prev) => (prev?.is_gps ? prev : loc));
+          setUserLocation((prev) => {
+            const prevAuth = getLocationAuthorityLevel(prev);
+            const newAuth = getLocationAuthorityLevel(loc);
+            if (newAuth < prevAuth) return prev;
+            return loc;
+          });
           if (loc.is_gps) {
             setPermissionPromptOpen(false);
           }
@@ -1479,6 +1497,11 @@ export function NavigationPage({
 
     if (!shouldFetch && pois.length > 0) return;
 
+    // Chặn tự động quét khi người dùng đang ở trạng thái chờ (idle_standby) và không điều hướng từ Chat
+    if (mapState === 'idle_standby' && !navigationContext?.fromChat && !navigationContext?.selectedPoi) {
+      return; // Chờ user bấm nút "Quét Điểm Bán Thuốc Quanh Bạn"
+    }
+
     lastPoiFetchCoordsRef.current = { lat: userLocation.lat, lng: userLocation.lng };
     lastPoiTypeRef.current = poiType;
 
@@ -1500,6 +1523,7 @@ export function NavigationPage({
           lat: userLocation.lat,
           lng: userLocation.lng,
           poiType,
+          radiusKm: 2.0,
           backendPois,
           searchQuery,
         });
@@ -2941,6 +2965,10 @@ export function NavigationPage({
                         className="btn-close-detail-glass"
                         onClick={() => {
                           setSelectedPoi(null);
+                          setActiveRoute(null);
+                          setSteps([]);
+                          setActiveStepIndex(0);
+                          setIsNavigatingLive(false);
                           setIsFloatingPanelCollapsed(false);
                         }}
                         title="Đóng chi tiết"
@@ -3109,8 +3137,8 @@ export function NavigationPage({
               </div>
             )}
 
-            {/* Top HUD Card (Turn-by-Turn Banner) - Shown in navigation */}
-            {steps.length > 0 && mapViewMode !== 'gmaps_embed' && (
+            {/* Top HUD Card (Turn-by-Turn Banner) - Shown only when an active POI destination & route are present */}
+            {selectedPoi && activeRoute && steps.length > 0 && mapViewMode !== 'gmaps_embed' && (
               <div className="nav-hud-top-card">
                 <div className="hud-main-bar">
                   <div className="hud-maneuver-icon-box">

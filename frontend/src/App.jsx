@@ -99,6 +99,7 @@ import {
   requestBrowserGeolocation,
   autoDetectLiveLocation,
   LOCATION_PRESETS,
+  getLocationAuthorityLevel,
 } from './locationState';
 
 const tenantDefaults = { 'tenant-demo': 'demo-key', 'tenant-alt': 'alt-key' };
@@ -1131,6 +1132,11 @@ export default function App({
           ) {
             return prev;
           }
+          const prevAuth = getLocationAuthorityLevel(prev);
+          const newAuth = getLocationAuthorityLevel(e.detail);
+          if (newAuth < prevAuth) {
+            return prev;
+          }
           return e.detail;
         });
       }
@@ -1143,7 +1149,12 @@ export default function App({
     // Automatically detect user's live position (GPS or IP network) on startup
     autoDetectLiveLocation().then((loc) => {
       if (loc && typeof loc.lat === 'number' && typeof loc.lng === 'number') {
-        setUserLocation(loc);
+        setUserLocation((prev) => {
+          const prevAuth = getLocationAuthorityLevel(prev);
+          const newAuth = getLocationAuthorityLevel(loc);
+          if (newAuth < prevAuth) return prev;
+          return loc;
+        });
       }
     });
   }, []);
