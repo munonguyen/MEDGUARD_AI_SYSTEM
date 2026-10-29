@@ -1,0 +1,421 @@
+/* MedGuard Split-Screen 3D Consultation Studio (Phòng Tư Vấn) */
+.consultation-studio-workspace {
+  display: grid;
+  grid-template-columns: minmax(420px, 1.25fr) minmax(380px, 1fr);
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--canvas);
+}
+
+/* LEFT PANE: 3D DOCTOR STAGE */
+.studio-stage-pane {
+  position: relative;
+  height: 100%;
+  min-height: 0;
+  background: radial-gradient(circle at 50% 35%, #1d2c35 0%, #101b22 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  color: #ffffff;
+}
+
+/* Studio Header Badges */
+.studio-stage-header {
+  position: absolute;
+  top: 18px;
+  left: 20px;
+  right: 20px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.studio-status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #cbd5e1;
+  font-size: 12.5px;
+  font-weight: 500;
+  background: rgba(15, 23, 42, 0.5);
+  padding: 4px 12px;
+  border-radius: 9999px;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.studio-status-indicator .status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+}
+
+.studio-stage-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.studio-upload-glb-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(15, 23, 42, 0.6);
+  color: #e2e8f0;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: all 140ms ease;
+}
+
+.studio-upload-glb-btn:hover {
+  background: rgba(30, 41, 59, 0.85);
+  border-color: #38bdf8;
+  color: #38bdf8;
+}
+
+.studio-ai-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(8px);
+}
+
+/* 3D Canvas Canvas */
+.studio-canvas-stage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Studio Stage Bottom Overlay */
+.studio-stage-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 24px 20px 20px;
+  background: linear-gradient(180deg, transparent 0%, rgba(16, 27, 34, 0.85) 45%, rgba(16, 27, 34, 0.98) 100%);
+  backdrop-filter: blur(2px);
+}
+
+.studio-motto {
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.studio-stage-overlay h2 {
+  margin: 0 0 4px;
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.studio-stage-overlay p {
+  margin: 0 0 16px;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+/* Voice Controls */
+.studio-voice-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.studio-mic-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #0f172a;
+  border: 0;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.studio-mic-btn:hover {
+  transform: scale(1.06);
+  box-shadow: 0 6px 22px rgba(255, 255, 255, 0.25);
+}
+
+.studio-mic-btn.listening {
+  background: #ef4444;
+  color: #ffffff;
+  animation: studioMicPulse 1.4s infinite;
+}
+
+@keyframes studioMicPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
+  50% { transform: scale(1.08); box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+}
+
+.studio-icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background 140ms ease, transform 140ms ease;
+}
+
+.studio-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  transform: scale(1.04);
+}
+
+/* Auto-read Checkbox */
+.studio-auto-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #cbd5e1;
+  font-size: 12.5px;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.studio-auto-label input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--green);
+  cursor: pointer;
+}
+
+.studio-subtext {
+  color: #64748b;
+  font-size: 11px;
+}
+
+/* RIGHT PANE: CONVERSATION DESK */
+.studio-chat-pane {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.studio-chat-header {
+  padding: 16px 24px 12px;
+  border-bottom: 1px solid var(--line);
+  background: #ffffff;
+}
+
+.studio-chat-header span {
+  display: block;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.studio-chat-header h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.studio-chat-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+}
+
+.studio-chat-body .chat-workspace {
+  height: 100%;
+  width: 100%;
+}
+
+/* Studio Welcome Prompt Card */
+.studio-welcome-block {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 0;
+}
+
+.studio-welcome-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #059669;
+  display: grid;
+  place-items: center;
+}
+
+.studio-welcome-block h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.studio-welcome-block p {
+  margin: 0;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.studio-starter-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.studio-starter-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  color: #1e293b;
+  font-size: 13.5px;
+  font-weight: 550;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.studio-starter-item:hover {
+  background: #f0fdfa;
+  border-color: #99f6e4;
+  color: #0f766e;
+  transform: translateX(3px);
+}
+
+.studio-starter-item svg {
+  color: #94a3b8;
+  transition: transform 140ms ease, color 140ms ease;
+}
+
+.studio-starter-item:hover svg {
+  color: #0d9488;
+  transform: translate(2px, -2px);
+}
+
+/* TOPBAR STUDIO SEGMENTED CONTROL */
+.studio-topbar-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.studio-segmented-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px;
+  background: #e2e8f0;
+  border-radius: 9999px;
+  border: 1px solid #cbd5e1;
+}
+
+.studio-segmented-btn {
+  padding: 6px 14px;
+  border-radius: 9999px;
+  border: 0;
+  background: transparent;
+  color: #475569;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background 150ms ease, color 150ms ease, box-shadow 150ms ease;
+}
+
+.studio-segmented-btn.active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
+}
+
+.studio-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: 9999px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #334155;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+
+.studio-toggle-btn:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+/* Responsive breakpoint: If screen is small, stack or hide 3D canvas */
+@media (max-width: 900px) {
+  .consultation-studio-workspace {
+    grid-template-columns: 1fr;
+  }
+  .studio-stage-pane {
+    display: none;
+  }
+}

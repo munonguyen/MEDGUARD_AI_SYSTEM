@@ -311,7 +311,7 @@ def test_chat_extracts_current_and_proposed_medication():
     assert body["result"]["overall_risk"] == "HIGH"
     assert body["result"]["warnings"][0]["clinical_consequence"]
     assert body["result"]["warnings"][0]["recommendation"]
-    assert "Hệ quả được ghi nhận" in body["answer"]["key_points"][0]
+    assert "Nguy cơ có thể xảy ra" in body["answer"]["key_points"][0]
     assert body["answer"]["next_steps"]
     assert [source["name"] for source in body["answer"]["sources"]] == ["drug_interactions.json"]
 

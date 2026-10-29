@@ -8,6 +8,7 @@ curated, and integrated into model training & fine-tuning datasets.
 from __future__ import annotations
 
 import json
+import os
 from hashlib import sha256
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
@@ -20,7 +21,11 @@ from app.core.observability import metrics
 from app.models.chat import GroundedAnswer
 from app.services.audit import AuditEvent, audit_store
 
-_DEFAULT_STORAGE_PATH = Path("datasets/active_learning/captured_cases.json")
+_DEFAULT_STORAGE_PATH = (
+    Path("/tmp/captured_cases.json")
+    if os.environ.get("AWS_LAMBDA_FUNCTION_NAME") or os.environ.get("LAMBDA_TASK_ROOT")
+    else Path("datasets/active_learning/captured_cases.json")
+)
 
 
 @dataclass
@@ -67,21 +72,40 @@ class ActiveLearningStore:
 
     def _ensure_storage_exists(self) -> None:
         with self._lock:
-            if not self.storage_path.parent.exists():
-                self.storage_path.parent.mkdir(parents=True, exist_ok=True)
-            if not self.storage_path.exists():
-                initial_data = {
-                    "_meta": {
-                        "version": "1.0.0",
-                        "description": "MedGuard Active Learning Buffer — Tri thức mới ghi nhận từ Gateway",
-                        "updated_at": datetime.now(timezone.utc).isoformat(),
-                    },
-                    "cases": [],
-                }
-                self.storage_path.write_text(
-                    json.dumps(initial_data, ensure_ascii=False, indent=2),
-                    encoding="utf-8",
-                )
+            try:
+                if not self.storage_path.parent.exists():
+                    self.storage_path.parent.mkdir(parents=True, exist_ok=True)
+                if not self.storage_path.exists():
+                    initial_data = {
+                        "_meta": {
+                            "version": "1.0.0",
+                            "description": "MedGuard Active Learning Buffer — Tri thức mới ghi nhận từ Gateway",
+                            "updated_at": datetime.now(timezone.utc).isoformat(),
+                        },
+                        "cases": [],
+                    }
+                    self.storage_path.write_text(
+                        json.dumps(initial_data, ensure_ascii=False, indent=2),
+                        encoding="utf-8",
+                    )
+            except OSError:
+                try:
+                    self.storage_path = Path("/tmp/captured_cases.json")
+                    if not self.storage_path.exists():
+                        initial_data = {
+                            "_meta": {
+                                "version": "1.0.0",
+                                "description": "MedGuard Active Learning Buffer — Tri thức mới ghi nhận từ Gateway",
+                                "updated_at": datetime.now(timezone.utc).isoformat(),
+                            },
+                            "cases": [],
+                        }
+                        self.storage_path.write_text(
+                            json.dumps(initial_data, ensure_ascii=False, indent=2),
+                            encoding="utf-8",
+                        )
+                except Exception:
+                    pass
 
     def capture_case(
         self,

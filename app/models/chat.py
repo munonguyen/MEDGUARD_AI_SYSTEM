@@ -2,11 +2,13 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from pydantic.json_schema import SkipJsonSchema
 
 from app.models.agents import AgentEvidenceSource, AnswerAgentTrace, VerificationScores
 from app.models.common import DisclaimerMixin
+from app.services.conversation_continuation import resolve_conversation_continuation
+from app.services.question_policy import plan_clinical_questions
 
 
 ChatIntent = Literal[
@@ -22,7 +24,7 @@ ChatIntent = Literal[
     "ocr",
     "schedule",
     "authenticity",
-    "appointment_search",
+    "financial",
 ]
 
 
@@ -50,11 +52,16 @@ class AnswerAssurance(BaseModel):
 class GroundedAnswer(BaseModel):
     title: str
     summary: str
+    presentation: Literal["brief", "focused", "detailed"] = "detailed"
+    display_summary: str | None = None
+    display_next_steps: list[str] | None = None
     clinical_hypotheses: list[str] = Field(default_factory=list)
     key_points: list[str] = Field(default_factory=list)
     next_steps: list[str] = Field(default_factory=list)
     safety_notes: list[str] = Field(default_factory=list)
     questions: list[str] = Field(default_factory=list)
+    display_questions: list[str] | None = None
+    suggested_followups: list[str] = Field(default_factory=list)
     decision_basis: Literal[
         "versioned_rules",
         "registry_record",
@@ -75,6 +82,12 @@ class GroundedAnswer(BaseModel):
     narrative: list[AnswerNarrativeBlock] = Field(default_factory=list)
     researched_sources: list[AgentEvidenceSource] = Field(default_factory=list)
     answer_assurance: AnswerAssurance | None = None
+    emergency_transit: dict[str, Any] | None = None
+    enroute_triage: dict[str, Any] | None = None
+    medication_suitability: dict[str, Any] | None = None
+    geo_routing: dict[str, Any] | None = None
+    health_twin_update: dict[str, Any] | None = None
+    financial_assessment_update: dict[str, Any] | None = None
     agent_trace: SkipJsonSchema[AnswerAgentTrace | None] = Field(default=None, exclude=True)
 
 
@@ -91,6 +104,42 @@ class ChatContext(BaseModel):
     allergies: list[str] = Field(default_factory=list, max_length=50)
     conditions: list[str] = Field(default_factory=list, max_length=50)
     last_result: dict[str, Any] | None = None
+    user_location: dict[str, Any] | None = None
+
+    @field_validator("sex", mode="before")
+    @classmethod
+    def normalize_sex(cls, value: Any) -> str | None:
+        if not value or str(value).strip() == "" or str(value).lower() in ("null", "none"):
+            return None
+        v = str(value).lower()
+        if v in ("male", "nam", "m"):
+            return "male"
+        if v in ("female", "nu", "nữ", "f"):
+            return "female"
+        if v in ("other", "khac", "khác"):
+            return "other"
+        return None
+
+    @field_validator("age", mode="before")
+    @classmethod
+    def normalize_age(cls, value: Any) -> int | None:
+        if value is None or value == "" or value == 0:
+            return None
+        try:
+            val = int(value)
+            return val if 0 <= val <= 120 else None
+        except Exception:
+            return None
+
+
+class CompanionVoicePreference(BaseModel):
+    persona: Literal["dr_tuan", "dr_mai"] = "dr_tuan"
+
+
+class PreparedSpeech(BaseModel):
+    ticket: str
+    text: str
+    persona: Literal["dr_tuan", "dr_mai"]
 
 
 class ChatRequest(BaseModel):
@@ -113,6 +162,9 @@ class ChatRequest(BaseModel):
         "appointment_search",
     ] = "auto"
     locale: str = "vi-VN"
+    voice: CompanionVoicePreference | None = None
+    original_latest_content: SkipJsonSchema[str | None] = Field(default=None, exclude=True)
+    continuation_reason: SkipJsonSchema[str | None] = Field(default=None, exclude=True)
 
     @field_validator("messages")
     @classmethod
@@ -121,11 +173,39 @@ class ChatRequest(BaseModel):
             raise ValueError("the latest chat message must be from the user")
         return value
 
+    @model_validator(mode="after")
+    def recover_high_confidence_continuation(self) -> "ChatRequest":
+        if self.intent_hint != "auto" or not self.messages:
+            return self
+        resolution = resolve_conversation_continuation(
+            [(message.role, message.content) for message in self.messages]
+        )
+        if resolution is None:
+            return self
+
+        self.intent_hint = resolution.intent
+        self.continuation_reason = resolution.reason
+        if resolution.augmented_latest:
+            original = self.messages[-1].content
+            self.original_latest_content = original
+            self.messages[-1] = self.messages[-1].model_copy(
+                update={"content": resolution.augmented_latest}
+            )
+        return self
+
 
 class ChatSuggestion(BaseModel):
     label: str
     prompt: str
     intent: ChatIntent
+
+
+class AgentExecutionSummary(BaseModel):
+    requested: bool
+    writer: Literal["not_run", "success", "error", "circuit_open", "unknown"] = "not_run"
+    reviewer: Literal["not_run", "success", "error", "circuit_open", "unknown"] = "not_run"
+    # A public reason code, never provider error text, prompts or credentials.
+    reason: Literal["not_requested", "configuration_incomplete", "capacity_exhausted", "timeout", "circuit_open", "quality_rejected", "provider_error"] | None = None
 
 
 class ChatResponse(DisclaimerMixin):
@@ -134,11 +214,14 @@ class ChatResponse(DisclaimerMixin):
     status: Literal["answered", "needs_information", "unsupported"]
     intent: ChatIntent
     reply: str
+    spoken_reply: str | None = None
+    prepared_speech: PreparedSpeech | None = None
     required_fields: list[str] = Field(default_factory=list)
     extracted: dict[str, Any] = Field(default_factory=dict)
     result: dict[str, Any] | None = None
     answer: GroundedAnswer | None = None
     suggestions: list[ChatSuggestion] = Field(default_factory=list)
+    agent_execution: AgentExecutionSummary | None = None
     answer_origin: Literal[
         "deterministic",
         "gateway_verified",
@@ -167,6 +250,201 @@ class ChatResponse(DisclaimerMixin):
         "agent_shadow",
         "deterministic_fallback",
     ]] = Field(default="deterministic", exclude=True)
+
+    def _attach_question_policy_trace(self, plan: Any) -> None:
+        if not isinstance(self.result, dict):
+            return
+        trace = self.result.get("trace")
+        if not isinstance(trace, dict):
+            return
+        details = dict(trace.get("details") or {})
+        details["question_policy"] = plan.trace_payload()
+        updated_trace = dict(trace)
+        updated_trace["details"] = details
+        updated_result = dict(self.result)
+        updated_result["trace"] = updated_trace
+        self.result = updated_result
+
+    def _default_next_step(self, urgency: str) -> str | None:
+        """Return a bounded action when an otherwise valid answer has none.
+
+        This is a presentation/release invariant, not a clinical reasoner.  It
+        does not infer severity; it uses only the already-resolved intent,
+        status and urgency supplied by upstream domain logic.
+        """
+        if self.intent == "monitoring":
+            if urgency == "EMERGENCY":
+                return (
+                    "Gọi 115 hoặc đến khoa Cấp cứu gần nhất ngay; không tự lái xe và "
+                    "không trì hoãn để tiếp tục theo dõi chỉ số tại nhà."
+                )
+            if urgency == "URGENT":
+                return (
+                    "Liên hệ cơ sở y tế để được đánh giá sớm; nếu chỉ số xấu đi hoặc "
+                    "xuất hiện khó thở, đau ngực, lơ mơ hay choáng, hãy đi cấp cứu."
+                )
+            return (
+                "Tiếp tục ghi lại chỉ số đúng đơn vị và đo lại theo hướng dẫn; liên hệ "
+                "cơ sở y tế nếu chỉ số xấu đi hoặc xuất hiện triệu chứng mới."
+            )
+
+        if self.intent == "safety":
+            return (
+                "Không tự bắt đầu, ngừng, đổi liều hoặc phối hợp thuốc dựa chỉ trên hội thoại; "
+                "hãy trao đổi với bác sĩ hoặc dược sĩ khi quyết định dùng thuốc có thể thay đổi."
+            )
+
+        if self.intent == "schedule":
+            return (
+                "Kiểm tra lại tên thuốc và thời gian trên lịch; nếu cần, bạn có thể yêu cầu "
+                "đổi giờ, tạm dừng hoặc hủy lịch."
+            )
+
+        if self.intent == "followup":
+            return (
+                "Nếu chưa có mốc phù hợp, hãy cho biết thời điểm dự kiến hoặc điều kiện cần "
+                "tái khám để hệ thống hỗ trợ điều chỉnh kế hoạch."
+            )
+
+        if self.intent == "pharmacy":
+            return (
+                "Kiểm tra lại thuốc và thông tin cấp phát; nếu có điểm chưa khớp, hãy liên hệ "
+                "dược sĩ trước khi sử dụng."
+            )
+
+        return None
+
+    def _narrative_with_selected_questions(
+        self,
+        selected_questions: list[str],
+    ) -> list[AnswerNarrativeBlock]:
+        """Keep the patient-facing shortlist consistent with the narrative."""
+        if self.answer is None:
+            return []
+        prompt_label = "Bạn cho mình biết thêm"
+        selected = selected_questions[:2]
+        replacement = ""
+        if selected:
+            normalized_questions: list[str] = []
+            for raw in selected:
+                question = raw.strip()
+                if question and question[-1] not in "?!":
+                    question += "?"
+                if question:
+                    normalized_questions.append(question)
+            replacement = f"{prompt_label}: {' '.join(normalized_questions)}"
+
+        narrative_has_embedded_question = any(
+            "?" in b.text and not b.text.strip().startswith(prompt_label)
+            for b in self.answer.narrative
+        )
+        updated: list[AnswerNarrativeBlock] = []
+        found_question_block = False
+        for block in self.answer.narrative:
+            if block.text.strip().startswith(prompt_label):
+                found_question_block = True
+                if replacement and not narrative_has_embedded_question:
+                    updated.append(
+                        block.model_copy(
+                            update={
+                                "text": replacement,
+                                "emphasis": [prompt_label],
+                            }
+                        )
+                    )
+                continue
+            updated.append(block)
+
+        if replacement and not found_question_block and not narrative_has_embedded_question:
+            updated.append(
+                AnswerNarrativeBlock(
+                    kind="paragraph",
+                    text=replacement,
+                    emphasis=[prompt_label],
+                )
+            )
+        return updated
+
+    @model_validator(mode="after")
+    def apply_patient_question_policy(self) -> "ChatResponse":
+        """Enforce patient-surface dialogue, actionability and emergency invariants."""
+        if self.answer is None:
+            return self
+
+        result = self.result if isinstance(self.result, dict) else {}
+        urgency = str(
+            result.get("urgency")
+            or result.get("escalation_level")
+            or "ROUTINE"
+        ).upper()
+
+        # V26 output contract: an answered clinical/workflow response should not
+        # end as a passive description when a safe next action can be expressed
+        # from the already-resolved intent/urgency.  Jev can therefore evaluate
+        # a stable structured action field instead of relying on prose heuristics.
+        if not self.answer.next_steps:
+            default_step = self._default_next_step(urgency)
+            if default_step:
+                self.answer = self.answer.model_copy(update={"next_steps": [default_step]})
+
+        if not isinstance(self.result, dict):
+            return self
+
+        if urgency == "EMERGENCY":
+            uncertainty = (
+                "Hệ thống không xác định nguyên nhân hoặc chẩn đoán chỉ từ tin nhắn này; "
+                "không thể khẳng định chẩn đoán từ xa."
+            )
+            obsolete_phrase = "thay vì tiếp tục tự theo dõi tại nhà"
+
+            summary = self.answer.summary.replace(obsolete_phrase, "ngay")
+            if "không thể khẳng định" not in summary.lower():
+                summary = f"{summary.rstrip()} {uncertainty}".strip()
+
+            narrative: list[AnswerNarrativeBlock] = []
+            has_uncertainty = False
+            for block in self.answer.narrative:
+                text = block.text.replace(obsolete_phrase, "ngay")
+                if "không thể khẳng định" in text.lower():
+                    has_uncertainty = True
+                if text.strip().startswith("Bạn cho mình biết thêm"):
+                    continue
+                narrative.append(block.model_copy(update={"text": text}))
+            if not has_uncertainty:
+                insert_at = 1 if narrative else 0
+                narrative.insert(
+                    insert_at,
+                    AnswerNarrativeBlock(kind="paragraph", text=uncertainty),
+                )
+
+            self.answer = self.answer.model_copy(
+                update={
+                    "summary": summary,
+                    "questions": [],
+                    "display_questions": [],
+                    "narrative": narrative,
+                }
+            )
+            emergency_plan = plan_clinical_questions([], urgency="EMERGENCY")
+            self._attach_question_policy_trace(emergency_plan)
+            return self
+
+        if self.intent != "triage":
+            return self
+
+        # Keep the complete approved candidate set in ``questions`` for audit,
+        # evaluation and downstream reasoning.  Only ``display_questions`` and
+        # the patient narrative are pruned by the dialogue policy.
+        plan = plan_clinical_questions(list(self.answer.questions), urgency=urgency)
+        selected_questions = list(plan.questions)
+        self.answer = self.answer.model_copy(
+            update={
+                "display_questions": selected_questions,
+                "narrative": self._narrative_with_selected_questions(selected_questions),
+            }
+        )
+        self._attach_question_policy_trace(plan)
+        return self
 
 
 class ConversationSummary(BaseModel):

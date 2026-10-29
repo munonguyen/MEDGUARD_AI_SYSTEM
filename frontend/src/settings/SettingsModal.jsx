@@ -38,6 +38,7 @@ const DEFAULT_SETTINGS = {
   reminderNight: '21:00',
   enablePushReminders: true,
   urgentReminder: true,
+  autoSubmitUpdates: false,
 };
 
 function loadStoredSettings() {
@@ -50,6 +51,7 @@ function loadStoredSettings() {
 }
 
 export function SettingsModal({
+  allowSystem = true,
   open,
   onClose,
   initialTab = 'general',
@@ -103,6 +105,12 @@ export function SettingsModal({
   }, [open, initialTab, context]);
 
   const updatePref = (key, value) => {
+    if (key === 'autoSubmitUpdates') {
+      try {
+        localStorage.setItem('medguard_auto_apply_sync_updates', String(value));
+        window.dispatchEvent(new CustomEvent('medguard:auto-submit-changed', { detail: value }));
+      } catch {}
+    }
     setPreferences((prev) => {
       const next = { ...prev, [key]: value };
       try {
@@ -200,7 +208,7 @@ export function SettingsModal({
               <span>Dữ liệu & Quyền riêng tư</span>
             </button>
             <div className="settings-nav-divider" />
-            <button
+            {allowSystem && <button
               type="button"
               className={`settings-nav-item ${activeTab === 'system' ? 'active' : ''}`}
               onClick={() => setActiveTab('system')}
@@ -209,7 +217,7 @@ export function SettingsModal({
             >
               <Workflow size={17} />
               <span>System & audit</span>
-            </button>
+            </button>}
           </nav>
 
           {/* Tab Content Panels */}
@@ -287,6 +295,26 @@ export function SettingsModal({
                       className={`switch-toggle ${preferences.soundEnabled ? 'checked' : ''}`}
                       onClick={() => updatePref('soundEnabled', !preferences.soundEnabled)}
                       aria-label="Bật tắt âm thanh"
+                    >
+                      <span className="switch-knob" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="pane-divider" />
+
+                <div className="pane-section">
+                  <h3>Tự động Submit & Cấp quyền cập nhật</h3>
+                  <div className="toggle-row">
+                    <div>
+                      <strong>Tự động áp dụng cập nhật dữ liệu (Auto-submit)</strong>
+                      <p>Khi bật, MedGuard AI sẽ tự động đồng bộ dữ liệu vào Bản đồ Cơ thể 3D, Sổ chi tiêu và Hồ sơ mà không cần hỏi xác nhận từng lần.</p>
+                    </div>
+                    <button
+                      type="button"
+                      className={`switch-toggle ${preferences.autoSubmitUpdates ? 'checked' : ''}`}
+                      onClick={() => updatePref('autoSubmitUpdates', !preferences.autoSubmitUpdates)}
+                      aria-label="Tự động áp dụng cập nhật dữ liệu"
                     >
                       <span className="switch-knob" />
                     </button>
@@ -572,7 +600,7 @@ export function SettingsModal({
               </div>
             )}
 
-            {activeTab === 'system' && (
+            {allowSystem && activeTab === 'system' && (
               <div className="settings-pane system-tab-pane animate-fade-in">
                 <div className="pane-section">
                   <div className="section-head-with-badge">

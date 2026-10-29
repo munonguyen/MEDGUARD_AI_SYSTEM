@@ -11,11 +11,7 @@ from app.services.ocr.recognizer import RecognizedLine, line_recognizer
 from app.workers.ocr_worker import run_vision_pipeline
 
 
-VALID_PNG = (
-    b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR"
-    b"\x00\x00\x00\x01\x00\x00\x00\x01"
-    b"\x08\x06\x00\x00\x00"
-)
+from app.tests.image_fixtures import VALID_PNG
 
 
 def test_stage_1_preprocessor_rejects_invalid_content():
@@ -27,6 +23,12 @@ def test_stage_1_preprocessor_rejects_invalid_content():
     corrupt = preprocess_prescription_image(b"invalid_data_here")
     assert corrupt.is_valid is False
     assert corrupt.error_message == "invalid_image"
+
+
+def test_truncated_png_is_rejected_before_ocr():
+    result = preprocess_prescription_image(VALID_PNG[:29])
+    assert not result.is_valid
+    assert result.error_message == "invalid_image"
 
 
 def test_detector_and_recognizer_fail_closed_without_engines(monkeypatch):

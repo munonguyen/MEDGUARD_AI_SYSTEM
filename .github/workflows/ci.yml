@@ -22,6 +22,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v7
@@ -35,8 +37,97 @@ jobs:
       - name: Compile application
         run: python -m compileall -q app scripts training
 
+      - name: Verify historical V10 provenance
+        run: python blind_v10/freeze_guard.py --verify
+
       - name: Run regression suite
         run: pytest -q
+
+  response-quality:
+    name: Medical response quality gate + Q&A audit (40 cases)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run full 40-case response-quality release gate
+        run: python scripts/evaluate_medical_response_quality.py
+
+      - name: Print quality report summary on failure
+        if: failure()
+        run: |
+          if [ -f datasets/DS-MEDICAL-RESPONSE-QUALITY/eval_report.json ]; then
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          path = Path("datasets/DS-MEDICAL-RESPONSE-QUALITY/eval_report.json")
+          report = json.loads(path.read_text(encoding="utf-8"))
+          print(json.dumps({
+              "dataset_version": report.get("dataset_version"),
+              "expert_review_status": report.get("expert_review_status"),
+              "production_evaluable": report.get("production_evaluable"),
+              "total": report.get("total"),
+              "average_score": report.get("average_score"),
+              "critical_failures": report.get("critical_failures"),
+              "subthreshold_cases": report.get("subthreshold_cases"),
+              "p95_latency_ms": report.get("p95_latency_ms"),
+              "gate_passed": report.get("gate_passed"),
+          }, ensure_ascii=False, indent=2))
+          PY
+          fi
+
+      - name: Upload 40-case Q&A quality audit
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: v28-medical-response-quality-${{ github.sha }}
+          path: |
+            datasets/DS-MEDICAL-RESPONSE-QUALITY/eval_report.json
+            artifacts/v28_response_quality/report.json
+            artifacts/v28_response_quality/REPORT_40_QUESTIONS_ANSWERS.md
+          if-no-files-found: warn
+          retention-days: 30
+
+  conversation-quality-v24:
+    name: V24 200-turn conversation benchmark
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run frozen V24 200-turn evaluator
+        run: python scripts/evaluate_v24_200_turn_conversations.py
+
+      - name: Upload V24 benchmark reports
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: v24-200-turn-quality-${{ github.sha }}
+          path: |
+            artifacts/v24_200_turn_quality/report.json
+            artifacts/v24_200_turn_quality/REPORT_200_QUESTIONS_ANSWERS.md
+          if-no-files-found: warn
+          retention-days: 30
 
   frontend:
     name: Frontend build
@@ -52,7 +143,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: "22"
+          node-version: "24"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -61,3 +152,134 @@ jobs:
 
       - name: Build production workspace
         run: npm run build
+
+  ui-smoke:
+    name: UI smoke (desktop + mobile)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install backend dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build production workspace
+        working-directory: frontend
+        run: npm run build
+
+      - name: Start MedGuard API and UI
+        run: |
+          python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 > /tmp/medguard-ui.log 2>&1 &
+          echo $! > /tmp/medguard-ui.pid
+          for attempt in {1..60}; do
+            if curl --fail --silent --show-error http://127.0.0.1:8000/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/medguard-ui.log
+          exit 1
+
+      - name: Run desktop and mobile UI smoke tests
+        working-directory: frontend
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser || true)"
+          if [ -z "$CHROME_BIN" ]; then
+            echo "No Chrome/Chromium executable found on runner"
+            exit 1
+          fi
+          CHROME_PATH="$CHROME_BIN" MEDGUARD_UI_URL="http://127.0.0.1:8000" npm run test:ui
+
+      - name: Print server log on failure
+        if: failure()
+        run: cat /tmp/medguard-ui.log || true
+
+      - name: Upload UI screenshots
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: medguard-ui-smoke-${{ github.sha }}
+          path: .artifacts/*.png
+          if-no-files-found: warn
+          retention-days: 30
+          include-hidden-files: true
+
+      - name: Stop MedGuard server
+        if: always()
+        run: |
+          if [ -f /tmp/medguard-ui.pid ]; then
+            kill "$(cat /tmp/medguard-ui.pid)" || true
+          fi
+
+  release-evidence:
+    name: Release evidence bundle
+    needs:
+      - backend
+      - response-quality
+      - frontend
+      - ui-smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Generate integrity-bound release evidence
+        run: python scripts/generate_release_evidence.py --output artifacts/release_evidence.json
+
+      - name: Verify manifest is valid but does not self-authorize production
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from scripts.generate_release_evidence import validate_release_evidence
+
+          path = Path("artifacts/release_evidence.json")
+          payload = json.loads(path.read_text(encoding="utf-8"))
+          valid, errors = validate_release_evidence(payload)
+          if not valid:
+              raise SystemExit("invalid release evidence: " + ",".join(errors))
+          print(
+              "release_evidence_valid=true "
+              f"production_release_eligible={str(bool(payload.get('production_release_eligible'))).lower()} "
+              f"blockers={','.join(payload.get('release_blockers') or []) or 'none'} "
+              f"digest={payload.get('evidence_digest')}"
+          )
+          PY
+
+      - name: Upload release evidence bundle
+        uses: actions/upload-artifact@v6
+        with:
+          name: medguard-release-evidence-${{ github.sha }}
+          path: artifacts/release_evidence.json
+          if-no-files-found: error
+          retention-days: 30

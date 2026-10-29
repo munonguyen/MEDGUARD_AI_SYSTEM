@@ -86,7 +86,8 @@ _CRISIS_SELF_HARM_PATTERNS: list[re.Pattern[str]] = [
     re.compile(p, re.IGNORECASE)
     for p in (
         # Suicidal intent (unaccented forms, disambiguated from tu van = tư vấn and tu tu = từ từ)
-        r"(?:muon|khong muon|chan)\s*(?:chet|tu\s*tu|song|song tiep|song nua)",
+        r"(?:muon|chan)\s*(?:chet|tu\s*tu)\b",
+        r"(?:khong\s+muon|chan)\s*song\b",
         r"\b(tu\s*(?:sat|hai)|tu\s+gay\s+thuong|cat\s+mach\s+mau|treo\s+co|nhay\s+(?:lau|cau))\b",
         r"(?:y\s*dinh|toan|dinh|nghi\s+den|tim\s+cach|cach|thuoc)\s+(?:de\s+)?tu\s*(?:tu|van)\b",
         r"\btu\s*(?:tu|van)\s+(?:bang|chet|tai\s+nha|thanh\s+cong|nhu\s+the\s+nao|lam\s+sao)\b",
@@ -98,6 +99,14 @@ _CRISIS_SELF_HARM_PATTERNS: list[re.Pattern[str]] = [
         r"(?:bao\s+nhieu|lam\s+sao).*chet",
         r"(?:uong|dung).*(?:chet|tu\s+vong)\s*(?:nhanh|duoc)",
         r"qua\s+lieu.*(?:chet|tu\s+vong|nhanh)",
+        r"ngu\s+mai\s+khong\s+day",
+        r"(?:song\s+)?khong\s+con\s+y\s+nghia",
+        r"uong\s+het.*(?:vi|vien).*thuoc\s+ngu",
+        r"lieu.*(?:vien)?.*ngu\s+sau\s+han",
+        r"lieu.*(?:vien)?.*(?:ngu\s+mai|khong\s+day)",
+        r"(?:ket\s+thuc|cham\s+dut)\s+(?:cuoc\s+doi|cuoc\s+song)",
+        r"uong.*zolpidem.*(?:ngu\s+mai|chet|khong\s+day)",
+        r"(?:muon|dinh|toan)\s+uong\s+het.*thuoc",
     )
 ]
 

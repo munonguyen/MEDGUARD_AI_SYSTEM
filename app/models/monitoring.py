@@ -76,7 +76,21 @@ class MonitoringResponse(DisclaimerMixin):
     status: Status = Status.ok
     trend: Literal["insufficient_data", "stable", "improving", "worsening"]
     escalation_level: Literal["NONE", "SELF_CARE", "CLINIC", "URGENT", "EMERGENCY"]
+    # Canonical cross-domain severity contract used by chat, quality gates and
+    # downstream clients.  ``escalation_level`` remains the monitoring-specific
+    # workflow state; ``urgency`` gives every clinical result one common field.
+    urgency: Literal["ROUTINE", "URGENT", "EMERGENCY"] = "ROUTINE"
     alerts: list[MonitoringAlert] = Field(default_factory=list)
     metrics: list[MonitoringTrend] = Field(default_factory=list)
     summary: str
     trace: Trace
+
+    @model_validator(mode="after")
+    def synchronize_clinical_urgency(self) -> "MonitoringResponse":
+        if self.escalation_level == "EMERGENCY":
+            self.urgency = "EMERGENCY"
+        elif self.escalation_level == "URGENT":
+            self.urgency = "URGENT"
+        else:
+            self.urgency = "ROUTINE"
+        return self

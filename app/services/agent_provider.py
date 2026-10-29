@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from copy import deepcopy
 import json
 from time import perf_counter
 from typing import Any, Protocol, TypeVar
 
 import httpx
+from app.services.provider_transport import provider_client
 from pydantic import BaseModel
 
 
@@ -190,7 +192,7 @@ class OpenAIResponsesProvider:
             )
         start = perf_counter()
         try:
-            with httpx.Client(timeout=self._timeout_seconds) as client:
+            with provider_client(self._timeout_seconds) as client:
                 response = client.post(
                     f"{self._base_url}/responses",
                     headers={
@@ -217,6 +219,32 @@ class OpenAIResponsesProvider:
             output_tokens=output_tokens,
             cached_input_tokens=cached_input_tokens,
         )
+
+
+def _clean_schema_for_gemini(raw_schema: dict[str, Any]) -> dict[str, Any]:
+    """Inline $defs/$ref and filter OpenAPI keys for Google Gemini structured output."""
+    defs = raw_schema.get("$defs", {})
+    allowed_keys = {"type", "properties", "required", "items", "enum", "description"}
+
+    def resolve(node: Any) -> Any:
+        if isinstance(node, dict):
+            if "$ref" in node:
+                ref_key = node["$ref"].split("/")[-1]
+                target = deepcopy(defs.get(ref_key, {}))
+                return resolve(target)
+            res: dict[str, Any] = {}
+            for k, v in node.items():
+                if k in allowed_keys:
+                    if k == "properties" and isinstance(v, dict):
+                        res[k] = {pk: resolve(pv) for pk, pv in v.items()}
+                    else:
+                        res[k] = resolve(v)
+            return res
+        elif isinstance(node, list):
+            return [resolve(x) for x in node]
+        return node
+
+    return resolve(raw_schema)
 
 
 class LiteLLMResponsesProvider(OpenAIResponsesProvider):
@@ -313,7 +341,7 @@ class LiteLLMResponsesProvider(OpenAIResponsesProvider):
             body["reasoning"] = {"effort": self._reasoning_effort}
         start = perf_counter()
         try:
-            with httpx.Client(timeout=self._timeout_seconds) as client:
+            with provider_client(self._timeout_seconds) as client:
                 response = client.post(
                     f"{self._base_url}/responses",
                     headers=headers,
@@ -397,13 +425,13 @@ class LiteLLMResponsesProvider(OpenAIResponsesProvider):
                 "json_schema": {
                     "name": schema_name,
                     "strict": True,
-                    "schema": response_model.model_json_schema(),
+                    "schema": _clean_schema_for_gemini(response_model.model_json_schema()),
                 },
             },
         }
         start = perf_counter()
         try:
-            with httpx.Client(timeout=self._timeout_seconds) as client:
+            with provider_client(self._timeout_seconds) as client:
                 citations: tuple[str, ...] = ()
                 queries: tuple[str, ...] = ()
                 search_usage = (0, 0, 0)
@@ -562,7 +590,7 @@ class GeminiGroundedProvider:
         }
         start = perf_counter()
         try:
-            with httpx.Client(timeout=self._timeout_seconds) as client:
+            with provider_client(self._timeout_seconds) as client:
                 response = client.post(
                     f"{self._base_url}/interactions",
                     headers={"x-goog-api-key": self._api_key, "Content-Type": "application/json"},

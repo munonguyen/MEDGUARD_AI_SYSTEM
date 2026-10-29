@@ -1,0 +1,47 @@
+name: V26 Jev Quality Certification
+
+on:
+  pull_request:
+    branches:
+      - develop
+  push:
+    branches:
+      - develop
+      - feature/v26-jev-quality-contract
+
+permissions:
+  contents: read
+
+jobs:
+  v26-jev-200-turn-certification:
+    name: V26 Jev 200-turn strict certification
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Compile V26 evaluator
+        run: python -m compileall -q app scripts
+
+      - name: Run strict V26 Jev 200-turn certification
+        run: python scripts/evaluate_v26_jev_200_turn_conversations.py
+
+      - name: Upload V26 Jev certification evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: v26-jev-200-turn-quality-${{ github.sha }}
+          path: artifacts/v26_jev_200_turn_quality/
+          if-no-files-found: error
+          retention-days: 30

@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import re
 
-from app.services.clinical_text import normalize_search_text
+from app.services.clinical_text import contains_affirmed_phrase, normalize_search_text
 from app.services.triage_resolver import URGENCY_RANK, highest_urgency
 
 
@@ -102,6 +102,227 @@ _REPLACEMENT_FACT_PATTERNS: tuple[str, ...] = (
     r"\b(nham sang|khong phai toi|hoi ho nguoi nha|benh cua me|benh cua bo|benh cua con|chua tung)\b",
     r"\b(chi dau co vai|chi moi tay|chi hoi che do an|chua tung bi|nguoi nha bi)\b",
 )
+
+
+# Episode detection is intentionally a lexical/semantic routing aid only.  These
+# markers never determine diagnosis, urgency, specialty, or patient-facing text.
+# They only decide whether previous acute symptom state belongs to the current
+# complaint.  Keep markers specific enough to represent a chief complaint, not
+# generic associated symptoms such as nausea or fatigue.
+_EPISODE_DOMAIN_MARKERS: dict[str, tuple[str, ...]] = {
+    "dental": (
+        "dau rang",
+        "e buot rang",
+        "nhuc rang",
+        "sung loi",
+        "sung nuou",
+        "sau rang",
+        "viem tuy rang",
+        "chay mau chan rang",
+        "nho rang",
+    ),
+    "hair_scalp": (
+        "rung toc",
+        "toc rung",
+        "hoi dau",
+        "rung toc nhieu",
+        "gay rung toc",
+        "nam da dau",
+        "ngua da dau",
+        "ngua dau",
+        "gau ngua",
+        "nam toc",
+        "hoi toc",
+    ),
+    "ent": (
+        "dau hong",
+        "viem hong",
+        "rat hong",
+        "ngat mui",
+        "chay mui",
+        "chay mau cam",
+        "u tai",
+        "dau tai",
+        "viem xoang",
+    ),
+    "ophthalmology": (
+        "dau mat",
+        "do mat",
+        "nhuc mat",
+        "mo mat",
+        "cay mat",
+        "chay nuoc mat",
+        "do long trang",
+    ),
+    "urinary": (
+        "tieu buot",
+        "tieu rat",
+        "tieu ra mau",
+        "kho tieu",
+    ),
+    "gastrointestinal": (
+        "ruot thua",
+        "appendicitis",
+        "ho chau phai",
+        "dau bung",
+        "dau thuong vi",
+        "thuong vi",
+        "vung tren ron",
+        "tren ron",
+        "dau da day",
+        "nong rat da day",
+        "nong rat bung",
+        "bung con cao",
+        "con cao",
+        "kho chiu o bung",
+        "o chua",
+        "tieu chay",
+        "tao bon",
+        "phan den",
+        "non ra mau",
+    ),
+    "cardiorespiratory": (
+        "dau nguc",
+        "tuc nguc",
+        "nang nguc",
+        "dau that nguc",
+        "danh trong nguc",
+        "hoi hop",
+        "kho tho",
+        "hut hoi",
+    ),
+    "neurovestibular": (
+        "chong mat",
+        "choang vang",
+        "hoa mat",
+        "toi sam",
+        "sap ngat",
+        "ngat xiu",
+        "dau dau",
+        "meo mieng",
+        "noi ngong",
+        "kho noi",
+    ),
+    "musculoskeletal_spine": (
+        "cang co",
+        "ngon chan",
+        "ngon tay",
+        "ban chan",
+        "ban tay",
+        "co tay",
+        "co chan",
+        "khop goi",
+        "dau khop",
+        "cang co o cac ngon chan",
+        "cang co ngon chan",
+        "dau tay",
+        "moi tay",
+        "dau lung",
+        "moi lung",
+        "that lung",
+        "dau co",
+        "moi co",
+        "dau vai",
+        "vai gay",
+        "dau bap chan",
+        "dau chan",
+        "te chan",
+        "lan xuong chan",
+        "lan xuong mong",
+        "yeu chan",
+    ),
+    "dermatology": (
+        "man ngua",
+        "ban do",
+        "man do",
+        "noi man",
+        "phat ban",
+        "noi ban",
+        "ngua rat",
+        "ngua da",
+        "ngua",
+        "cang gai",
+        "gai",
+        "rat da",
+        "me day",
+        "noi me day",
+        "di ung da",
+        "di ung",
+        "mun nuoc",
+        "san phu",
+        "zona",
+        "benh ghe",
+        "nam da",
+        "mun",
+        "ngua toan than",
+    ),
+    "dental": (
+        "e buot rang",
+        "buot rang",
+        "dau rang",
+        "nhuc rang",
+        "sau rang",
+        "viem tuy rang",
+        "tuy rang",
+        "viem nuou",
+        "sung nuou",
+        "chay mau chan rang",
+        "mon co rang",
+        "mon men rang",
+    ),
+    "ophthalmology": (
+        "dau mat do",
+        "viem ket mac",
+        "do mat",
+        "mat do",
+        "com mat",
+        "ghen mat",
+        "du mat",
+        "chay nuoc mat",
+        "nhuc mat",
+        "mo mat",
+    ),
+}
+
+_EPISODE_CONTINUATION_MARKERS: tuple[str, ...] = (
+    "van ",
+    "van con",
+    "van bi",
+    "ngoai ra",
+    "them nua",
+    "kem theo",
+    "cung luc",
+    "va gio",
+    "trieu chung nay",
+    "con dau nay",
+    "luc nay",
+    "tu luc do",
+)
+
+
+def infer_episode_domain(text: str) -> str | None:
+    """Return a lightweight chief-complaint domain for episode routing only.
+
+    This is deliberately *not* a clinical diagnosis classifier.  Keyword hits
+    are treated as weak routing signals so unrelated acute complaints do not
+    inherit stale symptoms, triage floors, specialties, or quick replies.
+    """
+    norm = normalize_search_text(text)
+    matches: list[tuple[int, str]] = []
+    for domain, markers in _EPISODE_DOMAIN_MARKERS.items():
+        for marker in markers:
+            # Accent folding turns "hơi đau đầu" into "hoi dau dau".
+            # Do not mistake the first two words for "hói đầu".
+            if marker == "hoi dau" and "hoi dau dau" in norm:
+                continue
+            pos = norm.find(marker)
+            if pos >= 0 and contains_affirmed_phrase(norm, marker):
+                matches.append((pos, domain))
+                break
+    if not matches:
+        return None
+    matches.sort(key=lambda item: item[0])
+    return matches[0][1]
 
 
 def is_explicit_correction(text: str) -> bool:
@@ -210,61 +431,15 @@ def merge_risk(
     )
 
 
-# Anatomical domain markers for detecting topic shifts
-_DOMAIN_MARKERS: dict[str, tuple[str, ...]] = {
-    "cardiovascular": (
-        "tuc nguc", "dau nguc", "nang nguc", "dau that nguc", "vung tim", "mach vanh",
-        "danh trong nguc", "hoi hop", "loan nhip", "nhoi mau", "tim dap nhanh",
-    ),
-    "dental": (
-        "rang", "nhuc rang", "dau rang", "sau rang", "nuou", "loi", "tuy rang", "nho rang",
-        "rang khon", "e buot", "buot rang", "viem loi", "viem tuy", "cung ham",
-    ),
-    "musculoskeletal": (
-        "tap gym", "gym", "tap ta", "tang co", "doms", "moi co", "cang co", "chuot rut",
-        "co nguc", "dau co", "gian co", "bong gan", "khop goi", "dau lung", "co bap",
-        "co lien suon", "dau nhuc co", "dau vai", "moi vai", "vai gay", "co vai gay",
-        "bap chan", "cang bap chan", "ngoi lau", "ngoi may tinh", "moi lung", "that lung",
-    ),
-    "neurology": (
-        "meo mieng", "meo mat", "dot quy", "tai bien", "co giat", "dong kinh", "liet nua nguoi",
-        "yeu nua nguoi", "noi ngong", "u o", "dong tu gian",
-    ),
-    "dermatology": (
-        "di ung da", "noi me day", "ngua da", "phat ban", "mun nhot", "man do", "viem da",
-    ),
-    "ent": (
-        "dau hong", "viem hong", "ngat mui", "so mui", "viem xoang", "u tai", "chay nuoc mui",
-    ),
-    "gastrointestinal": (
-        "dau da day", "trao nguoc", "o chua", "day bung", "tieu chay", "tao bon", "dau bung",
-    ),
-    "ophthalmology": (
-        "dau mat", "moi mat", "do mat", "kho mat", "viem ket mac",
-    ),
-}
-
-_ACUTE_RED_FLAGS: tuple[str, ...] = (
-    "kho tho", "lan tay trai", "lan tay", "bop nghet", "de nang",
-    "va mo hoi", "ngat xiu", "ngat", "hon me", "meo mieng", "yeu liet",
-    "khong tho duoc", "tim dap loan", "115", "soc phan ve",
-)
-
-
-def detect_clinical_domain(text: str) -> str | None:
-    """Detect anatomical organ system or clinical domain from text."""
-    norm = normalize_search_text(text)
-    if any(k in norm for k in ("lan tay trai", "bop nghet", "de nang", "kho tho", "hoi chung vanh", "nhoi mau", "tim dap nhanh")):
-        if any(k in norm for k in ("nguc", "tim", "kho tho")):
-            return "cardiovascular_emergency"
-    for domain, keywords in _DOMAIN_MARKERS.items():
-        if any(kw in norm for kw in keywords):
-            return domain
-    return None
-
-
 def should_start_new_episode(latest_text: str, previous_text: str | None = None) -> bool:
-    """Determine if user explicitly switches to a completely new unrelated problem or clinical domain."""
+    """Determine whether the latest user turn starts an unrelated clinical episode.
+
+    Explicit switch phrases remain authoritative.  When a previous user turn is
+    provided, a strong chief-complaint domain change is also treated as a new
+    episode unless the latest text explicitly indicates continuation/addition.
+    This keeps keywords in their intended role: routing signals only, never
+    clinical truth or response-template selectors.
+    """
     norm = normalize_search_text(latest_text)
     explicit_markers = (
         "yeu cau moi",
@@ -283,14 +458,41 @@ def should_start_new_episode(latest_text: str, previous_text: str | None = None)
     if any(marker in norm for marker in explicit_markers):
         return True
 
-    # If previous_text is provided, check for domain shift
-    if previous_text:
-        latest_domain = detect_clinical_domain(latest_text)
-        prev_domain = detect_clinical_domain(previous_text)
-        if latest_domain and prev_domain and latest_domain != prev_domain:
-            has_acute_red_flag = any(flag in norm for flag in _ACUTE_RED_FLAGS)
-            if not has_acute_red_flag:
+    if not previous_text:
+        return False
+
+    # Phrases such as "vẫn...", "ngoài ra...", "kèm theo..." indicate that
+    # the user is extending the current episode rather than replacing it.
+    if any(marker in norm for marker in _EPISODE_CONTINUATION_MARKERS):
+        return False
+
+    previous_domain = infer_episode_domain(previous_text)
+    current_domain = infer_episode_domain(latest_text)
+    if previous_domain and current_domain and previous_domain != current_domain:
+        return True
+
+    # When previous text belonged to an identified domain, but current text does not match
+    # that domain and has no continuation markers: check if current text introduces an independent inquiry
+    if previous_domain and not current_domain:
+        prev_markers = _EPISODE_DOMAIN_MARKERS.get(previous_domain, ())
+        has_prev_marker = any(marker in norm for marker in prev_markers)
+        if not has_prev_marker:
+            is_new_inquiry = any(
+                p in norm
+                for p in (
+                    "toi bi", "dang bi", "moi bi", "vua bi", "bi dau",
+                    "kho chiu o", "lam sao de", "cach nao de", "chua khoi",
+                    "can lam gi", "dieu tri the nao", "uong thuoc gi", "hoi ve",
+                    "toi dang dau", "toi dau", "toi dang nhuc",
+                )
+            )
+            if is_new_inquiry:
                 return True
 
-    return False
+    if not previous_domain and current_domain:
+        curr_markers = _EPISODE_DOMAIN_MARKERS.get(current_domain, ())
+        has_curr_in_prev = any(marker in normalize_search_text(previous_text) for marker in curr_markers)
+        if not has_curr_in_prev:
+            return True
 
+    return False

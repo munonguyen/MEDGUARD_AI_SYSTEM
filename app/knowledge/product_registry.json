@@ -27,6 +27,36 @@
       "status": "active"
     },
     {
+      "product_code": "MG-PARA-500",
+      "gtin": "08960001000048",
+      "name": "Paracetamol 500mg",
+      "manufacturer": "Dược Hậu Giang Pharma",
+      "authorized_serials": ["VN25P001", "VN25P002", "VN25P003"],
+      "lots": ["PAR2501", "PAR2502"],
+      "expires_on": "2028-06-30",
+      "status": "active"
+    },
+    {
+      "product_code": "MG-PAN-EXT",
+      "gtin": "08960001000055",
+      "name": "Panadol Extra (Đỏ) 500mg/65mg",
+      "manufacturer": "GSK GlaxoSmithKline",
+      "authorized_serials": ["GSK24E01", "GSK24E02"],
+      "lots": ["PAN2411"],
+      "expires_on": "2027-11-30",
+      "status": "active"
+    },
+    {
+      "product_code": "MG-AUG-625",
+      "gtin": "08960001000062",
+      "name": "Augmentin 625mg",
+      "manufacturer": "GSK GlaxoSmithKline",
+      "authorized_serials": ["GSK24A01", "GSK24A02"],
+      "lots": ["AUG2412"],
+      "expires_on": "2027-08-31",
+      "status": "active"
+    },
+    {
       "product_code": "MG-RECALL-001",
       "gtin": "08960001000031",
       "name": "Demo recalled medicine",
@@ -35,6 +65,22 @@
       "lots": ["RCL2301"],
       "expires_on": "2026-12-31",
       "status": "recalled"
+    },
+    {
+      "product_code": "ENTEROBIFINA",
+      "gtin": "8936151980798",
+      "name": "EnteroBifina 2.5 tỷ bào tử Bacillus clausii (Hộp 20 ống x 5ml Mediphar)",
+      "manufacturer": "Công ty Cổ phần Dược phẩm Liên Doanh Mediphar",
+      "authorized_serials": [],
+      "lots": ["000106"],
+      "registration_number": "6520/2019/ĐKSP",
+      "mfg_date": "2025-02-08",
+      "expires_on": "2028-02-08",
+      "status": "active",
+      "category": "dietary_supplement",
+      "standard": "TCCS",
+      "address": "KCN Phú Nghĩa, Huyện Chương Mỹ, TP. Hà Nội",
+      "regulatory_note": "Thực phẩm bảo vệ sức khỏe (ĐKSP: 6520/2019/ĐKSP). Lưu ý: Đây là thực phẩm bảo vệ sức khỏe bổ sung lợi khuẩn đường ruột, không phải thuốc điều trị và cần phân biệt với biệt dược gốc Enterogermina (Sanofi)."
     }
   ]
 }

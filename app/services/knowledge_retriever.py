@@ -16,7 +16,7 @@ import math
 from pathlib import Path
 import re
 import unicodedata
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from time import perf_counter
 from typing import Any, Literal
 
@@ -33,15 +33,33 @@ _STOPWORDS = {
 
 _BODY_REGION_TERMS: dict[str, tuple[str, ...]] = {
     "head": ("đầu", "sọ", "mặt", "head", "headache", "face"),
+    "dental": ("răng", "nướu", "lợi", "hàm", "sâu răng", "viêm tủy", "tooth", "dental", "nhức răng", "buốt răng", "ê buốt"),
+    "eye": ("mắt", "kết mạc", "cộm mắt", "đỏ mắt", "ghèn mắt", "dử mắt", "giác mạc", "nhãn cầu", "eye", "vision"),
+    "skin": ("ghẻ", "mẩn ngứa", "mày đay", "dị ứng da", "nổi ban", "phát ban", "trầy xước", "bệnh da", "da liễu", "scabies", "skin", "rash"),
     "neck": ("cổ", "gáy", "neck"),
     "chest": ("ngực", "tim", "phổi", "chest", "heart", "lung"),
-    "abdomen": ("bụng", "dạ dày", "ruột", "phân", "abdomen", "stomach", "bowel"),
+    "abdomen": ("bụng", "dạ dày", "ruột", "phân", "tiêu hóa", "đại tiện", "nôn", "buồn nôn", "abdomen", "stomach", "bowel"),
     "upper_limb": ("cánh tay", "khuỷu tay", "cổ tay", "bàn tay", "ngón tay", "arm", "wrist", "hand"),
     "lower_limb": (
         "chân", "đùi", "đầu gối", "bắp chân", "cẳng chân", "cổ chân", "mắt cá chân", "bàn chân",
         "leg", "lower limb", "thigh", "knee", "calf", "ankle", "foot",
     ),
+    "respiratory_cold": (
+        "ốm", "bị ốm", "cảm", "cúm", "cảm cúm", "cảm lạnh", "sốt siêu vi", "nhiễm siêu vi",
+        "kháng sinh", "nghẹt mũi", "chảy mũi", "rát họng", "đau họng", "ho", "viêm đường hô hấp",
+        "cold", "flu", "fever", "cough"
+    ),
 }
+
+_SPECIALTY_REQUIRED_TERMS: list[tuple[tuple[str, ...], tuple[str, ...]]] = [
+    (("dental", "rang ham mat", "toothache", "sau rang", "viem tuy"), ("rang", "nuou", "loi", "ham", "tooth", "dental")),
+    (("scabies", "benh ghe", "cai ghe"), ("ghe", "mun nuoc", "scabies")),
+    (("acute_burn", "vet bong"), ("bong", "nuoc soi", "lua", "burn")),
+    (("red_eye", "viem ket mac", "benh ve mat", "conjunctivitis"), ("mat", "ket mac", "com mat", "do mat", "eye")),
+    (("back_pain", "dau lung"), ("lung", "that lung", "cot song", "back")),
+    (("insect_bite", "vet dot"), ("ong", "kien", "dot", "can", "sting", "bite")),
+    (("ankle_sprain", "bong gan"), ("mat ca", "co chan", "bong gan", "sprain")),
+]
 
 
 def _body_regions(text: str) -> set[str]:
@@ -95,9 +113,11 @@ class RetrievedChunk:
         return asdict(self)
 
 
-_CLINICAL_DOCS = {"red_flag_protocols.json", "monitoring_rules.json", "crawled_clinical_guidelines.json"}
+_CLINICAL_DOCS = {"knowledge_pool", "red_flag_protocols.json", "monitoring_rules.json", "crawled_clinical_guidelines.json"}
 _PHARMA_DOCS = {
+    "knowledge_pool",
     "drug_interactions.json",
+    "medication_incident_protocols.json",
     "contraindications.json",
     "allergy_cross_matrix.json",
     "atc_codes.json",
@@ -136,9 +156,9 @@ class KnowledgeRetriever:
         self._token_index: dict[str, list[int]] = {}
         self._idf: dict[str, float] = {}
         self._intent_filters: dict[str, set[str]] = {
-            "safety": {"drug_interactions.json", "contraindications.json", "allergy_cross_matrix.json", "atc_codes.json", "crawled_clinical_guidelines.json"},
-            "triage": {"red_flag_protocols.json", "crawled_clinical_guidelines.json"},
-            "monitoring": {"monitoring_rules.json", "crawled_clinical_guidelines.json"},
+            "safety": {"knowledge_pool", "medication_incident_protocols.json", "drug_interactions.json", "contraindications.json", "allergy_cross_matrix.json", "atc_codes.json", "crawled_clinical_guidelines.json"},
+            "triage": {"knowledge_pool", "red_flag_protocols.json", "crawled_clinical_guidelines.json"},
+            "monitoring": {"knowledge_pool", "monitoring_rules.json", "crawled_clinical_guidelines.json"},
             "authenticity": {"product_registry.json"},
         }
         self._build_index()
@@ -261,14 +281,18 @@ class KnowledgeRetriever:
                 f"Dấu hiệu nguy hiểm cần khám ngay: {red_flags}. "
                 f"Chăm sóc ban đầu: {self_care}. Khuyến cáo: {symp.get('advice', '')}."
             )
+            title = symp.get("source_title") or f"Hướng dẫn triệu chứng: {name}"
+            source_ref = symp.get("source_publisher") or "NICE Guidelines / Hướng dẫn chẩn đoán BYT"
+            source_url = symp.get("source_url") or symp.get("source_uri")
             chunks.append(
                 RetrievedChunk(
                     chunk_id=cid,
                     doc_name="red_flag_protocols.json",
-                    title=f"Hướng dẫn triệu chứng: {name}",
+                    title=title,
                     section="symptom_guidance",
                     content=content,
-                    source_reference="NICE Guidelines / Hướng dẫn chẩn đoán BYT",
+                    source_reference=source_ref,
+                    source_url=source_url,
                 )
             )
 
@@ -276,11 +300,12 @@ class KnowledgeRetriever:
         for rule in knowledge.monitoring_rules:
             metric = rule.get("metric", "")
             cid = f"MON-{metric}"
+            # Keep the actual thresholds and explanatory fields. These rules
+            # do not contain a nested "thresholds" object; indexing an empty
+            # default hid the evidence used by the monitoring runtime.
             content = (
                 f"Quy tắc theo dõi sinh hiệu {metric}. "
-                f"Đơn vị: {rule.get('unit', '')}. "
-                f"Ngưỡng an toàn và báo động: {rule.get('thresholds', {})}. "
-                f"Xử trí khuyến cáo: {rule.get('action', 'Theo dõi lặp lại và báo bác sĩ khi vượt ngưỡng')}."
+                + json.dumps(rule, ensure_ascii=False, sort_keys=True)
             )
             chunks.append(
                 RetrievedChunk(
@@ -292,6 +317,22 @@ class KnowledgeRetriever:
                     source_reference="Quy chuẩn theo dõi dấu hiệu sinh tồn lâm sàng",
                 )
             )
+
+        # Medication incidents were used by the safety engine but missing
+        # from retrieval. Preserve approval status: local policy is evidence
+        # provenance, never proof of independent clinical validation.
+        incident_file = knowledge.files.get("medication_incident_protocols.json")
+        incident_meta = incident_file.data.get("_meta", {}) if incident_file else {}
+        for protocol in knowledge.reported_ingestion_protocols:
+            chunks.append(RetrievedChunk(
+                chunk_id=protocol["id"],
+                doc_name="medication_incident_protocols.json",
+                title="Sự cố dùng thuốc: " + protocol.get("ingredient", ""),
+                section="medication_incident",
+                content=json.dumps(protocol, ensure_ascii=False, sort_keys=True),
+                source_reference=json.dumps(incident_meta, ensure_ascii=False, sort_keys=True),
+                severity=protocol.get("risk"),
+            ))
 
         # 7. Optional Crawled Clinical Guidelines (Crawl4AI & refined web sources)
         crawled_file = Path(__file__).resolve().parent.parent / "knowledge" / "crawled_clinical_guidelines.json"
@@ -354,6 +395,19 @@ class KnowledgeRetriever:
                 )
             )
 
+        normalized_chunks = []
+        for chunk in chunks:
+            if not chunk.source_url:
+                if chunk.section in ("symptom_guidance", "triage_emergency") or "red_flag" in chunk.doc_name:
+                    url = "https://kcb.vn/huong-dan-chan-doan-dieu-tri"
+                elif chunk.section in ("drug_interaction", "contraindication", "allergy_cross_reactivity", "medication_incident"):
+                    url = "https://dav.gov.vn/duoc-thu-quoc-gia-viet-nam"
+                else:
+                    url = "https://moh.gov.vn/huong-dan-kham-chua-benh"
+                chunk = replace(chunk, source_url=url)
+            normalized_chunks.append(chunk)
+        chunks = normalized_chunks
+
         self._chunks = chunks
         self._chunk_regions = [_primary_body_regions(chunk) for chunk in chunks]
 
@@ -389,6 +443,18 @@ class KnowledgeRetriever:
         """Retrieve top-K most relevant chunks for query with optional intent and domain filtering."""
         start = perf_counter()
         effective_domain = domain or resolve_domain(intent, query)
+        from app.services.knowledge_pool import approved_pool_documents
+        pooled = approved_pool_documents(effective_domain)
+        chunks = [*self._chunks, *(RetrievedChunk(
+            chunk_id=row['id'], doc_name='knowledge_pool', title=row['title'],
+            section='reviewed_public_knowledge', content=row['content'],
+            source_reference=row['review'], source_url=row['source_url'],
+        ) for row in pooled)]
+        regions = [*self._chunk_regions, *(_primary_body_regions(c) for c in chunks[len(self._chunks):])]
+        token_index = dict(self._token_index)
+        for idx in range(len(self._chunks), len(chunks)):
+            for token in _tokenize(chunks[idx].title + ' ' + chunks[idx].content):
+                token_index[token] = [*token_index.get(token, []), idx]
         query_tokens = _tokenize(query, remove_stopwords=True)
         if not query_tokens:
             # Fallback to without removing stopwords if empty
@@ -405,15 +471,26 @@ class KnowledgeRetriever:
         domain_boosted: set[int] = set()
 
         for token in query_tokens:
-            matching_indices = self._token_index.get(token, [])
+            matching_indices = token_index.get(token, [])
             token_idf = self._idf.get(token, 1.0)
 
             for idx in matching_indices:
-                chunk = self._chunks[idx]
+                chunk = chunks[idx]
                 if allowed_docs and chunk.doc_name not in allowed_docs:
                     continue
 
-                chunk_regions = self._chunk_regions[idx]
+                chunk_text_low = (chunk.chunk_id + " " + chunk.title).lower()
+                chunk_norm = _normalize(chunk_text_low)
+                excluded_by_specialty = False
+                for id_patterns, required_terms in _SPECIALTY_REQUIRED_TERMS:
+                    if any(pat in chunk_norm or pat in chunk_text_low for pat in id_patterns):
+                        if not any(re.search(rf"\b{re.escape(term)}\b", query_norm) for term in required_terms):
+                            excluded_by_specialty = True
+                            break
+                if excluded_by_specialty:
+                    continue
+
+                chunk_regions = regions[idx]
                 if query_regions and chunk_regions and query_regions.isdisjoint(chunk_regions):
                     continue
 
@@ -438,27 +515,33 @@ class KnowledgeRetriever:
                 if query_norm in chunk_content_norm or query_norm in chunk_title_norm:
                     score += 10.0
 
+                # Clinical keyword alignment boost
+                for kw in ("om", "bi om", "cam cum", "khang sinh", "khi nao", "di kham", "kham truc tiep", "dau dau", "dau bung", "dau nguc"):
+                    if kw in query_norm and kw in chunk_content_norm:
+                        score += 6.0
+
                 scores[idx] = score
 
         if query_regions:
             scores = {
                 idx: score
                 for idx, score in scores.items()
-                if self._chunk_regions[idx] & query_regions
+                if regions[idx] & query_regions
             }
 
         ranked_indices = sorted(scores.keys(), key=lambda i: scores[i], reverse=True)[:top_k]
 
         results = [
             RetrievedChunk(
-                chunk_id=self._chunks[i].chunk_id,
-                doc_name=self._chunks[i].doc_name,
-                title=self._chunks[i].title,
-                section=self._chunks[i].section,
-                content=self._chunks[i].content,
-                source_reference=self._chunks[i].source_reference,
+                chunk_id=chunks[i].chunk_id,
+                doc_name=chunks[i].doc_name,
+                title=chunks[i].title,
+                section=chunks[i].section,
+                content=chunks[i].content,
+                source_reference=chunks[i].source_reference,
+                source_url=chunks[i].source_url,
                 score=round(scores[i], 3),
-                severity=self._chunks[i].severity,
+                severity=chunks[i].severity,
             )
             for i in ranked_indices
         ]

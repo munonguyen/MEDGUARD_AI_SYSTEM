@@ -7,13 +7,29 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test:ui": "node tests/ui-smoke.mjs"
+    "test:ui": "node tests/ui-smoke.mjs",
+    "test:doctor-motion": "node tests/doctor-motion.mjs",
+    "test:doctor-holistic": "node tests/doctor-holistic-web.mjs",
+    "test:doctor-web": "node tests/doctor-refinement-web.mjs",
+    "test:auth-proxy": "node tests/auth-proxy-web.mjs",
+    "test:doctor-live": "node tests/doctor-live-web.mjs",
+    "test:doctor-latency": "node tests/speech-queue.mjs && node tests/api-cancellation.mjs && node tests/clinical-reply.mjs && node tests/prepared-speech.mjs",
+    "test:doctor-animation": "node tests/doctor-animation.mjs && node tests/doctor-audio-core.mjs",
+    "build:doctor-vrma": "node scripts/build-doctor-vrma.mjs",
+    "test:doctor-rigs": "node tests/doctor-real-rigs.mjs"
   },
   "dependencies": {
+    "@pixiv/three-vrm": "^3.5.5",
+    "@pixiv/three-vrm-animation": "3.5.5",
+    "@turf/turf": "^7.4.0",
     "@zxing/browser": "0.2.1",
+    "d3": "^7.9.0",
+    "leaflet": "^1.9.4",
     "lucide-react": "1.42.0",
+    "maplibre-gl": "^6.15.0",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "three": "^0.186.1"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "6.1.1",

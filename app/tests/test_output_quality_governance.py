@@ -102,8 +102,7 @@ def test_output_quality_verifier_catches_unsafe_reassurance():
     assert result.is_valid is False
     assert result.contains_unsafe_reassurance is True
     assert "false_reassurance" in result.violated_forbidden
-    assert result.repaired_text is not None
-    assert "115" in result.repaired_text
+    assert result.repaired_text is None
 
 
 def test_output_quality_verifier_catches_unsupported_diagnosis():
@@ -113,7 +112,7 @@ def test_output_quality_verifier_catches_unsupported_diagnosis():
     result = verify_output_quality(unsupported_text, obligations)
     assert result.is_valid is False
     assert result.contains_unsupported_diagnosis is True
-    assert result.repaired_text is not None
+    assert result.repaired_text is None
 
 
 def test_deterministic_template_repair_dual_crisis():
@@ -160,3 +159,93 @@ def test_grounded_answer_preserves_dual_crisis_composition():
     assert "khủng hoảng" in answer.summary.lower()
     assert any("111" in step for step in answer.next_steps)
     assert any("Không ở một mình" in note for note in answer.safety_notes)
+
+
+def test_chat_endpoint_triggers_output_quality_governance():
+    """Verify that POST /v1/chat runs Output Quality Verifier and logs audit metadata."""
+    from fastapi.testclient import TestClient
+    from app.main import app
+    from app.services.audit import audit_store
+
+    client = TestClient(app)
+    conv_id = "test-gov-audit-1"
+    res = client.post(
+        "/v1/chat",
+        headers={
+            "X-API-Key": "demo-key",
+            "X-Tenant-Id": "tenant-demo",
+            "Idempotency-Key": f"idemp-{conv_id}",
+            "X-Consent-Token": "consent-demo",
+        },
+        json={
+            "conversation_id": conv_id,
+            "messages": [{"role": "user", "content": "Tôi bị đau ngực lan tay trái và khó thở"}],
+        },
+    )
+    assert res.status_code == 200
+    body = res.json()
+    assert body["status"] == "answered"
+    assert "115" in body["reply"] or "Cấp cứu" in body["reply"]
+
+    # Verify audit store recorded output_quality metadata
+    events = [e for e in audit_store.events if e.metadata.get("conversation_id") == conv_id]
+    assert len(events) > 0
+    oq_meta = events[0].metadata.get("output_quality")
+    assert oq_meta is not None
+    assert oq_meta["checked"] is True
+    assert oq_meta["policy_tier"] == "EMERGENCY"
+    assert oq_meta["is_valid"] is True
+    assert oq_meta["repaired"] is False
+
+
+def test_chat_endpoint_repaired_when_unsafe_advice_simulated(monkeypatch):
+    """Simulate an unsafe prose generator and verify deterministic repair intercepts it."""
+    from fastapi.testclient import TestClient
+    from app.main import app
+    from app.models.chat import GroundedAnswer, AnswerNarrativeBlock
+    import app.services.chat as chat_module
+
+    # Mock select_presentation to inject unsafe reassurance into GroundedAnswer
+    orig_select = chat_module.build_grounded_answer
+
+    def mock_build_grounded(*args, **kwargs):
+        ans = orig_select(*args, **kwargs)
+        return ans.model_copy(
+            update={
+                "summary": "Tình trạng này không sao đâu, cứ ở nhà theo dõi đến mai xem sao.",
+                "narrative": [
+                    AnswerNarrativeBlock(
+                        kind="paragraph",
+                        text="Tình trạng này không sao đâu, cứ ở nhà theo dõi đến mai xem sao.",
+                    )
+                ],
+            }
+        )
+
+    monkeypatch.setattr(chat_module, "build_grounded_answer", mock_build_grounded)
+
+    client = TestClient(app)
+    conv_id = "test-gov-repair-1"
+    res = client.post(
+        "/v1/chat",
+        headers={
+            "X-API-Key": "demo-key",
+            "X-Tenant-Id": "tenant-demo",
+            "Idempotency-Key": f"idemp-{conv_id}",
+            "X-Consent-Token": "consent-demo",
+        },
+        json={
+            "conversation_id": conv_id,
+            "messages": [{"role": "user", "content": "Tôi bị đau ngực dữ dội và vã mồ hôi"}],
+        },
+    )
+    assert res.status_code == 200
+    body = res.json()
+
+    # The unsafe advice MUST have been intercepted and replaced by the deterministic template repair
+    assert "không sao đâu" not in body["reply"].lower()
+    assert "ở nhà theo dõi" not in body["reply"].lower()
+    assert "CẢNH BÁO KHẨN CẤP" in body["reply"]
+    assert "115" in body["reply"]
+    assert "khoa Cấp cứu" in body["reply"]
+    assert body["answer_origin"] == "deterministic_fallback"

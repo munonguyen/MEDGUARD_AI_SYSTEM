@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
+from concurrent.futures import TimeoutError as FutureTimeoutError
+from contextvars import copy_context
 from dataclasses import dataclass
 import logging
 import re
@@ -9,9 +10,13 @@ from urllib.parse import urlsplit, urlunsplit
 
 logger = logging.getLogger(__name__)
 
-_AGENT_EXECUTOR = ThreadPoolExecutor(max_workers=8, thread_name_prefix="medguard-agent")
+from app.services.bounded_agent_executor import BoundedAgentExecutor, AgentCapacityError
 
 from app.core.config import settings
+
+_AGENT_EXECUTOR = BoundedAgentExecutor(
+    max_workers=settings.agent_workers, max_pending=settings.agent_max_pending,
+)
 from app.core.observability import metrics
 from app.knowledge.loader import knowledge
 from app.models.agents import AgentDraft, AgentStageTrace, AgentVerification, AnswerAgentTrace
@@ -22,9 +27,12 @@ from app.services.agent_provider import (
     StructuredModelProvider,
 )
 from app.services.agent_graph import MedicalAgentGraph, MedicalAgentState
+from app.services.companion_voice import prepare_writer_voice
 from app.services.circuit import CircuitBreaker, model_circuit
 from app.services.knowledge_retriever import knowledge_retriever, resolve_domain
 from app.services.jury_evaluator import MedicalSafetyGate, QAGEvaluator
+from app.services.clinical_agent_contract import build_clinical_agent_contract
+from app.services.clinical_reasoning import enrich_patient_context, review_response_quality
 from app.services.llm_control_plane import (
     AgentRequestPolicy,
     SingleFlightCoordinator,
@@ -35,29 +43,39 @@ from app.services.llm_control_plane import (
 )
 
 
-_CLINICAL_RESEARCH_INSTRUCTIONS = """You are MedGuard's Clinical & Triage Medical Writer (Chuyên gia Biên soạn Lâm sàng & Cấp cứu).
-Analyze the bounded Vietnamese clinical episode, symptoms, acuity, and vitals.
-Write a concise, reassuring, and safe response in natural clinical conversational Vietnamese.
-STRICT CLINICAL RULES:
-1. NON-OVERDIAGNOSIS & HUMILITY: Do NOT diagnose illnesses, claim certainty, or jump to complex causes (e.g. cervicogenic headache, cervical spondylosis) for mild or acute morning symptoms. Acknowledge common possibilities gently without asserting definitive causation.
-2. ANTI-ANCHORING: Evaluate current symptoms on their own merits without being biased by disconnected past episodes.
-3. CONSERVATIVE SELF-CARE: Focus on bounded, non-pharmacological care first (rest, hydration, posture, calm environment, warm/cold compresses). Do NOT proactively prescribe specific medication dosages (such as Paracetamol/NSAIDs) without full clinical history (liver/kidney disease, alcohol use, pregnancy, age).
-4. RED FLAGS & TRIAGE: Clearly outline red-flag warning signs that require emergency attention or direct physician evaluation. Maintain triage urgency monotonicity.
-5. Use only supplied domain claims for patient-specific findings, urgency, actions, and safety advice.
-6. Write 2 concise, natural paragraphs (normally under 220 words total): block 1 for clinical evaluation & self-care, block 2 for red-flag caution & next steps. Locked claims take precedence over the word target and must never be shortened. Provide at most 2 evidence claims and 2 sources.
-7. In narrative block 1, cite domain claim_ids (e.g. title_1, summary_2) and source_ids. In block 2, cite action/safety claim_ids and source_ids. Each source in 'sources' must list all claim_ids it supports in 'supports_claim_ids'. All defined sources must be cited. Claims marked locked=true must appear verbatim. Return structured output only."""
+_CLINICAL_RESEARCH_INSTRUCTIONS = """You are MedGuard's primary Clinical Reasoner and Patient Response Writer.
+You are NOT editing a pre-written deterministic answer. Build the response from the supplied clinical envelope, bounded claims, current episode and retrieved evidence.
+
+PROFESSIONAL CLINICAL COMMUNICATION RULES:
+1. REASON BEFORE WRITING: identify the patient's real concern, current clinical pattern, uncertainty, safety implications and the single best next action. Do not map a keyword directly to canned prose.
+2. DIRECTNESS: answer the practical concern in the first 1-2 sentences. Do not open routine cases with boilerplate such as 'thông tin hiện tại chưa cho thấy rõ dấu hiệu cấp cứu' or 'cần thêm đánh giá lâm sàng toàn diện'.
+3. DANGEROUS MISCONCEPTIONS FIRST: if the patient proposes an unsafe action, clearly stop/correct that action before giving mechanism or background explanation.
+4. CLINICAL HUMILITY: distinguish an assessment/pattern from a diagnosis. Never invent symptoms, diagnoses, medication history, rule antecedents or examination findings that the user did not provide.
+5. ACTIONABILITY: give concrete, situation-specific next steps. Avoid generic advice that would fit almost any symptom.
+6. SAFETY: obey locked safety claims exactly. Emergency action comes before explanation and never waits for additional questions.
+7. FOLLOW-UP: ask at most one high-information question when it could materially change triage, disposition or the leading clinical interpretation. Do not re-ask facts already present in the envelope.
+8. EXPLANATION: explain mechanisms in plain Vietnamese only when supported by supplied claims/evidence. Use a calm, confident professional tone without false certainty.
+9. ORIGINAL COMPOSITION: do not copy fixed templates from memory or reconstruct legacy deterministic prose. The professional_response_principles are communication behavior, not medical evidence.
+10. V28 CONTEXT: treat explicit negative findings as absent for the current turn, never promote them to positive red flags, and obey medication_safety.allowed=false as a hard prohibition against the contraindicated action.
+11. REMEDIES AND PROCEDURES: use only care options supported by the current episode and supplied evidence. Never transfer medicines, self-care steps, or procedures from a different complaint. A patient's disease label is a reported concern, not a confirmed diagnosis; distinguish evaluation from a treatment or surgical decision.
+12. Produce normally 2-4 concise narrative blocks and no more than 280 words unless locked emergency content requires more. Each patient-specific medical claim must cite a supplied claim_id/source_id. All locked claims must appear verbatim. Return structured output only."""
 
 
-_CLINICAL_VERIFIER_INSTRUCTIONS = """You are MedGuard's Clinical Triage Medical Judge (Ban Giám Khảo Thẩm định Lâm sàng & Cấp cứu).
-Evaluate the draft answer against domain claims, triage safety rules, and clinical guidelines.
-CLINICAL JUDGE EVALUATION RULES:
-1. RELEVANCE: Reject any symptom, diagnosis, warning sign, or recommendation that is unrelated to the user's body region and supplied clinical episode.
-2. DIRECTNESS: Reject a draft that does not directly answer the user's practical question before adding explanation.
-3. RED FLAG SENSITIVITY: Reject a draft that minimizes or misses urgent functional impairment or life-threatening warning signs supplied by the rules.
-4. CONSERVATIVE SAFETY: Reject speculative diagnoses and any claim that the patient is safe when required assessment data is missing.
-5. SOURCE ENTAILMENT: Reject every claim whose cited source does not directly support that claim. A trusted domain alone is not evidence. When runtime_external_evidence is supplied, compare the draft against that fetched page text and reject claims not entailed by it.
-6. INDEPENDENT SCORING: Derive every score from the draft. Never use fixed scores. Approval requires no unsupported claims, no source issues, no missing required claims, grounding >= 0.90, safety >= 0.95, completeness >= 0.85, and citation coverage >= 0.90.
-7. When rejected, populate issues, unsupported_claims, missing_claim_ids, or source_issues with concrete reasons. Return structured output only."""
+_CLINICAL_VERIFIER_INSTRUCTIONS = """You are MedGuard's independent Clinical Quality Judge.
+You do not write the patient answer and you do not perform a second diagnosis. Evaluate whether the Writer faithfully converted the supplied clinical envelope and evidence into a professional patient response.
+
+JUDGE RULES:
+1. FACT GROUNDING: reject invented symptoms, diagnoses, medication facts, examination findings, or rule antecedents not present in the envelope/evidence. Accept standard guideline-backed symptomatic drug classes (e.g. OTC 2nd-gen antihistamines, soothing topicals) when patient asks for remedies/medications for rash/pruritus.
+2. SAFETY CONSISTENCY: locked urgency/actions are non-negotiable; reject downgrade, delay, false reassurance or conflicting advice.
+3. DIRECTNESS: reject generic non-answers and responses that fail to address the user's practical concern early.
+4. ACTIONABILITY: reject an answer that gives explanation without a clear next action appropriate to the resolved care level.
+5. UNCERTAINTY CALIBRATION: reject definitive diagnosis when only a pattern/possibility is supported; also reject meaningless boilerplate uncertainty.
+6. QUESTION QUALITY: reject repeated/low-information questions; emergency responses must not block action with follow-up questions.
+7. COMMUNICATION QUALITY: prefer calm, natural, doctor-like Vietnamese; reject internal system wording, triage implementation jargon and template leakage.
+8. V28 CONSISTENCY: compare the draft with clinical_context positive_findings, negative_findings, domain_assessment and medication_safety. Reject any draft that converts a negated finding into a present symptom, invents a red flag, ignores a hard medication contraindication, or describes a hypothetical warning sign as currently present.
+9. SOURCE ENTAILMENT: every cited source must directly support its associated claim; a trusted domain alone is not evidence. When web search is disabled, accept citations corresponding to the supplied clinical envelope, rules, and retrieved guideline contexts for routine clinical guidance.
+10. INDEPENDENT SCORING: approval requires no unsupported claims/source issues/missing locked claims and grounding >= 0.90, safety >= 0.95, completeness >= 0.85, citation coverage >= 0.90.
+11. When rejected, return concrete revision issues only. Do not rewrite the answer yourself. Return structured output only."""
 
 
 
@@ -119,10 +137,10 @@ class AnswerAgentConfig:
     max_input_tokens: int = 12_000
     research_max_output_tokens: int = 2_400
     verifier_max_output_tokens: int = 1_800
-    prompt_version: str = "2026-09-09"
+    prompt_version: str = "2026-10-09-companion"
     web_search_required: bool = True
     verifier_search_required: bool = True
-    max_iterations: int = 0
+    max_iterations: int = 1
     total_timeout_seconds: float = 8.0
 
     @classmethod
@@ -145,7 +163,7 @@ class AnswerAgentConfig:
             prompt_version=settings.agent_prompt_version,
             web_search_required=settings.agent_web_search_required,
             verifier_search_required=settings.verifier_web_search_required,
-            max_iterations=getattr(settings, "agent_max_iterations", 0),
+            max_iterations=getattr(settings, "agent_max_iterations", 1),
             total_timeout_seconds=getattr(settings, "agent_total_timeout_seconds", 8),
         )
 
@@ -310,11 +328,15 @@ def _gate_reason(
 
     sources_by_id = {source.source_id: source for source in draft.sources}
     for block in draft.narrative:
-        block_sources = [sources_by_id[source_id] for source_id in block.source_ids]
-        if any(
-            not any(claim_id in source.supports_claim_ids for source in block_sources)
-            for claim_id in block.claim_ids
-        ):
+        block_sources = [sources_by_id[source_id] for source_id in block.source_ids if source_id in sources_by_id]
+        if block_sources:
+            if any(
+                not any(claim_id in source.supports_claim_ids for source in block_sources)
+                for claim_id in block.claim_ids
+                if not claim_id.startswith("question_")
+            ):
+                return "narrative_claim_source_mismatch"
+        elif any(not claim_id.startswith("question_") and claim_id in evidence_claim_ids for claim_id in block.claim_ids):
             return "narrative_claim_source_mismatch"
     for evidence_claim in draft.evidence_claims:
         if set(evidence_claim.source_ids) - valid_source_ids:
@@ -478,13 +500,125 @@ class AnswerAgentPipeline:
                 )
             return operation()
 
-        future = _AGENT_EXECUTOR.submit(invoke)
+        try:
+            invocation_context = copy_context()
+            future = _AGENT_EXECUTOR.submit(lambda: invocation_context.run(invoke))
+        except AgentCapacityError:
+            metrics.inc_counter("medguard_agent_admission_rejected_total", labels={"intent": intent})
+            result = answer.model_copy(update={"agent_trace": self._trace(
+                status="unavailable", reason="agent_capacity_exhausted")})
+            self._record_result(result, policy)
+            return result
         try:
             result = future.result(timeout=self.config.total_timeout_seconds)
         except FutureTimeoutError:
             future.cancel()
             metrics.inc_counter("medguard_llm_pipeline_timeout_total", labels={"intent": intent})
             result = answer.model_copy(
+                update={"agent_trace": self._trace(status="error", reason="agent_total_timeout")}
+            )
+        self._record_result(result, policy)
+        return result
+
+    def generate_response(
+        self,
+        *,
+        fallback_answer: GroundedAnswer,
+        clinical_payload: dict[str, Any],
+        intent: ChatIntent,
+        question: str,
+        request_id: str,
+        tenant_id: str = "unscoped",
+        conversation_id: str = "unscoped",
+        locale: str = "vi-VN",
+        patient_context: dict[str, Any] | None = None,
+    ) -> GroundedAnswer:
+        """Primary V12 clinical response path.
+
+        The fallback answer is retained only for fail-safe degradation. Writer
+        input comes from the structured clinical contract, never from legacy
+        deterministic prose, so the model is not anchored to old templates.
+        """
+        policy = policy_for_intent(intent)
+        if self.config.mode == "disabled":
+            result = fallback_answer.model_copy(
+                update={"agent_trace": self._trace(status="disabled", reason="agent_mode_disabled")}
+            )
+            self._record_result(result, policy)
+            return result
+
+        configured = (
+            self.research_provider.is_configured
+            and self.verifier_provider.is_configured
+            and self.config.research_model
+            and self.config.verifier_model
+        )
+        if not configured:
+            result = fallback_answer.model_copy(
+                update={"agent_trace": self._trace(status="unavailable", reason="agent_configuration_incomplete")}
+            )
+            self._record_result(result, policy)
+            return result
+        if not self.circuit.allow_request():
+            result = fallback_answer.model_copy(
+                update={"agent_trace": self._trace(status="circuit_open", reason="model_circuit_open")}
+            )
+            self._record_result(result, policy)
+            return result
+
+        context = patient_context or {}
+        contract = build_clinical_agent_contract(
+            intent=intent,
+            question=question,
+            clinical_result=clinical_payload,
+            patient_context=context,
+        )
+        operation = lambda: self._execute(
+            answer=fallback_answer,
+            intent=intent,
+            question=question,
+            request_id=request_id,
+            tenant_id=tenant_id,
+            conversation_id=conversation_id,
+            locale=locale,
+            patient_context=context,
+            policy=policy,
+            claims_override=contract.claims,
+            tool_result_override=contract.envelope,
+        )
+
+        def invoke() -> GroundedAnswer:
+            if policy.single_flight:
+                return self.flight_coordinator.run(
+                    singleflight_key(
+                        tenant_id=tenant_id,
+                        conversation_id=conversation_id,
+                        locale=locale,
+                        question=question,
+                        patient_context=context,
+                        tool_result=contract.envelope,
+                        prompt_version=self.config.prompt_version,
+                        knowledge_version=knowledge.version_string(),
+                    ),
+                    operation,
+                )
+            return operation()
+
+        try:
+            invocation_context = copy_context()
+            future = _AGENT_EXECUTOR.submit(lambda: invocation_context.run(invoke))
+        except AgentCapacityError:
+            metrics.inc_counter("medguard_agent_admission_rejected_total", labels={"intent": intent})
+            result = fallback_answer.model_copy(update={"agent_trace": self._trace(
+                status="unavailable", reason="agent_capacity_exhausted")})
+            self._record_result(result, policy)
+            return result
+        try:
+            result = future.result(timeout=self.config.total_timeout_seconds)
+        except FutureTimeoutError:
+            future.cancel()
+            metrics.inc_counter("medguard_llm_pipeline_timeout_total", labels={"intent": intent})
+            result = fallback_answer.model_copy(
                 update={"agent_trace": self._trace(status="error", reason="agent_total_timeout")}
             )
         self._record_result(result, policy)
@@ -515,10 +649,17 @@ class AnswerAgentPipeline:
         locale: str,
         patient_context: dict[str, Any],
         policy: AgentRequestPolicy,
+        claims_override: list[dict[str, Any]] | None = None,
+        tool_result_override: dict[str, Any] | None = None,
     ) -> GroundedAnswer:
         domain = resolve_domain(intent, question)
-        claims = _claims(answer, intent)
-        tool_result = answer.model_dump(mode="json", exclude={"agent_trace"})
+        claims = claims_override if claims_override is not None else _claims(answer, intent)
+        tool_result = tool_result_override if tool_result_override is not None else answer.model_dump(mode="json", exclude={"agent_trace"})
+        enriched_patient_context = (
+            patient_context
+            if isinstance(patient_context.get("clinical_context"), dict)
+            else enrich_patient_context(patient_context, question)
+        )
         state = MedicalAgentState(
             request_id=request_id,
             tenant_id=tenant_id,
@@ -526,7 +667,7 @@ class AnswerAgentPipeline:
             locale=locale,
             intent=intent,
             question=question,
-            patient_context=patient_context,
+            patient_context=enriched_patient_context,
             policy=policy,
             claims=claims,
             tool_result=tool_result,
@@ -563,6 +704,17 @@ class AnswerAgentPipeline:
             if domain == "pharmacology"
             else _CLINICAL_RESEARCH_INSTRUCTIONS
         )
+        writer_instructions += (
+            "\nAdapt length to the bounded presentation contract: "
+            + ("brief: one direct paragraph, normally at most 80 words; no repeated title, boilerplate or invented follow-up questions. "
+               if answer.presentation == "brief" else
+               "focused: answer only the patient's current concern; normally 80-160 Vietnamese words, one or two short paragraphs. "
+               "Put the specific answer in the opening sentence. Ask at most one high-information question. "
+               "Do not add unrelated diseases, repeat advice, recap the conversation, or list speculative diagnoses. "
+               if answer.presentation == "focused" else
+               "detailed: explain reasoning and relevant context in readable sections. ")
+            + "Preserve every locked safety claim verbatim regardless of length."
+        )
         verifier_instructions = (
             _PHARMA_VERIFIER_INSTRUCTIONS
             if domain == "pharmacology"
@@ -583,6 +735,10 @@ class AnswerAgentPipeline:
                 )
                 if not writer_ok:
                     break
+
+                # Preparation overlaps review; drafts cannot receive a ticket.
+                if state.draft is not None:
+                    prepare_writer_voice(" ".join(block.text for block in state.draft.narrative))
 
                 self.graph.node_reviewer(
                     state,
@@ -644,6 +800,52 @@ class AnswerAgentPipeline:
             # prose cannot offset false reassurance, a missing locked claim,
             # unsupported diagnosis/dosing, or wholly ungrounded medical text.
             narrative_text = "\n".join(block.text for block in narrative)
+            first_block = (narrative[0].text if narrative else "").lower()
+            generic_non_answer = any(
+                phrase in first_block
+                for phrase in (
+                    "cần thêm đánh giá lâm sàng toàn diện",
+                    "thông tin hiện tại chưa cho thấy rõ dấu hiệu cấp cứu",
+                )
+            )
+            if generic_non_answer:
+                metrics.inc_counter(
+                    "medguard_llm_quality_rejections_total",
+                    labels={"risk_class": policy.risk_class.value},
+                )
+                trace = self._trace(
+                    status="rejected",
+                    reason="generic_non_answer",
+                    **trace_values,
+                )
+                return answer.model_copy(update={"agent_trace": trace})
+
+            v28_quality = review_response_quality(
+                question,
+                narrative_text,
+                domain=state.domain,
+            )
+            if not v28_quality.passed:
+                first_violation = (
+                    v28_quality.violations[0]
+                    if v28_quality.violations
+                    else "clinical_alignment_failed"
+                )
+                metrics.inc_counter(
+                    "medguard_llm_quality_rejections_total",
+                    labels={"risk_class": policy.risk_class.value},
+                )
+                metrics.inc_counter(
+                    "medguard_v28_response_quality_rejections_total",
+                    labels={"reason": first_violation},
+                )
+                trace = self._trace(
+                    status="rejected",
+                    reason=f"v28_response_quality:{first_violation}",
+                    **trace_values,
+                )
+                return answer.model_copy(update={"agent_trace": trace})
+
             grounding = QAGEvaluator.evaluate_groundedness(
                 narrative_text,
                 [chunk.content for chunk in state.retrieved_chunks]
@@ -678,10 +880,16 @@ class AnswerAgentPipeline:
                 return answer.model_copy(update={"agent_trace": trace})
 
             trace = self._trace(status="verified", **trace_values)
+            display_questions = list(dict.fromkeys((answer.display_questions or []) + (answer.questions or [])))
+            if not display_questions and state.draft.question_analysis.key_questions:
+                display_questions = [q for q in state.draft.question_analysis.key_questions if q.strip()]
             return answer.model_copy(
                 update={
                     "narrative": narrative,
                     "researched_sources": state.draft.sources,
+                    "display_questions": display_questions[:3] if display_questions else [],
+                    "questions": answer.questions or display_questions or [],
+                    "suggested_followups": answer.suggested_followups or [],
                     "answer_assurance": AnswerAssurance(status="verified", scores=state.verification.scores),
                     "agent_trace": trace,
                 }

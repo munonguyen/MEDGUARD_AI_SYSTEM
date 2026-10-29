@@ -54,7 +54,7 @@ def test_case_1_thunderclap_headache_gym_emergency_override(ctx: RequestContext)
     )
     chat_res = orchestrate_chat(chat_req, ctx)
     assert chat_res.answer is not None
-    assert chat_res.answer.title == "Bạn cần được đánh giá cấp cứu ngay"
+    assert chat_res.answer.title == "Gọi 115 hoặc đến khoa Cấp cứu ngay"
     assert chat_res.answer.clinical_hypotheses == []
     assert chat_res.answer.questions == []
 
@@ -131,7 +131,7 @@ def test_case_3_post_coital_sudden_headache_emergency(ctx: RequestContext) -> No
     )
     chat_res = orchestrate_chat(chat_req, ctx)
     assert chat_res.answer is not None
-    assert chat_res.answer.title == "Bạn cần được đánh giá cấp cứu ngay"
+    assert chat_res.answer.title == "Gọi 115 hoặc đến khoa Cấp cứu ngay"
 
 
 def test_case_4_meningitis_combination_non_exclusion(ctx: RequestContext) -> None:
@@ -161,7 +161,7 @@ def test_case_4_meningitis_combination_non_exclusion(ctx: RequestContext) -> Non
     )
     chat_res = orchestrate_chat(chat_req, ctx)
     assert chat_res.answer is not None
-    assert chat_res.answer.title == "Bạn cần được đánh giá cấp cứu ngay"
+    assert chat_res.answer.title == "Gọi 115 hoặc đến khoa Cấp cứu ngay"
 
 
 def test_case_5_head_trauma_drowsiness_non_exclusion(ctx: RequestContext) -> None:
@@ -190,7 +190,7 @@ def test_case_5_head_trauma_drowsiness_non_exclusion(ctx: RequestContext) -> Non
     )
     chat_res = orchestrate_chat(chat_req, ctx)
     assert chat_res.answer is not None
-    assert chat_res.answer.title == "Bạn cần được đánh giá cấp cứu ngay"
+    assert chat_res.answer.title == "Gọi 115 hoặc đến khoa Cấp cứu ngay"
 
 
 def test_case_6_thunderclap_pain_improved_non_downgrade(ctx: RequestContext) -> None:

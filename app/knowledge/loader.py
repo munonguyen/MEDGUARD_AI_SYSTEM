@@ -9,10 +9,13 @@ so that audit records can reference the exact knowledge snapshot used.
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass, field
 from hashlib import sha256
 from pathlib import Path
 from typing import Any
+
+from app.services.clinical_text import contains_affirmed_phrase, normalize_search_text
 
 
 _KNOWLEDGE_DIR = Path(__file__).resolve().parent
@@ -21,6 +24,9 @@ _FILE_NAMES = (
     "drug_interactions.json",
     "allergy_cross_matrix.json",
     "red_flag_protocols.json",
+    "v25_safety_overlay.json",
+    "v25_urgent_overlay.json",
+    "v25_response_policy_overlay.json",
     "contraindications.json",
     "atc_codes.json",
     "icd10_codes.json",
@@ -44,10 +50,6 @@ class KnowledgeStore:
 
     files: dict[str, KnowledgeFile] = field(default_factory=dict)
 
-    # ------------------------------------------------------------------
-    # Typed accessors
-    # ------------------------------------------------------------------
-
     @property
     def drug_interactions(self) -> list[dict[str, Any]]:
         return self.files.get("drug_interactions.json", KnowledgeFile("", "", "", {})).data.get("interactions", [])
@@ -58,11 +60,28 @@ class KnowledgeStore:
 
     @property
     def red_flag_patterns(self) -> list[dict[str, Any]]:
-        return self.files.get("red_flag_protocols.json", KnowledgeFile("", "", "", {})).data.get("red_flag_patterns", [])
+        """Return the frozen/base registry plus versioned post-V10 overlays."""
+        base = self.files.get(
+            "red_flag_protocols.json", KnowledgeFile("", "", "", {})
+        ).data.get("red_flag_patterns", [])
+        overlay = self.files.get(
+            "v25_safety_overlay.json", KnowledgeFile("", "", "", {})
+        ).data.get("red_flag_patterns", [])
+        return [*base, *overlay]
 
     @property
     def urgent_patterns(self) -> list[dict[str, Any]]:
-        return self.files.get("red_flag_protocols.json", KnowledgeFile("", "", "", {})).data.get("urgent_patterns", [])
+        """Return frozen urgent rules plus post-V10 V25 urgent overlays."""
+        base = self.files.get(
+            "red_flag_protocols.json", KnowledgeFile("", "", "", {})
+        ).data.get("urgent_patterns", [])
+        overlay = self.files.get(
+            "v25_urgent_overlay.json", KnowledgeFile("", "", "", {})
+        ).data.get("urgent_patterns", [])
+        policy_overlay = self.files.get(
+            "v25_response_policy_overlay.json", KnowledgeFile("", "", "", {})
+        ).data.get("urgent_patterns", [])
+        return [*base, *overlay, *policy_overlay]
 
     @property
     def routine_administrative_patterns(self) -> list[dict[str, Any]]:
@@ -78,7 +97,14 @@ class KnowledgeStore:
 
     @property
     def symptom_guidance(self) -> list[dict[str, Any]]:
-        return self.files.get("red_flag_protocols.json", KnowledgeFile("", "", "", {})).data.get("symptom_guidance", [])
+        """Return response-policy guidance before general symptom guidance."""
+        policy = self.files.get(
+            "v25_response_policy_overlay.json", KnowledgeFile("", "", "", {})
+        ).data.get("symptom_guidance", [])
+        base = self.files.get(
+            "red_flag_protocols.json", KnowledgeFile("", "", "", {})
+        ).data.get("symptom_guidance", [])
+        return [*policy, *base]
 
     @property
     def reported_ingestion_protocols(self) -> list[dict[str, Any]]:
@@ -86,70 +112,206 @@ class KnowledgeStore:
             "medication_incident_protocols.json", KnowledgeFile("", "", "", {})
         ).data.get("reported_ingestion_protocols", [])
 
-    def find_symptom_guidance(self, symptoms_text: str) -> dict[str, Any] | None:
-        from app.services.clinical_text import normalize_search_text
-        normalized = symptoms_text.lower().strip()
-        norm_unaccent = normalize_search_text(normalized)
-        for guidance in self.symptom_guidance:
-            topic = guidance.get("topic")
-            if topic == "lower_limb_pain":
-                # Protect against hijacking back pain queries that merely evaluate radiculopathy (leg radiation)
-                is_back_context = any(
-                    term in normalized or term in norm_unaccent
-                    for term in (
-                        "dau lung", "that lung", "cot song", "ngoi may tinh", "ngoi lau", "ngoi ca ngay",
-                        "đau lưng", "thắt lưng", "cột sống", "ngồi máy tính", "mong", "mông", "lan xuong", "lan xuống",
-                        "dau mong", "đau mông", "chèn ép rễ", "chen ep re", "than kinh toa", "thần kinh tọa",
-                        "dau doc xuong chan", "đau dọc xuống chân", "te chan", "tê chân"
-                    )
-                )
-                if is_back_context:
-                    continue
+    def _contextualize_guidance(self, guidance: dict[str, Any], symptoms_text: str) -> dict[str, Any]:
+        """Overlay V25 explanation/question planning without mutating knowledge."""
+        if guidance.get("topic") in {"dental_pain", "unlocalized_muscle_pain"}:
+            # Do not let an accent-folded spine/mechanism planner invent a
+            # location or cause for these bounded, clarification-first answers.
+            return guidance
+        try:
+            from app.services.contextual_triage_planner import (
+                build_contextual_triage_plan,
+                reasoning_trace_payload,
+            )
 
-                # Protect against negated leg symptoms
-                is_negated = any(
-                    neg in normalized or neg in norm_unaccent
-                    for neg in (
-                        "khong dau chan", "khong lan", "khong te", "khong bi", "chua bi", "da khong",
-                        "không đau", "không lan", "không tê", "khong te chan", "không tê chân"
-                    )
-                )
-                if is_negated:
-                    continue
+            plan = build_contextual_triage_plan(
+                symptoms_text=symptoms_text,
+                urgency="ROUTINE",
+                existing_summary=(
+                    str(guidance.get("summary")) if guidance.get("summary") else None
+                ),
+                existing_hypotheses=[
+                    str(value) for value in guidance.get("clinical_hypotheses", [])
+                ],
+                existing_questions=[
+                    str(value) for value in guidance.get("clarifying_questions", [])
+                ],
+            )
+        except Exception:
+            return guidance
 
-                has_lower_limb_region = any(
-                    term in normalized
-                    for term in (
-                        "chân",
-                        "đùi",
-                        "bắp chân",
-                        "đầu gối",
-                        "cổ chân",
-                        "mắt cá",
-                        "bàn chân",
-                    )
-                )
-                has_relevant_problem = any(
-                    term in normalized
-                    for term in ("đau", "nhức", "sưng", "khó đi", "không đi", "chịu lực")
-                )
-                if has_lower_limb_region and has_relevant_problem:
-                    return guidance
-            if any(str(keyword).lower() in normalized for keyword in guidance.get("keywords", [])):
-                if topic == "lower_limb_pain" and (
-                    is_back_context
-                    or any(
-                        term in normalized or term in norm_unaccent
-                        for term in (
-                            "dau lung", "that lung", "cot song", "ngoi may tinh", "ngoi lau", "ngoi ca ngay",
-                            "đau lưng", "thắt lưng", "cột sống", "ngồi máy tính", "mong", "mông", "lan xuong", "lan xuống",
-                            "dau mong", "đau mông", "chèn ép rễ", "chen ep re", "than kinh toa", "thần kinh tọa",
-                            "dau doc xuong chan", "đau dọc xuống chân", "te chan", "tê chân"
-                        )
-                    )
-                ):
-                    continue
+        if not plan.applied:
+            return guidance
+
+        contextual = dict(guidance)
+        if plan.summary:
+            contextual["summary"] = plan.summary
+        if plan.hypotheses:
+            contextual["clinical_hypotheses"] = list(plan.hypotheses)
+        if plan.questions:
+            existing_qs = [str(q) for q in guidance.get("clarifying_questions", [])]
+            combined = list(plan.questions) + [q for q in existing_qs if q not in plan.questions]
+            contextual["clarifying_questions"] = combined[:3]
+        contextual["v25_contextual_reasoning"] = reasoning_trace_payload(plan)
+        return contextual
+
+    def _find_explicit_response_policy(self, normalized: str) -> dict[str, Any] | None:
+        """Match explicit workflow/policy requests without clinical-negation semantics."""
+        policy = self.files.get(
+            "v25_response_policy_overlay.json", KnowledgeFile("", "", "", {})
+        ).data.get("symptom_guidance", [])
+        for guidance in policy:
+            if guidance.get("match_mode") == "affirmed_complaint":
+                continue
+            if any(
+                normalize_search_text(str(keyword)) in normalized
+                for keyword in guidance.get("keywords", [])
+            ):
                 return guidance
+        return None
+
+    @staticmethod
+    def _guidance_is_route_compatible(guidance: dict[str, Any], normalized: str) -> bool:
+        """Reject symptom templates whose physical mechanism contradicts the turn."""
+        topic = str(guidance.get("topic", ""))
+
+        if topic == "open_wound_cut":
+            animal_bite_markers = (
+                "cho can", "meo can", "dong vat can", "suc vat can",
+                "khi can", "doi can", "chuot can",
+            )
+            if any(
+                contains_affirmed_phrase(normalized, marker)
+                for marker in animal_bite_markers
+            ):
+                return False
+
+        if topic != "acute_burn":
+            return True
+
+        inhalation_markers = (
+            "hit", "mui hoa chat", "hoi hoa chat", "khoi", "phong kin",
+            "rat hong", "ho sau khi", "duong ho hap",
+        )
+        skin_burn_markers = (
+            "bi bong", "vet bong", "bong da", "bong nuoc", "nuoc soi",
+            "rat da", "da do", "hoa chat do len da", "hoa chat dinh vao da",
+        )
+        has_inhalation_route = any(
+            contains_affirmed_phrase(normalized, marker)
+            for marker in inhalation_markers
+        )
+        has_skin_burn = any(
+            contains_affirmed_phrase(normalized, marker)
+            for marker in skin_burn_markers
+        )
+        return not (has_inhalation_route and not has_skin_burn)
+
+    @staticmethod
+    def _is_animal_bite(normalized: str) -> bool:
+        return any(
+            contains_affirmed_phrase(normalized, marker)
+            for marker in (
+                "cho can", "meo can", "dong vat can", "suc vat can",
+                "khi can", "doi can", "chuot can",
+            )
+        )
+
+    def find_symptom_guidance(self, symptoms_text: str) -> dict[str, Any] | None:
+        normalized = normalize_search_text(symptoms_text)
+
+        dental = any(contains_affirmed_phrase(normalized, phrase) for phrase in
+                     ("dau rang", "nhuc rang", "e buot rang", "sung nuou", "sung loi"))
+        if dental:
+            return next((g for g in self.symptom_guidance if g.get("topic") == "dental_pain"), None)
+
+        # Accent folding makes cơ (muscle), cổ (neck), and có identical.
+        # A bare "đau cơ" / unaccented "dau co" cannot establish neck pain.
+        # Preserve raw anatomical evidence; ambiguous spelling asks location.
+        raw = symptoms_text.lower()
+        neck_evidence = bool(re.search(r"\b(?:cổ|kổ|gáy|gay|vai|neck)\b", raw))
+        raw_muscle_or_ambiguous = bool(re.search(
+            r"\b(?:đau|đâu|nhức|mỏi|dau|nhuc|moi)\s+(?:cơ|kơ|co)\b", raw))
+        muscle_complaint = raw_muscle_or_ambiguous and any(
+            contains_affirmed_phrase(normalized, phrase)
+            for phrase in ("dau co", "nhuc co", "moi co", "dau co bap"))
+        exertion = any(contains_affirmed_phrase(normalized, phrase) for phrase in
+                       ("tap gym", "tap luyen", "nang ta", "van suc", "cang co", "chuot rut"))
+        if muscle_complaint and not neck_evidence and not exertion:
+            return next((g for g in self.symptom_guidance if g.get("topic") == "unlocalized_muscle_pain"), None)
+
+        # Animal-bite episodes are governed by dedicated urgent rabies/tetanus
+        # rules. Until a dedicated animal-bite symptom template exists, returning
+        # no generic guidance is safer than contaminating the response with burn,
+        # knife-cut or other wound-mechanism instructions/questions.
+        if self._is_animal_bite(normalized):
+            for guidance in self.symptom_guidance:
+                if guidance.get("topic") in {"animal_bite", "rabies_exposure"}:
+                    return self._contextualize_guidance(guidance, symptoms_text)
+            return None
+
+        explicit_policy = self._find_explicit_response_policy(normalized)
+        if explicit_policy is not None:
+            return self._contextualize_guidance(explicit_policy, symptoms_text)
+
+        back_problem = any(
+            contains_affirmed_phrase(normalized, phrase)
+            for phrase in ("dau lung", "moi lung", "dau that lung", "moi that lung", "nhuc lung")
+        )
+        if not back_problem:
+            back_relation = re.compile(
+                r"\b(?:dau|moi|nhuc)\b(?:\s+[a-z0-9]+){0,4}\s+(?:that lung|lung)\b"
+            )
+            back_problem = any(
+                contains_affirmed_phrase(normalized, match.group(0))
+                for match in back_relation.finditer(normalized)
+            )
+        if back_problem:
+            for guidance in self.symptom_guidance:
+                if guidance.get("topic") == "back_pain":
+                    return self._contextualize_guidance(guidance, symptoms_text)
+
+        for guidance in self.symptom_guidance:
+            if guidance.get("topic") == "remote_prescribing_request":
+                continue
+            if not self._guidance_is_route_compatible(guidance, normalized):
+                continue
+            if guidance.get("topic") == "neck_shoulder_pain" and not neck_evidence:
+                continue
+            if guidance.get("topic") == "lower_limb_pain":
+                direct_problem_phrases = (
+                    "dau chan", "nhuc chan", "sung chan", "te chan", "yeu chan",
+                    "dau dui", "nhuc dui", "dau bap chan", "sung bap chan",
+                    "dau dau goi", "sung dau goi", "dau co chan", "sung co chan",
+                    "dau mat ca", "dau ban chan", "kho di", "khong di duoc",
+                    "khong chiu luc duoc",
+                )
+                has_affirmed_problem = any(
+                    contains_affirmed_phrase(normalized, phrase)
+                    for phrase in direct_problem_phrases
+                )
+                if not has_affirmed_problem:
+                    forward_relation = re.compile(
+                        r"\b(?:dau|nhuc|sung|te|yeu)\b(?:\s+[a-z0-9]+){0,4}\s+"
+                        r"(?:bap chan|dau goi|co chan|mat ca|ban chan|chan|dui)\b"
+                    )
+                    reverse_relation = re.compile(
+                        r"\b(?:bap chan|dau goi|co chan|mat ca|ban chan|chan|dui)\b"
+                        r"(?:\s+[a-z0-9]+){0,4}\s+(?:dau|nhuc|sung|te|yeu)\b"
+                    )
+                    has_affirmed_problem = any(
+                        contains_affirmed_phrase(normalized, match.group(0))
+                        for pattern in (forward_relation, reverse_relation)
+                        for match in pattern.finditer(normalized)
+                    )
+                if has_affirmed_problem:
+                    return self._contextualize_guidance(guidance, symptoms_text)
+
+            if any(
+                contains_affirmed_phrase(normalized, normalize_search_text(str(keyword)))
+                for keyword in guidance.get("keywords", [])
+            ):
+                return self._contextualize_guidance(guidance, symptoms_text)
         return None
 
     @property
@@ -179,10 +341,6 @@ class KnowledgeStore:
     def product_registry(self) -> list[dict[str, Any]]:
         return self.files.get("product_registry.json", KnowledgeFile("", "", "", {})).data.get("products", [])
 
-    # ------------------------------------------------------------------
-    # Domain Helpers
-    # ------------------------------------------------------------------
-
     def find_atc(self, substance_name: str) -> dict[str, Any] | None:
         normalized = substance_name.lower().strip()
         return self.atc_directory.get(normalized)
@@ -190,10 +348,6 @@ class KnowledgeStore:
     def find_icd10(self, code: str) -> dict[str, Any] | None:
         normalized = code.upper().strip()
         return self.icd10_directory.get(normalized)
-
-    # ------------------------------------------------------------------
-    # Integrity & versioning (memoized for zero-allocation trace generation)
-    # ------------------------------------------------------------------
 
     _version_string_cache: str | None = None
     _integrity_report_cache: dict[str, dict[str, str]] | None = None
@@ -232,11 +386,9 @@ def load_knowledge_store() -> KnowledgeStore:
         path = _KNOWLEDGE_DIR / name
         if path.exists():
             store.files[name] = _load_knowledge_file(path)
-    # Pre-warm memoized reports
     store.version_string()
     store.integrity_report()
     return store
 
 
-# Singleton loaded once at import time.
 knowledge = load_knowledge_store()

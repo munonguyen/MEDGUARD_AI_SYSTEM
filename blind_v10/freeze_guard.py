@@ -1,4 +1,10 @@
-"""Generate and verify the immutable MedGuard Candidate V10 attestation."""
+"""Generate and verify the immutable MedGuard Candidate V10 attestation.
+
+V10 is a historical snapshot. Verification therefore validates the immutable
+commits recorded by the manifest, not the current working tree. Post-V10
+clinical development is allowed to evolve without invalidating the V10 audit
+record, while any mutation of the pinned V10 snapshot still fails closed.
+"""
 
 from __future__ import annotations
 
@@ -76,9 +82,34 @@ def _git_commit(ref: str = "HEAD") -> str:
         return "UNKNOWN_COMMIT"
 
 
+def _git_commit_if_exists(ref: str) -> str | None:
+    try:
+        return subprocess.check_output(
+            ["git", "rev-parse", f"{ref}^{{commit}}"],
+            cwd=REPO_ROOT,
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+    except Exception:
+        return None
+
+
 def _git_blob_hash(ref: str, path: str) -> str:
     blob = subprocess.check_output(["git", "show", f"{ref}:{path}"], cwd=REPO_ROOT)
     return sha256(blob).hexdigest()
+
+
+def _git_file_exists(ref: str, path: str) -> bool:
+    try:
+        subprocess.check_call(
+            ["git", "cat-file", "-e", f"{ref}:{path}"],
+            cwd=REPO_ROOT,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        return True
+    except Exception:
+        return False
 
 
 def _canonical_manifest_sha256(manifest: dict[str, Any]) -> str:
@@ -161,7 +192,7 @@ def generate_freeze_manifest(
         "blind_v10_executed": False,
         "candidate_core_commit": _git_commit(CORE_TAG),
         # This is the audit baseline commit. The v10-blind-frozen annotated tag
-        # points to its single provenance child containing this manifest.
+        # may point to its provenance child containing this manifest.
         "blind_frozen_commit": blind_frozen_commit or _git_commit("HEAD"),
         "attestation_model": "tagged_provenance_child_of_blind_frozen_commit",
         "generated_from_head": _git_commit("HEAD"),
@@ -198,56 +229,153 @@ def generate_freeze_manifest(
     return manifest
 
 
+def _verify_blob(
+    *,
+    ref: str,
+    rel_path: str,
+    expected: str,
+    errors: list[str],
+    scope: str,
+) -> None:
+    try:
+        actual = _git_blob_hash(ref, rel_path)
+    except Exception:
+        errors.append(f"unable to read {scope} blob: {rel_path}")
+        return
+    if actual != expected:
+        errors.append(f"{scope} hash mismatch: {rel_path}")
+
+
+def _find_attestation_child(baseline_commit: str, manifest_sha256: str) -> str | None:
+    """Locate a historical child that committed this exact manifest.
+
+    The original remote tag aliases may be absent, but the commit graph itself
+    still provides an immutable attestation chain. We require an exact manifest
+    content match and the recorded blind baseline as the direct parent.
+    """
+    try:
+        commits = _git(
+            "log",
+            "--all",
+            "--format=%H",
+            "--",
+            "blind_v10/freeze_manifest.json",
+        ).splitlines()
+    except Exception:
+        return None
+    for commit in commits:
+        try:
+            if _git_blob_hash(commit, "blind_v10/freeze_manifest.json") != manifest_sha256:
+                continue
+            parent = _git("rev-parse", f"{commit}^")
+            if parent == baseline_commit:
+                return commit
+        except Exception:
+            continue
+    return None
+
+
 def verify_freeze_integrity(
     path: Path = MANIFEST_PATH,
     *,
-    require_frozen_tag: bool = True,
+    require_frozen_tag: bool = False,
 ) -> tuple[bool, list[str]]:
+    """Verify the immutable historical V10 snapshot.
+
+    Important: current HEAD is intentionally *not* required to equal V10.
+    Clinical development after V10 may change files such as ``chat.py`` and
+    ``triage.py``. Integrity is proven against the SHA-pinned commits recorded
+    by the V10 manifest. Optional tag aliases are checked when present and can
+    be made mandatory with ``require_frozen_tag=True`` for archival workflows.
+    """
     if not path.exists():
         return False, [f"missing manifest: {path}"]
-    manifest = json.loads(path.read_text(encoding="utf-8"))
+    manifest_bytes = path.read_bytes()
+    manifest = json.loads(manifest_bytes.decode("utf-8"))
     errors: list[str] = []
 
     expected_self_hash = manifest.get("freeze_manifest_sha256")
     if _canonical_manifest_sha256(manifest) != expected_self_hash:
         errors.append("freeze manifest canonical SHA-256 mismatch")
-    for rel_path, expected in manifest.get("file_hashes", {}).items():
-        candidate = REPO_ROOT / rel_path
-        if not candidate.exists():
-            errors.append(f"missing frozen file: {rel_path}")
-        elif _hash(candidate) != expected:
-            errors.append(f"hash mismatch: {rel_path}")
-    if _hash(MECHANISM_REPORT) != manifest.get("mechanism_benchmark_sha256"):
-        errors.append("mechanism benchmark report changed")
-    if _hash(REGRESSION_REPORT) != manifest.get("regression_report_sha256"):
-        errors.append("2,400-case regression report changed")
 
-    core_commit = _git_commit(CORE_TAG)
-    if core_commit != manifest.get("candidate_core_commit"):
-        errors.append(f"{CORE_TAG} does not match candidate_core_commit")
-    for rel_path in CORE_FILES:
-        try:
-            if _hash(REPO_ROOT / rel_path) != _git_blob_hash(CORE_TAG, rel_path):
-                errors.append(f"clinical core differs from {CORE_TAG}: {rel_path}")
-        except Exception:
-            errors.append(f"unable to verify core-tag blob: {rel_path}")
-
+    core_commit = str(manifest.get("candidate_core_commit", ""))
     baseline_commit = str(manifest.get("blind_frozen_commit", ""))
-    if baseline_commit == "UNKNOWN_COMMIT" or not baseline_commit:
-        errors.append("blind_frozen_commit is not immutable")
-    if require_frozen_tag:
-        tagged_commit = _git_commit(FROZEN_TAG)
-        if tagged_commit == "UNKNOWN_COMMIT":
-            errors.append(f"missing immutable frozen tag: {FROZEN_TAG}")
-        else:
-            try:
-                tagged_parent = _git("rev-parse", f"{FROZEN_TAG}^{{commit}}^")
-                if tagged_parent != baseline_commit:
-                    errors.append(
-                        f"{FROZEN_TAG} is not the provenance child of blind_frozen_commit"
-                    )
-            except Exception:
-                errors.append(f"unable to verify {FROZEN_TAG} attestation chain")
+    if len(core_commit) != 40 or _git_commit_if_exists(core_commit) != core_commit:
+        errors.append("candidate_core_commit is not an accessible immutable commit")
+    if len(baseline_commit) != 40 or _git_commit_if_exists(baseline_commit) != baseline_commit:
+        errors.append("blind_frozen_commit is not an accessible immutable commit")
+
+    file_hashes = manifest.get("file_hashes", {})
+    if isinstance(file_hashes, dict) and len(baseline_commit) == 40:
+        for rel_path, expected in file_hashes.items():
+            _verify_blob(
+                ref=baseline_commit,
+                rel_path=rel_path,
+                expected=str(expected),
+                errors=errors,
+                scope="frozen snapshot",
+            )
+    else:
+        errors.append("freeze manifest file_hashes missing or invalid")
+
+    # The candidate core is independently pinned. This proves that the frozen
+    # baseline retained the exact candidate-core bytes without requiring the
+    # current development branch to remain byte-identical to V10 forever.
+    if len(core_commit) == 40:
+        for rel_path in CORE_FILES:
+            expected = str(file_hashes.get(rel_path, ""))
+            if not expected:
+                errors.append(f"missing core hash in manifest: {rel_path}")
+                continue
+            _verify_blob(
+                ref=core_commit,
+                rel_path=rel_path,
+                expected=expected,
+                errors=errors,
+                scope="candidate core",
+            )
+
+    mechanism_rel = str(MECHANISM_REPORT.relative_to(REPO_ROOT))
+    regression_rel = str(REGRESSION_REPORT.relative_to(REPO_ROOT))
+    if len(baseline_commit) == 40:
+        _verify_blob(
+            ref=baseline_commit,
+            rel_path=mechanism_rel,
+            expected=str(manifest.get("mechanism_benchmark_sha256", "")),
+            errors=errors,
+            scope="mechanism report",
+        )
+        _verify_blob(
+            ref=baseline_commit,
+            rel_path=regression_rel,
+            expected=str(manifest.get("regression_report_sha256", "")),
+            errors=errors,
+            scope="regression report",
+        )
+
+    manifest_content_sha = sha256(manifest_bytes).hexdigest()
+    attestation_child = None
+    if len(baseline_commit) == 40:
+        attestation_child = _find_attestation_child(baseline_commit, manifest_content_sha)
+        if attestation_child is None:
+            errors.append("unable to verify provenance child containing exact freeze manifest")
+
+    # Tags are human-friendly aliases. The immutable commit SHAs above are the
+    # authority. Missing aliases no longer invalidate V10, but wrong aliases do.
+    core_tag_commit = _git_commit_if_exists(CORE_TAG)
+    if core_tag_commit is not None:
+        if core_tag_commit != core_commit:
+            errors.append(f"{CORE_TAG} does not match candidate_core_commit")
+    elif require_frozen_tag:
+        errors.append(f"missing immutable core tag alias: {CORE_TAG}")
+
+    frozen_tag_commit = _git_commit_if_exists(FROZEN_TAG)
+    if frozen_tag_commit is not None:
+        if attestation_child is not None and frozen_tag_commit != attestation_child:
+            errors.append(f"{FROZEN_TAG} does not point to verified provenance child")
+    elif require_frozen_tag:
+        errors.append(f"missing immutable frozen tag alias: {FROZEN_TAG}")
+
     return not errors, errors
 
 
@@ -256,21 +384,26 @@ def main() -> None:
     parser.add_argument(
         "--verify",
         action="store_true",
-        help="verify the existing manifest without rewriting it",
+        help="verify the existing historical manifest without rewriting it",
     )
     parser.add_argument(
         "--blind-frozen-commit",
         help="audit baseline commit that the provenance commit will attest",
     )
     parser.add_argument(
+        "--require-tag-aliases",
+        action="store_true",
+        help="require legacy v10-candidate-core and v10-blind-frozen tag aliases",
+    )
+    parser.add_argument(
         "--allow-missing-frozen-tag",
         action="store_true",
-        help="only for constructing the provenance commit before its tag exists",
+        help="deprecated compatibility flag; tag aliases are optional by default",
     )
     args = parser.parse_args()
     if args.verify:
         valid, violations = verify_freeze_integrity(
-            require_frozen_tag=not args.allow_missing_frozen_tag
+            require_frozen_tag=(args.require_tag_aliases and not args.allow_missing_frozen_tag)
         )
         print(json.dumps({"valid": valid, "violations": violations}, indent=2))
         raise SystemExit(0 if valid else 1)

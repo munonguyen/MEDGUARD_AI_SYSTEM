@@ -21,6 +21,7 @@ from app.knowledge.loader import knowledge
 from app.models.safety import SafetyRequest
 from app.models.triage import VitalSigns
 from app.services.clinical_text import (
+    build_contextual_clarifying_questions,
     contains_affirmed_phrase,
     extract_clinical_facts,
     is_anticoagulant_no_trauma,
@@ -74,6 +75,16 @@ def _check_red_flag_patterns(text: str) -> list[dict]:
     return matched
 
 
+def _explicit_mild_dyspnea(text: str) -> bool:
+    """Qualify only an affirmed mild symptom; other emergency rules still run."""
+    return any(contains_affirmed_phrase(text, phrase) for phrase in (
+        "hoi kho tho", "kho tho nhe",
+    )) and not any(contains_affirmed_phrase(text, phrase) for phrase in (
+        "kho tho du doi", "kho tho nhieu", "khong noi duoc", "moi tim",
+        "tim moi", "tho rit", "co keo", "ngat", "hon me",
+    ))
+
+
 def _matches_clinical_pattern(text: str, pattern: dict) -> bool:
     """Match either an exact phrase or every required clinical concept group.
 
@@ -92,9 +103,21 @@ def _matches_clinical_pattern(text: str, pattern: dict) -> bool:
         if facts.gradual_onset or facts.user_quote_trap or (facts.onset_duration_hours and facts.onset_duration_hours >= 1.0):
             return False
 
+    bounded_chest = None
+    if pattern.get('id') == 'RF-ESI2-001':
+        from app.services.clinical_reasoning.chest_calibration import bounded_chest_assessment
+        bounded_chest = bounded_chest_assessment(text)
+
     phrases = (*pattern.get("patterns_vi", []), *pattern.get("patterns_en", []))
     for phrase in phrases:
         norm_phrase = normalize_search_text(phrase)
+        if bounded_chest and norm_phrase in {'dau nguc', 'tuc nguc', 'nang nguc', 'chest pain'}:
+            # A chest keyword alone is not an additional emergency finding
+            # when the bounded contextual assessment already qualifies it.
+            continue
+        if (pattern.get("category") == "severe_respiratory_distress"
+                and norm_phrase == "kho tho" and _explicit_mild_dyspnea(text)):
+            continue
         if norm_phrase == "tia":
             # Guard against Vietnamese homophones: "tía tô", "tia sáng", "tia chớp", "tia lửa", "tia UV"
             if any(h in text for h in ("tia to", "tia sang", "tia chop", "tia lua", "tia uv")):
@@ -170,17 +193,89 @@ def _route_specialty(text: str) -> tuple[str, str, float] | None:
 
     best: tuple[str, str, float] | None = None
     best_count = 0
+    norm_text = normalize_search_text(text)
     for route in knowledge.specialty_routing:
         matches = sum(
             1
             for keyword in route["keywords"]
-            if contains_affirmed_phrase(text, normalize_search_text(keyword))
+            if contains_affirmed_phrase(norm_text, normalize_search_text(keyword))
         )
         if matches > best_count:
             best_count = matches
             spec = route["specialty"]
             best = (spec["code"], spec["label"], route["confidence"])
     return best or (spec_code, spec_label, conf)
+
+
+def is_mild_pruritus_rash_dermatology(symptoms_text: str) -> bool:
+    """Detect benign acute pruritus, rash, urticaria or contact reaction without anaphylaxis red flags."""
+    norm = normalize_search_text(symptoms_text)
+    has_rash_pruritus = any(
+        contains_affirmed_phrase(norm, marker)
+        for marker in (
+            "man ngua", "ban do", "man do", "noi man", "ngua rat",
+            "cang gai cang ngua", "cang gai", "noi ban", "di ung da", "me day",
+            "ngua da", "ngua"
+        )
+    )
+    if not has_rash_pruritus:
+        return False
+    # Exclude any anaphylaxis, severe mucosal involvement, or life-threatening systemic red flags
+    has_emergency_features = any(
+        contains_affirmed_phrase(norm, marker)
+        for marker in (
+            "kho tho", "tho rit", "sung moi", "sung luoi", "sung mat",
+            "nghen hong", "nghen co", "khan tieng", "choang", "ngat",
+            "hon me", "sot cao", "bong troc", "hoai tu", "lo loet toan than"
+        )
+    )
+    return not has_emergency_features
+
+
+def is_mild_dental_toothache(symptoms_text: str) -> bool:
+    """Detect benign dental hypersensitivity, toothache or mild gum irritation without facial cellulitis/airway flags."""
+    norm = normalize_search_text(symptoms_text)
+    has_dental = any(
+        contains_affirmed_phrase(norm, marker)
+        for marker in (
+            "e buot rang", "buot rang", "dau rang", "nhuc rang",
+            "sau rang", "viem tuy rang", "viem tuy", "viem nuou", "viem loi",
+            "sung nuou", "chay mau chan rang", "rang buot", "rang e buot"
+        )
+    )
+    if not has_dental:
+        return False
+    has_emergency_features = any(
+        contains_affirmed_phrase(norm, marker)
+        for marker in (
+            "sung phu mat", "sung ma", "kho ha mieng", "khong ha duoc mieng",
+            "kho nuot", "kho tho", "sot cao", "chay mu lan toa", "ap xe san mieng"
+        )
+    )
+    return not has_emergency_features
+
+
+def is_mild_conjunctivitis_red_eye(symptoms_text: str) -> bool:
+    """Detect acute conjunctivitis or superficial red eye irritation without ocular emergencies."""
+    norm = normalize_search_text(symptoms_text)
+    has_red_eye = any(
+        contains_affirmed_phrase(norm, marker)
+        for marker in (
+            "dau mat do", "viem ket mac", "do mat", "mat do",
+            "com mat", "ghen mat", "du mat", "chay nuoc mat"
+        )
+    )
+    if not has_red_eye:
+        return False
+    has_emergency_features = any(
+        contains_affirmed_phrase(norm, marker)
+        for marker in (
+            "mat thi luc", "giam thi luc", "nhin mo", "nhin doi", "mat dot ngot",
+            "dau nhuc du doi", "dau sau trong mat", "so anh sang du doi",
+            "di vat kim loai", "hoa chat ban vao mat", "bong mat", "rach giac mac"
+        )
+    )
+    return not has_emergency_features
 
 
 def triage_rules(symptoms_text: str, vitals: VitalSigns | None = None) -> TriageRuleResult:
@@ -190,6 +285,53 @@ def triage_rules(symptoms_text: str, vitals: VitalSigns | None = None) -> Triage
     # -----------------------------------------------------------------
     # Anti-Overtriage Clinical Resolvers (Benign Traps / Non-Emergencies)
     # -----------------------------------------------------------------
+    # 0. Benign acute pruritus, rash, urticaria or localized skin irritation
+    if is_mild_pruritus_rash_dermatology(symptoms_text):
+        return TriageRuleResult(
+            urgency="ROUTINE",
+            emergency_flag=False,
+            red_flags=[],
+            esi_level=4,
+            recommended_specialty=("DERMATOLOGY", "Da liễu"),
+            clarifying_questions=[
+                "Ban đỏ mẩn ngứa xuất hiện ở vùng nào (khu trú hay lan toàn thân), có phồng rộp, nổi sẩn phù mày đay hay mụn nước không?",
+                "Ngay trước khi nổi ban bạn có dùng thuốc mới, ăn thực phẩm lạ, tiếp xúc hóa mỹ phẩm hay bị côn trùng đốt không?",
+            ],
+            advice="Tình trạng mẩn ngứa ban đỏ thường do phản ứng dị ứng cấp tính (mày đay, viêm da tiếp xúc) hoặc kích ứng da. Trong thời gian chưa đi khám chuyên khoa Da liễu, bạn nên chườm mát, tránh cào gãi làm trầy xước bội nhiễm và có thể hỏi dược sĩ về thuốc giảm ngứa không kê đơn an toàn.",
+        )
+
+    # 0a. Benign dental hypersensitivity / toothache
+    if is_mild_dental_toothache(symptoms_text):
+        return TriageRuleResult(
+            urgency="ROUTINE",
+            emergency_flag=False,
+            red_flags=[],
+            esi_level=4,
+            recommended_specialty=("DENTAL", "Răng Hàm Mặt"),
+            clarifying_questions=[
+                "Răng ê buốt khi ăn uống đồ nóng, lạnh, ngọt hay ê buốt buốt nhức tự nhiên kéo dài cả khi không kích thích?",
+                "Vùng răng đau có kèm theo sưng nướu, chảy mủ, lung lay răng hay sưng phù vùng má/hàm không?",
+                "Cơn đau ê buốt xuất hiện bao lâu rồi và trước đó răng có bị sâu răng hay mòn men răng không?",
+            ],
+            advice="Tình trạng ê buốt hoặc đau răng tạm thời nên được chăm sóc bằng cách ăn mềm, tránh nhai bên răng đau, tránh đồ quá nóng/lạnh/ngọt và súc miệng nước muối ấm nhẹ. Bạn hãy đặt lịch khám bác sĩ chuyên khoa Răng Hàm Mặt để được xử lý triệt để nguyên nhân.",
+        )
+
+    # 0b. Acute conjunctivitis / red eye
+    if is_mild_conjunctivitis_red_eye(symptoms_text):
+        return TriageRuleResult(
+            urgency="ROUTINE",
+            emergency_flag=False,
+            red_flags=[],
+            esi_level=4,
+            recommended_specialty=("OPHTHALMOLOGY", "Mắt"),
+            clarifying_questions=[
+                "Mắt có tiết nhiều ghèn mủ vàng đục hay xanh làm dính chặt mi mắt vào buổi sáng không?",
+                "Bạn có bị nhìn mờ rõ rệt, chói mắt/sợ ánh sáng hoặc đau nhức buốt sâu trong nhãn cầu không?",
+                "Triệu chứng bị ở một bên hay cả hai mắt, và gần đây có tiếp xúc với người bị đau mắt đỏ không?",
+            ],
+            advice="Triệu chứng đau mắt đỏ (viêm kết mạc) cần được vệ sinh sạch sẽ bằng nước muối sinh lý NaCl 0.9% từ 3-4 lần/ngày, tránh dụi mắt và dùng đồ dùng riêng chống lây nhiễm. Tuyệt đối không tự ý nhỏ thuốc chứa Corticoid và hãy đi khám chuyên khoa Mắt để có phác đồ điều trị an toàn.",
+        )
+
     # 1. Reproducible chest wall tenderness (costochondritis / muscle strain)
     if is_reproducible_musculoskeletal_chest_pain(symptoms_text):
         return TriageRuleResult(
@@ -894,6 +1036,16 @@ def triage_rules(symptoms_text: str, vitals: VitalSigns | None = None) -> Triage
         )
 
     # Phase 5: Urgent clinical patterns from knowledge base (ESI 3)
+    if _explicit_mild_dyspnea(text):
+        return TriageRuleResult(
+            urgency="URGENT", emergency_flag=False, red_flags=[], esi_level=3,
+            recommended_specialty=("RESPIRATORY", "Hô hấp"),
+            clarifying_questions=["Khó thở bắt đầu lúc nào; có xảy ra khi nghỉ hoặc tăng dần không?"],
+            advice=("Khó thở mới xuất hiện dù nhẹ cần được nhân viên y tế đánh giá sớm trong ngày. "
+                    "Dừng gắng sức và nghỉ ở nơi an toàn. Gọi 115 ngay nếu khó thở tăng nhanh, "
+                    "không nói được cả câu, tím môi, đau ngực hoặc choáng ngất. "
+                    "Chưa thể xác định nguyên nhân chỉ qua tin nhắn; không tự dùng thuốc mới."),
+        )
     for u_pat in knowledge.urgent_patterns:
         if _matches_clinical_pattern(text, u_pat):
             configured_specialty = u_pat.get("specialty") or {}
@@ -903,19 +1055,18 @@ def triage_rules(symptoms_text: str, vitals: VitalSigns | None = None) -> Triage
                 if configured_specialty
                 else (routed[0], routed[1]) if routed else ("GENERAL", "Nội tổng quát")
             )
+            if u_pat.get("clarifying_questions"):
+                urgent_questions = [str(value) for value in u_pat["clarifying_questions"]]
+            else:
+                facts = extract_clinical_facts(text)
+                urgent_questions = build_contextual_clarifying_questions(text, specialty[0], facts)
             return TriageRuleResult(
                 urgency="URGENT",
                 emergency_flag=False,
                 red_flags=[str(u_pat["label_vi"])] if u_pat.get("label_vi") else [],
                 esi_level=int(u_pat.get("esi_level", 3)),
                 recommended_specialty=specialty,
-                clarifying_questions=[str(value) for value in u_pat.get(
-                    "clarifying_questions",
-                    [
-                        "Triệu chứng bắt đầu từ bao giờ và mức độ tăng hay giảm?",
-                        "Có kèm theo sốt cao hay nôn ói không?",
-                    ],
-                )],
+                clarifying_questions=urgent_questions,
                 advice=str(u_pat.get(
                     "advice",
                     "Nên được thăm khám lâm sàng sớm trong ngày để được chẩn đoán và điều trị kịp thời.",
@@ -943,6 +1094,8 @@ def triage_rules(symptoms_text: str, vitals: VitalSigns | None = None) -> Triage
     # Phase 7: No explicit rule matched -> UNRESOLVED (fail closed, never default to ROUTINE)
     routed = _route_specialty(text)
     specialty = (routed[0], routed[1]) if routed else ("GENERAL", "Tổng quát")
+    facts = extract_clinical_facts(text)
+    unresolved_questions = build_contextual_clarifying_questions(text, specialty[0], facts)
 
     return TriageRuleResult(
         urgency="UNRESOLVED",
@@ -950,10 +1103,7 @@ def triage_rules(symptoms_text: str, vitals: VitalSigns | None = None) -> Triage
         red_flags=[],
         esi_level=None,
         recommended_specialty=specialty,
-        clarifying_questions=[
-            "Triệu chứng xuất hiện từ khi nào?",
-            "Có sốt hoặc đau tăng dần không?",
-        ],
+        clarifying_questions=unresolved_questions,
         advice="Cần thêm đánh giá lâm sàng toàn diện.",
         matched=False,
         confidence=0.0,
@@ -985,9 +1135,40 @@ def _escalate_risk(current: str, candidate: str) -> str:
     return current
 
 
+VIETNAMESE_BRAND_TO_INN = {
+    "hapacol": "paracetamol",
+    "efferalgan": "paracetamol",
+    "panadol": "paracetamol",
+    "tylenol": "paracetamol",
+    "acetaminophen": "paracetamol",
+    "paracetamol": "paracetamol",
+    "brufen": "ibuprofen",
+    "advil": "ibuprofen",
+    "ibuprofen": "ibuprofen",
+    "coumadin": "warfarin",
+    "sintrom": "warfarin",
+    "warfarin": "warfarin",
+    "norvasc": "amlodipine",
+    "amlodipin": "amlodipine",
+    "amlodipine": "amlodipine",
+    "nhan sam": "ginseng",
+    "nhansam": "ginseng",
+    "ginseng": "ginseng",
+    "augmentin": "amoxicillin_clavulanate",
+    "aspirin": "aspirin",
+    "stilnox": "zolpidem",
+    "zolpidem": "zolpidem",
+}
+
+
 def _normalize_ingredient(name: str | None, active_ingredient: str | None) -> str:
-    value = (active_ingredient or name or "").strip().lower()
-    return value.replace(" ", "")
+    raw = (active_ingredient or name or "").strip().lower()
+    cleaned = re.sub(r"\b\d+(?:[.,]\d+)?\s*(?:mg|g|mcg|ml)\b", "", raw).strip()
+    norm_space = re.sub(r"\s+", " ", cleaned)
+    for brand, inn in VIETNAMESE_BRAND_TO_INN.items():
+        if brand in norm_space:
+            return inn
+    return cleaned.replace(" ", "")
 
 
 def _check_allergy_cross_reactivity(

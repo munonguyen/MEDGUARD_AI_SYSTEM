@@ -9,6 +9,8 @@ from app.core.rate_limit import rate_limiter
 from app.core.storage import storage_manager
 from app.knowledge.loader import knowledge
 from app.models.health import ReadinessCheck, ReadinessResponse
+from app.services.adaptive_agent_runtime import AdaptiveAgentRuntime, adaptive_agent_runtime
+from app.services.clinical_validation_governance import clinical_validation_readiness
 from app.services.ocr.detector import text_detector
 from app.services.ocr.recognizer import line_recognizer
 from app.services.circuit import CircuitState, model_circuit
@@ -46,6 +48,50 @@ def _llm_gateway_healthcheck() -> tuple[bool, str]:
     return True, "gateway is reachable through the configured virtual key"
 
 
+def adaptive_routing_readiness(
+    runtime: AdaptiveAgentRuntime = adaptive_agent_runtime,
+) -> tuple[str, str]:
+    """Return production-readiness state for adaptive routing governance.
+
+    Shadow and disabled are valid controlled states. If an operator explicitly
+    requests enforced Kev routing, readiness requires a real Kev endpoint, a
+    validated versioned calibration, and an effective runtime mode of enforced.
+    This makes the V15 calibration guard visible to deployment tooling instead
+    of silently accepting a configuration mismatch.
+    """
+    requested = str(runtime.config.mode or "").strip().lower()
+    effective = str(runtime.mode or "").strip().lower()
+
+    if requested not in {"disabled", "shadow", "enforced"}:
+        return "fail", f"invalid adaptive routing mode: {requested or '<empty>'}"
+
+    if requested == "enforced":
+        if not runtime.config.kev_base_url:
+            return "fail", "enforced adaptive routing requested but MEDGUARD_KEV_URL is not configured"
+        if not runtime.config.kev_is_calibrated:
+            return (
+                "fail",
+                "enforced adaptive routing requested but Kev calibration is not versioned and validated",
+            )
+        if effective != "enforced":
+            return (
+                "fail",
+                f"adaptive routing configuration mismatch: requested=enforced effective={effective}",
+            )
+        return (
+            "pass",
+            "adaptive routing enforced with a configured Kev endpoint and versioned validated calibration",
+        )
+
+    if requested == "shadow":
+        return (
+            "pass",
+            "adaptive routing is in shadow mode; Kev may be observed but cannot alter execution routing",
+        )
+
+    return "pass", "adaptive routing is explicitly disabled"
+
+
 def build_readiness() -> ReadinessResponse:
     knowledge_approved = _knowledge_is_approved()
     probe_tenant = settings.allowed_tenants[0] if settings.allowed_tenants else "readiness"
@@ -68,7 +114,10 @@ def build_readiness() -> ReadinessResponse:
     )
     if not agents_active or not agents_configured:
         gateway_status = "fail" if settings.agent_required_for_production else "warn"
-        gateway_detail = "gateway not required by the active deterministic execution policy"
+        gateway_detail = (
+            f"mode={settings.agent_mode}; configured={agents_configured}; "
+            "Writer/Reviewer cannot complete without an active mode, gateway URL/key and both model aliases"
+        )
     else:
         gateway_status = "pass" if gateway_healthy else "fail"
 
@@ -140,6 +189,10 @@ def build_readiness() -> ReadinessResponse:
             f"scope={settings.agent_coverage_scope}; mode={settings.agent_mode}; "
             "not every public response is submitted to the gateway"
         )
+
+    adaptive_status, adaptive_detail = adaptive_routing_readiness()
+    clinical_validation_status, clinical_validation_detail = clinical_validation_readiness()
+
     checks = [
         ReadinessCheck(
             name="database",
@@ -244,6 +297,18 @@ def build_readiness() -> ReadinessResponse:
             status=coverage_status,
             detail=coverage_detail,
             required_for_production=settings.agent_required_for_production,
+        ),
+        ReadinessCheck(
+            name="adaptive_routing_governance",
+            status=adaptive_status,
+            detail=adaptive_detail,
+            required_for_production=True,
+        ),
+        ReadinessCheck(
+            name="independent_clinical_validation",
+            status=clinical_validation_status,
+            detail=clinical_validation_detail,
+            required_for_production=True,
         ),
     ]
     production_ready = all(

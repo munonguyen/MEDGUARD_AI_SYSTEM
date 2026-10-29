@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from pathlib import Path
 import re
 from uuid import uuid4
@@ -14,11 +15,13 @@ from app.core.config import settings
 from app.core.observability import metrics
 from app.core.rate_limit import RateLimitDecision, rate_limiter
 
-
 _REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9._:-]{1,128}$")
 _RATE_LIMIT_EXEMPT_PATHS = {
     "/v1/health",
     "/v1/health/readiness",
+    "/v1/geo/pois",
+    "/v1/geo/route",
+    "/v1/geo/places-reputation",
 }
 _RATE_LIMIT_STATIC_BUCKETS = {
     "/v1/audit/events",
@@ -37,6 +40,7 @@ _RATE_LIMIT_STATIC_BUCKETS = {
     "/v1/queue/prioritize",
     "/v1/result-delivery/prepare",
     "/v1/triage",
+    "/v1/tts",
 }
 
 
@@ -71,27 +75,75 @@ def _security_headers(response, *, path: str) -> None:
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "no-referrer"
     response.headers["Permissions-Policy"] = (
-        "camera=(self), microphone=(), geolocation=(), payment=(), usb=()"
+        "camera=(self), microphone=(self), geolocation=(self), payment=(), usb=()"
     )
     if path in {"/", "/dashboard"} or path.startswith("/static/"):
         response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; base-uri 'self'; connect-src 'self'; "
-            "font-src 'self'; frame-ancestors 'none'; img-src 'self' data: blob:; "
-            "media-src 'self' blob:; object-src 'none'; script-src 'self'; style-src 'self'"
+            "default-src 'self'; base-uri 'self'; "
+            "connect-src 'self' blob: data: https://api.geoapify.com https://maps.geoapify.com https://*.geoapify.com https://server.arcgisonline.com https://*.arcgisonline.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://*.googleapis.com https://places.googleapis.com https://maps.googleapis.com; "
+            "font-src 'self' data: https://fonts.gstatic.com; "
+            "frame-src 'self' https://www.google.com https://maps.google.com; "
+            "frame-ancestors 'none'; "
+            "img-src 'self' data: blob: https://*.basemaps.cartocdn.com https://*.tile.openstreetmap.org https://maps.geoapify.com https://*.geoapify.com https://server.arcgisonline.com https://*.arcgisonline.com https://*.googleapis.com https://places.googleapis.com https://maps.googleapis.com https://*.googleusercontent.com https://*.gstatic.com https://lh3.googleusercontent.com; "
+            "media-src 'self' blob: data:; "
+            "worker-src 'self' blob:; "
+            "object-src 'none'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com"
         )
+    if path in {"/", "/dashboard"} or path.startswith("/static/"):
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
     if path.startswith("/v1/"):
         response.headers["Cache-Control"] = "no-store"
     if settings.environment.lower() == "production":
-        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        response.headers["Strict-Transport-Security"] = (
+            "max-age=31536000; includeSubDomains"
+        )
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    from app.services.provider_transport import close_provider_clients
+    try:
+        yield
+    finally:
+        await run_in_threadpool(close_provider_clients)
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="MedGuard AI", version="0.1.0")
+    app = FastAPI(title="MedGuard AI", version="0.1.0", lifespan=lifespan)
     app.state.rate_limiter = rate_limiter
+    from app.core.accounts import AccountStore
+    from app.api.accounts import router as accounts_router
+
+    app.state.accounts = AccountStore()
+    app.include_router(accounts_router, prefix="/v1")
+    from app.api.knowledge_pool import router as knowledge_pool_router
+    app.include_router(knowledge_pool_router)
+    import os
+
+    if os.getenv("MEDGUARD_ENVIRONMENT") == "production":
+        from urllib.parse import urlsplit
+        from starlette.middleware.trustedhost import TrustedHostMiddleware
+
+        origin = os.getenv("MEDGUARD_PUBLIC_ORIGIN")
+        if origin:
+            try:
+                host = urlsplit(origin).hostname
+                allowed = [host, "*.bookingcare.shop", "*.cloudfront.net", "*.on.aws", "localhost", "127.0.0.1"] if host else ["*"]
+                app.add_middleware(
+                    TrustedHostMiddleware,
+                    allowed_hosts=allowed,
+                )
+            except Exception:
+                pass
 
     static_dir = Path(__file__).parent / "static"
     if static_dir.exists():
-        app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+        app.mount("/static", StaticFiles(directory=str(static_dir), html=True), name="static")
+        models_dir = static_dir / "models"
+        if models_dir.exists():
+            app.mount("/models", StaticFiles(directory=str(models_dir)), name="models")
 
     @app.get("/", include_in_schema=False)
     @app.get("/dashboard", include_in_schema=False)
@@ -102,7 +154,13 @@ def create_app() -> FastAPI:
     app.include_router(router, prefix=f"/{settings.api_version}")
 
     @app.get("/metrics")
-    def prometheus_metrics() -> PlainTextResponse:
+    def prometheus_metrics(request: Request) -> PlainTextResponse:
+        if os.getenv("MEDGUARD_ENVIRONMENT") == "production":
+            from app.core.accounts import reject
+
+            user = request.app.state.accounts.authenticate(request)
+            if user["role"] != "admin":
+                reject("permission_denied", 403)
         return PlainTextResponse(metrics.render(), media_type="text/plain")
 
     @app.middleware("http")
@@ -118,7 +176,11 @@ def create_app() -> FastAPI:
 
         if settings.rate_limit_enabled and _should_rate_limit(path):
             client_host = request.client.host if request.client else "unknown"
-            identity = tenant_id if tenant_id in settings.allowed_tenants else f"client:{client_host}"
+            identity = (
+                tenant_id
+                if tenant_id in settings.allowed_tenants
+                else f"client:{client_host}"
+            )
             decision = await run_in_threadpool(
                 request.app.state.rate_limiter.check,
                 identity,
@@ -141,30 +203,33 @@ def create_app() -> FastAPI:
                             else "Too many requests. Retry after the current window."
                         ),
                         "request_id": req_id,
-                        "details": {"retry_after_seconds": decision.reset_after_seconds},
+                        "details": {
+                            "retry_after_seconds": decision.reset_after_seconds
+                        },
                     },
                 )
                 response.headers["X-Request-Id"] = req_id
                 response.headers["Retry-After"] = str(decision.reset_after_seconds)
                 _rate_limit_headers(response, decision)
                 _security_headers(response, path=path)
-                metrics.inc_counter(
-                    "medguard_rate_limit_rejections_total",
-                    labels={"endpoint": bucket, "reason": error_code},
-                )
-                metrics.inc_counter(
-                    "medguard_requests_total",
-                    labels={
-                        "tenant_id": tenant_id,
-                        "endpoint": bucket,
-                        "status": str(status_code),
-                    },
-                )
-                metrics.observe_histogram(
-                    "medguard_request_duration_seconds",
-                    value=perf_counter() - start,
-                    labels={"tenant_id": tenant_id, "endpoint": bucket},
-                )
+                if settings.metrics_enabled:
+                    metrics.inc_counter(
+                        "medguard_rate_limit_rejections_total",
+                        labels={"endpoint": bucket, "reason": error_code},
+                    )
+                    metrics.inc_counter(
+                        "medguard_requests_total",
+                        labels={
+                            "tenant_id": tenant_id,
+                            "endpoint": bucket,
+                            "status": str(status_code),
+                        },
+                    )
+                    metrics.observe_histogram(
+                        "medguard_request_duration_seconds",
+                        value=perf_counter() - start,
+                        labels={"tenant_id": tenant_id, "endpoint": bucket},
+                    )
                 return response
 
         try:
@@ -181,7 +246,11 @@ def create_app() -> FastAPI:
             if settings.metrics_enabled and path != "/metrics":
                 metrics.inc_counter(
                     "medguard_requests_total",
-                    labels={"tenant_id": tenant_id, "endpoint": endpoint, "status": str(response.status_code)},
+                    labels={
+                        "tenant_id": tenant_id,
+                        "endpoint": endpoint,
+                        "status": str(response.status_code),
+                    },
                 )
                 metrics.observe_histogram(
                     "medguard_request_duration_seconds",
@@ -193,7 +262,11 @@ def create_app() -> FastAPI:
             if settings.metrics_enabled and path != "/metrics":
                 metrics.inc_counter(
                     "medguard_requests_total",
-                    labels={"tenant_id": tenant_id, "endpoint": bucket, "status": "500"},
+                    labels={
+                        "tenant_id": tenant_id,
+                        "endpoint": bucket,
+                        "status": "500",
+                    },
                 )
             raise
 
@@ -213,7 +286,9 @@ def create_app() -> FastAPI:
         detail = exc.detail
         if isinstance(detail, dict):
             error_code = detail.get("error_code", "http_error")
-            details = {key: value for key, value in detail.items() if key != "error_code"}
+            details = {
+                key: value for key, value in detail.items() if key != "error_code"
+            }
             message = detail.get("message", error_code)
         else:
             error_code = str(detail)

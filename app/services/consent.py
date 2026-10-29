@@ -9,16 +9,28 @@ Enforces:
 
 from __future__ import annotations
 
-from fastapi import Header, HTTPException, status
+from fastapi import Header, HTTPException, Request, status
 
 from app.core.config import settings
 
 
 def verify_patient_consent(
+    request: Request,
     x_consent_token: str | None = Header(default=None, alias="X-Consent-Token"),
-    x_consent_record_ref: str | None = Header(default=None, alias="X-Consent-Record-Ref"),
+    x_consent_record_ref: str | None = Header(
+        default=None, alias="X-Consent-Record-Ref"
+    ),
 ) -> str:
     """Verifies that client provided evidence of patient consent for AI processing."""
+    from app.core.accounts import COOKIE
+
+    if request.cookies.get(COOKIE):
+        user = request.app.state.accounts.authenticate(request)
+        if not user["consent"]:
+            raise HTTPException(
+                status_code=403, detail={"error_code": "consent_required"}
+            )
+        return "account-consent:" + user["user_id"]
     consent_proof = x_consent_token or x_consent_record_ref
 
     if consent_proof:

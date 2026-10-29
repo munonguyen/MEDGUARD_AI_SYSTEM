@@ -227,6 +227,24 @@
       "atc_classes": ["C08CA", "C10AA"]
     },
     {
+      "pair": ["amlodipine", "ibuprofen"],
+      "severity": "SOFT_STOP",
+      "mechanism": "Ibuprofen gây giữ muối nước và ức chế prostaglandin thận, làm giảm tác dụng hạ huyết áp của Amlodipin và tăng nguy cơ suy giảm chức năng thận ở người cao tuổi",
+      "clinical_consequence": "Giảm hiệu quả kiểm soát huyết áp, tăng nguy cơ phù ngoại biên và tổn thương thận.",
+      "action": "Theo dõi sát huyết áp và tránh dùng Ibuprofen kéo dài ở người cao tuổi đang điều trị tăng huyết áp.",
+      "evidence_level": "B",
+      "atc_classes": ["C08CA", "M01AE"]
+    },
+    {
+      "pair": ["warfarin", "ginseng"],
+      "severity": "HARD_STOP",
+      "mechanism": "Nhân sâm (Panax ginseng) cảm ứng enzyme CYP và ảnh hưởng kết tập tiểu cầu, làm dao động chỉ số INR",
+      "clinical_consequence": "Dao động chỉ số đông máu INR, có thể giảm hiệu lực chống đông hoặc tăng xuất huyết bất thường.",
+      "action": "Tránh tự ý dùng nhân sâm khi đang điều trị duy trì bằng Warfarin. Cần tham vấn bác sĩ tim mạch và theo dõi sát chỉ số INR.",
+      "evidence_level": "B",
+      "atc_classes": ["B01AA", "A13A"]
+    },
+    {
       "pair": ["atorvastatin", "clarithromycin"],
       "severity": "SOFT_STOP",
       "mechanism": "Clarithromycin ức chế CYP3A4 làm tăng nồng độ Atorvastatin tự do",

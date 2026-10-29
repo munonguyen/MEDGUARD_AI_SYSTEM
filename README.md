@@ -43,6 +43,38 @@ This repository contains an end-to-end **development implementation** of the arc
 
 ## Run
 
+For the doctor avatar page, the checkout can bootstrap its own Python environment
+and speech dependencies. From the repository root (Python 3.10+):
+
+```bash
+python3 scripts/start_with_doctor_voice.py
+```
+
+On Windows use `python` instead of `python3`. This creates `.venv` if needed,
+installs pinned `requirements.txt` dependencies, validates both bundled doctor
+voice profiles, and starts the backend on port 8000. Open
+`http://localhost:8000/?view=companion`; the built frontend is included.
+If using Vite on 5173, keep this backend running in a separate terminal. No TTS
+API key or manual voice configuration is needed: male uses NamMinhNeural (-8%,
+-6Hz), female uses HoaiMyNeural (-7%, -12Hz). The installer is rerun when the
+requirements change or the dependency/profile check fails. It does not overwrite
+authentication, Origin, or TLS settings. An invalid existing environment is
+reported instead of deleted; `--venv .venv-new` can create a separate environment.
+
+To verify local configuration or explicitly test live synthesis of both voices:
+
+```bash
+python3 scripts/start_with_doctor_voice.py --check
+python3 scripts/start_with_doctor_voice.py --check --live-check
+```
+
+The live check sends only a synthetic greeting, retains no audio files and fails
+if either voice cannot be synthesized. TTS still requires Internet and valid TLS
+trust; configuration checks alone do not establish provider availability or voice
+quality. Use “Nghe thử giọng bác sĩ” in settings to hear each character.
+
+For an already configured environment, the existing command also works:
+
 ```bash
 cd MEDGUARD_AI_SYSTEM
 .venv/bin/uvicorn app.main:app --reload
@@ -61,6 +93,32 @@ npm run build
 
 Vite proxies `/v1` and `/metrics` to FastAPI at port `8000`. The production build uses the same origin as FastAPI, avoiding a second API base URL or browser credential boundary.
 
+The development proxy preserves the browser-facing `Host` (`changeOrigin: false`)
+so the backend can compare it with `Origin` on login and other state-changing
+requests. Restart Vite after updating its configuration. If
+`MEDGUARD_PUBLIC_ORIGIN` is explicitly set, it must match the URL opened in the
+browser, including scheme and port. Production requires the configured HTTPS
+public origin; do not disable Origin/CSRF checks or trust arbitrary forwarded
+headers to resolve a development mismatch.
+
+Authentication is restored only from the server session cookie (`HttpOnly`,
+`SameSite=Strict`, and `Secure` in production), with existing absolute and idle
+expiry. Passwords are never saved by the application in browser storage. Older
+`medguard.auth.remember` records are removed on page initialization; expired
+sessions require login again.
+
+Run the real development-proxy browser regression with a free backend port 8000
+and Vite test port 5295:
+
+```bash
+MEDGUARD_TEST_PYTHON=/path/to/python CHROME_PATH=/path/to/chromium npm --prefix frontend run test:auth-proxy
+```
+
+This uses an isolated temporary account database and synthetic accounts. It
+checks both localhost and 127.0.0.1, login/reload/logout, cookie restrictions,
+legacy password cleanup, and rejection of cross-origin and invalid-CSRF writes.
+
+
 To exercise restart persistence locally, set `MEDGUARD_SQLITE_PATH=./var/medguard.sqlite3`. The default remains isolated in-memory SQLite for tests and short development runs.
 
 Development credentials:
@@ -72,9 +130,9 @@ tenant-alt  / alt-key
 
 For webhook signing, set `MEDGUARD_DELIVERY_HMAC_SECRET` before starting the service. The built-in default is intentionally development-only.
 
-Answer agents default to `disabled`. Provider credentials live only inside LiteLLM; the MedGuard process receives one budgeted virtual key, a gateway URL and two logical aliases. Start with `MEDGUARD_AGENT_MODE=shadow` so the models cannot change user-visible answers, then move to `enforced` only after live contract, citation, clinical, privacy, cost and latency evaluation. See [`docs/LLM_GATEWAY.md`](docs/LLM_GATEWAY.md).
+Non-test runtimes default to `enforced`, synchronous Writer→Reviewer processing and coverage `all`; tests retain deterministic defaults. Provider credentials live only inside LiteLLM; the MedGuard process receives one budgeted virtual key, a gateway URL and logical model aliases. A missing gateway, model error or failed quality gate produces explicitly unverified safety fallback. Production readiness requires agents by default; a live model-contract check and clinical/privacy/load evaluation are still required before release. See [`docs/LLM_GATEWAY.md`](docs/LLM_GATEWAY.md) and [`docs/clinical-episode-agent-release.md`](docs/clinical-episode-agent-release.md).
 
-Agent providers, model IDs, prompts, intermediate analysis, search queries and fallback diagnostics remain server-confidential. They are excluded from chat JSON, history and OpenAPI. The user interface exposes only a neutral verification assurance, quality scores and inspectable final sources.
+Agent providers, model IDs, prompts, intermediate analysis, search queries and raw provider errors remain server-confidential. The chat API exposes a bounded `agent_execution` summary (requested, Writer/Reviewer stage status and a safe reason code); the UI exposes verification assurance, quality scores and inspectable final sources.
 
 ## Example Request
 

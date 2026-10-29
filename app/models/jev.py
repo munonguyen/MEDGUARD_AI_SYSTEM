@@ -1,13 +1,13 @@
 """Compact Typed Data Contracts for Gate 3 (Jev) Micro-Decision Engine.
 
-Design Invariants:
-1. Compact Decision State: Transmits ONLY essential triage hypotheses, risk features,
-   hard safety flags, and candidate actions. NEVER transmits 20-turn chat histories,
-   full medical textbooks, or heavy RAG context.
-2. Abstract & PHI-Free: State hashes rely purely on clinical abstraction tokens,
-   allowing safe, compliant in-memory caching.
-3. Strict Typed Decisions: Output is a lean, unambiguous micro-decision structure
-   designed for deterministic resolution.
+V14 authority model:
+1. Jev is a compact clinical-safety knowledge anchor and advisory arbiter.
+2. Jev may surface risk, insights and clarification needs, but it is not a
+   standalone non-emergency disposition authority.
+3. Only an explicit emergency lock may act as fail-closed authority. Normal
+   ROUTINE/URGENT resolution belongs to the upstream reasoner/verifier resolver.
+4. State remains abstract and PHI-free so cache keys never require raw patient
+   identifiers or long conversation histories.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import hashlib
 import json
-from typing import Any, Literal
+from typing import Literal
 
 TriageAcuity = Literal["ROUTINE", "URGENT", "EMERGENCY"]
 JevAction = Literal[
@@ -25,6 +25,7 @@ JevAction = Literal[
     "AMBIGUOUS_CLARIFY",
     "CALL_115",
 ]
+JevAuthority = Literal["advisory", "emergency_lock"]
 
 
 @dataclass(frozen=True)
@@ -42,10 +43,7 @@ class DecisionState:
     symptoms_summary: str = ""
 
     def state_hash(self) -> str:
-        """Compute deterministic SHA-256 fingerprint of the clinical decision state.
-        
-        Purely captures abstraction tokens without patient PHI for safe caching.
-        """
+        """Compute a deterministic PHI-free fingerprint of the decision state."""
         raw_payload = {
             "floor": self.triage_floor,
             "reasoner": self.reasoner_triage,
@@ -60,7 +58,13 @@ class DecisionState:
 
 @dataclass(frozen=True)
 class JevDecision:
-    """Typed micro-decision returned by Gate 3 (Jev)."""
+    """Typed advisory micro-decision returned by Gate 3 (Jev).
+
+    ``authority`` defaults to ``advisory``. Existing Jev rule output therefore
+    cannot silently become a ROUTINE->URGENT/EMERGENCY override. A future rule
+    may set ``emergency_lock`` only when it represents an explicit fail-closed
+    emergency invariant rather than a probabilistic preference.
+    """
 
     action: JevAction
     confidence: float
@@ -68,6 +72,10 @@ class JevDecision:
     require_human_review: bool
     triage_recommendation: TriageAcuity
     policy_rules_triggered: tuple[str, ...] = field(default_factory=tuple)
+    clinical_insights: tuple[str, ...] = field(default_factory=tuple)
+    advisory_red_flags: tuple[str, ...] = field(default_factory=tuple)
+    suggested_clarifications: tuple[str, ...] = field(default_factory=tuple)
+    authority: JevAuthority = "advisory"
     latency_ms: float = 0.0
     source: str = "jev_engine"
     cached: bool = False

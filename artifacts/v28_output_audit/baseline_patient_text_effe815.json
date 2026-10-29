@@ -1,0 +1,20 @@
+{
+  "source_commit": "effe8153dee027e9b0adb4e0a98ca58bdbc56507",
+  "examples": [
+    {
+      "case_id": "MRQ-018",
+      "question": "Tôi đang uống warfarin. Tôi có thể uống ibuprofen khi đau đầu không?",
+      "display_text": "Có cảnh báo an toàn thuốc mức cao\n\nBạn không nên tự dùng ibuprofen trong tình huống đã mô tả; bộ quy tắc ghi nhận 1 cảnh báo bắt buộc dừng và cần bác sĩ hoặc dược sĩ xác nhận. Có cảnh báo tương tác thuốc; đây là nguy cơ cần rà soát, không phải xác nhận bạn đã bị biến chứng. Phối hợp này có thể tăng nguy cơ chảy máu.\n\nibuprofen: Ibuprofen ức chế COX-1 bảo vệ niêm mạc dạ dày, kháng tiểu cầu có hồi phục, đẩy Warfarin khỏi albumin Nguy cơ có thể xảy ra: Xuất huyết tiêu hóa ồ ạt, tăng INR khó kiểm soát.\n\nKhông tự bắt đầu, ngừng hoặc phối hợp thuốc trước khi trao đổi với bác sĩ hoặc dược sĩ.\n\nHãy hỏi bác sĩ hoặc dược sĩ về lựa chọn thay thế phù hợp với bệnh nền và các thuốc bạn đang dùng.\n\nKiểm tra chỉ bao phủ thuốc, hoạt chất, dị ứng và bệnh nền đã được cung cấp và có trong bảng tri thức hiện tại.\n\nMột hoặc nhiều nguồn tri thức đang chờ chuyên gia lâm sàng ký duyệt; chưa được dùng để khẳng định chẩn đoán hoặc điều trị."
+    },
+    {
+      "case_id": "MRQ-020",
+      "question": "Tôi đang dùng thuốc bác sĩ kê nhưng thấy đỡ rồi. Tôi có thể tự ngừng thuốc không?",
+      "display_text": "Cần thêm thông tin để hỗ trợ bạn\n\nTôi cần tên thuốc đang cân nhắc hoặc thuốc muốn phối hợp để kiểm tra.\n\nKhông tự bắt đầu, ngừng, đổi liều hoặc phối hợp thuốc dựa chỉ trên hội thoại; hãy trao đổi với bác sĩ hoặc dược sĩ khi quyết định dùng thuốc có thể thay đổi.\n\nTên chính xác của thuốc bạn đang cân nhắc là gì?\n\nHệ thống cần thêm dữ kiện lâm sàng để đưa ra định hướng xử trí chuẩn xác nhất."
+    },
+    {
+      "case_id": "MRQ-022",
+      "question": "Huyết áp của tôi là 145/95 mmHg. Con số này có ý nghĩa gì?",
+      "display_text": "Bạn nên liên hệ cơ sở y tế\n\nHệ thống đã đối chiếu chỉ số với ngưỡng cấu hình. Mức chuyển tuyến hiện tại: CLINIC; xu hướng: worsening.\n\nTrị số tâm thu từ 140 mmHg trở lên nằm trong vùng huyết áp cao Stage 2 theo phân loại AHA/ACC. Một lần đo chưa đủ để xác nhận chẩn đoán; cần tiếp tục theo dõi bằng các lần đo lặp lại đúng kỹ thuật và trao đổi với nhân viên y tế để được đánh giá nếu mức này lặp lại.\n\nTrị số tâm trương từ 90 mmHg trở lên nằm trong vùng huyết áp cao Stage 2 theo phân loại AHA/ACC. Một lần đo chưa đủ để xác nhận chẩn đoán; cần tiếp tục theo dõi bằng các lần đo lặp lại đúng kỹ thuật và trao đổi với nhân viên y tế để được đánh giá nếu mức này lặp lại.\n\nTiếp tục ghi lại chỉ số đúng đơn vị và đo lại theo hướng dẫn; liên hệ cơ sở y tế nếu chỉ số xấu đi hoặc xuất hiện triệu chứng mới.\n\nNgưỡng chỉ được áp dụng cho giá trị và đơn vị hệ thống nhận diện được; thiết bị đo hoặc cách đo có thể ảnh hưởng kết quả.\n\nMột hoặc nhiều nguồn tri thức đang chờ chuyên gia lâm sàng ký duyệt; chưa được dùng để khẳng định chẩn đoán hoặc điều trị."
+    }
+  ]
+}

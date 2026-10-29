@@ -26,6 +26,39 @@ def _env_float(name: str, default: float) -> float:
     return default if value is None else float(value)
 
 
+def _is_test_runtime() -> bool:
+    return "pytest" in sys.modules or "PYTEST_CURRENT_TEST" in environ
+
+
+def _default_agent_mode() -> str:
+    explicit = getenv("MEDGUARD_AGENT_MODE")
+    if explicit:
+        return explicit.lower()
+    if _is_test_runtime():
+        return "disabled"
+    return "enforced"
+
+
+def _default_agent_coverage_scope() -> str:
+    explicit = getenv("MEDGUARD_AGENT_COVERAGE_SCOPE")
+    if explicit:
+        return explicit.lower()
+    # Tests keep the historical narrow default unless they opt into coverage.
+    # Real runtimes default to V14 single-path coverage: every public response
+    # is eligible for Writer -> Reviewer processing.
+    return "clinical" if _is_test_runtime() else "all"
+
+
+def _default_agent_sync_enabled() -> bool:
+    explicit = getenv("MEDGUARD_AGENT_SYNC_ENABLED")
+    if explicit is not None:
+        return explicit.strip().lower() in {"true", "1", "yes", "on"}
+    # Pytest remains deterministic/offline by default. Runtime requests use the
+    # synchronous gateway path unless an environment explicitly selects the
+    # background/shadow architecture.
+    return False if _is_test_runtime() else True
+
+
 def _allowed_tenants() -> tuple[str, ...]:
     value = getenv("MEDGUARD_ALLOWED_TENANTS")
     if not value:
@@ -84,9 +117,7 @@ class Settings:
     )
 
     # Database & RLS
-    database_url: str | None = field(
-        default_factory=lambda: getenv("MEDGUARD_DATABASE_URL")
-    )
+    database_url: str | None = field(default_factory=lambda: getenv("MEDGUARD_DATABASE_URL"))
     sqlite_path: str = field(default_factory=lambda: getenv("MEDGUARD_SQLITE_PATH", ":memory:"))
     db_pool_size: int = field(default_factory=lambda: _env_int("MEDGUARD_DB_POOL_SIZE", 10))
     db_max_overflow: int = field(default_factory=lambda: _env_int("MEDGUARD_DB_MAX_OVERFLOW", 20))
@@ -95,42 +126,30 @@ class Settings:
     )
 
     # Distributed Queue
-    redis_url: str | None = field(
-        default_factory=lambda: getenv("MEDGUARD_REDIS_URL")
-    )
+    redis_url: str | None = field(default_factory=lambda: getenv("MEDGUARD_REDIS_URL"))
     queue_name: str = "medguard_jobs"
     queue_max_attempts: int = field(default_factory=lambda: _env_int("MEDGUARD_QUEUE_MAX_ATTEMPTS", 3))
 
     # Object Storage
-    s3_endpoint_url: str | None = field(
-        default_factory=lambda: getenv("MEDGUARD_S3_ENDPOINT")
-    )
+    s3_endpoint_url: str | None = field(default_factory=lambda: getenv("MEDGUARD_S3_ENDPOINT"))
     s3_bucket_name: str = field(
         default_factory=lambda: getenv("MEDGUARD_S3_BUCKET", "medguard-prescriptions")
     )
-    s3_access_key_id: str | None = field(
-        default_factory=lambda: getenv("MEDGUARD_S3_ACCESS_KEY")
-    )
-    s3_secret_access_key: str | None = field(
-        default_factory=lambda: getenv("MEDGUARD_S3_SECRET_KEY")
-    )
-    storage_retention_ttl_seconds: int = 3600  # Default 1h TTL ephemeral storage
+    s3_access_key_id: str | None = field(default_factory=lambda: getenv("MEDGUARD_S3_ACCESS_KEY"))
+    s3_secret_access_key: str | None = field(default_factory=lambda: getenv("MEDGUARD_S3_SECRET_KEY"))
+    storage_retention_ttl_seconds: int = 3600
 
     # Observability & Metrics
     metrics_enabled: bool = True
-    log_level: str = field(
-        default_factory=lambda: getenv("MEDGUARD_LOG_LEVEL", "INFO")
-    )
+    log_level: str = field(default_factory=lambda: getenv("MEDGUARD_LOG_LEVEL", "INFO"))
     mask_clinical_data_in_logs: bool = True
 
     # Consent enforcement
     enforce_consent: bool = field(default_factory=lambda: _env_bool("MEDGUARD_ENFORCE_CONSENT"))
 
-    # Optional two-agent answer presentation and verification
-    agent_mode: str = field(default_factory=lambda: getenv("MEDGUARD_AGENT_MODE", "disabled").lower())
-    agent_coverage_scope: str = field(
-        default_factory=lambda: getenv("MEDGUARD_AGENT_COVERAGE_SCOPE", "clinical").lower()
-    )
+    # Two-agent response generation and non-authoring verification
+    agent_mode: str = field(default_factory=_default_agent_mode)
+    agent_coverage_scope: str = field(default_factory=_default_agent_coverage_scope)
     research_agent_provider: str = field(
         default_factory=lambda: getenv("MEDGUARD_RESEARCH_AGENT_PROVIDER", "litellm").lower()
     )
@@ -138,17 +157,15 @@ class Settings:
         default_factory=lambda: getenv("MEDGUARD_VERIFIER_AGENT_PROVIDER", "litellm").lower()
     )
     agent_required_for_production: bool = field(
-        default_factory=lambda: _env_bool("MEDGUARD_AGENT_REQUIRED_FOR_PRODUCTION")
+        default_factory=lambda: _env_bool("MEDGUARD_AGENT_REQUIRED_FOR_PRODUCTION", True)
     )
-    agent_sync_enabled: bool = field(
-        default_factory=lambda: _env_bool("MEDGUARD_AGENT_SYNC_ENABLED")
-    )
+    agent_sync_enabled: bool = field(default_factory=_default_agent_sync_enabled)
+    agent_workers: int = field(default_factory=lambda: _env_int("MEDGUARD_AGENT_WORKERS", 8))
+    agent_max_pending: int = field(default_factory=lambda: _env_int("MEDGUARD_AGENT_MAX_PENDING", 16))
     agent_background_enabled: bool = field(
         default_factory=lambda: _env_bool("MEDGUARD_AGENT_BACKGROUND_ENABLED")
     )
     agent_background_max_pending: int = field(
-        # Backward-compatible name: this is a soft backlog warning threshold,
-        # not an admission cap. Public rate limiting bounds incoming work.
         default_factory=lambda: _env_int("MEDGUARD_AGENT_BACKGROUND_MAX_PENDING", 100)
     )
     agent_background_workers: int = field(
@@ -176,19 +193,12 @@ class Settings:
         default_factory=lambda: _env_int("MEDGUARD_AGENT_BACKGROUND_VERIFIER_MAX_OUTPUT_TOKENS", 500)
     )
     agent_background_promote_verified: bool = field(
-        # Progressive enhancement: the HTTP request returns the deterministic
-        # answer immediately; a fully verified gateway answer may replace it
-        # in durable history after both model stages and local release gates.
         default_factory=lambda: _env_bool("MEDGUARD_AGENT_BACKGROUND_PROMOTE_VERIFIED")
     )
     llm_gateway_url: str | None = field(
-        default_factory=lambda: (
-            getenv("MEDGUARD_LLM_GATEWAY_URL", "").rstrip("/") or None
-        )
+        default_factory=lambda: (getenv("MEDGUARD_LLM_GATEWAY_URL", "").rstrip("/") or None)
     )
-    llm_gateway_api_key: str | None = field(
-        default_factory=lambda: getenv("MEDGUARD_LLM_GATEWAY_API_KEY")
-    )
+    llm_gateway_api_key: str | None = field(default_factory=lambda: getenv("MEDGUARD_LLM_GATEWAY_API_KEY"))
     llm_gateway_health_timeout_seconds: int = field(
         default_factory=lambda: _env_int("MEDGUARD_LLM_GATEWAY_HEALTH_TIMEOUT_SECONDS", 2)
     )
@@ -220,7 +230,6 @@ class Settings:
         default_factory=lambda: getenv("MEDGUARD_VERIFIER_REASONING_EFFORT", "high").lower()
     )
     agent_timeout_seconds: int = field(
-        # Two sequential model stages must stay inside the 10-second chat SLO.
         default_factory=lambda: _env_int("MEDGUARD_AGENT_TIMEOUT_SECONDS", 4)
     )
     agent_total_timeout_seconds: int = field(
@@ -230,8 +239,6 @@ class Settings:
         default_factory=lambda: _env_bool("MEDGUARD_AGENT_WEB_SEARCH_ENABLED", True)
     )
     verifier_web_search_enabled: bool = field(
-        # A local Ollama verifier cannot perform hosted search.  It instead
-        # receives allow-listed pages fetched and pinned by MedGuard.
         default_factory=lambda: _env_bool("MEDGUARD_VERIFIER_WEB_SEARCH_ENABLED", True)
     )
     agent_web_search_required: bool = field(
@@ -244,7 +251,7 @@ class Settings:
         default_factory=lambda: _env_int("MEDGUARD_AGENT_MAX_INPUT_TOKENS", 12_000)
     )
     agent_max_iterations: int = field(
-        default_factory=lambda: _env_int("MEDGUARD_AGENT_MAX_ITERATIONS", 0)
+        default_factory=lambda: _env_int("MEDGUARD_AGENT_MAX_ITERATIONS", 1)
     )
     research_max_output_tokens: int = field(
         default_factory=lambda: _env_int("MEDGUARD_RESEARCH_MAX_OUTPUT_TOKENS", 700)
@@ -253,7 +260,7 @@ class Settings:
         default_factory=lambda: _env_int("MEDGUARD_VERIFIER_MAX_OUTPUT_TOKENS", 300)
     )
     agent_prompt_version: str = field(
-        default_factory=lambda: getenv("MEDGUARD_AGENT_PROMPT_VERSION", "2026-09-09")
+        default_factory=lambda: getenv("MEDGUARD_AGENT_PROMPT_VERSION", "2026-10-09-companion")
     )
     safe_cache_ttl_seconds: int = field(
         default_factory=lambda: _env_int("MEDGUARD_SAFE_CACHE_TTL_SECONDS", 300)
@@ -297,6 +304,8 @@ class Settings:
             raise ValueError(
                 "MEDGUARD_AGENT_SYNC_ENABLED and MEDGUARD_AGENT_BACKGROUND_ENABLED cannot both be true"
             )
+        if self.agent_workers < 1 or self.agent_max_pending < self.agent_workers:
+            raise ValueError("MEDGUARD_AGENT_MAX_PENDING must include all MEDGUARD_AGENT_WORKERS")
         if self.agent_background_max_pending < 1:
             raise ValueError("MEDGUARD_AGENT_BACKGROUND_MAX_PENDING must be at least 1")
         if self.agent_background_workers < 1:
@@ -318,26 +327,24 @@ class Settings:
         if self.agent_background_verifier_max_output_tokens < 1:
             raise ValueError("MEDGUARD_AGENT_BACKGROUND_VERIFIER_MAX_OUTPUT_TOKENS must be at least 1")
         if self.llm_gateway_api_style not in {"responses", "chat_completions"}:
-            raise ValueError(
-                "MEDGUARD_LLM_GATEWAY_API_STYLE must be responses or chat_completions"
-            )
+            raise ValueError("MEDGUARD_LLM_GATEWAY_API_STYLE must be responses or chat_completions")
         if self.research_agent_provider != "litellm":
             raise ValueError("MEDGUARD_RESEARCH_AGENT_PROVIDER must be litellm")
         if self.verifier_agent_provider != "litellm":
             raise ValueError("MEDGUARD_VERIFIER_AGENT_PROVIDER must be litellm")
         if self.agent_timeout_seconds < 1:
             raise ValueError("MEDGUARD_AGENT_TIMEOUT_SECONDS must be at least 1")
-        if self.agent_timeout_seconds > 4:
+        if self.agent_timeout_seconds > 25:
             raise ValueError(
-                "MEDGUARD_AGENT_TIMEOUT_SECONDS must be at most 4 to preserve the 10-second chat SLO"
+                "MEDGUARD_AGENT_TIMEOUT_SECONDS must be at most 25"
             )
-        if not 1 <= self.agent_total_timeout_seconds <= 8:
+        if not 1 <= self.agent_total_timeout_seconds <= 30:
             raise ValueError(
-                "MEDGUARD_AGENT_TOTAL_TIMEOUT_SECONDS must be between 1 and 8 for the 10-second chat SLO"
+                "MEDGUARD_AGENT_TOTAL_TIMEOUT_SECONDS must be between 1 and 30"
             )
-        if self.agent_max_iterations != 0:
+        if self.agent_max_iterations not in {0, 1}:
             raise ValueError(
-                "MEDGUARD_AGENT_MAX_ITERATIONS must be 0 to preserve the 10-second chat SLO"
+                "MEDGUARD_AGENT_MAX_ITERATIONS must be 0 or 1; V14 permits one bounded Writer revision requested by the non-authoring Reviewer"
             )
         for name, value in {
             "MEDGUARD_AGENT_MAX_INPUT_TOKENS": self.agent_max_input_tokens,

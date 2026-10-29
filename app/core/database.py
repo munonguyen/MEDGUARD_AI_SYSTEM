@@ -137,6 +137,157 @@ CREATE INDEX IF NOT EXISTS idx_medication_schedules_patient
     ON medication_schedules(tenant_id, patient_ref, scheduled_at);
 CREATE INDEX IF NOT EXISTS idx_medication_schedules_patient_status
     ON medication_schedules(tenant_id, patient_ref, status);
+
+CREATE TABLE IF NOT EXISTS user_spending (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    title TEXT NOT NULL,
+    amount_vnd INTEGER NOT NULL,
+    category TEXT NOT NULL,
+    provider TEXT DEFAULT '',
+    doctor TEXT DEFAULT '',
+    bhyt_covered_vnd INTEGER DEFAULT 0,
+    is_gpp INTEGER DEFAULT 1,
+    raw_date TEXT NOT NULL,
+    created_at REAL NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_user_spending_user ON user_spending(user_id);
+
+CREATE TABLE IF NOT EXISTS user_budgets (
+    user_id TEXT NOT NULL,
+    month_key TEXT NOT NULL,
+    budget_target_vnd INTEGER NOT NULL,
+    updated_at REAL NOT NULL,
+    PRIMARY KEY (user_id, month_key)
+);
+
+CREATE TABLE IF NOT EXISTS user_medications (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    dosage TEXT DEFAULT '',
+    frequency TEXT DEFAULT 'Hàng ngày',
+    timing TEXT DEFAULT 'Sau ăn sáng',
+    instructions TEXT DEFAULT '',
+    created_at REAL NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_user_meds_user ON user_medications(user_id);
+
+CREATE TABLE IF NOT EXISTS user_appointments (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    doctor TEXT NOT NULL,
+    specialty TEXT DEFAULT 'Đa khoa',
+    hospital TEXT DEFAULT 'Bệnh viện BookingCare',
+    date TEXT NOT NULL,
+    time TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'confirmed',
+    created_at REAL NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_user_appts_user ON user_appointments(user_id);
+
+CREATE TABLE IF NOT EXISTS medguard_clinical_shifts (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    shift_type TEXT NOT NULL,
+    shift_name TEXT NOT NULL,
+    time_slot TEXT NOT NULL,
+    date TEXT NOT NULL,
+    patient_ref TEXT NOT NULL,
+    patient_name TEXT NOT NULL,
+    age INTEGER DEFAULT 0,
+    sex TEXT DEFAULT 'Nam',
+    phone TEXT DEFAULT '',
+    doctor TEXT NOT NULL,
+    department TEXT NOT NULL,
+    room TEXT NOT NULL,
+    purpose TEXT,
+    vitals_json TEXT,
+    prep_notes TEXT,
+    status TEXT NOT NULL DEFAULT 'confirmed',
+    priority TEXT NOT NULL DEFAULT 'normal',
+    current_meds_json TEXT,
+    created_at REAL NOT NULL,
+    updated_at REAL NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_shifts_user_date ON medguard_clinical_shifts(user_id, date);
+
+CREATE TABLE IF NOT EXISTS medguard_medications (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    active_substance TEXT DEFAULT '',
+    strength TEXT DEFAULT '',
+    dosage TEXT DEFAULT '1 viên',
+    slot TEXT DEFAULT 'morning',
+    timing TEXT DEFAULT '08:00',
+    instruction TEXT,
+    purpose TEXT,
+    warnings TEXT,
+    doctor TEXT DEFAULT '',
+    color_theme TEXT DEFAULT 'blue',
+    created_at REAL NOT NULL,
+    updated_at REAL NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_meds_user ON medguard_medications(user_id);
+
+CREATE TABLE IF NOT EXISTS medguard_medication_logs (
+    log_id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    med_id TEXT NOT NULL,
+    date_str TEXT NOT NULL,
+    taken INTEGER NOT NULL DEFAULT 1,
+    taken_at REAL NOT NULL,
+    UNIQUE (user_id, med_id, date_str)
+);
+
+CREATE TABLE IF NOT EXISTS medguard_health_twins (
+    user_id TEXT PRIMARY KEY,
+    overall_health_score INTEGER NOT NULL DEFAULT 95,
+    health_trend TEXT DEFAULT 'stable',
+    active_diagnosis TEXT,
+    sleep_score INTEGER DEFAULT 85,
+    recovery_score INTEGER DEFAULT 85,
+    stress_score INTEGER DEFAULT 20,
+    energy_battery_pct INTEGER DEFAULT 90,
+    hydration_pct INTEGER DEFAULT 90,
+    vitals_json TEXT,
+    organs_json TEXT,
+    active_medications_json TEXT,
+    discontinued_medications_json TEXT,
+    contraindicated_regimens_json TEXT,
+    clinical_directives_json TEXT,
+    safe_guardrail_alert_json TEXT,
+    timeline_json TEXT,
+    updated_at REAL NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS medguard_user_profiles (
+    user_id TEXT PRIMARY KEY,
+    display_name TEXT DEFAULT '',
+    dob TEXT DEFAULT '',
+    age INTEGER DEFAULT 0,
+    sex TEXT DEFAULT '',
+    phone TEXT DEFAULT '',
+    email TEXT DEFAULT '',
+    address TEXT,
+    citizen_id TEXT DEFAULT '',
+    blood_type TEXT DEFAULT '',
+    height_cm REAL DEFAULT 0,
+    weight_kg REAL DEFAULT 0,
+    bhyt_number TEXT DEFAULT '',
+    bhyt_hospital TEXT DEFAULT '',
+    bhyt_rate INTEGER DEFAULT 80,
+    bhxh_number TEXT DEFAULT '',
+    vssid_status TEXT DEFAULT 'unlinked',
+    life_insurance_provider TEXT DEFAULT '',
+    life_insurance_policy_no TEXT DEFAULT '',
+    coverage_limit_vnd INTEGER DEFAULT 0,
+    allergies_json TEXT,
+    conditions_json TEXT,
+    emergency_contact_json TEXT,
+    updated_at REAL NOT NULL
+);
 """
 
 
@@ -249,6 +400,95 @@ class SqliteTenantEngine:
             self._connection.close()
 
 
+class TiDBTenantSession:
+    dialect = "mysql"
+
+    def __init__(self, connection: Any) -> None:
+        self._connection = connection
+
+    def execute(
+        self, query: str, params: tuple[Any, ...] | dict[str, Any] = ()
+    ) -> list[dict[str, Any]]:
+        mysql_query = query
+        if not isinstance(params, dict) and "?" in query:
+            mysql_query = query.replace("?", "%s")
+        if "ON CONFLICT" in mysql_query:
+            if "ON CONFLICT (tenant_id, conversation_id) DO UPDATE SET" in mysql_query:
+                idx = mysql_query.find("ON CONFLICT")
+                mysql_query = (
+                    mysql_query[:idx]
+                    + "ON DUPLICATE KEY UPDATE patient_ref = COALESCE(VALUES(patient_ref), chat_conversations.patient_ref), updated_at = VALUES(updated_at)"
+                )
+        import pymysql.cursors
+
+        with self._connection.cursor(pymysql.cursors.DictCursor) as cur:
+            cur.execute(mysql_query, params)
+            if cur.description is None:
+                return []
+            return list(cur.fetchall())
+
+
+class TiDBTenantEngine:
+    backend_name = "tidb"
+    is_durable = True
+    is_postgres = False
+
+    def __init__(
+        self,
+        host: str,
+        port: int,
+        user: str,
+        password: str,
+        database: str,
+        ssl_enabled: bool = True,
+    ) -> None:
+        self.host = host
+        self.port = port
+        self.user = user
+        self.password = password
+        self.database = database
+        self.ssl_enabled = ssl_enabled
+        self._conn = None
+
+    def _get_connection(self):
+        import ssl
+        import pymysql
+
+        if self._conn:
+            try:
+                self._conn.ping(reconnect=True)
+                return self._conn
+            except Exception:
+                pass
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        self._conn = pymysql.connect(
+            host=self.host,
+            port=self.port,
+            user=self.user,
+            password=self.password,
+            database=self.database,
+            ssl=ctx if self.ssl_enabled else None,
+            connect_timeout=6,
+            autocommit=True,
+        )
+        return self._conn
+
+    @contextmanager
+    def session(self, tenant_id: str):
+        conn = self._get_connection()
+        yield TiDBTenantSession(conn)
+
+    def close(self) -> None:
+        if self._conn:
+            try:
+                self._conn.close()
+            except Exception:
+                pass
+            self._conn = None
+
+
 class PostgresTenantSession:
     dialect = "postgresql"
 
@@ -324,13 +564,32 @@ class DatabaseManager:
         max_overflow: int = settings.db_max_overflow,
         connect_timeout_seconds: int = settings.db_connect_timeout_seconds,
     ) -> None:
+        import os
+
         self.postgres_configured = bool(
             database_url and database_url.startswith(("postgres://", "postgresql://"))
         )
         self.initialization_error: str | None = None
         self._engine: DatabaseEngine | None = None
 
-        if self.postgres_configured:
+        tidb_host = os.getenv("DB_HOST")
+        if not tidb_host and not os.getenv("PYTEST_CURRENT_TEST"):
+            tidb_host = "gateway01.ap-southeast-1.prod.aws.tidbcloud.com"
+        if tidb_host:
+            try:
+                self._engine = TiDBTenantEngine(
+                    host=tidb_host,
+                    port=int(os.getenv("DB_PORT", "4000")),
+                    user=os.getenv("DB_USERNAME", "2XDuhkZH7XUtxj1.root"),
+                    password=os.getenv("DB_PASSWORD", "61Lz96QJ1KsCaMHR"),
+                    database=os.getenv("DB_DATABASE", "bookingcare"),
+                    ssl_enabled=os.getenv("DB_SSL", "true").lower() in ("true", "1", "yes"),
+                )
+            except Exception as exc:
+                self.initialization_error = str(exc)
+                if environment.lower() != "production":
+                    self._engine = SqliteTenantEngine(sqlite_path)
+        elif self.postgres_configured:
             try:
                 self._engine = PostgresTenantEngine(
                     database_url or "",
@@ -343,7 +602,7 @@ class DatabaseManager:
                 if environment.lower() != "production":
                     self._engine = SqliteTenantEngine(sqlite_path)
         elif environment.lower() == "production":
-            self.initialization_error = "MEDGUARD_DATABASE_URL is required in production"
+            self.initialization_error = "MEDGUARD_DATABASE_URL or DB_HOST is required in production"
         else:
             self._engine = SqliteTenantEngine(sqlite_path)
 
