@@ -407,6 +407,9 @@ export async function scanHyperLocalMedicalPois({
       distance_label: formatDistanceVi(straightKm),
       fan_direction: fanDirection,
       medical_note: cand.medical_note || inferMedicalSpecialtyNote({ ...cand, name: cleanName, role }),
+      photo_url:
+        cand.photo_url ||
+        `/v1/geo/places-photo?query=${encodeURIComponent(cleanName + " " + (street || ""))}&lat=${cand.lat}&lng=${cand.lng}&place_id=${cand.id || ""}&facility_type=${role}&redirect=true`,
       reviews:
         cand.reviews && cand.reviews.length > 0
           ? cand.reviews

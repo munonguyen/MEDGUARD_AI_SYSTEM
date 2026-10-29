@@ -1092,6 +1092,34 @@ def get_places_reputation(
     }
 
 
+@router.get("/geo/places-photo")
+async def get_places_photo(
+    query: str = Query(..., description="Tên và địa chỉ cơ sở y tế trên Google Maps"),
+    lat: float | None = Query(None, description="Vĩ độ"),
+    lng: float | None = Query(None, description="Kinh độ"),
+    place_id: str | None = Query(None, description="Google Place ID"),
+    facility_type: str = Query("pharmacy", description="Phân loại: pharmacy, clinic, emergency"),
+    redirect: bool = Query(False, description="Chuyển hướng trực tiếp 307 tới ảnh"),
+    api_key: str | None = Query(None, description="Google Maps API Key (nếu truyền trực tiếp)"),
+) -> Any:
+    """Tra cứu ảnh của địa điểm từ Google Maps Places API hoặc ảnh thực tế đã xác thực."""
+    from fastapi.responses import RedirectResponse
+    from app.services.google_places_photo_service import google_places_photo_service
+
+    result = await google_places_photo_service.resolve_place_photo(
+        query=query,
+        lat=lat,
+        lng=lng,
+        place_id=place_id,
+        facility_type=facility_type,
+        api_key_override=api_key,
+    )
+    if redirect and result.get("photo_url"):
+        return RedirectResponse(url=result["photo_url"], status_code=307)
+    return result
+
+
+
 @router.get("/docs/module-10/download")
 async def download_module_10_doc(format: str = Query("md")):
     from pathlib import Path

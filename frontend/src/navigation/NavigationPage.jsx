@@ -2937,13 +2937,28 @@ export function NavigationPage({
             {selectedPoi && !isNavigatingLive && mapViewMode !== 'gmaps_embed' && (() => {
               const isEmergencyPoi = selectedPoi.type === 'hospital_emergency' || /cấp cứu|bệnh viện/i.test(selectedPoi.name || '');
               const isClinicPoi = selectedPoi.category_badge?.includes('PHÒNG KHÁM') || /phòng khám|trạm y tế|chuyên khoa/i.test(selectedPoi.name || '');
-              const heroImageSrc = isEmergencyPoi ? '/assets/emergency_hero.jpg' : isClinicPoi ? '/assets/clinic_hero.jpg' : '/assets/pharmacy_hero.jpg';
+              const fallbackHeroImageSrc = isEmergencyPoi ? '/assets/emergency_hero.jpg' : isClinicPoi ? '/assets/clinic_hero.jpg' : '/assets/pharmacy_hero.jpg';
+
+              // Dynamic Google Maps Places Photo API URL
+              const photoQuery = `${selectedPoi.name || ''} ${selectedPoi.address || ''}`.trim();
+              const photoRole = selectedPoi.role || (isEmergencyPoi ? 'emergency' : isClinicPoi ? 'clinic' : 'pharmacy');
+              const gmapsPhotoApiUrl = selectedPoi.photo_url || `/v1/geo/places-photo?query=${encodeURIComponent(photoQuery)}&lat=${selectedPoi.lat || ''}&lng=${selectedPoi.lng || ''}&place_id=${selectedPoi.id || ''}&facility_type=${photoRole}&redirect=true`;
 
               return (
                 <div className="med-place-detail-card" role="region" aria-label="Chi tiết địa điểm y tế">
                   {/* Hero Media Banner with Category Badge & Status Overlay */}
                   <div className="detail-card-hero-banner">
-                    <img src={heroImageSrc} alt={selectedPoi.name} className="hero-banner-image" loading="lazy" />
+                    <img
+                      src={gmapsPhotoApiUrl}
+                      alt={selectedPoi.name}
+                      className="hero-banner-image"
+                      loading="lazy"
+                      onError={(e) => {
+                        if (e.currentTarget.src !== fallbackHeroImageSrc) {
+                          e.currentTarget.src = fallbackHeroImageSrc;
+                        }
+                      }}
+                    />
                     <div className="hero-banner-gradient-overlay" />
                     <div className="hero-top-bar">
                       <div className="hero-category-badge-group">
@@ -2980,6 +2995,10 @@ export function NavigationPage({
                       <span className="hero-dist-pill">
                         <Route size={12} />
                         {selectedPoi.distance_label || formatDistanceLabel(selectedPoi.distance_km)}
+                      </span>
+                      <span className="hero-gmaps-photo-tag" title="Hình ảnh từ Google Maps Places API">
+                        <span className="gmaps-g-symbol">G</span>
+                        <span>Google Maps Photos API</span>
                       </span>
                     </div>
                   </div>

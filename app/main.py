@@ -21,6 +21,8 @@ _RATE_LIMIT_EXEMPT_PATHS = {
     "/v1/health/readiness",
     "/v1/geo/pois",
     "/v1/geo/route",
+    "/v1/geo/places-photo",
+    "/v1/geo/places-reputation",
 }
 _RATE_LIMIT_STATIC_BUCKETS = {
     "/v1/audit/events",
@@ -79,11 +81,11 @@ def _security_headers(response, *, path: str) -> None:
     if path in {"/", "/dashboard"} or path.startswith("/static/"):
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; base-uri 'self'; "
-            "connect-src 'self' blob: data: https://api.geoapify.com https://maps.geoapify.com https://*.geoapify.com https://server.arcgisonline.com https://*.arcgisonline.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com; "
+            "connect-src 'self' blob: data: https://api.geoapify.com https://maps.geoapify.com https://*.geoapify.com https://server.arcgisonline.com https://*.arcgisonline.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://*.googleapis.com https://places.googleapis.com https://maps.googleapis.com; "
             "font-src 'self' data: https://fonts.gstatic.com; "
             "frame-src 'self' https://www.google.com https://maps.google.com; "
             "frame-ancestors 'none'; "
-            "img-src 'self' data: blob: https://*.basemaps.cartocdn.com https://*.tile.openstreetmap.org https://maps.geoapify.com https://*.geoapify.com https://server.arcgisonline.com https://*.arcgisonline.com; "
+            "img-src 'self' data: blob: https://*.basemaps.cartocdn.com https://*.tile.openstreetmap.org https://maps.geoapify.com https://*.geoapify.com https://server.arcgisonline.com https://*.arcgisonline.com https://*.googleapis.com https://places.googleapis.com https://maps.googleapis.com https://*.googleusercontent.com https://*.gstatic.com https://lh3.googleusercontent.com; "
             "media-src 'self' blob: data:; "
             "worker-src 'self' blob:; "
             "object-src 'none'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com"
