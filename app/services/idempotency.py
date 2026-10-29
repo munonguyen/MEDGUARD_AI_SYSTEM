@@ -14,7 +14,8 @@ from fastapi import HTTPException, status
 from pydantic import BaseModel
 
 from app.core.context import RequestContext
-from app.core.database import DatabaseManager, db_manager, decode_timestamp, encode_timestamp
+from app.core.database import DatabaseManager, db_manager, decode_timestamp
+from app.core.repository import IdempotencyRepository, idempotency_repository
 
 
 @dataclass(frozen=True)
@@ -29,10 +30,12 @@ class IdempotencyStore:
     def __init__(
         self,
         database: DatabaseManager = db_manager,
+        repository: IdempotencyRepository | None = None,
         ttl_seconds: int = 86_400,
         lease_seconds: int = 30,
     ) -> None:
         self.database = database
+        self.repository = repository or IdempotencyRepository(database=database)
         self.ttl_seconds = ttl_seconds
         self.lease_seconds = lease_seconds
         self._lock = RLock()
@@ -47,39 +50,24 @@ class IdempotencyStore:
                 return cached
             self.entries.pop(key, None)
 
-            with self.database.tenant_context(tenant_id) as session:
-                rows = session.execute(
-                    """
-                    SELECT payload_hash, response_body, response_code, expires_at
-                    FROM idempotency_records
-                    WHERE tenant_id = ? AND endpoint = ? AND idempotency_key = ?
-                    """,
-                    (tenant_id, endpoint, idempotency_key),
-                )
-                if not rows:
-                    return None
-                row = rows[0]
-                expires_at = decode_timestamp(row["expires_at"])
-                if expires_at <= now:
-                    session.execute(
-                        """
-                        DELETE FROM idempotency_records
-                        WHERE tenant_id = ? AND endpoint = ? AND idempotency_key = ?
-                        """,
-                        (tenant_id, endpoint, idempotency_key),
-                    )
-                    return None
+            row = self.repository.find_record(tenant_id, endpoint, idempotency_key)
+            if not row:
+                return None
+            expires_at = decode_timestamp(row["expires_at"])
+            if expires_at <= now:
+                self.repository.delete_record(tenant_id, endpoint, idempotency_key)
+                return None
 
-                raw_response = row["response_body"]
-                response = raw_response if isinstance(raw_response, dict) else json.loads(raw_response)
-                entry = IdempotencyEntry(
-                    payload_hash=str(row["payload_hash"]),
-                    response=response,
-                    expires_at=expires_at,
-                    response_code=int(row["response_code"]),
-                )
-                self.entries[key] = entry
-                return entry
+            raw_response = row["response_body"]
+            response = raw_response if isinstance(raw_response, dict) else json.loads(raw_response)
+            entry = IdempotencyEntry(
+                payload_hash=str(row["payload_hash"]),
+                response=response,
+                expires_at=expires_at,
+                response_code=int(row["response_code"]),
+            )
+            self.entries[key] = entry
+            return entry
 
     def put(
         self,
@@ -93,51 +81,16 @@ class IdempotencyStore:
         expires_at = created_at + self.ttl_seconds
         entry = IdempotencyEntry(payload_hash, response, expires_at, 200)
         with self._lock:
-            with self.database.tenant_context(tenant_id) as session:
-                if session.dialect in ("mysql", "tidb"):
-                    session.execute(
-                        """
-                        INSERT INTO idempotency_records (
-                            record_id, tenant_id, idempotency_key, endpoint,
-                            response_code, response_body, payload_hash, created_at, expires_at
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                        ON DUPLICATE KEY UPDATE
-                            response_code = VALUES(response_code),
-                            response_body = VALUES(response_body),
-                            payload_hash = VALUES(payload_hash),
-                            created_at = VALUES(created_at),
-                            expires_at = VALUES(expires_at)
-                        """,
-                        (
-                            str(uuid4()), tenant_id, idempotency_key, endpoint, 200,
-                            json.dumps(response, separators=(",", ":"), sort_keys=True),
-                            payload_hash,
-                            encode_timestamp(session, created_at),
-                            encode_timestamp(session, expires_at),
-                        ),
-                    )
-                else:
-                    session.execute(
-                        """
-                        INSERT INTO idempotency_records (
-                            record_id, tenant_id, idempotency_key, endpoint,
-                            response_code, response_body, payload_hash, created_at, expires_at
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                        ON CONFLICT(tenant_id, endpoint, idempotency_key) DO UPDATE SET
-                            response_code = excluded.response_code,
-                            response_body = excluded.response_body,
-                            payload_hash = excluded.payload_hash,
-                            created_at = excluded.created_at,
-                            expires_at = excluded.expires_at
-                        """,
-                        (
-                            str(uuid4()), tenant_id, idempotency_key, endpoint, 200,
-                            json.dumps(response, separators=(",", ":"), sort_keys=True),
-                            payload_hash,
-                            encode_timestamp(session, created_at),
-                            encode_timestamp(session, expires_at),
-                        ),
-                    )
+            self.repository.save_response(
+                tenant_id=tenant_id,
+                endpoint=endpoint,
+                idempotency_key=idempotency_key,
+                response_code=200,
+                response_body=json.dumps(response, separators=(",", ":"), sort_keys=True),
+                payload_hash=payload_hash,
+                created_at=created_at,
+                expires_at=expires_at,
+            )
             self.entries[key] = entry
 
     def acquire(
@@ -149,111 +102,43 @@ class IdempotencyStore:
             for _ in range(2):
                 now = time()
                 lease_expires_at = now + self.lease_seconds
-                with self.database.tenant_context(tenant_id) as session:
-                    if session.dialect in ("mysql", "tidb"):
-                        existing = session.execute(
-                            """
-                            SELECT payload_hash, response_body, response_code, expires_at
-                            FROM idempotency_records
-                            WHERE tenant_id = ? AND endpoint = ? AND idempotency_key = ?
-                            """,
-                            (tenant_id, endpoint, idempotency_key),
-                        )
-                        if not existing:
-                            try:
-                                session.execute(
-                                    """
-                                    INSERT INTO idempotency_records (
-                                        record_id, tenant_id, idempotency_key, endpoint,
-                                        response_code, response_body, payload_hash, created_at, expires_at
-                                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                                    """,
-                                    (
-                                        str(uuid4()), tenant_id, idempotency_key, endpoint, 102, "{}",
-                                        payload_hash,
-                                        encode_timestamp(session, now),
-                                        encode_timestamp(session, lease_expires_at),
-                                    ),
-                                )
-                                self.entries.pop(key, None)
-                                return "acquired", None
-                            except Exception:
-                                pass
-                        rows = session.execute(
-                            """
-                            SELECT payload_hash, response_body, response_code, expires_at
-                            FROM idempotency_records
-                            WHERE tenant_id = ? AND endpoint = ? AND idempotency_key = ?
-                            """,
-                            (tenant_id, endpoint, idempotency_key),
-                        )
-                    else:
-                        inserted = session.execute(
-                            """
-                            INSERT INTO idempotency_records (
-                                record_id, tenant_id, idempotency_key, endpoint,
-                                response_code, response_body, payload_hash, created_at, expires_at
-                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                            ON CONFLICT(tenant_id, endpoint, idempotency_key) DO NOTHING
-                            RETURNING payload_hash
-                            """,
-                            (
-                                str(uuid4()), tenant_id, idempotency_key, endpoint, 102, "{}",
-                                payload_hash,
-                                encode_timestamp(session, now),
-                                encode_timestamp(session, lease_expires_at),
-                            ),
-                        )
-                        if inserted:
-                            self.entries.pop(key, None)
-                            return "acquired", None
-                        rows = session.execute(
-                            """
-                            SELECT payload_hash, response_body, response_code, expires_at
-                            FROM idempotency_records
-                            WHERE tenant_id = ? AND endpoint = ? AND idempotency_key = ?
-                            """,
-                            (tenant_id, endpoint, idempotency_key),
-                        )
-                    if not rows:
-                        continue
-                    row = rows[0]
-                    expires_at = decode_timestamp(row["expires_at"])
-                    if expires_at <= now:
-                        session.execute(
-                            """
-                            DELETE FROM idempotency_records
-                            WHERE tenant_id = ? AND endpoint = ? AND idempotency_key = ?
-                            """,
-                            (tenant_id, endpoint, idempotency_key),
-                        )
-                        continue
-                    raw_response = row["response_body"]
-                    entry = IdempotencyEntry(
-                        payload_hash=str(row["payload_hash"]),
-                        response=(
-                            raw_response
-                            if isinstance(raw_response, dict)
-                            else json.loads(raw_response)
-                        ),
-                        expires_at=expires_at,
-                        response_code=int(row["response_code"]),
-                    )
-                    if entry.payload_hash != payload_hash:
-                        return "conflict", entry
-                    if entry.response_code == 102:
-                        return "in_progress", entry
-                    self.entries[key] = entry
-                    return "replay", entry
+                reserved = self.repository.try_reserve_lease(
+                    tenant_id, endpoint, idempotency_key, payload_hash, now, lease_expires_at
+                )
+                if reserved:
+                    self.entries.pop(key, None)
+                    return "acquired", None
+
+                row = self.repository.find_record(tenant_id, endpoint, idempotency_key)
+                if not row:
+                    continue
+                expires_at = decode_timestamp(row["expires_at"])
+                if expires_at <= now:
+                    self.repository.delete_record(tenant_id, endpoint, idempotency_key)
+                    continue
+                raw_response = row["response_body"]
+                entry = IdempotencyEntry(
+                    payload_hash=str(row["payload_hash"]),
+                    response=(
+                        raw_response
+                        if isinstance(raw_response, dict)
+                        else json.loads(raw_response)
+                    ),
+                    expires_at=expires_at,
+                    response_code=int(row["response_code"]),
+                )
+                if entry.payload_hash != payload_hash:
+                    return "conflict", entry
+                if entry.response_code == 102:
+                    return "in_progress", entry
+                self.entries[key] = entry
+                return "replay", entry
         raise RuntimeError("Unable to acquire idempotency reservation")
 
     def clear(self) -> None:
         with self._lock:
             self.entries.clear()
-            if self.database.is_postgres:
-                return
-            with self.database.tenant_context("local-test") as session:
-                session.execute("DELETE FROM idempotency_records")
+            self.repository.clear()
 
 
 def stable_payload_hash(payload: Any) -> str:

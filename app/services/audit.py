@@ -10,6 +10,7 @@ from typing import Any
 from uuid import uuid4
 
 from app.core.database import DatabaseManager, db_manager
+from app.core.repository import AuditEventRepository
 
 
 @dataclass
@@ -23,44 +24,32 @@ class AuditEvent:
 
 
 class AuditStore:
-    def __init__(self, database: DatabaseManager = db_manager) -> None:
+    def __init__(
+        self,
+        database: DatabaseManager = db_manager,
+        repository: AuditEventRepository | None = None,
+    ) -> None:
         self.database = database
+        self.repository = repository or AuditEventRepository(database=database)
         self._lock = RLock()
         self.events: list[AuditEvent] = []
 
     def append(self, event: AuditEvent) -> None:
         with self._lock:
-            with self.database.tenant_context(event.tenant_id) as session:
-                session.execute(
-                    """
-                    INSERT INTO audit_events (
-                        event_id, tenant_id, request_id, action,
-                        payload_type, metadata_json, created_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
-                    """,
-                    (
-                        str(uuid4()), event.tenant_id, event.request_id, event.action,
-                        event.payload_type,
-                        json.dumps(event.metadata, separators=(",", ":"), sort_keys=True),
-                        event.created_at,
-                    ),
-                )
+            self.repository.record_event(
+                tenant_id=event.tenant_id,
+                event_id=str(uuid4()),
+                request_id=event.request_id,
+                action=event.action,
+                payload_type=event.payload_type,
+                metadata_json=json.dumps(event.metadata, separators=(",", ":"), sort_keys=True),
+                created_at=event.created_at,
+            )
             self.events.append(event)
 
     def query(self, tenant_id: str, request_id: str | None = None) -> list[AuditEvent]:
-        query = """
-            SELECT request_id, tenant_id, action, payload_type, metadata_json, created_at
-            FROM audit_events
-            WHERE tenant_id = ?
-        """
-        params: tuple[str, ...] = (tenant_id,)
-        if request_id:
-            query += " AND request_id = ?"
-            params += (request_id,)
-        query += " ORDER BY created_at ASC"
         with self._lock:
-            with self.database.tenant_context(tenant_id) as session:
-                rows = session.execute(query, params)
+            rows = self.repository.query_events(tenant_id, request_id)
         return [self._from_row(row) for row in rows]
 
     @staticmethod
@@ -85,10 +74,7 @@ class AuditStore:
     def clear(self) -> None:
         with self._lock:
             self.events.clear()
-            if self.database.is_postgres:
-                return
-            with self.database.tenant_context("local-test") as session:
-                session.execute("DELETE FROM audit_events")
+            self.repository.clear()
 
 
 audit_store = AuditStore()

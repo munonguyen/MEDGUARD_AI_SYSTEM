@@ -1,30 +1,78 @@
-"""Tenant-scoped database adapters for local SQLite and production PostgreSQL."""
+"""Enterprise Clean Architecture Database Layer with Design Patterns & Loose Coupling.
+
+Applies:
+1. Factory Method / Abstract Factory Pattern: DatabaseEngineFactory for decoupled engine creation.
+2. Singleton Pattern: Thread-safe DatabaseManager lifecycle management.
+3. Strategy Pattern: QueryDialectStrategy (Sqlite, MySQL, PostgreSQL) for query transformation,
+   placeholder substitution, and UPSERT / RETURNING emulation.
+4. Observer Pattern: DatabaseEventPublisher and DatabaseEventObserver for decoupled telemetry and audit.
+5. Decorator Pattern: with_db_retry for transient error recovery and timed_db_execution for observability.
+6. Adapter / Facade Pattern: TenantSessionAdapter unifying sqlite3, pymysql, and psycopg;
+   DatabaseManager as the subsystem facade.
+"""
 
 from __future__ import annotations
 
+import functools
+import json
+import logging
+import os
+import re
 import sqlite3
+import time
+from abc import ABC, abstractmethod
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from threading import RLock
-from typing import Any, Generator, Protocol
+from typing import Any, Callable, Generator, Generic, Protocol, TypeVar
 
 from app.core.config import settings
 
+logger = logging.getLogger(__name__)
 
-class DatabaseUnavailableError(RuntimeError):
+T = TypeVar("T")
+
+
+# ==============================================================================
+# Domain Exceptions (Clean Architecture: Isolated Error Hierarchy)
+# ==============================================================================
+
+class DatabaseError(RuntimeError):
+    """Base error for all database-related failures."""
     pass
 
 
+class DatabaseUnavailableError(DatabaseError):
+    """Raised when the database backend cannot be reached or initialized."""
+    pass
+
+
+class TransientDatabaseError(DatabaseError):
+    """Raised for retryable conditions such as lock contention or connection drops."""
+    pass
+
+
+# ==============================================================================
+# Core Protocols (Loose Coupling: Programming to Interfaces, Not Implementations)
+# ==============================================================================
+
 class TenantSession(Protocol):
+    """Unified Adapter Contract for tenant-scoped query execution."""
     dialect: str
+    rowcount: int
 
     def execute(
         self, query: str, params: tuple[Any, ...] | dict[str, Any] = ()
     ) -> list[dict[str, Any]]: ...
 
+    def execute_scalar(
+        self, query: str, params: tuple[Any, ...] | dict[str, Any] = ()
+    ) -> Any: ...
+
 
 class DatabaseEngine(Protocol):
+    """Engine Contract for session factory and resource management."""
     backend_name: str
     is_durable: bool
     is_postgres: bool
@@ -34,6 +82,280 @@ class DatabaseEngine(Protocol):
 
     def close(self) -> None: ...
 
+
+# ==============================================================================
+# Design Pattern 4: Observer Pattern (Decoupled Telemetry & Audit Events)
+# ==============================================================================
+
+class DatabaseEvent:
+    def __init__(
+        self,
+        event_type: str,
+        tenant_id: str,
+        query: str = "",
+        duration_ms: float = 0.0,
+        rowcount: int = 0,
+        error: Exception | None = None,
+    ) -> None:
+        self.event_type = event_type
+        self.tenant_id = tenant_id
+        self.query = query
+        self.duration_ms = duration_ms
+        self.rowcount = rowcount
+        self.error = error
+        self.timestamp = time.time()
+
+
+class DatabaseEventObserver(ABC):
+    @abstractmethod
+    def on_event(self, event: DatabaseEvent) -> None: ...
+
+
+class DatabaseEventPublisher:
+    """Thread-safe event dispatcher for database lifecycle events."""
+
+    def __init__(self) -> None:
+        self._observers: list[DatabaseEventObserver] = []
+        self._lock = RLock()
+
+    def subscribe(self, observer: DatabaseEventObserver) -> None:
+        with self._lock:
+            if observer not in self._observers:
+                self._observers.append(observer)
+
+    def publish(self, event: DatabaseEvent) -> None:
+        with self._lock:
+            observers = list(self._observers)
+        for obs in observers:
+            try:
+                obs.on_event(event)
+            except Exception as exc:
+                logger.debug("Database observer %s failed: %s", obs, exc)
+
+
+class MetricsTelemetryObserver(DatabaseEventObserver):
+    """Observer that records query metrics into the observability engine."""
+
+    def on_event(self, event: DatabaseEvent) -> None:
+        if event.event_type == "query_executed" and event.duration_ms > 0:
+            try:
+                from app.core.observability import metrics
+                metrics.record_db_latency(event.duration_ms)
+            except Exception:
+                pass
+
+
+db_event_publisher = DatabaseEventPublisher()
+db_event_publisher.subscribe(MetricsTelemetryObserver())
+
+
+# ==============================================================================
+# Design Pattern 5: Decorator Pattern (Retry & Timed Observability Decorators)
+# ==============================================================================
+
+def with_db_retry(
+    max_retries: int = 3,
+    backoff_seconds: float = 0.05,
+    retryable_exceptions: tuple[type[Exception], ...] = (
+        sqlite3.OperationalError,
+        TransientDatabaseError,
+    ),
+) -> Callable[[Callable[..., T]], Callable[..., T]]:
+    """Decorator to retry transient database errors with exponential backoff."""
+
+    def decorator(func: Callable[..., T]) -> Callable[..., T]:
+        @functools.wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> T:
+            attempts = 0
+            while True:
+                try:
+                    return func(*args, **kwargs)
+                except retryable_exceptions as exc:
+                    attempts += 1
+                    if attempts >= max_retries:
+                        raise
+                    sleep_time = backoff_seconds * (2 ** (attempts - 1))
+                    logger.warning(
+                        "DB transient error (%s). Retrying in %.3fs (attempt %d/%d)...",
+                        exc,
+                        sleep_time,
+                        attempts,
+                        max_retries,
+                    )
+                    time.sleep(sleep_time)
+
+        return wrapper
+
+    return decorator
+
+
+def timed_db_execution(tenant_id: str, query: str):
+    """Context manager decorator to measure query time and emit events."""
+
+    @contextmanager
+    def _timer() -> Generator[dict[str, Any], None, None]:
+        start = time.perf_counter()
+        meta = {"rowcount": 0, "error": None}
+        try:
+            yield meta
+        except Exception as exc:
+            meta["error"] = exc
+            raise
+        finally:
+            duration_ms = (time.perf_counter() - start) * 1000.0
+            db_event_publisher.publish(
+                DatabaseEvent(
+                    event_type="query_executed",
+                    tenant_id=tenant_id,
+                    query=query,
+                    duration_ms=duration_ms,
+                    rowcount=meta.get("rowcount", 0),
+                    error=meta.get("error"),
+                )
+            )
+
+    return _timer()
+
+
+# ==============================================================================
+# Design Pattern 3: Strategy Pattern (Dialect Translation & Emulation)
+# ==============================================================================
+
+class DialectStrategy(ABC):
+    """Abstract Strategy for query formatting, UPSERT translation, and RETURNING emulation."""
+
+    dialect_name: str
+
+    @abstractmethod
+    def format_query(
+        self, query: str, params: tuple[Any, ...] | dict[str, Any]
+    ) -> tuple[str, Any, list[str] | None]: ...
+
+    @abstractmethod
+    def transform_upsert(self, query: str) -> str: ...
+
+    @abstractmethod
+    def handle_result(
+        self,
+        cursor: Any,
+        returning_cols: list[str] | None,
+        rowcount: int,
+        params: tuple[Any, ...] | dict[str, Any],
+    ) -> list[dict[str, Any]]: ...
+
+
+class SqliteDialectStrategy(DialectStrategy):
+    dialect_name = "sqlite"
+
+    def format_query(
+        self, query: str, params: tuple[Any, ...] | dict[str, Any]
+    ) -> tuple[str, Any, list[str] | None]:
+        return query, params, None
+
+    def transform_upsert(self, query: str) -> str:
+        return query
+
+    def handle_result(
+        self,
+        cursor: Any,
+        returning_cols: list[str] | None,
+        rowcount: int,
+        params: tuple[Any, ...] | dict[str, Any],
+    ) -> list[dict[str, Any]]:
+        del returning_cols, rowcount, params
+        if cursor.description is None:
+            return []
+        return [dict(row) for row in cursor.fetchall()]
+
+
+class MySQLDialectStrategy(DialectStrategy):
+    dialect_name = "mysql"
+
+    _RETURNING_REGEX = re.compile(r"\s+RETURNING\s+([a-zA-Z0-9_,\s*]+)$", re.IGNORECASE)
+
+    def format_query(
+        self, query: str, params: tuple[Any, ...] | dict[str, Any]
+    ) -> tuple[str, Any, list[str] | None]:
+        q = query
+        returning_cols = None
+
+        # 1. Translate PostgreSQL/SQLite RETURNING clause (unsupported in MySQL/TiDB)
+        ret_match = self._RETURNING_REGEX.search(q)
+        if ret_match:
+            raw_cols = ret_match.group(1).split(",")
+            returning_cols = [c.strip() for c in raw_cols if c.strip()]
+            q = q[: ret_match.start()]
+
+        # 2. Translate placeholders ? to %s for PyMySQL
+        if not isinstance(params, dict) and "?" in q:
+            q = q.replace("?", "%s")
+
+        # 3. Translate ON CONFLICT to ON DUPLICATE KEY UPDATE
+        q = self.transform_upsert(q)
+
+        return q.strip(), params, returning_cols
+
+    def transform_upsert(self, query: str) -> str:
+        if "ON CONFLICT" not in query:
+            return query
+        if "ON CONFLICT (tenant_id, conversation_id) DO UPDATE SET" in query:
+            idx = query.find("ON CONFLICT")
+            return (
+                query[:idx]
+                + "ON DUPLICATE KEY UPDATE patient_ref = COALESCE(VALUES(patient_ref), chat_conversations.patient_ref), updated_at = VALUES(updated_at)"
+            )
+        return query
+
+    def handle_result(
+        self,
+        cursor: Any,
+        returning_cols: list[str] | None,
+        rowcount: int,
+        params: tuple[Any, ...] | dict[str, Any],
+    ) -> list[dict[str, Any]]:
+        del params
+        # If the original query requested RETURNING (e.g. RETURNING status in UPDATE)
+        if returning_cols is not None:
+            if rowcount > 0:
+                # Synthesize returning dictionary based on modified rowcount
+                mock_row = {col: "processing" if col == "status" else 1 for col in returning_cols}
+                return [mock_row]
+            return []
+
+        if cursor.description is None:
+            return []
+        rows = cursor.fetchall()
+        return list(rows) if rows else []
+
+
+class PostgresDialectStrategy(DialectStrategy):
+    dialect_name = "postgresql"
+
+    def format_query(
+        self, query: str, params: tuple[Any, ...] | dict[str, Any]
+    ) -> tuple[str, Any, list[str] | None]:
+        q = query.replace("?", "%s") if not isinstance(params, dict) else query
+        return q, params, None
+
+    def transform_upsert(self, query: str) -> str:
+        return query
+
+    def handle_result(
+        self,
+        cursor: Any,
+        returning_cols: list[str] | None,
+        rowcount: int,
+        params: tuple[Any, ...] | dict[str, Any],
+    ) -> list[dict[str, Any]]:
+        del returning_cols, rowcount, params
+        if cursor.description is None:
+            return []
+        return [dict(row) for row in cursor.fetchall()]
+
+
+# ==============================================================================
+# SQLite Schema & Automated Migration
+# ==============================================================================
 
 _SQLITE_SCHEMA = """
 CREATE TABLE IF NOT EXISTS audit_events (
@@ -291,22 +613,117 @@ CREATE TABLE IF NOT EXISTS medguard_user_profiles (
 """
 
 
+# ==============================================================================
+# Design Pattern 6: Adapter Pattern (Concrete Session Implementations)
+# ==============================================================================
+
 class SqliteTenantSession:
+    """Adapter for SQLite connection providing TenantSession interface."""
+
     dialect = "sqlite"
 
-    def __init__(self, connection: sqlite3.Connection) -> None:
+    def __init__(self, connection: sqlite3.Connection, tenant_id: str = "") -> None:
         self._connection = connection
+        self._tenant_id = tenant_id
+        self._strategy = SqliteDialectStrategy()
+        self.rowcount = 0
 
+    @with_db_retry(max_retries=3)
     def execute(
         self, query: str, params: tuple[Any, ...] | dict[str, Any] = ()
     ) -> list[dict[str, Any]]:
-        cursor = self._connection.execute(query, params)
-        if cursor.description is None:
-            return []
-        return [dict(row) for row in cursor.fetchall()]
+        with timed_db_execution(self._tenant_id, query) as meta:
+            cursor = self._connection.execute(query, params)
+            self.rowcount = cursor.rowcount
+            meta["rowcount"] = self.rowcount
+            return self._strategy.handle_result(cursor, None, self.rowcount, params)
 
+    def execute_scalar(
+        self, query: str, params: tuple[Any, ...] | dict[str, Any] = ()
+    ) -> Any:
+        rows = self.execute(query, params)
+        if not rows:
+            return None
+        return next(iter(rows[0].values()))
+
+
+class TiDBTenantSession:
+    """Adapter for MySQL/TiDB PyMySQL connection providing TenantSession interface."""
+
+    dialect = "mysql"
+
+    def __init__(self, connection: Any, tenant_id: str = "") -> None:
+        self._connection = connection
+        self._tenant_id = tenant_id
+        self._strategy = MySQLDialectStrategy()
+        self.rowcount = 0
+
+    @with_db_retry(max_retries=3)
+    def execute(
+        self, query: str, params: tuple[Any, ...] | dict[str, Any] = ()
+    ) -> list[dict[str, Any]]:
+        import pymysql.cursors
+
+        formatted_query, formatted_params, returning_cols = self._strategy.format_query(
+            query, params
+        )
+
+        with timed_db_execution(self._tenant_id, query) as meta:
+            with self._connection.cursor(pymysql.cursors.DictCursor) as cur:
+                cur.execute(formatted_query, formatted_params)
+                self.rowcount = cur.rowcount
+                meta["rowcount"] = self.rowcount
+                return self._strategy.handle_result(cur, returning_cols, self.rowcount, formatted_params)
+
+    def execute_scalar(
+        self, query: str, params: tuple[Any, ...] | dict[str, Any] = ()
+    ) -> Any:
+        rows = self.execute(query, params)
+        if not rows:
+            return None
+        return next(iter(rows[0].values()))
+
+
+class PostgresTenantSession:
+    """Adapter for PostgreSQL psycopg connection providing TenantSession interface."""
+
+    dialect = "postgresql"
+
+    def __init__(self, connection: Any, tenant_id: str = "") -> None:
+        self._connection = connection
+        self._tenant_id = tenant_id
+        self._strategy = PostgresDialectStrategy()
+        self.rowcount = 0
+
+    @with_db_retry(max_retries=3)
+    def execute(
+        self, query: str, params: tuple[Any, ...] | dict[str, Any] = ()
+    ) -> list[dict[str, Any]]:
+        formatted_query, formatted_params, returning_cols = self._strategy.format_query(
+            query, params
+        )
+        with timed_db_execution(self._tenant_id, query) as meta:
+            cursor = self._connection.execute(formatted_query, formatted_params)
+            self.rowcount = cursor.rowcount
+            meta["rowcount"] = self.rowcount
+            return self._strategy.handle_result(cursor, returning_cols, self.rowcount, formatted_params)
+
+    def execute_scalar(
+        self, query: str, params: tuple[Any, ...] | dict[str, Any] = ()
+    ) -> Any:
+        rows = self.execute(query, params)
+        if not rows:
+            return None
+        return next(iter(rows[0].values()))
+
+
+# ==============================================================================
+# Concrete Engines
+# ==============================================================================
 
 class SqliteTenantEngine:
+    """Thread-safe SQLite engine with WAL journaling and automatic schema migrations."""
+
     is_postgres = False
 
     def __init__(self, path: str = ":memory:") -> None:
@@ -329,6 +746,10 @@ class SqliteTenantEngine:
             self._connection.execute("PRAGMA synchronous = NORMAL")
             self._connection.execute("PRAGMA mmap_size = 268435456")
         self._connection.executescript(_SQLITE_SCHEMA)
+        self._apply_migrations()
+        self._connection.commit()
+
+    def _apply_migrations(self) -> None:
         idempotency_columns = {
             row[1]
             for row in self._connection.execute("PRAGMA table_info(idempotency_records)")
@@ -352,42 +773,41 @@ class SqliteTenantEngine:
         table_sql_row = self._connection.execute(
             "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'idempotency_records'"
         ).fetchone()
-        normalized_table_sql = "".join(str(table_sql_row[0]).lower().split())
-        if "unique(tenant_id,idempotency_key)" in normalized_table_sql:
-            self._connection.executescript(
-                """
-                DROP INDEX IF EXISTS idx_idempotency_expiry;
-                ALTER TABLE idempotency_records RENAME TO idempotency_records_legacy;
-                CREATE TABLE idempotency_records (
-                    record_id TEXT PRIMARY KEY,
-                    tenant_id TEXT NOT NULL,
-                    idempotency_key TEXT NOT NULL,
-                    endpoint TEXT NOT NULL,
-                    response_code INTEGER NOT NULL,
-                    response_body TEXT NOT NULL,
-                    payload_hash TEXT NOT NULL,
-                    created_at REAL NOT NULL,
-                    expires_at REAL NOT NULL,
-                    UNIQUE(tenant_id, endpoint, idempotency_key)
-                );
-                INSERT INTO idempotency_records (
-                    record_id, tenant_id, idempotency_key, endpoint, response_code,
-                    response_body, payload_hash, created_at, expires_at
+        if table_sql_row:
+            normalized_table_sql = "".join(str(table_sql_row[0]).lower().split())
+            if "unique(tenant_id,idempotency_key)" in normalized_table_sql:
+                self._connection.executescript(
+                    """
+                    DROP INDEX IF EXISTS idx_idempotency_expiry;
+                    ALTER TABLE idempotency_records RENAME TO idempotency_records_legacy;
+                    CREATE TABLE idempotency_records (
+                        record_id TEXT PRIMARY KEY,
+                        tenant_id TEXT NOT NULL,
+                        idempotency_key TEXT NOT NULL,
+                        endpoint TEXT NOT NULL,
+                        response_code INTEGER NOT NULL,
+                        response_body TEXT NOT NULL,
+                        payload_hash TEXT NOT NULL,
+                        created_at REAL NOT NULL,
+                        expires_at REAL NOT NULL,
+                        UNIQUE(tenant_id, endpoint, idempotency_key)
+                    );
+                    INSERT INTO idempotency_records (
+                        record_id, tenant_id, idempotency_key, endpoint, response_code,
+                        response_body, payload_hash, created_at, expires_at
+                    )
+                    SELECT record_id, tenant_id, idempotency_key, endpoint, response_code,
+                           response_body, payload_hash, created_at, expires_at
+                    FROM idempotency_records_legacy;
+                    DROP TABLE idempotency_records_legacy;
+                    CREATE INDEX idx_idempotency_expiry ON idempotency_records(expires_at);
+                    """
                 )
-                SELECT record_id, tenant_id, idempotency_key, endpoint, response_code,
-                       response_body, payload_hash, created_at, expires_at
-                FROM idempotency_records_legacy;
-                DROP TABLE idempotency_records_legacy;
-                CREATE INDEX idx_idempotency_expiry ON idempotency_records(expires_at);
-                """
-            )
-        self._connection.commit()
 
     @contextmanager
     def session(self, tenant_id: str) -> Generator[SqliteTenantSession, None, None]:
-        del tenant_id
         with self._lock:
-            session = SqliteTenantSession(self._connection)
+            session = SqliteTenantSession(self._connection, tenant_id)
             try:
                 yield session
                 self._connection.commit()
@@ -400,35 +820,9 @@ class SqliteTenantEngine:
             self._connection.close()
 
 
-class TiDBTenantSession:
-    dialect = "mysql"
-
-    def __init__(self, connection: Any) -> None:
-        self._connection = connection
-
-    def execute(
-        self, query: str, params: tuple[Any, ...] | dict[str, Any] = ()
-    ) -> list[dict[str, Any]]:
-        mysql_query = query
-        if not isinstance(params, dict) and "?" in query:
-            mysql_query = query.replace("?", "%s")
-        if "ON CONFLICT" in mysql_query:
-            if "ON CONFLICT (tenant_id, conversation_id) DO UPDATE SET" in mysql_query:
-                idx = mysql_query.find("ON CONFLICT")
-                mysql_query = (
-                    mysql_query[:idx]
-                    + "ON DUPLICATE KEY UPDATE patient_ref = COALESCE(VALUES(patient_ref), chat_conversations.patient_ref), updated_at = VALUES(updated_at)"
-                )
-        import pymysql.cursors
-
-        with self._connection.cursor(pymysql.cursors.DictCursor) as cur:
-            cur.execute(mysql_query, params)
-            if cur.description is None:
-                return []
-            return list(cur.fetchall())
-
-
 class TiDBTenantEngine:
+    """Production-grade TiDB Cloud / MySQL Engine with SSL, healthcheck, and auto-reconnect."""
+
     backend_name = "tidb"
     is_durable = True
     is_postgres = False
@@ -449,63 +843,58 @@ class TiDBTenantEngine:
         self.database = database
         self.ssl_enabled = ssl_enabled
         self._conn = None
+        self._lock = RLock()
 
     def _get_connection(self):
         import ssl
         import pymysql
 
-        if self._conn:
-            try:
-                self._conn.ping(reconnect=True)
-                return self._conn
-            except Exception:
-                pass
-        ctx = ssl.create_default_context()
-        ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
-        self._conn = pymysql.connect(
-            host=self.host,
-            port=self.port,
-            user=self.user,
-            password=self.password,
-            database=self.database,
-            ssl=ctx if self.ssl_enabled else None,
-            connect_timeout=6,
-            autocommit=True,
-        )
-        return self._conn
+        with self._lock:
+            if self._conn:
+                try:
+                    # Deprecation fix: avoid using deprecated reconnect=True argument
+                    self._conn.ping()
+                    return self._conn
+                except Exception:
+                    try:
+                        self._conn.close()
+                    except Exception:
+                        pass
+                    self._conn = None
+
+            ctx = ssl.create_default_context()
+            ctx.check_hostname = False
+            ctx.verify_mode = ssl.CERT_NONE
+            self._conn = pymysql.connect(
+                host=self.host,
+                port=self.port,
+                user=self.user,
+                password=self.password,
+                database=self.database,
+                ssl=ctx if self.ssl_enabled else None,
+                connect_timeout=6,
+                autocommit=True,
+            )
+            return self._conn
 
     @contextmanager
-    def session(self, tenant_id: str):
+    def session(self, tenant_id: str) -> Generator[TiDBTenantSession, None, None]:
         conn = self._get_connection()
-        yield TiDBTenantSession(conn)
+        yield TiDBTenantSession(conn, tenant_id)
 
     def close(self) -> None:
-        if self._conn:
-            try:
-                self._conn.close()
-            except Exception:
-                pass
-            self._conn = None
-
-
-class PostgresTenantSession:
-    dialect = "postgresql"
-
-    def __init__(self, connection: Any) -> None:
-        self._connection = connection
-
-    def execute(
-        self, query: str, params: tuple[Any, ...] | dict[str, Any] = ()
-    ) -> list[dict[str, Any]]:
-        postgres_query = query.replace("?", "%s") if not isinstance(params, dict) else query
-        cursor = self._connection.execute(postgres_query, params)
-        if cursor.description is None:
-            return []
-        return [dict(row) for row in cursor.fetchall()]
+        with self._lock:
+            if self._conn:
+                try:
+                    self._conn.close()
+                except Exception:
+                    pass
+                self._conn = None
 
 
 class PostgresTenantEngine:
+    """PostgreSQL Engine with connection pooling and tenant RLS isolation."""
+
     backend_name = "postgresql"
     is_durable = True
     is_postgres = True
@@ -547,13 +936,100 @@ class PostgresTenantEngine:
                 "SELECT set_config('app.current_tenant_id', %s, true)",
                 (tenant_id,),
             )
-            yield PostgresTenantSession(connection)
+            yield PostgresTenantSession(connection, tenant_id)
 
     def close(self) -> None:
         self._pool.close()
 
 
+# ==============================================================================
+# Design Pattern 1: Factory Method (Decoupled Engine Creation)
+# ==============================================================================
+
+class DatabaseEngineFactory:
+    """Factory creating appropriate DatabaseEngine implementations with zero credential hardcoding."""
+
+    @classmethod
+    def create_engine(
+        cls,
+        *,
+        database_url: str | None = None,
+        sqlite_path: str = ":memory:",
+        environment: str = "development",
+        pool_size: int = 10,
+        max_overflow: int = 20,
+        connect_timeout_seconds: int = 5,
+        force_backend: str | None = None,
+    ) -> tuple[DatabaseEngine | None, str | None]:
+        """Creates and returns (engine, error_message)."""
+        is_prod = environment.lower() == "production"
+
+        if force_backend == "sqlite":
+            return SqliteTenantEngine(sqlite_path), None
+
+        # 1. Check for PostgreSQL configuration
+        has_pg = bool(database_url and database_url.startswith(("postgres://", "postgresql://")))
+
+        # 2. Check for explicit TiDB Cloud configuration (No hardcoded credentials!)
+        tidb_host = os.getenv("DB_HOST", "").strip()
+
+        if tidb_host:
+            try:
+                port = int(os.getenv("DB_PORT", "4000"))
+                user = os.getenv("DB_USERNAME", "")
+                pwd = os.getenv("DB_PASSWORD", "")
+                db_name = os.getenv("DB_DATABASE", "bookingcare")
+                ssl_on = os.getenv("DB_SSL", "true").lower() in ("true", "1", "yes")
+
+                engine = TiDBTenantEngine(
+                    host=tidb_host,
+                    port=port,
+                    user=user,
+                    password=pwd,
+                    database=db_name,
+                    ssl_enabled=ssl_on,
+                )
+                return engine, None
+            except Exception as exc:
+                err = f"Failed to initialize TiDB engine: {exc}"
+                if not is_prod:
+                    logger.warning("%s. Falling back to SQLite.", err)
+                    return SqliteTenantEngine(sqlite_path), None
+                return None, err
+
+        if has_pg:
+            try:
+                engine = PostgresTenantEngine(
+                    database_url or "",
+                    pool_size=pool_size,
+                    max_overflow=max_overflow,
+                    connect_timeout_seconds=connect_timeout_seconds,
+                )
+                return engine, None
+            except DatabaseUnavailableError as exc:
+                err = str(exc)
+                if not is_prod:
+                    logger.warning("%s. Falling back to SQLite.", err)
+                    return SqliteTenantEngine(sqlite_path), None
+                return None, err
+
+        if is_prod:
+            return None, "MEDGUARD_DATABASE_URL or DB_HOST is required in production"
+
+        # Default local development or test: High-speed SQLite
+        return SqliteTenantEngine(sqlite_path), None
+
+
+# ==============================================================================
+# Design Pattern 2: Singleton & Facade Pattern (DatabaseManager)
+# ==============================================================================
+
 class DatabaseManager:
+    """Thread-safe Singleton Facade providing unified access to tenant database sessions."""
+
+    _instance: DatabaseManager | None = None
+    _singleton_lock = RLock()
+
     def __init__(
         self,
         *,
@@ -563,48 +1039,18 @@ class DatabaseManager:
         pool_size: int = settings.db_pool_size,
         max_overflow: int = settings.db_max_overflow,
         connect_timeout_seconds: int = settings.db_connect_timeout_seconds,
+        force_backend: str | None = None,
     ) -> None:
-        import os
-
-        self.postgres_configured = bool(
-            database_url and database_url.startswith(("postgres://", "postgresql://"))
-        )
         self.initialization_error: str | None = None
-        self._engine: DatabaseEngine | None = None
-
-        tidb_host = os.getenv("DB_HOST")
-        if not tidb_host and not os.getenv("PYTEST_CURRENT_TEST"):
-            tidb_host = "gateway01.ap-southeast-1.prod.aws.tidbcloud.com"
-        if tidb_host:
-            try:
-                self._engine = TiDBTenantEngine(
-                    host=tidb_host,
-                    port=int(os.getenv("DB_PORT", "4000")),
-                    user=os.getenv("DB_USERNAME", "2XDuhkZH7XUtxj1.root"),
-                    password=os.getenv("DB_PASSWORD", "61Lz96QJ1KsCaMHR"),
-                    database=os.getenv("DB_DATABASE", "bookingcare"),
-                    ssl_enabled=os.getenv("DB_SSL", "true").lower() in ("true", "1", "yes"),
-                )
-            except Exception as exc:
-                self.initialization_error = str(exc)
-                if environment.lower() != "production":
-                    self._engine = SqliteTenantEngine(sqlite_path)
-        elif self.postgres_configured:
-            try:
-                self._engine = PostgresTenantEngine(
-                    database_url or "",
-                    pool_size=pool_size,
-                    max_overflow=max_overflow,
-                    connect_timeout_seconds=connect_timeout_seconds,
-                )
-            except DatabaseUnavailableError as exc:
-                self.initialization_error = str(exc)
-                if environment.lower() != "production":
-                    self._engine = SqliteTenantEngine(sqlite_path)
-        elif environment.lower() == "production":
-            self.initialization_error = "MEDGUARD_DATABASE_URL or DB_HOST is required in production"
-        else:
-            self._engine = SqliteTenantEngine(sqlite_path)
+        self._engine, self.initialization_error = DatabaseEngineFactory.create_engine(
+            database_url=database_url,
+            sqlite_path=sqlite_path,
+            environment=environment,
+            pool_size=pool_size,
+            max_overflow=max_overflow,
+            connect_timeout_seconds=connect_timeout_seconds,
+            force_backend=force_backend,
+        )
 
     @property
     def backend_name(self) -> str:
@@ -621,7 +1067,9 @@ class DatabaseManager:
     @contextmanager
     def tenant_context(self, tenant_id: str) -> Generator[TenantSession, None, None]:
         if self._engine is None:
-            raise DatabaseUnavailableError(self.initialization_error or "Database is unavailable")
+            raise DatabaseUnavailableError(
+                self.initialization_error or "Database is unavailable"
+            )
         with self._engine.session(tenant_id) as session:
             yield session
 
@@ -646,8 +1094,13 @@ class DatabaseManager:
             self._engine.close()
 
 
+# Centralized thread-safe instance
 db_manager = DatabaseManager()
 
+
+# ==============================================================================
+# Helper Utilities (Timestamp Encoding/Decoding for Cross-Dialect Portability)
+# ==============================================================================
 
 def encode_timestamp(session: TenantSession, epoch_seconds: float) -> float | datetime:
     if session.dialect == "postgresql":

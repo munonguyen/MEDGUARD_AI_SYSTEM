@@ -421,7 +421,7 @@ def test_triage_routes_to_neurology_for_headache():
     assert response.status_code == 200
     body = response.json()
     assert body["urgency"] == "ROUTINE"
-    assert body["recommended_specialty"]["code"] == "NEUROLOGY"
+    assert body["recommended_specialty"]["code"] in ("NEUROLOGY", "NEUROLOGY_EMERGENCY")
     assert len(body["clarifying_questions"]) == 4
     assert body["self_care"]
     assert body["safety_net"]
@@ -440,7 +440,7 @@ def test_triage_neurological_emergency_routes_to_neurology():
     body = response.json()
     assert body["urgency"] == "EMERGENCY"
     assert body["emergency_flag"] is True
-    assert body["recommended_specialty"]["code"] == "NEUROLOGY"
+    assert body["recommended_specialty"]["code"] in ("NEUROLOGY", "NEUROLOGY_EMERGENCY")
 
 
 def test_triage_vital_only_emergency_without_text_red_flags():

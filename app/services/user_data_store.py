@@ -9,28 +9,25 @@ from typing import Any
 from uuid import uuid4
 
 from app.core.database import DatabaseManager, db_manager
+from app.core.repository import UserSpendingRepository, HealthTwinRepository, spending_repository, health_twin_repository
 
 
 class UserDataStore:
-    def __init__(self, database: DatabaseManager = db_manager) -> None:
+    def __init__(
+        self,
+        database: DatabaseManager = db_manager,
+        spending_repo: UserSpendingRepository | None = None,
+        twin_repo: HealthTwinRepository | None = None,
+    ) -> None:
         self.database = database
+        self.spending_repo = spending_repo or UserSpendingRepository(database)
+        self.twin_repo = twin_repo or HealthTwinRepository(database)
 
     # -------------------------------------------------------------
     # User Spending Transactions
     # -------------------------------------------------------------
     def get_spending(self, tenant_id: str, user_id: str) -> list[dict[str, Any]]:
-        with self.database.tenant_context(tenant_id) as session:
-            rows = session.execute(
-                """
-                SELECT id, user_id, title, amount_vnd, category, provider, doctor,
-                       bhyt_covered_vnd, is_gpp, raw_date, created_at
-                FROM user_spending
-                WHERE user_id = ?
-                ORDER BY created_at DESC
-                """,
-                (user_id,),
-            )
-            return rows or []
+        return self.spending_repo.get_user_transactions(tenant_id, user_id)
 
     def add_spending(
         self,
@@ -45,44 +42,18 @@ class UserDataStore:
         is_gpp: bool = True,
         raw_date: str = "",
     ) -> dict[str, Any]:
-        tx_id = f"tx_{uuid4().hex[:12]}"
-        now = time.time()
-        raw_date = raw_date or time.strftime("%Y-%m-%d")
-        with self.database.tenant_context(tenant_id) as session:
-            session.execute(
-                """
-                INSERT INTO user_spending (
-                    id, user_id, title, amount_vnd, category, provider, doctor,
-                    bhyt_covered_vnd, is_gpp, raw_date, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    tx_id,
-                    user_id,
-                    title,
-                    int(amount_vnd),
-                    category,
-                    provider,
-                    doctor,
-                    int(bhyt_covered_vnd),
-                    1 if is_gpp else 0,
-                    raw_date,
-                    now,
-                ),
-            )
-        return {
-            "id": tx_id,
-            "user_id": user_id,
-            "title": title,
-            "amount_vnd": int(amount_vnd),
-            "category": category,
-            "provider": provider,
-            "doctor": doctor,
-            "bhyt_covered_vnd": int(bhyt_covered_vnd),
-            "is_gpp": bool(is_gpp),
-            "raw_date": raw_date,
-            "created_at": now,
-        }
+        return self.spending_repo.add_transaction(
+            tenant_id=tenant_id,
+            user_id=user_id,
+            title=title,
+            amount_vnd=int(amount_vnd),
+            category=category,
+            provider=provider,
+            doctor=doctor,
+            bhyt_covered_vnd=int(bhyt_covered_vnd),
+            is_gpp=is_gpp,
+            raw_date=raw_date,
+        )
 
     def delete_spending(self, tenant_id: str, user_id: str, tx_id: str) -> bool:
         with self.database.tenant_context(tenant_id) as session:

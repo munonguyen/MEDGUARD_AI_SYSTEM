@@ -15,7 +15,8 @@ from app.core.config import settings
 from app.core.context import RequestContext
 from app.core.observability import metrics
 from app.knowledge.loader import knowledge
-from app.models.chat import ChatIntent, ChatRequest, ChatResponse, ChatSuggestion
+from app.models.agents import AgentEvidenceSource
+from app.models.chat import AnswerNarrativeBlock, ChatIntent, ChatRequest, ChatResponse, ChatSuggestion
 from app.models.clinical_task import ClinicalTask
 from app.models.delivery import DeliveryRequest
 from app.models.followup import FollowUpRequest
@@ -496,10 +497,6 @@ def _triage_episode_text(payload: ChatRequest, latest_text: str) -> tuple[str, b
         for message in payload.messages[:-1]
         if message.role == "user" and message.content.strip()
     ]
-    prev_user_text = user_messages[-1] if user_messages else None
-    if should_start_new_episode(latest_text, prev_user_text) or is_explicit_correction(latest_text) or any(marker in normalized_latest for marker in _NEW_CLINICAL_EPISODE_MARKERS):
-        return latest_text, False
-
     if not user_messages:
         return latest_text, False, False
 
@@ -2080,7 +2077,7 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
 
     intent = _detect_intent(payload, normalized)
     if (
-        pre_ood_safety_floor.is_emergency
+        (pre_ood_safety_floor.is_emergency and not _extract_monitoring(latest_text))
         or dual_crisis.emergency_triage_required
     ):
         intent = "triage"
@@ -2242,9 +2239,10 @@ def orchestrate_chat(payload: ChatRequest, ctx: RequestContext) -> ChatResponse:
             msg_facts = parse_semantic_clinical_facts(msg.content)
             ledger.process_turn(t_idx, msg.content, msg_facts)
 
+    has_monitoring_metrics = bool(_extract_monitoring(latest_text))
     latest_concept_norm = normalize_clinical_concepts(normalize_search_text(latest_text))
     has_active_emergency = ledger.has_active_emergency() or bool(_check_red_flag_patterns(latest_concept_norm)) or pre_ood_safety_floor.is_emergency
-    if has_active_emergency and (len(payload.messages) > 1 or intent in ("monitoring", "general", "pharmacy")):
+    if has_active_emergency and not has_monitoring_metrics and (len(payload.messages) > 1 or intent in ("monitoring", "general", "pharmacy")):
         intent = "triage"
     elif intent == "general" and len(payload.messages) > 1 and not is_new_topic:
         # Check if conversation history is an active clinical triage episode

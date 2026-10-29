@@ -26,8 +26,11 @@ def _env_float(name: str, default: float) -> float:
     return default if value is None else float(value)
 
 
-def _is_test_runtime() -> bool:
+def is_test_runtime() -> bool:
     return "pytest" in sys.modules or "PYTEST_CURRENT_TEST" in environ
+
+
+_is_test_runtime = is_test_runtime
 
 
 def _default_agent_mode() -> str:
