@@ -5012,37 +5012,7 @@
   backdrop-filter: blur(8px);
 }
 
-.hero-gmaps-photo-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: #f1f5f9;
-  background: rgba(15, 23, 42, 0.78);
-  border: 1px solid rgba(56, 189, 248, 0.4);
-  padding: 2.5px 8px;
-  border-radius: 6px;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-  letter-spacing: 0.2px;
-}
 
-.gmaps-g-symbol {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  background: #4285f4;
-  color: #ffffff;
-  font-size: 8.5px;
-  font-weight: 900;
-  font-family: system-ui, -apple-system, sans-serif;
-  line-height: 1;
-}
 
 /* Detail Card Body Section */
 .detail-card-body-section {

@@ -21,7 +21,6 @@ _RATE_LIMIT_EXEMPT_PATHS = {
     "/v1/health/readiness",
     "/v1/geo/pois",
     "/v1/geo/route",
-    "/v1/geo/places-photo",
     "/v1/geo/places-reputation",
 }
 _RATE_LIMIT_STATIC_BUCKETS = {

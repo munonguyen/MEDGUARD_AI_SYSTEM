@@ -29,6 +29,29 @@ export function haversineKm(lat1, lng1, lat2, lng2) {
   return 6371 * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
 }
 
+export function resolveAuthenticPoiPhoto(name, role = "pharmacy") {
+  const q = (name || "").toLowerCase();
+  if (q.includes("long châu") || q.includes("long chau") || q.includes("fpt")) {
+    return "/assets/fpt_longchau_storefront.jpg";
+  }
+  if (q.includes("pharmacity")) {
+    return "/assets/pharmacity_storefront.jpg";
+  }
+  if (
+    q.includes("bạch mai") ||
+    q.includes("bach mai") ||
+    role === "emergency" ||
+    q.includes("cấp cứu") ||
+    q.includes("bệnh viện")
+  ) {
+    return "/assets/bachmai_emergency_gate.jpg";
+  }
+  if (role === "clinic" || q.includes("phòng khám") || q.includes("trạm y tế")) {
+    return "/assets/clinic_hero.jpg";
+  }
+  return "/assets/pharmacy_hero.jpg";
+}
+
 export function formatDistanceVi(distanceKm) {
   if (typeof distanceKm !== "number" || Number.isNaN(distanceKm)) return "Cách ~150m";
   if (distanceKm < 1) {
@@ -409,7 +432,7 @@ export async function scanHyperLocalMedicalPois({
       medical_note: cand.medical_note || inferMedicalSpecialtyNote({ ...cand, name: cleanName, role }),
       photo_url:
         cand.photo_url ||
-        `/v1/geo/places-photo?query=${encodeURIComponent(cleanName + " " + (street || ""))}&lat=${cand.lat}&lng=${cand.lng}&place_id=${cand.id || ""}&facility_type=${role}&redirect=true`,
+        resolveAuthenticPoiPhoto(cleanName, role),
       reviews:
         cand.reviews && cand.reviews.length > 0
           ? cand.reviews
