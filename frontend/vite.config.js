@@ -29,6 +29,7 @@ export default defineConfig({
       // Preserve the browser-facing Host so backend Origin/CSRF checks agree.
       '/v1': { target: 'http://127.0.0.1:8000', changeOrigin: false },
       '/metrics': { target: 'http://127.0.0.1:8000', changeOrigin: false },
+      '/models': { target: 'http://127.0.0.1:8000', changeOrigin: false },
     },
   },
   build: {

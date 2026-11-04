@@ -50,7 +50,25 @@ def check_origin(request):
         or origin_clean in {"https://medguard.bookingcare.shop", "https://bookingcare.shop", "https://www.bookingcare.shop"}
     ):
         return
-    if not hmac.compare_digest(origin_clean, expected):
+    allowed = {expected}
+    if os.getenv("MEDGUARD_ENVIRONMENT") != "production":
+        allowed.update({
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://localhost:8000",
+            "http://127.0.0.1:8000",
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+        })
+    extra_allowed = os.getenv("MEDGUARD_ALLOWED_ORIGINS", "")
+    if extra_allowed:
+        for o in extra_allowed.split(","):
+            if o.strip():
+                allowed.add(o.strip().rstrip("/"))
+
+    if not any(hmac.compare_digest(origin_clean, a) for a in allowed):
+        reject("cross_origin_request", 403)
+    if os.getenv("MEDGUARD_ENVIRONMENT") == "production" and request.headers.get("sec-fetch-site") == "cross-site":
         reject("cross_origin_request", 403)
 
 
